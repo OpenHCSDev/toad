@@ -76,16 +76,24 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     await app.submit_editor(parent_view, pilot, comms, 'FORK_PARENT_SEED')
     await until(pilot, lambda: response_painted(app, parent_view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
-    from runtime_fixture import wait_channel_roster
-    from toad.widgets.comms_sidebar import CommsRow
+    from saved_state_user_journey_pilot import reveal_thread_row
+    from toad.widgets.comms_sidebar import ChannelGroup
     from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.comms_fork_dialog import ForkDialog
     from toad.thread_actions import ForkAction
-    sidebar = await wait_channel_roster(app, pilot, "#team")
-    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
-    row.scroll_visible(animate=False, immediate=True)
-    await pilot.pause()
+    row = await reveal_thread_row(app, pilot, 'beta', '#team')
+    group = row.query_ancestor(ChannelGroup)
+    point = row.region.offset
+    hit, _ = app.screen.get_widget_at(*point)
+    evidence = Path(os.environ['L0A_EVIDENCE']) / 'fork-parent-pointer-target.json'
+    receipt = {'target': row.target_name, 'channel': group.row.target_name,
+               'group_expanded': group.expanded, 'row_type': type(row).__name__,
+               'row_region': list(row.region), 'screen_point': list(point),
+               'native_hit_type': type(hit).__name__, 'native_hit_is_original_row': hit is row}
+    evidence.write_text(json.dumps(receipt, indent=2) + '\n')
     assert await pilot.click(row, button=3)
+    receipt.update(pointer_after_click=list(app.mouse_position), screen_after_click=type(app.screen).__name__)
+    evidence.write_text(json.dumps(receipt, indent=2) + '\n')
     await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
     menu_item = next(item for item in app.screen.query(ContextMenuItem)
                      if item.action == ForkAction.declared_name)

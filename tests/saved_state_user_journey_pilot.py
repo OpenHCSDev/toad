@@ -246,7 +246,8 @@ async def submit_editor(pilot, editor, text):
     await pilot.press("enter")
 
 
-async def click_thread(app, pilot, name, channel_name="#team"):
+async def reveal_thread_row(app, pilot, name, channel_name="#team"):
+    """Physically reveal one channel's member before any pointer action."""
     sidebar = await wait_channel_roster(app, pilot, channel_name)
     group = next(group for group in sidebar.query(ChannelGroup)
                  if group.row.target_name == channel_name)
@@ -257,6 +258,14 @@ async def click_thread(app, pilot, name, channel_name="#team"):
     row = next(row for row in group.member_rows if row.target_name == name)
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
+    assert row.is_attached and group.expanded
+    assert app.screen.get_widget_at(*row.region.offset)[0] is row, (
+        'Revealed channel member is not the native pointer target', name, channel_name, row.region)
+    return row
+
+
+async def click_thread(app, pilot, name, channel_name="#team"):
+    row = await reveal_thread_row(app, pilot, name, channel_name)
     previous = app.selected_session
     assert await pilot.click(row), f"Unopened thread {name} was not physically clickable"
     await until(pilot, lambda: app.selected_session is not previous)
