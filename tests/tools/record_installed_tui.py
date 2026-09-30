@@ -359,6 +359,10 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     def review(cls, output, receipt):
         return None
 
+    @classmethod
+    def validate_review(cls, review):
+        """The journey owns required native checks; footage review stays separate."""
+
 
 class ScrollJourney(PhysicalJourney):
     @classmethod
@@ -403,6 +407,12 @@ class WarmScrollJourney(ScrollJourney):
     def review(cls, output, receipt):
         from scroll_observation import review_warm_return
         return review_warm_return(output, receipt, suffix=cls.draft_suffix)
+
+    @classmethod
+    def validate_review(cls, review):
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
 
 
 class SavedTabCloseJourney(PhysicalJourney):
@@ -1045,6 +1055,7 @@ def record(args):
                                          "sha256": digest(output / name)} for name in names}
             if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
                 raise RuntimeError("Empty recording artifact")
+            args.journey.validate_review(receipt["journey_review"])
             receipt["completed"] = True
     except BaseException as error:
         receipt["error"] = f"{type(error).__name__}: {error}"

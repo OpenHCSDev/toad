@@ -106,6 +106,12 @@ input injection, not application paint acknowledgements. Review actual native
 focus and selected mode alongside the frames; process completion alone does not
 establish that scrolling or tab navigation happened.
 
+Warm-scroll acceptance requires both saved histories loaded, a scrollable original
+history, native Window focus during the held-key phases, and actual Up/Down/reverse
+movement. Retaining an error body or an empty view is insufficient. Failed native
+checks leave video/profile/phase artifacts intact but fail the recorder exit.
+Passing them still requires physical footage review before claiming UI readiness.
+
 ```sh
 "$candidate_python" tests/tools/record_installed_tui.py \
   --journey warm_scroll --capture-state --peer-thread ACTUAL-REGISTERED-PEER \
