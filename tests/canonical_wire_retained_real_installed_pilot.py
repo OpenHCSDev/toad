@@ -38,6 +38,27 @@ from l0a_native_installed_pilot import until
 from runtime_fixture import stop_test_children
 
 
+async def capture_lock_custody(root: Path, stop: asyncio.Event, evidence: Path):
+    """Record kernel custody of this fixture's actual admission locks only."""
+    began = time.monotonic()
+    samples = []
+    while not stop.is_set():
+        identities = {}
+        for name in ('wire', 'bus.jsonl', 'registry.json'):
+            path = root / f'.{name}.lock'
+            if path.exists():
+                info = path.stat()
+                identities[f'{os.major(info.st_dev):02x}:{os.minor(info.st_dev):02x}:{info.st_ino}'] = name
+        rows = [line for line in Path('/proc/locks').read_text().splitlines()
+                if any(identity in line.split() for identity in identities)]
+        samples.append({'elapsed': round(time.monotonic() - began, 3), 'locks': rows})
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=0.2)
+        except TimeoutError:
+            pass
+    (evidence / 'kernel-lock-custody.json').write_text(json.dumps(samples, indent=2))
+
+
 async def main():
     assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
     evidence = Path(os.environ['L0A_EVIDENCE'])
@@ -110,6 +131,8 @@ async def main():
         receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                    'source_bytes': source_file.stat().st_size, 'original_inputs_replayed': 0,
                    'completed_phases': []}
+        lock_capture_stop = asyncio.Event()
+        lock_capture = asyncio.create_task(capture_lock_custody(service.root, lock_capture_stop, evidence))
         try:
             async with sender_app.run_test(size=(160, 44)) as sp, \
                        receiver_app.run_test(size=(160, 44)) as rp, \
@@ -211,6 +234,8 @@ async def main():
             (evidence / 'failure.txt').write_text(traceback.format_exc())
             raise
         finally:
+            lock_capture_stop.set()
+            await lock_capture
             profile.disable()
             profile.dump_stats(str(evidence / 'actual-real-retained.prof'))
             (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2))
