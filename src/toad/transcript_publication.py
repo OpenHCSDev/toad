@@ -133,26 +133,27 @@ class SourcePublicationRequests:
 
     def __init__(self, owner: TranscriptPresentation):
         self.owner = owner
-        self.pending: asyncio.Queue[tuple[type[TranscriptPublication], tuple[object, ...]]] = asyncio.Queue(maxsize=1)
+        self.pending: asyncio.Queue[TranscriptPublication] = asyncio.Queue(maxsize=1)
         self.worker: Worker[None] | None = None
 
     def request(self, kind: type[TranscriptPublication], *args: object) -> None:
-        view = self.owner.view
-        if view is None or not view.is_attached:
+        publication = self.owner.capture(kind, *args)
+        if publication is None:
             return
         if self.pending.full():
             self.pending.get_nowait()
-        self.pending.put_nowait((kind, args))
+        self.pending.put_nowait(publication)
         if self.worker is None or self.worker.is_finished:
-            self.worker = view.run_worker(self.publish, group="transcript-source")
+            self.worker = self.owner.view.run_worker(self.publish, group="transcript-source")
 
     async def publish(self) -> None:
         from agent_comms.coordination_errors import StaleRevision
 
         while not self.pending.empty():
-            kind, args = self.pending.get_nowait()
+            publication = self.pending.get_nowait()
             try:
-                await self.owner.publish(kind, *args)
+                if publication.current():
+                    await publication.publish()
             except StaleRevision:
                 # A changed original source declines this request. A subsequent
                 # observation owns the next read; do not spin on page capture.
@@ -398,16 +399,20 @@ class TranscriptPresentation:
             self.invalidate()
             await self.publish(SnapshotPublication, page)
 
-    async def publish(self, kind: type[TranscriptPublication], *args) -> None:
+    def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:
+        """Admit an operation with its original attachment and resource custody."""
         from toad.widgets.conversation import Window, Contents
         view = self.view
         if view is None or not view.is_attached:
-            return
+            return None
         window, contents = view.query_one_optional(Window), view.query_one_optional(Contents)
         if window is None or contents is None:
-            return
-        publication = kind(self, view, window, contents, *args)
-        if publication.current():
+            return None
+        return kind(self, view, window, contents, *args)
+
+    async def publish(self, kind: type[TranscriptPublication], *args) -> None:
+        publication = self.capture(kind, *args)
+        if publication is not None and publication.current():
             await publication.publish()
 
     async def snapshot(self, page: TranscriptPage) -> None:

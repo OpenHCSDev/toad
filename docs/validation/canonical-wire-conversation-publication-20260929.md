@@ -224,3 +224,27 @@ actual user journey passes.
 Evidence: owned scratch `read-custody215-02/receipt.json`,
 `kernel-lock-custody.json`, `holder-stack-leads.json`,
 `read-custody215-02.speedscope.json` and `read-custody215-02.txt`.
+
+## Pending publication retains its original source custody
+
+The pending source queue previously stored a publication class and arguments,
+then constructed its `TranscriptPublication` when draining. A request admitted
+before source invalidation could therefore acquire the replacement attachment's
+generation, agent and mounted resources. The queue now stores the original
+operation captured by the existing presentation owner at request admission.
+Its inherited source/resource fences reject stale work before publication.
+Immediate and queued operations share the same capture mechanism. No separate
+source identity, PID, status, seen registry or current-state mirror was added.
+This change deletes 12 production lines and adds 17.
+
+The existing declaration-family UI journey now blocks one publication, queues
+another, invalidates the source, and releases the first. The reviewed prior
+installed wheel fails because the pending request paints into the replacement
+source. The candidate rejects both original requests and paints a fresh request,
+then verifies cropped rendering and retirement through the actual application.
+Both runs use current installed dependencies; the candidate uses its scoped
+source overlay. No provider input or native protocol acceptance is claimed.
+Evidence: owned scratch `pending-source-baseline.txt` and
+`pending-source-candidate.txt`. Full #215 acceptance still awaits the published
+#430 read transaction and #437 compaction-check fixes in a coherent installed
+cohort, using a new fixture without replaying prior uncertain attempts.
