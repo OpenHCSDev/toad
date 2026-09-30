@@ -467,7 +467,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @property
     def blocks_visible_read(self) -> bool:
         """Do not acknowledge a tail while its source/filter is still advancing."""
-        return self.has_newer or not self.checkpoint_available
+        return self.is_attached and (self.has_newer or not self.checkpoint_available)
 
     @property
     def fragment_limit(self) -> int:

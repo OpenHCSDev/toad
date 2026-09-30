@@ -228,6 +228,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
         await until(pilot, lambda: not comms.registry.require(child.name).executing
                     and view.agent.presentation.prompt_in_flight == 0, 30)
+        saved = comms.transcripts.thread_transcript_page(child.name)
+        await until(pilot, lambda: not view.window.history_lock.locked() and any(
+            history.committed_cursor == saved.after for history in view.window.histories
+            if history.is_attached and history.state.reports_coverage))
         await pilot.pause()
         from toad.widgets.agent_response import AgentResponse
         viewport = view.window.region
