@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from collections import namedtuple
 import json
 import os
 from pathlib import Path
@@ -47,6 +48,10 @@ class InputPaintFrame:
     mounted_starts: tuple[InputStartedUpdate, ...]
     queue_region: tuple[int, int, int, int]
     chat_region: tuple[int, int, int, int]
+
+    def includes(self, region: tuple[int, int, int, int], x: int, y: int) -> bool:
+        left, top, width, height = region
+        return left <= x < left + width and top <= y < top + height
 
 
 class InstalledApp(ForkApp):
@@ -145,21 +150,50 @@ def review_frames(path: Path):
     """Replay real incremental updates using the existing terminal dependency."""
     import pyte
 
+    # Incremental ANSI can leave cells from an earlier publication in place
+    # while the native widget already has its next layout. Keep the emitting
+    # frame on the terminal's own raster cells; no previous-region side table.
+    PaintedChar = namedtuple('PaintedChar', (*pyte.screens.Char._fields, 'paint_frame'))
+
+    class PaintedTerminal(pyte.Screen):
+        paint_frame = None
+
+        @property
+        def default_char(self):
+            return PaintedChar(*super().default_char, self.paint_frame)
+
+        def reset(self):
+            super().reset()
+            self.cursor.attrs = self.default_char
+
+        def draw(self, data):
+            self.cursor.attrs = self.cursor.attrs._replace(paint_frame=self.paint_frame)
+            super().draw(data)
+
+        def region_text(self, region):
+            lines = []
+            for y in range(self.lines):
+                characters = []
+                for x in range(self.columns):
+                    char = self.buffer[y][x]
+                    source = char.paint_frame
+                    characters.append(char.data if source is not None
+                        and source.includes(region(source), x, y) else ' ')
+                lines.append(''.join(characters))
+            return '\n'.join(lines)
+
     frames = tuple(FieldCodec.decode(InputPaintFrame, json.loads(line))
                    for line in path.read_text().splitlines())
     assert frames, 'No original compositor updates were captured'
-    terminal = pyte.Screen(frames[0].width, frames[0].height)
+    terminal = PaintedTerminal(frames[0].width, frames[0].height)
     stream = pyte.Stream(terminal)
     observed = {}
     painted = {}
     source_observed = {}
     first_paint = {}
 
-    def region_text(region):
-        x, y, width, height = region
-        return '\n'.join(line[x:x + width] for line in terminal.display[y:y + height])
-
     for frame in frames:
+        terminal.paint_frame = frame
         terminal.resize(lines=frame.height, columns=frame.width)
         stream.feed(frame.ansi)
         for submission in frame.submissions:
@@ -171,7 +205,9 @@ def review_frames(path: Path):
         for start in frame.mounted_starts:
             if start.input_id not in painted:
                 observed.setdefault(start.input_id, start.text)
-        text = '\n'.join((region_text(frame.queue_region), region_text(frame.chat_region)))
+        queue_text = terminal.region_text(lambda source: source.queue_region)
+        chat_text = terminal.region_text(lambda source: source.chat_region)
+        text = '\n'.join((queue_text, chat_text))
         for input_id in observed:
             source_observed.setdefault(input_id, frame.observed_ns)
         for input_id, marker in painted.items():
@@ -196,8 +232,9 @@ def review_frames(path: Path):
                     continue
                 first_paint[input_id] = frame.observed_ns
             assert marker and occurrences == 1, (
-                input_id, frame.observed_ns, text.count(marker or ''), text)
-            if input_id in starts:
+                input_id, frame.observed_ns, text.count(marker or ''), text,
+                '\n'.join(line for line in terminal.display if marker in line))
+            if input_id in starts and chat_text.count(marker) == 1:
                 painted[input_id] = marker
                 observed.pop(input_id)
     assert not observed, ('Inputs lacked a native paint in the completed journey', observed)
