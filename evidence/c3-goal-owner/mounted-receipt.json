@@ -1,0 +1,45 @@
+{
+  "core": "/home/ts/.cache/agent-scratch/comms-owner-state-cleanup-20260929/c3-installed/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "toad": "/home/ts/.cache/agent-scratch/comms-owner-state-cleanup-20260929/c3-installed/lib/python3.14/site-packages/toad/__init__.py",
+  "provider": "controlled localhost only",
+  "requests": 4,
+  "physical_goal_pause_resume": true,
+  "pause_did_not_cancel_native": true,
+  "cold_pause_source": "original Goal.state",
+  "channel_agent_return_draft_undo": true,
+  "physical_stop_start_new_input": true,
+  "retained_history_prefix": true,
+  "original_unknown_unchanged": true,
+  "default_activation": false,
+  "owner": "Mendel",
+  "core_source": "20079652d28c7668457f703ffca5eb52d41163a4",
+  "toad_production_source": "0b27bf39f0a8179c8a7e17d87f2bc34e0c77f822",
+  "native_package": "/home/ts/wt/comms-shared-compaction-scheduling-20260930/stack/.pi-native-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "fixture_stage": "/home/ts/.cache/agent-scratch/c3-216-05",
+  "canonical_owner_checks": [
+    {
+      "name": "beta",
+      "process_alive": false,
+      "status_type": "StoppedThreadStatus"
+    },
+    {
+      "name": "user",
+      "process_alive": false,
+      "status_type": "StoppedThreadStatus"
+    }
+  ],
+  "owned_process_observations": [],
+  "run_exit": 0,
+  "ui_driver": "actual installed ToadApp headless Pilot clicks and editor events",
+  "visual_review": "four unmodified SVG exports rendered with rsvg-convert and inspected; original NO_COLOR run04 not accepted for visual proof",
+  "visual_pause_limit": "held-native frame precedes asynchronous paused-goal repaint; final new-input frame shows original paused rev4",
+  "global_native06_handling": "unproven; no input replay or stage mutation",
+  "whole_c3_remaining": "Arendt owns shared backend/turn_inputs/OwnedSendAdmission send-custody capability closure; parent owns quiet durable carry",
+  "artifacts": {
+    "stopped-start-menu.svg": "448868c25e6891a4da65f2e9a24bfd326706917c37e8173500a4ce0ccaf8aaf1",
+    "new-input-after-start.svg": "6b99303c187cc7d422179c6f7ad9aef0cd660bc50648df45cbb1202f1e98b880",
+    "paused-active-native.svg": "6a326fc219a4705350351cc02dcbecfe6032ea2ff4355fbf4acfb57c0b976840",
+    "saved-paused.svg": "cf87a231e6f1ea9aecb2304d78854fa8927f8ab90056996318b22e2ddb613338"
+  },
+  "toad_wheel_sha256": "b792b9b3474cff3bdc1a6608b639975f5406405591b87622f440cc453a8b8233"
+}
