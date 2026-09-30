@@ -29,3 +29,9 @@ Continuous installed saved-native acceptance pending: isolated Xvfb/st held Page
 Own noneditable wheel uses merged Core426 d306d0df04e82af1084aa0d25aaa1484b693b0f2, Textual412 and the parent-verified native4ab package. Current main #210 6e56770 is integrated with its original process load witness and FailedSessionLoadAdmission contract; no older load fallback. Parent owns reviewed default activation. Normal #213 reader geometry checkpoint 65b5ee23 is integrated. Native fixtures are serial: urgent recovery/rename/deadline fixes precede this capture; source and provider-free UI work continue independently.
 
 Persistent WT /home/ts/wt/toad-viewport-demand-20260929; owned disposable artifacts /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929. No global package, live user root or another worker's source was changed.
+
+## Checkpoint measurement
+
+At 9703ea21 against normally integrated main 6e56770, the combined production checkpoint changes 11 files: **91 lines deleted, 267 added**. This includes the inherited #213 reader checkpoint; no claim that all are adaptive-scroll edits. Typed demand replaces the older velocity decay/nullable destination combination, and prepare_scroll replaces every _warm_pages caller. No hidden follow/status/source copy was introduced.
+
+Census: no added type identity checks, long boolean chains/terms, codec subclasses, foreign absence probes, string dispatch/type switches, getattr defaults or attribute-by-name; None identity checks decrease by two. The one added string-key subscript replaces .get on the official SDK's guaranteed LoadSessionRequest field_meta declaration, at the same boundary, rather than restating any wire shape. Remaining history/reader geometry correction belongs to #213; queue/turn/start ownership to #211/Core425; complete native footage/profile assessment is still pending.
