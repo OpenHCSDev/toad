@@ -387,7 +387,7 @@ class ExistingThreadCapture(CaptureTarget):
             raise ValueError("Existing-thread capture derives its root from the canonical active route")
         if len(command) != 2 or Path(command[0]).name != "toad-comms":
             raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
-        if args.actions is not None and args.actions.read_text() != scroll_script():
+        if args.actions is not None and args.actions.read_text() != scroll_script(idle_seconds=args.scroll_idle_seconds):
             raise ValueError("Existing-thread capture permits only the shared physical scroll-only script")
         # Match the real default launcher's environment, not a copied private
         # route or thread identity that would redirect its retained history.
@@ -960,7 +960,7 @@ def mark(label):
     print(json.dumps(event), flush=True)
 
 
-def scroll_script():
+def scroll_script(*, idle_seconds: float = 4):
     # Literal quoted paths avoid native xdotool stdin variable-expansion defects.
     marker = f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
     return "\n".join([
@@ -968,7 +968,7 @@ def scroll_script():
         marker + "up", "keydown Prior", "sleep 4", "keyup Prior", marker + "up-done",
         marker + "down", "keydown Next", "sleep 4", "keyup Next", marker + "down-done",
         marker + "reverse", "keydown Prior", "sleep 4", "keyup Prior", marker + "reverse-done",
-        marker + "end", "key End", "sleep 1", marker + "idle", "sleep 4", marker + "idle-done", "",
+        marker + "end", "key End", "sleep 1", marker + "idle", f"sleep {idle_seconds:g}", marker + "idle-done", "",
     ])
 
 
@@ -991,6 +991,8 @@ def main():
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
     parser.add_argument("--write-scroll-script", type=Path, help="Write an editable native held-key script, then exit")
+    parser.add_argument("--scroll-idle-seconds", type=float, default=4,
+                        help="Stationary observation in the shared scroll script; use15 for the original-history delayed-blank reproducer")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
     parser.add_argument("--review-recording", type=Path, help="Encode a retained capture; no UI, ACP or native process launches")
     parser.add_argument("--review-timing", type=ReviewTiming.decode, default=InlineReviewTiming,
@@ -1016,6 +1018,8 @@ def main():
     parser.add_argument("--sheet-columns", type=int, default=4)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
+        parser.error("Scroll idle observation must be positive and shorter than capture duration")
     if args.write_scroll_script:
         destination = args.write_scroll_script.expanduser().resolve()
         if not destination.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
