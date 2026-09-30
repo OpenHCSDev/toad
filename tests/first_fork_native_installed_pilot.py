@@ -71,7 +71,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: response_painted(app, parent_view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     from runtime_fixture import wait_channel_roster
-    from toad.widgets.comms_sidebar import CommsRow
+    from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, CommsSidebar
     from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.comms_fork_dialog import ForkDialog
     from toad.thread_actions import ForkAction
@@ -138,10 +138,31 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         previous_modes = tuple(app.tab_order.names)
         assert child.tags == frozenset({"fork-added"})
         assert comms.registry.require("beta").tags == inherited_tags
-        sidebar = await wait_channel_roster(app, pilot, "#fork-added")
+        try:
+            sidebar = await wait_channel_roster(app, pilot, "#fork-added")
+        except BaseException:
+            sidebar = parent_view.screen.query_one(CommsSidebar)
+            evidence = Path(os.environ['L0A_EVIDENCE'])
+            evidence.joinpath('fork-roster-state.json').write_text(json.dumps({
+                'screen': type(app.screen).__name__,
+                'screen_frame_ready': parent_view.screen.frame_presentation.ready,
+                'screen_frame_state': type(parent_view.screen.frame_presentation.state).__name__,
+                'screen_is_current': parent_view.screen.is_current,
+                'sidebar_attached': sidebar.is_attached, 'sidebar_display': sidebar.display,
+                'navigation_ready': sidebar.navigation.ready.is_set(),
+                'observation_pending': sidebar.observation.pending,
+                'observation_lock': sidebar.observation.lock.locked(),
+                'projection_lock': sidebar.projection.lock.locked(),
+                'channel_rows': list(sidebar.projection.channels),
+                'row_targets': [row.target_name for row in sidebar.query(CommsRow)],
+                'original_registry_tags': {name: sorted(thread.tags) for name, thread in comms.registry.all_threads().items()},
+                'provider_requests': len(requests),
+            }, indent=2)+'\n')
+            app.save_screenshot(str(evidence/'fork-roster-failure.svg'))
+            raise
         print("FORK_MODAL_RETURN_FRAME", type(app.screen.frame_presentation.state).__name__,
               app.screen.frame_presentation.ready, app.screen.is_current, flush=True)
-        group = sidebar.projection.channels['#fork-added']
+        group = sidebar.projection.channels['#fork-added'].query_ancestor(ChannelGroup)
         if not group.expanded:
             group.disclosure.scroll_visible(animate=False, immediate=True)
             await pilot.pause()
