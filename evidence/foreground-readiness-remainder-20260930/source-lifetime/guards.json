@@ -1,0 +1,10 @@
+{
+  "baseline": "failed original worker-selector assertion at unchanged main",
+  "passed": [
+    "test_deleted_scan_flags_and_external_projection_probes",
+    "test_original_source_and_body_owners_do_not_reacquire_six_term_gates",
+    "test_filter_workers_receive_callables",
+    "test_projected_pager_worker_receives_callable"
+  ],
+  "boundary": "existing guard functions run directly; frozen interpreter has no pytest"
+}

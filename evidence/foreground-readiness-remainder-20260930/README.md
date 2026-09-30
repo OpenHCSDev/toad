@@ -178,3 +178,40 @@ is shared native body retirement across ordinary/paged Markdown and an original
 source/edge admission contract, preserving source revision, reader, focus and
 retirement invalidation. Screening count alone is not an ownership proof.
 Full physical CPU/warm/scroll and TC1/T9 scope remains open.
+
+## Shared native body/source lifetime closure
+
+Paged and ordinary Markdown now inherit PreparedConversationMarkdown retirement:
+original measurement/loading/native-lock/selection admission, one native child
+removal, and one resource release. StreamingMarkdown declares only its actual
+reconstructible pager and admitted range; its content/stream lock still blocks
+retirement. Deleted the duplicate paged retirement procedure and foreign
+viewport-absence gate. This is IMPL-12 closure, not a renamed Boolean helper.
+
+The former FilterSnapshot is promoted to HistorySourceSnapshot at the original
+source-preparation owner. All filtering consumers use the same capture/current
+contract. Page reads now use that original source/view identity and the existing
+TranscriptPageAdmission; duplicate local window/loader/generation/range capture
+and the seven-term comparison are deleted. No alias or competing record.
+WorkingTranscript schedules a callable, retaining its admitted execution and
+completion owner without precreating an abandoned coroutine.
+
+Actual native-body/source pilot passed ordinary/paged retirement/restoration,
+selection/loading/content custody, actual trim while a read was held, stale
+revision/edge/park/loader rejection, current-page admission and original scheduled
+worker execution. Logs include the first driver custody/cancellation-assumption
+failure; explicit read dispositions are retained. Coreba938/Text2e49 source
+environment, zero providers: not installed physical or current970 cohort proof.
+
+Changed-owner ratchets: two six-plus sites to zero, foreign absence probes23→21
+across the six files. Per-file source-preparation count rises3→5 because the
+original snapshot/availability definitions moved with their consumers; no new
+absence encoding. Dispatch subjects/arms, type switches and codec subclasses
+do not increase. Four guard functions pass directly (pytest unavailable in this
+frozen interpreter). The old projected-worker guard also fails at unchanged
+main: it incorrectly expects a worker in the inherited widget method. It now
+checks the original WorkingTranscript scheduler and projection inheritance.
+
+Full CPU/warm/native physical/T9/TC1 acceptance remains open. PR252 u05 first
+normal-native-file pivot takes critical priority; no additional input/capture
+replay. This source checkpoint does not hold the pending critical cohort.
