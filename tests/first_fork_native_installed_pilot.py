@@ -30,7 +30,7 @@ async def dialog_content_only():
     parent = Thread('fork-source', frozenset({'team', 'keep'}), str(project))
     comms.registry.declare(parent)
     results = []
-    task = 'First acceptance instruction.\n\nSecond instruction must survive the paste.'
+    task = '  First acceptance instruction.\n\n    Second instruction must survive the paste.\n'
     app = InstalledApp(project_dir=str(project))
     async with app.run_test(size=(100, 38)) as pilot:
         await app.selected_session.wait_content_ready()
@@ -89,7 +89,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     entry = app.screen.query_one("#fork-name", Input)
     assert await pilot.click(entry)
     entry.value = "immediate-fork"
-    app.screen.query_one("#fork-task", TextArea).text = "Reply briefly to this isolated first fork test."
+    inherited_tags = comms.registry.require('beta').tags
+    tags_editor = app.screen.query_one('#fork-tags', Input)
+    assert tags_editor.value == ', '.join(sorted(inherited_tags))
+    # Empty task is a ready child, not an automatic model input. Its tags are
+    # editable declarations: retain the parent, add one and remove one here.
+    tags_editor.value = 'fork-added'
+    app.save_screenshot(str(Path(os.environ['L0A_EVIDENCE']) / 'empty-task-tags.svg'))
     async def hold_actual_startup():
         async with asyncio.timeout(20):
             while True:
@@ -130,12 +136,18 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             raise AssertionError('Active immediate-fork startup routed to empty DirectTarget')
         user = comms.messaging.user_identity(str(project)).name
         previous_modes = tuple(app.tab_order.names)
-        sidebar = await wait_channel_roster(app, pilot, "#team")
+        assert child.tags == frozenset({"fork-added"})
+        assert comms.registry.require("beta").tags == inherited_tags
+        sidebar = await wait_channel_roster(app, pilot, "#fork-added")
         print("FORK_MODAL_RETURN_FRAME", type(app.screen.frame_presentation.state).__name__,
               app.screen.frame_presentation.ready, app.screen.is_current, flush=True)
-        sidebar.observation.refresh()
-        await until(pilot, lambda: any(row.target_name == child.name for row in sidebar.query(CommsRow)))
-        child_row = next(row for row in sidebar.query(CommsRow) if row.target_name == child.name)
+        group = sidebar.projection.channels['#fork-added']
+        if not group.expanded:
+            group.disclosure.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(group.disclosure)
+        await until(pilot, lambda: any(row.target_name == child.name for row in group.query(CommsRow)))
+        child_row = next(row for row in group.query(CommsRow) if row.target_name == child.name)
         child_row.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
         assert await pilot.click(child_row)
@@ -177,11 +189,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         (evidence / 'immediate-open.svg').write_text(app.export_screenshot())
         print('FIRST_FORK_INHERITED_HISTORY_PAINTED', flush=True)
         await until(pilot, lambda: not comms.registry.require(child.name).executing, 30)
+        assert len(requests) == 1, 'An empty fork task must not make an automatic provider request'
         view.prompt.text = 'FIRST_FORK_NEW_INPUT'
         view.prompt.prompt_text_area.focus()
         await pilot.press('enter')
-        await until(pilot, lambda: len(requests) >= 3, 30)
-        await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_3'), 30)
+        await until(pilot, lambda: len(requests) == 2, 30)
+        await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
         from agent_comms.transcript_events import UserTranscript
         page = comms.transcripts.thread_transcript(child.name)
         assert sum(isinstance(event, UserTranscript) and event.text == 'FIRST_FORK_NEW_INPUT'
@@ -195,6 +208,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         (evidence / "fresh-fork.json").write_text(json.dumps({
             "source_head": os.environ.get("TOAD_TEST_SOURCE_HEAD"),
             "actual_canonical_fork": True, "physical_open_before_rpc_socket": cold_before_click,
+            "empty_task": True, "automatic_child_provider_requests": 0,
+            "inherited_tags_in_dialog": sorted(inherited_tags),
+            "parent_tags_after_fork": sorted(comms.registry.require('beta').tags),
+            "child_tags": sorted(child.tags), "physical_added_channel_disclosure": True,
             "pending_after_old_five_second_expiry": True,
             "same_owner_process_through_first_reply": True,
             "first_new_message_physical_enter": True,
@@ -217,4 +234,5 @@ if __name__ == '__main__':
     if os.environ.get('FORK_DIALOG_EVIDENCE'):
         asyncio.run(dialog_content_only())
     else:
-        asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))
+        asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_request_budget=2,
+                         fixture_stage=Path(os.environ['FORK_FIXTURE_STAGE'])))
