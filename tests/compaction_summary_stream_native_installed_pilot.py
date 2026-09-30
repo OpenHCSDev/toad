@@ -297,7 +297,7 @@ async def acceptance(app, pilot, agent, comms, *_args):
         answer_release.set()
 
 
-async def reconnect_cancelled_source():
+async def reconnect_cancelled_source(*, app_type=InstalledApp, after_cold_load=None, headless=True):
     """Resume only loading/reading the original failed cancellation fixture."""
     import shlex
     from agent_comms.comms import Comms
@@ -342,14 +342,14 @@ async def reconnect_cancelled_source():
     # The previous runner explicitly stopped its owned worker at teardown.
     # Start that private worker through its normal lifecycle; never send input.
     await asyncio.to_thread(comms.owners.start, "beta")
-    app = InstalledApp(agent_data=AgentDefinition.decode({
+    app = app_type(agent_data=AgentDefinition.decode({
         "name": "Cancelled source reconnect", "identity": "cancelled-source",
         "short_name": "native", "protocol": "acp",
         "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
     }), project_dir=str(project), agent_session_id="beta")
     phases = []
     try:
-        async with app.run_test(headless=True, size=(160, 44)) as pilot:
+        async with app.run_test(headless=headless, size=(160, 44)) as pilot:
             view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None, 30)
             agent = view.agent
@@ -378,6 +378,8 @@ async def reconnect_cancelled_source():
                 (evidence / f"{phase}.svg").write_text(app.export_screenshot())
 
             await check("cold-load")
+            if after_cold_load is not None:
+                await after_cold_load(app, pilot, agent, comms)
             user = comms.messaging.user_identity(str(project)).name
             await channel_target("#team").open(NavigationContext(app, app.selected_mode, project, user))
             await app.selected_session.wait_content_ready()

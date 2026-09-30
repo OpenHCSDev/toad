@@ -408,7 +408,7 @@ class TranscriptPresentation:
             return
         source = view.query_ancestor(SessionView)
         await self.reveal_retained(history)
-        await view.refresh_native_projection()
+        view.refresh_native_projection()
 
         def refresh_after_paint() -> None:
             if view.app.workspace_sessions.owns(source) and view.agent is agent:
