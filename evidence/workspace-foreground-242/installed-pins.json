@@ -1,0 +1,40 @@
+{
+  "stage": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242",
+  "pins": {
+    "batrachian-toad": "5739ec31485ae145732337b1b877bc071c2008d2",
+    "agent-comms": "29bbe95d3f57d961259f53ad7c08e38562eaf766",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "state": "verified-immutable-cohort",
+  "packages": 68,
+  "all_noneditable": true,
+  "production_bytes": [
+    {
+      "file": "transcript_publication.py",
+      "sha256": "ee7d44294cb12322b2b681302ba5e7bb5ddd3bfe7ab414fd92718cc28d3d3f78"
+    },
+    {
+      "file": "widgets/conversation.py",
+      "sha256": "756ac37285ebede634a2608f3cf84130d61c73c023bae4427daeed8a199ccbc4"
+    },
+    {
+      "file": "widgets/session_details.py",
+      "sha256": "679d0b89b828d12298fe4a11ca04a7cfe41dc11cb5c5f53fcfda2d2f645f4025"
+    },
+    {
+      "file": "widgets/session_history_details.py",
+      "sha256": "e02e08268da00c30960f8d6937173cd78b23ef44bce4917fd7bfdbf875f1513a"
+    },
+    {
+      "file": "widgets/viewport_body.py",
+      "sha256": "c86a19d54386e0dbc4257df4ed83062e1e2480988b449dc40d70d6adc4ce534f"
+    }
+  ],
+  "imports": {
+    "toad": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/__init__.py",
+    "textual": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/__init__.py",
+    "agent_comms": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/agent_comms/__init__.py"
+  }
+}

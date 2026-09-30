@@ -1,0 +1,15 @@
+{
+  "native_descendants": 555,
+  "body_roots": 24,
+  "profiled_selection_walks": 0,
+  "unprofiled_selection_ms": {
+    "expanded_native_tree": 0.4988329199841246,
+    "registered_body_boundaries": 0.007062415941618383
+  },
+  "native_reorder": true,
+  "removed_body_released": true,
+  "fast_reverse_end": true,
+  "resize": true,
+  "pending_native_mount": true,
+  "accepted_canonical_tree": true
+}

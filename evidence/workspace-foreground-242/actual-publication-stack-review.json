@@ -1,0 +1,3105 @@
+{
+  "recording": "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture",
+  "ui_pid": 3613471,
+  "selection": {
+    "functions": [],
+    "sources": [
+      "/toad/widgets/viewport_body.py",
+      "/textual/screen.py",
+      "/textual/_compositor.py",
+      "/textual/_arrange.py",
+      "/toad/workspace",
+      "/agent_comms/owner_preparation.py",
+      "/tools/performance/capture_state.py"
+    ]
+  },
+  "profile": "cpu-profile.json",
+  "alignment_nominal_uncertainty_seconds": 0.05761486451141536,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant",
+    "Matching stack groups are observed transitions, not sample counts, calls or CPU time",
+    "No observed match does not prove work was absent; async await parents may be missing",
+    "Complete matching stacks supplement the capped recorder preview; raw source remains authoritative"
+  ],
+  "phases": [
+    {
+      "label": "down",
+      "video_start_seconds": 30.56969689700054,
+      "video_end_seconds": 36.348625059006736,
+      "kernel_cpu": [
+        {
+          "pid": "3613471",
+          "cpu_seconds": 6.0,
+          "average_cpu_percent": 103.8254816775064
+        },
+        {
+          "pid": "3613468",
+          "cpu_seconds": 0.09000000000000002,
+          "average_cpu_percent": 1.5573822251625964
+        },
+        {
+          "pid": "3613764",
+          "cpu_seconds": 0.06000000000000005,
+          "average_cpu_percent": 1.038254816775065
+        },
+        {
+          "pid": "3613668",
+          "cpu_seconds": 0.030000000000000027,
+          "average_cpu_percent": 0.5191274083875325
+        },
+        {
+          "pid": "3613574",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.1730424694625108
+        },
+        {
+          "pid": "3613577",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.1730424694625108
+        },
+        {
+          "pid": "3613556",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-down.png",
+          "state_capture": {
+            "started_seconds": 30.855936578998808,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 224464896,
+              "started_ns": 1790787918513023555,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-down-state": "complete"
+              },
+              "finished_ns": 1790787918645326666
+            },
+            "finished_seconds": 31.14430689701112
+          },
+          "native_state": "phase-down-state.pickle",
+          "native_metadata": "phase-down-state.json"
+        },
+        "end": {
+          "screenshot": "phase-down-done.png",
+          "state_capture": {
+            "started_seconds": 36.62319453002419,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 229486592,
+              "started_ns": 1790787924291013380,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-down-done-state": "complete"
+              },
+              "finished_ns": 1790787924455824056
+            },
+            "finished_seconds": 36.97479328198824
+          },
+          "native_state": "phase-down-done-state.pickle",
+          "native_metadata": "phase-down-done-state.json"
+        }
+      },
+      "observed_stack_groups": 119,
+      "matching_stack_groups": 58,
+      "matched_frames": [
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 28
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_arrange_root",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896,
+          "stack_presence_transition_groups": 28
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805,
+          "stack_presence_transition_groups": 27
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279,
+          "stack_presence_transition_groups": 24
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704,
+          "stack_presence_transition_groups": 22
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97,
+          "stack_presence_transition_groups": 19
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402,
+          "stack_presence_transition_groups": 18
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "reflow",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445,
+          "stack_presence_transition_groups": 17
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "find_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "full_map",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "find_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 771,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 288,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 114,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1282,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1266,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_partial_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1329,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1251,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_get_renders",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1235,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1410,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1441,
+          "stack_presence_transition_groups": 6
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_idle",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1202,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_invoke_and_clear_callbacks",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1310,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1377,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "reflow_visible",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 523,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1288,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 995,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1444,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_maybe_clear_tooltip",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1701,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 665,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 392,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 80,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 365,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 849,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 175,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315776251584,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widgets_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1013,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_hover_widgets_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 688,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "layers_visible",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 936,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 413,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 283,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_schedule_settle",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 299,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 837,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 691,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_invoke_later",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1321,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 101,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 570,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_segments",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 263,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1254,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 401,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 61,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 726,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "layers_visible",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 935,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "visible_widgets",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 591,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1427,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "reflow",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 472,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 871,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "visible_bodies_ready",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 355,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "prepare",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 169,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1219,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 355,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "body_roots",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 246,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "body_roots",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 245,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_trim_warm",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 261,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "retained_widget_count",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 98,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 386,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 750,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_layers",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 646,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 30.744673495491025,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 604
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 740
+            },
+            {
+              "function": "_flush_next_callbacks",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 749
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 58
+            },
+            {
+              "function": "await_watcher",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 87
+            },
+            {
+              "function": "watch_slash_commands",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/slash_complete.py",
+              "line": 130
+            },
+            {
+              "function": "filter_slash_commands",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/slash_complete.py",
+              "line": 138
+            },
+            {
+              "function": "set_options",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/widgets/_option_list.py",
+              "line": 359
+            },
+            {
+              "function": "add_options",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/widgets/_option_list.py",
+              "line": 411
+            },
+            {
+              "function": "_update_lines",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/widgets/_option_list.py",
+              "line": 812
+            },
+            {
+              "function": "scrollable_content_region",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2421
+            },
+            {
+              "function": "region",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2462
+            },
+            {
+              "function": "find_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+              "line": 771
+            },
+            {
+              "function": "find_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 1146
+            },
+            {
+              "function": "full_map",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 560
+            },
+            {
+              "function": "_arrange_root",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 896
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 876
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 849
+            },
+            {
+              "function": "_render_widget",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/widget.py",
+              "line": 731
+            }
+          ]
+        },
+        {
+          "video_seconds": 30.960593495491025,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2008
+            },
+            {
+              "function": "select",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py",
+              "line": 452
+            },
+            {
+              "function": "<module>",
+              "filename": "<string>",
+              "line": 5
+            },
+            {
+              "function": "capture",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 175
+            }
+          ]
+        },
+        {
+          "video_seconds": 31.010404495491024,
+          "pid": 3613471,
+          "tid": 140315776251584,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 364
+            },
+            {
+              "function": "_dataclass_getstate",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/dataclasses.py",
+              "line": 1251
+            },
+            {
+              "function": "fields",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/dataclasses.py",
+              "line": 1460
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 47.7394642480067,
+      "video_end_seconds": 64.32797001901781,
+      "kernel_cpu": [
+        {
+          "pid": "3613471",
+          "cpu_seconds": 4.199999999999996,
+          "average_cpu_percent": 25.3187361054521
+        },
+        {
+          "pid": "3613574",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.24113082005192518
+        },
+        {
+          "pid": "3613577",
+          "cpu_seconds": 0.030000000000000027,
+          "average_cpu_percent": 0.1808481150389439
+        },
+        {
+          "pid": "3613668",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12056541002596259
+        },
+        {
+          "pid": "3613764",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12056541002596259
+        },
+        {
+          "pid": "3613468",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.060282705012981296
+        },
+        {
+          "pid": "3613556",
+          "cpu_seconds": 0.009999999999999995,
+          "average_cpu_percent": 0.06028270501298122
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-idle.png",
+          "state_capture": {
+            "started_seconds": 48.016054927022196,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 233938944,
+              "started_ns": 1790787935667038594,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-idle-state": "complete"
+              },
+              "finished_ns": 1790787935799709782
+            },
+            "finished_seconds": 48.333575270022266
+          },
+          "native_state": "phase-idle-state.pickle",
+          "native_metadata": "phase-idle-state.json"
+        },
+        "end": {
+          "screenshot": "phase-idle-done.png",
+          "state_capture": {
+            "started_seconds": 64.60715418000473,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 234246144,
+              "started_ns": 1790787952271883529,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-idle-done-state": "complete"
+              },
+              "finished_ns": 1790787952405195832
+            },
+            "finished_seconds": 64.92333616898395
+          },
+          "native_state": "phase-idle-done-state.pickle",
+          "native_metadata": "phase-idle-done-state.json"
+        }
+      },
+      "observed_stack_groups": 84,
+      "matching_stack_groups": 13,
+      "matched_frames": [
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1288,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1266,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_partial_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1329,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1251,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_get_renders",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1235,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1410,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1365,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "cuts",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1171,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1362,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1219,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "prepare",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 174,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_idle",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1202,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_invoke_and_clear_callbacks",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1310,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "find_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "full_map",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_arrange_root",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "find_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 771,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_invoke_later",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1321,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 48.20947849549103,
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 366
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            }
+          ]
+        },
+        {
+          "video_seconds": 48.21080349549102,
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 366
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 326
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 394
+            }
+          ]
+        },
+        {
+          "video_seconds": 48.72335449549102,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 172
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1288
+            },
+            {
+              "function": "_compositor_refresh",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1251
+            },
+            {
+              "function": "render_update",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 1266
+            },
+            {
+              "function": "render_partial_update",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 1329
+            },
+            {
+              "function": "_render_chops",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 1365
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "switch-b",
+      "video_start_seconds": 65.6933046989725,
+      "video_end_seconds": 70.3793748220196,
+      "kernel_cpu": [
+        {
+          "pid": "3613471",
+          "cpu_seconds": 2.460000000000001,
+          "average_cpu_percent": 52.49601340580011
+        },
+        {
+          "pid": "3613574",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.4267968569577248
+        },
+        {
+          "pid": "3613468",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.4267968569577248
+        },
+        {
+          "pid": "3613764",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.21339842847885765
+        },
+        {
+          "pid": "3613668",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3613577",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3613556",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-switch-b.png",
+          "state_capture": {
+            "started_seconds": 65.96087129798252,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 234332160,
+              "started_ns": 1790787953613427944,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-switch-b-state": "complete"
+              },
+              "finished_ns": 1790787953746107739
+            },
+            "finished_seconds": 66.2632044699858
+          },
+          "native_state": "phase-switch-b-state.pickle",
+          "native_metadata": "phase-switch-b-state.json"
+        },
+        "end": {
+          "screenshot": "phase-b-open.png",
+          "state_capture": {
+            "started_seconds": 67.84948341397103,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 234450944,
+              "started_ns": 1790787955500846269,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-b-open-state": "complete"
+              },
+              "finished_ns": 1790787957836921660
+            },
+            "finished_seconds": 70.37928127497435
+          },
+          "native_state": "phase-b-open-state.pickle",
+          "native_metadata": "phase-b-open-state.json"
+        }
+      },
+      "observed_stack_groups": 73,
+      "matching_stack_groups": 13,
+      "matched_frames": [
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1444,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_maybe_clear_tooltip",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1701,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 665,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 995,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 175,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "active_bindings",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 493,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "set_focus",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1159,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_update_focus_styles",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1105,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "select",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/workspace_sessions.py",
+          "line": 142,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 750,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_arrange_root",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "reflow",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_layers",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 644,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1412,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1441,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1251,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_get_renders",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1235,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1264,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1410,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_full_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1300,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 997,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "protected",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 343,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 288,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "layers_visible",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 936,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "layers_visible",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 937,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315734288064,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315734288064,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 66.06505149549102,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2008
+            },
+            {
+              "function": "select",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py",
+              "line": 452
+            },
+            {
+              "function": "<module>",
+              "filename": "<string>",
+              "line": 5
+            },
+            {
+              "function": "capture",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 175
+            }
+          ]
+        },
+        {
+          "video_seconds": 66.12714849549103,
+          "pid": 3613471,
+          "tid": 140315751073472,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 366
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            }
+          ]
+        },
+        {
+          "video_seconds": 67.29023249549103,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 604
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 740
+            },
+            {
+              "function": "_flush_next_callbacks",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 749
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "bindings_changed",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/footer.py",
+              "line": 60
+            },
+            {
+              "function": "_current_binding_state",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/footer.py",
+              "line": 38
+            },
+            {
+              "function": "active_bindings",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+              "line": 493
+            },
+            {
+              "function": "_check_action_state",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 4223
+            },
+            {
+              "function": "check_action",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/screens/main.py",
+              "line": 542
+            },
+            {
+              "function": "query_one_optional",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1629
+            },
+            {
+              "function": "query_one",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1584
+            },
+            {
+              "function": "walk_breadth_first",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/walk.py",
+              "line": 143
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "return-a",
+      "video_start_seconds": 71.50579606799874,
+      "video_end_seconds": 75.93733007198898,
+      "kernel_cpu": [
+        {
+          "pid": "3613471",
+          "cpu_seconds": 2.25,
+          "average_cpu_percent": 50.77248641156894
+        },
+        {
+          "pid": "3613668",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.4513109903250576
+        },
+        {
+          "pid": "3613764",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2256554951625288
+        },
+        {
+          "pid": "3613574",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2256554951625288
+        },
+        {
+          "pid": "3613468",
+          "cpu_seconds": 0.009999999999999953,
+          "average_cpu_percent": 0.2256554951625276
+        },
+        {
+          "pid": "3613577",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3613556",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3617012",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-return-a.png",
+          "state_capture": {
+            "started_seconds": 71.78877683897736,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 243662848,
+              "started_ns": 1790787959446418516,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-return-a-state": "complete"
+              },
+              "finished_ns": 1790787959579049969
+            },
+            "finished_seconds": 72.11004334798781
+          },
+          "native_state": "phase-return-a-state.pickle",
+          "native_metadata": "phase-return-a-state.json"
+        },
+        "end": {
+          "screenshot": "phase-a-return.png",
+          "state_capture": {
+            "started_seconds": 76.21093764202669,
+            "manifest": {
+              "pid": 3613471,
+              "created": 1790787885.94,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 243933184,
+              "started_ns": 1790787963866194081,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-a-return-state": "complete"
+              },
+              "finished_ns": 1790787963999098170
+            },
+            "finished_seconds": 76.53841411101166
+          },
+          "native_state": "phase-a-return-state.pickle",
+          "native_metadata": "phase-a-return-state.json"
+        }
+      },
+      "observed_stack_groups": 43,
+      "matching_stack_groups": 8,
+      "matched_frames": [
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "select",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/workspace_sessions.py",
+          "line": 142,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_arrange_root",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "arrange",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1266,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "render_partial_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1329,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_compositor_refresh",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1251,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 238,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_focusable_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 720,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 997,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "get_widget_at",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 665,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315734288064,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140315734288064,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "add_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "reflow",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "find_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "full_map",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "find_widget",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 771,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1441,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_get_renders",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1235,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1410,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1288,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1362,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "function": "cuts",
+          "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1178,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 71.95071649549102,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2008
+            },
+            {
+              "function": "select",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py",
+              "line": 452
+            },
+            {
+              "function": "<module>",
+              "filename": "<string>",
+              "line": 5
+            },
+            {
+              "function": "capture",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 238
+            },
+            {
+              "function": "get_focusable_widget_at",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+              "line": 720
+            },
+            {
+              "function": "get_widget_at",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/screen.py",
+              "line": 665
+            },
+            {
+              "function": "get_widget_at",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 997
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "parent",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/dom.py",
+              "line": 813
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 72.01273749549102,
+          "pid": 3613471,
+          "tid": 140315734288064,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 366
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            }
+          ]
+        },
+        {
+          "video_seconds": 73.00504049549103,
+          "pid": 3613471,
+          "tid": 140317141284736,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 604
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 703
+            },
+            {
+              "function": "_dispatch_message",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 774
+            },
+            {
+              "function": "on_event",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 855
+            },
+            {
+              "function": "_on_message",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 876
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "on_click",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/widgets/session_tabs.py",
+              "line": 37
+            },
+            {
+              "function": "select_session",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/app.py",
+              "line": 457
+            },
+            {
+              "function": "__init__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/textual/await_complete.py",
+              "line": 29
+            },
+            {
+              "function": "gather",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 876
+            },
+            {
+              "function": "ensure_future",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 732
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_switch_mode_ready",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/app.py",
+              "line": 506
+            },
+            {
+              "function": "select",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/workspace_sessions.py",
+              "line": 142
+            },
+            {
+              "function": "prepare_presentation",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/screens/main.py",
+              "line": 185
+            },
+            {
+              "function": "prepare",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/session_presentation.py",
+              "line": 148
+            },
+            {
+              "function": "activate",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/session_presentation.py",
+              "line": 218
+            },
+            {
+              "function": "attach_binding",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/session_presentation.py",
+              "line": 158
+            },
+            {
+              "function": "present",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/session_presentation.py",
+              "line": 109
+            },
+            {
+              "function": "attach_surface",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent.py",
+              "line": 254
+            },
+            {
+              "function": "attach",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_controller.py",
+              "line": 122
+            },
+            {
+              "function": "start_operation",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_controller.py",
+              "line": 204
+            },
+            {
+              "function": "start_operation",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_process.py",
+              "line": 106
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "restore",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_controller.py",
+              "line": 143
+            },
+            {
+              "function": "publish",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_configuration.py",
+              "line": 138
+            },
+            {
+              "function": "publish",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_configuration.py",
+              "line": 84
+            },
+            {
+              "function": "choices",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_configuration.py",
+              "line": 54
+            },
+            {
+              "function": "__init__",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/toad/acp/agent_configuration.py",
+              "line": 22
+            },
+            {
+              "function": "dispatch_sync",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/agent_comms/mro_dispatch.py",
+              "line": 50
+            },
+            {
+              "function": "handlers_for",
+              "filename": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242/lib/python3.14/site-packages/agent_comms/mro_dispatch.py",
+              "line": 33
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

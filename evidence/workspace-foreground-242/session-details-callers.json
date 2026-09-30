@@ -1,0 +1,32 @@
+{
+  "signature": "(read: 'Callable[[], Awaitable[ThreadPresentation | None]]', *, history: 'NativeHistory | None' = None, delivery: 'InputDeliveryBar | None' = None, transcript: 'TranscriptPresentation | None' = None, turns: 'ConversationTurn | None' = None) -> 'None'",
+  "callers": [
+    {
+      "file": "src/toad/conversation_kind.py",
+      "line": 265,
+      "positionals": 1,
+      "keywords": []
+    },
+    {
+      "file": "src/toad/widgets/conversation.py",
+      "line": 867,
+      "positionals": 1,
+      "keywords": [
+        "turns",
+        "transcript",
+        "history",
+        "delivery"
+      ]
+    },
+    {
+      "file": "tests/session_details_pilot.py",
+      "line": 36,
+      "positionals": 1,
+      "keywords": [
+        "history",
+        "delivery"
+      ]
+    }
+  ],
+  "closure": "all directly imported widget SessionDetails constructors bound; tracker homonym excluded by declaration"
+}

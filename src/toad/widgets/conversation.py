@@ -867,7 +867,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             yield SessionDetails(
                 self._read_thread_activity,
                 turns=self.turns,
-                read_history=lambda: self.query_one_optional(TranscriptHistory),
+                transcript=self.transcript,
                 history=NativeHistory().data_bind(
                     status=Conversation.native_history_status
                 ),

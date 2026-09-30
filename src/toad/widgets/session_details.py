@@ -1,6 +1,9 @@
 """A compact disclosure for session observations, provenance and delivery notices."""
 
+from __future__ import annotations
+
 from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 from agent_comms.thread_presentation import ThreadPresentation
 from textual import on
@@ -12,6 +15,10 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
 from toad.conversation_turn import ConversationTurn
+
+
+if TYPE_CHECKING:
+    from toad.transcript_publication import TranscriptPresentation
 
 
 class SessionDetails(Collapsible):
@@ -36,13 +43,13 @@ class SessionDetails(Collapsible):
     def __init__(
         self, read: Callable[[], Awaitable[ThreadPresentation | None]], *,
         history: NativeHistory | None = None, delivery: InputDeliveryBar | None = None,
-        read_history=None,
+        transcript: TranscriptPresentation | None = None,
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
         self.activity = ObservedThreadActivity(read)
         self.history = history
-        self.history_details = SessionHistoryDetails(read_history, history)
+        self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
         super().__init__(self.activity, *(item for item in (history, delivery) if item is not None),
                          title="Session details", collapsed=True, id="session-details")
