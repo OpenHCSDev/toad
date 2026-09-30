@@ -1,0 +1,33 @@
+{
+  "same_open_view_recovered": true,
+  "recovery_seconds": 4.628233580995584,
+  "healthy_window_physical_beta_click": true,
+  "same_agent_editor_document_undo": true,
+  "existing_history_retained": 0,
+  "requests_during_recovery": 0,
+  "explicit_new_input_replied": true,
+  "strict_stopped_owner_load_refused": "Invalid params (-32602); data={'reason': \"Session load not admitted for 'beta': live owner is stopped or unavailable\"}",
+  "original_inputs_retried": 0,
+  "binding": {
+    "kind": "live",
+    "owner": {
+      "incarnation": {
+        "name": "beta",
+        "created_at": 1790728358.212097
+      },
+      "generation": 9
+    },
+    "process": {
+      "pid": 1958055,
+      "start_time": 20402123
+    }
+  },
+  "installed_core_source": "7cd4ee8b",
+  "installed_toad_source": "637013d5",
+  "fixture_source": "5bf359a1",
+  "native": "4ab910061590d1e0",
+  "textual": "412b5a2b5da8875dc2f3dc5be2365abddce0537b",
+  "process_exit": 0,
+  "failure_disposition_original_binding_asserted": true,
+  "source_only_followup": "05a6fbe3 moves full process admission into existing SDK RequestError boundary; no success-path change"
+}
