@@ -143,14 +143,50 @@ async def acceptance(app, pilot, agent, comms, *_args):
         (evidence / "provisional-progress.json").write_text(json.dumps(progress, indent=2))
         (evidence / "provisional.svg").write_text(app.export_screenshot())
         if cancel:
+            # Original in-flight source publication predates the journal outcome.
+            # It must not erase that later outcome, even though native bytes did
+            # not change during cancellation.
+            before_cancel = await agent.get_transcript_page()
             await pilot.press("escape", "escape")
             await until(pilot, lambda: not comms.registry.require("beta").executing, 30)
             partial_release.set()
             (evidence / "cancelled-before-end.svg").write_text(app.export_screenshot())
             view.window.focus(scroll_visible=False)
             await pilot.press("end")
-            await until(pilot, lambda: "Compaction aborted" in "\n".join(
+            from agent_comms.compaction_outcomes import CompactionOutcomeTranscript
+            outcome_page = await agent.get_transcript_page()
+            outcomes = [event for event in outcome_page.events
+                        if isinstance(event, CompactionOutcomeTranscript)]
+            assert len(outcomes) == 1
+            assert outcomes[0].identity == summaries[0].identity
+            outcome_label = outcomes[0].text.split(".", 1)[0]
+            await until(pilot, lambda: outcome_label in "\n".join(
                 strip.text for strip in app.screen._compositor.render_strips()), 15)
+            assert not before_cancel.after.contains(outcome_page.after)
+            await view.transcript.snapshot(before_cancel)
+            await until(pilot, lambda: not view.window.history_lock.locked(), 10)
+            await tab_return()
+            view.window.focus(scroll_visible=False)
+            await pilot.press("end")
+            await until(pilot, lambda: outcome_label in "\n".join(
+                strip.text for strip in app.screen._compositor.render_strips()), 15)
+            provider_posts = len(provider.requests)
+            await agent.session.reconnect()
+            await until(pilot, agent.session.settled.is_set, 30)
+            assert agent.session.connected
+            restored = await agent.get_transcript_page()
+            restored_outcomes = [event for event in restored.events
+                                 if isinstance(event, CompactionOutcomeTranscript)]
+            assert len(restored_outcomes) == 1 and restored_outcomes[0] == outcomes[0]
+            view.window.focus(scroll_visible=False)
+            await pilot.press("end")
+            await until(pilot, lambda: outcome_label in "\n".join(
+                strip.text for strip in app.screen._compositor.render_strips()), 15)
+            from toad.widgets.agent_response import AgentResponse
+            notices = [block for block in view.query(AgentResponse)
+                       if block.source == outcomes[0].text]
+            assert len(notices) == 1, "Cancellation outcome presentation is not original/once"
+            assert len(provider.requests) == provider_posts, "Source refresh replayed provider work"
             assert hashlib.sha256(Path(session).read_bytes()).hexdigest() == source_digest
             summaries = journal.summaries.history(session)
             assert len(summaries) == 1 and not isinstance(summaries[0].state,
@@ -163,6 +199,9 @@ async def acceptance(app, pilot, agent, comms, *_args):
                        "partial_before_cancel": True, "canonical_progress_painted": True,
                        "summary_state": summaries[0].state.declared_name,
                        "originals": len(originals), "paid_requests": 0,
+                       "original_outcome_once": True, "stale_snapshot_preserved": True,
+                       "cancel_tab_return": True, "cancel_reconnect_once": True,
+                       "operation_id": outcomes[0].identity.operation_id,
                        "provider_posts": len(provider.requests)}
             (evidence / "summary-receipt.json").write_text(json.dumps(receipt, indent=2))
             (evidence / "cancelled.svg").write_text(app.export_screenshot())
