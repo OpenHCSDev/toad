@@ -34,7 +34,7 @@ class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
     async def present(self, view, request):
         if not request.pending or not request.controller.agent.controller.surface.owns(view):
             return
-        view.post_message(messages.SessionUpdate(state="asking"))
+        view.refresh_bindings()
         binding = request.controller.agent.controller.surface
         await self.show(view, request, binding)
 
@@ -68,7 +68,7 @@ class DiffPermissionPresentation(PermissionPresentation):
         finally:
             app.terminal_attention.release(screen)
             if request.controller.agent.controller.surface is binding:
-                view.post_message(messages.SessionUpdate(state="busy"))
+                view.refresh_bindings()
 
 
 @dataclass
@@ -87,7 +87,7 @@ class InlinePermissionPresentation(PermissionPresentation):
                 return
             request.answer(binding, answer)
             if not view.prompt.ask_queue:
-                view.post_message(messages.SessionUpdate(state="busy"))
+                view.refresh_bindings()
 
         ask = view.ask(request.options, self.title,
                        partial(ACPToolCallContent, self.parts) if self.parts else None,
@@ -97,6 +97,6 @@ class InlinePermissionPresentation(PermissionPresentation):
             if view.is_attached:
                 view.prompt.remove_ask(ask)
                 if view.prompt._ask is None:
-                    view.post_message(messages.SessionUpdate(state="busy"))
+                    view.refresh_bindings()
 
         request.watch(view, retire)

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from agent_comms.acp_extension import QueueItem, QueueProjection
+from agent_comms.acp_extension import InputStartedUpdate
 
 from toad.private_native_cursor import CursorStatus
 
@@ -14,5 +14,4 @@ class CursorPresentation:
 
 @dataclass(frozen=True)
 class QueuePresentation:
-    projection: QueueProjection
-    starts: tuple[QueueItem, ...] = ()
+    starts: tuple[InputStartedUpdate, ...] = ()

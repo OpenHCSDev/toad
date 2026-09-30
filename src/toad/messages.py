@@ -6,7 +6,6 @@ from textual.content import Content
 from textual.widget import Widget
 from textual.message import Message
 
-from toad.session_tracker import SessionState
 from toad.input_history import InputHistory
 
 
@@ -153,10 +152,6 @@ class SessionUpdate(Message):
     """Session subtitle (name of agent)."""
     path: str | None = None
     """Project directory path."""
-    state: SessionState | None = None
-    """New session state."""
-    summary: str | None = None
-    """Current agent activity shown in session lists."""
 
 
 @dataclass

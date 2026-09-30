@@ -60,7 +60,6 @@ class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
         from toad import messages
         if cls.busy:
             view.turns.describe(' '.join(title.splitlines()))
-            view.post_message(messages.SessionUpdate(state='busy', summary=title))
         if cls.boundary:
             view.output.boundary()
 

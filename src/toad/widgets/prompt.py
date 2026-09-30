@@ -479,10 +479,6 @@ class Prompt(containers.VerticalGroup):
     models: var[dict[str, Model] | None] = var(None)
     model_history_scope = var("")
     queue_supported = var(False)
-    queued_prompts: var[list[str]] = var(list)
-    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
-    delivering_prompt = var("")
-    sending_queued_prompt = var("")
     status: var[str | Content] = var("")
 
     app = getters.app(ToadApp)
@@ -497,12 +493,14 @@ class Prompt(containers.VerticalGroup):
         simple_input: bool = False,
         placeholder: str | None = None,
         turns: ConversationTurn | None = None,
+        submissions=None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.ask_queue: list[Ask] = []
         self.simple_input = simple_input
         self.simple_placeholder = placeholder
         self.turns = turns
+        self.submissions = submissions
 
     @property
     def agent_busy(self) -> bool:
@@ -618,35 +616,27 @@ class Prompt(containers.VerticalGroup):
 
     def watch_queue_supported(self, supported):
         self.sync_turn()
-        self._update_queue_summary()
+        self.sync_queue()
 
-    def watch_queued_prompts(self, queued):
-        self._update_queue_summary()
+    def sync_queue(self) -> None:
+        if self.is_mounted:
+            self._update_queue_summary()
 
-    def watch_queue_projection(self, _projection: QueueProjection) -> None:
-        self._update_queue_summary()
-
-    def watch_delivering_prompt(self, _prompt: str) -> None:
-        self._update_queue_summary()
-
-    def watch_sending_queued_prompt(self, _prompt: str) -> None:
-        self._update_queue_summary()
+    def on_mount(self) -> None:
+        self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:
         if self.simple_input:
             return
-        projection = self.queue_projection
+        projection = self.submissions.queue_projection if self.submissions else PendingQueueProjection()
         queued = [row.text for row in projection.items]
         restored = [row.text for row in projection.restored]
         feedback = projection.feedback(self.queue_supported)
-        delivering = self.delivering_prompt
-        self.set_class(bool(queued or restored or delivering or feedback
-                            or self.sending_queued_prompt), "-has-queue")
+        delivering = self.submissions.delivering if self.submissions else ""
+        self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []
         if feedback:
             parts.append(feedback)
-        if self.sending_queued_prompt:
-            parts.append("Send requested: " + " ".join(self.sending_queued_prompt.split())[:100])
         if delivering:
             parts.append("Sending next: " + " ".join(delivering.split())[:100])
         if queued:

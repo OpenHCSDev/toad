@@ -21,7 +21,6 @@ class ProjectionAttachment:
 
     def __init__(self) -> None:
         self.current: CursorEnvelope | QueueChangedUpdate | None = None
-        self.status: str | None = None
         self.quarantined = False
         self.floor: CursorScope | QueueScope | None = None
         self._buffer: list[tuple[str, CursorEnvelope]] = []
@@ -29,13 +28,21 @@ class ProjectionAttachment:
         # In particular begin() after uncertainty must not erase a newer generation
         # merely because an older in-flight result has not arrived yet.
         self._prebind_floors: dict[
-            tuple[tuple[str, str, str], int | float], CursorScope | QueueScope
+            tuple[tuple[str, ...], int | float], CursorScope | QueueScope
         ] = {}
         self._uncertain = False
         self._evidence_lost = False
         self._pending = True
         self._token = 0
         self._session_id: str | None = None
+
+    @property
+    def status(self) -> str | None:
+        if self.current is None and not self._buffer and not self._prebind_floors:
+            return None
+        if self.quarantined or self._pending or self._uncertain or self._evidence_lost:
+            return "unavailable"
+        return self.current.status
 
     def begin(self, session_id: str | None) -> int:
         self._token += 1
@@ -45,8 +52,6 @@ class ProjectionAttachment:
         if self._uncertain:
             self._buffer.clear()
             self._uncertain = False
-        if self.status is not None:
-            self.status = "unavailable"
         return self._token
 
     def is_current_request(self, token: int) -> bool:
@@ -54,14 +59,12 @@ class ProjectionAttachment:
         return token == self._token
 
     def invalidate(self) -> None:
-        self.status = "unavailable" if self.status is not None else None
         self.quarantined = True
         self._uncertain = True
         self._pending = False
         self._token += 1
 
     def _quarantine(self, *, uncertain: bool = False) -> None:
-        self.status = "unavailable"
         self.quarantined = True
         self._uncertain |= uncertain
 
@@ -69,9 +72,9 @@ class ProjectionAttachment:
         old = self.floor
         if (
             old is None
-            or old.logical_key != scope.logical_key
-            or old.owner_created_at != scope.owner_created_at
-            or scope.admission_generation > old.admission_generation
+            or old.relation(scope).foreign
+            or old.relation(scope).ambiguous
+            or old.relation(scope).newer
         ):
             self.floor = scope
 
@@ -95,9 +98,6 @@ class ProjectionAttachment:
             or envelope.scope.session_id != session_id
         ):
             self._quarantine(uncertain=True)
-            # Hide absent metadata on ordinary non-private sessions.
-            if value is None and self.current is None and not self._buffer:
-                self.status = None
             return "reject_unavailable_binding"
         scope = envelope.scope
         observed = self._prebind_floors.get((scope.logical_key, scope.owner_created_at))
@@ -108,30 +108,25 @@ class ProjectionAttachment:
             other = buffered.scope
             if (
                 receiving_session != session_id
-                or other.logical_key != scope.logical_key
+                or scope.relation(other).foreign
             ):
                 continue
-            if other.owner_created_at != scope.owner_created_at or (
-                other.admission_generation == scope.admission_generation
-                and other.owner_pid != scope.owner_pid
-            ):
+            if scope.relation(other).ambiguous:
                 self._uncertain = True
-            elif other.admission_generation > scope.admission_generation:
+            elif scope.relation(other).newer:
                 self._observe_floor(other)
-            elif other == scope:
+            elif scope.relation(other).current:
                 matching.append(buffered)
         floor = self.floor
         if self._uncertain or (
             floor is not None
-            and floor.logical_key == scope.logical_key
-            and floor.owner_created_at == scope.owner_created_at
-            and floor.admission_generation > scope.admission_generation
+            and scope.relation(floor).newer
         ):
             self._quarantine()
             return "reject_binding_floor_or_uncertainty"
         if (
             self.current is not None
-            and self.current.scope == scope
+            and self.current.scope.relation(scope).current
             and (
                 envelope.revision < self.current.revision
                 or (
@@ -143,7 +138,6 @@ class ProjectionAttachment:
             self._quarantine(uncertain=True)
             return "reject_stale_or_conflicting_binding"
         self.current = envelope
-        self.status = envelope.status
         self.quarantined = False
         self._observe_floor(scope)
         self._buffer.clear()
@@ -172,14 +166,13 @@ class ProjectionAttachment:
             if self.current is not None:
                 incumbent = self.current.scope
                 if (
-                    other.logical_key == incumbent.logical_key
-                    and other.owner_created_at == incumbent.owner_created_at
+                    incumbent.relation(other).same_incarnation
                 ):
                     self._observe_floor(other)
             key = other.logical_key, other.owner_created_at
             previous = self._prebind_floors.get(key)
             if previous is not None:
-                if other.admission_generation > previous.admission_generation:
+                if previous.relation(other).newer:
                     self._prebind_floors[key] = other
             elif len(self._prebind_floors) < self.MAX_PREBIND:
                 self._prebind_floors[key] = other
@@ -194,22 +187,18 @@ class ProjectionAttachment:
                 self._quarantine(uncertain=True)
                 return "quarantine_overflow"
             self._buffer.append((session_id, envelope))
-            self.status = "unavailable"
             return "buffer"
         scope, other = self.current.scope, envelope.scope
-        if other.logical_key != scope.logical_key:
+        if scope.relation(other).foreign:
             return "reject_foreign_scope"
-        if other.owner_created_at != scope.owner_created_at or (
-            other.admission_generation == scope.admission_generation
-            and other.owner_pid != scope.owner_pid
-        ):
+        if scope.relation(other).ambiguous:
             self._quarantine(uncertain=True)
             return "quarantine_ambiguous"
-        if other.admission_generation > scope.admission_generation:
+        if scope.relation(other).newer:
             self._observe_floor(other)
             self._quarantine()
             return "quarantine_newer_generation"
-        if other.admission_generation < scope.admission_generation:
+        if scope.relation(other).older:
             return "reject_stale_scope"
         return self._apply(envelope)
 
@@ -223,5 +212,4 @@ class ProjectionAttachment:
                 else "reject_equal_revision_conflict"
             )
         self.current = envelope
-        self.status = envelope.status
         return "accept"

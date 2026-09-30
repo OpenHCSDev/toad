@@ -33,9 +33,12 @@ async def stop_test_children(attempt: str | None) -> None:
     """Retire only children carrying this runner's private attempt attestation."""
     if attempt is None:
         return
+    runner = psutil.Process()
+    ancestors = {process.pid for process in runner.parents()}
     for process in psutil.process_iter():
         try:
-            if process.pid != os.getpid() and process.environ().get("TOAD_TEST_ATTEMPT") == attempt:
+            if (process.pid != runner.pid and process.pid not in ancestors
+                    and process.environ().get("TOAD_TEST_ATTEMPT") == attempt):
                 # xclip is an external daemon, not a ChildProcess session leader.
                 # psutil guards PID reuse; zombies have already closed their pipes.
                 process.terminate()

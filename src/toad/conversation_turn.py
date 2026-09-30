@@ -1,7 +1,10 @@
-"""Turn permissions and ordered ownership, independent of widget presentation."""
+"""Local ACP turns and source-fenced projections of the backend's turn owner."""
 from abc import abstractmethod
 from dataclasses import dataclass, replace
+
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.turn_lease import TurnState
+from agent_comms.turn_phase import CompactionPhase
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
@@ -21,6 +24,10 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     @property
     def can_compact(self) -> bool:
         return not self.busy
+
+    @property
+    def can_cancel(self) -> bool:
+        return self.busy
 
     @property
     @abstractmethod
@@ -51,7 +58,6 @@ class ClientTurn(TurnOwner):
 
 @dataclass(frozen=True)
 class ActivityTurn(TurnOwner):
-    """A local operation owns its visible activity until it finishes."""
     activity: str
     busy = True
     session_state = "busy"
@@ -62,6 +68,7 @@ class ActivityTurn(TurnOwner):
 
 @dataclass(frozen=True)
 class AgentTurn(TurnOwner):
+    """A generic ACP peer has local request custody, without Comms authority."""
     managed_id: str | None = None
     activity: str = "Thinking…"
     started_at: float | None = None
@@ -72,7 +79,7 @@ class AgentTurn(TurnOwner):
     def matches_settlement(self, turn_id) -> bool:
         return self.managed_id == turn_id
 
-    def with_activity(self, activity: str) -> "AgentTurn":
+    def with_activity(self, activity: str) -> TurnOwner:
         return replace(self, activity=activity or "Thinking…")
 
     def response_stream(self, delivery):
@@ -80,13 +87,67 @@ class AgentTurn(TurnOwner):
         return ResponseStream(delivery, turn_id=self.managed_id)
 
 
-class ObservedAgentTurn(AgentTurn):
-    """An owner snapshot observes a turn outside the ordered ACP stream."""
-    accepts_snapshot = True
+@dataclass(frozen=True)
+class ManagedTurn(TurnOwner):
+    """The published lease owns phase, permissions, activity and identity."""
+    state: TurnState = TurnState()
+
+    @property
+    def busy(self):
+        return self.state.busy
+
+    @property
+    def managed_id(self):
+        return self.state.managed_id
+
+    @property
+    def accepts_prompt(self):
+        return self.state.accepts_prompt
+
+    @property
+    def can_compact(self):
+        return self.state.can_compact
+
+    @property
+    def can_cancel(self):
+        return self.state.phase.can_cancel
+
+    @property
+    def activity(self):
+        return self.state.activity if self.busy else ""
+
+    @property
+    def started_at(self):
+        phase = self.state.phase
+        return phase.started_at if isinstance(phase, CompactionPhase) else self.state.started_at
+
+    @property
+    def session_state(self):
+        return "busy" if self.busy else "idle"
+
+    def matches_settlement(self, turn_id):
+        return self.state.matches(turn_id)
+
+    def with_activity(self, activity):
+        # Text, tool and heartbeat rendering cannot change backend phase.
+        return self
+
+    def response_stream(self, delivery):
+        if self.busy:
+            from toad.live_output import ResponseStream
+            return ResponseStream(delivery, turn_id=self.managed_id)
+        return super().response_stream(delivery)
+
+
+class OrderedManagedTurn(ManagedTurn):
+    @property
+    def accepts_snapshot(self):
+        return not self.busy
 
 
 class TurnBinding(DeclaredFamily, affix="TurnBinding"):
-    """An agent's presentation declares where its turn authority lives."""
+    managed = False
+    sequence = 0
 
     @property
     @abstractmethod
@@ -96,19 +157,19 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     def accepts(self, message) -> bool: ...
 
     @abstractmethod
-    def start(self, update) -> bool: ...
-
-    @abstractmethod
-    def settle(self, update) -> bool: ...
-
-    @abstractmethod
     def describe(self, activity: str) -> None: ...
 
+    @abstractmethod
+    def reset(self) -> None: ...
+
+    async def present_input(self, view, text) -> None:
+        """Managed originals are displayed only from native start receipts."""
+
     def start_client(self) -> None:
-        """Managed requests wait for their agent's authoritative receipt."""
+        """A managed request waits for its authoritative owner publication."""
 
     def finish_client(self) -> None:
-        """A local request cannot settle a managed turn."""
+        """A local RPC result cannot settle a managed turn."""
 
 
 class LocalTurnBinding(TurnBinding):
@@ -116,111 +177,99 @@ class LocalTurnBinding(TurnBinding):
         self._owner = NoTurn()
 
     @property
-    def owner(self) -> TurnOwner:
+    def owner(self):
         return self._owner
 
-    def accepts(self, message) -> bool:
+    def accepts(self, message):
         return message.agent is None
 
-    def start(self, update) -> bool:
-        owner = AgentTurn(update.turn_id, update.activity_detail or "Thinking…", update.started_at)
-        if owner == self._owner:
-            return False
-        self._owner = owner
-        return True
-
-    def settle(self, update) -> bool:
-        if not self._owner.matches_settlement(update.turn_id):
-            return False
-        self.finish_client()
-        return True
-
-    def describe(self, activity: str) -> None:
+    def describe(self, activity):
         self._owner = self._owner.with_activity(activity)
 
-    def start_client(self) -> None:
+    def reset(self):
+        self._owner = NoTurn()
+
+    async def present_input(self, view, text):
+        from toad.widgets.user_input import UserInput
+        await view.post(UserInput(text))
+
+    def start_client(self):
         self._owner = AgentTurn()
 
-    def finish_client(self) -> None:
+    def finish_client(self):
         self._owner = ClientTurn()
 
 
 class ManagedTurnBinding(TurnBinding):
+    managed = True
+
     def __init__(self, agent):
         self.agent = agent
+        self._owner = ManagedTurn()
+        self.sequence = 0
 
     @property
-    def owner(self) -> TurnOwner:
-        return self.agent.current_turn
+    def owner(self):
+        return self._owner
 
-    def accepts(self, message) -> bool:
+    def accepts(self, message):
         return (message.agent is self.agent and message.session_id == self.agent.session_id
-                and message.sequence > 0)
+                and message.sequence == self.sequence)
 
-    def start(self, update) -> bool:
-        return self.owner.busy and self.owner.matches_settlement(update.turn_id)
+    def receive(self, state: TurnState, owner_type=OrderedManagedTurn):
+        if not state.busy and not state.matches(self.owner.managed_id):
+            return False
+        owner = owner_type(state)
+        if owner == self.owner:
+            return False
+        self._owner = owner
+        self.sequence += 1
+        return True
 
-    def settle(self, update) -> bool:
-        return not self.owner.busy
+    def describe(self, activity):
+        """Only the backend publication changes a managed phase."""
 
-    def describe(self, activity: str) -> None:
-        if self.owner.busy:
-            self.agent.describe_turn(activity)
+    def reset(self):
+        self._owner = ManagedTurn()
+        self.sequence += 1
 
 
 class ConversationTurn:
-    """Stable widget binding; managed turn values stay solely on the agent."""
-    def __init__(self, changed):
-        self._binding = LocalTurnBinding()
+    """Read the actual source binding; the widget keeps no managed state or cursor."""
+    def __init__(self, changed, source):
+        self._local = LocalTurnBinding()
+        self._source = source
         self._changed = changed
-        self._source = None
-        self._sequence = 0
 
     @property
-    def owner(self) -> TurnOwner:
-        return self._binding.owner
+    def binding(self):
+        return self._source() or self._local
 
-    def bind(self, agent) -> None:
-        self._binding = agent.presentation.turns if agent is not None else LocalTurnBinding()
-        self._source = None
-        self._sequence = 0
+    @property
+    def owner(self):
+        return self.binding.owner
+
+    def bound(self):
         self._changed(self.owner)
 
     @property
-    def managed_id(self) -> str | None:
+    def managed_id(self):
         return self.owner.managed_id
 
-    def accept(self, message) -> bool:
-        if not self._binding.accepts(message):
-            return False
-        if message.agent is None:
-            return True
-        source = (message.agent, message.session_id)
-        if source == self._source and message.sequence <= self._sequence:
-            return False
-        self._source, self._sequence = source, message.sequence
-        return True
-
-    def start(self, message) -> bool:
-        if not self.accept(message) or not self._binding.start(message.update):
+    def changed(self, message):
+        if not self.binding.accepts(message):
             return False
         self._changed(self.owner)
         return True
 
-    def settle(self, message) -> bool:
-        if not self.accept(message) or not self._binding.settle(message.update):
-            return False
-        self._changed(self.owner)
-        return True
-
-    def describe(self, activity: str) -> None:
-        self._binding.describe(activity)
+    def describe(self, activity):
+        self.binding.describe(activity)
         self._changed(self.owner)
 
-    def start_client(self) -> None:
-        self._binding.start_client()
+    def start_client(self):
+        self.binding.start_client()
         self._changed(self.owner)
 
-    def finish_client(self) -> None:
-        self._binding.finish_client()
+    def finish_client(self):
+        self.binding.finish_client()
         self._changed(self.owner)

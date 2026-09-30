@@ -51,6 +51,7 @@ class SnapshotPublication(TranscriptPublication):
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.session_details import SessionDetails
+        from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         fragments = await self.owner.view.app.preparation.submit(
             RenderPreparation(TranscriptRenderTask(self.page.events))
         )
@@ -62,6 +63,16 @@ class SnapshotPublication(TranscriptPublication):
         view.output.boundary()
         with view.app.batch_update():
             await self.contents.mount(history)
+            if self.current():
+                # Initial/rebound saved source owns the same retirement relation
+                # as later checkpoints. Captured anonymous live output has no
+                # proof here; original native input IDs do.
+                evidence = CommitEvidence(
+                    frozenset(), retained_history=history,
+                    native_inputs=frozenset(native_id for event in self.page.events
+                                            for native_id in event.native_inputs),
+                )
+                await self.contents.remove_children(retirement_candidates(self.contents.children, evidence))
         if not self.current():
             if history.is_attached:
                 await history.remove()
@@ -190,7 +201,8 @@ class CheckpointPublication(TranscriptPublication):
         if prepared is None or not is_current():
             return
         evidence = CommitEvidence(
-            frozenset(before_read), prepared.sequences, prepared.history
+            frozenset(before_read), prepared.sequences, prepared.history,
+            frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
         async with window.history_lock:
             retired = retirement_candidates(contents.children, evidence)
@@ -450,6 +462,7 @@ class TranscriptPresentation:
                                   if isinstance(child, CommitParticipant)
                                   for sequence in child.commit_claim.required_sequences)),
                     message.history,
+                    message.native_inputs,
                 ),
             )
             protected = protected_blocks(view, candidates)

@@ -6,7 +6,6 @@ from agent_comms.acp_extension import (
     InputStartedUpdate,
     PendingQueueProjection,
     QueueChangedUpdate,
-    QueueItem,
     UnavailableQueueProjection,
 )
 
@@ -16,8 +15,7 @@ from .projection_attachment import ProjectionAttachment
 class QueueAttachment(ProjectionAttachment):
     def __init__(self):
         super().__init__()
-        self._started_revision = 0
-        self._started_scope = None
+        self._last_started: InputStartedUpdate | None = None
         self._pending_starts: list[InputStartedUpdate] = []
 
     @property
@@ -36,9 +34,10 @@ class QueueAttachment(ProjectionAttachment):
 
     def accepts_request(self, scope) -> bool:
         """A request's original queue authority must still own this attachment."""
-        if self.scope != scope:
-            return False
-        return scope is None or self.projection.status == "available"
+        if scope is None:
+            return self.scope is None
+        return (self.scope is not None and self.scope.relation(scope).current
+                and self.projection.status == "available")
 
     def begin(self, session_id):
         self._pending_starts.clear()
@@ -54,7 +53,7 @@ class QueueAttachment(ProjectionAttachment):
 
     def started(
         self, update: InputStartedUpdate, session_id: str
-    ) -> tuple[QueueItem, ...]:
+    ) -> tuple[InputStartedUpdate, ...]:
         if update.scope is None or update.scope.session_id != session_id:
             return ()
         if self._pending:
@@ -64,17 +63,17 @@ class QueueAttachment(ProjectionAttachment):
             else:
                 self._pending_starts.append(update)
             return ()
-        if self.quarantined or self.scope != update.scope:
+        if (self.quarantined or self.scope is None
+                or not self.scope.relation(update.scope).current):
             return ()
-        if self._started_scope != update.scope:
-            self._started_scope = update.scope
-            self._started_revision = 0
+        previous = self._last_started
         if (
             update.input_id is None
             or update.text is None
             or update.revision is None
-            or update.revision <= self._started_revision
+            or (previous is not None and previous.scope.relation(update.scope).current
+                and update.revision <= previous.revision)
         ):
             return ()
-        self._started_revision = update.revision
-        return (QueueItem(update.input_id, update.text),)
+        self._last_started = update
+        return (update,)

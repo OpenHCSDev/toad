@@ -494,8 +494,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 title=event.name,
                 subtitle=event.subtitle,
                 path=event.path,
-                state=event.state,
-                summary=event.summary,
             )
 
     @on(messages.SessionClose)

@@ -8,7 +8,6 @@ from textual.signal import Signal
 from textual.widget import Widget
 from agent_comms.presentation import CoordinationSnapshot
 
-type SessionState = Literal["notready", "busy", "asking", "idle"]
 
 
 class UnreadPresentation(ABC):
@@ -118,10 +117,6 @@ class SessionDetails:
     """The subtitle of the conversation."""
     path: str = ""
     """The project directory path."""
-    state: SessionState = "notready"
-    """The current state of the session."""
-    summary: str = ""
-    """Suplimentary information about the session."""
 
     updates: int = 0
     """Track updates to the session details."""
@@ -165,13 +160,10 @@ class SessionTracker:
         title: str | None = None,
         subtitle: str | None = None,
         path: str | None = None,
-        state: SessionState | None = None,
-        summary: str | None = None,
     ) -> SessionDetails:
         session_details = self.sessions[mode_name]
         before = (
             session_details.title, session_details.subtitle, session_details.path,
-            session_details.state, session_details.summary,
         )
         if title is not None:
             session_details.title = title
@@ -179,13 +171,8 @@ class SessionTracker:
             session_details.subtitle = subtitle
         if path is not None:
             session_details.path = path
-        if state is not None:
-            session_details.state = state
-        if summary is not None:
-            session_details.summary = summary
         after = (
             session_details.title, session_details.subtitle, session_details.path,
-            session_details.state, session_details.summary,
         )
         if after != before:
             self.signal.publish((mode_name, session_details))

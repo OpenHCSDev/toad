@@ -86,7 +86,9 @@ class TranscriptBlockConsumer(MroDispatch):
                     sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
                 ))
         else:
-            self.blocks.append(UserInput(event.text, show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp)))
+            self.blocks.append(UserInput(event.text, native_id=event.native_id,
+                                         show_divider=self.show_divider,
+                                         clock=MessageClock.recorded(event.timestamp)))
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript):
@@ -546,6 +548,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             super().__init__()
             self.history = history
             self.sequences = incoming_sequences(events)
+            self.native_inputs = frozenset(native_id for event in events for native_id in event.native_inputs)
 
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:
