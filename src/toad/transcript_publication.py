@@ -37,6 +37,33 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
+    async def retire_presentations(self, output, candidates) -> None:
+        """Accepted source retirement must finish before its window fence opens.
+
+        Caller cancellation can withdraw provisional work, but cannot abandon
+        the resources an accepted source already replaces. The original task
+        records cancellation; this operation owns and joins its exact teardown.
+        """
+        caller = asyncio.current_task()
+        retirement = asyncio.create_task(
+            self._retire_presentations(output, candidates), name="accepted source retirement",
+        )
+        while not retirement.done():
+            try:
+                await asyncio.shield(retirement)
+            except asyncio.CancelledError:
+                if retirement.cancelled():
+                    raise
+        retirement.result()
+        if caller.cancelling():
+            raise asyncio.CancelledError
+
+    async def _retire_presentations(self, output, candidates) -> None:
+        try:
+            await output.retire_presentations(candidates)
+        finally:
+            await self.contents.remove_children(candidates)
+
     @abstractmethod
     async def publish(self) -> None: ...
 
@@ -105,8 +132,7 @@ class SnapshotPublication(TranscriptPublication):
                     history.publish_committed()
                     accepted = True
                     retired = retirement_candidates(self.contents.children, evidence)
-                    await view.output.retire_presentations(retired)
-                    await self.contents.remove_children(retired)
+                    await self.retire_presentations(view.output, retired)
                 finally:
                     # A provisional mount owns no source coverage. Its cleanup
                     # must finish before native frame admission is released.
@@ -324,8 +350,7 @@ class CheckpointPublication(TranscriptPublication):
                     # Once retiring live widgets begins, the accepted source must
                     # survive cancellation so their saved content stays reachable.
                     accepted = True
-                    await view.output.retire_presentations(retired)
-                    await contents.remove_children(retired)
+                    await self.retire_presentations(view.output, retired)
                 finally:
                     if (
                         not accepted
