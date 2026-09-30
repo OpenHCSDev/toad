@@ -377,3 +377,50 @@ preserved separately; no wrapper exit-0 claim is made. Evidence in owned scratch
 The custody result permits the next fresh real messaging journey. It does not
 prove original-input lease admission, native reply lineage, reply-once, header,
 late replay or immediate A/B/A input behavior. Real01–04 remain unreplayed.
+
+## Real05: native publication succeeds; reply presentation gate fails
+
+Fresh real05 used the same immutable Core `8691d6ee` / Toad `4e1277ae` pair.
+Original message `c325aee400a6`, sequence 1, appeared in all three already-open
+views. Full native input `79c8c5598d06a736d10a07823ce724a3` was accepted as user
+entry `3a6a2261`; real Sol/high assistant entry `2e2ae4f5` answered successfully.
+Its original execution published reply `e66efc014771`, sequence 2, with one
+obligation and publication receipt. The original reply journal is distinct from
+the retained 41MB display journal; their paths were not rewritten to lend proof.
+The second native-input row is the reply's triage assignment, not a replay of
+the original full input. Both owned processes retired and are absent.
+
+The exact-one rendered reply assertion failed before the driver recorded the
+observed count. Thus this attempt alone does not distinguish zero incompletely
+composed bodies from two bodies. IRC reached Responded; the recorded DM handling
+timeline was still Responding when the gate aborted. Header, 31-second idle,
+A/B/A and immediate-new-send phases were not reached. No readiness claim or paid
+repeat follows this failure. Evidence: `real-wire215-05/receipt.json`,
+`original-attempt-disposition.json`, `failure.txt`, `original-private-wire` and
+the original native journals.
+
+## Provider-free original-source control proves double rendering
+
+`composition215-01` reopened the same installed three-view, 41MB journey and
+published one new fixture message from beta to its non-executable human user.
+The archived native-input table contains zero rows. Original message
+`541fdfa6e0b2`, sequence 1, produced exactly one OutgoingMessage container but two
+AgentResponse bodies, both at container mount and after composition. The actual
+painted SVG contains two Outbound headers and two copies of the control text.
+Evidence: `composition215-01/receipt.json`, `composition-control.svg`,
+`original-private-wire` and `failure.txt`.
+
+The declaration explains that actual result: SentTranscript inherits
+AgentTextTranscript. MroDispatch deliberately composes every C3 handler, so
+TranscriptBlockConsumer.sent produces the attributed outbound body and
+TranscriptBlockConsumer.agent produces another plain response body for the
+same event. Mendel owns the exclusive canonical wire-event declaration and
+shared text/preparation capability; #215 owns its rendering consumers. The
+global dispatch composition policy stays intact. No body deduplication, seen
+list or mirrored message/status authority is introduced. The proposed inbound
+event must likewise avoid inheriting a second independently rendering case.
+
+The driver now waits for the actual original outbound body to compose before
+its exact-one check, records native lineage plus the count and ancestor owners,
+and captures painted output before asserting. This closes the diagnostic gap;
+it does not fix the product declaration or authorize an unchanged paid repeat.

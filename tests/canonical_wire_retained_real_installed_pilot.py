@@ -97,6 +97,7 @@ def probe_response_custody(bus, cancelled, *, probes=4, spacing=6):
 async def main():
     assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
     read_only_custody = os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1'
+    composition_control = os.environ.get('AC_REAL_COMPOSITION_CONTROL') == '1'
     evidence = Path(os.environ['L0A_EVIDENCE'])
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     assert stage.is_relative_to('/home/ts/wt')
@@ -202,6 +203,31 @@ async def main():
                         'process_cpu_seconds': time.process_time() - cpu}
                     receipt['read_only_source_custody'] = True
                     return
+                if composition_control:
+                    # The fixture's human participant cannot launch a native
+                    # turn. This isolates actual source/widget composition
+                    # without replaying a previous input or paying a provider.
+                    assert not service.registry.require(user).role.executable
+                    original = await asyncio.to_thread(service.messaging.send_message,
+                        'beta', user, 'ORIGINAL_COMPOSITION_CONTROL')
+                    await until(rp, lambda: len(originals(receiver, original.reference,
+                                                        OutgoingMessage)) == 1, 30)
+                    block = originals(receiver, original.reference, OutgoingMessage)[0]
+                    receipt['composition_control'] = {
+                        'original': FieldCodec.encode(original.reference),
+                        'body_count_at_container_mount': sum(
+                            body.source == original.body for body in
+                            receiver.contents.query(AgentResponse)),
+                        'children_at_container_mount': len(block.query(AgentResponse)),
+                    }
+                    await until(rp, lambda: bool(block.query(AgentResponse)), 30)
+                    await rp.pause()
+                    receipt['composition_control']['body_count_after_composition'] = sum(
+                        body.source == original.body for body in
+                        receiver.contents.query(AgentResponse))
+                    receiver_app.save_screenshot(str(evidence / 'composition-control.svg'))
+                    assert receipt['composition_control']['body_count_after_composition'] == 1
+                    return
                 original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
                     '@beta Bounded acceptance only. Do not resume prior work or use tools. '
                     'Reply exactly REAL_RETAINED_WIRE_REPLY to this channel message.')
@@ -233,14 +259,26 @@ async def main():
                              if message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body)
                 await until(rp, lambda: len(originals(receiver, reply.reference, OutgoingMessage)) == 1, 30)
                 await until(sp, lambda: len(originals(sender, reply.reference, IncomingMessage)) == 1, 30)
-                assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1, \
-                    'Original wire reply and native assistant were both published'
+                # A mounted container does not prove its composed body exists.
+                # Wait for that actual body before counting duplicate replies;
+                # retain the observed count even when the assertion fails.
+                await until(rp, lambda: any(body.query(AgentResponse) for body in
+                            originals(receiver, reply.reference, OutgoingMessage)), 30)
+                receipt['original_native_reply'] = original_native_reply_proof(service, original, reply)
+                reply_bodies = [body for body in receiver.contents.query(AgentResponse)
+                                if body.source == reply.body]
+                receipt['rendered_reply_count'] = len(reply_bodies)
+                receipt['rendered_reply_owners'] = [
+                    [type(parent).__name__ for parent in body.ancestors]
+                    for body in reply_bodies
+                ]
+                receiver_app.save_screenshot(str(evidence / 'reply-before-once-check.svg'))
+                assert len(reply_bodies) == 1, f'Original reply rendered {len(reply_bodies)} times'
                 assert len(originals(receiver, reply.reference, OutgoingMessage)[0].query(MessageDivider)) == 1, \
                     'One original reply must own one header'
                 originals(receiver, reply.reference, OutgoingMessage)[0].scroll_visible(animate=False, immediate=True)
                 await rp.pause()
                 receiver_app.save_screenshot(str(evidence / 'original-reply.svg'))
-                receipt['original_native_reply'] = original_native_reply_proof(service, original, reply)
                 for view, pilot, kind in ((sender, sp, OutgoingMessage), (receiver, rp, IncomingMessage)):
                     await until(pilot, lambda: 'Responded' in str(originals(view, original.reference, kind)[0]
                                                                 .query_one(MessageNotifications).title), 30)
