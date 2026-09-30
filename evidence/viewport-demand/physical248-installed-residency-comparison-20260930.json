@@ -1,0 +1,1002 @@
+{
+  "scope": "Kepler offline CPU/source assessment; Heisenberg248 sole physical capture and production integration",
+  "baseline_recording": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture",
+  "candidate_recording": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture",
+  "paired_dependencies_equal": true,
+  "source_and_owner_identity_equal_across_runs": true,
+  "originals": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "candidate_activation": {
+    "stage": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248",
+    "pins": {
+      "agent-comms": "6feb634ba184d94d763028406152fff07027cccc",
+      "batrachian-toad": "386500df100c7e01ba35be8f613deb7b117aedb4",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "347cffafe908b04945fc277f8ea753a01e7c5650423af8a2cc9d40d0083bfaac"
+  },
+  "baseline_activation": {
+    "stage": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245",
+    "pins": {
+      "agent-comms": "6feb634ba184d94d763028406152fff07027cccc",
+      "batrachian-toad": "1de10e3f910a649b152120e866f30c832737a885",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "69ad57c29c0354251385fda9cf0b8fe7283877a366217b03860f3b009565136b"
+  },
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "retained_ready_body_ids": [
+    140675484648784,
+    140675484650064,
+    140675484654864,
+    140675484655184,
+    140675484656464,
+    140675484657744,
+    140675484659984,
+    140675484660624,
+    140675484661584,
+    140675484663504,
+    140675485578768,
+    140675485579088,
+    140675485580368,
+    140675485580688,
+    140675516541008,
+    140675516545488,
+    140675909026192,
+    140675909026512,
+    140675909029712,
+    140675909038672
+  ],
+  "cpu_phases": [
+    {
+      "phase": "up",
+      "245": {
+        "phase_seconds": 5.80912981898291,
+        "cpu_seconds": 5.33,
+        "average_cpu_percent": 91.75212408892597
+      },
+      "248": {
+        "phase_seconds": 5.683541386038996,
+        "cpu_seconds": 5.429999999999998,
+        "average_cpu_percent": 95.53902454793774
+      }
+    },
+    {
+      "phase": "down",
+      "245": {
+        "phase_seconds": 5.802724041976035,
+        "cpu_seconds": 6.090000000000003,
+        "average_cpu_percent": 104.9507085973046
+      },
+      "248": {
+        "phase_seconds": 5.949363827006891,
+        "cpu_seconds": 6.07,
+        "average_cpu_percent": 102.0277155087656
+      }
+    },
+    {
+      "phase": "reverse",
+      "245": {
+        "phase_seconds": 5.732896150031593,
+        "cpu_seconds": 5.229999999999997,
+        "average_cpu_percent": 91.22788662360777
+      },
+      "248": {
+        "phase_seconds": 5.718634141026996,
+        "cpu_seconds": 5.07,
+        "average_cpu_percent": 88.65753386156456
+      }
+    },
+    {
+      "phase": "end",
+      "245": {
+        "phase_seconds": 2.647769008995965,
+        "cpu_seconds": 2.599999999999998,
+        "average_cpu_percent": 98.19587702576513
+      },
+      "248": {
+        "phase_seconds": 2.5678334300173447,
+        "cpu_seconds": 2.469999999999999,
+        "average_cpu_percent": 96.19003986498123
+      }
+    },
+    {
+      "phase": "idle",
+      "245": {
+        "phase_seconds": 16.51549211802194,
+        "cpu_seconds": 4.43,
+        "average_cpu_percent": 26.823300016388373
+      },
+      "248": {
+        "phase_seconds": 16.591820230998565,
+        "cpu_seconds": 4.109999999999999,
+        "average_cpu_percent": 24.77124235182629
+      }
+    },
+    {
+      "phase": "switch-b",
+      "245": {
+        "phase_seconds": 5.156133871991187,
+        "cpu_seconds": 2.6600000000000037,
+        "average_cpu_percent": 51.58904066571044
+      },
+      "248": {
+        "phase_seconds": 5.647459834988695,
+        "cpu_seconds": 3.1099999999999994,
+        "average_cpu_percent": 55.06900608185069
+      }
+    },
+    {
+      "phase": "return-a",
+      "245": {
+        "phase_seconds": 4.594379001006018,
+        "cpu_seconds": 2.1999999999999957,
+        "average_cpu_percent": 47.88459984512092
+      },
+      "248": {
+        "phase_seconds": 4.326722064986825,
+        "cpu_seconds": 1.8900000000000006,
+        "average_cpu_percent": 43.68202929636886
+      }
+    }
+  ],
+  "native_geometry": [
+    {
+      "phase": "warm-start",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 99,
+        "maximum": 99,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 12,
+        "ready_count": 12,
+        "visible_count": 4
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 99,
+        "maximum": 99,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 12,
+        "ready_count": 12,
+        "visible_count": 4
+      }
+    },
+    {
+      "phase": "up-done",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 140,
+        "maximum": 342,
+        "loaded_pages": 3,
+        "follows_tail": false,
+        "body_count": 28,
+        "ready_count": 28,
+        "visible_count": 1
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 5,
+        "maximum": 342,
+        "loaded_pages": 3,
+        "follows_tail": false,
+        "body_count": 24,
+        "ready_count": 24,
+        "visible_count": 1
+      }
+    },
+    {
+      "phase": "down-done",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 125,
+        "maximum": 234,
+        "loaded_pages": 2,
+        "follows_tail": false,
+        "body_count": 24,
+        "ready_count": 24,
+        "visible_count": 4
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 137,
+        "maximum": 234,
+        "loaded_pages": 2,
+        "follows_tail": false,
+        "body_count": 24,
+        "ready_count": 24,
+        "visible_count": 4
+      }
+    },
+    {
+      "phase": "reverse-done",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 90,
+        "maximum": 204,
+        "loaded_pages": 4,
+        "follows_tail": false,
+        "body_count": 36,
+        "ready_count": 36,
+        "visible_count": 7
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 105,
+        "maximum": 219,
+        "loaded_pages": 4,
+        "follows_tail": false,
+        "body_count": 40,
+        "ready_count": 40,
+        "visible_count": 7
+      }
+    },
+    {
+      "phase": "idle-done",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 189,
+        "maximum": 189,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 20,
+        "ready_count": 20,
+        "visible_count": 4
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 189,
+        "maximum": 189,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 20,
+        "ready_count": 20,
+        "visible_count": 4
+      }
+    },
+    {
+      "phase": "b-open",
+      "245": {
+        "mode": "session-2",
+        "window": 140609103816784,
+        "editor": 140609188114064,
+        "scroll_y": 110,
+        "maximum": 110,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 12,
+        "ready_count": 12,
+        "visible_count": 2
+      },
+      "248": {
+        "mode": "session-2",
+        "window": 140675079466960,
+        "editor": 140674660559568,
+        "scroll_y": 110,
+        "maximum": 110,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 12,
+        "ready_count": 12,
+        "visible_count": 2
+      }
+    },
+    {
+      "phase": "a-return",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 189,
+        "maximum": 189,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 20,
+        "ready_count": 20,
+        "visible_count": 4
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 189,
+        "maximum": 189,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 20,
+        "ready_count": 20,
+        "visible_count": 4
+      }
+    },
+    {
+      "phase": "undo",
+      "245": {
+        "mode": "session-1",
+        "window": 140610342978256,
+        "editor": 140610380441680,
+        "scroll_y": 189,
+        "maximum": 189,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 20,
+        "ready_count": 20,
+        "visible_count": 4
+      },
+      "248": {
+        "mode": "session-1",
+        "window": 140675907634512,
+        "editor": 140675946789328,
+        "scroll_y": 189,
+        "maximum": 189,
+        "loaded_pages": 1,
+        "follows_tail": true,
+        "body_count": 20,
+        "ready_count": 20,
+        "visible_count": 4
+      }
+    }
+  ],
+  "profile": {
+    "sample_count": 1261,
+    "sampling_errors": 0,
+    "trace_origin_monotonic_bounds": [
+      269171.583820424,
+      269171.637494015
+    ],
+    "alignment_nominal_uncertainty_seconds": 0.06683679549954832,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "source_queries": [
+    {
+      "witness": {
+        "path": "/home/ts/.cache/agent-scratch/kepler248-physical-review-20260930/resource-custody-stack-review.json",
+        "bytes": 115742,
+        "sha256": "0a5d3bf37861fa18d8ca98d2329bf651fbb2b374caba8d9ef52291525a0299f1"
+      },
+      "selection": {
+        "functions": [
+          "walk_children",
+          "retained_widget_count",
+          "materialized_widget_count",
+          "body_ready",
+          "visible_bodies_ready",
+          "_reconcile",
+          "_check_edges",
+          "widget_count",
+          "_trim_warm",
+          "body_roots"
+        ],
+        "sources": []
+      },
+      "phase_counts": [
+        {
+          "label": "down",
+          "observed_stack_groups": 120,
+          "matching_stack_groups": 10
+        },
+        {
+          "label": "idle",
+          "observed_stack_groups": 76,
+          "matching_stack_groups": 1
+        },
+        {
+          "label": "return-a",
+          "observed_stack_groups": 22,
+          "matching_stack_groups": 0
+        }
+      ],
+      "concrete_walk_chains": [
+        {
+          "video_seconds": 32.31236613149871,
+          "pid": 3757846,
+          "tid": 140676025661312,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 172
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1288
+            },
+            {
+              "function": "_compositor_refresh",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1219
+            },
+            {
+              "function": "_prepare_compositor_refresh",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 175
+            },
+            {
+              "function": "prepare",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 197
+            },
+            {
+              "function": "visible_bodies_ready",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 383
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 383
+            },
+            {
+              "function": "body_ready",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 200
+            },
+            {
+              "function": "walk_children",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1446
+            },
+            {
+              "function": "walk_depth_first",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/walk.py",
+              "line": 86
+            }
+          ]
+        },
+        {
+          "video_seconds": 36.67415413149871,
+          "pid": 3757846,
+          "tid": 140676025661312,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "refresh_checked",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_observation.py",
+              "line": 222
+            },
+            {
+              "function": "poll",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_observation.py",
+              "line": 251
+            },
+            {
+              "function": "read",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_observation.py",
+              "line": 286
+            },
+            {
+              "function": "publish",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_projection.py",
+              "line": 83
+            },
+            {
+              "function": "rebuild",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_projection.py",
+              "line": 151
+            },
+            {
+              "function": "mode_changed",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_navigation.py",
+              "line": 154
+            },
+            {
+              "function": "__iter__",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/css/query.py",
+              "line": 145
+            },
+            {
+              "function": "nodes",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/css/query.py",
+              "line": 122
+            },
+            {
+              "function": "walk_children",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1446
+            },
+            {
+              "function": "walk_depth_first",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/walk.py",
+              "line": 86
+            },
+            {
+              "function": "__bool__",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/_node_list.py",
+              "line": 60
+            }
+          ]
+        },
+        {
+          "video_seconds": 54.39601113149871,
+          "pid": 3757846,
+          "tid": 140676025661312,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "refresh_checked",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_observation.py",
+              "line": 222
+            },
+            {
+              "function": "poll",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_observation.py",
+              "line": 251
+            },
+            {
+              "function": "read",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_observation.py",
+              "line": 286
+            },
+            {
+              "function": "publish",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_projection.py",
+              "line": 83
+            },
+            {
+              "function": "rebuild",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_projection.py",
+              "line": 151
+            },
+            {
+              "function": "mode_changed",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/sidebar_navigation.py",
+              "line": 154
+            },
+            {
+              "function": "__iter__",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/css/query.py",
+              "line": 145
+            },
+            {
+              "function": "nodes",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/css/query.py",
+              "line": 122
+            },
+            {
+              "function": "walk_children",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1446
+            },
+            {
+              "function": "walk_depth_first",
+              "filename": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/walk.py",
+              "line": 81
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "witness": {
+        "path": "/home/ts/.cache/agent-scratch/kepler248-physical-review-20260930/workflow-publication-stack-review.json",
+        "bytes": 249212,
+        "sha256": "55a02484f91bb35bc630b8e2864db89d6732e111d25cd1431bc4077414c20b5c"
+      },
+      "selection": {
+        "functions": [],
+        "sources": [
+          "/workspace.py",
+          "/history_",
+          "/viewport_",
+          "/_compositor.py",
+          "/owner_preparation.py",
+          "/field_codec.py"
+        ]
+      },
+      "phase_counts": [
+        {
+          "label": "down",
+          "observed_stack_groups": 120,
+          "matching_stack_groups": 76
+        },
+        {
+          "label": "idle",
+          "observed_stack_groups": 76,
+          "matching_stack_groups": 52
+        },
+        {
+          "label": "return-a",
+          "observed_stack_groups": 22,
+          "matching_stack_groups": 13
+        }
+      ]
+    }
+  ],
+  "raw_witnesses": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/receipt.json",
+      "bytes": 405085,
+      "sha256": "5ded95aed9049f3ead0c0fe88f7e10fb73bc0195b49d24df70943f9ea6f325bd"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/profile-review.json",
+      "bytes": 226047,
+      "sha256": "7b4673f61f36587613e523bd3165ac88e25bb0c493010c703b22ebe843b87bcd"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/cpu-profile.json",
+      "bytes": 9775423,
+      "sha256": "988deb9f76867334f22949173458a64dda65cb83d8a1b1764d841fe5b1a02042"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/warm-scroll-review.json",
+      "bytes": 58596,
+      "sha256": "db0c57d5131ec75f69678de1f7131859ade589eca3af179a27fc321c9ba94344"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/terminal.mp4",
+      "bytes": 7060657,
+      "sha256": "4b3c4711c42150796ce89beb8e4b807c8c129860cdae6d01d67f794c743be5ff"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture/receipt.json",
+      "bytes": 407993,
+      "sha256": "7816a0f02985d24321746e74265faed2e691b441aae6dbb0b21a6cb602c649da"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture/profile-review.json",
+      "bytes": 227720,
+      "sha256": "96e8dbb785aaffdf45c4b84108edddfdbaa40e1181531521653736cb496ec2d0"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture/cpu-profile.json",
+      "bytes": 10040426,
+      "sha256": "675bb86b64ac017344a2ffa31cf374728b369716d98341cd93df34789aeba12d"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture/warm-scroll-review.json",
+      "bytes": 58716,
+      "sha256": "a5445e2d2123841ea8fae6c86b2f2408beb25e57f3fd476d6c3947cec3b0a357"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture/terminal.mp4",
+      "bytes": 7329933,
+      "sha256": "0fa0ca3ca32b46130b0414ebbdd2ae0dd00058889972a7aee02472c295c3eb6d"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/custody.json",
+      "bytes": 4008,
+      "sha256": "977a7bb7af25350eb001dadcb4086652787cc238c4dce7ce298df364d162a77f"
+    }
+  ],
+  "assessment": {
+    "acceptance": "16 native checks pass; completed, runtime unchanged and original journal/owner identities preserved",
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "whole_workflow_cpu": "Mixed phase changes; no consistent or attributable overall improvement",
+    "physical_frames": "Heisenberg owns seven completed frames and three same-run8fps sheets; Kepler made no duplicate encoding/capture",
+    "residual_consumers": "Original recursive readiness, forced sidebar DOM query, native layout/style and backend notification/codec paths",
+    "limits": [
+      "Fleet/host load and transient geometry differ, so equal pins and journals do not establish a controlled causal speedup",
+      "Phase CPU includes settling and diagnostic export work",
+      "Chrome changed-stack groups are not time, calls or CPU shares",
+      "Profiler nominal bounds omit first video acquisition time",
+      "No sampled resource match on return does not prove work absent",
+      "Resident-cost source acceptance is distinct from whole CPU/focus/T9/growing-End closure"
+    ]
+  }
+}
