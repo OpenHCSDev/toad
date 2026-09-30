@@ -1527,6 +1527,14 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             from toad.transcript_publication import HandlingPublication
             await self.transcript.publish(HandlingPublication)
 
+    def on_transcript_source_work_finished(self, message) -> None:
+        message.stop()
+        self.transcript.source_work_finished(message.history)
+
+    def on_worker_state_changed(self, message) -> None:
+        if message.worker is self.transcript.worker and message.worker.is_finished:
+            self.transcript.retry()
+
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
         message.stop()
