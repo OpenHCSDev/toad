@@ -88,6 +88,15 @@ def test_nominal_block_interaction_caller_closure():
     assert all(issubclass(block,BlockContent) for block in ConversationMarkdown.BLOCKS.values())
 
 
+def test_markdown_tokens_use_native_rule_registry():
+    """The admitted C0 boundary cannot acquire a token-type switch again."""
+    path = ROOT / 'conversation_markdown.py'
+    for node in ast.walk(ast.parse(path.read_text())):
+        if isinstance(node, (ast.Compare, ast.Match)):
+            assert not any(isinstance(part, ast.Attribute) and part.attr == 'type'
+                           for part in ast.walk(node)), (path, node.lineno)
+
+
 def test_acp_process_retirement_single_owner():
     retired = {'ProcessControl', 'PosixProcessControl', 'WindowsProcessControl',
                '_maintenance_env', '_maintenance_cwd', '_maintenance_root',
