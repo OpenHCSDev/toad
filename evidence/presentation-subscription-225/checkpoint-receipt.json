@@ -1,0 +1,40 @@
+{
+  "state": "source-and-installed-closed-bars-hot-pass-large-history-profile-blocked-before-native",
+  "production_source_toad": "114c1123738fb416a410e01ffc6a0cafc64dfd4a",
+  "source_core": "224bb8e305bdd47276c4a853749b35e6d7c41ae0",
+  "driver_toad": "548a7eefd376c8da2df352f3de1e4a0053c74e07",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "core_python_files_byte_equal": 287,
+  "toad_python_files_byte_equal": 267,
+  "closed_bars_hot": {
+    "pass": true,
+    "activity_native_and_dm": true,
+    "original_receipt_pending_to_checked": true,
+    "roster_disabled": true,
+    "original_wire_bytes_unchanged": true,
+    "closed_roster_projection_unchanged": true,
+    "idle_wall_seconds": 5.000267883006018,
+    "idle_cpu_seconds": 0.9381868020000002,
+    "idle_percent_one_core": 18.762730796654623,
+    "large_history_speed_claim": false
+  },
+  "retained_attempt01": {
+    "failure": "Driver imports unmerged215 OutgoingMessage; no source capture/forks/native processes/inputs",
+    "exit": 1
+  },
+  "retained_attempt02": {
+    "failure": "Current schema rejects original720 Thread.last_goal_report_turn before source capture",
+    "profile_samples": 31,
+    "profile_errors": 0,
+    "idle_profile": false,
+    "native_forks": 0,
+    "native_inputs": 0,
+    "provider_calls": 0,
+    "public_source_or_owner_mutations": 0
+  },
+  "remaining_gate": {
+    "owner": "Arendt442 canonical old typed admission / C3 private fixture carry",
+    "public_source_protected": true,
+    "required": "Canonical current-format fixture source with authentic original41MB/status/process admission; then existing read-only40s SDK/ACP/native/UI profile."
+  }
+}

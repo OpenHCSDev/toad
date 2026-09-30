@@ -173,6 +173,13 @@ async def main():
                 window.focus()
                 await pilot.press('end')
                 await pilot.pause(4)
+                def reader_paint():
+                    region = window.scrollable_content_region
+                    strips = app.screen._compositor.render_strips()
+                    return '\n'.join(strip.crop(region.x, region.right).text
+                        for strip in strips[region.y:region.bottom])
+
+                assert sum(ch.isalnum() for ch in reader_paint()) >= 20, 'Retained End chat body is blank'
                 app.save_screenshot(str(evidence / 'closed-bars-end.svg'))
                 from toad.widgets.observed_thread_activity import ObservedThreadActivity
                 observed = view.query_one(ObservedThreadActivity)
@@ -188,6 +195,7 @@ async def main():
                 elapsed, used = time.monotonic()-began, time.process_time()-cpu
                 receipt['read_only_idle'] = {'wall_seconds': elapsed,
                     'process_cpu_seconds': used, 'percent_one_core': used/elapsed*100}
+                assert sum(ch.isalnum() for ch in reader_paint()) >= 20, 'Retained stationary chat body is blank'
                 app.save_screenshot(str(evidence / 'closed-bars-idle.svg'))
                 assert app.workspace_chrome.channels.collapsed
                 assert app.screen.query_one('#thread-sidebar', SideBar).collapsed

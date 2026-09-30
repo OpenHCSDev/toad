@@ -1,0 +1,17 @@
+{
+  "source": {
+    "agent_comms": {
+      "source": "224bb8e305bdd47276c4a853749b35e6d7c41ae0",
+      "python_files": 287,
+      "mismatches": []
+    },
+    "toad": {
+      "source": "548a7eefd376c8da2df352f3de1e4a0053c74e07",
+      "python_files": 267,
+      "mismatches": []
+    }
+  },
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "fixture_driver_sha256": "2c0f2d8f4fddf520659d05f1d9a44dcc221bf00fbc734c92286f1eaa8882c5bb",
+  "receipt_label_correction": "AC_REAL_CORE_HEAD passed an incorrect descriptive SHA suffix; verified full source and installed byte equality above is authoritative, not that label."
+}
