@@ -53,3 +53,7 @@ Fresh private roots cw228b03 and cw228b04 and their native journals remain
 protected. The full empty-task/immediate-open/first-native-message acceptance
 has not passed, so PR228 remains a draft. Evidence captures exact canonical
 registry versus actual published rows and native SVG, not inferred status.
+
+## Fresh compatible C3 full journey, candidate05
+
+Normal main integration includes merged225 observation and merged229 publication. Exact installed To ad3f3e089b/Core095fc9c9/Text65053c5/SDK0.12.1/nativee36 full trust passed. Fresh private fixture cw228c05, original input and native saved answer only once. Fork declaration, inherited/editable tags, new native child, and attachable saved-source navigation passed. Visible #fork-added roster did not publish in eight seconds, so first child click/native answer was not reached. Canonical registry has the correct original child and tags; actual ready enabled sidebar still paints only beta/#team. Original failed state, native journals, screenshot and untampered input preserved. Einstein owns the existing observation producer closure; no competing timer/roster patch in228. Full fork acceptance remains unproven.

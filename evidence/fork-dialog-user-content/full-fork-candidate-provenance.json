@@ -1,0 +1,19 @@
+{
+  "batrachian-toad": {
+    "version": "0.6.20",
+    "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/toad.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"3f3e089b4f87c27532bb06f72d6d6b26aa285b8b\",\"requested_revision\":\"3f3e089b4f87c27532bb06f72d6d6b26aa285b8b\"}}"
+  },
+  "agent-comms": {
+    "version": "0.1.0",
+    "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/agent-comms.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817\",\"requested_revision\":\"095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817\"}}"
+  },
+  "textual": {
+    "version": "8.2.8",
+    "direct_url": "{\"url\":\"https://github.com/OpenHCSDev/textual.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"65053c5a2df12249ef1c4193beeff7023c1f75d7\",\"requested_revision\":\"65053c5a2df12249ef1c4193beeff7023c1f75d7\"}}"
+  },
+  "agent-client-protocol": {
+    "version": "0.12.1",
+    "direct_url": null
+  },
+  "trusted_native_cli": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent/dist/cli.js"
+}
