@@ -52,6 +52,9 @@ class CommitClaim(ABC):
     def required_sequences(self) -> frozenset[int]:
         return frozenset()
 
+    def represents_input(self, input_id: str) -> bool:
+        return False
+
     @abstractmethod
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         pass
@@ -98,6 +101,9 @@ class StartedInputClaim(NativeInputClaim):
     @property
     def native_id(self):
         return self.source.native_id
+
+    def represents_input(self, input_id: str) -> bool:
+        return self.source.input_id == input_id
 
 
 @dataclass(frozen=True)

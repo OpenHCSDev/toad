@@ -13,6 +13,7 @@ from toad import jsonrpc, messages
 from toad.acp.client_session import ClientSessionRequest
 from agent_comms.acp_extension import PendingQueueProjection
 from toad.widgets.prompt import Prompt
+from toad.widgets.user_input import UserInput
 
 
 @dataclass(frozen=True)
@@ -238,6 +239,13 @@ class ConversationSubmissions:
     def queue_projection(self):
         agent = self.view.agent
         return agent.presentation.queue if agent is not None else PendingQueueProjection()
+
+    @property
+    def queued_inputs(self):
+        """Accepted producer rows not yet handed to their original native body."""
+        claims = tuple(block.commit_claim for block in self.view.contents.query(UserInput))
+        return tuple(row for row in self.queue_projection.items
+                     if not any(claim.represents_input(row.input_id) for claim in claims))
 
     @property
     def delivering(self):

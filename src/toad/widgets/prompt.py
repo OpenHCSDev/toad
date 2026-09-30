@@ -629,7 +629,7 @@ class Prompt(containers.VerticalGroup):
         if self.simple_input:
             return
         projection = self.submissions.queue_projection if self.submissions else PendingQueueProjection()
-        queued = [row.text for row in projection.items]
+        queued = [row.text for row in self.submissions.queued_inputs] if self.submissions else []
         restored = [row.text for row in projection.restored]
         feedback = projection.feedback(self.queue_supported)
         delivering = self.submissions.delivering if self.submissions else ()
