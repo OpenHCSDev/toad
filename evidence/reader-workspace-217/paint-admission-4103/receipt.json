@@ -1,0 +1,6846 @@
+{
+  "assessment": "FAIL: physical chat body blank at End/idle; chrome preserved",
+  "tested_toad": "4103c80b2121a1a1e35256ea9b5995faabd83037",
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-ordered-view-disposal-20260929/bin/agent-comms-acp",
+        "sha256": "e73c1e2e7e154e8cc14f1909b1da2160fba6794aee1671bd2b2cbfac0857d040"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin/toad",
+        "sha256": "e75170ee71fe585301395226cbf82d32c17dd9113ffc5f231155e340821623d1"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin/agent-comms-acp",
+        "sha256": "80f81c15fd612ca12c5aea0ac3be88b022c3d618698b1807d72deee7b8c1c5ec"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/activation.json",
+    "activation_sha256": "74b1e6e48d2e08157f92086bca37ee315cb0a566c2fa3e539b1f9a204f0436f4",
+    "activation": {
+      "launcher_names": [
+        "agent-comms",
+        "agent-comms-acp",
+        "agent-comms-agent",
+        "agent-comms-nk-foreground",
+        "toad"
+      ],
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "toad": "4103c80b2121a1a1e35256ea9b5995faabd83037",
+      "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "e93279ea8a0d26c85b85c29a04c9de16f0c89d45d693d6b8953e1b7b6a26d831",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4103c80b2121a1a1e35256ea9b5995faabd83037",
+              "requested_revision": "4103c80b2121a1a1e35256ea9b5995faabd83037"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "dd18483216975c850f6f09dcbb455d67cc0d9124e0213840a9559e51d348e9a2",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+              "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "c00941441d844501e227f87db83b8e63e83cf76d0699c4a8bab547f7d666a569",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "72062939239b0f07707406309305a056a23f925f",
+              "requested_revision": "72062939239b0f07707406309305a056a23f925f"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_after": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-ordered-view-disposal-20260929/bin/agent-comms-acp",
+        "sha256": "e73c1e2e7e154e8cc14f1909b1da2160fba6794aee1671bd2b2cbfac0857d040"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin/toad",
+        "sha256": "e75170ee71fe585301395226cbf82d32c17dd9113ffc5f231155e340821623d1"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin/agent-comms-acp",
+        "sha256": "80f81c15fd612ca12c5aea0ac3be88b022c3d618698b1807d72deee7b8c1c5ec"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/activation.json",
+    "activation_sha256": "74b1e6e48d2e08157f92086bca37ee315cb0a566c2fa3e539b1f9a204f0436f4",
+    "activation": {
+      "launcher_names": [
+        "agent-comms",
+        "agent-comms-acp",
+        "agent-comms-agent",
+        "agent-comms-nk-foreground",
+        "toad"
+      ],
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "toad": "4103c80b2121a1a1e35256ea9b5995faabd83037",
+      "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "e93279ea8a0d26c85b85c29a04c9de16f0c89d45d693d6b8953e1b7b6a26d831",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4103c80b2121a1a1e35256ea9b5995faabd83037",
+              "requested_revision": "4103c80b2121a1a1e35256ea9b5995faabd83037"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "dd18483216975c850f6f09dcbb455d67cc0d9124e0213840a9559e51d348e9a2",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+              "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "c00941441d844501e227f87db83b8e63e83cf76d0699c4a8bab547f7d666a569",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "72062939239b0f07707406309305a056a23f925f",
+              "requested_revision": "72062939239b0f07707406309305a056a23f925f"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  },
+  "command": [
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "recorder_argv": [
+    "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture",
+    "--owner",
+    "Heisenberg-PR217-paint-admission",
+    "--capture-target",
+    "existing_thread",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/actions.xdo",
+    "--scroll-idle-seconds",
+    "15",
+    "--profile",
+    "--profile-threads",
+    "gil",
+    "--profile-rate",
+    "25",
+    "--capture-state",
+    "--review-timing",
+    "deferred",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--fit-window",
+    "--startup-wait",
+    "12",
+    "--max-duration",
+    "65",
+    "--tail-seconds",
+    "3",
+    "--review-phase",
+    "down",
+    "--review-phase",
+    "reverse",
+    "--review-phase",
+    "end",
+    "--review-phase",
+    "idle",
+    "--",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "duration_seconds": 57.38545941398479,
+  "capture_returncode": 255,
+  "capture_returncode_meaning": "FFmpeg SIGINT accepted by recorder; not UI or ST exit",
+  "terminal_exit": "identity transferred to ObservedProcess; numeric ST/UI exit not retained; cleanup has no remaining owned processes",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2352186,
+        "start_ticks": 21709774,
+        "returncode": 0
+      },
+      {
+        "pid": 2352188,
+        "start_ticks": 21709847,
+        "returncode": 0
+      },
+      {
+        "pid": 2352191,
+        "start_ticks": 21709863,
+        "returncode": 0
+      },
+      {
+        "pid": 2352192,
+        "start_ticks": 21709908,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2352193,
+        "start_ticks": 21709914,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2352200,
+        "start_ticks": 21709970,
+        "returncode": 0
+      },
+      {
+        "pid": 2352201,
+        "start_ticks": 21709981,
+        "returncode": 0
+      },
+      {
+        "pid": 2352202,
+        "start_ticks": 21709990,
+        "returncode": 0
+      },
+      {
+        "pid": 2352203,
+        "start_ticks": 21710002,
+        "returncode": 255
+      },
+      {
+        "pid": 2352574,
+        "start_ticks": 21711204,
+        "returncode": 0
+      },
+      {
+        "pid": 2352580,
+        "start_ticks": 21711232,
+        "returncode": 0
+      },
+      {
+        "pid": 2352585,
+        "start_ticks": 21711281,
+        "returncode": 0
+      },
+      {
+        "pid": 2353920,
+        "start_ticks": 21715686,
+        "returncode": 0
+      },
+      {
+        "pid": 2353993,
+        "start_ticks": 21715712,
+        "returncode": 0
+      },
+      {
+        "pid": 2353999,
+        "start_ticks": 21715776,
+        "returncode": 0
+      },
+      {
+        "pid": 2354001,
+        "start_ticks": 21715846,
+        "returncode": 0
+      },
+      {
+        "pid": 2354068,
+        "start_ticks": 21716078,
+        "returncode": 0
+      }
+    ]
+  },
+  "region_boxes": {
+    "tabs": [
+      0,
+      0,
+      480,
+      70
+    ],
+    "roster": [
+      0,
+      70,
+      480,
+      790
+    ],
+    "details": [
+      520,
+      740,
+      1200,
+      780
+    ],
+    "body": [
+      520,
+      80,
+      1200,
+      710
+    ]
+  },
+  "frames": {
+    "before": {
+      "png_sha256": "49c87f9bc7e0eead0855c175a681fff674a5313e2621b7b223388bc5268d3055",
+      "regions": {
+        "tabs": "724f2c35c05a0b44e8a55b3533c36f21ac8fe9c8209850a2e9430c570e24d92c",
+        "roster": "fa02e84e4c525be3deeb788bfedf7d99db16baf25f4d617d1b945a97c39d25c0",
+        "details": "46efee50c953ad2fa2a6faee642b50183bae88f80cc1b39da44610885f7f1f53",
+        "body": "0fceaa629d4ae7a06640acffb709a92f9bbac9ccdaec10df14a6d124cf3e9f66"
+      }
+    },
+    "phase-down-done": {
+      "png_sha256": "9ff30c82ba9e3fc46137cbad1e4fd9aa2e8f9f14efc2aeb7b6259a052be451a6",
+      "regions": {
+        "tabs": "724f2c35c05a0b44e8a55b3533c36f21ac8fe9c8209850a2e9430c570e24d92c",
+        "roster": "fa02e84e4c525be3deeb788bfedf7d99db16baf25f4d617d1b945a97c39d25c0",
+        "details": "46efee50c953ad2fa2a6faee642b50183bae88f80cc1b39da44610885f7f1f53",
+        "body": "ed10e616d4ed6c14a54b894d7c094cec90a699780a419fea74a01981120c67f6"
+      }
+    },
+    "phase-reverse-done": {
+      "png_sha256": "f7fdf6e0456eb8318673367fc60ebf6c63f669aac57ecb790e986e631c0421ed",
+      "regions": {
+        "tabs": "724f2c35c05a0b44e8a55b3533c36f21ac8fe9c8209850a2e9430c570e24d92c",
+        "roster": "fa02e84e4c525be3deeb788bfedf7d99db16baf25f4d617d1b945a97c39d25c0",
+        "details": "46efee50c953ad2fa2a6faee642b50183bae88f80cc1b39da44610885f7f1f53",
+        "body": "1378eec9e5a5700c8bde86095bcb7f552cee1c2bebdfd902a125097c0ca83bde"
+      }
+    },
+    "phase-end": {
+      "png_sha256": "a333c712ad7d73b00136102228a23f1cf16c669903b6595735d8d40e2a59c437",
+      "regions": {
+        "tabs": "724f2c35c05a0b44e8a55b3533c36f21ac8fe9c8209850a2e9430c570e24d92c",
+        "roster": "fa02e84e4c525be3deeb788bfedf7d99db16baf25f4d617d1b945a97c39d25c0",
+        "details": "46efee50c953ad2fa2a6faee642b50183bae88f80cc1b39da44610885f7f1f53",
+        "body": "1378eec9e5a5700c8bde86095bcb7f552cee1c2bebdfd902a125097c0ca83bde"
+      }
+    },
+    "phase-idle-done": {
+      "png_sha256": "d4178e35da1020c32a0182b5d5664928919ea0771f4dc5459c351c8cee261fc1",
+      "regions": {
+        "tabs": "724f2c35c05a0b44e8a55b3533c36f21ac8fe9c8209850a2e9430c570e24d92c",
+        "roster": "fa02e84e4c525be3deeb788bfedf7d99db16baf25f4d617d1b945a97c39d25c0",
+        "details": "46efee50c953ad2fa2a6faee642b50183bae88f80cc1b39da44610885f7f1f53",
+        "body": "7c2cfcb0c3c5969d55e9b4a83c367996a8d4ec97854d0121569cbdc830808e3e"
+      }
+    },
+    "after": {
+      "png_sha256": "a1455e965d3cc674aecb391285c3604669596353cd1c4b35c148efe8e172b4d8",
+      "regions": {
+        "tabs": "724f2c35c05a0b44e8a55b3533c36f21ac8fe9c8209850a2e9430c570e24d92c",
+        "roster": "fa02e84e4c525be3deeb788bfedf7d99db16baf25f4d617d1b945a97c39d25c0",
+        "details": "46efee50c953ad2fa2a6faee642b50183bae88f80cc1b39da44610885f7f1f53",
+        "body": "7c2cfcb0c3c5969d55e9b4a83c367996a8d4ec97854d0121569cbdc830808e3e"
+      }
+    }
+  },
+  "geometry": {
+    "before": {
+      "history_windows": [
+        {
+          "_reactive_scroll_y": 47,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "_reactive_virtual_size": [
+            102,
+            79
+          ],
+          "scroll_y": 47,
+          "maximum": 47,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "registered": 8,
+            "dormant": 0,
+            "visible": 3,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false
+          }
+        }
+      ],
+      "screen": {
+        "object_id": 140318901673264,
+        "class": "WorkspaceScreen",
+        "module": "toad.screens.workspace",
+        "id": "workspace",
+        "parent_object_id": 140318970092848,
+        "current_mode": "workspace",
+        "selected_mode": "session-1",
+        "is_current": true,
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "virtual_size": [
+          179,
+          43
+        ],
+        "size": [
+          179,
+          43
+        ],
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "dirty_widgets": [],
+        "batch_count": 0,
+        "atomic_mode_switch": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "compositor": {
+        "root": {
+          "object_id": 140318901673264,
+          "class": "WorkspaceScreen",
+          "module": "toad.screens.workspace",
+          "id": "workspace",
+          "parent_object_id": 140318970092848
+        },
+        "size": [
+          179,
+          43
+        ],
+        "full_map_invalidated": true,
+        "arranging": false,
+        "dirty_regions": [],
+        "subtree_cache_entries": 2,
+        "layers_cached": true,
+        "visible_layers_cached": false,
+        "cuts_cached": true
+      },
+      "maps": {
+        "full": {
+          "count": 391,
+          "nodes": [
+            {
+              "object_id": 140318462810448,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  -31,
+                  101,
+                  66
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  66
+                ],
+                "container_size": [
+                  101,
+                  66
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  101,
+                  66
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  -32,
+                  101,
+                  67
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  67
+                ],
+                "container_size": [
+                  101,
+                  67
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  67
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -32,
+                  101,
+                  67
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  67
+                ],
+                "container_size": [
+                  101,
+                  67
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  67
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -32,
+                  1,
+                  67
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  67
+                ],
+                "container_size": [
+                  1,
+                  67
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  67
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -32,
+                  102,
+                  67
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  67
+                ],
+                "container_size": [
+                  102,
+                  67
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  67
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  67
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "visible": {
+          "count": 119,
+          "nodes": [
+            {
+              "object_id": 140318462810448,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  -43,
+                  101,
+                  78
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  78
+                ],
+                "container_size": [
+                  101,
+                  78
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  101,
+                  78
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  -44,
+                  101,
+                  79
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  79
+                ],
+                "container_size": [
+                  101,
+                  79
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  79
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -44,
+                  101,
+                  79
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  79
+                ],
+                "container_size": [
+                  101,
+                  79
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  79
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -44,
+                  1,
+                  79
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  79
+                ],
+                "container_size": [
+                  1,
+                  79
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  79
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -44,
+                  102,
+                  79
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  79
+                ],
+                "container_size": [
+                  102,
+                  79
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  79
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  79
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "metadata_sha256": "b1beac678d9c79aff0bf77e0c0e7659ae076b702edfecc997fca37f5441a0b00"
+    },
+    "phase-down-done": {
+      "history_windows": [
+        {
+          "_reactive_scroll_y": 427,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": true,
+          "_reactive_virtual_size": [
+            102,
+            477
+          ],
+          "scroll_y": 427,
+          "maximum": 445,
+          "follows_tail": false,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "registered": 26,
+            "dormant": 0,
+            "visible": 6,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false
+          }
+        }
+      ],
+      "screen": {
+        "object_id": 140318901673264,
+        "class": "WorkspaceScreen",
+        "module": "toad.screens.workspace",
+        "id": "workspace",
+        "parent_object_id": 140318970092848,
+        "current_mode": "workspace",
+        "selected_mode": "session-1",
+        "is_current": true,
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "virtual_size": [
+          179,
+          43
+        ],
+        "size": [
+          179,
+          43
+        ],
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "dirty_widgets": [],
+        "batch_count": 0,
+        "atomic_mode_switch": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "compositor": {
+        "root": {
+          "object_id": 140318901673264,
+          "class": "WorkspaceScreen",
+          "module": "toad.screens.workspace",
+          "id": "workspace",
+          "parent_object_id": 140318970092848
+        },
+        "size": [
+          179,
+          43
+        ],
+        "full_map_invalidated": true,
+        "arranging": false,
+        "dirty_regions": [],
+        "subtree_cache_entries": 2,
+        "layers_cached": false,
+        "visible_layers_cached": true,
+        "cuts_cached": true
+      },
+      "maps": {
+        "full": {
+          "count": 655,
+          "nodes": [
+            {
+              "object_id": 140317970890448,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  -57,
+                  101,
+                  109
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  109
+                ],
+                "container_size": [
+                  101,
+                  109
+                ],
+                "virtual_region": [
+                  0,
+                  367,
+                  101,
+                  109
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140317970877648,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  -419,
+                  101,
+                  362
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -3
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  362
+                ],
+                "container_size": [
+                  101,
+                  362
+                ],
+                "virtual_region": [
+                  0,
+                  5,
+                  101,
+                  362
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140317971727696,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  -423,
+                  101,
+                  4
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -4
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  4
+                ],
+                "container_size": [
+                  101,
+                  4
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  101,
+                  4
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  -424,
+                  101,
+                  477
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  477
+                ],
+                "container_size": [
+                  101,
+                  477
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  477
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -424,
+                  101,
+                  477
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  477
+                ],
+                "container_size": [
+                  101,
+                  477
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  477
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048656,
+              "class": "Cursor",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900052816,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  1,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  1,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  459
+                ],
+                "container_size": [
+                  0,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  1,
+                  477
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  477
+                ],
+                "container_size": [
+                  1,
+                  477
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  477
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  102,
+                  477
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  477
+                ],
+                "container_size": [
+                  102,
+                  477
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  477
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  477
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "visible": null
+      },
+      "metadata_sha256": "fb3ae027b1ca3c7a50a0c728ea74b2ab88300558101da4291cf47d88616d7f89"
+    },
+    "phase-reverse-done": {
+      "history_windows": [
+        {
+          "_reactive_scroll_y": 28,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": true,
+          "_reactive_virtual_size": [
+            102,
+            459
+          ],
+          "scroll_y": 28,
+          "maximum": 427,
+          "follows_tail": false,
+          "history_lock_held": true,
+          "restoring": false,
+          "anchor": {
+            "object_id": 140318864653392,
+            "class": "TranscriptFragmentView",
+            "module": "toad.widgets.transcript_history",
+            "id": null,
+            "parent_object_id": 140317944253968
+          },
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "registered": 28,
+            "dormant": 0,
+            "visible": 1,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false
+          }
+        }
+      ],
+      "screen": {
+        "object_id": 140318901673264,
+        "class": "WorkspaceScreen",
+        "module": "toad.screens.workspace",
+        "id": "workspace",
+        "parent_object_id": 140318970092848,
+        "current_mode": "workspace",
+        "selected_mode": "session-1",
+        "is_current": true,
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "virtual_size": [
+          179,
+          43
+        ],
+        "size": [
+          179,
+          43
+        ],
+        "layout_required": true,
+        "scroll_required": false,
+        "repaint_required": false,
+        "dirty_widgets": [
+          {
+            "object_id": 140318462812048,
+            "class": "TranscriptHistory",
+            "module": "toad.widgets.transcript_history",
+            "id": null,
+            "parent_object_id": 140318900048336
+          },
+          {
+            "object_id": 140317976116304,
+            "class": "TranscriptFragmentView",
+            "module": "toad.widgets.transcript_history",
+            "id": null,
+            "parent_object_id": null
+          }
+        ],
+        "batch_count": 1,
+        "atomic_mode_switch": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "compositor": {
+        "root": {
+          "object_id": 140318901673264,
+          "class": "WorkspaceScreen",
+          "module": "toad.screens.workspace",
+          "id": "workspace",
+          "parent_object_id": 140318970092848
+        },
+        "size": [
+          179,
+          43
+        ],
+        "full_map_invalidated": true,
+        "arranging": true,
+        "dirty_regions": [
+          [
+            72,
+            3,
+            101,
+            32
+          ]
+        ],
+        "subtree_cache_entries": 0,
+        "layers_cached": false,
+        "visible_layers_cached": false,
+        "cuts_cached": false
+      },
+      "maps": {
+        "full": {
+          "count": 498,
+          "nodes": [
+            {
+              "object_id": 140317970877648,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  4,
+                  101,
+                  362
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -3
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  362
+                ],
+                "container_size": [
+                  101,
+                  362
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  101,
+                  362
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  3,
+                  101,
+                  473
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  473
+                ],
+                "container_size": [
+                  101,
+                  473
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  473
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  3,
+                  101,
+                  473
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  473
+                ],
+                "container_size": [
+                  101,
+                  473
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  473
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048656,
+              "class": "Cursor",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900052816,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  1,
+                  400
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  1,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  400
+                ],
+                "container_size": [
+                  0,
+                  400
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  400
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  1,
+                  473
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  473
+                ],
+                "container_size": [
+                  1,
+                  473
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  473
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  102,
+                  473
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  473
+                ],
+                "container_size": [
+                  102,
+                  473
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  473
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  473
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "visible": null
+      },
+      "metadata_sha256": "fe0e82dcdbc66d34a0cec937cda851ee795ff38e77d87711c8c7e778124314a6"
+    },
+    "phase-end": {
+      "history_windows": [
+        {
+          "_reactive_scroll_y": 28,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": true,
+          "_reactive_virtual_size": [
+            102,
+            459
+          ],
+          "scroll_y": 28,
+          "maximum": 427,
+          "follows_tail": false,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "registered": 26,
+            "dormant": 0,
+            "visible": 6,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false
+          }
+        }
+      ],
+      "screen": {
+        "object_id": 140318901673264,
+        "class": "WorkspaceScreen",
+        "module": "toad.screens.workspace",
+        "id": "workspace",
+        "parent_object_id": 140318970092848,
+        "current_mode": "workspace",
+        "selected_mode": "session-1",
+        "is_current": true,
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "virtual_size": [
+          179,
+          43
+        ],
+        "size": [
+          179,
+          43
+        ],
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "dirty_widgets": [],
+        "batch_count": 0,
+        "atomic_mode_switch": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "compositor": {
+        "root": {
+          "object_id": 140318901673264,
+          "class": "WorkspaceScreen",
+          "module": "toad.screens.workspace",
+          "id": "workspace",
+          "parent_object_id": 140318970092848
+        },
+        "size": [
+          179,
+          43
+        ],
+        "full_map_invalidated": true,
+        "arranging": false,
+        "dirty_regions": [],
+        "subtree_cache_entries": 2,
+        "layers_cached": false,
+        "visible_layers_cached": true,
+        "cuts_cached": true
+      },
+      "maps": {
+        "full": {
+          "count": 610,
+          "nodes": [
+            {
+              "object_id": 140317970877648,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  54,
+                  101,
+                  303
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  303
+                ],
+                "container_size": [
+                  101,
+                  303
+                ],
+                "virtual_region": [
+                  0,
+                  79,
+                  101,
+                  303
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140317944253968,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  0,
+                  101,
+                  54
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -3
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  54
+                ],
+                "container_size": [
+                  101,
+                  54
+                ],
+                "virtual_region": [
+                  0,
+                  25,
+                  101,
+                  54
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318463488272,
+              "class": "TranscriptPageView",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318462812048,
+              "geometry": {
+                "region": [
+                  72,
+                  -24,
+                  101,
+                  24
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -4
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  24
+                ],
+                "container_size": [
+                  101,
+                  24
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  101,
+                  24
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  -25,
+                  101,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  383
+                ],
+                "container_size": [
+                  101,
+                  383
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -25,
+                  101,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  459
+                ],
+                "container_size": [
+                  101,
+                  459
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048656,
+              "class": "Cursor",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900052816,
+              "geometry": {
+                "region": [
+                  71,
+                  -25,
+                  1,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  1,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  459
+                ],
+                "container_size": [
+                  0,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -25,
+                  1,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  459
+                ],
+                "container_size": [
+                  1,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -25,
+                  102,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  459
+                ],
+                "container_size": [
+                  102,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  459
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "visible": null
+      },
+      "metadata_sha256": "4c5835d2491409dfc7871a5b9778f9ecdcf42c1dacee9684830623ced0036edb"
+    },
+    "phase-idle-done": {
+      "history_windows": [
+        {
+          "_reactive_scroll_y": 351,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "_reactive_virtual_size": [
+            102,
+            383
+          ],
+          "scroll_y": 351,
+          "maximum": 351,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "registered": 16,
+            "dormant": 0,
+            "visible": 0,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false
+          }
+        }
+      ],
+      "screen": {
+        "object_id": 140318901673264,
+        "class": "WorkspaceScreen",
+        "module": "toad.screens.workspace",
+        "id": "workspace",
+        "parent_object_id": 140318970092848,
+        "current_mode": "workspace",
+        "selected_mode": "session-1",
+        "is_current": true,
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "virtual_size": [
+          179,
+          43
+        ],
+        "size": [
+          179,
+          43
+        ],
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "dirty_widgets": [],
+        "batch_count": 0,
+        "atomic_mode_switch": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "compositor": {
+        "root": {
+          "object_id": 140318901673264,
+          "class": "WorkspaceScreen",
+          "module": "toad.screens.workspace",
+          "id": "workspace",
+          "parent_object_id": 140318970092848
+        },
+        "size": [
+          179,
+          43
+        ],
+        "full_map_invalidated": true,
+        "arranging": false,
+        "dirty_regions": [],
+        "subtree_cache_entries": 2,
+        "layers_cached": true,
+        "visible_layers_cached": true,
+        "cuts_cached": true
+      },
+      "maps": {
+        "full": {
+          "count": 349,
+          "nodes": [
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  -424,
+                  101,
+                  70
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  70
+                ],
+                "container_size": [
+                  101,
+                  70
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  70
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -424,
+                  101,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  459
+                ],
+                "container_size": [
+                  101,
+                  459
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  1,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  459
+                ],
+                "container_size": [
+                  1,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  102,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  459
+                ],
+                "container_size": [
+                  102,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  459
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "visible": {
+          "count": 97,
+          "nodes": [
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -348,
+                  101,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  383
+                ],
+                "container_size": [
+                  101,
+                  383
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -348,
+                  1,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  383
+                ],
+                "container_size": [
+                  1,
+                  383
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -348,
+                  102,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  383
+                ],
+                "container_size": [
+                  102,
+                  383
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  383
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "metadata_sha256": "9257606f66b60e5c5ea99208218c9a53d694a4bf19b9cf05e4937de33796a1b6"
+    },
+    "after": {
+      "history_windows": [
+        {
+          "_reactive_scroll_y": 351,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "_reactive_virtual_size": [
+            102,
+            383
+          ],
+          "scroll_y": 351,
+          "maximum": 351,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "registered": 16,
+            "dormant": 0,
+            "visible": 0,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false
+          }
+        }
+      ],
+      "screen": {
+        "object_id": 140318901673264,
+        "class": "WorkspaceScreen",
+        "module": "toad.screens.workspace",
+        "id": "workspace",
+        "parent_object_id": 140318970092848,
+        "current_mode": "workspace",
+        "selected_mode": "session-1",
+        "is_current": true,
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "virtual_size": [
+          179,
+          43
+        ],
+        "size": [
+          179,
+          43
+        ],
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "dirty_widgets": [],
+        "batch_count": 0,
+        "atomic_mode_switch": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "compositor": {
+        "root": {
+          "object_id": 140318901673264,
+          "class": "WorkspaceScreen",
+          "module": "toad.screens.workspace",
+          "id": "workspace",
+          "parent_object_id": 140318970092848
+        },
+        "size": [
+          179,
+          43
+        ],
+        "full_map_invalidated": true,
+        "arranging": false,
+        "dirty_regions": [],
+        "subtree_cache_entries": 2,
+        "layers_cached": true,
+        "visible_layers_cached": true,
+        "cuts_cached": true
+      },
+      "maps": {
+        "full": {
+          "count": 349,
+          "nodes": [
+            {
+              "object_id": 140318462812048,
+              "class": "TranscriptHistory",
+              "module": "toad.widgets.transcript_history",
+              "id": null,
+              "parent_object_id": 140318900048336,
+              "geometry": {
+                "region": [
+                  72,
+                  -424,
+                  101,
+                  70
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  72,
+                  3,
+                  101,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  70
+                ],
+                "container_size": [
+                  101,
+                  70
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  101,
+                  70
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -424,
+                  101,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  459
+                ],
+                "container_size": [
+                  101,
+                  459
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  1,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  459
+                ],
+                "container_size": [
+                  1,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -424,
+                  102,
+                  459
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  459
+                ],
+                "container_size": [
+                  102,
+                  459
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  459
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  459
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "visible": {
+          "count": 97,
+          "nodes": [
+            {
+              "object_id": 140318900048336,
+              "class": "Contents",
+              "module": "toad.widgets.conversation",
+              "id": "contents",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  72,
+                  -348,
+                  101,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  101,
+                  383
+                ],
+                "container_size": [
+                  101,
+                  383
+                ],
+                "virtual_region": [
+                  1,
+                  0,
+                  101,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900052816,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140318900047696,
+              "geometry": {
+                "region": [
+                  71,
+                  -348,
+                  1,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    false,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  1,
+                  383
+                ],
+                "container_size": [
+                  1,
+                  383
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  1,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900047696,
+              "class": "ContentsGrid",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318900045136,
+              "geometry": {
+                "region": [
+                  71,
+                  -348,
+                  102,
+                  383
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  102,
+                  32
+                ],
+                "virtual_size": [
+                  102,
+                  383
+                ],
+                "container_size": [
+                  102,
+                  383
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  102,
+                  383
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900045136,
+              "class": "Window",
+              "module": "toad.widgets.conversation",
+              "id": null,
+              "parent_object_id": 140318895290512,
+              "geometry": {
+                "region": [
+                  71,
+                  3,
+                  105,
+                  32
+                ],
+                "order": [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -1
+                  ]
+                ],
+                "clip": [
+                  71,
+                  3,
+                  105,
+                  40
+                ],
+                "virtual_size": [
+                  102,
+                  383
+                ],
+                "container_size": [
+                  104,
+                  32
+                ],
+                "virtual_region": [
+                  0,
+                  0,
+                  105,
+                  32
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  7,
+                  0
+                ]
+              }
+            },
+            {
+              "object_id": 140318900053456,
+              "class": "Contents",
+              "module": "toad.widgets.side_bar",
+              "id": null,
+              "parent_object_id": 140318900050576,
+              "geometry": {
+                "region": [
+                  0,
+                  4,
+                  200,
+                  253
+                ],
+                "order": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ],
+                  [
+                    0,
+                    0,
+                    -2
+                  ]
+                ],
+                "clip": [
+                  0,
+                  3,
+                  66,
+                  37
+                ],
+                "virtual_size": [
+                  200,
+                  253
+                ],
+                "container_size": [
+                  200,
+                  253
+                ],
+                "virtual_region": [
+                  0,
+                  1,
+                  200,
+                  253
+                ],
+                "dock_gutter": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "metadata_sha256": "c654afca6eb3bb6bc0967497ec61327166600467691f774e0c6b4008f7b0462d"
+    }
+  },
+  "cpu": {
+    "up": {
+      "video_interval_seconds": [
+        15.487202811986208,
+        20.674111672997242
+      ],
+      "elapsed_seconds": 5.186908861011034,
+      "ui_cpu_seconds": 4.9,
+      "ui_cpu_percent": 94.46859644734323,
+      "scope": "phase includes state capture and screenshot overhead; held keys last 4 seconds, idle requested 15 seconds"
+    },
+    "down": {
+      "video_interval_seconds": [
+        21.83817776897922,
+        27.020981743000448
+      ],
+      "elapsed_seconds": 5.182803974021226,
+      "ui_cpu_seconds": 5.0,
+      "ui_cpu_percent": 96.47287501249266,
+      "scope": "phase includes state capture and screenshot overhead; held keys last 4 seconds, idle requested 15 seconds"
+    },
+    "reverse": {
+      "video_interval_seconds": [
+        28.17556843798957,
+        33.375565982976696
+      ],
+      "elapsed_seconds": 5.199997544987127,
+      "ui_cpu_seconds": 4.84,
+      "ui_cpu_percent": 93.07696702022157,
+      "scope": "phase includes state capture and screenshot overhead; held keys last 4 seconds, idle requested 15 seconds"
+    },
+    "idle": {
+      "video_interval_seconds": [
+        36.708915696974145,
+        52.89328726497479
+      ],
+      "elapsed_seconds": 16.184371568000643,
+      "ui_cpu_seconds": 9.349999999999998,
+      "ui_cpu_percent": 57.771782862960194,
+      "scope": "phase includes state capture and screenshot overhead; held keys last 4 seconds, idle requested 15 seconds"
+    }
+  },
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture/receipt.json",
+      "sha256": "47c04d3cab56dce94294fb5ca27557ebb9dc37592571717ecdfd170e66fa32a4",
+      "bytes": 159526
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture/terminal.mp4",
+      "sha256": "7929b7d35d004899248c6944411ea9a7b44b105ade5cd7c1302bdcaef75593a1",
+      "bytes": 6761806
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture/events.jsonl",
+      "sha256": "e966897421cddaaff60e2c7fe2d61c3a7e23c924a73902f26f9b5bf87f81f83e",
+      "bytes": 24804
+    },
+    "cpu-profile.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture/cpu-profile.json",
+      "sha256": "8357527698ba7a5566104fddfc9ff4fbb3d232e80507e5f54450ca032e0fa39d",
+      "bytes": 7885955
+    },
+    "profiler.log": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture/profiler.log",
+      "sha256": "01de6e807825e5b47c4c4efb9123d97398806707c6ea7139519ff9f463793b8a",
+      "bytes": 354
+    },
+    "terminal.log": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture/terminal.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "limits": [
+    "Physical PNG precedes state export; before/after SVG explicitly render and are not physical PNG evidence.",
+    "Full compositor map marked invalidated is stale and cannot certify current History height.",
+    "Native scroll clamping does not certify current source extent.",
+    "Profile inclusive aggregate weights are not wall latency; Kepler owns corrected stack classification.",
+    "No second capture, provider prompt, owner restart, or global activation."
+  ]
+}
