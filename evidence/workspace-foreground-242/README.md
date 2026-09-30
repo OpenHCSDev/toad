@@ -1,7 +1,8 @@
 # Canonical history projection and foreground body order
 
 Draft242 continues the complete unfinished239/236 TC1/T9 performance scope.
-This is a code-bearing source checkpoint, not installed/live readiness.
+The canonical coverage/body-root selection checkpoint is verified in the exact
+installed current pair. This is not full performance or default-live readiness.
 
 ## Existing owners and deleted work
 
@@ -77,17 +78,58 @@ The installed body-order seam measures0.499→0.0071ms on the same555native node
 Actual native Mount under the real snapshot tree lock, canonical acceptance,
 reorder/removal/reverse/End/resize and normal application exit pass. These are
 provider-free installed headless resource checks; the physical original41MB
-entrypoint gate remains separate. Kepler owns the preceding release capture;
-Heisenberg owns the sole242 comparison after it finishes.
+entrypoint gate is recorded below. Kepler supplied the preceding release capture;
+Heisenberg ran the sole242 comparison after its slot release.
 
-## Remaining installed journey and full scope
+## Actual current-pair installed workflow
 
-After meaningful code publication, run one coherent noneditable current declared
-pair through actual saved41MB A/B/A, held Up/Down/reverse, End/idle and draft/undo,
-with physical frames and same-run CPU. Coordinate staging with the parent; do not
-use an old producer/route or repeat the successful239 gate on unchanged source.
-The prior239 global CPU is unchanged; whole foreground layout/composition/chops,
-cold-B latency, partial gaps, warm first-paint/raster proof and fullTC1/T9 lifetime
-closure remain open. Einstein243 owns login/modal constructor caller closure;
-Heisenberg owns history/binding/viewport/warm methods. Sch source producer/bundle
-and Kepler recording/profile tooling remain disjoint.
+`actual-current-pair-ui.json` records the sole84.008s original saved41MB/13MB
+journey through installed5739/Core29b/Text2e49/SDK0.12.1/nativececa. Current branch
+production is byte-identical to that installed commit. Actual `st -e
+/home/ts/bin/toad-comms nra-architecture` selects the owned frozen prefix through
+the supported runtime selector; no PYTHONPATH/NO_COLOR or old public root reader.
+`actual_gate.py` is the exact coordinator, retained as evidence, not an instruction
+to replay the completed recording. The public saved UI database was backed up
+read-only into owned state; local draft edits stay there. No prompt/provider,
+owner restart, route/default/history mutation occurred.
+
+All16native checks pass: initial/peer saved history, held Up/Down/reverse source
+cursor progress, physical A/B/A, original saved source/editor/window/reader/body
+identity, local draft and actualCtrl+Z Undo. Original A and B owner identities,
+journal sizes and SHA256 match before/after. Recorder and coordinator cleanup
+have no remaining owned processes or errors. Driver exit0; FFmpeg255 is the
+accepted normal SIGINT shutdown, not an application failure. Terminal log empty.
+
+Seven completed phase PNGs were individually inspected and readable; four are
+committed. Offline Down/Areturn/Bswitch sheets were also inspected. Down progresses
+through saved source; Areturn preserves readable history; coldB visibly loads.
+Sheets are8fps, not proof of no33ms partial gaps or immediate first paint. At
+Areturn/Undo, actual native capture has original source LiveTranscript and parked
+peer ParkedSourceTranscript. The saved-history summary suffix is clipped by the
+existing40%sidebar, so no complete physical label-text assertion is made; the
+exact installed canonical source pilot separately verifies the label invalidation.
+Raw full60fpsvideo, captures, source witnesses, failure/baseline receipts and
+1140GILsamples/0errors remain protected in the owned directory in the receipt.
+
+Same-run kernel UI averages: Up93.17%, Down103.83%, reverse87.02%, idle25.32%.
+These include diagnostic marker/export work and host contention. No overallCPU
+reduction is established. `actual-publication-stack-review.json` uses source paths
+under the package (not the common worktree prefix): Down119observed changed groups,
+58match; root arrange28, layout refresh18, reflow17. Idle84groups/13match include
+partial render7 and diagnostic persistence2. Return43groups/8match include original
+workspace selection2, arrangement2 and diagnostic export. These are changed-stack
+observations, not sample counts/calls/CPU/durations. Video alignment uncertainty
+is±57.6ms. Original raw profile is authoritative; no duration sum across threads.
+
+## Full scope still assigned
+
+The useful coverage/selection checkpoint can ship independently. Whole foreground
+layout/composition/chops, cold-B latency, partial gaps, immediate warm first-paint
+and raster retention remain open. Adaptive growing-end velocity/reversal/idle,
+bounded three-viewport runway, End/bottom/reverse/resize, active/post-cancel editor
+focus/delete/arrows, sidebar/channel/navigation and complete TC1/T9 lifetime
+closure remain tracked in PR242 until a main-based followup draft carries all scope.
+No source-status mirrors, extra render store or scheduler were introduced.
+Einstein owns login/modal caller closure; Sch producer/bundle and Kepler recorder/
+profile tools are disjoint. No further unchanged physical gate or optional CI is
+needed for this scoped checkpoint.

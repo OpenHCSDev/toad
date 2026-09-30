@@ -1,0 +1,285 @@
+{
+  "scope": "PR242 canonical coverage invalidation and foreground body-root selection checkpoint; not full performance readiness",
+  "raw_capture": "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture",
+  "installed_pins": {
+    "stage": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242",
+    "pins": {
+      "batrachian-toad": "5739ec31485ae145732337b1b877bc071c2008d2",
+      "agent-comms": "29bbe95d3f57d961259f53ad7c08e38562eaf766",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort"
+  },
+  "installed_source": "5739ec31485ae145732337b1b877bc071c2008d2",
+  "tested_production_matches_branch": true,
+  "duration_seconds": 84.00798659899738,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "original_sources_before": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3487629,
+        "start_time": 25894836
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3487789,
+        "start_time": 25895109
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "original_sources_after": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3487629,
+        "start_time": 25894836
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3487789,
+        "start_time": 25895109
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "originals_unchanged": true,
+  "capture_driver_exit": 0,
+  "ffmpeg_exit": 255,
+  "ffmpeg_exit_assessment": "255 is the recorder accepted normal SIGINT termination; not an application fatal",
+  "terminal_log_bytes": 0,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "physical_review": {
+    "reviewed_phase_pngs": [
+      "up-done",
+      "down-done",
+      "reverse-done",
+      "idle-done",
+      "b-open",
+      "a-return",
+      "undo"
+    ],
+    "assessment": "Readable native history in all seven completed phase images, physical A/B/A selected expected tabs, local draft retained and actual Ctrl+Z emptied initial insertion. This is not a zero-gap or immediate-first-paint claim.",
+    "coverage": "A-return/Undo exported original source LiveTranscript; peer ParkedSourceTranscript. Physical summary suffix clipped by 40% sidebar; no full text assertion from that PNG. Exact installed source pilot independently proves Saved history available invalidation."
+  },
+  "profile": {
+    "samples": 1140,
+    "sampling_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.05761486451141536,
+    "phases": [
+      {
+        "label": "up",
+        "video_start_seconds": 23.31793151702732,
+        "video_end_seconds": 29.03846897400217,
+        "ui_cpu_seconds": 5.33,
+        "ui_average_cpu_percent": 93.17306354670077
+      },
+      {
+        "label": "down",
+        "video_start_seconds": 30.56969689700054,
+        "video_end_seconds": 36.348625059006736,
+        "ui_cpu_seconds": 6.0,
+        "ui_average_cpu_percent": 103.8254816775064
+      },
+      {
+        "label": "reverse",
+        "video_start_seconds": 37.75770169700263,
+        "video_end_seconds": 43.54924323002342,
+        "ui_cpu_seconds": 5.040000000000003,
+        "ui_average_cpu_percent": 87.02346294616325
+      },
+      {
+        "label": "idle",
+        "video_start_seconds": 47.7394642480067,
+        "video_end_seconds": 64.32797001901781,
+        "ui_cpu_seconds": 4.199999999999996,
+        "ui_average_cpu_percent": 25.3187361054521
+      },
+      {
+        "label": "switch-b",
+        "video_start_seconds": 65.6933046989725,
+        "video_end_seconds": 70.3793748220196,
+        "ui_cpu_seconds": 2.460000000000001,
+        "ui_average_cpu_percent": 52.49601340580011
+      },
+      {
+        "label": "return-a",
+        "video_start_seconds": 71.50579606799874,
+        "video_end_seconds": 75.93733007198898,
+        "ui_cpu_seconds": 2.25,
+        "ui_average_cpu_percent": 50.77248641156894
+      }
+    ],
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant",
+      "No overall CPU reduction established; shared host and diagnostic exports remain in kernel deltas",
+      "Body-root selection microloop is not overall UI, raster, cold-peer or first-paint performance"
+    ]
+  },
+  "artifacts": {
+    "receipt.json": {
+      "bytes": 406491,
+      "sha256": "20733714b8c0be39b82f125848e56d2b622d81cc144a28b628b9538daa1c2a53"
+    },
+    "warm-scroll-review.json": {
+      "bytes": 57549,
+      "sha256": "caae7d280434d83532ae979cf35717d4ce49285f6620f3c5ace793768d3bef2d"
+    },
+    "profile-review.json": {
+      "bytes": 226971,
+      "sha256": "928c2233389deac0b2e1cb10567dd3a1ce4ff2b32736d4cadf2b3ada096613d6"
+    },
+    "cpu-profile.json": {
+      "bytes": 9628676,
+      "sha256": "decc33d07d146a2ed7e9d7f07e24bfeded52df1b4b9278c3563e52f4e87c6309"
+    },
+    "profiler.log": {
+      "bytes": 361,
+      "sha256": "69b378d7f805a671fdb9b172a7b594b6229da1c4f96d781400ab687f27841a71"
+    },
+    "terminal.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "terminal.mp4": {
+      "bytes": 6544720,
+      "sha256": "a7dc438e76bd52b954178fc574184ff8152b66e4445a0a60a61a993a66ebc01c"
+    },
+    "phase-up-done.png": {
+      "bytes": 100281,
+      "sha256": "9d4b90b81ea75af54b2c04bee2566b1d0eb3ade3f64d3972e03ad5c8f6313d42"
+    },
+    "phase-down-done.png": {
+      "bytes": 108795,
+      "sha256": "4cec3ee75dd8590050a388fd337accd3d1dd018468b14150f11c297786e3791a"
+    },
+    "phase-reverse-done.png": {
+      "bytes": 98856,
+      "sha256": "f78dffd17168717c6ac4c1073e153f7e3dbe30ddab1ca44e77385217762b8cbb"
+    },
+    "phase-idle-done.png": {
+      "bytes": 110500,
+      "sha256": "a67f7f922c4c8df43274ab7687773befbaf78d44872c8d6f0f51db98989b06a3"
+    },
+    "phase-b-open.png": {
+      "bytes": 116796,
+      "sha256": "7144d51cae296a4ee1b418fdddc9e60c36ce0ba912b31bbd40dd3d58c116a8f9"
+    },
+    "phase-a-return.png": {
+      "bytes": 112550,
+      "sha256": "901343873793f94950496ec28cc88d11ac3093f4433644c6d52b591cf59bdc4b"
+    },
+    "phase-undo.png": {
+      "bytes": 111651,
+      "sha256": "94c2a18f177c73ec24bcfb79afa7df4b406c6cff741bd290db982089ab068cea"
+    },
+    "phase-a-return-state.pickle": {
+      "bytes": 360292,
+      "sha256": "ffaf4385786e8818a856ca615777e75b57645ee51e9be655d42b8fbe99a641bb"
+    },
+    "phase-undo-state.pickle": {
+      "bytes": 360277,
+      "sha256": "4ab0266061c5ebb94a927f83d18407a5dc34213f4b82088a6f03e05a84a69969"
+    }
+  },
+  "remaining_scope": [
+    "Warm first-paint/raster retention and foreground layout/compose/mount/chops CPU",
+    "Cold peer latency and partial frame gaps",
+    "Growing-end fast/reverse/idle buffer, scrollbar and viewport resource policy",
+    "Active/post-cancel editor deletion/arrows/focus journey",
+    "Full TC1/T9 ownership, final source lifetime and UI workflow closure"
+  ],
+  "offline_review": {
+    "completed": true,
+    "cleanup": {
+      "errors": [],
+      "remaining_owned_pids": []
+    },
+    "artifacts": {
+      "slow.mp4": {
+        "bytes": 231200,
+        "sha256": "a662d99088316a98ede9ea3f02f01f587ee59647197e182a4f53f6dc91052a19"
+      },
+      "frames.png": {
+        "bytes": 346475,
+        "sha256": "6eff884327e5e16e5e508ac3e834d067749c6605733e40717f115ea5f385e4af"
+      },
+      "down-slow.mp4": {
+        "bytes": 912619,
+        "sha256": "04607290530c0496c8fffd8bab1624451d469b58b112dd2c21013c11c097bafc"
+      },
+      "down-frames.png": {
+        "bytes": 1685842,
+        "sha256": "35a557300a49f5b987162eda16d9b09f9651c4fd7c49987c3745c61b1de527a4"
+      },
+      "return-a-slow.mp4": {
+        "bytes": 508823,
+        "sha256": "b1859b31559413a30f3bbb0419870b584a81cb4ecee1175b14b0338e161d3bfa"
+      },
+      "return-a-frames.png": {
+        "bytes": 1112494,
+        "sha256": "24ab7dcafd76257dfc5c5e7a7195705d41677f8c110f9e84d6c9b1ccd20944d9"
+      },
+      "switch-b-slow.mp4": {
+        "bytes": 388784,
+        "sha256": "68fd7ab3743884214299a14c0a0c6c8c0ab8f97bbb2e5ce8d366ea5c1454f29e"
+      },
+      "switch-b-frames.png": {
+        "bytes": 825641,
+        "sha256": "ac69589e267b9d14531518ac2cefdb8ba13f1049a03e1107cbb4397e21b4fa6c"
+      }
+    },
+    "reviewed_sheets": [
+      "down-frames.png",
+      "return-a-frames.png",
+      "switch-b-frames.png"
+    ],
+    "assessment": "Down sheet shows physical source progression; A-return sheet shows readable body before and after selection; cold B sheet shows loading before final ready. Sampled 8fps sheets cannot exclude 60fps partial gaps or establish immediate warm first paint."
+  }
+}
