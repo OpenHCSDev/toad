@@ -15,6 +15,7 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_attempts import GoalAttemptStore
+from agent_comms.goal_states import OwnerPause, PausedGoal
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_fork import ForkSessionHelper, ForkSessionRequest
 from agent_comms.native_package import verify_native_package
@@ -172,15 +173,19 @@ async def main():
             await cancel_tool(pilot, view, 'goal-running')
             goal = service.registry.require('resource436').goal
             assert goal is not None and goal.text == 'RESOURCE436_GOAL_EDITED'
-            assert goal.state.declared_name == 'blocked', goal
+            # Explicit UI cancellation owns an owner pause. The failed private
+            # attempt remains blocked separately; settlement must preserve that
+            # original owner decision instead of rewriting it to a model block.
+            assert goal.state == PausedGoal(OwnerPause()), goal
             generation = GoalAttemptStore(service.root / 'goal-private').snapshot(goal.id)
             assert generation is not None and generation.lifecycle.failed, generation
             receipt['goal'] = FieldCodec.encode(goal)
             receipt['goal_generation'] = FieldCodec.encode(generation)
-            receipt['completed_phases'].append('actual_goal_edit_cancel_failed_settlement')
-            await fresh_reply(pilot, view, 'RESOURCE436_BLOCKED_GOAL_NEXT_INPUT_OK')
+            receipt['completed_phases'].append('actual_goal_edit_owner_pause_failed_attempt_settlement')
+            await fresh_reply(pilot, view, 'RESOURCE436_FAILED_ATTEMPT_NEXT_INPUT_OK')
             assert service.registry.require('resource436').goal == goal
-            receipt['completed_phases'].append('blocked_goal_preserved_ordinary_input_answered')
+            assert GoalAttemptStore(service.root / 'goal-private').snapshot(goal.id) == generation
+            receipt['completed_phases'].append('owner_pause_failed_attempt_preserved_ordinary_input_answered')
             assert len(disposition_rows(service)) == 4, 'A fixture input was replayed'
             assert all(row.has_started for row in disposition_rows(service).values())
             assert app._exception is None
