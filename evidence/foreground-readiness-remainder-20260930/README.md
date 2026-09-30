@@ -44,6 +44,23 @@ row.current (selected appmode), per original SidebarNavigation contract. This is
 a source lead and continuous identity assertion gap, not permission to recapture
 unchanged footage or claim full tab-state acceptance.
 
+Parent subsequently disproved the peer-footer lead through original canonical
+CoordinationChangedUpdate: nra-architecture explicitly owns NRA worktree/context
+94579. The physical footer agrees. Exact live6feb/ade149 UI-only pair also passed
+83.919s16-check warm journey (20 body resources retained, original journals
+unchanged), then ordinary default st34.633s/readable original startup/0 protocol
+errors/idle/empty available queue/cleanup0. Parent proof is432/body-readiness-
+20260930; no owner restart/reset. This resolves that lead without another capture
+by us. Strong continuous source/actor/model assertions remain future acceptance.
+
+Kepler supplied a separate concrete emitted-frame lead for this owner: original
+251/Einstein u02 input-frames.jsonl frame109 still paints Queued and Submitting
+captions adjacently after QueueSummary region moves row38 to37, while source
+holds one accepted row. Mutable current ROI hid the old emitted caption. Own
+canonical layout/compositor damage handoff; no queue-state writer overlap,
+force-full-render workaround or new flags. Original frame/native-source proofs
+are protected under /home/ts/wt/g458f/u02/proof and Kepler251 evidence.
+
 Next coherent performance delta follows actual1115GIL samples/phase kernelCPU
 and existing ProfileTrace sampling-ready/exec/video bounds. B/E transitions are
 not CPU durations; diagnostic export/profile overhead stays disclosed. Source
