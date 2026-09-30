@@ -344,3 +344,36 @@ closure. Mendel owns those changes and the inherited-native-descriptor control.
 The next comparison requires that complete checkpoint and the parent's reviewed
 coherent pin. Only a successful read-only custody comparison permits a fresh
 paid messaging journey; uncertain attempts real01–04 remain unreplayed.
+
+## Read-only03: reviewed resource cohort obtains response custody
+
+Parent reviewed the complete descriptor closure and installed Core `8691d6ee`,
+Toad `4e1277ae`, Textual `412b5a2b`, SDK 0.12.1 and native tree `614a956d` through
+normal declared dependencies. Defaults remained unchanged. This supersedes the
+staging hold above; the separate routing-reference migration is outside this pair.
+
+The actual installed three-view journey opened both retained histories and IRC
+using the original 41,270,257-byte source. During 40.088 seconds of read-only
+observation, all four response-boundary probes acquired custody within the
+existing five-second writer budget: 1.593, 0.059, 0.069 and 0.550 seconds.
+The archived coordinator contains zero native inputs; both ACP logs contain zero
+prompt requests. Both owned owner processes were absent after cleanup.
+
+Process CPU was still 35.494 seconds, about 88.5% of one core across three views.
+Baseline02 versus candidate03 kernel captures contain 295 versus 279 frames;
+UI bus-wait sample lines dropped from 240 to 145, and holder lines from 224 to
+190. These counts are not continuous lock duration measurements. The candidate
+profile has 71,884 samples with zero sampling errors; inclusive weights across
+threads still identify source preparation, conversation-source certification and
+locks as expensive. This is not a performance-target completion claim.
+
+The py-spy wrapper exited 1 with `No child process (os error 10)` after writing
+the profile. The driver's completed read-only receipt and archived cleanup are
+preserved separately; no wrapper exit-0 claim is made. Evidence in owned scratch
+`read-custody215-03`: `receipt.json`, `readonly-custody-summary.json`,
+`kernel-comparison.json`, `kernel-lock-custody.json`,
+`actual-readonly.speedscope.json`, `run.txt` and exact `pins.json`.
+
+The custody result permits the next fresh real messaging journey. It does not
+prove original-input lease admission, native reply lineage, reply-once, header,
+late replay or immediate A/B/A input behavior. Real01–04 remain unreplayed.
