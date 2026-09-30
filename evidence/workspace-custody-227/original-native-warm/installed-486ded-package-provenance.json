@@ -1,0 +1,42 @@
+{
+  "python": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-admission/bin/python",
+  "packages": {
+    "batrachian-toad": {
+      "module": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-admission/lib/python3.14/site-packages/toad/__init__.py",
+      "version": "0.6.20",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "486dedb197565a55589a3bc70431217ede34c0a8",
+          "requested_revision": "486dedb197565a55589a3bc70431217ede34c0a8"
+        }
+      }
+    },
+    "agent-comms": {
+      "module": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-admission/lib/python3.14/site-packages/agent_comms/__init__.py",
+      "version": "0.1.0",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+          "requested_revision": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817"
+        }
+      }
+    },
+    "textual": {
+      "module": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-admission/lib/python3.14/site-packages/textual/__init__.py",
+      "version": "8.2.8",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+          "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+        }
+      }
+    }
+  },
+  "installed_distributions": 68
+}

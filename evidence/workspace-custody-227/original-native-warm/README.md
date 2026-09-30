@@ -61,7 +61,40 @@ occur only after successful acceptance in the inherited driver, so these failed
 receipts do not independently certify original source custody after failure.
 Raw fixture journals/ACP logs and failed runs remain protected under .artifacts.
 
-One changed-source installed A/B/A gate remains. No End, cohort, cancellation or
-physical-video repeat is required for this resource change. LinuxDriver video,
-terminal Strip reuse, warm first-paint speedup and full velocity/growing-end/T9
-remain separate PR227 work. Parent442/231 activation is not held by this gate.
+## Changed-source installed checkpoint
+
+Attempt04 PASS,27.858seconds, installed noneditable Toad486ded/Core095fc/Text650
+and nativee36. The normal main94cfc merge advances the declared Core dependency;
+the stale2519 frozen requirement was rejected by the resolver, then corrected
+to the declared095fc pin. Normal68-package install/imports, pip check and exact
+production byte comparison pass. Kepler221ff35 tools are normally integrated.
+
+Actual Pilot agent/channel/A returns twice preserve the same native history,
+page/children, prepared reader/result, editor document/history, draft and reader
+position. All10 completed native return frames are readable and the existing
+budget holds. Physical Pilot close of the parked original tab closes its scope,
+discards its prepared page and unmounts the history. Normal application exit0;
+all fixture native children retired. Zero native inputs, no dispositions or
+provider calls. Original journal SHA256888b79c4... and process2823983/birth23393932
+are verified unchanged by the existing typed capture owner after acceptance.
+
+No observed terminal Strip lines were available at the sampled first page;
+0/0 is not retained Strip proof. First completed body frame timers are1773ms and
+1520ms including Pilot delivery/waits, not LinuxDriver latency or a before/after
+speedup. No physical video acceptance or50ms claim is made. The earlier
+immutable0433 resource gate separately proves source advance/final retirement
+and zero repeated adjacent native reads. No End, cohort or229 cancellation repeat
+was run for this change.
+
+The bounded ratchet against main94cfc adds no measured debt and removes one
+ForeignAbsenceProbe in transcript_publication. Across the three production files,
+43 lines are added and39 deleted; the duplicated _revealed_history definition and
+all four consumers are removed. Busy captured cohort before async preparation,
+typed current/revision/root reader admission and joined retirement are unchanged.
+
+This checkpoint is ready for review/integration of resource continuity. The
+full PR227 remains a draft for actual agent/agent A/B/A physical video/profile,
+retained terminal output/first-paint cost, adaptive fast/reverse/idle and growing
+end gaps, full warm/editor/focus/T9 acceptance and resource budgets. Parent owns
+paired stage/default activation; no public root, default or global package is
+changed here. Parent442/231 critical activation is not held by warm work.
