@@ -587,8 +587,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         viewport = window.__dict__.get("document_viewport")
         if viewport is not None and not viewport.visible_bodies_ready:
             return
-        if any(history.is_attached and (history.has_newer or history._loading)
-               for history in window.histories):
+        if any(history.blocks_visible_read for history in window.histories):
             return
         try:
             comms = self.coordination_access.service
