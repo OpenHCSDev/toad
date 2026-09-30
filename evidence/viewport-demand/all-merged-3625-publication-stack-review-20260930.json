@@ -1,0 +1,4187 @@
+{
+  "recording": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture",
+  "ui_pid": 3605915,
+  "selection": {
+    "functions": [],
+    "sources": [
+      "workspace",
+      "history",
+      "viewport",
+      "_compositor",
+      "owner_preparation",
+      "field_codec"
+    ]
+  },
+  "profile": "cpu-profile.json",
+  "alignment_nominal_uncertainty_seconds": 0.079563721511513,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant",
+    "Matching stack groups are observed transitions, not sample counts, calls or CPU time",
+    "No observed match does not prove work was absent; async await parents may be missing",
+    "Complete matching stacks supplement the capped recorder preview; raw source remains authoritative"
+  ],
+  "phases": [
+    {
+      "label": "down",
+      "video_start_seconds": 31.285290501022246,
+      "video_end_seconds": 37.142908381996676,
+      "kernel_cpu": [
+        {
+          "pid": "3605915",
+          "cpu_seconds": 5.290000000000003,
+          "average_cpu_percent": 90.30974890291063
+        },
+        {
+          "pid": "3605914",
+          "cpu_seconds": 0.09000000000000002,
+          "average_cpu_percent": 1.5364607563822221
+        },
+        {
+          "pid": "3605959",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.341435723640494
+        },
+        {
+          "pid": "3605963",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.170717861820247
+        },
+        {
+          "pid": "3606042",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3606138",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3605950",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-down.png",
+          "state_capture": {
+            "started_seconds": 31.56766677100677,
+            "manifest": {
+              "pid": 3605915,
+              "created": 1790787565.77,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 228147200,
+              "started_ns": 1790787599131808111,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-down-state": "complete"
+              },
+              "finished_ns": 1790787599297188021
+            },
+            "finished_seconds": 31.935257311037276
+          },
+          "native_state": "phase-down-state.pickle",
+          "native_metadata": "phase-down-state.json"
+        },
+        "end": {
+          "screenshot": "phase-down-done.png",
+          "state_capture": {
+            "started_seconds": 37.41732155100908,
+            "manifest": {
+              "pid": 3605915,
+              "created": 1790787565.77,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 229814272,
+              "started_ns": 1790787604978962025,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-down-done-state": "complete"
+              },
+              "finished_ns": 1790787605111803704
+            },
+            "finished_seconds": 37.728729622031096
+          },
+          "native_state": "phase-down-done-state.pickle",
+          "native_metadata": "phase-down-done-state.json"
+        }
+      },
+      "observed_stack_groups": 124,
+      "matching_stack_groups": 101,
+      "matched_frames": [
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172,
+          "stack_presence_transition_groups": 41
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805,
+          "stack_presence_transition_groups": 24
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "add_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 24
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_arrange_root",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896,
+          "stack_presence_transition_groups": 24
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206,
+          "stack_presence_transition_groups": 22
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704,
+          "stack_presence_transition_groups": 19
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "reflow",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445,
+          "stack_presence_transition_groups": 17
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "add_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876,
+          "stack_presence_transition_groups": 16
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1266,
+          "stack_presence_transition_groups": 13
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_partial_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1329,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_render_chops",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1410,
+          "stack_presence_transition_groups": 11
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "request",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 273,
+          "stack_presence_transition_groups": 11
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 213,
+          "stack_presence_transition_groups": 10
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "get_content_height",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 114,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_load_page",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 800,
+          "stack_presence_transition_groups": 8
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_get_renders",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1235,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 822,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "extend",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 346,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "find_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146,
+          "stack_presence_transition_groups": 6
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "full_map",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560,
+          "stack_presence_transition_groups": 6
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_get_renders",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1229,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_reconcile",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 374,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_reconcile",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 350,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "on_mount",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 191,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "register",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 230,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "hydrate_visible_tools",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/history_anchor.py",
+          "line": 157,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 783,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_trim_warm",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 246,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 350,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 94,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "message_notifications",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 86,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 407,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 416,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 464,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "revision",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 463,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 143,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_segments",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 111,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_regions",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1394,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_regions",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1381,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_partial_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1330,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_segments",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 267,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 367,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 244,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_trim_warm",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 243,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_segments",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 263,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 750,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "get_layers",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 644,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_reconcile",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 356,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "reflow_visible",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 523,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "restore",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/history_anchor.py",
+          "line": 33,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_restore",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/history_anchor.py",
+          "line": 318,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "retained_widget_count",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 98,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "restore_history_layout",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/history_anchor.py",
+          "line": 116,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 351,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 310,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 831,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_render_chops",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1421,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 353,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 425,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_regions",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1375,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "add_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 860,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_reconcile",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 363,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "measured_rows",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 92,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693322327744,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_regions",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1393,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_request_page",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 749,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_check_edges",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 691,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 761,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "reflow",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 434,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 94,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "message_notifications",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 94,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "message_notifications",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 251,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 163,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 143,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 206,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 251,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693755377344,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 94,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693755377344,
+          "function": "message_notifications",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693755377344,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693755377344,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 447,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 251,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 163,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 143,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 206,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 94,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "message_notifications",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 407,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 94,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "message_notifications",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 419,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693171324608,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "get_widgets_at",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1014,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693162931904,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_settle",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 291,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_reconcile",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 373,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 375,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 31.298581620505445,
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "_worker",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 119
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 86
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 73
+            },
+            {
+              "function": "content_current",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/transcripts.py",
+              "line": 196
+            },
+            {
+              "function": "current_identity",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/transcripts.py",
+              "line": 200
+            },
+            {
+              "function": "capture_page_read",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/transcripts.py",
+              "line": 262
+            },
+            {
+              "function": "capture_page_window",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/transcripts.py",
+              "line": 286
+            },
+            {
+              "function": "snapshot",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/registration.py",
+              "line": 339
+            },
+            {
+              "function": "__enter__",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+              "line": 141
+            },
+            {
+              "function": "reading",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/locked_store.py",
+              "line": 78
+            },
+            {
+              "function": "_read_unlocked",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/registry_store.py",
+              "line": 50
+            },
+            {
+              "function": "private_guard_unlocked",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/registry_store.py",
+              "line": 113
+            },
+            {
+              "function": "read_metadata_unlocked",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+              "line": 517
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 440
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 383
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 407
+            }
+          ]
+        },
+        {
+          "video_seconds": 31.616826620505446,
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "_worker",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 119
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 86
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 73
+            },
+            {
+              "function": "read_thread_presentation",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+              "line": 23
+            },
+            {
+              "function": "thread_presentation",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+              "line": 314
+            },
+            {
+              "function": "capture_page_window",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/transcripts.py",
+              "line": 298
+            },
+            {
+              "function": "capture",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/transcript_outcomes.py",
+              "line": 21
+            },
+            {
+              "function": "snapshot",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/compaction_journal.py",
+              "line": 66
+            },
+            {
+              "function": "read",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/compaction_outcomes.py",
+              "line": 88
+            },
+            {
+              "function": "source",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/compaction_records.py",
+              "line": 167
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 440
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 440
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 402
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 402
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 402
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 402
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 416
+            }
+          ]
+        },
+        {
+          "video_seconds": 31.682526620505442,
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "refresh",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/comms_root.py",
+              "line": 129
+            },
+            {
+              "function": "revision",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+              "line": 463
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+              "line": 464
+            },
+            {
+              "function": "file_revision",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+              "line": 136
+            },
+            {
+              "function": "stat",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+              "line": 654
+            },
+            {
+              "function": "__fspath__",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+              "line": 191
+            },
+            {
+              "function": "__str__",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+              "line": 257
+            },
+            {
+              "function": "drive",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+              "line": 347
+            },
+            {
+              "function": "_raw_path",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+              "line": 337
+            },
+            {
+              "function": "join",
+              "filename": "<frozen posixpath>",
+              "line": 78
+            },
+            {
+              "function": "_get_sep",
+              "filename": "<frozen posixpath>",
+              "line": 43
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 48.73695982003119,
+      "video_end_seconds": 65.26834238000447,
+      "kernel_cpu": [
+        {
+          "pid": "3605915",
+          "cpu_seconds": 4.18,
+          "average_cpu_percent": 25.28524147835555
+        },
+        {
+          "pid": "3605959",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.24196403328569926
+        },
+        {
+          "pid": "3606138",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12098201664284963
+        },
+        {
+          "pid": "3605963",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.060491008321424816
+        },
+        {
+          "pid": "3606042",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.060491008321424816
+        },
+        {
+          "pid": "3605950",
+          "cpu_seconds": 0.009999999999999995,
+          "average_cpu_percent": 0.06049100832142474
+        },
+        {
+          "pid": "3605914",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-idle.png",
+          "state_capture": {
+            "started_seconds": 49.009582057013176,
+            "manifest": {
+              "pid": 3605915,
+              "created": 1790787565.77,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 234246144,
+              "started_ns": 1790787616567057684,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-idle-state": "complete"
+              },
+              "finished_ns": 1790787616700204801
+            },
+            "finished_seconds": 49.321867540013045
+          },
+          "native_state": "phase-idle-state.pickle",
+          "native_metadata": "phase-idle-state.json"
+        },
+        "end": {
+          "screenshot": "phase-idle-done.png",
+          "state_capture": {
+            "started_seconds": 65.53302589402301,
+            "manifest": {
+              "pid": 3605915,
+              "created": 1790787565.77,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 235073536,
+              "started_ns": 1790787633103607862,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-idle-done-state": "complete"
+              },
+              "finished_ns": 1790787633336975398
+            },
+            "finished_seconds": 65.94819665304385
+          },
+          "native_state": "phase-idle-done-state.pickle",
+          "native_metadata": "phase-idle-done-state.json"
+        }
+      },
+      "observed_stack_groups": 73,
+      "matching_stack_groups": 48,
+      "matched_frames": [
+        {
+          "pid": 3605915,
+          "tid": 140693044455104,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693044455104,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 361,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693044455104,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693297149632,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 353,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 406,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 283,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693297149632,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693297149632,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 407,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693297149632,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "revision",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 473,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "get_widgets_at",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1014,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693288756928,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 381,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 397,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 406,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693162931904,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 367,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693755377344,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693755377344,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 301,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693297149632,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 367,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693297149632,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 378,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 353,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694223042240,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 157,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 416,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 407,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 388,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693162931904,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 372,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 464,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "revision",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 463,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "revision",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 474,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "update_widgets",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1443,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "visible_widgets",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 591,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 415,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 301,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 209,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693305542336,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693280364224,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 416,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 353,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 388,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 438,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693188110016,
+          "function": "mark_thread_view_read",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 406,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 407,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "prepare",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 169,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "body_ready",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 200,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "visible_bodies_ready",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 340,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 340,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_prepare_compositor_refresh",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 175,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_partial_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1329,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_render_chops",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1365,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "render_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1266,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693162931904,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 397,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 406,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 447,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 49.14464862050544,
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2008
+            },
+            {
+              "function": "select",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py",
+              "line": 452
+            },
+            {
+              "function": "<module>",
+              "filename": "<string>",
+              "line": 5
+            },
+            {
+              "function": "capture",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 283
+            },
+            {
+              "function": "get_focusable_widget_at",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/screen.py",
+              "line": 729
+            },
+            {
+              "function": "focusable",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2543
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1021
+            },
+            {
+              "function": "parent",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/dom.py",
+              "line": 813
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 49.17540862050544,
+          "pid": 3605915,
+          "tid": 140693044455104,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 361
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 326
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 361
+            }
+          ]
+        },
+        {
+          "video_seconds": 49.176671620505445,
+          "pid": 3605915,
+          "tid": 140693044455104,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 361
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 326
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 310
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "return-a",
+      "video_start_seconds": 73.41410146799171,
+      "video_end_seconds": 77.74096381699201,
+      "kernel_cpu": [
+        {
+          "pid": "3605915",
+          "cpu_seconds": 2.1400000000000006,
+          "average_cpu_percent": 49.45847192237211
+        },
+        {
+          "pid": "3605959",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2311143547774399
+        },
+        {
+          "pid": "3605963",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2311143547774399
+        },
+        {
+          "pid": "3607856",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2311143547774399
+        },
+        {
+          "pid": "3605914",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2311143547774399
+        },
+        {
+          "pid": "3606042",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3606138",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3605950",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-return-a.png",
+          "state_capture": {
+            "started_seconds": 73.70064632303547,
+            "manifest": {
+              "pid": 3605915,
+              "created": 1790787565.77,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 237191168,
+              "started_ns": 1790787641270054738,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-return-a-state": "complete"
+              },
+              "finished_ns": 1790787641402704193
+            },
+            "finished_seconds": 74.0271999380202
+          },
+          "native_state": "phase-return-a-state.pickle",
+          "native_metadata": "phase-return-a-state.json"
+        },
+        "end": {
+          "screenshot": "phase-a-return.png",
+          "state_capture": {
+            "started_seconds": 78.0185321320314,
+            "manifest": {
+              "pid": 3605915,
+              "created": 1790787565.77,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 237420544,
+              "started_ns": 1790787645573648821,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-a-return-state": "complete"
+              },
+              "finished_ns": 1790787645706123705
+            },
+            "finished_seconds": 78.3237363640219
+          },
+          "native_state": "phase-a-return-state.pickle",
+          "native_metadata": "phase-a-return-state.json"
+        }
+      },
+      "observed_stack_groups": 42,
+      "matching_stack_groups": 32,
+      "matched_frames": [
+        {
+          "pid": 3605915,
+          "tid": 140693027669696,
+          "function": "write_json",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 29,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_refresh_layout",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693027669696,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 361,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_on_timer_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 314,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693154539200,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 367,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "add_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_arrange_root",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 406,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 388,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 438,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693027669696,
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+          "line": 366,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "reflow",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 455,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "reflow",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 472,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "get_widgets_at",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1014,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "_check_edges",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 675,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 163,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 143,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 206,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693764818624,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694358324928,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "select",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/workspace_sessions.py",
+          "line": 142,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "layout_navigation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 280,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "get_content_height",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 114,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "reflow",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "add_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693052847808,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 372,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 161,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 146,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 206,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 383,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693179717312,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693322327744,
+          "function": "message_notifications_for_references",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693322327744,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693322327744,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 210,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693322327744,
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 216,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693322327744,
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "read_thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+          "line": 23,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694213600960,
+          "function": "thread_presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 320,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 372,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 378,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693330720448,
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 356,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 372,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "find_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "full_map",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 794,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694435501952,
+          "function": "revision",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 474,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 367,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3605915,
+          "tid": 140694251366080,
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 399,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 73.67141862050545,
+          "pid": 3605915,
+          "tid": 140693196502720,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "_worker",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 119
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 86
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+              "line": 73
+            },
+            {
+              "function": "read_thread_presentation",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/toad/owner_preparation.py",
+              "line": 23
+            },
+            {
+              "function": "thread_presentation",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+              "line": 320
+            },
+            {
+              "function": "for_sources",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/presentation.py",
+              "line": 134
+            },
+            {
+              "function": "window",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/presentation.py",
+              "line": 85
+            },
+            {
+              "function": "snapshot",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/registration.py",
+              "line": 339
+            },
+            {
+              "function": "__enter__",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+              "line": 141
+            },
+            {
+              "function": "reading",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/locked_store.py",
+              "line": 78
+            },
+            {
+              "function": "_read_unlocked",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/registry_store.py",
+              "line": 50
+            },
+            {
+              "function": "private_guard_unlocked",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/registry_store.py",
+              "line": 113
+            },
+            {
+              "function": "read_metadata_unlocked",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+              "line": 517
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 440
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 383
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 440
+            },
+            {
+              "function": "decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 256
+            },
+            {
+              "function": "_decode",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+              "line": 438
+            },
+            {
+              "function": "__init__",
+              "filename": "<string>",
+              "line": 8
+            },
+            {
+              "function": "__post_init__",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/checkpoint_seals.py",
+              "line": 41
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/lib/python3.14/site-packages/agent_comms/checkpoint_seals.py",
+              "line": 42
+            }
+          ]
+        },
+        {
+          "video_seconds": 73.84682262050545,
+          "pid": 3605915,
+          "tid": 140693027669696,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 361
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 326
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 326
+            },
+            {
+              "function": "_iterencode_list",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 314
+            }
+          ]
+        },
+        {
+          "video_seconds": 73.85614662050544,
+          "pid": 3605915,
+          "tid": 140693027669696,
+          "frames": [
+            {
+              "function": "_bootstrap",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1044
+            },
+            {
+              "function": "_bootstrap_inner",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1082
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+              "line": 1024
+            },
+            {
+              "function": "persist",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 361
+            },
+            {
+              "function": "write_json",
+              "filename": "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/capture_state.py",
+              "line": 29
+            },
+            {
+              "function": "dump",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+              "line": 181
+            },
+            {
+              "function": "_iterencode",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 444
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            },
+            {
+              "function": "_iterencode_dict",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+              "line": 413
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

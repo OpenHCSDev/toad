@@ -1,0 +1,558 @@
+{
+  "scope": "Useful all-merged original savedstartup/A-B-A/heldscroll/End15idle candidate checkpoint; performance/focus/paid-provider journeys not closed",
+  "candidate": {
+    "agent-comms": "29bbe95d3f57d961259f53ad7c08e38562eaf766",
+    "batrachian-toad": "3625ce9e9379da553374e2e81e08e435e5321d1b",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "sdk": "0.12.1",
+  "tool_checkpoint": "a33d78e53126144961b055543abd53598200b8fd",
+  "raw": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02",
+  "receipt_pass": true,
+  "runtime_unchanged": true,
+  "duration_seconds": 86.13161516399123,
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "originals_unchanged": true,
+  "originals": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3487629,
+        "start_time": 25894836
+      },
+      "active_turn": null,
+      "session": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3487789,
+        "start_time": 25895109
+      },
+      "active_turn": null,
+      "session": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "owned_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3605907,
+        "start_ticks": 26320448,
+        "returncode": 0
+      },
+      {
+        "pid": 3605910,
+        "start_ticks": 26320520,
+        "returncode": 0
+      },
+      {
+        "pid": 3605912,
+        "start_ticks": 26320530,
+        "returncode": 0
+      },
+      {
+        "pid": 3605914,
+        "start_ticks": 26320572,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3605915,
+        "start_ticks": 26320577,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3605932,
+        "start_ticks": 26320637,
+        "returncode": 0
+      },
+      {
+        "pid": 3605941,
+        "start_ticks": 26320648,
+        "returncode": 0
+      },
+      {
+        "pid": 3605942,
+        "start_ticks": 26320656,
+        "returncode": 0
+      },
+      {
+        "pid": 3605944,
+        "start_ticks": 26320665,
+        "returncode": 255
+      },
+      {
+        "pid": 3606214,
+        "start_ticks": 26321867,
+        "returncode": 0
+      },
+      {
+        "pid": 3606220,
+        "start_ticks": 26321895,
+        "returncode": 0
+      },
+      {
+        "pid": 3606236,
+        "start_ticks": 26321942,
+        "returncode": 0
+      },
+      {
+        "pid": 3606318,
+        "start_ticks": 26322086,
+        "returncode": 0
+      },
+      {
+        "pid": 3606405,
+        "start_ticks": 26322179,
+        "returncode": 0
+      },
+      {
+        "pid": 3606417,
+        "start_ticks": 26322333,
+        "returncode": 0
+      },
+      {
+        "pid": 3606420,
+        "start_ticks": 26322546,
+        "returncode": 0
+      },
+      {
+        "pid": 3606446,
+        "start_ticks": 26322682,
+        "returncode": 0
+      },
+      {
+        "pid": 3606473,
+        "start_ticks": 26322770,
+        "returncode": 0
+      },
+      {
+        "pid": 3606492,
+        "start_ticks": 26322919,
+        "returncode": 0
+      },
+      {
+        "pid": 3606563,
+        "start_ticks": 26323032,
+        "returncode": 0
+      },
+      {
+        "pid": 3606655,
+        "start_ticks": 26323165,
+        "returncode": 0
+      },
+      {
+        "pid": 3606656,
+        "start_ticks": 26323178,
+        "returncode": 0
+      },
+      {
+        "pid": 3606671,
+        "start_ticks": 26323592,
+        "returncode": 0
+      },
+      {
+        "pid": 3606683,
+        "start_ticks": 26323606,
+        "returncode": 0
+      },
+      {
+        "pid": 3606697,
+        "start_ticks": 26323748,
+        "returncode": 0
+      },
+      {
+        "pid": 3606719,
+        "start_ticks": 26323896,
+        "returncode": 0
+      },
+      {
+        "pid": 3606720,
+        "start_ticks": 26323909,
+        "returncode": 0
+      },
+      {
+        "pid": 3606970,
+        "start_ticks": 26324323,
+        "returncode": 0
+      },
+      {
+        "pid": 3606971,
+        "start_ticks": 26324335,
+        "returncode": 0
+      },
+      {
+        "pid": 3607000,
+        "start_ticks": 26324474,
+        "returncode": 0
+      },
+      {
+        "pid": 3607049,
+        "start_ticks": 26324626,
+        "returncode": 0
+      },
+      {
+        "pid": 3607050,
+        "start_ticks": 26324639,
+        "returncode": 0
+      },
+      {
+        "pid": 3607136,
+        "start_ticks": 26325053,
+        "returncode": 0
+      },
+      {
+        "pid": 3607138,
+        "start_ticks": 26325065,
+        "returncode": 0
+      },
+      {
+        "pid": 3607254,
+        "start_ticks": 26325214,
+        "returncode": 0
+      },
+      {
+        "pid": 3607277,
+        "start_ticks": 26325367,
+        "returncode": 0
+      },
+      {
+        "pid": 3607278,
+        "start_ticks": 26325383,
+        "returncode": 0
+      },
+      {
+        "pid": 3607280,
+        "start_ticks": 26325496,
+        "returncode": 0
+      },
+      {
+        "pid": 3607304,
+        "start_ticks": 26325636,
+        "returncode": 0
+      },
+      {
+        "pid": 3607787,
+        "start_ticks": 26327151,
+        "returncode": 0
+      },
+      {
+        "pid": 3607803,
+        "start_ticks": 26327297,
+        "returncode": 0
+      },
+      {
+        "pid": 3607817,
+        "start_ticks": 26327441,
+        "returncode": 0
+      },
+      {
+        "pid": 3607854,
+        "start_ticks": 26327531,
+        "returncode": 0
+      },
+      {
+        "pid": 3607945,
+        "start_ticks": 26327963,
+        "returncode": 0
+      },
+      {
+        "pid": 3608047,
+        "start_ticks": 26328101,
+        "returncode": 0
+      },
+      {
+        "pid": 3608121,
+        "start_ticks": 26328187,
+        "returncode": 0
+      },
+      {
+        "pid": 3608137,
+        "start_ticks": 26328399,
+        "returncode": 0
+      },
+      {
+        "pid": 3608158,
+        "start_ticks": 26328534,
+        "returncode": 0
+      },
+      {
+        "pid": 3608175,
+        "start_ticks": 26328617,
+        "returncode": 0
+      },
+      {
+        "pid": 3608176,
+        "start_ticks": 26328630,
+        "returncode": 0
+      },
+      {
+        "pid": 3608179,
+        "start_ticks": 26328843,
+        "returncode": 0
+      },
+      {
+        "pid": 3608353,
+        "start_ticks": 26329186,
+        "returncode": 0
+      },
+      {
+        "pid": 3608358,
+        "start_ticks": 26329214,
+        "returncode": 0
+      },
+      {
+        "pid": 3608364,
+        "start_ticks": 26329341,
+        "returncode": 0
+      },
+      {
+        "pid": 3608366,
+        "start_ticks": 26329413,
+        "returncode": 0
+      },
+      {
+        "pid": 3608440,
+        "start_ticks": 26329695,
+        "returncode": 0
+      }
+    ]
+  },
+  "caller_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3605903,
+        "start_ticks": 26320340,
+        "returncode": 0
+      },
+      {
+        "pid": 3605905,
+        "start_ticks": 26320401,
+        "returncode": 0
+      }
+    ]
+  },
+  "offline_review_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3610845,
+        "start_ticks": 26340383,
+        "returncode": 0
+      },
+      {
+        "pid": 3611035,
+        "start_ticks": 26341200,
+        "returncode": 0
+      },
+      {
+        "pid": 3611042,
+        "start_ticks": 26341249,
+        "returncode": 0
+      },
+      {
+        "pid": 3611186,
+        "start_ticks": 26342110,
+        "returncode": 0
+      },
+      {
+        "pid": 3611241,
+        "start_ticks": 26342179,
+        "returncode": 0
+      },
+      {
+        "pid": 3611369,
+        "start_ticks": 26343027,
+        "returncode": 0
+      },
+      {
+        "pid": 3611376,
+        "start_ticks": 26343090,
+        "returncode": 0
+      },
+      {
+        "pid": 3611524,
+        "start_ticks": 26343914,
+        "returncode": 0
+      }
+    ]
+  },
+  "phase_cpu": [
+    {
+      "phase": "up",
+      "wall_seconds": 5.761266997025814,
+      "ui_cpu_seconds": 5.489999999999998,
+      "ui_cpu_percent": 95.29153921930967
+    },
+    {
+      "phase": "down",
+      "wall_seconds": 5.857617880974431,
+      "ui_cpu_seconds": 5.290000000000003,
+      "ui_cpu_percent": 90.30974890291063
+    },
+    {
+      "phase": "reverse",
+      "wall_seconds": 5.935118605964817,
+      "ui_cpu_seconds": 5.170000000000002,
+      "ui_cpu_percent": 87.10862146552778
+    },
+    {
+      "phase": "idle",
+      "wall_seconds": 16.53138255997328,
+      "ui_cpu_seconds": 4.18,
+      "ui_cpu_percent": 25.28524147835555
+    },
+    {
+      "phase": "switch-b",
+      "wall_seconds": 5.572353015013505,
+      "ui_cpu_seconds": 2.8999999999999986,
+      "ui_cpu_percent": 52.04264683494698
+    },
+    {
+      "phase": "return-a",
+      "wall_seconds": 4.326862349000294,
+      "ui_cpu_seconds": 2.1400000000000006,
+      "ui_cpu_percent": 49.45847192237211
+    }
+  ],
+  "profile": {
+    "sample_count": 1240,
+    "sampling_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.079563721511513
+  },
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/receipt.json",
+      "sha256": "93417a9761833f3b6059987d806e24e61d1fe284a0839da4cfdd1956d77e8388",
+      "bytes": 383833
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/terminal.mp4",
+      "sha256": "d62bedf8b5d6d46325907ddbe7617b73a6d10ef0c25f3541a95b8464beb856a5",
+      "bytes": 7033149
+    },
+    "before.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/before.png",
+      "sha256": "91c1d00efadf0171166193c2efdda6d899806304ce9552de1a0a5de61c462b1e",
+      "bytes": 109596
+    },
+    "phase-down-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-down-done.png",
+      "sha256": "4b2670f436ca18b020056aa55c719a0d48184fd008339a91c4602c7b735503dc",
+      "bytes": 105887
+    },
+    "phase-idle-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-idle-done.png",
+      "sha256": "a67f7f922c4c8df43274ab7687773befbaf78d44872c8d6f0f51db98989b06a3",
+      "bytes": 110500
+    },
+    "phase-b-open.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-b-open.png",
+      "sha256": "c52b2915feb8bcfb034354287a987995837ca3e55e0a6eaf7e77f00fb0e52186",
+      "bytes": 117930
+    },
+    "phase-a-return.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-a-return.png",
+      "sha256": "901343873793f94950496ec28cc88d11ac3093f4433644c6d52b591cf59bdc4b",
+      "bytes": 112550
+    },
+    "phase-undo.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-undo.png",
+      "sha256": "94c2a18f177c73ec24bcfb79afa7df4b406c6cff741bd290db982089ab068cea",
+      "bytes": 111651
+    },
+    "profile-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/profile-review.json",
+      "sha256": "2ae89bc4a02d504831a7f77f93285c1ab0b1443a188c84c4812a38bf6c8648ae",
+      "bytes": 211708
+    },
+    "cpu-profile.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/cpu-profile.json",
+      "sha256": "21931a68750330179ff18eb1e6a3134d48c26af4ffb16aa73490cf639baac90d",
+      "bytes": 8546381
+    },
+    "down-frames.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/down-frames.png",
+      "sha256": "8b9a34320d8fa1da3bd9f0df429754d19ea2d9f136c665dce3996bdee1d3dad2",
+      "bytes": 1594463
+    },
+    "return-a-frames.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/return-a-frames.png",
+      "sha256": "4f9b7e4da0480ce58e5911913056d09dfdce78142967349e3843eef97c3072f9",
+      "bytes": 1168835
+    },
+    "switch-b-frames.png": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/switch-b-frames.png",
+      "sha256": "f0fe27009538c763ed1398a9b4000a218730e69966baf815399ab2f7bdd73605",
+      "bytes": 813297
+    },
+    "review-receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/review-receipt.json",
+      "sha256": "1142b98af92b97faf9353c91da55c5b1900fa0c0b38cc04fcf3448d82abe572a",
+      "bytes": 2269
+    }
+  },
+  "physical_review": {
+    "reviewed_png": [
+      "before.png",
+      "phase-down-done.png",
+      "phase-idle-done.png",
+      "phase-b-open.png",
+      "phase-a-return.png",
+      "phase-undo.png"
+    ],
+    "reviewed_video_sheets": [
+      "down-frames.png",
+      "return-a-frames.png",
+      "switch-b-frames.png"
+    ],
+    "result": "Readable body/chrome at inspected endpoints. Held-Down sheet shows actual source motion; A-return shows preserved content/draft. B cold-open shows loading before readable endpoint. No sustained blank at End plus15-second idle. Sampling does not certify absence of transient gaps or frame-time target."
+  },
+  "first_attempt": {
+    "raw": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt01",
+    "failed": "Recorder selected review journey but omitted --actions, idled, then missing warm-start pickle; no product-failure proof"
+  },
+  "remaining": [
+    "High UI CPU (scroll87-95%, stationary25%) and warm/foreground first-paint target remain242-owned",
+    "Historical UNKNOWN notification failures remain untouched; no replay",
+    "No native prompt, provider call, public restart, default activation, login repetition or full intermittent focus claim"
+  ],
+  "deleted_lines": {
+    "tests/tools/record_installed_tui.py": 5,
+    "tests/tools/VIDEO_REVIEW.md": 2
+  },
+  "patterns": [
+    "IMPL-4",
+    "IMPL-5",
+    "AGENT-2"
+  ]
+}

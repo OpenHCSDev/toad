@@ -1,0 +1,755 @@
+{
+  "release02": {
+    "raw": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture",
+    "receipt_sha256": "93417a9761833f3b6059987d806e24e61d1fe284a0839da4cfdd1956d77e8388",
+    "runtime": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930",
+      "pins": {
+        "agent-comms": "29bbe95d3f57d961259f53ad7c08e38562eaf766",
+        "batrachian-toad": "3625ce9e9379da553374e2e81e08e435e5321d1b",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "27e256609f90028ce92919c85bb9d6158730cca393e1258950b439e94a7215b7"
+    },
+    "profile": {
+      "sample_count": 1240,
+      "sampling_errors": 0,
+      "alignment_nominal_uncertainty_seconds": 0.079563721511513
+    },
+    "phases": {
+      "up": {
+        "wall_seconds": 5.761266997025814,
+        "ui_cpu_seconds": 5.489999999999998,
+        "ui_cpu_percent": 95.29153921930967,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-up.png",
+            "state_capture": {
+              "started_seconds": 24.357217754994053,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 194301952,
+                "started_ns": 1790787591917191473,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-up-state": "complete"
+                },
+                "finished_ns": 1790787592049659273
+              },
+              "finished_seconds": 24.667707256041467
+            },
+            "native_state": "phase-up-state.pickle",
+            "native_metadata": "phase-up-state.json"
+          },
+          "end": {
+            "screenshot": "phase-up-done.png",
+            "state_capture": {
+              "started_seconds": 30.115500851010438,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 225099776,
+                "started_ns": 1790787597676935926,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-up-done-state": "complete"
+                },
+                "finished_ns": 1790787597841635377
+              },
+              "finished_seconds": 30.462296589044854
+            },
+            "native_state": "phase-up-done-state.pickle",
+            "native_metadata": "phase-up-done-state.json"
+          }
+        }
+      },
+      "down": {
+        "wall_seconds": 5.857617880974431,
+        "ui_cpu_seconds": 5.290000000000003,
+        "ui_cpu_percent": 90.30974890291063,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-down.png",
+            "state_capture": {
+              "started_seconds": 31.56766677100677,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 228147200,
+                "started_ns": 1790787599131808111,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-down-state": "complete"
+                },
+                "finished_ns": 1790787599297188021
+              },
+              "finished_seconds": 31.935257311037276
+            },
+            "native_state": "phase-down-state.pickle",
+            "native_metadata": "phase-down-state.json"
+          },
+          "end": {
+            "screenshot": "phase-down-done.png",
+            "state_capture": {
+              "started_seconds": 37.41732155100908,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 229814272,
+                "started_ns": 1790787604978962025,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-down-done-state": "complete"
+                },
+                "finished_ns": 1790787605111803704
+              },
+              "finished_seconds": 37.728729622031096
+            },
+            "native_state": "phase-down-done-state.pickle",
+            "native_metadata": "phase-down-done-state.json"
+          }
+        }
+      },
+      "reverse": {
+        "wall_seconds": 5.935118605964817,
+        "ui_cpu_seconds": 5.170000000000002,
+        "ui_cpu_percent": 87.10862146552778,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-reverse.png",
+            "state_capture": {
+              "started_seconds": 38.79745512601221,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 230113280,
+                "started_ns": 1790787606356046185,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-reverse-state": "complete"
+                },
+                "finished_ns": 1790787606520703436
+              },
+              "finished_seconds": 39.1623553110403
+            },
+            "native_state": "phase-reverse-state.pickle",
+            "native_metadata": "phase-reverse-state.json"
+          },
+          "end": {
+            "screenshot": "phase-reverse-done.png",
+            "state_capture": {
+              "started_seconds": 44.72949935001088,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 230383616,
+                "started_ns": 1790787612295875582,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-reverse-done-state": "complete"
+                },
+                "finished_ns": 1790787612460528014
+              },
+              "finished_seconds": 45.083171550999396
+            },
+            "native_state": "phase-reverse-done-state.pickle",
+            "native_metadata": "phase-reverse-done-state.json"
+          }
+        }
+      },
+      "idle": {
+        "wall_seconds": 16.53138255997328,
+        "ui_cpu_seconds": 4.18,
+        "ui_cpu_percent": 25.28524147835555,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-idle.png",
+            "state_capture": {
+              "started_seconds": 49.009582057013176,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 234246144,
+                "started_ns": 1790787616567057684,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-idle-state": "complete"
+                },
+                "finished_ns": 1790787616700204801
+              },
+              "finished_seconds": 49.321867540013045
+            },
+            "native_state": "phase-idle-state.pickle",
+            "native_metadata": "phase-idle-state.json"
+          },
+          "end": {
+            "screenshot": "phase-idle-done.png",
+            "state_capture": {
+              "started_seconds": 65.53302589402301,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 235073536,
+                "started_ns": 1790787633103607862,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-idle-done-state": "complete"
+                },
+                "finished_ns": 1790787633336975398
+              },
+              "finished_seconds": 65.94819665304385
+            },
+            "native_state": "phase-idle-done-state.pickle",
+            "native_metadata": "phase-idle-done-state.json"
+          }
+        }
+      },
+      "switch-b": {
+        "wall_seconds": 5.572353015013505,
+        "ui_cpu_seconds": 2.8999999999999986,
+        "ui_cpu_percent": 52.04264683494698,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-switch-b.png",
+            "state_capture": {
+              "started_seconds": 67.02379425300751,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 235249664,
+                "started_ns": 1790787634589043512,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-switch-b-state": "complete"
+                },
+                "finished_ns": 1790787634721794258
+              },
+              "finished_seconds": 67.34706942900084
+            },
+            "native_state": "phase-switch-b-state.pickle",
+            "native_metadata": "phase-switch-b-state.json"
+          },
+          "end": {
+            "screenshot": "phase-b-open.png",
+            "state_capture": {
+              "started_seconds": 69.16721449000761,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 235819008,
+                "started_ns": 1790787636725964750,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-b-open-state": "complete"
+                },
+                "finished_ns": 1790787639696581891
+              },
+              "finished_seconds": 72.3267309620278
+            },
+            "native_state": "phase-b-open-state.pickle",
+            "native_metadata": "phase-b-open-state.json"
+          }
+        }
+      },
+      "return-a": {
+        "wall_seconds": 4.326862349000294,
+        "ui_cpu_seconds": 2.1400000000000006,
+        "ui_cpu_percent": 49.45847192237211,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-return-a.png",
+            "state_capture": {
+              "started_seconds": 73.70064632303547,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 237191168,
+                "started_ns": 1790787641270054738,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-return-a-state": "complete"
+                },
+                "finished_ns": 1790787641402704193
+              },
+              "finished_seconds": 74.0271999380202
+            },
+            "native_state": "phase-return-a-state.pickle",
+            "native_metadata": "phase-return-a-state.json"
+          },
+          "end": {
+            "screenshot": "phase-a-return.png",
+            "state_capture": {
+              "started_seconds": 78.0185321320314,
+              "manifest": {
+                "pid": 3605915,
+                "created": 1790787565.77,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 237420544,
+                "started_ns": 1790787645573648821,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture/phase-a-return-state": "complete"
+                },
+                "finished_ns": 1790787645706123705
+              },
+              "finished_seconds": 78.3237363640219
+            },
+            "native_state": "phase-a-return-state.pickle",
+            "native_metadata": "phase-a-return-state.json"
+          }
+        }
+      }
+    },
+    "native_checks_passed": true,
+    "retained_ready_body_count": 20,
+    "same_resource_end": {
+      "idle-done": {
+        "loaded_pages": 1,
+        "scroll_y": 189,
+        "maximum": 189,
+        "follows_tail": true
+      },
+      "a-return": {
+        "loaded_pages": 1,
+        "scroll_y": 189,
+        "maximum": 189,
+        "follows_tail": true
+      }
+    }
+  },
+  "candidate242": {
+    "raw": "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture",
+    "receipt_sha256": "20733714b8c0be39b82f125848e56d2b622d81cc144a28b628b9538daa1c2a53",
+    "runtime": {
+      "stage": "/home/ts/wt/toad-workspace-foreground-resource-continuation-20260930/.artifacts/installed-history-projection-242",
+      "pins": {
+        "batrachian-toad": "5739ec31485ae145732337b1b877bc071c2008d2",
+        "agent-comms": "29bbe95d3f57d961259f53ad7c08e38562eaf766",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort"
+    },
+    "profile": {
+      "sample_count": 1140,
+      "sampling_errors": 0,
+      "alignment_nominal_uncertainty_seconds": 0.05761486451141536
+    },
+    "phases": {
+      "up": {
+        "wall_seconds": 5.720537456974853,
+        "ui_cpu_seconds": 5.33,
+        "ui_cpu_percent": 93.17306354670077,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-up.png",
+            "state_capture": {
+              "started_seconds": 23.61156332900282,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 193110016,
+                "started_ns": 1790787911258882516,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-up-state": "complete"
+                },
+                "finished_ns": 1790787911391183112
+              },
+              "finished_seconds": 23.912782469997182
+            },
+            "native_state": "phase-up-state.pickle",
+            "native_metadata": "phase-up-state.json"
+          },
+          "end": {
+            "screenshot": "phase-up-done.png",
+            "state_capture": {
+              "started_seconds": 29.319525590981357,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 221335552,
+                "started_ns": 1790787916989013672,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-up-done-state": "complete"
+                },
+                "finished_ns": 1790787917154394718
+              },
+              "finished_seconds": 29.68923061300302
+            },
+            "native_state": "phase-up-done-state.pickle",
+            "native_metadata": "phase-up-done-state.json"
+          }
+        }
+      },
+      "down": {
+        "wall_seconds": 5.778928162006196,
+        "ui_cpu_seconds": 6.0,
+        "ui_cpu_percent": 103.8254816775064,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-down.png",
+            "state_capture": {
+              "started_seconds": 30.855936578998808,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 224464896,
+                "started_ns": 1790787918513023555,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-down-state": "complete"
+                },
+                "finished_ns": 1790787918645326666
+              },
+              "finished_seconds": 31.14430689701112
+            },
+            "native_state": "phase-down-state.pickle",
+            "native_metadata": "phase-down-state.json"
+          },
+          "end": {
+            "screenshot": "phase-down-done.png",
+            "state_capture": {
+              "started_seconds": 36.62319453002419,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 229486592,
+                "started_ns": 1790787924291013380,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-down-done-state": "complete"
+                },
+                "finished_ns": 1790787924455824056
+              },
+              "finished_seconds": 36.97479328198824
+            },
+            "native_state": "phase-down-done-state.pickle",
+            "native_metadata": "phase-down-done-state.json"
+          }
+        }
+      },
+      "reverse": {
+        "wall_seconds": 5.791541533020791,
+        "ui_cpu_seconds": 5.040000000000003,
+        "ui_cpu_percent": 87.02346294616325,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-reverse.png",
+            "state_capture": {
+              "started_seconds": 38.02511314197909,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 230838272,
+                "started_ns": 1790787925680592192,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-reverse-state": "complete"
+                },
+                "finished_ns": 1790787925813004981
+              },
+              "finished_seconds": 38.32869131100597
+            },
+            "native_state": "phase-reverse-state.pickle",
+            "native_metadata": "phase-reverse-state.json"
+          },
+          "end": {
+            "screenshot": "phase-reverse-done.png",
+            "state_capture": {
+              "started_seconds": 43.828331559023354,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 232435712,
+                "started_ns": 1790787931488805820,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-reverse-done-state": "complete"
+                },
+                "finished_ns": 1790787931653702548
+              },
+              "finished_seconds": 44.20291396899847
+            },
+            "native_state": "phase-reverse-done-state.pickle",
+            "native_metadata": "phase-reverse-done-state.json"
+          }
+        }
+      },
+      "idle": {
+        "wall_seconds": 16.588505771011114,
+        "ui_cpu_seconds": 4.199999999999996,
+        "ui_cpu_percent": 25.3187361054521,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-idle.png",
+            "state_capture": {
+              "started_seconds": 48.016054927022196,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 233938944,
+                "started_ns": 1790787935667038594,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-idle-state": "complete"
+                },
+                "finished_ns": 1790787935799709782
+              },
+              "finished_seconds": 48.333575270022266
+            },
+            "native_state": "phase-idle-state.pickle",
+            "native_metadata": "phase-idle-state.json"
+          },
+          "end": {
+            "screenshot": "phase-idle-done.png",
+            "state_capture": {
+              "started_seconds": 64.60715418000473,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 234246144,
+                "started_ns": 1790787952271883529,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-idle-done-state": "complete"
+                },
+                "finished_ns": 1790787952405195832
+              },
+              "finished_seconds": 64.92333616898395
+            },
+            "native_state": "phase-idle-done-state.pickle",
+            "native_metadata": "phase-idle-done-state.json"
+          }
+        }
+      },
+      "switch-b": {
+        "wall_seconds": 4.686070123047102,
+        "ui_cpu_seconds": 2.460000000000001,
+        "ui_cpu_percent": 52.49601340580011,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-switch-b.png",
+            "state_capture": {
+              "started_seconds": 65.96087129798252,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 234332160,
+                "started_ns": 1790787953613427944,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-switch-b-state": "complete"
+                },
+                "finished_ns": 1790787953746107739
+              },
+              "finished_seconds": 66.2632044699858
+            },
+            "native_state": "phase-switch-b-state.pickle",
+            "native_metadata": "phase-switch-b-state.json"
+          },
+          "end": {
+            "screenshot": "phase-b-open.png",
+            "state_capture": {
+              "started_seconds": 67.84948341397103,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 234450944,
+                "started_ns": 1790787955500846269,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-b-open-state": "complete"
+                },
+                "finished_ns": 1790787957836921660
+              },
+              "finished_seconds": 70.37928127497435
+            },
+            "native_state": "phase-b-open-state.pickle",
+            "native_metadata": "phase-b-open-state.json"
+          }
+        }
+      },
+      "return-a": {
+        "wall_seconds": 4.431534003990237,
+        "ui_cpu_seconds": 2.25,
+        "ui_cpu_percent": 50.77248641156894,
+        "physical_evidence": {
+          "start": {
+            "screenshot": "phase-return-a.png",
+            "state_capture": {
+              "started_seconds": 71.78877683897736,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 243662848,
+                "started_ns": 1790787959446418516,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-return-a-state": "complete"
+                },
+                "finished_ns": 1790787959579049969
+              },
+              "finished_seconds": 72.11004334798781
+            },
+            "native_state": "phase-return-a-state.pickle",
+            "native_metadata": "phase-return-a-state.json"
+          },
+          "end": {
+            "screenshot": "phase-a-return.png",
+            "state_capture": {
+              "started_seconds": 76.21093764202669,
+              "manifest": {
+                "pid": 3613471,
+                "created": 1790787885.94,
+                "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+                "rss_before": 243933184,
+                "started_ns": 1790787963866194081,
+                "profile_seconds": 0,
+                "gil_only": false,
+                "native": false,
+                "receipts": {
+                  "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture/phase-a-return-state": "complete"
+                },
+                "finished_ns": 1790787963999098170
+              },
+              "finished_seconds": 76.53841411101166
+            },
+            "native_state": "phase-a-return-state.pickle",
+            "native_metadata": "phase-a-return-state.json"
+          }
+        }
+      }
+    },
+    "native_checks_passed": true,
+    "retained_ready_body_count": 20,
+    "same_resource_end": {
+      "idle-done": {
+        "loaded_pages": 1,
+        "scroll_y": 189,
+        "maximum": 189,
+        "follows_tail": true
+      },
+      "a-return": {
+        "loaded_pages": 1,
+        "scroll_y": 189,
+        "maximum": 189,
+        "follows_tail": true
+      }
+    }
+  },
+  "scope": "Read-only same-workflow comparison; no additional app/native/provider run",
+  "owner": "Kepler contribution to Heisenberg242",
+  "query_selection": {
+    "functions": [],
+    "sources": [
+      "/workspace.py",
+      "/history_",
+      "/viewport_",
+      "/_compositor.py",
+      "/owner_preparation.py",
+      "/field_codec.py"
+    ]
+  },
+  "query_correction": {
+    "earlier_query": "workspace substring",
+    "problem": "Candidate installed prefix includes toad-workspace in every package path; this selected unrelated frames",
+    "correction": "Owner file path suffixes /workspace.py, /history_, /viewport_, /_compositor.py, /owner_preparation.py, /field_codec.py",
+    "source_profiles_unchanged": true
+  },
+  "limits": [
+    "Kernel phase CPU includes native diagnostic export and settle work",
+    "Changed-stack groups are not CPU/call counts or duration",
+    "Parallel fleet/host activity uncontrolled; one run each does not establish causal performance change",
+    "Reader geometry differed during fast scroll; end/current-source relations comparable, not identical transient paints",
+    "No final50ms/zero-gap/fullfocus claim"
+  ],
+  "raw_queries": {
+    "workflow-publication-stack-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler242-physical-review-20260930/workflow-publication-stack-review.json",
+      "sha256": "f16f973ecd3e58a4e34458b697dbedc0d583c0c615608cc49a02cb500807f842"
+    },
+    "release02-owner-file-stack-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler242-physical-review-20260930/release02-owner-file-stack-review.json",
+      "sha256": "ed45133d0ab187844fc5be81faaf408082f5c4691f6f58c26a21832c481fb96d"
+    },
+    "workflow-publication-stack-review-broad-path-filter.json": {
+      "path": "/home/ts/.cache/agent-scratch/kepler242-physical-review-20260930/workflow-publication-stack-review-broad-path-filter.json",
+      "sha256": "c24e65b455ff2444296bdf3d5eb7866c2f269b0aeaeeafbb5bd2403080d69c51"
+    }
+  }
+}
