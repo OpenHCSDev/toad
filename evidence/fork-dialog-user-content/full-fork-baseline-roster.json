@@ -1,0 +1,38 @@
+{
+  "screen": "WorkspaceScreen",
+  "screen_frame_ready": true,
+  "screen_frame_state": "PresentedFrame",
+  "screen_is_current": true,
+  "sidebar_attached": true,
+  "sidebar_display": true,
+  "observation_enabled": true,
+  "accepts_publication": true,
+  "source_root": "/home/ts/wt/cw228b04/private-root/wire",
+  "navigation_ready": true,
+  "observation_pending": false,
+  "observation_lock": false,
+  "projection_lock": false,
+  "channel_rows": [
+    "#any",
+    "#none",
+    "#all",
+    "#team"
+  ],
+  "row_targets": [
+    "#any",
+    "beta",
+    "#none",
+    "#all",
+    "#team"
+  ],
+  "original_registry_tags": {
+    "beta": [
+      "team"
+    ],
+    "user": [],
+    "immediate-fork": [
+      "fork-added"
+    ]
+  },
+  "provider_requests": 1
+}

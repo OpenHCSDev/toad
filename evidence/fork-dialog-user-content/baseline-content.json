@@ -1,0 +1,15 @@
+{
+  "expected_task": "First acceptance instruction.\n\nSecond instruction must survive the paste.",
+  "actual_spec": {
+    "name": "fork-child",
+    "parent": "fork-source",
+    "task": "First acceptance instruction.",
+    "tags": [
+      "keep",
+      "team"
+    ],
+    "prompt": null
+  },
+  "provider_calls": 0,
+  "owner_starts": 0
+}
