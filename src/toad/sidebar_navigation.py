@@ -138,7 +138,6 @@ class SidebarNavigation:
 
     def mode_changed(self, mode_name: str, *, force: bool = False) -> None:
         from toad.screens.comms import CommsScreen
-        from toad.widgets.comms_sidebar import ThreadRow
 
         if not self.sidebar.accepts_publication():
             return
@@ -151,7 +150,7 @@ class SidebarNavigation:
         target = self.sidebar.screen.target if isinstance(self.sidebar.screen, CommsScreen) and self.sidebar.screen.is_active else None
         if not force and self.painted_mode == (mode_name, target):
             return
-        for row in self.sidebar.query(ThreadRow):
+        for row in self.sidebar.projection.thread_rows:
             row.current = row.mode_name == mode_name
         for row in self.sidebar.projection.channels.values():
             row.current = row.target_name == target

@@ -73,7 +73,6 @@ class ChannelGroup(SidebarGroup):
         self._view: ChannelView | None = None
         self._snapshot: SidebarSnapshot | None = None
         self._members: dict[str, ThreadRow] = {}
-        self.member_rows: tuple[ThreadRow, ...] = ()
         self._lock = asyncio.Lock()
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
@@ -162,7 +161,7 @@ class ChannelGroup(SidebarGroup):
                 row.apply_thread_preparation(prepared_rows[name])
                 row.current = row.mode_name == app.selected_mode
 
-            self.member_rows = await self.reconcile_rows(
+            await self.reconcile_rows(
                 wanted, self._members, create, update)
 
 

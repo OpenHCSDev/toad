@@ -236,13 +236,13 @@ async def main():
             views = {view.channel.name: view for view in wire(root / "wire").views.channel_views()}
             assert views["#engineering"].pinned_members == {"api-agent"}
             assert not views["#any"].pinned_members
-            assert engineering_group.member_rows[0].thread_name == "api-agent", {
+            assert engineering_group.member_container.children[0].thread_name == "api-agent", {
                 "stored": views["#engineering"].members,
                 "presented": engineering_group._view.members,
-                "rows": tuple(row.thread_name for row in engineering_group.member_rows),
+                "rows": tuple(row.thread_name for row in engineering_group.member_container.children),
                 "pins": engineering_group._view.pinned_members,
             }
-            assert engineering_group.member_rows[0].render().plain.startswith("* ")
+            assert engineering_group.member_container.children[0].render().plain.startswith("* ")
             await app.select_session(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
@@ -251,8 +251,8 @@ async def main():
             if not engineering_group.expanded:
                 engineering_group.toggle_members()
             await pilot.pause()
-            assert engineering_group.member_rows[0].thread_name == "api-agent"
-            await pilot.click(engineering_group.member_rows[0], button=3)
+            assert engineering_group.member_container.children[0].thread_name == "api-agent"
+            await pilot.click(engineering_group.member_container.children[0], button=3)
             await pilot.pause()
             pin = next(item for item in app.screen.query(ContextMenuItem) if item.action == "pin")
             assert "Unpin from this channel" in pin.render().plain
