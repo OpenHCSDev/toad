@@ -1,0 +1,11 @@
+Using Python 3.14.2 environment at: .artifacts/installed-outcome-candidate02
+   Updating https://github.com/OpenHCSDev/toad.git (eac4ebff52c9eb0be9909094dbe1e94b3714bbdb)
+    Updated https://github.com/OpenHCSDev/toad.git (eac4ebff52c9eb0be9909094dbe1e94b3714bbdb)
+Resolved 68 packages in 1.31s
+Would download 2 packages
+Would uninstall 2 packages
+Would install 2 packages
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@2ed2ee3f41292e2bb94b9c40b0a227a620bd1fa3)
+ + agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@4295d680a5e63885a3f338a299afc07dbb34bd85
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@da3967557aa9a8c0fb23970b279ce418e12562f8)
+ + batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@eac4ebff52c9eb0be9909094dbe1e94b3714bbdb

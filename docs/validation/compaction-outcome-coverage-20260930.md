@@ -77,3 +77,14 @@ READY for paired review/merge/install. Defaults and public roots remain
 unchanged; this is installed acceptance, not public activation. Mid-compaction
 switch latency remains a separate236 investigation, with445 source interaction.
 Positive235 and busy/equal-body contracts remain preserved, not rerun.
+
+## Final merged-Core dependency closure
+
+Core445 merged at4295d680, including reviewed448/449. Toad eac4ebff declares
+that exact merged Core and updates uv.lock normally; Textual2e49/nativee36 are
+unchanged. Production src/toad is byte-identical to installed da396755. Normal
+frozen68 resolver/package dry-run passed, changing only the two source packages.
+The accepted installed stage and original cancellation were not mutated/replayed.
+Final dependency receipts are committed beside the installed acceptance; Arendt
+owns the one combined stage and parent owns activation. This packaging receipt
+does not claim the later merged Core cohort was already installed by this worker.
