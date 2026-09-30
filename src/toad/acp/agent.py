@@ -397,7 +397,7 @@ class Agent(AgentBase):
         if coordination is None:
             return {}
         results = await self.controller.transcripts.notifications(coordination.wire_root, references)
-        if self.coordination is not coordination:
+        if self.coordination is None or self.coordination.wire_root != coordination.wire_root:
             raise ValueError("Thread attachment changed during original-message notification read")
         return results
 

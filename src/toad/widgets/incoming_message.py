@@ -30,11 +30,6 @@ class IncomingSender(RouteHeader):
 
 class IncomingMessage(WireMessageHandling, ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
-    DEFAULT_CSS = """
-    IncomingMessage .assignment-handling {
-        height: 1; color: $text-muted; text-overflow: ellipsis;
-    }
-    """
 
     @property
     def message_category(self) -> type[MessageCategory]:
