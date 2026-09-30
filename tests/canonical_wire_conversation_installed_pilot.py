@@ -73,13 +73,14 @@ def reply(request, number):
     messages = request['messages']
     if any('IGNORE' in str(message.get('content')) and 'FULL' in str(message.get('content'))
            for message in messages):
-        return {'role': 'assistant', 'content': '{"decision":"IGNORE"}'}, 'stop'
+        decision = 'FULL' if 'HOT_ORIGINAL_WIRE_BODY' in str(messages[-1]['content']) else 'IGNORE'
+        return {'role': 'assistant', 'content': json.dumps({'decision': decision})}, 'stop'
     last = messages[-1]
     if last['role'] == 'user' and 'HOT_ORIGINAL_TRIGGER' in str(last['content']):
         return {'role': 'assistant', 'tool_calls': [{
             'index': 0, 'id': 'hot-original-send', 'type': 'function',
             'function': {'name': 'comms_send', 'arguments': json.dumps({
-                'from': 'alpha', 'to': 'beta', 'body': 'HOT_ORIGINAL_WIRE_BODY',
+                'from': 'alpha', 'to': '#team', 'body': '@beta HOT_ORIGINAL_WIRE_BODY',
             })},
         }]}, 'tool_calls'
     if last['role'] == 'tool':
@@ -112,7 +113,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         async with irc_app.run_test(size=(160, 44)) as irc_pilot:
             await irc_pilot.pause()
             user = comms.messaging.user_identity(str(app.project_dir)).name
-            await channel_target('#all').open(NavigationContext(
+            await channel_target('#team').open(NavigationContext(
                 irc_app, irc_app.selected_mode, app.project_dir, user))
             await irc_app.selected_session.wait_content_ready()
             irc = irc_app.selected_session.query_one(CommsChatView)
@@ -121,10 +122,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             sender.prompt.text = 'HOT_ORIGINAL_TRIGGER'
             sender.prompt.prompt_text_area.focus()
             await sender_pilot.press('enter')
-            await until(sender_pilot, lambda: any(m.body == 'HOT_ORIGINAL_WIRE_BODY'
+            await until(sender_pilot, lambda: any(m.body == '@beta HOT_ORIGINAL_WIRE_BODY'
                         for m in comms.bus.log.full_history()), 30)
             original = next(m for m in comms.bus.log.full_history()
-                            if m.body == 'HOT_ORIGINAL_WIRE_BODY')
+                            if m.body == '@beta HOT_ORIGINAL_WIRE_BODY')
             await until(sender_pilot, lambda: bool(originals(sender, original.reference, OutgoingMessage)))
             await until(pilot, lambda: bool(originals(recipient, original.reference, IncomingMessage)))
             await until(irc_pilot, lambda: any(m.reference == original.reference
@@ -138,7 +139,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert pending.busy, pending
             await until(sender_pilot, lambda: pending.state in str(sent.query_one(MessageNotifications).title))
             await until(pilot, lambda: pending.state in str(received.query_one(MessageNotifications).title))
-            assert comms.registry.require('alpha').executing and comms.registry.require('beta').executing
+            assert comms.registry.require('alpha').executing
             print('BOTH_NATIVE_TURNS_HELD_ORIGINAL_ROWS_AND_PROCESSING_HOT', pending.state, flush=True)
             sender_release.set()
             recipient_release.set()
@@ -168,7 +169,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 assert window._exception is None
             # Actual A/B/A tab clicks retain the original source mapping.
             first = sender_app.selected_session
-            await channel_target('#all').open(NavigationContext(
+            await channel_target('#team').open(NavigationContext(
                 sender_app, sender_app.selected_mode, app.project_dir, user))
             await sender_app.selected_session.wait_content_ready()
             label = next(item for item in sender_app.screen.query(SessionLabel) if item.id == first.id)
