@@ -79,6 +79,26 @@ def main():
         def verify(cls, base):
             return verify_editor_journey(base, args.thread)
 
+    class DefaultStartupJourney(DefaultEntrypointJourney):
+        """Verify published launcher selection once, without repeating A/B/A."""
+
+        scope = "Published default normal launcher, original retained history startup only"
+        duration_seconds = 35
+
+        @classmethod
+        def script(cls, options):
+            return recorder.marker_command() + "startup\n"
+
+        @classmethod
+        def verify(cls, base):
+            state = pickle.loads((base / "capture/phase-startup-state.pickle").read_bytes())
+            view = selected_view(state)
+            assert view["identity"]["_comms_thread"] == args.thread
+            assert view["history_pages"] and view["history_windows"]
+            return {"journey": cls.declared_name, "original_thread_selected": True,
+                    "retained_history_page_present": True,
+                    "physical_frame_and_canonical_ACP_review_required": True}
+
     class DefaultHistoryReturnJourney(DefaultEntrypointJourney):
         """Affected238 startup and real tab return; no repeated keyboard journey."""
 

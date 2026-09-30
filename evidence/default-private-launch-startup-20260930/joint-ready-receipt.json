@@ -1,0 +1,124 @@
+{
+  "state": "ACTUAL-PUBLISHED-DEFAULT-STARTUP-ACP-SAVED-HISTORY-PASS",
+  "overall_product_ready": false,
+  "scope": "One startup-onlycheckofchangeddefaultlauncherlinks,noABAretest/scroll/nativeproviderinput",
+  "normal_command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "default_selection": "PATH agent-comms-acp",
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-private-launch-caller-20260930/bin",
+  "runtime_override": false,
+  "pins": {
+    "agent-comms": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+    "batrachian-toad": "b2006bfe50ae50a262b049074258f7f0281791ac",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "duration_seconds": 16.594617494003614,
+  "ui_runs": 1,
+  "physical_frame": "phase-startup.png: actualretainedNRAhistoryreadable,Ready/OFF,noImportError",
+  "initialize_reply": true,
+  "session_load_reply": true,
+  "canonical_acp_facts": [
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "coordination_changed",
+        "thread": {
+          "name": "nra-architecture",
+          "created_at": 1790049182.3907015
+        },
+        "wire_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "owner_pid": 3487629,
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "off",
+        "title": "nra-architecture",
+        "context_usage": {
+          "used": 94579,
+          "size": 272000
+        }
+      }
+    },
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "goal_changed",
+        "goal": null,
+        "execution": null
+      }
+    },
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "queue_changed",
+        "scope": {
+          "session_id": "nra-architecture",
+          "admission": {
+            "incarnation": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "admission_generation": 1052
+          },
+          "owner_pid": 3487629
+        },
+        "revision": 4,
+        "projection": {
+          "kind": "available",
+          "items": [],
+          "restored": []
+        }
+      }
+    },
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "turn_changed",
+        "state": {
+          "active": null,
+          "finished_turn_id": "6cfdff5d9a2bfb4226320d69d34a58fb"
+        }
+      }
+    }
+  ],
+  "original_before": {
+    "identity": {
+      "pid": 3487629,
+      "start_time": 25894836
+    },
+    "active_turn": null,
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "original_after": {
+    "identity": {
+      "pid": 3487629,
+      "start_time": 25894836
+    },
+    "active_turn": null,
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "source_and_owner_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "all_tracked_processes_absent": true
+  },
+  "terminal_capture_completed": true,
+  "wrapper_exit_code": 0,
+  "raw_receipt": "/home/ts/.cache/agent-scratch/comms-default-private-launch-caller-startup-20260930/capture/receipt.json",
+  "raw_protocol_logs": "/home/ts/.cache/agent-scratch/comms-default-private-launch-caller-startup-20260930/state/toad/logs",
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "paid_calls": 0,
+  "default_changes_by_worker": 0,
+  "public_owner_restarts": 0,
+  "unknown_replays": 0,
+  "remaining_scope": "HistoricalUNKNOWNkeptvisibleunchanged;239blankpeerbody/remainingperformanceand453budgetgenerationnotcovered. ParentoriginalUNKNOWNpreservationproofseparate. No furtherNRAUItest orunpreparedOFFpaidfork."
+}
