@@ -225,7 +225,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         child_row.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
         assert await pilot.click(child_row)
-        await until(pilot, lambda: app.selected_session is not parent_view.screen)
+        await until(pilot, lambda: app.selected_session.conversation is not parent_view
+                    and app.selected_session.channels_context()[0] == child.name)
         print('PRODUCTION_FORK_RETURNED', flush=True)
         await app.selected_session.wait_content_ready()
         view = app.selected_session.query_one(Conversation)
@@ -270,6 +271,18 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: len(requests) == 2, 30)
         await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
         from agent_comms.transcript_events import UserTranscript
+        from toad.widgets.agent_response import AgentResponse
+        saved = comms.transcripts.thread_transcript_page(child.name)
+        await until(pilot, lambda: not view.window.history_lock.locked() and any(
+            history.committed_cursor == saved.after for history in view.window.histories
+            if history.is_attached and history.state.reports_coverage))
+        await pilot.pause()
+        response_resources = tuple(block for block in view.query(AgentResponse)
+                                   if block.source == 'NATIVE_RESPONSE_2')
+        viewport = view.window.region
+        paint = '\n'.join(strip.crop(viewport.x, viewport.right).text for strip in
+                          app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
+        assert len(response_resources) == 1 and paint.count('NATIVE_RESPONSE_2') == 1
         page = comms.transcripts.thread_transcript(child.name)
         assert sum(isinstance(event, UserTranscript) and event.text == 'FIRST_FORK_NEW_INPUT'
                    for event in page) == 1
@@ -290,6 +303,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             "same_owner_process_through_first_reply": True,
             "first_new_message_physical_enter": True,
             "new_child_response_painted_once": True, "one_logical_tab": True,
+            "new_child_response_resources": len(response_resources),
+            "new_child_response_paint_count": paint.count('NATIVE_RESPONSE_2'),
             "title_without_at_placeholder": details.title, "provider_inputs": len(requests),
         }, indent=2)+"\n")
     finally:
