@@ -1,4 +1,4 @@
-"""Click the captured native history gutter in the recorder's isolated st."""
+"""Click a captured native history gutter or editor in the recorder's isolated st."""
 
 from dataclasses import dataclass
 import argparse
@@ -8,10 +8,34 @@ from pathlib import Path
 import pickle
 import re
 import subprocess
+from abc import abstractmethod
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.field_codec import FieldCodec
+from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Offset, Region
+
+
+class NativeFocusTarget(DeclaredFamily, affix="Target"):
+    """Select a declared native resource, never a guessed pixel coordinate."""
+
+    @classmethod
+    @abstractmethod
+    def locate(cls, view): ...
+
+
+class HistoryTarget(NativeFocusTarget):
+    @classmethod
+    def locate(cls, view):
+        resource, = (window for window in view["history_windows"] if window["focus_target"] is not None)
+        return resource
+
+
+class EditorTarget(NativeFocusTarget):
+    @classmethod
+    def locate(cls, view):
+        resource, = (draft for draft in view["drafts"] if draft["focus_target"] is not None)
+        return resource
 
 
 @dataclass(frozen=True)
@@ -50,6 +74,8 @@ class StTerminalGrid:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--state", required=True, type=Path, help="Fresh native recorder state snapshot")
+    parser.add_argument("--target", type=NativeFocusTarget.decode, default=HistoryTarget,
+                        help="Native resource: " + ", ".join(NativeFocusTarget.names()))
     args = parser.parse_args()
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()
     if not output.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
@@ -58,7 +84,7 @@ def main():
     if not re.fullmatch(r":[1-9][0-9]*", display_name):
         raise ValueError("History click requires the recorder's isolated display")
     identity = FieldCodec.decode(ProcessIdentity, json.loads(os.environ["TOAD_VIDEO_UI_IDENTITY"]))
-    state = args.state.resolve()
+    state = (args.state if args.state.is_absolute() else output / args.state).resolve()
     if not state.is_relative_to(output):
         raise ValueError("History target must come from this recorder's owned state")
     snapshot = pickle.loads(state.read_bytes())
@@ -66,19 +92,19 @@ def main():
     if metadata["pid"] != identity.pid or not identity.alive():
         raise ValueError("Captured native UI identity changed")
     view = next(view for view in snapshot["views"] if view["mode"] == metadata["current_mode"])
-    window, = (window for window in view["history_windows"] if window["focus_target"] is not None)
-    target = window["focus_target"]
+    resource = args.target.locate(view)
+    target = resource["focus_target"]
     cell = Offset(*target["cell"])
-    if cell not in Region(*window["region"]):
-        raise ValueError("Native history gutter target is outside its window")
+    if cell not in Region(*resource["region"]):
+        raise ValueError("Native focus target is outside its resource")
     window_id, = subprocess.check_output(
         ["xdotool", "search", "--pid", os.environ["TOAD_VIDEO_TERMINAL"]], text=True, timeout=5).splitlines()
     client = XWindowGeometry.read(window_id)
     pixel = StTerminalGrid(*metadata["terminal_geometry"]).pixel_at(cell, client)
     observation = {"ui_identity": FieldCodec.encode(identity), "mode": view["mode"],
-                   "history_window": window["object_id"], "target": target,
+                   "resource_object_id": resource["object_id"], "target": target,
                    "terminal_geometry": metadata["terminal_geometry"], "pixel": tuple(pixel)}
-    (output / "history-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")
+    (output / f"{args.target.declared_name}-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")
     subprocess.run(["xdotool", "mousemove", "--sync", "--window", window_id,
                     str(pixel.x), str(pixel.y), "click", "1"], check=True, timeout=5)
 
