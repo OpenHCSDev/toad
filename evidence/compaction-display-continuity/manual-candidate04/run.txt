@@ -1,0 +1,4 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+{"mode": "manual", "saved_bytes": 707507, "provider_posts": 9, "partial_before_commit": true, "immediate_committed_summary": true, "followup_inputs": 0, "partial_tab_return": true, "committed_tab_return": true, "committed_reconnect_once": true, "canonical_progress_painted": true, "goal_originals": 0, "visible_frames": 1075}

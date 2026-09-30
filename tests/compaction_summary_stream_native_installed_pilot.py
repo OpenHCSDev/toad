@@ -147,7 +147,8 @@ async def acceptance(app, pilot, agent, comms, *_args):
             await until(pilot, lambda: not comms.registry.require("beta").executing, 30)
             partial_release.set()
             (evidence / "cancelled-before-end.svg").write_text(app.export_screenshot())
-            view.window.scroll_end(animate=False, immediate=True)
+            view.window.focus(scroll_visible=False)
+            await pilot.press("end")
             await until(pilot, lambda: "Compaction aborted" in "\n".join(
                 strip.text for strip in app.screen._compositor.render_strips()), 15)
             assert hashlib.sha256(Path(session).read_bytes()).hexdigest() == source_digest
@@ -243,6 +244,16 @@ async def acceptance(app, pilot, agent, comms, *_args):
         print(json.dumps(receipt), flush=True)
     finally:
         Path(os.environ["L0A_EVIDENCE"], "semantic-frames.json").write_text(json.dumps(frames))
+        if cancel:
+            from toad.widgets.agent_response import AgentResponse
+            Path(os.environ["L0A_EVIDENCE"], "cancel-resource-census.json").write_text(
+                json.dumps({"source_unchanged": hashlib.sha256(Path(session).read_bytes()).hexdigest()
+                            == source_digest,
+                            "notices": [block.source[:200] for block in view.query(AgentResponse)
+                                        if block.source.startswith("## Compaction")],
+                            "summary_states": [row.state.declared_name
+                                               for row in journal.summaries.history(session)]}, indent=2))
+            Path(os.environ["L0A_EVIDENCE"], "cancel-final.svg").write_text(app.export_screenshot())
         partial_release.set()
         answer_release.set()
 

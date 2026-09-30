@@ -30,7 +30,8 @@ failure before the continuous installed reproducer establishes one.
 Heisenberg owns parked history validation and warm resource closure in227.
 Einstein owns native progress production. Coordinate crossing methods directly.
 
-Status: investigation only; no new installed acceptance or readiness claim.
+Status: scoped permission checkpoint ready. Full default/live continuity after
+the parent's442/231 paired release remains independent and unclaimed here.
 
 ## Current installed controls and ownership correction
 
@@ -57,4 +58,49 @@ current viewport without locating that original notice; it failed. Preserve the
 exact private journal/native source and failure. The bounded candidate check
 locates the notice at the bottom through the existing viewport owner and records
 both frames. No cancellation or source-loss conclusion is drawn from this
-unclassified viewport assertion.
+unclassified viewport assertion. Candidate05 also fails after the actual End
+key: no registered compaction notices remain, the native source is unchanged
+and the summary state is UNKNOWN. The precise mounted-resource/publication
+causal relation is not recorded, so this is an unresolved notice assertion,
+not proof of summary loss or permission regression. No repair is inferred from
+that assertion; failed private originals remain intact.
+
+## Useful tested checkpoint
+
+Deleted **7 production lines**, added1. All `_compacting` definitions and callers
+are gone; permission derives from the existing TurnOwner.can_compact contract.
+Backend session/turn admission remains the authority before starting a summary.
+No compaction renderer, LiveOutput, native producer, source publication or
+retirement mechanism changes.
+
+Actual noneditable candidate `b0c63aef` uses the same declared Core095fc9,
+Textual65053c and SDK0.12.1, with nativee36. Normal frozen68 installation and
+pip check pass,272 installed Python files equal source, and full native trust
+passes. Manual candidate04 exits0 and verifies:
+
+-707507-byte saved-session startup without provider work at attachment.
+- Physical `/compact`; provisional summary and canonical measured progress
+  visible before commit; physical partial A/B/A return.
+- A second physical `/compact` while the original operation is held starts no
+  second selected summary.
+- One original native committed summary and one registered final header, no
+  provisional stream after accepted source publication.
+- Physical committed A/B/A and actual ACP reconnect retain that summary once
+  without another provider request or user input.
+- Nine localhost provider posts (two seed, seven selected summary); paid0.
+
+The automatic baseline02 already verifies progressive/commit continuity,
+exactly one goal continuation, A/B/A and reconnect on the unchanged renderer.
+It is explicitly baseline evidence, not a new candidate automatic/negative
+matrix. Candidate production only deletes the manual command's mirror; no
+repeated automatic/native cohort is needed for this scoped checkpoint.
+
+The packaged required ratchet has no positive deltas against main94cfc1d2.
+[ready-receipt.json](../../evidence/compaction-display-continuity/ready-receipt.json)
+pins source, installation, acceptance and remaining limits. All five private
+fixture roots have zero process references and are preserved until the full
+new installation is accepted. Shared borrowed233 dependencies are protected.
+
+Global activation belongs to the parent. Neither the public bus nor default
+installation was changed; current live compaction behavior must be assessed
+against the parent's coherent new default after442, not the older live000.
