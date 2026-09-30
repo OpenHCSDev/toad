@@ -1,0 +1,29 @@
+{
+  "owner": "Heisenberg-default-entrypoint",
+  "argv": [
+    "/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/bin/python",
+    "/home/ts/.cache/agent-scratch/comms-canonical-source-default-entrypoint-20260930-attempt02/gate.py"
+  ],
+  "default_entrypoint": "/home/ts/bin/toad-comms nra-architecture",
+  "runtime_override": false,
+  "removed_env_keys": [
+    "NO_COLOR",
+    "PYTHONPATH",
+    "AGENT_COMMS_RUNTIME_ROOT",
+    "AGENT_COMMS_ACP_LAUNCHER",
+    "AGENT_COMMS_ROOT",
+    "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID",
+    "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+    "AGENT_COMMS_THREAD",
+    "AGENT_COMMS_MANAGED",
+    "PI_AGENT_ID",
+    "PI_PARENT_ID",
+    "PI_TASK",
+    "PI_WORKTREE",
+    "PI_PROMPT"
+  ],
+  "scripts_from": "/home/ts/.cache/agent-scratch/comms-default-cursor-entrypoint-20260930",
+  "script_changes": "fresh BASE/receipt paths ONLY",
+  "preceding_attempt": "../comms-canonical-source-default-entrypoint-20260930-attempt01",
+  "reason_for_attempt02": "Parent published correct canonical nativee36 active route through existing atomic owner API; no other inputs replayed"
+}

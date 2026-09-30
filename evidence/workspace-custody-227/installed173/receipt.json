@@ -1,0 +1,98 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "173901b9329af36116158ec492db839af7d872c6",
+        "requested_revision": "173901b9329af36116158ec492db839af7d872c6"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "limit": "Source/resource custody; no ACP, provider, original root or physical capture.",
+  "phases": {
+    "before_acceptance_cancel": [
+      {
+        "identity": 140159390783504,
+        "attached": true,
+        "state": "ProvisionalTranscript",
+        "coverage": false,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/replacement.jsonl"
+      },
+      {
+        "identity": 140159143144784,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/old.jsonl"
+      }
+    ],
+    "before_acceptance_completed": [
+      {
+        "identity": 140159143144784,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/old.jsonl"
+      }
+    ],
+    "accepted_retirement_held": [
+      {
+        "identity": 140159143144784,
+        "attached": true,
+        "state": "ClosingTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/old.jsonl"
+      },
+      {
+        "identity": 140159390783184,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/replacement.jsonl"
+      }
+    ],
+    "accepted_caller_cancelled": [
+      {
+        "identity": 140159143144784,
+        "attached": true,
+        "state": "ClosingTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/old.jsonl"
+      },
+      {
+        "identity": 140159390783184,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/replacement.jsonl"
+      }
+    ],
+    "accepted_retirement_completed": [
+      {
+        "identity": 140159390783184,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-custody-installed173/snapshot-custody-661ukgw6/replacement.jsonl"
+      }
+    ]
+  },
+  "application_exit": "normal"
+}

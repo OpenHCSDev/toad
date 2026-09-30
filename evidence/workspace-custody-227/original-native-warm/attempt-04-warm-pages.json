@@ -1,0 +1,64 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "486dedb197565a55589a3bc70431217ede34c0a8",
+        "requested_revision": "486dedb197565a55589a3bc70431217ede34c0a8"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+        "requested_revision": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "returns": [
+    {
+      "reader_reused": true,
+      "prepared_reused": true,
+      "page_reused": true,
+      "children_reused": true,
+      "observed_native_strip_lines": 0,
+      "reused_native_strip_lines": 0,
+      "editor_reused": true,
+      "draft_preserved": true,
+      "reader_preserved": true,
+      "completed_frames": 5,
+      "all_frames_readable": true,
+      "first_completed_body_frame_ms": 1773.112333001336,
+      "within_budget": true
+    },
+    {
+      "reader_reused": true,
+      "prepared_reused": true,
+      "page_reused": true,
+      "children_reused": true,
+      "observed_native_strip_lines": 0,
+      "reused_native_strip_lines": 0,
+      "editor_reused": true,
+      "draft_preserved": true,
+      "reader_preserved": true,
+      "completed_frames": 5,
+      "all_frames_readable": true,
+      "first_completed_body_frame_ms": 1519.9403229926247,
+      "within_budget": true
+    }
+  ],
+  "final_scope_closed": true,
+  "final_prepared_retained": false,
+  "final_history_attached": false,
+  "boundary": "Actual installed original native/ACP and Pilot tab clicks/completed compositor frames; no LinuxDriver video or source mutation."
+}

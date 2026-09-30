@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 71, in until
+    await pilot.pause(.03)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/original_turn_resource_real_installed_pilot.py", line 170, in main
+    await readonly_acceptance(app, pilot, service, project, evidence)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 278, in private_original_warm
+    await warm_pages(app, pilot, channel, original, evidence)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 120, in warm_pages
+    await until(pilot, app, lambda: history.state.accepts_source_work)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 67, in until
+    async with asyncio.timeout(20):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError

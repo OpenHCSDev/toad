@@ -1,0 +1,98 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+        "requested_revision": "b6fa2a72"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+        "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "limit": "Source/resource custody; no ACP, provider, original root or physical capture.",
+  "phases": {
+    "before_acceptance_cancel": [
+      {
+        "identity": 140556518980368,
+        "attached": true,
+        "state": "ProvisionalTranscript",
+        "coverage": false,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/replacement.jsonl"
+      },
+      {
+        "identity": 140556404805456,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/old.jsonl"
+      }
+    ],
+    "before_acceptance_completed": [
+      {
+        "identity": 140556404805456,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/old.jsonl"
+      }
+    ],
+    "accepted_retirement_held": [
+      {
+        "identity": 140556424590864,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/replacement.jsonl"
+      },
+      {
+        "identity": 140556404805456,
+        "attached": true,
+        "state": "ClosingTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/old.jsonl"
+      }
+    ],
+    "accepted_caller_cancelled": [
+      {
+        "identity": 140556424590864,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/replacement.jsonl"
+      },
+      {
+        "identity": 140556404805456,
+        "attached": true,
+        "state": "ClosingTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/old.jsonl"
+      }
+    ],
+    "accepted_retirement_completed": [
+      {
+        "identity": 140556424590864,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/snapshot-mount-prune-b6-candidate/snapshot-custody-5a6m9n68/replacement.jsonl"
+      }
+    ]
+  },
+  "application_exit": "normal"
+}

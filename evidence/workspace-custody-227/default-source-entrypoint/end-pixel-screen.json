@@ -1,0 +1,12 @@
+{
+  "recorded_frames": 1052,
+  "eligible_end_stationary_interval_seconds": [
+    12.602042890997836,
+    16.602042890997836
+  ],
+  "minimum_frame": 763,
+  "minimum_pixels": 10129,
+  "threshold": 200,
+  "blank_candidate_frames": [],
+  "limits": "Screen only End stationary before diagnostic SVG; pixels do not prove source/order or all partial regions. Driver tool coverage not reached."
+}
