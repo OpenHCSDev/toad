@@ -1,0 +1,44 @@
+{
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "recorder": "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py",
+  "recorder_sha256": "e3d20d8f5e91514dbc3cfe881dad92dcc487c990ae49022abbfa4bd4e7f458dd",
+  "peer_thread": "nra-domain-mapping",
+  "actions": "exec --sync /home/ts/.local/share/agent-comms/runtime-all-merged-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py --mark startup\n",
+  "journey": "default_startup",
+  "launch_requires": "Reviewed immutable candidate dispatch or parent-confirmed default activation",
+  "candidate_bin": null,
+  "prepared_only": true,
+  "scope": "Published default normal launcher, original retained history startup only",
+  "reconnect": "Middle-click original tab label, then actual canonical roster reopening; no owner restart",
+  "provider_calls": 0,
+  "prompt_submissions": 0,
+  "expected_cohort": {
+    "stage": "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930",
+    "pins": {
+      "agent-comms": "29bbe95d3f57d961259f53ad7c08e38562eaf766",
+      "batrachian-toad": "3625ce9e9379da553374e2e81e08e435e5321d1b",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "27e256609f90028ce92919c85bb9d6158730cca393e1258950b439e94a7215b7"
+  },
+  "publication_dependency": "Parent confirms five default symlinks; no capture before confirmation",
+  "actual_output": "/home/ts/.cache/agent-scratch/comms-default-all-merged-startup-20260930",
+  "actual_command": [
+    "/home/ts/.local/share/agent-comms/runtime-all-merged-20260930/bin/python",
+    "evidence/next-default-entrypoint-20260930/driver.py",
+    "--journey",
+    "default_startup",
+    "--recorder",
+    "tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/comms-default-all-merged-startup-20260930"
+  ],
+  "candidate_gate_owner": "Kepler; not repeated",
+  "started_ui_processes": 0
+}
