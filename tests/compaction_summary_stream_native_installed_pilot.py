@@ -143,14 +143,50 @@ async def acceptance(app, pilot, agent, comms, *_args):
         (evidence / "provisional-progress.json").write_text(json.dumps(progress, indent=2))
         (evidence / "provisional.svg").write_text(app.export_screenshot())
         if cancel:
+            # Original in-flight source publication predates the journal outcome.
+            # It must not erase that later outcome, even though native bytes did
+            # not change during cancellation.
+            before_cancel = await agent.get_transcript_page()
             await pilot.press("escape", "escape")
             await until(pilot, lambda: not comms.registry.require("beta").executing, 30)
             partial_release.set()
             (evidence / "cancelled-before-end.svg").write_text(app.export_screenshot())
             view.window.focus(scroll_visible=False)
             await pilot.press("end")
-            await until(pilot, lambda: "Compaction aborted" in "\n".join(
+            from agent_comms.transcript_events import CompactionOutcomeTranscript
+            outcome_page = await agent.get_transcript_page()
+            outcomes = [event for event in outcome_page.events
+                        if isinstance(event, CompactionOutcomeTranscript)]
+            assert len(outcomes) == 1
+            assert outcomes[0].identity == summaries[0].identity
+            outcome_label = outcomes[0].text.split(".", 1)[0]
+            await until(pilot, lambda: outcome_label in "\n".join(
                 strip.text for strip in app.screen._compositor.render_strips()), 15)
+            assert not before_cancel.after.contains(outcome_page.after)
+            await view.transcript.snapshot(before_cancel)
+            await until(pilot, lambda: not view.window.history_lock.locked(), 10)
+            await tab_return()
+            view.window.focus(scroll_visible=False)
+            await pilot.press("end")
+            await until(pilot, lambda: outcome_label in "\n".join(
+                strip.text for strip in app.screen._compositor.render_strips()), 15)
+            provider_posts = len(provider.requests)
+            await agent.session.reconnect()
+            await until(pilot, agent.session.settled.is_set, 30)
+            assert agent.session.connected
+            restored = await agent.get_transcript_page()
+            restored_outcomes = [event for event in restored.events
+                                 if isinstance(event, CompactionOutcomeTranscript)]
+            assert len(restored_outcomes) == 1 and restored_outcomes[0] == outcomes[0]
+            view.window.focus(scroll_visible=False)
+            await pilot.press("end")
+            await until(pilot, lambda: outcome_label in "\n".join(
+                strip.text for strip in app.screen._compositor.render_strips()), 15)
+            from toad.widgets.agent_response import AgentResponse
+            notices = [block for block in view.query(AgentResponse)
+                       if block.source == outcomes[0].text]
+            assert len(notices) == 1, "Cancellation outcome presentation is not original/once"
+            assert len(provider.requests) == provider_posts, "Source refresh replayed provider work"
             assert hashlib.sha256(Path(session).read_bytes()).hexdigest() == source_digest
             summaries = journal.summaries.history(session)
             assert len(summaries) == 1 and not isinstance(summaries[0].state,
@@ -163,6 +199,9 @@ async def acceptance(app, pilot, agent, comms, *_args):
                        "partial_before_cancel": True, "canonical_progress_painted": True,
                        "summary_state": summaries[0].state.declared_name,
                        "originals": len(originals), "paid_requests": 0,
+                       "original_outcome_once": True, "stale_snapshot_preserved": True,
+                       "cancel_tab_return": True, "cancel_reconnect_once": True,
+                       "operation_id": outcomes[0].identity.operation_id,
                        "provider_posts": len(provider.requests)}
             (evidence / "summary-receipt.json").write_text(json.dumps(receipt, indent=2))
             (evidence / "cancelled.svg").write_text(app.export_screenshot())
@@ -258,7 +297,120 @@ async def acceptance(app, pilot, agent, comms, *_args):
         answer_release.set()
 
 
-if __name__ == "__main__":
+async def reconnect_cancelled_source():
+    """Resume only loading/reading the original failed cancellation fixture."""
+    import shlex
+    from agent_comms.comms import Comms
+    from agent_comms.compaction_journal import CompactionJournal
+    from agent_comms.transcript_events import CompactionOutcomeTranscript
+    from toad.agent_schema import AgentDefinition
+    from toad.widgets.agent_response import AgentResponse
+    from toad.navigation_target import NavigationContext, channel_target
+
+    stage = Path(os.environ["COMPACTION_FIXTURE_STAGE"])
+    evidence = Path(os.environ["L0A_EVIDENCE"])
+    evidence.mkdir(parents=True, exist_ok=False)
+    comms = Comms(stage / "private-root" / "wire")
+    assert Path(os.environ["AGENT_COMMS_ROOT"]).resolve() == comms.root.resolve()
+    project = stage / "application" / "project"
+    journal_path = comms.root / "compaction-commits.sqlite3"
+    original = comms.registry.snapshot()
+    thread = original.require("beta")
+    session = Path(thread.session_file)
+    original_source = session.read_bytes()
+    original_journal = journal_path.read_bytes()
+    snapshot = CompactionJournal.snapshot(journal_path, str(session), thread.incarnation, original)
+    assert len(snapshot.outcomes) == 1
+    outcome = snapshot.outcomes[0].event()
+    assert snapshot.outcomes[0].attempt.state.declared_name == "unknown"
+    os.environ.update(
+        PI_CODING_AGENT_DIR=str(stage / "application" / "pi"),
+        AGENT_COMMS_AGENT_BIN="pi",
+        AGENT_COMMS_AGENT_ARGS="--provider selected-offline --model fixture --no-extensions --no-skills --no-context-files",
+        AGENT_COMMS_AGENT_MODELS="selected-offline/fixture",
+        XDG_CONFIG_HOME=str(stage / "application" / "config"),
+        XDG_DATA_HOME=str(stage / "application" / "data"),
+        XDG_STATE_HOME=str(evidence / "state"),
+        AGENT_COMMS_DEBUG_LOG=str(evidence / "acp-debug"),
+    )
+    for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
+        os.environ.pop(key, None)
+    comms.owners.pin_private_nk_launch(
+        comms.root, os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
+        Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+    )
+    # The previous runner explicitly stopped its owned worker at teardown.
+    # Start that private worker through its normal lifecycle; never send input.
+    await asyncio.to_thread(comms.owners.start, "beta")
+    app = InstalledApp(agent_data=AgentDefinition.decode({
+        "name": "Cancelled source reconnect", "identity": "cancelled-source",
+        "short_name": "native", "protocol": "acp",
+        "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+    }), project_dir=str(project), agent_session_id="beta")
+    phases = []
+    try:
+        async with app.run_test(headless=True, size=(160, 44)) as pilot:
+            view = app.selected_session.conversation
+            await until(pilot, lambda: view.agent is not None, 30)
+            agent = view.agent
+            await until(pilot, agent.session.settled.is_set, 30)
+            assert agent.session.connected
+            await until(pilot, lambda: view.agent_ready, 30)
+            source_session = app.selected_session
+
+            async def check(phase):
+                page = await agent.get_transcript_page()
+                outcomes = [e for e in page.events if isinstance(e, CompactionOutcomeTranscript)]
+                assert outcomes == [outcome], (phase, outcomes)
+                view.window.focus(scroll_visible=False)
+                await pilot.press("end")
+                label = outcome.text.split(".", 1)[0]
+                await until(pilot, lambda: label in "\n".join(
+                    strip.text for strip in app.screen._compositor.render_strips()), 30)
+                await until(pilot, lambda: not view.window.history_lock.locked(), 15)
+                blocks = [b for b in view.query(AgentResponse) if b.source == outcome.text]
+                assert len(blocks) == 1, (phase, len(blocks))
+                assert session.read_bytes() == original_source
+                assert journal_path.read_bytes() == original_journal
+                phases.append({"phase": phase, "original_outcomes": len(outcomes),
+                               "painted_resources": len(blocks)})
+                (evidence / "phases.json").write_text(json.dumps(phases, indent=2))
+                (evidence / f"{phase}.svg").write_text(app.export_screenshot())
+
+            await check("cold-load")
+            user = comms.messaging.user_identity(str(project)).name
+            await channel_target("#team").open(NavigationContext(app, app.selected_mode, project, user))
+            await app.selected_session.wait_content_ready()
+            await click_tab(app, pilot, source_session.id)
+            assert app.selected_session is source_session
+            await check("tab-return")
+            await agent.session.reconnect()
+            await until(pilot, agent.session.settled.is_set, 30)
+            assert agent.session.connected
+            await check("acp-reconnect")
+            assert app._exception is None
+        logs = list((evidence / "state" / "toad" / "logs").glob("*.txt"))
+        assert logs
+        # ACP logs use repr on client packets: inspect method names, not bodies.
+        import re
+        prompt_requests = sum(len(re.findall(r"['\"]method['\"]:\s*['\"](?:session/prompt|agent_comms/queue_prompt)['\"]", p.read_text())) for p in logs)
+        assert prompt_requests == 0
+        (evidence / "summary-receipt.json").write_text(json.dumps({
+            "complete": True, "operation_id": outcome.identity.operation_id,
+            "source_bytes": len(original_source), "source_sha256": hashlib.sha256(original_source).hexdigest(),
+            "source_unchanged": True, "journal_unchanged": True,
+            "summary_state": "unknown", "prompt_requests": prompt_requests,
+            "new_provider_or_compaction_requests": 0, "phases": phases,
+        }, indent=2))
+    except BaseException:
+        import traceback
+        (evidence / "acceptance-failure.txt").write_text(traceback.format_exc())
+        raise
+
+
+if __name__ == "__main__" and "--reconnect-cancelled-source" in sys.argv:
+    asyncio.run(reconnect_cancelled_source())
+elif __name__ == "__main__":
     with CodexLoopbackProvider(response_factory=response, after_chunk=hold) as provider:
         asyncio.run(main(app_type=StreamApp, acceptance=acceptance, prepare_state=prepare,
                         fixture_stage=Path(os.environ["COMPACTION_FIXTURE_STAGE"])
