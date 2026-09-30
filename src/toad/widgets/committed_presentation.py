@@ -47,6 +47,12 @@ class TranscriptCoverage(Message):
 
 
 class CommitClaim(ABC):
+    def capture(self, settled: bool) -> bool:
+        return True
+
+    def admits_source(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+        return True
+
     @property
     def required_sequences(self) -> frozenset[int]:
         return frozenset()
@@ -59,8 +65,21 @@ class CommitClaim(ABC):
 class CapturedClaim(CommitClaim):
     """A settled source-owned block captured before the snapshot read."""
 
+    def capture(self, settled: bool) -> bool:
+        return settled
+
+    def admits_source(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+        return widget in captured
+
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return widget in evidence.captured and widget is not evidence.retained_history
+
+
+class RetainedSourceClaim(CapturedClaim):
+    """An original saved source is transferable independently of live output."""
+
+    def capture(self, settled: bool) -> bool:
+        return True
 
 
 @dataclass(frozen=True)
@@ -106,10 +125,15 @@ class CheckpointBarrier:
 
 
 CAPTURED_CLAIM = CapturedClaim()
+RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
 
 class CommittedHistory(SnapshotPresentation):
     """A presentation that retains access to an authoritative source frontier."""
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return RETAINED_SOURCE_CLAIM
 
     @property
     def committed_cursor(self) -> TranscriptCursor:

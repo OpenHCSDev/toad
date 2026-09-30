@@ -1,0 +1,18 @@
+{"live_response_attached": true, "response_resources": 2, "history_frontier_advanced": true, "managed_phase": "PublishingPhase", "managed_busy": true, "history_count": 1, "response_resource_ids": [140565084877072, 140565423406160]}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/answer-source-transfer/probe.py", line 66, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/answer-source-transfer/probe.py", line 63, in main
+    assert len(responses)==1,receipt
+           ^^^^^^^^^^^^^^^^^
+AssertionError: {'live_response_attached': True, 'response_resources': 2, 'history_frontier_advanced': True, 'managed_phase': 'PublishingPhase', 'managed_busy': True, 'history_count': 1, 'response_resource_ids': [140565084877072, 140565423406160]}

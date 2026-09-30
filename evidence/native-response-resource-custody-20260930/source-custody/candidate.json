@@ -1,0 +1,26 @@
+{
+  "publishing": {
+    "live_response_attached": true,
+    "response_resources": 1,
+    "history_frontier_advanced": false,
+    "managed_phase": "PublishingPhase",
+    "managed_busy": true,
+    "history_count": 1,
+    "response_resource_ids": [
+      140132929511312
+    ]
+  },
+  "settled": {
+    "response_resources": 1,
+    "live_response_attached": false,
+    "history_frontier_advanced": true,
+    "history_count": 1,
+    "managed_busy": false
+  },
+  "active_saved_source": {
+    "history_count": 1,
+    "old_history_attached": false,
+    "managed_busy": true,
+    "frontier_matches": true
+  }
+}

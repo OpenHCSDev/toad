@@ -42,3 +42,45 @@ other-owner WT edits. All failed original proofs and fixture dispositions retain
 
 Do not close full remaining performance scope on this usage-blocking checkpoint.
 Source-only sanity/custody checks differ from installed/native and physical gates.
+
+## Source transfer checkpoint
+
+The actual Window probe reproduces the same ownership relation at baseline516daa:
+PublishingPhase advances the source frontier while leaving the original anonymous
+live answer attached; two AgentResponse resources survive in one registered history.
+Baseline IDs, failure and corrected driver output are retained in source-custody/.
+The probe does not replay u01's native input or start an ACP/provider process.
+
+CommitClaim now owns capture and admission. Anonymous CapturedClaim requires its
+original settled cohort; RetainedSourceClaim captures an original saved resource
+independently of a live turn. Exact-identity claims keep their native/sequence
+coverage contract. TurnOwner delegates this question to the existing family;
+two divergent capture overrides are deleted (IMPL-12). New claim cases inherit
+the appropriate identity or captured behavior; coordinators need no new branch.
+
+Snapshot and checkpoint share the original pre-read cohort and check source
+admission before preparation can advance/mount saved rows. A provisional history
+is excluded only during its own native mount, before acceptance. Existing dirty
+checkpoint custody records a declined source; ordered settlement calls its
+existing retry after output.settle. Kepler explicitly granted that one call and
+retains the separate submissions.reset deletion/input constructor.
+
+Actual application/source candidate passes: during PublishingPhase one live
+answer stays visible and the frontier does not advance; after settlement one
+saved answer replaces it and the live resource is removed. Initial saved-history
+mount also succeeds while a turn is active when there is no anonymous live
+output to transfer. One registered history and normal application exit; no
+ACP/native runner or provider starts. The first same-source snapshot test wrongly
+expected full replacement: existing admission correctly requests a checkpoint.
+Those driver-oracle failures remain protected under .artifacts/answer-source-transfer.
+
+Production: four files, 16 lines deleted / 59 added. Bounded changed-file debt
+measures have no increases in dispatch/arms, type switches/arms, codecs, foreign
+absence probes or boolean-chain terms. Full TC1/T9 remains in253. Existing
+publication cancellation shielding is unchanged; no repeated retirement suite.
+
+This is source acceptance for the joint251/252 candidate, not installed readiness.
+Parent250 owns normal integration/packaging; Einstein and Kepler own one fresh
+continuous actual native/ACP/UI first-fork/input gate with the original exact-once
+answer assertion intact. Native u01 and its uncertain-input disposition remain
+frozen; no replay. Independent253 body readiness is normally merged2f318199.
