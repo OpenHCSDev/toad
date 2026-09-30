@@ -6,6 +6,10 @@ from toad.navigation_target import DirectTarget
 import asyncio
 import os
 import tempfile
+import time
+import json
+import traceback
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from agent_comms.activity import ActivityState, UnavailableDrainDiagnostic
@@ -13,13 +17,28 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from comms_boundary_fixture import attach_coordination
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp as FixtureApp
 
-from toad import messages
 from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
+from toad.widgets.side_bar import SideBar
+from toad.widgets.comms_sidebar import CommsSidebar
+
+
+class ToadApp(FixtureApp):
+    @asynccontextmanager
+    async def run_test(self, **kwargs):
+        async with super().run_test(**kwargs) as pilot:
+            try:
+                yield pilot
+            except BaseException:
+                # Preserve the original assertion if application teardown also
+                # raises; it must not hide the actual failed user journey.
+                traceback.print_exc()
+                raise
 
 
 async def until(predicate):
@@ -56,18 +75,19 @@ async def main():
             )
             agent = Agent(
                 root,
-                {
-                    "name": "Observed fixture",
-                    "identity": "fixture",
-                    "run_command": {"*": "true"},
-                },
+                AgentDefinition("fixture", "Observed fixture", {"*": "true"}),
                 "fixture",
             )
             agent.attach_surface(native)
             attach_coordination(agent, str(comms.root), "peer")
             native.set_reactive(type(native).agent, agent)
             owner = app.selected_mode
-            tracker = app.session_tracker.sessions[owner]
+            details = native.query_one(SessionDetails)
+            app.workspace_chrome.channels.collapsed = True
+            app.settings.sidebar.hide = True
+            await pilot.pause()
+            assert app.workspace_chrome.channels.collapsed
+            assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
             for detail in ("Checking #comms message", "Responding in #comms"):
                 comms.agents.set_activity("peer", ActivityState.THINKING, detail)
                 await until(
@@ -76,12 +96,9 @@ async def main():
                         and detail in observed.presentation.summary
                     )
                 )
-                native.post_message(
-                    messages.SessionUpdate(state="idle", summary="Ready")
-                )
                 await pilot.pause()
                 assert observed.display and observed.has_class("-working")
-                assert tracker.state == "busy" and detail in tracker.summary
+                assert detail in str(details.title)
                 assert native.turns.managed_id is None and not native.turns.owner.busy
             comms.agents.set_activity("peer", ActivityState.IDLE)
             await until(
@@ -91,21 +108,20 @@ async def main():
                 )
             )
             await pilot.pause()
-            assert tracker.state == "idle" and tracker.summary == "Ready"
+            assert "Ready" in str(details.title)
             identity = comms.registry.snapshot().owner_identity("peer")
             failure = UnavailableDrainDiagnostic(identity, "SchemaVersionError", "cohort schema missing")
             comms.agents.set_drain_diagnostic("peer", identity, failure)
             await until(lambda: observed.presentation is not None and observed.presentation.attention)
-            native.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
             await pilot.pause()
-            assert tracker.state == "idle" and "Inbox unavailable" in tracker.summary
+            assert "Inbox unavailable" in str(details.title)
             assert observed.has_class("-unavailable") and not observed.has_class("-working")
             details = native.query_one(SessionDetails)
             assert details.has_class("-attention") and "Inbox unavailable" in str(details.title)
             comms.agents.set_drain_diagnostic("peer", identity, None)
             await until(lambda: observed.presentation is not None and not observed.presentation.attention)
             await pilot.pause()
-            assert tracker.summary == "Ready" and not details.has_class("-attention")
+            assert "Ready" in str(details.title) and not details.has_class("-attention")
             comms.registry.declare(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await DirectTarget("dm-peer").open(NavigationContext(app, owner, root, "peer"))
             dm_mode = app.selected_mode
@@ -138,6 +154,50 @@ async def main():
             comms.agents.set_drain_diagnostic("dm-peer", identity, None)
             await until(lambda: observed.presentation is not None and not observed.presentation.attention)
             assert str(observed.render()) == "Ready"
+            # An original recipient-only SQLite change must reach a current DM
+            # while roster work and both sidebars are disabled. No wire append,
+            # UI action, selected-session signal or native prompt supplies it.
+            from agent_comms.coordinator import Coordination
+            from agent_comms.coordination_cohort import accept_delivery_cohort
+            from agent_comms.notification_assignment import NotificationAssignment
+            from agent_comms.assignment_states import IgnoredAssignment
+
+            root_id = comms.messaging.initialize_private_initial_protocol()
+            message = comms.messaging.send_initial_cohort("peer", "#comms", "Closed-bars original")
+            cohort = comms.bus.log.read_delivery_cohort(root_id, message.seq)
+            with Coordination(str(comms.root / "coordination.sqlite3")) as store:
+                for recipient in cohort.audience.recipients:
+                    store.participants.register(recipient.recipient_lookup,
+                        recipient.canonical_thread, recipient.canonical_thread, committed=True)
+                accept_delivery_cohort(comms.bus, root_id, message.seq, store)
+            roster = app.screen.query_one(CommsSidebar)
+            roster.observation.set_enabled(False)
+            app.workspace_chrome.channels.collapsed = True
+            app.settings.sidebar.hide = True
+            await until(lambda: observed.presentation is not None and any(
+                item.message.reference == message.reference and item.state == "Pending"
+                for item in observed.presentation.notifications if item.message))
+            original = NotificationAssignment.select(comms.root, "w.wire_seq=?", (message.seq,))[0].assignment
+            wire_bytes = comms.bus.log.path.read_bytes()
+            projection_before = roster.observation.identity
+            with Coordination(str(comms.root / "coordination.sqlite3")) as store:
+                store.assignments.transition_preengagement(original.assignment_id,
+                    IgnoredAssignment, expected_revision=original.revision)
+            await until(lambda: any(item.message.reference == message.reference
+                and item.state == "Checked — no response"
+                for item in observed.presentation.notifications if item.message))
+            assert comms.bus.log.path.read_bytes() == wire_bytes
+            assert roster.observation.identity == projection_before, "Closed roster projected remote receipt"
+            assert app.workspace_chrome.channels.collapsed
+            assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
+            cpu_start, wall_start = time.process_time(), time.monotonic()
+            await asyncio.sleep(5)
+            wall, cpu = time.monotonic()-wall_start, time.process_time()-cpu_start
+            print(json.dumps({"closed_bars_idle_wall_seconds": wall,
+                "closed_bars_idle_cpu_seconds": cpu, "closed_bars_idle_percent_one_core": cpu/wall*100}))
+            roster.observation.set_enabled(True)
+            app.workspace_chrome.channels.reveal()
+            await pilot.pause()
             # All logical tabs share the active native WorkspaceScreen. A
             # hidden DM must not keep reading/publishing just because that
             # frame remains active. Instrument the real request callbacks;
@@ -168,7 +228,7 @@ async def main():
             await until(lambda: "activity" in hidden_reads)
 
         print(
-            "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, Ready override and idle recovery; no provider/process launch"
+            "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, actual SessionDetails and idle recovery and original receipt-only change with both bars closed; no provider/process launch"
         )
 
 
