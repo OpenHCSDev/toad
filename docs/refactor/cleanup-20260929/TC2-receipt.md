@@ -2,7 +2,7 @@
 
 **Status: ready for integration review; all assigned TC2 consumer/deletion work and the actual paired installed journeys passed.**
 
-**1,163 production lines deleted; 738 added, net 425 removed** against integrated Toad main `cd791811` (#209), across 45 production files. This includes the 504-line `acp/protocol.py` deletion. Initial base was `7e1133a2`; normal integrations preserve #207 receipt/history work and #209 manual/autonomous compaction progressive bodies. Final integration of `cd791811` applied without conflicts, including Conversation callbacks and the native runner; no callback was manually resolved. Per owner instruction, disjoint source integration does not repeat the completed broad journeys; #209's own receipts remain in the coherent tree. No compatibility readers or alternate codecs remain for TC2.
+**1,162 production lines deleted; 723 added, net 439 removed** for TC2 against reviewed202 `1e2cb39f`, across43 production files. The earlier209 comparison was1,163 deleted/738 added across45 files before integrating202. This includes the 504-line `acp/protocol.py` deletion. Initial base was `7e1133a2`; normal integrations preserve #207 receipt/history work and #209 manual/autonomous compaction progressive bodies. Final integration of `cd791811` applied without conflicts, including Conversation callbacks and the native runner; no callback was manually resolved. Per owner instruction, disjoint source integration does not repeat the completed broad journeys; #209's own receipts remain in the coherent tree. No compatibility readers or alternate codecs remain for TC2.
 
 Owner: TC2 worker. Draft [Toad #208](https://github.com/OpenHCSDev/toad/pull/208). Persistent worktree: `/home/ts/wt/toad-cleanup-tc2-sdk-20260929`. Working code checkpoint `348080fe` was pushed before current-main integration.
 
@@ -57,7 +57,7 @@ Canonical debt ratchet at pushed `53b879d0` against initial base reports **zero 
 
 ## Changed production files
 
-Counts below are exact `git diff --numstat cd791811 HEAD -- src/toad` for the current working checkpoint. Removed lines are source lines, not a semantic-debt score.
+Counts below are exact `git diff --numstat 1e2cb39f HEAD -- src/toad` for TC2 alone after normal202 integration;202 performance changes are preserved in the full PR but not counted again here. Removed lines are source lines, not a semantic-debt score.
 
 | File | Added | Deleted |
 |---|---:|---:|
@@ -79,7 +79,6 @@ Counts below are exact `git diff --numstat cd791811 HEAD -- src/toad` for the cu
 | `src/toad/acp/terminal_owner.py` | 9 | 12 |
 | `src/toad/acp/tool_calls.py` | 19 | 20 |
 | `src/toad/agent.py` | 2 | 1 |
-| `src/toad/agent_presentation.py` | 14 | 0 |
 | `src/toad/agent_schema.py` | 79 | 58 |
 | `src/toad/agents.py` | 8 | 8 |
 | `src/toad/app.py` | 2 | 2 |
@@ -96,7 +95,6 @@ Counts below are exact `git diff --numstat cd791811 HEAD -- src/toad` for the cu
 | `src/toad/screens/main.py` | 3 | 3 |
 | `src/toad/screens/store.py` | 28 | 48 |
 | `src/toad/session_admission.py` | 1 | 1 |
-| `src/toad/session_presentation.py` | 1 | 1 |
 | `src/toad/setting_choices.py` | 8 | 8 |
 | `src/toad/slash_command.py` | 2 | 3 |
 | `src/toad/terminal_execution.py` | 15 | 5 |
@@ -112,3 +110,11 @@ Other changed source inputs: `pyproject.toml`/`uv.lock` pin the SDK and accepted
 ## Artifacts and resource ownership
 
 TC2 owns `.venv` (~97 MiB), `evidence/tc2-sdk` (~1.1 MiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~1.7 MiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Default/global activation still belongs to the parent; this worker has not modified it. This receipt does not claim #202 warm-tab or #211 canonical-turn issues are finished. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.
+
+## Final integrated202 acceptance
+
+Production source `cd445d5f` normally includes current main209 and reviewed202 merge `1e2cb39f`. One activate conflict resolved to202's original per-session retained tree, preserving declared SDK saved-history capability for generic ACP peers; Heisenberg reviewed the union directly.
+
+The first installed A/B/A run failed an actual reader return (y5 became145 after a source update); full evidence remains in `evidence/tc2-sdk/workspace-integration`. The same installed source then passed the complete native saved-reader journey with passthrough anchor-stack instrumentation, unchanged assertions and no protocol/state/UI replacement. Five returns retain original outer history/pages/body/draft/undo with zero prepared misses; see `workspace-anchor-trace/summary.json`. The intermittent reader defect is NOT claimed fixed: Heisenberg owns its source/reader correction in213. The diagnostic pass does not prove the earlier race absent.
+
+Pair remains Coreab3397a6/Textual412/native7817. No broad optional suite rerun. Parent owns merge and default installation. Adaptive viewport work continues independently in214, integrated by213.

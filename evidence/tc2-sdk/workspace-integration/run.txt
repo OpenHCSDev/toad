@@ -1,0 +1,224 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+SOURCE_READY_PAINT session-1 True True frozenset({'-scrollbar-normal'}) True [('TranscriptFragmentView', Region(x=65, y=26, width=89, height=4)), ('TranscriptFragmentView', Region(x=65, y=24, width=89, height=2)), ('TranscriptFragmentView', Region(x=65, y=12, width=89, height=12)), ('TranscriptFragmentView', Region(x=65, y=-2, width=89, height=14))] FRAME                                                                                                                                                                 
+  ☰     <──    ──>   ✓ beta (1) ×  ✓ gamma (1) ×                                                                                                               
+                      ━━━━━━━━━━                                                                                                                                
+▼ Channels                                           Name ▾    │▌▊                                                                                              
++ New Session                                                  │▌▊  beta saved reader paragraph 1: canonical loaded source.                                     
+▾ #any                                       Date created ▾    │▌▊                                                                                              
+  (1) ✓ gamma                                                  │▌▊  beta saved reader paragraph 2: canonical loaded source.                                     
+    Ready                                                      │▌▊                                                                                              
+  (1) ✓ beta                                                   │▌▊  beta saved reader paragraph 3: canonical loaded source.                                     
+    Ready                                                      │▌▊                                                                                              
+▸ #none                                      Date created ▾    │▌▊  beta saved reader paragraph 4: canonical loaded source.                                     
+▸ #all                                       Date created ▾    │▌                                                                                               
+▸ #team                                      Date created ▾    │▌▊  beta saved reader paragraph 5: canonical loaded source.                                     
+                                                               │▌▊                                                                                              
+                                                               │▌▊  beta saved reader paragraph 6: canonical loaded source.                                     
+                                                               │▌▊                                                                                              
+                                                               │▌▊  beta saved reader paragraph 7: canonical loaded source.                                     
+                                                               │▌▊                                                                                              
+                                                               │▌▊  beta saved reader paragraph 8: canonical loaded source.                                     
+                                                               │▌▊                                                                                              
+                                                               │▌▊  beta saved reader paragraph 9: canonical loaded source.                                     
+                                                               │▌▊                                                                                              
+                                                             < │▌▊  beta saved reader paragraph 10: canonical loaded source.                                  < 
+                                                               │▌                                                                                         ▂▂    
+                                                               │▌▊  beta saved reader paragraph 11: canonical loaded source.                                    
+                                                               │▌                                                                                               
+                                                               │▌                                                                                               
+                                                               │▌─────────────────────────────────── Agent · 19:36:44 ───────────────────────────────────       
+                                                               │▌NATIVE_RESPONSE_2                                                                              
+                                                               │▌                                                                                               
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │ ▶ Session details · Ready · Saved history not loaded                                           
+                                                               │                                                                                                
+                                                               │─────────────────────────────────────────────────────────────────────────────────────────────   
+                                                               │ Goal · blocked · rev 2                                                                         
+                                                               │ Objective: SELECTED_GOAL_BETA                                                                  
+                                                               │ Progress: Goal launch grant unavailable; explicit Retry required.                              
+                                                               │ History  Collapse  Retry  Edit  Clear                                                          
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                                               │▊ ❯                                                                                         ▎   
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                                  │  selected-offline/fixture · off  ~/.cache/…/l0a-native-jmval0e3/project        0.1K (0.3%)     
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                                ▏^p palette 
+WINDOW_LAYOUT [('ContentsGrid', True, 'auto', Region(x=64, y=-88, width=90, height=118), Size(width=90, height=118), Size(width=90, height=118)), ('Contents', True, 'auto', Region(x=65, y=-88, width=89, height=118), Size(width=89, height=118), Size(width=89, height=118))]
+SOURCE_BODY_CUSTODY session-1 91 91 8 [('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None)]
+SOURCE_READY_PAINT session-2 True True frozenset() True [('TranscriptFragmentView', Region(x=65, y=26, width=89, height=4)), ('TranscriptFragmentView', Region(x=65, y=24, width=89, height=2)), ('TranscriptFragmentView', Region(x=65, y=12, width=89, height=12)), ('TranscriptFragmentView', Region(x=65, y=-2, width=89, height=14))] FRAME                                                                                                                                                                 
+  ☰     <──    ──>   ✓ beta (1) ×  ✓ gamma ×                                                                                                                   
+                                    ━━━━━━━                                                                                                                     
+▼ Channels                                           Name ▾    │▌▊                                                                                              
++ New Session                                                  │▌▊  gamma saved reader paragraph 1: canonical loaded source.                                    
+▾ #any                                       Date created ▾    │▌▊                                                                                              
+  ✓ gamma                                                      │▌▊  gamma saved reader paragraph 2: canonical loaded source.                                    
+    Ready                                                      │▌▊                                                                                              
+  (1) ✓ beta                                                   │▌▊  gamma saved reader paragraph 3: canonical loaded source.                                    
+    Ready                                                      │▌▊                                                                                              
+▸ #none                                      Date created ▾    │▌▊  gamma saved reader paragraph 4: canonical loaded source.                                    
+▸ #all                                       Date created ▾    │▌                                                                                               
+▸ #team                                      Date created ▾    │▌▊  gamma saved reader paragraph 5: canonical loaded source.                                    
+                                                               │▌▊                                                                                              
+                                                               │▌▊  gamma saved reader paragraph 6: canonical loaded source.                                    
+                                                               │▌▊                                                                                              
+                                                               │▌▊  gamma saved reader paragraph 7: canonical loaded source.                              ▄▄    
+                                                               │▌▊                                                                                              
+                                                               │▌▊  gamma saved reader paragraph 8: canonical loaded source.                                    
+                                                               │▌▊                                                                                              
+                                                               │▌▊  gamma saved reader paragraph 9: canonical loaded source.                                    
+                                                               │▌▊                                                                                              
+                                                             < │▌▊  gamma saved reader paragraph 10: canonical loaded source.                                 < 
+                                                               │▌                                                                                               
+                                                               │▌▊  gamma saved reader paragraph 11: canonical loaded source.                                   
+                                                               │▌                                                                                               
+                                                               │▌                                                                                               
+                                                               │▌─────────────────────────────────── Agent · 19:37:00 ───────────────────────────────────       
+                                                               │▌NATIVE_RESPONSE_4                                                                              
+                                                               │▌                                                                                               
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │ ▶ Session details · Ready · Saved history not loaded                                           
+                                                               │                                                                                                
+                                                               │─────────────────────────────────────────────────────────────────────────────────────────────   
+                                                               │ Goal · blocked · rev 2                                                                         
+                                                               │ Objective: SELECTED_GOAL_GAMMA                                                                 
+                                                               │ Progress: Goal launch grant unavailable; explicit Retry required.                              
+                                                               │ History  Collapse  Retry  Edit  Clear                                                          
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                                               │▊ ❯                                                                                         ▎   
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                                  │  selected-offline/fixture · off  ~/.cache/…/l0a-native-jmval0e3/project        0.1K (0.3%)     
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                                ▏^p palette 
+WINDOW_LAYOUT [('ContentsGrid', True, 'auto', Region(x=64, y=-24, width=90, height=54), Size(width=90, height=54), Size(width=90, height=54)), ('Contents', True, 'auto', Region(x=65, y=-24, width=89, height=54), Size(width=89, height=54), Size(width=89, height=54))]
+SOURCE_BODY_CUSTODY session-2 27 27 8 [('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-23, width=89, height=12), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -8)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=12), container_size=Size(width=89, height=12), virtual_region=Region(x=0, y=0, width=89, height=12), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-11, width=89, height=2), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -7)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=2), container_size=Size(width=89, height=2), virtual_region=Region(x=0, y=12, width=89, height=2), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-9, width=89, height=4), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -6)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=4), container_size=Size(width=89, height=4), virtual_region=Region(x=0, y=14, width=89, height=4), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-5, width=89, height=3), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -5)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=3), container_size=Size(width=89, height=3), virtual_region=Region(x=0, y=18, width=89, height=3), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-2, width=89, height=14), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -4)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=14), container_size=Size(width=89, height=14), virtual_region=Region(x=0, y=21, width=89, height=14), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=12, width=89, height=12), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -3)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=12), container_size=Size(width=89, height=12), virtual_region=Region(x=0, y=35, width=89, height=12), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=24, width=89, height=2), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -2)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=2), container_size=Size(width=89, height=2), virtual_region=Region(x=0, y=47, width=89, height=2), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=26, width=89, height=4), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=4), container_size=Size(width=89, height=4), virtual_region=Region(x=0, y=49, width=89, height=4), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0)))]
+FIRST_FRAMES session-1 [('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 124, 124), ('session-1', 2367, True, False, 125, 125), ('session-1', 2367, True, False, 125, 125), ('session-1', 2367, True, False, 136, 136), ('session-1', 2367, True, False, 136, 136)]
+FAILED_RETURN session-1 reader 145 5 reuse 8 expected ▌▊                                                                                        
+▌▊  beta saved reader paragraph 1: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 2: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 3: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 4: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 5: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 6: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 7: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 8: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 9: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 10: canonical loaded source.                              
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 11: canonical loaded source.                              
+▌                                                                                         
+▌                                                                                         
+▌─────────────────────────────────── Agent · 19:36:38 ─────────────────────────────────── 
+▌NATIVE_RESPONSE_1                                                                        
+▌                                                                                          actual ▌▊                                                                                        
+▌▊  beta saved reader paragraph 1: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 2: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 3: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 4: canonical loaded source.                               
+▌                                                                                         
+▌▊  beta saved reader paragraph 5: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 6: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 7: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 8: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 9: canonical loaded source.                               
+▌▊                                                                                        
+▌▊  beta saved reader paragraph 10: canonical loaded source.                              
+▌                                                                                         
+▌▊  beta saved reader paragraph 11: canonical loaded source.                              
+▌                                                                                         
+▌                                                                                         
+▌─────────────────────────────────── Agent · 19:36:44 ─────────────────────────────────── 
+▌NATIVE_RESPONSE_2                                                                        
+▌                                                                                          layout [('ContentsGrid', True, Region(x=64, y=-142, width=90, height=172), Size(width=90, height=172), Size(width=90, height=172)), ('Contents', True, Region(x=65, y=-142, width=89, height=172), Size(width=89, height=172), Size(width=89, height=172))] cached [('PreparedConversationMarkdown', 'HorizontalGroup'), ('AgentResponse', 'Contents'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('PreparedConversationMarkdown', 'HorizontalGroup'), ('AgentResponse', 'Contents'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView'), ('TranscriptFragmentView', 'TranscriptPageView')]
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 51, in until
+    await pilot.pause(0.05)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/native_loaded_return_cache_pilot.py", line 356, in acceptance
+    await until(pilot, lambda: conversation_paint(frame) == painted)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 49, in until
+    async with asyncio.timeout(seconds):
+               ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 51, in until
+    await pilot.pause(0.05)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/native_loaded_return_cache_pilot.py", line 488, in <module>
+    asyncio.run(native_fixture(app_type=PaintedReturnApp, acceptance=acceptance,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               provider_request_budget=2 * int(os.environ.get("NATIVE_RETURN_PROMPTS", "2")) + 2))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 307, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/native_loaded_return_cache_pilot.py", line 356, in acceptance
+    await until(pilot, lambda: conversation_paint(frame) == painted)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 49, in until
+    async with asyncio.timeout(seconds):
+               ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
