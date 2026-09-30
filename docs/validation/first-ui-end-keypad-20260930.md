@@ -18,3 +18,7 @@ Open this draft before normal source merge and staging. Merge only the reviewed2
 Use the normal frozen67/68-package hardlinked inactive-stage mechanism. One physical editor45s affected acceptance by Kepler follows source/build verification. No extra provider input or fleet. Kepler records actual Delete/arrows unsent editor focus and channel/child/parent return, isolated st/Xvfb only. Parent reviews resulting pins/proofs and alone activates. CPU225/C3 activation remains separate442.
 
 This draft tracks an inactive source cohort, not a rollback of current main. No live-readiness claim until Kepler actual gate.
+
+## Source composition checkpoint
+
+Normal merge2e200a79 joins both exact reviewed heads without conflicts. Both216 head and merge are excluded from resulting ancestry, and thread_actions contains no available_for call. No implementation edits. Dependency resolution changes only the3Textual source-pin lines,3deleted/3added; Core000/SDK0.12.1 remain fixed. Installed physical acceptance is pending Kepler.

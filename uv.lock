@@ -318,7 +318,7 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=65053c5a2df12249ef1c4193beeff7023c1f75d7" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=4e8d13d21bf98e4ad52e610277d7d06c9035ccfa" },
     { name = "textual-diff-view", specifier = "==0.1.5" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
@@ -1543,7 +1543,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=65053c5a2df12249ef1c4193beeff7023c1f75d7#65053c5a2df12249ef1c4193beeff7023c1f75d7" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=4e8d13d21bf98e4ad52e610277d7d06c9035ccfa#4e8d13d21bf98e4ad52e610277d7d06c9035ccfa" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },

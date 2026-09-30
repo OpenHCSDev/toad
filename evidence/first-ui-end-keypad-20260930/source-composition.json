@@ -1,0 +1,23 @@
+{
+  "state": "source-composed-inactive-before-physical-gate",
+  "owner": "Einstein",
+  "physical_owner": "Kepler",
+  "activation_owner": "parent",
+  "source_publication": "173901b9329af36116158ec492db839af7d872c6",
+  "end_continuity": "6f620f616f141e885ac165e224cc86232a901247",
+  "normal_merge": "2e200a7961e7daf6bab6bb8da8aff3420087e5c2",
+  "common_base": "53154c7df193dcb697f10f2bcf33a44d71a5de95",
+  "core": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+  "sdk": "0.12.1",
+  "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "implementation_edits_by_integration": 0,
+  "merge_conflicts": [],
+  "dependency_changed_lines": {
+    "deleted": 3,
+    "added": 3
+  },
+  "default_mutations": 0,
+  "provider_calls": 0,
+  "216_head_and_merge_excluded": true
+}
