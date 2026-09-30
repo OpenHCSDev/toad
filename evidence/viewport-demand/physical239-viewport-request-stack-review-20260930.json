@@ -1,0 +1,3555 @@
+{
+  "recording": "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture",
+  "ui_pid": 3347835,
+  "selection": {
+    "functions": [],
+    "sources": [
+      "toad/widgets/viewport_body.py"
+    ]
+  },
+  "profile": "cpu-profile.json",
+  "alignment_nominal_uncertainty_seconds": 0.07401532000862063,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant",
+    "Matching stack groups are observed transitions, not sample counts, calls or CPU time",
+    "No observed match does not prove work was absent; async await parents may be missing",
+    "Complete matching stacks supplement the capped recorder preview; raw source remains authoritative"
+  ],
+  "phases": [
+    {
+      "label": "up",
+      "video_start_seconds": 23.491300388006493,
+      "video_end_seconds": 29.169285233016126,
+      "kernel_cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 4.65,
+          "average_cpu_percent": 81.8952520468045
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.1200000000000001,
+          "average_cpu_percent": 2.113425859272376
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.08000000000000002,
+          "average_cpu_percent": 1.4089505728482496
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.06000000000000005,
+          "average_cpu_percent": 1.056712929636188
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.35223764321206263
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.17611882160603526
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-up.png",
+          "state_capture": {
+            "started_seconds": 23.760077087994432,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 165064704,
+              "started_ns": 1790777873702815209,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-up-state": "complete"
+              },
+              "finished_ns": 1790777873767291926
+            },
+            "finished_seconds": 24.03094042101293
+          },
+          "native_state": "phase-up-state.pickle",
+          "native_metadata": "phase-up-state.json"
+        },
+        "end": {
+          "screenshot": "phase-up-done.png",
+          "state_capture": {
+            "started_seconds": 29.444888135010842,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 180523008,
+              "started_ns": 1790777879390836517,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-up-done-state": "complete"
+              },
+              "finished_ns": 1790777879556074410
+            },
+            "finished_seconds": 29.8024469059892
+          },
+          "native_state": "phase-up-done-state.pickle",
+          "native_metadata": "phase-up-done-state.json"
+        }
+      },
+      "observed_stack_groups": 98,
+      "matching_stack_groups": 23,
+      "matched_frames": [
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86,
+          "stack_presence_transition_groups": 13
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 236,
+          "stack_presence_transition_groups": 9
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 313,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 313,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "register",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 202,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 380,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_settle",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 253,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 321,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 323,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 24.442694714999732,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 568
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 145
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 313
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 313
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            }
+          ]
+        },
+        {
+          "video_seconds": 24.520236714999733,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 604
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 740
+            },
+            {
+              "function": "_flush_next_callbacks",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 749
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 313
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 313
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 24.549348714999734,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 172
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1279
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 206
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1402
+            },
+            {
+              "function": "reflow",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 445
+            },
+            {
+              "function": "_arrange_root",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 896
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 876
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 704
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 86
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/horizontal.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 341
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2045
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 30.55319693099591,
+      "video_end_seconds": 36.29888769300305,
+      "kernel_cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 4.5699999999999985,
+          "average_cpu_percent": 79.53786914914926
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.10999999999999999,
+          "average_cpu_percent": 1.9144782508547966
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3480869547008725
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3480869547008725
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17404347735043624
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-down.png",
+          "state_capture": {
+            "started_seconds": 30.82076512099593,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 181112832,
+              "started_ns": 1790777880758827394,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-down-state": "complete"
+              },
+              "finished_ns": 1790777880891219131
+            },
+            "finished_seconds": 31.119534338999074
+          },
+          "native_state": "phase-down-state.pickle",
+          "native_metadata": "phase-down-state.json"
+        },
+        "end": {
+          "screenshot": "phase-down-done.png",
+          "state_capture": {
+            "started_seconds": 36.576799517992185,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 185081856,
+              "started_ns": 1790777886529034891,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-down-done-state": "complete"
+              },
+              "finished_ns": 1790777886661693543
+            },
+            "finished_seconds": 36.89892459200928
+          },
+          "native_state": "phase-down-done-state.pickle",
+          "native_metadata": "phase-down-done-state.json"
+        }
+      },
+      "observed_stack_groups": 110,
+      "matching_stack_groups": 25,
+      "matched_frames": [
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86,
+          "stack_presence_transition_groups": 14
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 236,
+          "stack_presence_transition_groups": 10
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 313,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 313,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 359,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 341,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 341,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 346,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 323,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_settle",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 253,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 321,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 322,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_settle",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 254,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 32.00861071499973,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 568
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 145
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 313
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 313
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 32.026216714999734,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 568
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 145
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 341
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 341
+            }
+          ]
+        },
+        {
+          "video_seconds": 32.813038714999735,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 604
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 703
+            },
+            {
+              "function": "_dispatch_message",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 788
+            },
+            {
+              "function": "_flush_next_callbacks",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 749
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 346
+            },
+            {
+              "function": "body_ready",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 200
+            },
+            {
+              "function": "walk_children",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1446
+            },
+            {
+              "function": "walk_depth_first",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/walk.py",
+              "line": 86
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 37.68012922999333,
+      "video_end_seconds": 43.3327528850059,
+      "kernel_cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 4.720000000000002,
+          "average_cpu_percent": 83.50104815158619
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.08999999999999997,
+          "average_cpu_percent": 1.5921810028904133
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17690900032115725
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17690900032115725
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17690900032115725
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.17690900032115334
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-reverse.png",
+          "state_capture": {
+            "started_seconds": 37.958593151008245,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 185581568,
+              "started_ns": 1790777887896562338,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-reverse-state": "complete"
+              },
+              "finished_ns": 1790777888028988199
+            },
+            "finished_seconds": 38.267924718995346
+          },
+          "native_state": "phase-reverse-state.pickle",
+          "native_metadata": "phase-reverse-state.json"
+        },
+        "end": {
+          "screenshot": "phase-reverse-done.png",
+          "state_capture": {
+            "started_seconds": 43.60149912600173,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 186523648,
+              "started_ns": 1790777893554452168,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-reverse-done-state": "complete"
+              },
+              "finished_ns": 1790777893686865746
+            },
+            "finished_seconds": 43.91550376600935
+          },
+          "native_state": "phase-reverse-done-state.pickle",
+          "native_metadata": "phase-reverse-done-state.json"
+        }
+      },
+      "observed_stack_groups": 87,
+      "matching_stack_groups": 23,
+      "matched_frames": [
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 236,
+          "stack_presence_transition_groups": 15
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "register",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 202,
+          "stack_presence_transition_groups": 6
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 359,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 322,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 323,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 321,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 233,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 353,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "_trim_warm",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 212,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "prepare",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 141,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "visible_bodies_ready",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 303,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 303,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 38.675900714999734,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 568
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 145
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 322
+            },
+            {
+              "function": "__contains__",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/_weakrefset.py",
+              "line": 37
+            }
+          ]
+        },
+        {
+          "video_seconds": 38.78605371499973,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 601
+            },
+            {
+              "function": "_pre_process",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 644
+            },
+            {
+              "function": "_dispatch_message",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 774
+            },
+            {
+              "function": "on_event",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 855
+            },
+            {
+              "function": "_on_message",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 876
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "on_mount",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 191
+            },
+            {
+              "function": "register",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 202
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 236
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 322
+            },
+            {
+              "function": "__contains__",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/_weakrefset.py",
+              "line": 37
+            }
+          ]
+        },
+        {
+          "video_seconds": 39.284309714999736,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 568
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 145
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 233
+            },
+            {
+              "function": "prepare_scroll",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/transcript_source_preparation.py",
+              "line": 131
+            },
+            {
+              "function": "run_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/dom.py",
+              "line": 562
+            },
+            {
+              "function": "_new_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 118
+            },
+            {
+              "function": "add_worker",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker_manager.py",
+              "line": 79
+            },
+            {
+              "function": "_start",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 416
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 395
+            },
+            {
+              "function": "create_task",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 468
+            },
+            {
+              "function": "factory",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 1050
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 385
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 371
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/worker.py",
+              "line": 356
+            },
+            {
+              "function": "prepare",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/transcript_source_preparation.py",
+              "line": 122
+            },
+            {
+              "function": "prepare_adjacent",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 338
+            },
+            {
+              "function": "prepare_fragments",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/render_tasks.py",
+              "line": 162
+            },
+            {
+              "function": "gather",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 907
+            },
+            {
+              "function": "_done_callback",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+              "line": 843
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "return-a",
+      "video_start_seconds": 70.77067690299009,
+      "video_end_seconds": 75.06908394000493,
+      "kernel_cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 1.5999999999999979,
+          "average_cpu_percent": 37.223091862216165
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.3600000000000001,
+          "average_cpu_percent": 8.37519566899865
+        },
+        {
+          "pid": "3349963",
+          "cpu_seconds": 0.10000000000000009,
+          "average_cpu_percent": 2.326443241388515
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.23264432413885153
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.23264432413885153
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-return-a.png",
+          "state_capture": {
+            "started_seconds": 70.99131622700952,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 192630784,
+              "started_ns": 1790777920939177704,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-return-a-state": "complete"
+              },
+              "finished_ns": 1790777921103591794
+            },
+            "finished_seconds": 71.35707983901375
+          },
+          "native_state": "phase-return-a-state.pickle",
+          "native_metadata": "phase-return-a-state.json"
+        },
+        "end": {
+          "screenshot": "phase-a-return.png",
+          "state_capture": {
+            "started_seconds": 75.3403620760073,
+            "manifest": {
+              "pid": 3347835,
+              "created": 1790777848.63,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 198168576,
+              "started_ns": 1790777925283000137,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-a-return-state": "complete"
+              },
+              "finished_ns": 1790777925415473518
+            },
+            "finished_seconds": 75.65320796900778
+          },
+          "native_state": "phase-a-return-state.pickle",
+          "native_metadata": "phase-a-return-state.json"
+        }
+      },
+      "observed_stack_groups": 46,
+      "matching_stack_groups": 3,
+      "matched_frames": [
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 227,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "visible_bodies_ready",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 302,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "function": "prepare",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 141,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 71.33532771499974,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 172
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1279
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 206
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1427
+            },
+            {
+              "function": "_size_updated",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 4355
+            },
+            {
+              "function": "_scroll_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 4381
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "request",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 227
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 315
+            }
+          ]
+        },
+        {
+          "video_seconds": 71.81950671499973,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 172
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1279
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 213
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1402
+            },
+            {
+              "function": "reflow",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 445
+            },
+            {
+              "function": "_arrange_root",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 896
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 805
+            },
+            {
+              "function": "add_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 862
+            },
+            {
+              "function": "arrange_widget",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 704
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/grid.py",
+              "line": 307
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 296
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 55
+            },
+            {
+              "function": "resolve_box_models",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_resolve.py",
+              "line": 254
+            },
+            {
+              "function": "_get_box_model",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2010
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 86
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 2101
+            },
+            {
+              "function": "get_content_height",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layout.py",
+              "line": 294
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/widget.py",
+              "line": 1409
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_arrange.py",
+              "line": 97
+            },
+            {
+              "function": "arrange",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/layouts/vertical.py",
+              "line": 94
+            },
+            {
+              "function": "forward",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/fractions.py",
+              "line": 699
+            },
+            {
+              "function": "_add",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/fractions.py",
+              "line": 800
+            }
+          ]
+        },
+        {
+          "video_seconds": 71.85717371499973,
+          "pid": 3347835,
+          "tid": 139948335441792,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 319
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/cli.py",
+              "line": 37
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/app.py",
+              "line": 2352
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 172
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1288
+            },
+            {
+              "function": "_compositor_refresh",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1219
+            },
+            {
+              "function": "_prepare_compositor_refresh",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 175
+            },
+            {
+              "function": "prepare",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 141
+            },
+            {
+              "function": "visible_bodies_ready",
+              "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 302
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

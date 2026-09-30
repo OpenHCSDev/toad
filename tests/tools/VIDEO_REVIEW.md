@@ -379,6 +379,30 @@ must decide whether sampled work is redundant and implement its fix.
 
 ## Separate capture and review lifetimes
 
+### Query complete stacks from a retained recording
+
+The recorder's top-frame preview is bounded; it can omit structural callers.
+Reuse its decoded trace and existing phase/kernel-CPU evidence without starting
+another application, profiler or native owner:
+
+```sh
+"$candidate_python" tests/tools/profile_trace.py \
+  /home/ts/.cache/agent-scratch/YOUR-RUN/capture \
+  --phase down --phase return-a \
+  --function _reconcile --function _refresh_layout --function execute_render_task \
+  --examples 3 --output /home/ts/.cache/agent-scratch/YOUR-REVIEW/stacks.json
+```
+
+Use repeatable `--source` filters to select source-path substrings instead, or
+combine source and function filters. Selection is an explicit query, not a
+maintained catalog of owners. Output contains all matching frame identities and
+bounded complete-stack examples, linked to the existing physical phase files and
+kernel CPU counters. It refuses unknown phases and refuses to overwrite output.
+The source recording is untouched. Counts are changed-stack observations, never
+function CPU, sample durations or call counts. No match cannot prove work absent;
+an awaited coroutine parent can disappear from an asynchronously sampled stack.
+Review the matched source lifecycle before claiming an optimization target.
+
 For native acceptance journeys, add `--review-timing deferred`. Capture still records the exact installed runtime, all physical actions, raw terminal video, screenshots, profile correlation and process cleanup. Its receipt records the selected timing and `assessment: unreviewed`; the slow clips and contact sheets are absent until the independent review operation completes. The fixture can then verify its original owner still accepts a prompt and retire its native processes.
 
 After that journey retires, encode the recorded intervals through the same tool:
