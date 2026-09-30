@@ -63,6 +63,7 @@ class BodyMeasurement:
     width: int
     rows: int
     widgets: int = 1
+    nodes_revision: int | None = None
 
 
 class MeasuredViewportBody(ViewportBody):
@@ -95,13 +96,25 @@ class MeasuredViewportBody(ViewportBody):
     def retained_widget_count(self) -> int:
         if self._body_dormant:
             return self._body_measurement.widgets
-        return 1 + len(self.walk_children())
+        # NodeList propagates descendant custody changes to this native owner.
+        # Layout/style/scroll alone do not change the count. Keep the measured
+        # cost with its original extent, not another viewport resource catalog.
+        measurement = self._body_measurement
+        if measurement is not None and measurement.nodes_revision == self._nodes._updates:
+            return measurement.widgets
+        widgets = 1 + len(self.walk_children())
+        if measurement is not None:
+            self._body_measurement = replace(
+                measurement, widgets=widgets, nodes_revision=self._nodes._updates,
+            )
+        return widgets
 
     def retire_measurement(self) -> None:
         # This cost belongs to the reconstructible body, not a second viewport
         # counter. Keep it with the extent when the measured native tree retires.
         self._body_measurement = replace(
-            self._body_measurement, widgets=1 + len(self.walk_children()),
+            self._body_measurement, widgets=self.retained_widget_count,
+            nodes_revision=self._nodes._updates,
         )
         self._body_dormant = True
 
@@ -112,7 +125,9 @@ class MeasuredViewportBody(ViewportBody):
                 self._body_measurement_stale = True
             return self._body_measurement.rows
         height = super().get_content_height(container, viewport, width)
-        self._body_measurement = BodyMeasurement(width, height)
+        self._body_measurement = BodyMeasurement(
+            width, height, self.retained_widget_count, self._nodes._updates,
+        )
         self._body_measurement_stale = False
         return height
 
