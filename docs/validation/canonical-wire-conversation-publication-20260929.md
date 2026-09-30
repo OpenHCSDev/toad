@@ -161,10 +161,66 @@ The full original read identity still carries annotations for notification and
 activity publication. No consumer reconstructs that key or stores another
 revision. The existing installed-reader journey checks a registry annotation,
 then requests the canonical page again without increasing the source read count.
-This extension is pending its paired installed run.
+The paired installed-reader check passes: an annotation-only change retains the
+same content work key and does not reread the page. This focused check does not
+establish the primary real-provider journey.
 
 Combined production delta against `7e4465c7` at the real02 checkpoint: 149 lines
 deleted, 351 added, including integrated peer #217 scope. The earlier 112/260
 count describes the pre-#217 checkpoint, not this full cohort. The full cohort
 ratchet identifies two added #217 foreign absence probes; Heisenberg owns their
 capability closure and neither is waived.
+
+## Real03: original handling updates; bus custody blocks native admission
+
+The next installed pair is Core `9643db67` and Toad `1722ce9d`, with the same
+Textual and verified native package. Fresh `real-wire215-03` again loaded two
+forks of the original 41,270,257-byte saved source and opened both DMs and IRC
+before sending. Original wire sequence 1, message `54d7819cd969`, appeared hot
+in all three views. Its original target handling changed from Responding to
+Failed in place in all three already-open views.
+
+The native input `ca67cc37a2a519c2d9486b85a4d2e3ee` failed before bytes while
+acquiring the bus lock in the response boundary. The original FULL reservation
+has no native session entry or verdict, and no reply publication receipt exists.
+Its complete original coordinator, native journals and diagnostic remain
+preserved; no input was replayed. Every owned child was verified stopped.
+Reply-once, header grouping, 31-second same-open and A/B/A immediate-input phases
+were not reached. This is another failed primary gate, not readiness.
+
+The reply wait now consumes the already-open IRC's canonical rows. Removed the
+fixture's repeated full-history bus reads so the observer does not introduce
+that exclusive scanning workload into the journey.
+
+Independent-thread kernel lock samples show the UI process holding and waiting
+for the bus lock while native/ACP processes also wait. Samples identify custody
+and contention; they do not prove a continuous hold duration or self-deadlock.
+Mendel owns the complete canonical read transaction and certification lifetime
+closure in #430, coordinating with Einstein's admission boundary.
+
+Evidence: owned scratch `real-wire215-03/original-attempt-disposition.json`,
+`original-private-wire/diagnostics/ca67cc37a2a519c2d9486b85a4d2e3ee.json`,
+`kernel-lock-custody.json` and the original receipt's three-view handling timeline.
+
+## Read-only actual-source custody profile
+
+`read-custody215-02` used the same real original saved source and three installed
+UI views, then kept them open for 40 seconds without sending any native input.
+The completed read-only receipt and archived coordinator contain zero native
+inputs; every owned child was verified stopped. The parent-launch py-spy capture
+wrote 70,469 samples with zero sampling errors. Its wrapper subsequently exited
+1 with `No child process (os error 10)`; no wrapper exit-zero claim is made.
+
+Source stacks place repeated recent-notification and transcript-frontier reads
+inside `AssignedTranscriptSource.rows`, followed by bus custody, private
+checkpoint verification and saved-source decoding. Kernel samples retain the
+actual lock inode-to-name mapping. `holder-stack-leads.json` excludes acquisition
+wait frames. Cross-thread inclusive sample weights are not wall-clock latency.
+These observations support sharing the existing certified read transaction
+across recent/frontier/window consumers, not adding a proof cache or semantic
+mirror. Mendel owns that source correction; #215 remains draft until the full
+actual user journey passes.
+
+Evidence: owned scratch `read-custody215-02/receipt.json`,
+`kernel-lock-custody.json`, `holder-stack-leads.json`,
+`read-custody215-02.speedscope.json` and `read-custody215-02.txt`.
