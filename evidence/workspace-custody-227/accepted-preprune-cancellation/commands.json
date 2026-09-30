@@ -1,0 +1,37 @@
+[
+  {
+    "run": "snapshot-preprune-c9-baseline",
+    "case": "preprune",
+    "expected_and_observed_exit": 1,
+    "installed_toad": "c9aa8302a27f42c261431d36f1b74f103c2180d9",
+    "command": "CUSTODY_CASE=preprune CUSTODY_EVIDENCE=\"$PWD/.artifacts/snapshot-preprune-c9-baseline\" timeout 45 /home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-core421-candidate/bin/python tests/snapshot_cancellation_custody_pilot.py"
+  },
+  {
+    "run": "snapshot-preprune-b6-candidate",
+    "case": "preprune",
+    "expected_and_observed_exit": 0,
+    "installed_toad": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+    "command": "CUSTODY_CASE=preprune CUSTODY_EVIDENCE=\"$PWD/.artifacts/snapshot-preprune-b6-candidate\" timeout 45 /home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-accepted-retirement/bin/python tests/snapshot_cancellation_custody_pilot.py"
+  },
+  {
+    "run": "checkpoint-preprune-c9-baseline",
+    "case": "covered_checkpoint",
+    "expected_and_observed_exit": 1,
+    "installed_toad": "c9aa8302a27f42c261431d36f1b74f103c2180d9",
+    "command": "CUSTODY_CASE=covered_checkpoint CUSTODY_EVIDENCE=\"$PWD/.artifacts/checkpoint-preprune-c9-baseline\" timeout 45 /home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-core421-candidate/bin/python tests/snapshot_cancellation_custody_pilot.py"
+  },
+  {
+    "run": "checkpoint-preprune-b6-candidate",
+    "case": "covered_checkpoint",
+    "expected_and_observed_exit": 0,
+    "installed_toad": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+    "command": "CUSTODY_CASE=covered_checkpoint CUSTODY_EVIDENCE=\"$PWD/.artifacts/checkpoint-preprune-b6-candidate\" timeout 45 /home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-accepted-retirement/bin/python tests/snapshot_cancellation_custody_pilot.py"
+  },
+  {
+    "run": "snapshot-mount-prune-b6-candidate",
+    "case": "mount_and_prune",
+    "expected_and_observed_exit": 0,
+    "installed_toad": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+    "command": "CUSTODY_EVIDENCE=\"$PWD/.artifacts/snapshot-mount-prune-b6-candidate\" timeout 45 /home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-accepted-retirement/bin/python tests/snapshot_cancellation_custody_pilot.py"
+  }
+]
