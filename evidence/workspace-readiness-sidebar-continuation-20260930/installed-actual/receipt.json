@@ -1,0 +1,125 @@
+{
+  "tested_source_commit": "c191f29a45f1c7374dc44e88024dc71fc232f729",
+  "normal_main_base": "19970f56899674932584138ff5e6fbe533c4af8f",
+  "production_added": 10,
+  "production_deleted": 7,
+  "raw_capture": "/home/ts/.cache/agent-scratch/toad-sidebar-custody-249-20260930-attempt01/capture",
+  "duration_seconds": 89.74380406801356,
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "native_checks_passed": true,
+  "originals_unchanged": true,
+  "driver_exit_code": 0,
+  "ffmpeg_capture_returncode": 255,
+  "ffmpeg_exit_assessment": "255 is the recorder accepted SIGINT stop, not Toad fatal",
+  "cleanup_errors": [],
+  "remaining_owned_pids": [],
+  "physical_review": {
+    "completed_pngs": [
+      "phase-down-done.png",
+      "phase-idle-done.png",
+      "phase-a-return.png"
+    ],
+    "sampled_sheets": [
+      "down-frames.png",
+      "return-a-frames.png",
+      "switch-b-frames.png"
+    ],
+    "finding": "readable Down/End-idle/A-return; sampled body remains present; cold B loader remains",
+    "limits": "8fps sheets do not exclude 33ms gaps or prove instantaneous warm/Strip reuse; capture frame0 not measured"
+  },
+  "ui_cpu_percent": {
+    "warm-start": 40.67005750324139,
+    "draft": 36.61946078520009,
+    "focused": 25.443710186424184,
+    "up": 89.9107985385578,
+    "up-done": 103.0550110183257,
+    "down": 96.54713185595087,
+    "down-done": 83.71987190043232,
+    "reverse": 80.51802129613127,
+    "reverse-done": 44.8825756293019,
+    "end": 77.6950690373403,
+    "idle": 29.60258950578692,
+    "idle-done": 33.65577204775067,
+    "switch-b": 57.432260914652225,
+    "b-open": 105.8886096072516,
+    "return-a": 48.45736168868932,
+    "a-return": 43.7665707346213
+  },
+  "cpu_claim": "Mixed vs248; no overall CPU improvement established; export/profiling included",
+  "gil_samples": 1330,
+  "gil_errors": 0,
+  "raw_manifest": {
+    "cpu-profile.json": {
+      "bytes": 9623175,
+      "sha256": "c44b8759c3319df879ef452cc50a79fa0496b389bd459d9e2099f4c110520f83"
+    },
+    "events.jsonl": {
+      "bytes": 47629,
+      "sha256": "316bc9cd5d8e4443ad86597605f43094f05ac2dd5eda546259ca5b00feb190fd"
+    },
+    "profile-launch.json": {
+      "bytes": 503,
+      "sha256": "99061139a24e790610f333ac1edbb430b8f511f6d4eac7c168383a0a2c9756bd"
+    },
+    "profile-review.json": {
+      "bytes": 226242,
+      "sha256": "5e3c760c38d6bd95736268f8ab59860feb35da34328603001810eef08b58b965"
+    },
+    "profile-terminal.json": {
+      "bytes": 96,
+      "sha256": "f6a9245683355bd76de542e778e9b1802735587fb5da78f9d24f2927f3fdd68d"
+    },
+    "profiler.log": {
+      "bytes": 358,
+      "sha256": "0fa33d51e0dc6628417e98da14197efe76fd8b5281d2a01c7d0b0c693445704a"
+    },
+    "phase-down-done.png": {
+      "bytes": 110231,
+      "sha256": "ca8c211138e20e2a17ee6319222854884e1fcfa1708999d6a6b2ea68a2bbec8a"
+    },
+    "phase-idle-done.png": {
+      "bytes": 111415,
+      "sha256": "37ce38c5cddeda2f8ecacf96bd52ccc96265983d49d62dec49bf63c85ee5e3ae"
+    },
+    "phase-a-return.png": {
+      "bytes": 113587,
+      "sha256": "137dddaddc06c5eba540e3e37dad26842fdfc6157ab4bfc69712ada509e8e856"
+    },
+    "phase-b-open.png": {
+      "bytes": 118803,
+      "sha256": "446e8f8ce41fda55d3675f665a77cd31c6f7d6864b7a224fe43f422656057c77"
+    },
+    "down-frames.png": {
+      "bytes": 1622715,
+      "sha256": "42f1ca018b85ad851b7467c07779ddf0fbbad26504d43b50953182fb150f52b2"
+    },
+    "return-a-frames.png": {
+      "bytes": 1210312,
+      "sha256": "671745c5927584b781ad20390c5ad63d9640348600d9d0ab58629172e9395cab"
+    },
+    "switch-b-frames.png": {
+      "bytes": 828060,
+      "sha256": "7825979456df3efc394cd5d5b7b90f60bb4675063dd42b191f494f3f24a95338"
+    }
+  },
+  "source_custody_gate": "../source-receipt.json",
+  "source_ready_scope": "native sidebar row custody and forced mode selection, all consumers",
+  "remaining": "whole CPU/warm/TC1/T9/editor/adaptive scope and canonical queue handoff recorded in README"
+}

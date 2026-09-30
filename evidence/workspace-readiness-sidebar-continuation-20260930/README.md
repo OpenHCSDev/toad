@@ -112,3 +112,21 @@ here. _initialize_session, release_native_session and restoration/presentation
 lifetime crossings need direct method handoff before overlapping edits. This
 reassignment does not remove the original editor focus/caret/Undo acceptance;
 coordinate canonical prompt ownership with Kepler while diagnosing that scope.
+
+## Installed scoped acceptance
+
+Normal immutable249 sourcec191f29a, Core6feb, Text2e49, SDK0.12.1 and full native593b
+trust: all68 normal requirements and273 source files verified, pipcheck passes.
+Actual original41MB/13MB isolated st A/B/A held Up/Down/reverse/End/15idle plus local
+draft/Undo:89.744s,16 native checks PASS, original two owner identities and journal
+SHAs unchanged, driver0 and cleanup empty. FFmpeg255 is accepted recorder SIGINT.
+Three completed Down/idle/A-return PNGs and three3s/8fps sheets were personally
+reviewed. History is readable; coldB loader remains. No 33ms-gap-free, instantaneous
+warm or raster/Strip claim. CPU Down96.55%, idle29.60% including diagnostic export
+and profiling is mixed versus248; this checkpoint does not claim whole CPU gain.
+1330GIL samples, zero errors. Full raw recording/profiler clocks/source DTOs remain
+protected at the path in installed-actual/receipt.json. No second capture.
+
+SCOPEDREADY for native sidebar custody/selection only after this installed gate
+and the focused held-removal source gate. Full residual assignment above stays
+open; this is neither a fullTC1/T9 closure nor a final performance target.
