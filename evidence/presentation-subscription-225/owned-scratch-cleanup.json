@@ -1,0 +1,15 @@
+{
+  "removed": [
+    "/home/ts/wt/comms-presentation-225-retained-readonly-03-20260930",
+    "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/wheels"
+  ],
+  "empty_failed_stage_bytes": 4096,
+  "installed_wheels_removed_allocated_approx_mib": 2.9,
+  "exact_wheel_bytes_not_retained": true,
+  "preserved": [
+    "installed",
+    "retained-readonly-03 proof",
+    "public root/source",
+    "native e36"
+  ]
+}

@@ -29,7 +29,7 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.goals import Goal
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from textual.content import Content
 from textual.message import Message
 from textual.message_pump import MessagePump
@@ -380,6 +380,15 @@ class Agent(AgentBase):
             raise ValueError("Thread attachment changed while reading status")
         return presentation
 
+    async def get_message_notifications(self, references):
+        coordination = self.coordination
+        if coordination is None:
+            return {}
+        results = await self.controller.transcripts.notifications(coordination.wire_root, references)
+        if self.coordination is None or self.coordination.wire_root != coordination.wire_root:
+            raise ValueError("Thread attachment changed during original-message notification read")
+        return results
+
     async def observe_thread_presentation(self, presentation) -> None:
         await self.session.observe_owner(presentation)
 
@@ -389,6 +398,7 @@ class Agent(AgentBase):
         before: "TranscriptCursor | None" = None,
         after: "TranscriptCursor | None" = None,
         through: "TranscriptCursor | None" = None,
+        read_identity: "TranscriptReadIdentity | None" = None,
     ) -> "TranscriptPage":
         if (self.coordination.wire_root if self.coordination else None) is None or (
             self.coordination.thread.name if self.coordination else None
@@ -400,6 +410,7 @@ class Agent(AgentBase):
         )
         page = await self.controller.transcripts.page(
             root, thread, before=before, after=after, through=through,
+            read_identity=read_identity,
         )
         if (root, thread) != (
             (self.coordination.wire_root if self.coordination else None),

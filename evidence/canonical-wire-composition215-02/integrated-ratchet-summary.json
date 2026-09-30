@@ -1,0 +1,35 @@
+{
+  "root": "src/toad/",
+  "base_revision": "53154c7df193dcb697f10f2bcf33a44d71a5de95",
+  "head_revision": "e59c8b5d1f3512cdd65c5e9c772b3193bf7bbecd",
+  "paths": [
+    "src/toad/acp/agent.py",
+    "src/toad/acp/transcript_reader.py",
+    "src/toad/agent.py",
+    "src/toad/conversation_turn.py",
+    "src/toad/render_tasks.py",
+    "src/toad/transcript_preparation.py",
+    "src/toad/transcript_publication.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/transcript_state.py",
+    "src/toad/widgets/committed_presentation.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/incoming_message.py",
+    "src/toad/widgets/message_filter.py",
+    "src/toad/widgets/outgoing_message.py",
+    "src/toad/widgets/transcript_fragments.py",
+    "src/toad/widgets/transcript_history.py",
+    "src/toad/widgets/wire_message_handling.py"
+  ],
+  "nonzero_delta": {
+    "GodClassExcess:src/toad/widgets/conversation.py::Conversation": -2,
+    "GodClassExcess:src/toad/widgets/transcript_history.py::TranscriptHistory": -10,
+    "LongBooleanChain": -1,
+    "BooleanChainTerms:src/toad/transcript_publication.py": -5,
+    "ForeignAbsenceProbe:src/toad/transcript_preparation.py": -1,
+    "ForeignAbsenceProbe:src/toad/transcript_publication.py": -2,
+    "ForeignAbsenceProbe:src/toad/widgets/incoming_message.py": -2
+  },
+  "positive_delta": {},
+  "exit_code": 0
+}

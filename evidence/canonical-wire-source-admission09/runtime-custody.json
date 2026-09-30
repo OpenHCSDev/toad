@@ -1,0 +1,20 @@
+{
+  "owner": "Schrodinger215",
+  "purpose": "canonical source/publication acceptance and retained failure evidence",
+  "protected_installs": [
+    ".artifacts/installed-composition02",
+    ".artifacts/installed-native06",
+    ".artifacts/installed-original-routing07",
+    ".artifacts/installed-source-admission09"
+  ],
+  "current_install": ".artifacts/installed-source-admission09",
+  "current_runtime_borrower": "Heisenberg227 heldmount/retirement source-only gate; no edits",
+  "protected_fixture": "/home/ts/wt/cw215h05",
+  "evidence_root": "/home/ts/.cache/agent-scratch/toad-restored-inbound-chronology-20260929",
+  "disposable_removed": {
+    "path": ".artifacts/installed-source-admission08",
+    "unique_file_bytes": 272166
+  },
+  "default_activation_owner": "parent",
+  "state": "source checkpoint reviewed pending held resource gate and parent activation"
+}

@@ -1,0 +1,30 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "original_bytes": 41270257,
+  "original_inputs_replayed": 0,
+  "completed_phases": [
+    "original_saved_history_open"
+  ],
+  "core": "224bb8e305bdd47276c4a853749b35e6d7c41ae0",
+  "toad": "be8f37c3",
+  "closed_bars_current_status": "Ready",
+  "read_only_idle": {
+    "wall_seconds": 40.000144918012666,
+    "process_cpu_seconds": 1.3255683939999994,
+    "percent_one_core": 3.313908978872414
+  },
+  "original_source_custody": {
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c",
+    "owner": {
+      "pid": 2823983,
+      "start_time": 23393932
+    },
+    "unchanged": true
+  },
+  "closed_bars_read_only": true,
+  "complete": true,
+  "inputs": [],
+  "elapsed_seconds": 60.088,
+  "children_retired": true
+}

@@ -1,0 +1,40 @@
+{
+  "toad": "/home/ts/.cache/agent-scratch/toad-markdown-token-rules-20260930/installed/lib/python3.14/site-packages/toad/__init__.py",
+  "core": "/home/ts/.cache/agent-scratch/comms-owner-state-cleanup-20260929/c3-installed/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "textual": "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/textual/__init__.py",
+  "provider_calls": 0,
+  "actual_installed_app": true,
+  "text_code_web_links_rendered": true,
+  "physical_file_link_click": true,
+  "actual_file_preview_source": true,
+  "return_preserved_draft": true,
+  "default_activation": false,
+  "owner": "Mendel",
+  "base": "4d239091240790fc95863a8e9b3edf009ca72e53",
+  "source": "26e41dab6c1dc8563fe7c3e911137ba71075afc3",
+  "core_source": "20079652d28c7668457f703ffca5eb52d41163a4",
+  "textual_source": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "markdown_it_version": "4.2.0",
+  "wheel_sha256": "770a387e630b07c14f3e7aa849ddd900abe446bf0fc78347426ff2a909879deb",
+  "stage": "/home/ts/.cache/agent-scratch/md226-ui05",
+  "exit_code": 0,
+  "canonical_owners": [
+    {
+      "name": "user",
+      "process_alive": false
+    }
+  ],
+  "owned_process_leaks": [],
+  "positive_required_delta": {},
+  "string_dispatch_before": 1,
+  "string_dispatch_after": 0,
+  "string_dispatch_arms_before": 4,
+  "string_dispatch_arms_after": 0,
+  "production_deleted": 62,
+  "production_added": 140,
+  "visual_review": [
+    "original SVG rendered by rsvg-convert: two file links and unlinked multiword inline code",
+    "original SVG rendered by rsvg-convert: actual file preview with Python fence"
+  ],
+  "limits": "Mounted installed actual Toad/Markdown/Textual path gate; no native prompts, no live/default installation, no global CPU/warm-return claim"
+}

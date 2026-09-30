@@ -2,6 +2,7 @@
 from textual.worker import WorkerCancelled
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
+from toad.widgets.committed_presentation import TranscriptCoverage
 
 
 class TranscriptSourcePreparation:
@@ -62,7 +63,7 @@ class TranscriptSourcePreparation:
         self._prefetch_intent = None
         self.window.histories.add(self)
         if self._source_state.reports_coverage:
-            self.post_message(self.Covered(tuple(self.coverage_events), self))
+            self.post_message(TranscriptCoverage(tuple(self.coverage_events), self))
         self.window.check_follow()
         self._scroll_changed()
         self.prepare_scroll()

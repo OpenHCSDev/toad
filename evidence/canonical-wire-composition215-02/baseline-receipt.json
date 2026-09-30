@@ -1,0 +1,19 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "high",
+  "source_bytes": 41270257,
+  "original_inputs_replayed": 0,
+  "completed_phases": [
+    "original_saved_history_both_open",
+    "irc_open_before_send"
+  ],
+  "composition_control": {
+    "original": {
+      "seq": 1,
+      "message_id": "541fdfa6e0b2"
+    },
+    "body_count_at_container_mount": 2,
+    "children_at_container_mount": 1,
+    "body_count_after_composition": 2
+  }
+}

@@ -1,0 +1,66 @@
+py-spy> Sampling process 25 times a second. Press Control-C to exit.
+
+Traceback (most recent call last):
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/registry_document.py", line 67, in from_wire
+    document = FieldCodec.decode(cls, raw)
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/field_codec.py", line 256, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/field_codec.py", line 440, in _decode
+    field.name: cls.decode(hints[field.name], data[key])
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/field_codec.py", line 256, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/field_codec.py", line 406, in _decode
+    return {cls.decode(str, key): cls.decode(args[1], value) for key, value in data.items()}
+                                  ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/field_codec.py", line 256, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/field_codec.py", line 427, in _decode
+    raise ValueError(f"Unknown fields for {target.__name__}: {sorted(unknown)}")
+ValueError: Unknown fields for Thread: ['last_goal_report_turn']
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-presentation-subscription-20260930/tests/original_turn_resource_real_installed_pilot.py", line 260, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-presentation-subscription-20260930/tests/original_turn_resource_real_installed_pilot.py", line 69, in main
+    snapshot = Registration(Path(os.environ['AC_REAL_SOURCE_ROOT']) / 'registry.json').snapshot()
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/registration.py", line 36, in __init__
+    self.store.read()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/locked_store.py", line 81, in read
+    with self.reading() as value:
+         ~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/locked_store.py", line 78, in reading
+    yield self._read_unlocked()
+          ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/registry_store.py", line 56, in _read_unlocked
+    self._decode(json.loads(self.path.read_text()))
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/registry_store.py", line 68, in _decode
+    return self.record_type.from_wire(data)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/registry_document.py", line 87, in from_wire
+    raise RelationViolationError(f"Invalid registry document: {error}") from error
+agent_comms.errors.RelationViolationError: Invalid registry document: Unknown fields for Thread: ['last_goal_report_turn']
+
+py-spy> Stopped sampling because process exited
+py-spy> Wrote chrome trace to '/home/ts/wt/toad-presentation-subscription-20260930/evidence/presentation-subscription-225/retained-readonly-02/cpu-profile.json'. Samples: 31 Errors: 0
+py-spy> Visit chrome://tracing or https://ui.perfetto.dev/ to view
