@@ -13,3 +13,7 @@ Actual retained ACP logs decoded with the installed canonical boundary produced 
 [Ready receipt](../../evidence/request-progress-paired-20260930/ready-receipt.json) pins the immutable package, raw files, original private inputs and full typed records. Raw private root/native journals remain under `/home/ts/wt/g454e/u01`; source logs are preserved. All attempt-tag/private-root processes are absent. An initial command-text cleanup census incorrectly included the concurrent read-only reviewer shell; both original and corrected custody-based census are retained.
 
 This is the real installed Pilot/compositor/SVG journey, not a physical st/Xvfb speed capture. Earlier frozen453/242 fork-budget and saved-restart channel controls were reused, not repeated; their failed original wrapper attempt is unchanged. Production edits/deletions: **0/0**. Parent retained owner/client cutover and one short ordinary default-startup acceptance remain required before a default-live claim.
+
+### Pixel qualification
+
+The unchanged exported Pilot SVG raster was personally viewed: its black foreground style over black background is unreadable. This is not readable pixel evidence. Actual SVG text and compositor glyph census are retained separately. No palette correction or repeated capture was used to hide it. The ordinary default physical startup after parent cutover must provide readable-pixel acceptance.
