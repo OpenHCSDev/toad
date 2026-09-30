@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     encode_updates,
 )
 from agent_comms.native_runtime_input import CurrentNativeCursor
-from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
+from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp, reveal_session_details
 
 from toad.acp.agent import Agent
@@ -32,7 +32,7 @@ DATA = {
 
 
 def response(session):
-    owner = OwnerIdentity(ThreadIncarnation("owner", 1000.0), 1)
+    owner = AdmissionIdentity(ThreadIncarnation("owner", 1000.0), 1)
     cursor = CurrentNativeCursor(
         "a" * 32,
         "recipient",

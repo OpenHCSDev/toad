@@ -55,7 +55,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     assert 'SUBMISSION_SAVED_HISTORY' in screen_paint(app)
     original_scope = agent.queue_attachment.scope
-    assert original_scope.session_id == 'beta' and original_scope.owner.incarnation.name == 'beta'
+    assert original_scope.session_id == 'beta' and original_scope.admission.incarnation.name == 'beta'
     # Return through physical tabs before renaming this already attached owner.
     # No reconnect, refresh input or replacement load may repair the attachment.
     await channel_target('#team').open(NavigationContext(app, mode, agent.project_root_path,
@@ -80,7 +80,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert queued.text in view.query_one(QueueSummary).render().plain
     assert not view.prompt.text
     scope = agent.queue_attachment.scope
-    assert scope.session_id == 'beta' and scope.owner.incarnation.name == 'renamed-beta'
+    assert scope.session_id == 'beta' and scope.admission.incarnation.name == 'renamed-beta'
     assert scope.relation(original_scope).current
     # Keep the actual queued turn open during another A/B/A reader return.
     view.prompt.text = 'SUBMISSION_UNSENT_DRAFT'
@@ -117,7 +117,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     (root / 'submission.svg').write_text(app.export_screenshot())
     (root / 'submission.json').write_text(json.dumps({
         'requests': len(requests), 'sessionId': agent.session_id,
-        'owner': agent.queue_attachment.scope.owner.incarnation.name,
+        'owner': agent.queue_attachment.scope.admission.incarnation.name,
         'inputId': queued.input_id, 'inputState': disposition.public_status,
         'draftPreserved': view.prompt.text == 'SUBMISSION_UNSENT_DRAFT',
         'paint': screen_paint(app),

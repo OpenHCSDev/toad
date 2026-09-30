@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     UnavailableQueueProjection,
     encode_updates,
 )
-from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
+from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
@@ -35,7 +35,7 @@ DATA = {
 def response(session, next_owner=False):
     generation = 2 if next_owner else 1
     scope = QueueScope(
-        session, OwnerIdentity(ThreadIncarnation(session, 1000.0), generation), 1234
+        session, AdmissionIdentity(ThreadIncarnation(session, 1000.0), generation), 1234
     )
     items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
     return {

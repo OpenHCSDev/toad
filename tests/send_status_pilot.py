@@ -15,7 +15,7 @@ from agent_comms.acp_extension import (
     QueueScope,
     encode_updates,
 )
-from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
+from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp
 
 AGENT = {
@@ -89,7 +89,7 @@ async def main():
                     )
 
             scope = QueueScope(
-                "beta", OwnerIdentity(ThreadIncarnation("beta", 1.0), 1), 123
+                "beta", AdmissionIdentity(ThreadIncarnation("beta", 1.0), 1), 123
             )
             items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
             token = agent.queue_attachment.begin("beta")
