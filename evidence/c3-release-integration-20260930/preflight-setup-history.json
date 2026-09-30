@@ -1,0 +1,18 @@
+{
+  "attempts": [
+    {
+      "step": "source-byte-verification setup",
+      "result": "missing local Git tree object ea1c275a; fetched exact reviewed merge into owned source repository, then verified original same installed stage",
+      "ui_launches": 0,
+      "native_inputs": 0
+    },
+    {
+      "step": "private metadata root selection",
+      "result": "Private bus writer has no durable protocol marker: selected own fixture private-root container instead of its declared wire child",
+      "corrected_root": "/home/ts/wt/cw233-observer08/private-root/wire",
+      "ui_launches": 0,
+      "native_inputs": 0
+    }
+  ],
+  "gate": "actual existing RuntimeSelection.publish_verified_stage native/private metadata preflight passed afterward on the same candidate; no package rebuild/public-root read"
+}

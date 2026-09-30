@@ -18,6 +18,14 @@ Normal main advance incorporates merged227 ecbca1d9 and235 04536c3c.235 deletes 
 
 Current-main c62c8d29 includes reviewed234 catalog action commands and its actual native08 acceptance. PR231 integrates it normally, with no implementation changes or repeated installed gate.235 and227 remain included;236 stays outside this candidate until physical acceptance and must not delay the critical build. Parent owns public activation and retiring old CLIENT writers; packaging does not authorize either operation.
 
+## Final immutable paired candidate built
+
+One normal frozen68 hardlinked install is complete at `/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930`. Pins: Coreea1c275ae849c0bb7ac8b32f500096c820fc263a, To6ff0b13eed7b61e7152194b2ccada51cd23269a9, Text2e49cb838af44d69aa5a6d76b2a1d74cfbe67347, SDK0.12.1, existing standalone nativee36. All288 Core/273 Toad/249 Textual Python source files match the exact Git source; all68 installed noneditable packages match the frozen recipe and pass package compatibility checks. Current wheel native manifest SHA matches accepted trustede36; no repeated native tree hash or paid journey.
+
+The existing mechanical stage publisher derives activation metadata from the same verified staging receipt and passes installed runtime/private-route preflight. This preflight reads only the already completed OWN233 fixture's durable private metadata marker; it launches no UI, attaches no threads, submits no input and leaves zero owned probe processes. Failed setup reads are preserved separately; no public old-root load/default mutation/owner restart.
+
+Parent requested one continuous affected installed acceptance using the existing233 native08 caller, changed only through runtime selection: production fork, roster publication, immediate cold child open, inherited history, first new child input and one reply/status/history. This new paired gate is pending in persistent private fixture `/home/ts/wt/cw231-final-native01`; controlled loopback provider only. Prior component gates are not repeated. Parent alone owns public activation after excluding old CLIENT writers.
+
 ## Historical accepted firstUI release
 
 # Inactive first UI End and keypad integration
