@@ -1,0 +1,133 @@
+{
+  "state": "TWO-ACTUAL-INSTALLED-CONTINUOUS-NATIVE-WORKFLOWS-PASS",
+  "overall_live_ready": false,
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930",
+  "python": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python",
+  "pins": {
+    "agent-comms": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+    "batrachian-toad": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "pytest_exit_code": 0,
+  "tests_passed": 2,
+  "pytest_wall_seconds": 42.44,
+  "wrapper_wall_seconds": 43.238323844998376,
+  "one_execution": true,
+  "provider_requests": {
+    "fork": 2,
+    "saved_restart_channel_roundtrip": 5,
+    "basis": "Existing actual provider-count assertions passed; fork count additionally printed in retained terminal log",
+    "route": "Controlled localhost only, seven total; zero paid"
+  },
+  "fork": {
+    "first_answer_latency_seconds": 9.521835646010004,
+    "original_first_input_once": true,
+    "parent_native_context_retained": true,
+    "normal_fork_and_actual_native_reply": true,
+    "selected_compaction": false,
+    "no_replay": true
+  },
+  "saved_restart_channel": {
+    "original_channel_question_native_reply": true,
+    "sender_automatic_delivery": true,
+    "exact_original_cursor_input_native_entry_join": true,
+    "guarded_restart_same_incarnation_history": true,
+    "one_explicit_postrestart_input": true,
+    "no_replay_or_pingpong": true
+  },
+  "production_source_import_override": false,
+  "fixture_root_adaptation": "Existing tests and existing tmp_path fixture definition reused; fixture provider relocated only to owner-only persistent f1/f2 roots under /home/ts/wt/g452e. No production guard/source/assertion modification. Roots preserve journals and original inputs. AF_UNIX namespace short.",
+  "test_dependencies": "Immutable pair has no pytest; only pytest/pytest-asyncio/iniconfig/pluggy in separate owned g452e/deps, pair unchanged",
+  "test_source_sha256": {
+    "test_native_fork_first_input.py": "efc80a4096f35a2dcb73b98d15f0811f0223f8c1e38d550996c65cb61ae41fba",
+    "test_native_channel_reply_roundtrip.py": "5b645a98b28ab9b3b7f748f74835a7c87d35e82156708713c703d512533714fb",
+    "test_backend_native_lifecycle.py": "49227663d8b7eedc13e2073d6af3788096bf39c4e31ae0dc5d99d3f555c57fee",
+    "test_coordinated_runtime.py": "044d586f077c4921a26c77970505d9c6ed005991566b1936ad8a35d66b5ae1f6",
+    "conftest.py": "41c79ca641f76de52bab7926be390e0daafe6a1b4030d163cc3e7e68f9622184"
+  },
+  "raw_persistent_artifacts": "/home/ts/wt/g452e",
+  "fixture_roots": [
+    "/home/ts/wt/g452e/f1",
+    "/home/ts/wt/g452e/f2"
+  ],
+  "cleanup": {
+    "registry_owner_checks": [
+      {
+        "fixture": "f1",
+        "thread": "physical-parent",
+        "identity": null,
+        "alive": false,
+        "active_turn": null,
+        "status": {
+          "kind": "running"
+        }
+      },
+      {
+        "fixture": "f1",
+        "thread": "physical-child",
+        "identity": {
+          "pid": 3476641,
+          "start_time": 25846377
+        },
+        "alive": false,
+        "active_turn": null,
+        "status": {
+          "kind": "stopped"
+        }
+      },
+      {
+        "fixture": "f2",
+        "thread": "questioner",
+        "identity": {
+          "pid": 3477405,
+          "start_time": 25849210
+        },
+        "alive": false,
+        "active_turn": null,
+        "status": {
+          "kind": "stopped"
+        }
+      },
+      {
+        "fixture": "f2",
+        "thread": "answerer",
+        "identity": {
+          "pid": 3477407,
+          "start_time": 25849351
+        },
+        "alive": false,
+        "active_turn": null,
+        "status": {
+          "kind": "stopped"
+        }
+      }
+    ],
+    "remaining_fixture_processes": [],
+    "journals_roots_preserved": [
+      "/home/ts/wt/g452e/f1",
+      "/home/ts/wt/g452e/f2"
+    ],
+    "source_histories_unknown_preserved": true,
+    "signals_sent_after_test": 0
+  },
+  "observations": {
+    "timestamped_acp_callbacks": 168,
+    "canonical_turn_phases": [
+      "preparing",
+      "prompt_acceptance",
+      "model_wait",
+      "settling_stats",
+      "publishing",
+      "idle"
+    ],
+    "measurement_file": "canonical-turn-timing.json",
+    "missing": "No tools invoked, no real provider queue/reasoning split, no exact unobserved phase-start instant claim"
+  },
+  "public_mutations": 0,
+  "default_changes": 0,
+  "public_owner_restarts": 0,
+  "manual_replays": 0,
+  "remaining_scope": "Existing400 budget-generationMendel failure remains independent; fresh originalpublic452InboxUnavailable/UNKNOWN not cleared by private controlled controls. Actual userlauncher/UI/ACP gate follows parent publicactivation only."
+}

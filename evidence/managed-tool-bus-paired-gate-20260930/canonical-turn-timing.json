@@ -1,0 +1,830 @@
+{
+  "source": "Existing CommsClient.session_update decode_updates; direct canonical TurnChangedUpdate state at one monotonic origin",
+  "events": [
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 7.479358142998535,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": {
+          "id": "a5dbd4c4c9304dbb94a94e581fb48024",
+          "owner_pid": 3476641,
+          "started_at": 1790782826.3523595,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "preparing",
+            "detail": "hey Boss"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 7.518989597010659,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": {
+          "id": "a5dbd4c4c9304dbb94a94e581fb48024",
+          "owner_pid": 3476641,
+          "started_at": 1790782826.3523595,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "preparing",
+            "detail": "hey Boss"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 11.254895833000774,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": {
+          "id": "a5dbd4c4c9304dbb94a94e581fb48024",
+          "owner_pid": 3476641,
+          "started_at": 1790782826.3523595,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "prompt_acceptance",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.661578475002898,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": {
+          "id": "a5dbd4c4c9304dbb94a94e581fb48024",
+          "owner_pid": 3476641,
+          "started_at": 1790782826.3523595,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "model_wait",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.846687892015325,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": {
+          "id": "a5dbd4c4c9304dbb94a94e581fb48024",
+          "owner_pid": 3476641,
+          "started_at": 1790782826.3523595,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "settling_stats",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.871524272020906,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": {
+          "id": "a5dbd4c4c9304dbb94a94e581fb48024",
+          "owner_pid": 3476641,
+          "started_at": 1790782826.3523595,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "publishing",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.917269390018191,
+      "session_id": "physical-child",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "a5dbd4c4c9304dbb94a94e581fb48024"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 16.97593093701289,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.04539970701444,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.106186326011084,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "preparing",
+            "detail": "RETAINED_NATIVE_HISTORY_questioner"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.106695310998475,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "preparing",
+            "detail": "RETAINED_NATIVE_HISTORY_questioner"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.137412303010933,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "prompt_acceptance",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.138952692010207,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "prompt_acceptance",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.73071010701824,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "model_wait",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.7319019450224,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "model_wait",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.851104571018368,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "settling_stats",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.85186968999915,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "settling_stats",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.90747594399727,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "publishing",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.908534209011123,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "0b7b67459b644658b1c7d905861578f2",
+          "owner_pid": 3476874,
+          "started_at": 1790782835.9848223,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 3,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "publishing",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.96680411900161,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "0b7b67459b644658b1c7d905861578f2"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.967395720013883,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "0b7b67459b644658b1c7d905861578f2"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.07920198101783,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.157441119023133,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": {
+          "id": "5584c59207b9492f9e2ed6da594429f5",
+          "owner_pid": 3476877,
+          "started_at": 1790782839.0281699,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 4,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "preparing",
+            "detail": "RETAINED_NATIVE_HISTORY_answerer"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.189279326004907,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": {
+          "id": "5584c59207b9492f9e2ed6da594429f5",
+          "owner_pid": 3476877,
+          "started_at": 1790782839.0281699,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 4,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "prompt_acceptance",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 22.76059100701241,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": {
+          "id": "5584c59207b9492f9e2ed6da594429f5",
+          "owner_pid": 3476877,
+          "started_at": 1790782839.0281699,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 4,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "model_wait",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 22.893269357009558,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": {
+          "id": "5584c59207b9492f9e2ed6da594429f5",
+          "owner_pid": 3476877,
+          "started_at": 1790782839.0281699,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 4,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "settling_stats",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 22.95720380000421,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": {
+          "id": "5584c59207b9492f9e2ed6da594429f5",
+          "owner_pid": 3476877,
+          "started_at": 1790782839.0281699,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 4,
+          "turn_generation": 1,
+          "phase": {
+            "kind": "publishing",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 23.003159487008816,
+      "session_id": "answerer",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "5584c59207b9492f9e2ed6da594429f5"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 35.827178043022286,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "65dccf127b77ed4ad209a0734aedd5df"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 35.85215804501786,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "65dccf127b77ed4ad209a0734aedd5df"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 35.90601452201372,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "preparing",
+            "detail": "EXPLICIT_POST_RESTART_INPUT"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 35.906782988022314,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "preparing",
+            "detail": "EXPLICIT_POST_RESTART_INPUT"
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 39.72300674201688,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "prompt_acceptance",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 39.724012398015475,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "prompt_acceptance",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.099372146010865,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "model_wait",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.1007709359983,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "model_wait",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.30674681899836,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "settling_stats",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.30741993401898,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "settling_stats",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.35728071001358,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "publishing",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.35783339702175,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": {
+          "id": "e9f335a76148418192868ff14863f27b",
+          "owner_pid": 3477405,
+          "started_at": 1790782854.7829988,
+          "routing": {
+            "requests": [],
+            "reply": null
+          },
+          "admission_generation": 7,
+          "turn_generation": 3,
+          "phase": {
+            "kind": "publishing",
+            "detail": ""
+          }
+        },
+        "finished_turn_id": null
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.392455790017266,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "e9f335a76148418192868ff14863f27b"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.39300215500407,
+      "session_id": "questioner",
+      "canonical_state": {
+        "active": null,
+        "finished_turn_id": "e9f335a76148418192868ff14863f27b"
+      }
+    }
+  ],
+  "observed_phase_counts": {
+    "preparing": 7,
+    "prompt_acceptance": 6,
+    "model_wait": 6,
+    "settling_stats": 6,
+    "publishing": 6,
+    "idle": 11
+  },
+  "unobserved": [
+    "Tool-running not exercised by these two no-tools controls",
+    "Provider queue/reasoning split not exposed",
+    "Exact phase-start instants between callbacks not claimed"
+  ]
+}

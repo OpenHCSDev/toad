@@ -1,0 +1,60 @@
+{
+  "registry_owner_checks": [
+    {
+      "fixture": "f1",
+      "thread": "physical-parent",
+      "identity": null,
+      "alive": false,
+      "active_turn": null,
+      "status": {
+        "kind": "running"
+      }
+    },
+    {
+      "fixture": "f1",
+      "thread": "physical-child",
+      "identity": {
+        "pid": 3476641,
+        "start_time": 25846377
+      },
+      "alive": false,
+      "active_turn": null,
+      "status": {
+        "kind": "stopped"
+      }
+    },
+    {
+      "fixture": "f2",
+      "thread": "questioner",
+      "identity": {
+        "pid": 3477405,
+        "start_time": 25849210
+      },
+      "alive": false,
+      "active_turn": null,
+      "status": {
+        "kind": "stopped"
+      }
+    },
+    {
+      "fixture": "f2",
+      "thread": "answerer",
+      "identity": {
+        "pid": 3477407,
+        "start_time": 25849351
+      },
+      "alive": false,
+      "active_turn": null,
+      "status": {
+        "kind": "stopped"
+      }
+    }
+  ],
+  "remaining_fixture_processes": [],
+  "journals_roots_preserved": [
+    "/home/ts/wt/g452e/f1",
+    "/home/ts/wt/g452e/f2"
+  ],
+  "source_histories_unknown_preserved": true,
+  "signals_sent_after_test": 0
+}
