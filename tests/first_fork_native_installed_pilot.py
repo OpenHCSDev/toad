@@ -103,7 +103,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 if child is not None and child.pid > 0:
                     process = psutil.Process(child.pid)
                     assert ProcessIdentity.capture(child.pid) == child.process_identity
-                    assert Path(process.environ()["AGENT_COMMS_ROOT"]).resolve() == comms.root.resolve()
+                    process_root = process.environ().get("AGENT_COMMS_ROOT")
+                    if process_root is None:
+                        # Wait for exec to install the launched environment;
+                        # suspend only after its real private root is attested.
+                        await asyncio.sleep(.001)
+                        continue
+                    assert Path(process_root).resolve() == comms.root.resolve()
                     # The launcher publishes identity before its exec handshake
                     # completes. Suspending that launcher would deadlock ForkAction
                     # itself, before any physical opening could be exercised.
@@ -175,7 +181,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         child_row.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
         assert await pilot.click(child_row)
-        await until(pilot, lambda: app.selected_session is not parent_view.screen)
+        await until(pilot, lambda: app.selected_session.conversation is not parent_view
+                    and app.selected_session.channels_context()[0] == child.name)
         print('PRODUCTION_FORK_RETURNED', flush=True)
         await app.selected_session.wait_content_ready()
         view = app.selected_session.query_one(Conversation)
@@ -219,6 +226,21 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await pilot.press('enter')
         await until(pilot, lambda: len(requests) == 2, 30)
         await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
+        await until(pilot, lambda: not comms.registry.require(child.name).executing
+                    and view.agent.presentation.prompt_in_flight == 0, 30)
+        await pilot.pause()
+        from toad.widgets.agent_response import AgentResponse
+        viewport = view.window.region
+        paint = '\n'.join(strip.crop(viewport.x, viewport.right).text
+                          for strip in app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
+        response_blocks = [block for block in view.query(AgentResponse)
+                           if block.source == 'NATIVE_RESPONSE_2']
+        census = {'mounted_child_answer_blocks': len(response_blocks),
+                  'painted_child_answer_occurrences': paint.count('NATIVE_RESPONSE_2'),
+                  'current_child': app.selected_session.channels_context()[0],
+                  'rendered_viewport': paint}
+        (evidence / 'response-census.json').write_text(json.dumps(census, indent=2)+'\n')
+        assert len(response_blocks) == 1 and census['painted_child_answer_occurrences'] == 1, census
         from agent_comms.transcript_events import UserTranscript
         page = comms.transcripts.thread_transcript(child.name)
         assert sum(isinstance(event, UserTranscript) and event.text == 'FIRST_FORK_NEW_INPUT'
