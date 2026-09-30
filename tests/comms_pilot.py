@@ -638,10 +638,10 @@ async def main() -> None:
             conversation.turns.start_client()
             conversation._last_escape_time = 0.0
             conversation._loading = await conversation.post(Loading("Thinking…"))
-            conversation.action_cancel()
+            await conversation.run_action("cancel")
             await pilot.pause()
             assert not cancel_agent.called.is_set()
-            conversation.action_cancel()
+            await conversation.run_action("cancel")
             for _ in range(10):
                 if cancel_agent.called.is_set():
                     break
