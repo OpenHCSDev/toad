@@ -190,8 +190,9 @@ def capture(*, expected_pid, output_prefix):
                             region = cursor_geometry.region.intersection(cursor_geometry.clip).intersection(geometry.region)
                             if region:
                                 cell = Offset(*(int(value) for value in region.center))
-                                hit, _ = screen.get_widget_at(*cell)
-                                focusable = screen.get_focusable_widget_at(*cell)
+                                native_screen = node.screen
+                                hit, _ = native_screen.get_widget_at(*cell)
+                                focusable = native_screen.get_focusable_widget_at(*cell)
                                 if hit is cursor and focusable is node:
                                     window["focus_target"] = {"widget": node_identity(cursor), "cell": tuple(cell)}
                         virtual_size = data.get("_reactive_virtual_size")
