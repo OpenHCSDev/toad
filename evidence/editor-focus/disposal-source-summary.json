@@ -1,0 +1,141 @@
+{
+  "result": "PASS",
+  "boundary": "actual production source app/LinuxDriver; installed native lifecycle still pending",
+  "phases": [
+    {
+      "phase": "live-editor-before-close",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/src/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 211038.836542351,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "actual editor before disposal",
+      "cursor": [
+        0,
+        29
+      ],
+      "document": 139898160704560,
+      "history": 139897893851280,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ],
+      "close_tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            34,
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            49,
+            1,
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "actual-tab-close-before-prune",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/src/toad",
+      "focused": "SessionTabClose",
+      "editor_focused": false,
+      "editor_owns_keys": false,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 211039.075749944,
+      "source_work": [
+        "WorkingTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 139897954832528,
+      "history": 139898193030384,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        }
+      ],
+      "close_tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            34,
+            1,
+            2,
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "run": "REAL_LINUXDRIVER_SAVED_TAB_CLOSE_AND_APP_SHUTDOWN_PASS\n"
+}

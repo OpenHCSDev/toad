@@ -10,7 +10,7 @@ from e2e_pty import PtyLaunch, ToadSession
 from first_frame_installed_terminal_journey import until
 
 
-async def main():
+async def main(saved_history=False, close_tabs=False):
     evidence = Path(os.environ["EDITOR_KEY_EVIDENCE"])
     evidence.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix="editor-terminal-", dir=os.environ["TMPDIR"]) as directory:
@@ -24,7 +24,7 @@ async def main():
         for key in ("AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PROMPT", "NO_COLOR"):
             env.pop(key, None)
         command = (sys.executable, str(Path(__file__).with_name("editor_key_workflow_pilot.py")),
-                   "--terminal", str(root), str(evidence))
+                   "--terminal-history" if saved_history else "--terminal", str(root), str(evidence))
         session = ToadSession(PtyLaunch(command, root, env))
         phases = []
 
@@ -33,7 +33,11 @@ async def main():
             return json.loads((evidence / "current-ui.json").read_text())
 
         async def expect(label, text, cursor):
-            await until(lambda: state()["text"] == text and state()["cursor"] == [0, cursor], session, 5)
+            def ready():
+                observed = state()
+                return (observed["text"] == text and observed["cursor"] == [0, cursor]
+                        and observed["editor_focused"])
+            await until(ready, session, 5)
             observed = state()
             assert observed["editor_focused"] and observed["driver"] == "LinuxDriver", observed
             phases.append({"phase": label, **observed})
@@ -58,6 +62,27 @@ async def main():
         try:
             await session.start()
             await until(lambda: (evidence / "ready").exists(), session)
+            if close_tabs:
+                original = state()["source"]
+                x, y, _, _ = state()["editor_region"]
+                await session.click(x + 2, y + 1)
+                await session.type_text("actual editor before disposal")
+                await expect("live-editor-before-close", "actual editor before disposal", 29)
+                target = next(tab for tab in state()["close_tabs"] if tab["source"] == original)
+                x, y, _, _ = target["region"]
+                await session.click(x + 1, y + 1)
+                await until(lambda: len(state()["tabs"]) == 1 and state()["source"] != original,
+                            session, 8)
+                phases.append({"phase": "actual-tab-close-before-prune", **state()})
+                await session.send(b"\x11")
+                def exited():
+                    session._screen()
+                    return session.proc.returncode is not None
+                await until(exited, session, 6)
+                assert session.proc.returncode == 0, session._screen()
+                assert "NoMatches" not in session.buffer.decode(errors="replace")
+                print("REAL_LINUXDRIVER_SAVED_TAB_CLOSE_AND_APP_SHUTDOWN_PASS")
+                return
             await edits("clicked")
             await session.send(b"\x1b\t\x1b[Z")
             await edits("traversal")
@@ -69,9 +94,57 @@ async def main():
                 await session.click(x + max(1, width // 2), y + 1)
                 await until(lambda: state()["source"] == target["source"], session, 5)
                 await edits("return-" + target["source"])
+            # One real terminal read can contain several keys before deferred
+            # Widget.focus() runs. Printable forwarding from the transcript
+            # must establish the editor's binding chain in the same handoff.
+            x, y, width, height = state()["window_region"]
+            await session.click(x + width // 2, y + height // 2)
+            await until(lambda: state()["focused"] == "Window", session, 5)
+            phases.append({"phase": "transcript-focused", **state()})
+            await session.send(b"abcd\x1b[D\x7f\x1b[3~")
+            await expect("transcript-key-burst", "ab", 2)
+            if saved_history:
+                await session.send(b"\x7f\x7f")
+                await expect("prepare-saved-history-reader", "", 0)
+                # Physical PageUp drives the real source/page/worker admission;
+                # no editor/loading flag or view implementation is substituted.
+                await session.click(x + width // 2, y + height // 2)
+                await session.send(b"\x1b[5~" * 6)
+                await until(lambda: "WorkingTranscript" in state()["source_work"], session, 5)
+                current = state()
+                x, y, _, _ = current["editor_region"]
+                await session.click(x + 2, y + 1)
+                await session.send(b"draftabcd\x1b[D\x7f\x1b[3~\x1b[D")
+                await expect("saved-load-draft-and-caret", "draftab", 6)
+                retained = state()
+                home = retained["source"]
+                other = next(tab for tab in tabs if tab["source"] != home)
+                x, y, width, _ = other["region"]
+                await session.click(x + max(1, width // 2), y + 1)
+                await until(lambda: state()["source"] == other["source"], session, 5)
+                await session.send(b"other\x1b[D")
+                await expect("saved-load-other-draft", "other", 4)
+                target = next(tab for tab in tabs if tab["source"] == home)
+                x, y, width, _ = target["region"]
+                await session.click(x + max(1, width // 2), y + 1)
+                await until(lambda: state()["source"] == home, session, 5)
+                await expect("saved-load-return-draft-caret", "draftab", 6)
+                assert (state()["document"], state()["history"]) == \
+                    (retained["document"], retained["history"])
+                await session.send(b"\x1a")
+                await expect("saved-load-return-undo", "draftabcd", 8)
+                await session.send(b"\x7f\x1b[3~\x1b[D\x1b[C")
+                await expect("saved-load-return-delete-arrows", "draftab", 7)
+                trace = json.loads((evidence / "key-trace.json").read_text())
+                assert any(row.get("key") in {"backspace", "delete", "left", "right"}
+                           and "WorkingTranscript" in row["source_work"] for row in trace), \
+                    "Editing keys did not overlap an actual source operation"
             (evidence / "terminal-key-phases.json").write_text(json.dumps(phases, indent=2) + "\n")
             await session.send(b"\x11")
-            await asyncio.wait_for(session.proc.wait(), 6)
+            def exited():
+                session._screen()
+                return session.proc.returncode is not None
+            await until(exited, session, 6)
             assert session.proc.returncode == 0
             print("REAL_LINUXDRIVER_MOUSE_ABA_TYPING_LEFT_RIGHT_BACKSPACE_DELETE_PASS")
         finally:
@@ -82,4 +155,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(saved_history=sys.argv[1:] in (["--saved-history"], ["--close-tabs"]),
+                     close_tabs=sys.argv[1:] == ["--close-tabs"]))

@@ -26,6 +26,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def retirement_source(self) -> "TranscriptState":
         return self
 
+    def resume_if_parked(self, owner) -> None:
+        """Resource reveal cannot admit work from an inactive source."""
+
     def observed(self, widget: Widget) -> "TranscriptState":
         # Textual sets these before dispatching Prune/Unmount, including when
         # an ancestor is removed. Decode at this framework boundary so an
@@ -204,3 +207,6 @@ class ParkedSourceTranscript(SuspendedTranscript):
 
     def resume(self) -> TranscriptState:
         return self.source
+
+    def resume_if_parked(self, owner) -> None:
+        owner.resume_source()

@@ -158,7 +158,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.sources.present(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.evict(screen, self)
+        await screen.app.workspace_chrome.native.dispose(screen, self)
         await self.sources.close()
         self.state = None
 
@@ -219,32 +219,13 @@ class NativeSessionSurface:
             if owner.state is not None:
                 owner.state.restore(conversation)
                 owner.state = None
-            retained_history = None
-            if returning:
-                from toad.widgets.transcript_history import TranscriptHistory
-                retained_history = next((child for child in conversation.contents.children
-                                         if isinstance(child, TranscriptHistory)), None)
-            if retained_history is not None:
-                agent = conversation.agent
-                await conversation.transcript.reveal_retained(retained_history)
-                await conversation.refresh_native_projection()
-            elif conversation.agent is not None and conversation.agent.ready:
-                await conversation.agent.presentation.restore_saved_history(conversation)
+            await conversation.prepare_retained_session()
             conversation.display = True
             conversation.window.document_viewport.resume_source()
             if returning:
                 conversation.start_native_session()
             conversation.prompt.focus()
             await self._trim_retained(conversation)
-            if retained_history is not None:
-                def refresh_after_paint() -> None:
-                    if (self.widget is conversation and self.owner is owner
-                            and conversation.agent is agent):
-                        conversation.run_worker(
-                            conversation.transcript.refresh_revealed(agent),
-                            group="retained-native-refresh", exclusive=True,
-                        )
-                conversation.call_after_refresh(refresh_after_paint)
 
     async def _trim_retained(self, selected: Conversation) -> None:
         """Bound inactive native trees using the existing viewport resource policy.
@@ -278,17 +259,24 @@ class NativeSessionSurface:
         if (conversation := owner.widget) is None:
             return
         owner.state = SessionViewState.capture(conversation)
+        await self._remove(owner)
+
+    async def _remove(self, owner: OperationalSessionPresentation) -> None:
+        if (conversation := owner.widget) is None:
+            return
         await conversation.release_native_session()
         await conversation.window.document_viewport.close()
         await conversation.remove()
         owner.widget = None
 
-    async def evict(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+    async def dispose(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+        """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             if self.owner is owner:
                 await owner.release_binding(owner.widget, screen)
                 self.owner = self.view = None
-            await self._evict(screen, owner)
+            await self._remove(owner)
+            owner.state = None
 
     async def close(self) -> None:
         async with self._lock:
@@ -296,4 +284,5 @@ class NativeSessionSurface:
                 await self.owner.release_binding(self.widget, self.view)
             self.owner = self.view = None
             for screen, owner in self._presentations():
-                await self._evict(screen, owner)
+                await self._remove(owner)
+                owner.state = None
