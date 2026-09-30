@@ -313,3 +313,16 @@ Evidence: `real-wire215-04/original-attempt-disposition.json`,
 No full readiness or global installation change is claimed. A newer source
 checkpoint arrived after the original was committed; the running fixture stayed
 on its original coherent pin and was not restarted to conceal this result.
+
+## Cursor consumer closure with #217
+
+Deleted the checkpoint's two-line `cursor.follow(None)` branch. The immediately
+preceding `CheckpointPlan.permits` rejects retirement of protected blocks,
+including the canonical selected cursor block. Follow-tail inherits this rule;
+retained-viewport calls the same base rule before checking visibility. Thus the
+accepted retirement path cannot reach that branch. Selection remains protected
+by its existing owner; no reset, copied cursor selection or compatibility
+method is needed. Heisenberg owns #217's cursor painting and removal of the
+`follow_widget` mirror and its layout extent contribution. This deletion is
+compatible with the current API and prepares its consumer closure; it does not
+claim #217's full installed viewport acceptance.
