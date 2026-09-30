@@ -1,8 +1,35 @@
 """Deleted T4 mechanisms cannot return to production."""
 import ast
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[2] / 'src/toad'
+
+
+def assert_deleted_cursor_contract(path, source):
+    """Seal the removed UI family across definitions, imports and callbacks."""
+    retired = {'Cursor', 'update_follow', 'watch_follow_widget', 'follow_widget', 'blink_timer'}
+    for node in ast.walk(ast.parse(source)):
+        match node:
+            case (ast.Name(id=name) | ast.Attribute(attr=name)
+                  | ast.ClassDef(name=name) | ast.FunctionDef(name=name)
+                  | ast.AsyncFunctionDef(name=name) | ast.alias(name=name)):
+                assert name not in retired, (path, node.lineno, name)
+                if isinstance(node, (ast.Attribute, ast.FunctionDef, ast.AsyncFunctionDef)):
+                    assert name != 'follow', (path, node.lineno, name)
+            case ast.Call(func=ast.Attribute(attr=('query' | 'query_one' | 'query_one_optional')), args=[ast.Constant(value='Cursor'), *_]):
+                raise AssertionError((path, node.lineno, 'Cursor selector'))
+            case ast.Constant(value=name) if isinstance(name, str) and name in retired - {'Cursor'}:
+                raise AssertionError((path, node.lineno, name))
+            case ast.Call(func=ast.Name(id=('getattr' | 'hasattr' | 'setattr')), args=[_, ast.Constant(value='follow'), *_]):
+                raise AssertionError((path, node.lineno, 'follow'))
+
+
+def test_deleted_cursor_family_has_no_callers():
+    for path in ROOT.rglob('*.py'):
+        assert_deleted_cursor_contract(path, path.read_text())
+    for path in ROOT.rglob('*.tcss'):
+        assert re.search(r'(?<![\w-])Cursor(?![\w-])', path.read_text()) is None, path
 
 
 def test_t4_ownership_and_deletion():

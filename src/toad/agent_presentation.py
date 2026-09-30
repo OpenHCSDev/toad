@@ -57,8 +57,7 @@ class LocalAgentPresentation(AgentPresentation):
         return AgentAttachmentView(None, 0)
 
     async def restore_saved_history(self, view):
-        # The actual local presentation survives with its session-owned view.
-        pass
+        view.resume_retained_history()
 
 
 class ACPAgentPresentation(AgentPresentation):
@@ -90,4 +89,6 @@ class ACPAgentPresentation(AgentPresentation):
         # ACP readiness does not imply agent-comms routing. A generic SDK peer
         # retains its actual view; a bound comms source owns native history reads.
         if self.agent.transcript_ready:
-            await view.present_retained_native_session()
+            await view.transcript.restore_native(self.agent)
+        else:
+            view.resume_retained_history()

@@ -308,7 +308,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         except NoMatches:
             pass
         else:
-            self.call_after_refresh(conversation.cursor.update_follow)
+            self.call_after_refresh(conversation.cursor.refresh)
 
     @on(events.Click, "ToolCallHeader")
     def on_click_tool_call_header(self, event: events.Click) -> None:

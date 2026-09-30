@@ -33,16 +33,62 @@ def capture(*, expected_pid, output_prefix):
         if app is None:
             raise RuntimeError("No application context")
         namespace = vars(app)
-        stacks = tuple((name, tuple(stack)) for name, stack in app._screen_stacks.items())
+        stacks = tuple((name, (view,)) for name, view in app.workspace_sessions.views.items())
         payload = {"schema": 1, "views": [], "sidebar_snapshot": namespace.get("_sidebar_snapshot")}
         metadata = {"schema": 1, "pid": os.getpid(), "captured_ns": time.time_ns(), "python": sys.version,
-                    "current_mode": app.current_mode, "open_tab_order": list(app._open_tab_order),
+                    "current_mode": app.selected_mode, "open_tab_order": list(app.tab_order.names),
                     "source_modules": {name: getattr(sys.modules.get(name), "__file__", None)
                                        for name in ("toad", "textual", "agent_comms")},
                     "registry_size": len(app._registry), "views": [], "truncated": False,
                     "capture_scope": "view state, loaded pages/live block sources, cached sidebar DTO; not process memory"}
-        tracker = namespace.get("_session_tracker")
-        payload["session_details"] = {mode: asdict(details) for mode, details in tracker.sessions.items()} if tracker is not None else {}
+
+        def node_identity(node):
+            return {"object_id": id(node), "class": type(node).__name__,
+                    "module": type(node).__module__, "id": node.id,
+                    "parent_object_id": id(node.parent) if node.parent is not None else None}
+
+        # Observe committed native maps, not geometry getters that can force a
+        # reflow and replace the evidence of a bad screen crop during capture.
+        screen = app.screen
+        compositor = screen._compositor
+        frame = vars(screen).get("frame_presentation")
+        metadata["screen"] = {
+            **node_identity(screen), "current_mode": app.current_mode,
+            "selected_mode": app.selected_mode, "is_current": screen.is_current,
+            "scroll_offset": tuple(screen.scroll_offset),
+            "max_scroll": [screen.max_scroll_x, screen.max_scroll_y],
+            "virtual_size": tuple(screen.virtual_size),
+            "size": tuple(screen.size),
+            "layout_required": screen._layout_required,
+            "scroll_required": screen._scroll_required,
+            "repaint_required": screen._repaint_required,
+            "dirty_widgets": [node_identity(node) for node in screen._dirty_widgets],
+            "batch_count": app._batch_count,
+            "atomic_mode_switch": app._atomic_mode_switch,
+            "frame": None if frame is None else {
+                "state": type(frame.state).__name__, "ready": frame.ready,
+                "presented": frame.presented.is_set(), "deferred_callbacks": len(frame.callbacks)},
+        }
+        metadata["compositor"] = {
+            "root": node_identity(compositor.root) if compositor.root is not None else None,
+            "size": tuple(compositor.size),
+            "full_map_invalidated": compositor._full_map_invalidated,
+            "arranging": compositor._arranging,
+            "dirty_regions": [tuple(region) for region in compositor._dirty_regions],
+            "subtree_cache_entries": len(compositor._subtree_geometry),
+            "layers_cached": compositor._layers is not None,
+            "visible_layers_cached": compositor._layers_visible is not None,
+            "cuts_cached": compositor._cuts is not None,
+            "maps": {},
+        }
+        for name, mapping in (("full", compositor._full_map), ("visible", compositor._visible_map)):
+            metadata["compositor"]["maps"][name] = None if mapping is None else {
+                "count": len(mapping), "truncated": len(mapping) > 50000,
+                "nodes": [{**node_identity(node),
+                           "geometry": {field: tuple(value) for field, value in geometry._asdict().items()}}
+                          for node, geometry in tuple(mapping.items())[:50000]],
+            }
+        payload["session_details"] = {mode: asdict(details) for mode, details in app.session_tracker.sessions.items()}
         for name in ("sidebar_state", "sidebar_layout"):
             model = namespace.get(name)
             if model is not None:
@@ -114,12 +160,37 @@ def capture(*, expected_pid, output_prefix):
                         view["history_pages"].append({
                             "through": data.get("through"),
                             "pages": tuple((page.page, page.start, page.stop) for page in tuple(data.get("pages", ()))),
+                            "generation": node._generation,
+                            "source_state": type(node._source_state).__name__,
                         })
                     if kind in {"Window", "HistoryWindow"}:
                         window = {key: data.get(key) for key in (
                             "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}
                         virtual_size = data.get("_reactive_virtual_size")
                         window["_reactive_virtual_size"] = tuple(virtual_size) if virtual_size is not None else None
+                        window["scroll_y"] = node.scroll_y
+                        window["maximum"] = node.max_scroll_y
+                        window["follows_tail"] = node.follows_tail
+                        window["history_lock_held"] = node.history_lock.locked()
+                        window["restoring"] = node._restoring
+                        window["anchor"] = (node_identity(node.history_anchor.widget)
+                                            if node.history_anchor is not None else None)
+                        window["layout_ready"] = (node.history_layout_ready.is_set()
+                                                  if node.history_layout_ready is not None else None)
+                        window["paint_ready"] = (node.history_paint_ready.is_set()
+                                                 if node.history_paint_ready is not None else None)
+                        manager = data.get("document_viewport")
+                        if manager is not None:
+                            visible = node.screen._compositor.visible_widgets
+                            owners = tuple(manager.owners)
+                            window["body_resources"] = {
+                                "registered": len(owners),
+                                "dormant": sum(body.body_dormant for body in owners),
+                                "visible": sum(body in visible for body in owners),
+                                "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
+                                "reconciling": manager._running,
+                                "suspended": manager._suspended,
+                            }
                         view["history_windows"].append(window)
                     if data.get("_id") in {"channels-sidebar", "thread-sidebar"}:
                         view["bars"].append({"id": data["_id"], "collapsed": data.get("_reactive_collapsed"),
@@ -139,6 +210,7 @@ def capture(*, expected_pid, output_prefix):
                                           "identity": view["identity"], "history_pagers": len(view["history_pages"]),
                                           "loaded_pages": sum(len(history["pages"]) for history in view["history_pages"]),
                                           "live_blocks": len(view["live_blocks"]), "drafts": len(view["drafts"]),
+                                          "history_windows": view["history_windows"],
                                           "contents_kinds": dict(Counter(record["kind"] for record in view["contents"])),
                                           "visible_categories": view.get("visible_categories")})
         metadata["widget_classes"] = widget_classes.most_common()

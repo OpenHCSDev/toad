@@ -120,7 +120,13 @@ class TranscriptSourcePreparation:
             count = lookahead.admission(self.budget, rows)
             for page in pages:
                 await page.prepare_adjacent(preparation, demand, count, current)
-            await reader.prefetch(*edges, current, rounds=rounds)
+            async for prepared in reader.prefetch(*edges, current, rounds=rounds):
+                # A fetched page is not mounted yet. Warm the actual incoming
+                # edge in the same syntax/fence cache used by its future body.
+                fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
+                await preparation.prepare_fragments(
+                    fragments, current, batch_size=self.budget.admission_items,
+                )
 
         self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
 

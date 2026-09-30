@@ -166,20 +166,8 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             return
         super()._on_timer_update()
 
-    def _compositor_refresh(self) -> None:
-        app = cast("ToadApp", self.app)
-        if app._atomic_mode_switch and app._batch_count:
-            # _refresh_layout queues this callback, which may run while the
-            # navigation transaction awaits mounted/resize handlers. Textual
-            # would render the whole intermediate frame only for App._display
-            # to discard it at the batch boundary. Keep the dirty regions and
-            # repaint intent; the switch's finally block wakes the selected
-            # screen after ending the transaction, including error paths.
-            self._repaint_required = True
-            return
-        if not self.viewport_presentation.prepare():
-            return
-        super()._compositor_refresh()
+    def _prepare_compositor_refresh(self) -> bool:
+        return self.viewport_presentation.prepare()
 
     def present_navigation(self) -> None:
         """Commit prepared geometry once, without remeasuring or repainting twice."""
