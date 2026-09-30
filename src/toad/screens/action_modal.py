@@ -11,6 +11,8 @@ from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.widgets.command_pane import CommandPane
+from toad.agent_schema import AgentDefinition
+from toad.catalog_actions import CatalogCommandAction
 
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
@@ -29,23 +31,19 @@ class ActionModal(ModalScreen):
 
     def __init__(
         self,
-        action: str,
-        agent: str,
-        title: str,
+        action: CatalogCommandAction,
+        agent: AgentDefinition,
         command: str,
         *,
-        bootstrap_uv: bool = False,
         env: dict[str, str] | None = None,
         cwd: str | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
     ) -> None:
-        self._action = action
-        self._agent = agent
-        self._title = title
+        self.operation = action
+        self.agent = agent
         self._command = command
-        self._bootstrap_uv = bootstrap_uv
         self._env = env
         self._cwd = cwd
         super().__init__(name=name, id=id, classes=classes)
@@ -67,14 +65,11 @@ class ActionModal(ModalScreen):
 
     @on(CommandPane.CommandComplete)
     def on_command_complete(self, event: CommandPane.CommandComplete) -> None:
-        if self._action == "login" and event.return_code == 0:
-            self.dismiss(0)
-        else:
-            self.enable_button()
+        self.operation.command_complete(self, event.return_code)
 
     def on_mount(self) -> None:
         self.ok_button.loading = True
-        self.command_pane.border_title = Content(self._title)
+        self.command_pane.border_title = Content(self.operation.description)
         self.command_pane.focus()
         self.run_command()
 
@@ -82,7 +77,7 @@ class ActionModal(ModalScreen):
     async def run_command(self) -> None:
         """Write and execute the command."""
         self.command_pane.anchor()
-        if self._bootstrap_uv and shutil.which("uv") is None:
+        if self.operation.command.bootstrap_uv and shutil.which("uv") is None:
             # Bootstrap UV if required
             await self.command_pane.write(f"$ {UV_INSTALL}\n")
             await self.command_pane.execute(UV_INSTALL, final=False)
@@ -94,8 +89,8 @@ class ActionModal(ModalScreen):
         await action_task
         self.app.application.usage.publish(
             "agent-action",
-            action=self._action,
-            agent=self._agent,
+            action=self.operation.name,
+            agent=self.agent.identity,
             fail=self.command_pane.return_code != 0,
         )
 
