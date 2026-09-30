@@ -63,6 +63,6 @@ and returns through SessionLabel's native mode matched to this run's initial
 snapshot. The existing native cell/st-pixel locator owns all clicks. Actual CLI
 generation produced42 commands, no guessed mousemove coordinates, and zero
 submission keys; Python3.14 compilation/diff checks passed. This extension is
-84 added/19 deleted across four files, pending the single physical candidate
+85 added/20 deleted across four files, pending the single physical candidate
 journey. The fixture owner supplies the complete private environment and fresh
 original proof; no toad-comms wrapper, retired fixture or public probe is used.
