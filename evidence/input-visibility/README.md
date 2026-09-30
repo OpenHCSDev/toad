@@ -122,3 +122,35 @@ passed, changed Python parses passed. No new UI/native capture has been run.
 Parent owns integration with249 and caller250; Heisenberg owns252 response
 publication. Run one new continuous paired candidate after substantial252 source
 is ready; never rerun the unchanged frozen250 candidate to hide its failure.
+
+## First combined run: retained target and paint-clock correction
+
+Einstein's `g458f/u01` real LinuxDriver journey passed the inherited first-fork
+oracle: one original child input and answer, one mounted and painted answer,
+and one tab/process attachment. It then failed `pilot.click(SendNow)` after an
+accepted follow-up. All three local provider requests and raw evidence are
+preserved at `/home/ts/wt/g458f/u01/proof`; no old action is replayed.
+
+The final original terminal stream shows the global Toad menu opening while
+the child's queue and Send now control remain visible. Textual Pilot resolves
+a class target with `screen.query_one`, allowing the retained hidden parent's
+control to win. The corrected driver selects the original current Conversation's
+Prompt control, requires actual nonempty hit-testable geometry, records its
+owner/region alongside the global lookup, and performs the same real click.
+The assertion remains strict. No queue state/control method replaces the click.
+
+The old observer also counted status captions across the entire screen as input
+messages. New recordings include the original native queue-label and chat-window
+regions. Review covers those physical regions exclusively. In u01 frame111 the
+local beta request existed before its first presentation paint at frame112,
+20,019,172ns later; a source resource is not an already-painted UI frame.
+Review measures source-to-first-paint latency. Once the original input appears,
+every frame through first native user paint must contain it once; later frames
+must not duplicate it. This preserves the queue-to-native no-gap obligation
+without demanding simultaneous asynchronous receipt and paint. Old raw/schema
+and failed review are preserved, not rewritten using new geometry guesses.
+
+This correction is tooling only. Product source remains frozen; Einstein owns
+the sole fresh affected journey using original owned resources and a new private
+fixture. Pending/UNKNOWN dispositions from u01 are not replayed. Until that
+queue/control journey passes, the combined candidate is not whole-workflow Ready.

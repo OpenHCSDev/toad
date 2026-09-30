@@ -1,0 +1,39 @@
+{
+  "raw": "/home/ts/wt/g458f/u02/proof/input-frames.jsonl",
+  "new_capture": false,
+  "provider_calls": 0,
+  "input_replay": false,
+  "functional_native_journey": "Einstein u02 acceptance-complete:5 original POSTs;queue-control-current-owner click;firstfork exactlyonce;original followup handoff;cancel afterStart",
+  "original_oracle_error": {
+    "frame": 546,
+    "time_ns": 278285835582787,
+    "cause": "Native widget layout moved QueueSummary row38 to37 before incremental ANSI cleared/repainted originalrow38; original queued marker still physicallyvisible"
+  },
+  "corrected_oracle": "pyte native raster Char retains emitting InputPaintFrame; nativeScreen reset/draw/default_char own cell metadata; no prior-region table, originalFieldCodec schema unchanged",
+  "physical_failure": {
+    "frame": 109,
+    "time_ns": 278264070472524,
+    "request_id": "753f9588872740f29d6dada6d77b7a4b",
+    "marker": "FORK_PARENT_SEED",
+    "physical_lines": [
+      "Queued (1): FORK_PARENT_SEED",
+      "Submitting (1): FORK_PARENT_SEED"
+    ],
+    "queue_region": [
+      64,
+      37,
+      28,
+      1
+    ],
+    "chat_region": [
+      64,
+      3,
+      90,
+      30
+    ],
+    "source": "one accepted canonical queue row; one outstanding execution; no mounted nativeStart"
+  },
+  "whole_visibility_pass": false,
+  "layout_failure_owner": "Heisenberg foreground layout/compositor continuation; no overlapping Queue/Submission edits",
+  "negative_scope": "exact actual emitted ANSI/nativePTY raster; functional native once distinct from transient duplicatecaption; pending wholephysicalqueue-to-chat acceptance"
+}
