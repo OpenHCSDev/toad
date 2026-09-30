@@ -1,0 +1,17 @@
+{
+  "before": {
+    "scroll": 86.20155293086054,
+    "maximum": 108,
+    "selection": "TranscriptHistory"
+  },
+  "after": {
+    "scroll": 0,
+    "maximum": 0,
+    "selection": "NoneType",
+    "history_visible": true,
+    "visible_bodies": 1,
+    "extent": 14
+  }
+}
+
+EXIT 0

@@ -244,53 +244,6 @@ class TurnActivity(Static):
         return Content(text)
 
 
-class Cursor(Static):
-    """The block 'cursor' -- A vertical line to the left of a block in the conversation that
-    is used to navigate the discussion history.
-    """
-
-    follow_widget: var[Widget | None] = var(None)
-    blink = var(True, toggle_class="-blink")
-
-    def on_mount(self) -> None:
-        self.visible = False
-        self.blink_timer = self.set_interval(0.5, self._update_blink, pause=True)
-
-    def _update_blink(self) -> None:
-        if self.query_ancestor(Window).has_focus and self.screen.is_active:
-            self.blink = not self.blink
-        else:
-            self.blink = False
-
-    def watch_follow_widget(self, widget: Widget | None) -> None:
-        self.visible = widget is not None
-
-    def update_follow(self) -> None:
-        if self.follow_widget and self.follow_widget.is_attached:
-            self.styles.height = max(1, self.follow_widget.outer_size.height)
-            follow_y = (
-                self.follow_widget.virtual_region.y
-                + self.follow_widget.parent.virtual_region.y
-            )
-            self.offset = Offset(0, follow_y)
-        else:
-            self.styles.height = None
-
-    def follow(self, widget: Widget | None) -> None:
-        self.follow_widget = widget
-        self.blink = False
-        if widget is None:
-            self.visible = False
-            self.blink_timer.reset()
-            self.blink_timer.pause()
-            self.styles.height = None
-        else:
-            self.visible = True
-            self.blink_timer.reset()
-            self.blink_timer.resume()
-            self.update_follow()
-
-
 class CategorizedMount:
     """Apply the owning conversation category selection at widget admission."""
 
@@ -329,12 +282,40 @@ class ContentsGrid(containers.Grid):
 
 
 class CursorContainer(containers.Vertical):
+    """Paint navigation over content geometry without authoring document extent."""
+
+    COMPONENT_CLASSES = {"cursor--selected", "cursor--selected-blink"}
+    blink = var(False)
+
+    def on_mount(self) -> None:
+        self.set_interval(0.5, self._update_blink)
+
+    def _update_blink(self) -> None:
+        blink = (not self.blink
+                 if self.query_ancestor(Window).has_focus and self.screen.is_active
+                 else False)
+        if blink != self.blink:
+            self.blink = blink
+            self.refresh()
+
     def render_lines(self, crop: Region) -> list[Strip]:
         rich_style = self.visual_style.rich_style
         strips = [Strip([Segment("▌", rich_style)], cell_length=1)] * crop.height
         if crop.y == 0 and strips:
             strips[0] = Strip([Segment(" ", rich_style)], cell_length=1)
-
+        # Selection belongs to ContentNavigation. The published scene supplies
+        # its current position, including nested and lazily replaced bodies.
+        visible = self.screen._compositor.visible_widgets
+        selected = self.query_ancestor(Conversation).navigation.selected
+        if (geometry := visible.get(selected)) is not None:
+            region, _clip = geometry
+            origin = visible[self][0].y + crop.y
+            style = self.get_component_rich_style(
+                "cursor--selected-blink" if self.blink else "cursor--selected"
+            )
+            selected_strip = Strip([Segment("▌", style)], cell_length=1)
+            for row in range(max(0, region.y - origin), min(crop.height, region.bottom - origin)):
+                strips[row] = selected_strip
         return strips
 
 
@@ -564,7 +545,8 @@ class ConversationSessionBinding(containers.Vertical):
         self.agent = None
         self._initial_prompt = None
         await self.contents.remove_children()
-        self.cursor.follow(None)
+        self.navigation.index = -1
+        self.cursor.refresh()
         self.prompt._ask = None
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
@@ -763,7 +745,7 @@ class Conversation(ConversationSessionBinding):
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
-    cursor = getters.query_one(Cursor)
+    cursor = getters.query_one(CursorContainer)
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
 
@@ -907,8 +889,7 @@ class Conversation(ConversationSessionBinding):
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
-                with CursorContainer(id="cursor-container"):
-                    yield Cursor()
+                yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
                     yield from ThreadLoading.initial_contents(self._agent_data)
         yield Flash()
@@ -1069,13 +1050,13 @@ class Conversation(ConversationSessionBinding):
         if (cursor_block := self.cursor_block) is not None:
             cursor_block.expand_block()
             self.refresh_bindings()
-            self.call_after_refresh(self.cursor.follow, cursor_block)
+            self.call_after_refresh(self.cursor.refresh)
 
     async def action_collapse_block(self) -> None:
         if (cursor_block := self.cursor_block) is not None:
             cursor_block.collapse_block()
             self.refresh_bindings()
-            self.call_after_refresh(self.cursor.follow, cursor_block)
+            self.call_after_refresh(self.cursor.refresh)
 
     @cached_property
     def navigation(self) -> ContentNavigation:
@@ -1413,7 +1394,7 @@ class Conversation(ConversationSessionBinding):
         if event.action is not None:
             await self.run_action(event.action, {"block": event.owner})
         if (cursor_block := self.cursor_block_child) is not None:
-            self.call_after_refresh(self.cursor.follow, cursor_block)
+            self.call_after_refresh(self.cursor.refresh)
         self.call_after_refresh(event.menu.remove)
 
     @on(Menu.Dismissed)
@@ -2065,8 +2046,7 @@ class Conversation(ConversationSessionBinding):
                 prune_children.append(child)
 
         self.navigation.index = -1
-        self.cursor.visible = False
-        self.cursor.follow(None)
+        self.cursor.refresh()
         contents.refresh(layout=True)
 
         if prune_children:
@@ -2180,7 +2160,7 @@ class Conversation(ConversationSessionBinding):
         """
         if reset_cursor:
             self.navigation.index = -1
-            self.cursor.visible = False
+            self.cursor.refresh()
         if scroll_end:
             self.jump_to_latest()
         self.prompt.focus()
@@ -2268,18 +2248,15 @@ class Conversation(ConversationSessionBinding):
         self.prompt.mode_switcher.focus()
 
     def refresh_block_cursor(self) -> None:
+        self.cursor.refresh()
         if (cursor_block := self.cursor_block_child) is not None:
             # Resolve this navigation event before a later tab/editor event.
             self.screen.set_focus(self.window)
-            self.cursor.visible = True
-            self.cursor.follow(cursor_block)
             self.call_after_refresh(
                 self.window.scroll_to_center, cursor_block, immediate=True
             )
         else:
-            self.cursor.visible = False
             self.window.anchor()
-            self.cursor.follow(None)
             self.prompt.focus()
         self.refresh_bindings()
 
