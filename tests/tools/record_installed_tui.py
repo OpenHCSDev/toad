@@ -359,6 +359,10 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     def review(cls, output, receipt):
         return None
 
+    @classmethod
+    def validate_review(cls, review):
+        """The journey owns required native checks; footage review stays separate."""
+
 
 class ScrollJourney(PhysicalJourney):
     @classmethod
@@ -378,6 +382,8 @@ class WarmScrollJourney(ScrollJourney):
     def script(cls, args):
         if not args.capture_state:
             raise ValueError("Warm scrolling requires --capture-state")
+        if not args.peer_thread:
+            raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
         state_home = Path(os.environ["XDG_STATE_HOME"]).resolve()
         if not state_home.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
             raise ValueError("Warm draft editing requires a copied private UI state under agent scratch")
@@ -385,12 +391,14 @@ class WarmScrollJourney(ScrollJourney):
         settle = f"sleep {args.navigation_settle_seconds:g}"
         return "\n".join([
             marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
-            "key ctrl+End", f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
+            f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
             scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
                           state="phase-draft-state.pickle"),
-            marker + "switch-b", f"mousemove --sync {args.other_agent_x} {args.other_agent_y}", "click 1",
+            marker + "switch-b", native_click_command("phase-switch-b-state.pickle", target="thread",
+                                                     name=args.peer_thread),
             settle, marker + "b-open", marker + "return-a",
-            f"mousemove --sync {args.return_tab_x} {args.close_tab_y}", "click 1", settle, marker + "a-return",
+            native_click_command("phase-return-a-state.pickle", target="original_tab",
+                                 original_state="phase-warm-start-state.pickle"), settle, marker + "a-return",
             native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
             marker + "undo", "",
         ])
@@ -399,6 +407,12 @@ class WarmScrollJourney(ScrollJourney):
     def review(cls, output, receipt):
         from scroll_observation import review_warm_return
         return review_warm_return(output, receipt, suffix=cls.draft_suffix)
+
+    @classmethod
+    def validate_review(cls, review):
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
 
 
 class SavedTabCloseJourney(PhysicalJourney):
@@ -960,12 +974,16 @@ def record(args):
                 script = args.actions.read_text()
                 (output / "actions.xdo").write_text(script)
                 receipt["driver_started_seconds"] = time.monotonic() - started
-                # '-' is xdotool's native stdin script mode; no shell evaluation.
-                with (output / "actions.xdo").open() as source:
-                    owner.run(["xdotool", "-"], env, stdin=source,
-                              stdout=stack.enter_context((output / "driver.log").open("w")),
-                              stderr=subprocess.STDOUT,
-                              timeout=max(.1, remaining() - args.tail_seconds - 1))
+                # Installed xdotool stdin mode continued after failed execs in
+                # the real236 run. Each line is a checked native CLI invocation;
+                # held keys remain in the owned X server between invocations.
+                with (output / "driver.log").open("w") as log:
+                    for line in script.splitlines():
+                        action_argv = shlex.split(line, comments=True)
+                        if action_argv:
+                            owner.run(["xdotool", *action_argv], env, stdout=log,
+                                      stderr=subprocess.STDOUT,
+                                      timeout=max(.1, remaining() - args.tail_seconds - 1))
                 receipt["driver_finished_seconds"] = time.monotonic() - started
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
@@ -1037,6 +1055,7 @@ def record(args):
                                          "sha256": digest(output / name)} for name in names}
             if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
                 raise RuntimeError("Empty recording artifact")
+            args.journey.validate_review(receipt["journey_review"])
             receipt["completed"] = True
     except BaseException as error:
         receipt["error"] = f"{type(error).__name__}: {error}"
@@ -1111,14 +1130,18 @@ def mark(label):
 
 
 def marker_command():
-    # Literal quoted paths avoid native xdotool stdin variable-expansion defects.
+    # Each native invocation receives literal paths, without shell evaluation.
     return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
 
 
-def native_click_command(state, *, target="history"):
+def native_click_command(state, *, target="history", name=None, original_state=None):
     helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
-    return (f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(helper))}"
-            f" --target {shlex.quote(target)} --state {shlex.quote(state)}")
+    argv = [sys.executable, str(helper), "--target", target, "--state", state]
+    if name is not None:
+        argv.extend(("--name", name))
+    if original_state is not None:
+        argv.extend(("--original-state", original_state))
+    return "exec --sync " + shlex.join(argv)
 
 
 def phase_evidence(output, event):
@@ -1158,9 +1181,11 @@ def main():
     parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
     parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
-    parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
+    parser.add_argument("--actions", type=Path,
+                        help="One checked xdotool argv line per action; no shell or shared window stack")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
+    parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
     parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")

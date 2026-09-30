@@ -25,6 +25,8 @@ class NativePhase:
     text: str
     selection: tuple
     window: int
+    focused_widget: int | None
+    loaded_pages: int
     scroll_y: float
     maximum: float
     follows_tail: bool
@@ -41,8 +43,11 @@ class NativePhase:
         bodies = tuple(BodyObservation(body["object_id"], body["ready"], body["dormant"],
                                        body["visible"], body["measured_rows"])
                        for body in window["body_resources"]["owners"])
+        focused = snapshot["metadata"]["screen"]["focused"]
         return cls(label, mode, draft["object_id"], "\n".join(draft["lines"]), draft["selection"],
-                   window["object_id"], window["scroll_y"], window["maximum"], window["follows_tail"], bodies)
+                   window["object_id"], focused["object_id"] if focused is not None else None,
+                   len(view["history_pages"]), window["scroll_y"], window["maximum"],
+                   window["follows_tail"], bodies)
 
     def ready_body_ids(self):
         return {body.object_id for body in self.bodies if body.ready}
@@ -50,14 +55,25 @@ class NativePhase:
 
 def review_warm_return(output, receipt, *, suffix):
     """Check actual draft/Undo and resource reuse, keeping physical review separate."""
-    labels = ("warm-start", "draft", "idle-done", "b-open", "a-return", "undo")
+    labels = ("warm-start", "draft", "focused", "up-done", "down-done", "reverse-done",
+              "idle-done", "b-open", "a-return", "undo")
     phases = {label: NativePhase.read(output, label) for label in labels}
     initial, drafted = phases["warm-start"], phases["draft"]
     before_return, peer, returned, undone = (phases[label] for label in
                                             ("idle-done", "b-open", "a-return", "undo"))
     same = (initial, drafted, before_return, returned, undone)
     retained = before_return.ready_body_ids() & returned.ready_body_ids()
+    focused, up, down, reversed_scroll = (phases[label] for label in
+                                         ("focused", "up-done", "down-done", "reverse-done"))
     checks = {
+        "original_saved_history_loaded": drafted.loaded_pages > 0,
+        "peer_saved_history_loaded": peer.loaded_pages > 0,
+        "history_scroll_extent": focused.maximum > 0,
+        "scroll_keys_focus_history": all(phase.focused_widget == phase.window
+                                          for phase in (focused, up, down, reversed_scroll)),
+        "held_page_up_moved": up.scroll_y < focused.scroll_y,
+        "held_page_down_moved": down.scroll_y > up.scroll_y,
+        "reverse_page_up_moved": reversed_scroll.scroll_y < down.scroll_y,
         "draft_typed": drafted.text == initial.text + suffix,
         "peer_selected": peer.mode != initial.mode,
         "source_retained": all(phase.mode == initial.mode for phase in same),

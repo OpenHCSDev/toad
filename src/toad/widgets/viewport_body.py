@@ -166,8 +166,10 @@ class WindowMembership:
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
-    def __init__(self, window, *, budget: PresentationBudget = PresentationBudget()):
-        self.budget = budget
+    def __init__(self, window, *, budget: PresentationBudget | None = None):
+        self.budget = budget if budget is not None else PresentationBudget(
+            buffer_viewports=window.app.settings.ui.history_buffer_viewports,
+        )
         self.lookahead = DirectionalPreparation(self)
         self._settle_timer = None
         self._window = ref(window)
@@ -202,17 +204,24 @@ class DocumentViewport:
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
+
     async def _trim_warm(self) -> None:
-        def source_bytes():
-            return sum(owner.retained_source_bytes for key in self._warm.values()
-                       if (owner := key()) is not None)
-        def widget_count():
-            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm.values()
-                       if (owner := key()) is not None)
-        while (source_bytes() > self.window.app.preparation.max_bytes or
-               widget_count() > self.budget.widget_limit(self.window.size.height)):
+        # No suspension or DOM mutation occurs in this pass. Measure each
+        # native tree once, then subtract its cost as the existing LRU retires
+        # it. Recounting every survivor after every eviction is quadratic.
+        costs = [(owner.retained_source_bytes, 1 + len(owner.walk_children()))
+                 if (owner := key()) is not None else (0, 0)
+                 for key in self._warm.values()]
+        source_bytes = sum(size for size, _ in costs)
+        widget_count = sum(count for _, count in costs)
+        for size, count in costs:
+            if (source_bytes <= self.window.app.preparation.max_bytes and
+                    widget_count <= self.budget.widget_limit(self.window.size.height)):
+                break
             self._warm.popitem(last=False)
             self.body_evictions += 1
+            source_bytes -= size
+            widget_count -= count
 
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
@@ -307,13 +316,12 @@ class DocumentViewport:
                         key = ref(owner)
                         self._warm[key] = key
                         self._warm.move_to_end(key)
-                await self._trim_warm()
-                warm = {key() for key in self._warm.values()} if active else set()
-                retained = protected | warm | visible.keys()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
-                sequence = ([node for node in self.window.walk_children() if node in self.owners]
-                            if active and self.lookahead.travel_rows else [])
+                sequence = ([node for node in self.window.walk_children()
+                             if node in self.owners
+                             and not any(parent in self.owners for parent in node.ancestors)]
+                            if active else [])
                 ahead_owners = []
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:
@@ -322,9 +330,29 @@ class DocumentViewport:
                                if sequence[index].measured_rows]
                     extent = max(1, sum(heights) / len(heights)) if heights else self.window.size.height
                     count = min(self.budget.item_limit(0), int(ahead / max(1, extent)) + bool(ahead))
-                    ahead_owners = self.lookahead.demand.neighbors(
+                    runway = self.budget.runway(
+                        sequence, min(visible_indexes), max(visible_indexes) + 1,
+                        self.window.size.height,
+                    )
+                    predicted = self.lookahead.demand.neighbors(
                         sequence, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
+                    roots = dict.fromkeys((*runway, *predicted))
+                    ahead_owners = list(dict.fromkeys(
+                        node for root in roots for node in (root, *root.walk_children())
+                        if node in self.owners
+                    ))
+                for owner in reversed(ahead_owners):
+                    if owner.body_ready:
+                        key = ref(owner)
+                        self._warm[key] = key
+                        self._warm.move_to_end(key)
+                for owner in owners:
+                    if owner in visible:
+                        self._warm.move_to_end(ref(owner))
+                await self._trim_warm()
+                warm = {key() for key in self._warm.values()} if active else set()
+                retained = protected | warm | visible.keys()
                 # Restore visible source before retiring unrelated bodies.
                 ordered = sorted(owners, key=lambda owner: owner not in visible)
                 for owner in ordered:
@@ -333,12 +361,18 @@ class DocumentViewport:
                     wanted = owner in retained
                     if owner.body_dormant and wanted:
                         anchor = next((item for item in owners if item in visible and item.is_attached), owner)
+                        started = monotonic()
                         await self._restore_body(owner, anchor)
+                        if owner in visible:
+                            self.lookahead.delivered(monotonic() - started)
                     if (not wanted and not owner.body_dormant and owner not in self.protected()
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
                 if active:
                     demand = self.lookahead.demand
+                    # Restore farthest first so the existing LRU gives the
+                    # nearest reversal runway priority when its hard bound wins.
+                    ahead_owners.reverse()
                     for first in range(0, len(ahead_owners), self.budget.admission_items):
                         if not self.lookahead.accepts(demand):
                             break
@@ -361,7 +395,6 @@ class DocumentViewport:
             self._running = False
 
     async def _restore_body(self, owner: ViewportBody, anchor: Widget) -> None:
-        started = monotonic()
         async with self.window.history_lock:
             if not self.window.is_attached or not owner.is_attached or not self.window.screen.is_current:
                 return
@@ -370,4 +403,3 @@ class DocumentViewport:
                     await owner.restore_body()
             else:
                 await owner.restore_body()
-        self.lookahead.delivered(monotonic() - started)

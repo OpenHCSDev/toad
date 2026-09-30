@@ -1,4 +1,4 @@
-"""Click a captured native history gutter or editor in the recorder's isolated st."""
+"""Click a captured native resource in the recorder's isolated st."""
 
 from dataclasses import dataclass
 import argparse
@@ -21,21 +21,55 @@ class NativeFocusTarget(DeclaredFamily, affix="Target"):
 
     @classmethod
     @abstractmethod
-    def locate(cls, view): ...
+    def locate(cls, snapshot, args): ...
+
+    @staticmethod
+    def selected_view(snapshot):
+        return next(view for view in snapshot["views"] if view["mode"] == snapshot["metadata"]["current_mode"])
 
 
 class HistoryTarget(NativeFocusTarget):
     @classmethod
-    def locate(cls, view):
+    def locate(cls, snapshot, args):
+        view = cls.selected_view(snapshot)
         resource, = (window for window in view["history_windows"] if window["focus_target"] is not None)
         return resource
 
 
 class EditorTarget(NativeFocusTarget):
     @classmethod
-    def locate(cls, view):
+    def locate(cls, snapshot, args):
+        view = cls.selected_view(snapshot)
         resource, = (draft for draft in view["drafts"] if draft["focus_target"] is not None)
         return resource
+
+
+class ThreadTarget(NativeFocusTarget):
+    @classmethod
+    def locate(cls, snapshot, args):
+        if not args.name:
+            raise ValueError("Thread target requires --name")
+        return next(row for row in snapshot["metadata"]["navigation_targets"]["threads"] if row["name"] == args.name)
+
+
+class OriginalTabTarget(NativeFocusTarget):
+    @classmethod
+    def locate(cls, snapshot, args):
+        if args.original_state is None:
+            raise ValueError("Original tab requires --original-state")
+        original = read_snapshot(args.original_state)
+        if original["metadata"]["pid"] != snapshot["metadata"]["pid"]:
+            raise ValueError("Original tab snapshot belongs to a different UI")
+        mode = original["metadata"]["current_mode"]
+        return next(tab for tab in snapshot["metadata"]["navigation_targets"]["tabs"] if tab["name"] == mode)
+
+
+def read_snapshot(path):
+    output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()
+    state = (path if path.is_absolute() else output / path).resolve()
+    if not state.is_relative_to(output):
+        raise ValueError("Native target must come from this recorder's owned state")
+    return pickle.loads(state.read_bytes())
 
 
 @dataclass(frozen=True)
@@ -76,6 +110,8 @@ def main():
     parser.add_argument("--state", required=True, type=Path, help="Fresh native recorder state snapshot")
     parser.add_argument("--target", type=NativeFocusTarget.decode, default=HistoryTarget,
                         help="Native resource: " + ", ".join(NativeFocusTarget.names()))
+    parser.add_argument("--name", help="Native thread row's actual declaration name")
+    parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
     args = parser.parse_args()
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()
     if not output.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
@@ -84,15 +120,11 @@ def main():
     if not re.fullmatch(r":[1-9][0-9]*", display_name):
         raise ValueError("History click requires the recorder's isolated display")
     identity = FieldCodec.decode(ProcessIdentity, json.loads(os.environ["TOAD_VIDEO_UI_IDENTITY"]))
-    state = (args.state if args.state.is_absolute() else output / args.state).resolve()
-    if not state.is_relative_to(output):
-        raise ValueError("History target must come from this recorder's owned state")
-    snapshot = pickle.loads(state.read_bytes())
+    snapshot = read_snapshot(args.state)
     metadata = snapshot["metadata"]
     if metadata["pid"] != identity.pid or not identity.alive():
         raise ValueError("Captured native UI identity changed")
-    view = next(view for view in snapshot["views"] if view["mode"] == metadata["current_mode"])
-    resource = args.target.locate(view)
+    resource = args.target.locate(snapshot, args)
     target = resource["focus_target"]
     cell = Offset(*target["cell"])
     if cell not in Region(*resource["region"]):
@@ -101,7 +133,7 @@ def main():
         ["xdotool", "search", "--pid", os.environ["TOAD_VIDEO_TERMINAL"]], text=True, timeout=5).splitlines()
     client = XWindowGeometry.read(window_id)
     pixel = StTerminalGrid(*metadata["terminal_geometry"]).pixel_at(cell, client)
-    observation = {"ui_identity": FieldCodec.encode(identity), "mode": view["mode"],
+    observation = {"ui_identity": FieldCodec.encode(identity), "mode": metadata["current_mode"],
                    "resource_object_id": resource["object_id"], "target": target,
                    "terminal_geometry": metadata["terminal_geometry"], "pixel": tuple(pixel)}
     (output / f"{args.target.declared_name}-click-target.json").write_text(json.dumps(observation, indent=2) + "\n")

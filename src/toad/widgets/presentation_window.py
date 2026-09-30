@@ -37,11 +37,12 @@ class PresentationBudget:
     reserve_batches: int = 4
     minimum_widgets: int = 300
     widgets_per_row: int = 10
+    buffer_viewports: int = 3
     lookahead_seconds: float = 0.3
     scroll_idle_seconds: float = 0.2
 
     def __post_init__(self) -> None:
-        for name in ("max_items", "admission_items", "minimum_widgets"):
+        for name in ("max_items", "admission_items", "minimum_widgets", "buffer_viewports"):
             value = getattr(self, name)
             if type(value) is not int or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
@@ -57,6 +58,22 @@ class PresentationBudget:
 
     def widget_limit(self, viewport_rows: int) -> int:
         return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
+
+    def runway_rows(self, viewport_rows: int) -> int:
+        return max(1, viewport_rows) * self.buffer_viewports
+
+    def runway(self, sequence, first: int, last: int, viewport_rows: int):
+        """Native measured bodies on both sides, including stationary reversal."""
+        before, after = [], []
+        for candidates, selected in ((reversed(sequence[:first]), before),
+                                     (iter(sequence[last:]), after)):
+            rows = 0
+            for owner in candidates:
+                selected.append(owner)
+                rows += max(1, owner.measured_rows)
+                if rows >= self.runway_rows(viewport_rows):
+                    break
+        return before + after
 
 
 class PreparationDemand(ABC):
@@ -102,9 +119,6 @@ class MovingPreparation(PreparationDemand):
 
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
-
-    def edges(self, before, after):
-        return (before, None) if self.velocity < 0 else (None, after)
 
     def neighbors(self, sequence, first: int, last: int, count: int):
         return (tuple(reversed(sequence[max(0, first - count):first]))
@@ -192,11 +206,12 @@ class DirectionalPreparation:
     def ahead_rows(self, viewport_rows: int) -> int:
         # Resource admission still belongs to PresentationBudget / the viewport
         # working set; lookahead cannot ask for an entire skipped transcript.
-        return ceil(min(viewport_rows * self.budget.reserve_batches, abs(self.travel_rows)))
+        return max(self.budget.runway_rows(viewport_rows),
+                   ceil(min(viewport_rows * self.budget.reserve_batches, abs(self.travel_rows))))
 
     def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
         return min(budget.item_limit(0), budget.admission_items + self.ahead_rows(viewport_rows))
 
     def accepts(self, demand: PreparationDemand) -> bool:
-        """A queued batch belongs to this still-moving or destination intent."""
-        return demand is self.demand and self.travel_rows != 0
+        """Baseline runway survives idle; reversal revokes the original batch."""
+        return demand is self.demand

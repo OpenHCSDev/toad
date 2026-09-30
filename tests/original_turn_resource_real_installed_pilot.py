@@ -57,7 +57,28 @@ def disposition_rows(service):
     return InputDispositions(service.root / InputDispositions.filename).read().rows
 
 
-async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
+def readonly_inputs(service):
+    with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+        assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
+    assert disposition_rows(service) == {}
+
+
+def original_custody(capture, original, source_digest):
+    with original.open('rb') as stream:
+        assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
+    current = capture.require_current()
+    assert current.process_identity == capture.source.process_identity
+    return {'sha256': source_digest,
+            'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+
+
+def readonly_custody(service, capture, original, source_digest):
+    """Certify the original and zero inputs for the in-process driver."""
+    readonly_inputs(service)
+    return original_custody(capture, original, source_digest)
+
+
+async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=ResourceJourneyApp):
     assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     evidence = Path(os.environ['L0A_EVIDENCE'])
@@ -95,6 +116,7 @@ async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
         AGENT_COMMS_ROOT=str(service.root), AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
         AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=str(package),
         AGENT_COMMS_AGENT_BIN=str(runtime / 'pi-comms-native'),
+        AGENT_COMMS_ACP_LAUNCHER=str(runtime / 'agent-comms-acp'),
         AGENT_COMMS_AGENT_ARGS=shlex.join(retained.arguments or ()),
         PATH=str(runtime) + os.pathsep + environment.get('PATH', ''),
         VIRTUAL_ENV=str(runtime.parent), AGENT_COMMS_RUNTIME_ROOT=str(runtime),
@@ -121,9 +143,8 @@ async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
         'short_name': 'resource', 'protocol': 'acp',
         'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])},
     })
-    app = app_type(agent_data=definition, project_dir=str(project),
-                             agent_session_id='resource436')
-    app.began = time.monotonic()
+    app = None
+    began = time.monotonic()
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                'original_bytes': original.stat().st_size, 'original_inputs_replayed': 0,
                'completed_phases': [], 'core': core_head,
@@ -160,6 +181,40 @@ async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
         receipt.setdefault('fresh_inputs', []).append([row.public() for row in new.values()])
 
     try:
+        if readonly_capture is not None:
+            assert os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1'
+            assert readonly_acceptance is None
+            # The physical callback owns the sole actual Toad process. The
+            # existing SDK fork/root owner supplies a second saved agent, not
+            # a second in-process Pilot/App or a competing fixture builder.
+            second = await ForkSessionHelper.run(
+                ForkSessionRequest(str(package), str(original), str(project)), cwd=project,
+                env=dict(environment, PI_CODING_AGENT_DIR=str(stage / 'native-forks')),
+            )
+            assert Path(second.session_file).is_relative_to(stage)
+            service.registry.declare(Thread(
+                'resource236b', frozenset(), str(project), session_file=second.session_file,
+                model=source.model, thinking_level=source.thinking_level,
+                task='Read-only saved history capture. Never resume inherited work or send inputs.',
+            ))
+            receipt['physical_sources'] = [FieldCodec.encode(service.registry.require(name))
+                                          for name in ('resource436', 'resource236b')]
+            # Forking ends the public-process witness lifetime. The authorized
+            # cutover may replace that owner while the independent copies paint.
+            receipt['original_source_custody'] = original_custody(
+                capture, original, source_digest)
+            readonly_inputs(service)
+            receipt['original_process_witness_released'] = True
+            (evidence / 'source-capture.json').write_text(json.dumps(receipt, indent=2))
+            print('ORIGINAL_CAPTURE_COMPLETE_PUBLIC_WITNESS_RELEASED', flush=True)
+            await readonly_capture(service, project, evidence, environment)
+            readonly_inputs(service)
+            receipt['complete'] = True
+            receipt['completed_phases'].append('readonly_physical_acceptance')
+            return
+        app = app_type(agent_data=definition, project_dir=str(project),
+                       agent_session_id='resource436')
+        app.began = began
         async with app.run_test(size=(160, 44)) as pilot:
             view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
@@ -168,15 +223,8 @@ async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
             if (os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1'
                     and readonly_acceptance is not None):
                 await readonly_acceptance(app, pilot, service, project, evidence)
-                with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
-                    assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
-                assert disposition_rows(service) == {}
-                with original.open('rb') as stream:
-                    assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
-                current = capture.require_current()
-                assert current.process_identity == source.process_identity
-                receipt['original_source_custody'] = {'sha256': source_digest,
-                    'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+                receipt['original_source_custody'] = readonly_custody(
+                    service, capture, original, source_digest)
                 receipt['complete'] = True
                 receipt['completed_phases'].append('readonly_resource_acceptance')
                 return
@@ -217,15 +265,8 @@ async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
                 app.save_screenshot(str(evidence / 'closed-bars-idle.svg'))
                 assert app.workspace_chrome.channels.collapsed
                 assert app.screen.query_one('#thread-sidebar', SideBar).collapsed
-                with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
-                    assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
-                assert disposition_rows(service) == {}
-                with original.open('rb') as stream:
-                    assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
-                current = capture.require_current()
-                assert current.process_identity == source.process_identity
-                receipt['original_source_custody'] = {'sha256': source_digest,
-                    'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+                receipt['original_source_custody'] = readonly_custody(
+                    service, capture, original, source_digest)
                 receipt['closed_bars_read_only'] = True
                 receipt['complete'] = True
                 print('READ_ONLY_RETAINED_ACCEPTANCE', json.dumps(receipt), flush=True)
@@ -270,8 +311,9 @@ async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
         raise
     finally:
         receipt['inputs'] = [row.public() for row in disposition_rows(service).values()]
-        receipt['elapsed_seconds'] = round(time.monotonic() - app.began, 3)
-        (evidence / 'visible-frames.json').write_text(json.dumps(app.frames))
+        receipt['elapsed_seconds'] = round(time.monotonic() - began, 3)
+        if app is not None:
+            (evidence / 'visible-frames.json').write_text(json.dumps(app.frames))
         for owner in service.registry.all_threads().values():
             if owner.role.executable and owner.process_alive:
                 await asyncio.to_thread(service.owners.stop, owner.name)

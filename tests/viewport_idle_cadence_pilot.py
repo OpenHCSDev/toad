@@ -10,7 +10,8 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from runtime_fixture import ToadApp
+from agent_comms.comms import Comms
+from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.presentation_window import MovingPreparation, StationaryPreparation
 
@@ -24,28 +25,63 @@ async def main():
                           XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"))
+        Comms(root / "wire").messaging.initialize_private_initial_protocol()
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
-            await pilot.pause()
+            await app.selected_session.wait_content_ready()
             window = app.selected_session.conversation.window
             docs = [AgentResponse(f"## Native resource {i}\n\n" +
-                                  "Selectable actual native Markdown body. " * 100)
+                                  "Selectable actual native Markdown body. " * 20,
+                                  paginate=False)
                     for i in range(8)]
             await app.selected_session.conversation.contents.mount(*docs)
-            await pilot.pause(.2)
             manager = window.document_viewport
             lookahead = manager.lookahead
+            async with asyncio.timeout(10):
+                while any(not body.body_ready for body in docs) or manager._running:
+                    await pilot.pause(.02)
+            window.focus(scroll_visible=False)
+            await pilot.press("end")
+            async with asyncio.timeout(8):
+                while not any(body in app.screen._compositor.visible_widgets for body in docs):
+                    await pilot.pause(.01)
+            window.release_anchor()
+            await manager.suspend_source()
+            foreground = next(body for body in docs
+                              if body in app.screen._compositor.visible_widgets)
+            assert await foreground.retire_body()
             # Contention is on the real resource owner, not a replacement body
             # or a clock mock. Delivery measures the full actual restore wait.
             await window.history_lock.acquire()
-            restore = asyncio.create_task(manager._restore_body(docs[-1], docs[-1]))
+            manager.resume_source()
             try:
                 await asyncio.sleep(.5)
             finally:
                 window.history_lock.release()
-            await asyncio.wait_for(restore, 8)
+            async with asyncio.timeout(8):
+                while manager._running or not foreground.body_ready:
+                    await pilot.pause(.01)
             slow_delivery = lookahead.delivery_seconds
             assert slow_delivery > lookahead.budget.scroll_idle_seconds
+            # A cold offscreen body's warm-up is background work. It must not
+            # replace the latency of the actual foreground restoration above.
+            await manager.suspend_source()
+            background = next(body for body in docs
+                              if body not in app.screen._compositor.visible_widgets)
+            assert await background.retire_body()
+            await background.prepare_body()
+            await manager._restore_body(background, foreground)
+            assert background.body_ready
+            background_delivery = lookahead.delivery_seconds
+            (scratch / "receipt.json").write_text(json.dumps({
+                "foreground_delivery_seconds": slow_delivery,
+                "delivery_after_background_seconds": background_delivery,
+                "foreground_measured": slow_delivery > lookahead.budget.scroll_idle_seconds,
+                "background_preserved_horizon": background_delivery == slow_delivery,
+                "boundary": "actual source UI/widget/worker journey; not installed physical capture",
+            }, indent=2) + "\n")
+            assert background_delivery == slow_delivery, "Warm-up overwrote foreground delivery horizon"
+            manager.resume_source()
             window.release_anchor()
             window.focus(scroll_visible=False)
             await pilot.press("pageup")

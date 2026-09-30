@@ -135,4 +135,4 @@ class TranscriptSourcePreparation:
     def prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
         rows = self.window.size.height
-        return max(4, rows // 2) + self.window.document_viewport.lookahead.ahead_rows(rows)
+        return self.window.document_viewport.lookahead.ahead_rows(rows)
