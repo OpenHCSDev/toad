@@ -115,7 +115,7 @@ class PreparedPageSource(ABC):
     def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
         keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> AsyncIterator[tuple[PreparedTranscriptPage, bool]]:
+    ) -> AsyncIterator[PreparedTranscriptPage]:
         pass
 
     @abstractmethod
@@ -208,7 +208,7 @@ class TranscriptPageBuffer(PreparedPageSource):
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
         keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> AsyncIterator[tuple[PreparedTranscriptPage, bool]]:
+    ) -> AsyncIterator[PreparedTranscriptPage]:
         """Yield read-ahead source for body preparation in the existing renderer.
 
         The runtime owns each retained page. Consumers prepare its actual
@@ -240,7 +240,7 @@ class TranscriptPageBuffer(PreparedPageSource):
                 if prepared is not None:
                     if self.closed or not keep_going():
                         return
-                    yield prepared, older
+                    yield prepared
                 if older:
                     before = (prepared.page.before if prepared is not None
                               and prepared.page.has_older and prepared.retained_bytes <= self.runtime.max_bytes
@@ -336,7 +336,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
         keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> AsyncIterator[tuple[PreparedTranscriptPage, bool]]:
+    ) -> AsyncIterator[PreparedTranscriptPage]:
         if self.closed or not keep_going():
             return
         if self._raw is None:
