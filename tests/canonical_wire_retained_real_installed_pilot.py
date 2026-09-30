@@ -31,6 +31,7 @@ from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.outgoing_message import OutgoingMessage
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.agent_response import AgentResponse
 from canonical_wire_conversation_installed_pilot import WindowApp, originals, original_native_reply_proof
 from l0a_native_installed_pilot import until
 from runtime_fixture import stop_test_children
@@ -132,12 +133,15 @@ async def main():
                              if message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body)
                 await until(rp, lambda: len(originals(receiver, reply.reference, OutgoingMessage)) == 1, 30)
                 await until(sp, lambda: len(originals(sender, reply.reference, IncomingMessage)) == 1, 30)
+                assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1, \
+                    'Original wire reply and native assistant were both published'
                 receipt['original_native_reply'] = original_native_reply_proof(service, original, reply)
                 for view, pilot, kind in ((sender, sp, OutgoingMessage), (receiver, rp, IncomingMessage)):
                     await until(pilot, lambda: 'Responded' in str(originals(view, original.reference, kind)[0]
                                                                 .query_one(MessageNotifications).title), 30)
                 # Same already-open views, beyond both reported 15–30s delays.
                 timeline = []
+                idle_began, idle_cpu = time.monotonic(), time.process_time()
                 for second in range(31):
                     await rp.pause(1)
                     timeline.append({'second': second,
@@ -145,8 +149,11 @@ async def main():
                         'original_receiver': len(originals(receiver, original.reference, IncomingMessage)),
                         'reply_receiver': len(originals(receiver, reply.reference, OutgoingMessage))})
                     assert all(value == 1 for key, value in timeline[-1].items() if key != 'second')
+                    assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1
                     assert all(app._exception is None for app in (sender_app, receiver_app, irc_app))
                 receipt['same_open_31s'] = timeline
+                receipt['idle'] = {'wall_seconds': round(time.monotonic() - idle_began, 3),
+                                   'process_cpu_seconds': round(time.process_time() - idle_cpu, 3)}
                 # Actual A/B/A clicks followed immediately by new bounded input.
                 beta_screen = receiver_app.selected_session
                 await ThreadTarget('alpha').open(NavigationContext(receiver_app, receiver_app.selected_mode, project, user))
