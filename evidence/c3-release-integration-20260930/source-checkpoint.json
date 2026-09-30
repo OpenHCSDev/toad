@@ -14,5 +14,17 @@
   "default_changed": false,
   "public_owner_restarted": false,
   "first_ui_artifacts": "accepted9354 requirements/receipts/runtimes preserved immutable",
-  "own_production_lines_deleted": 0
+  "own_production_lines_deleted": 0,
+  "latest_source_advance": {
+    "merge_commit": "c30870e551ec5f4713473cb8de24f2eba8f1773d",
+    "merged_main": "c62c8d29d23519a46acd571bdeeabfb76cce0046",
+    "reviewed234": "15a0e5f77c8ad5ffe1385c2bac31ddc3324b8ebc",
+    "actual_acceptance": "evidence/catalog-actions/native08/acceptance-complete.txt",
+    "production_added": 162,
+    "production_deleted": 129,
+    "own_implementation_changes": 0,
+    "236_included": false,
+    "build_started": false,
+    "public_activation": "Parent432 only; must retire old CLIENT writers before public activation"
+  }
 }
