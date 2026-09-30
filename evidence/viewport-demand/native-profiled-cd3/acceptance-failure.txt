@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-demand-20260929/tests/l0a_native_installed_pilot.py", line 307, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-viewport-demand-20260929/tests/native_scroll_recording_pilot.py", line 74, in record
+    await asyncio.to_thread(custody.run, command, env,
+                            timeout=100, stdout=log, stderr=subprocess.STDOUT)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py", line 166, in run
+    out, err = owned.process.communicate(timeout=timeout)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/subprocess.py", line 1220, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/subprocess.py", line 2178, in _communicate
+    self.wait(timeout=self._remaining_time(endtime))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/subprocess.py", line 1278, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/subprocess.py", line 2075, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '('/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python', '-c', "import os,sys\nfd=int(sys.argv[1]); error_fd=int(sys.argv[2]); go=os.read(fd,1); os.close(fd)\nif go != b'G': sys.exit(126)\nos.set_inheritable(error_fd, False)\ntry: os.execvpe(sys.argv[3], sys.argv[3:], os.environ)\nexcept OSError as error:\n    os.write(error_fd, str(error.errno).encode()); os._exit(126)\n", '14', '30', '/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python', '/home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py', '--private-root', '/var/tmp/comms-l0a-native-ug2sqejf/wire', '--owner', 'toad-viewport-demand-214', '--actions', '/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/scroll.xdo', '--fit-window', '--startup-wait', '12', '--max-duration', '50', '--review-seconds', '5', '--review-frames', '40', '--output', '/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled', '--review-phase', 'up', '--review-phase', 'down', '--review-phase', 'reverse', '--review-phase', 'end', '--review-phase', 'idle', '--profile', '--', '/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad', 'acp', '/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp', '/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/l0a-native-35yqq751/project', '--session', 'beta')' timed out after 100 seconds

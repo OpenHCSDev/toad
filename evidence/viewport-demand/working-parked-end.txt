@@ -1,0 +1,1 @@
+transcript lifecycle: real source, provisional mount, commit, admitted worker retirement, prune and removal pass

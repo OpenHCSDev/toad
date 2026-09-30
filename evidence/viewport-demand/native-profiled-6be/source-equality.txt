@@ -1,0 +1,5 @@
+PASS 267 production Python files equal installed wheel
+Core 72062939239b0f07707406309305a056a23f925f
+Textual 412b5a2b5da8875dc2f3dc5be2365abddce0537b
+Native /home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent
+Native tested source 6beacbe0; receipt-only READY commit retains this production source.
