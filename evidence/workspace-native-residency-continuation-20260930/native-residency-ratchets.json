@@ -1,0 +1,64 @@
+{
+  "base": "0f638053",
+  "files": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "ratchets": {
+        "string_dispatch": [
+          0,
+          0
+        ],
+        "string_dispatch_arms": [
+          0,
+          0
+        ],
+        "type_switch": [
+          0,
+          0
+        ],
+        "type_switch_arms": [
+          0,
+          0
+        ],
+        "codec_subclass": [
+          0,
+          0
+        ],
+        "foreign_absence_probe": [
+          12,
+          12
+        ]
+      }
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "ratchets": {
+        "string_dispatch": [
+          0,
+          0
+        ],
+        "string_dispatch_arms": [
+          0,
+          0
+        ],
+        "type_switch": [
+          0,
+          0
+        ],
+        "type_switch_arms": [
+          0,
+          0
+        ],
+        "codec_subclass": [
+          0,
+          0
+        ],
+        "foreign_absence_probe": [
+          12,
+          12
+        ]
+      }
+    }
+  ],
+  "parse_errors": []
+}

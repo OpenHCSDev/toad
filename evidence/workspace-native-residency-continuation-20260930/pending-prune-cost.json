@@ -1,0 +1,12 @@
+{
+  "resource": 140046369224208,
+  "native_children": [
+    140046369224528,
+    140046339641488,
+    140046080617808
+  ],
+  "dormant": true,
+  "restore_reservation": 24,
+  "actual_native_cost": 4,
+  "declared_native_cost": 4
+}
