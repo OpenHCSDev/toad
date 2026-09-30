@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from abc import abstractmethod
 from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -24,6 +25,51 @@ import subprocess
 import sys
 import time
 from typing import TYPE_CHECKING
+
+from agent_comms.declared_family import DeclaredFamily
+
+
+class ProfileSampling(DeclaredFamily, affix="Sampling"):
+    """The profiler owns consistency; capture must record its actual policy."""
+
+    arguments = ()
+    limitation = "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead"
+
+
+class ConsistentSampling(ProfileSampling):
+    pass
+
+
+class NonblockingSampling(ProfileSampling):
+    arguments = ("--nonblocking",)
+    limitation = "Nonblocking reads can observe inconsistent Python stacks; inspect sampling errors before attribution"
+
+
+class ReviewTiming(DeclaredFamily, affix="ReviewTiming"):
+    """Clip encoding is an independent resource lifetime, never native work."""
+
+    @classmethod
+    @abstractmethod
+    def generate(cls, output, args, env, owner, intervals): ...
+
+
+class InlineReviewTiming(ReviewTiming):
+    @classmethod
+    def generate(cls, output, args, env, owner, intervals):
+        names = []
+        for interval in intervals:
+            label = interval["label"]
+            label = None if label == "main" else label
+            print(f"Preparing review {label or 'main'} at {interval['start']:.3f}s for {interval['seconds']:.3f}s", flush=True)
+            artifacts(output, args, env, owner, start=interval["start"], seconds=interval["seconds"], label=label)
+            names.extend([f"{label}-slow.mp4", f"{label}-frames.png"] if label else ["slow.mp4", "frames.png"])
+        return names
+
+
+class DeferredReviewTiming(ReviewTiming):
+    @classmethod
+    def generate(cls, output, args, env, owner, intervals):
+        return []
 
 if TYPE_CHECKING:
     from agent_comms.child_process import ParentedProcess, ObservedProcess
@@ -334,14 +380,16 @@ def profile_launch(command):
         deadline = time.monotonic() + 10
         program = terminal_program(owner, terminal.child.identity, deadline, transfer_program)
         ui_pid = program.child.identity.pid
+        sampling = ProfileSampling.decode(os.environ["TOAD_VIDEO_PROFILE_SAMPLING"])
         argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
-                "--subprocesses", "--nonblocking", "--full-filenames",
+                "--subprocesses", "--full-filenames", *sampling.arguments,
                 "--rate", os.environ["TOAD_VIDEO_PROFILE_RATE"],
                 "--duration", os.environ["TOAD_VIDEO_PROFILE_DURATION"],
                 "--output", str(output / "cpu-profile.json")]
         (output / "profile-launch.json").write_text(json.dumps({
             "terminal_pid": terminal.process.pid, "terminal_start_ticks": terminal.child.identity.start_time,
             "ui_pid": ui_pid, "ui_start_ticks": program.child.identity.start_time, "profiler_command": argv,
+            "sampling": sampling.declared_name,
             "profiler_exec_monotonic": time.monotonic()}) + "\n")
         # exec preserves the ancestor identity that Linux ptrace admission requires.
         os.execv(argv[0], argv)
@@ -381,7 +429,8 @@ def profile_review(output, receipt, rate):
     upper = receipt["profiler"]["sampling_ready_observed_monotonic"]
     origin = (lower + upper) / 2
     offset = origin - receipt["capture_launch_monotonic"]
-    result = {"profiler": "py-spy", "rate_hz": rate, "nonblocking": True,
+    sampling = ProfileSampling.decode(launch["sampling"])
+    result = {"profiler": "py-spy", "rate_hz": rate, "sampling": sampling.declared_name,
         "trace": "cpu-profile.json", "trace_origin_monotonic_estimate": origin,
         "trace_to_video_offset_seconds": offset,
         "ui_pid": launch["ui_pid"],
@@ -389,6 +438,7 @@ def profile_review(output, receipt, rate):
         "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
         "alignment_nominal_uncertainty_seconds": (upper - lower) / 2 + 1 / rate,
         "limits": ["Scheduler delays and sampling errors can increase clock uncertainty",
+                   sampling.limitation,
                    "Stack spans are sampled wall activity, not exact call counts or CPU time",
                    "Kernel counter deltas give per-process CPU time at action boundaries",
                    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
@@ -458,6 +508,37 @@ def artifacts(output, args, env, owner, *, start, seconds, label=None):
                                   "-update", "1", str(sheet)], env, timeout=60)
 
 
+def review_recording(args):
+    """Encode retained capture intervals after its native journey retires."""
+    output = args.review_recording.expanduser().resolve()
+    if not output.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
+        raise ValueError("Review requires an owned persistent scratch recording")
+    capture = json.loads((output / "receipt.json").read_text())
+    if not capture["capture_completed"]:
+        raise ValueError("The source capture did not complete")
+    owner = ProcessOwner()
+    receipt = {"capture_receipt": str(output / "receipt.json"), "assessment": "unreviewed",
+               "completed": False}
+    try:
+        names = InlineReviewTiming.generate(output, args, os.environ.copy(), owner, capture["review_intervals"])
+        receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
+                                      "sha256": digest(output / name)} for name in names}
+        if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
+            raise RuntimeError("Empty review artifact")
+        receipt["completed"] = True
+    except BaseException as error:
+        receipt["error"] = f"{type(error).__name__}: {error}"
+        raise
+    finally:
+        receipt["cleanup"] = owner.cleanup()
+        if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
+            receipt["completed"] = False
+        (output / "review-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    if not receipt["completed"]:
+        raise RuntimeError("Review cleanup incomplete; inspect review-receipt.json")
+    return output
+
+
 def record(args):
     output = args.output.expanduser().resolve()
     scratch = (Path.home() / ".cache/agent-scratch").resolve()
@@ -504,6 +585,7 @@ def record(args):
         "recorder_source_sha256": digest(Path(__file__)),
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "assessment": "unreviewed", "capture_completed": False, "completed": False,
+        "review_timing": args.review_timing.declared_name,
         "review": {"start_seconds": args.review_start, "seconds": args.review_seconds,
                    "fps": args.review_fps, "frames_limit": args.review_frames,
                    "slowdown": args.slowdown, "timestamp_basis": "source video seconds"},
@@ -547,6 +629,7 @@ def record(args):
                 if profiler is None:
                     raise RuntimeError("Optional profiling needs the existing py-spy installation")
                 env["TOAD_VIDEO_PROFILE_RATE"] = str(args.profile_rate)
+                env["TOAD_VIDEO_PROFILE_SAMPLING"] = args.profile_sampling.declared_name
                 env["TOAD_VIDEO_PROFILE_DURATION"] = str(math.ceil(args.max_duration + 30))
                 argv = [sys.executable, str(Path(__file__).resolve()), "--profile-launch", *command]
                 receipt["profiler"] = {"command": argv, "executable_sha256": digest(Path(profiler)),
@@ -684,10 +767,7 @@ def record(args):
             names = ["terminal.mp4", "before.png", "after.png"]
             if args.profile:
                 names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
-            for label, start, seconds in intervals:
-                print(f"Preparing review {label or 'main'} at {start:.3f}s for {seconds:.3f}s", flush=True)
-                artifacts(output, args, env, owner, start=start, seconds=seconds, label=label)
-                names.extend([f"{label}-slow.mp4", f"{label}-frames.png"] if label else ["slow.mp4", "frames.png"])
+            names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
             receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
                                          "sha256": digest(output / name)} for name in names}
             if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
@@ -781,8 +861,13 @@ def main():
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
     parser.add_argument("--write-scroll-script", type=Path, help="Write an editable native held-key script, then exit")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
+    parser.add_argument("--review-recording", type=Path, help="Encode a retained capture; no UI, ACP or native process launches")
+    parser.add_argument("--review-timing", type=ReviewTiming.decode, default=InlineReviewTiming,
+                        help="Clip encoding lifetime: " + ", ".join(ReviewTiming.names()))
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
-    parser.add_argument("--profile-rate", type=int, default=25, help="Bounded nonblocking sampling rate (10-49 Hz)")
+    parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
+    parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
+                        help="Stack read policy: " + ", ".join(ProfileSampling.names()))
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=800)
@@ -833,7 +918,7 @@ def main():
     pixels = 640 * args.sheet_columns * (640 * args.height / args.width) * math.ceil(frames / args.sheet_columns)
     if pixels > 24_000_000:
         parser.error("Contact sheet exceeds 24 million pixels; reduce review frames")
-    print(record(args))
+    print(review_recording(args) if args.review_recording else record(args))
 
 
 if __name__ == "__main__":

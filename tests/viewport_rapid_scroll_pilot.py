@@ -5,6 +5,7 @@ import os
 import psutil
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from dataclasses import replace
 
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
@@ -53,6 +54,12 @@ async def main():
             docs[-1] = AgentResponse("## LAST SOURCE\n\n" + "last record " * 15 + "\n\nTAIL-RECORD-END")
             await view.contents.mount(*docs)
             window = view.window
+            # This journey must exercise body retirement even when the ordinary
+            # warmed fixture fits PR202's retained-resource budget. Configure
+            # actual resource pressure; do not synthesize dormant body state.
+            window.document_viewport.budget = replace(
+                window.document_viewport.budget, minimum_widgets=100, widgets_per_row=0,
+            )
             window.anchor()
             await settled(view, pilot)
             print("RAPID_SOURCE_READY", window.max_scroll_y, flush=True)

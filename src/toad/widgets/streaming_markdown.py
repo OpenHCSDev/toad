@@ -47,6 +47,18 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     def compose(self) -> ComposeResult:
         yield from self._prefix
 
+    def uses_paged_source(self, source: str) -> bool:
+        return self._paginate and (self._paged is not None or len(source) > self.RICH_TEXT_LIMIT)
+
+    async def prepare_body(self) -> None:
+        if self.uses_paged_source(self.source):
+            from toad.render_tasks import TranscriptRenderTask
+            await self.app.render_processes.submit(
+                TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),)),
+            )
+        else:
+            await super().prepare_body()
+
     async def retire_body(self) -> bool:
         if self._stream is not None or self._content_lock.locked():
             return False
@@ -121,7 +133,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                 if not self._body_restoring:
                     self._body_dormant = False
                 self._needs_full_markdown_update = True
-            if not self._paginate or (self._paged is None and len(source) <= self.RICH_TEXT_LIMIT):
+            if not self.uses_paged_source(source):
                 if append and self.source + text == source and not self._needs_full_markdown_update:
                     await super().append(text)
                 else:

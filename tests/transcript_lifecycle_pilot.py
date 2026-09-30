@@ -58,6 +58,15 @@ async def main():
             assert history.state.reports_coverage
             assert not history.state.accepts_source_work
             assert not history.checkpoint_available
+            history.request_latest()
+            # A parked tab cancels its admitted operation and pending End.
+            # Resume admits work on the original source, never a dead worker.
+            await history.retire_source(parked=True)
+            assert not history.state.accepts_publication
+            history.resume_source()
+            await pilot.pause()
+            assert history.state.accepts_source_work
+            assert history.checkpoint_available
             # The actual framework worker is cancelled during source retirement.
             # Its completion cannot restore the prior live source incarnation.
             await history.retire_source()
