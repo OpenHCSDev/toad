@@ -1,0 +1,20 @@
+{
+  "stage": "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final",
+  "toad": "253eeb101d9f6d28c8a3e0b608e509b6842b2ed5",
+  "core": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+  "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "installed_source_files": 303,
+  "mismatches": [],
+  "exit_code": 0,
+  "controlled_loopback_requests": 2,
+  "external_provider_calls": 0,
+  "default_changes": 0,
+  "user_owner_restarts": 0,
+  "production_lines_deleted_233": 4,
+  "production_lines_deleted_imported_228": 7,
+  "meaningful_acceptance": "canonical fork registration to roster, immediate cold child open, inherited history, first new physical Enter, accepted source cursor, one mounted answer and one painted answer",
+  "cleanup": "cleanup08.json"
+}
