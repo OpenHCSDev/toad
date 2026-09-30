@@ -21,8 +21,6 @@ from agent_comms.goal_states import OwnerPause, PausedGoal
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_fork import ForkSessionHelper, ForkSessionRequest
 from agent_comms.native_package import verify_native_package
-from agent_comms.owner_launch import RetainedOwnerLaunch
-from agent_comms.registration import Registration
 from agent_comms.threads import Thread
 from agent_comms.turn_phase import ToolRunningPhase
 from toad.agent_schema import AgentDefinition
@@ -31,6 +29,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 from l0a_native_installed_pilot import until, response_painted
 from runtime_fixture import ToadApp as FixtureApp, stop_test_children
 from saved_state_user_journey_pilot import screen_paint, submit_editor
+from original_owner_capture import OriginalTypedCapture
 
 
 class ResourceJourneyApp(ToadApp):
@@ -66,9 +65,11 @@ async def main():
     assert stage.is_relative_to('/home/ts/wt')
     stage.mkdir(parents=True, exist_ok=False)
     evidence.mkdir(parents=True, exist_ok=True)
-    snapshot = Registration(Path(os.environ['AC_REAL_SOURCE_ROOT']) / 'registry.json').snapshot()
-    source = snapshot.require_active(os.environ['AC_REAL_SOURCE_OWNER'])
-    retained = RetainedOwnerLaunch.capture(source, snapshot)
+    capture = OriginalTypedCapture(
+        root=Path(os.environ['AC_REAL_SOURCE_ROOT']),
+        original_python=Path(os.environ['AC_REAL_ORIGINAL_PYTHON']),
+    ).read(os.environ['AC_REAL_SOURCE_OWNER'])
+    source, retained = capture.source, capture.retained
     assert 'sol' in source.model.lower() and source.thinking_level.declared_name == 'high'
     original = Path(os.environ.get('AC_REAL_SOURCE_FILE', source.session_file))
     with original.open('rb') as stream:
@@ -124,7 +125,7 @@ async def main():
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                'original_bytes': original.stat().st_size, 'original_inputs_replayed': 0,
                'completed_phases': [], 'core': core_head,
-               'toad': 'e21363c8'}
+               'toad': os.environ['AC_REAL_TOAD_HEAD']}
 
     async def cancel_tool(pilot, view, marker):
         # The original retained context may first need the native multi-segment
@@ -204,7 +205,7 @@ async def main():
                 assert disposition_rows(service) == {}
                 with original.open('rb') as stream:
                     assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
-                current = Registration(Path(os.environ['AC_REAL_SOURCE_ROOT']) / 'registry.json').snapshot().require_active(source.name)
+                current = capture.require_current()
                 assert current.process_identity == source.process_identity
                 receipt['original_source_custody'] = {'sha256': source_digest,
                     'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
