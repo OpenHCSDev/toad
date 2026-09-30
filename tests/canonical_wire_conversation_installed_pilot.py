@@ -12,6 +12,7 @@ from pathlib import Path
 from threading import Event
 from contextlib import asynccontextmanager
 import shutil
+import shlex
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
@@ -57,6 +58,12 @@ sender_entered, sender_release = Event(), Event()
 async def prepare(comms, project, requests, entered, release, hold_next):
     release.set()
     hold_next.clear()
+    package = Path(os.environ['AC_NATIVE_COPIED_PACKAGE'])
+    os.environ['AGENT_COMMS_AGENT_ARGS'] = shlex.join([
+        '--provider', 'selected-offline', '--model', 'fixture', '--no-extensions',
+        '--no-skills', '--no-context-files', '--no-builtin-tools',
+        '--extension', str(package / 'agent-comms-extensions/global-agent-comms/index.mjs'),
+    ])
     comms.registry.declare(Thread('alpha', frozenset({'team'}), str(project),
                                   model='selected-offline/fixture', thinking_level='off'))
     await asyncio.to_thread(comms.owners.start, 'alpha')
