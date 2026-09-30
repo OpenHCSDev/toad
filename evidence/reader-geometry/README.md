@@ -89,8 +89,9 @@ Resource check: home20.2GiB/RAM12.6GiB; swap12.2GiB warning. One bounded UI seri
 no fleet, native process or provider response. Scratch owner Heisenberg, purpose
 geometry counterevidence, `.artifacts/reader-geometry` (<1MiB before receipts).
 
-Installed candidate native A/B/A and the intermittent208 y5→145 failure still
-need confirmation. The reproduced geometry mechanism is real, but this source
-receipt does not prove it was the exact caller in that intermittent native run.
+Installed candidate read-only actual native A/B/A/lazy PageDown/reverse/idle/End
+subsequently passed351 completed frames; see [READY](READY.md). The reproduced
+geometry mechanism is real, but this source receipt does not prove it was the
+exact caller in the earlier intermittent208 run.
 Full large-history video/CPU, editor active/post-cancel keys and same-open-view
 recovery remain PR213 work. No final50ms target or full TC1 gate on this checkpoint.
