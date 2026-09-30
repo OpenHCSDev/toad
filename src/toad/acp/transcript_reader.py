@@ -120,6 +120,10 @@ class CoordinationTranscriptReader:
                 before=identity.before, after=identity.after, through=identity.through)
         return TranscriptSnapshotUpdate(page, identity)
 
+    async def notifications(self, root, references):
+        async with self.bind(root) as reader:
+            return await asyncio.to_thread(reader.views.message_notifications_for_references, references)
+
     async def page(self, root, thread, *, before=None, after=None, through=None):
         snapshot = await self.snapshot(root, thread, before=before, after=after, through=through)
         return snapshot.page

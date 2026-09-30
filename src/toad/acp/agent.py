@@ -392,6 +392,15 @@ class Agent(AgentBase):
             raise ValueError("Thread attachment changed while reading status")
         return presentation
 
+    async def get_message_notifications(self, references):
+        coordination = self.coordination
+        if coordination is None:
+            return {}
+        results = await self.controller.transcripts.notifications(coordination.wire_root, references)
+        if self.coordination is not coordination:
+            raise ValueError("Thread attachment changed during original-message notification read")
+        return results
+
     async def observe_thread_presentation(self, presentation) -> None:
         await self.session.observe_owner(presentation)
 

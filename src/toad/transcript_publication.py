@@ -73,45 +73,37 @@ class SnapshotPublication(TranscriptPublication):
         self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
 
 
-class AssignedInboundPublication(TranscriptPublication):
-    """One sequence claim belongs to its source even while its body is unmounted."""
-
-    def __init__(self, owner, view, window, contents, notifications):
-        super().__init__(owner, view, window, contents)
-        self.notifications = notifications
+class HandlingPublication(TranscriptPublication):
+    """Render original recipient outcomes on existing original source bodies."""
 
     async def publish(self) -> None:
-        from toad.widgets.committed_presentation import CommittedHistory
-        from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
-        from toad.widgets.message_divider import MessageClock
+        from toad.widgets.wire_message_handling import WireMessageHandling
 
-        wanted = frozenset(receipt.message.seq for receipt in self.notifications
-                           if receipt.message is not None and receipt.message.seq > 0)
-        histories = tuple(history for history in self.contents.children
-                          if isinstance(history, CommittedHistory))
-        if not histories and self.agent is not None and self.agent.transcript_ready:
-            # The initial source publication retries the canonical observation.
-            # Until it exists, recent assignment rows have no live chronology.
+        if self.agent is None:
             return
-        covered = frozenset(sequence for history in histories
-                            for sequence in history.covered_sequences(wanted))
-        if not self.current():
+        bodies = tuple(body for body in self.contents.walk_children()
+                       if isinstance(body, WireMessageHandling) and body.handling_references)
+        references = tuple(dict.fromkeys(reference for body in bodies
+                                         for reference in body.handling_references))
+        if not references:
             return
-        for receipt in reversed(self.notifications):
-            message = receipt.message
-            if message is None or message.seq <= 0:
-                continue
-            blocks = [block for block in self.contents.query(IncomingMessage)
-                      if block.sequence == message.seq]
-            if not blocks and message.seq not in covered:
-                block = AssignedIncomingMessage(
-                    message.sender, message.body, message.target,
-                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
-                )
-                await self.owner.view.post(block)
-                blocks.append(block)
-            for block in blocks:
-                await block.show_handling(receipt.state, receipt.detail)
+        results = await self.agent.get_message_notifications(references)
+        if self.current():
+            for body in bodies:
+                if body.is_attached:
+                    body.show_notifications(results)
+
+
+class CanonicalSourcePublication(TranscriptPublication):
+    """An observed source change refreshes source pages, never appends a notice."""
+
+    async def publish(self) -> None:
+        if self.agent is None or not self.agent.transcript_ready:
+            return
+        page = await self.agent.get_transcript_page()
+        if self.current():
+            await self.owner.snapshot(page)
+            await self.owner.publish(HandlingPublication)
 
 
 class CheckpointPublication(TranscriptPublication):
@@ -407,6 +399,12 @@ class TranscriptPresentation:
         self.worker = view.run_worker(partial(self.publish, CheckpointPublication),
                                       group="transcript-window", exclusive=True)
         return self.worker
+
+    def request_handling(self) -> None:
+        view = self.view
+        if view is not None and view.is_attached:
+            view.run_worker(partial(self.publish, HandlingPublication),
+                            group="transcript-handling", exclusive=True)
 
     def retry(self) -> None:
         if self.dirty:

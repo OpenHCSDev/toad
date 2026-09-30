@@ -10,7 +10,9 @@ from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessa
 from agent_comms.routing import MessageRoute
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
-from textual.widgets import Static
+from agent_comms.message_reference import MessageReference
+from toad.widgets.wire_message_handling import WireMessageHandling
+from toad.widgets.message_notifications import MessageNotifications
 
 
 
@@ -26,7 +28,7 @@ class IncomingSender(RouteHeader):
         self.action_open_target(self.sender)
 
 
-class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
+class IncomingMessage(WireMessageHandling, ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
     DEFAULT_CSS = """
     IncomingMessage .assignment-handling {
@@ -43,14 +45,22 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
         return SequenceClaim(self.sequence)
 
     def __init__(self, sender: str, text: str, target: str | None = None,
-                 *, show_header: bool = True, sequence: int | None = None, clock: MessageClock = LiveMessageClock()) -> None:
+                 *, show_header: bool = True, source: MessageReference | None = None, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__()
         self.sender = sender
         self.text = text
         self.target = target
         self.show_header = show_header
-        self.sequence = sequence
+        self.source = source
         self.clock = clock
+
+    @property
+    def message_reference(self):
+        return self.source
+
+    @property
+    def sequence(self):
+        return self.source.seq if self.source is not None else None
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
@@ -59,32 +69,9 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
             yield MessageDivider(f"Inbound · @{self.sender}", clock=self.clock)
             yield IncomingSender(self.sender, self.target)
         yield AgentResponse(self.text, show_divider=False).add_class("routed-body")
+        if self.handling_references:
+            yield MessageNotifications()
 
     def get_clipboard_text(self) -> str:
         route = MessageRoute(self.sender, (self.target,) if self.target else ())
         return f"{route.incoming_label}\n{self.text}"
-
-    async def on_mount(self) -> None:
-        """Lazy saved bodies derive handling from the existing observation source."""
-        from toad.widgets.conversation import Conversation
-        from toad.widgets.observed_thread_activity import ObservedThreadActivity
-
-        view = self.query_ancestor(Conversation)
-        observed = view.query_one_optional(ObservedThreadActivity)
-        if observed is not None and observed.presentation is not None:
-            for receipt in observed.presentation.notifications:
-                if receipt.message is not None and receipt.message.seq == self.sequence:
-                    await self.show_handling(receipt.state, receipt.detail)
-
-    async def show_handling(self, state: str, detail: str) -> None:
-        """Attach the bus decision to the original inbound chat block."""
-        status = self.query_one_optional(".assignment-handling", Static)
-        if status is None:
-            status = Static(markup=False, classes="assignment-handling")
-            await self.mount(status)
-        status.update(f"Handling: {state}")
-        status.tooltip = detail or None
-
-
-class AssignedIncomingMessage(IncomingMessage):
-    """A bus assignment visible before or without a matching native input."""

@@ -1095,8 +1095,8 @@ class Conversation(ConversationSessionBinding):
         if agent := self.agent:
             await agent.observe_thread_presentation(event.presentation)
         if event.presentation is not None:
-            from toad.transcript_publication import AssignedInboundPublication
-            await self.transcript.publish(AssignedInboundPublication, event.presentation.notifications)
+            from toad.transcript_publication import CanonicalSourcePublication
+            await self.transcript.publish(CanonicalSourcePublication)
         if not self.agent_ready or self.turns.managed_id is not None or self.turns.owner.busy:
             return
         if event.unavailable:
@@ -1635,8 +1635,8 @@ class Conversation(ConversationSessionBinding):
         await self.transcript.covered(message)
         observed = self.query_one_optional(ObservedThreadActivity)
         if observed is not None and observed.presentation is not None:
-            from toad.transcript_publication import AssignedInboundPublication
-            await self.transcript.publish(AssignedInboundPublication, observed.presentation.notifications)
+            from toad.transcript_publication import HandlingPublication
+            await self.transcript.publish(HandlingPublication)
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
