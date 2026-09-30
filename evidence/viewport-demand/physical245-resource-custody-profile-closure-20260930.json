@@ -2192,7 +2192,7 @@
     "membership": "Original native page/window children and ViewportBody Mount/Unmount registrations",
     "accepted_source_mutation": "HistoryWindow.history_lock and preserve_history publication fence",
     "body_cost": "Existing BodyMeasurement keyed native NodeList._updates",
-    "sidebar_row_membership": "Existing ChannelGroup native member resources; no additional index",
+    "sidebar_row_membership": "Original ChannelGroup.member_container.children native custody/order; stored member_rows tuple is not authoritative during reconciliation",
     "measurement_clock": "Original ProfileTrace/recorder markers and kernel process counters; no NativeProxy"
   },
   "next_action": "Heisenberg one affected installed physical candidate gate after meaningful source checkpoint; use retained original profile for remaining sidebar/edge/readiness consumers",
@@ -2203,5 +2203,6 @@
     "Profiler nominal uncertainty does not bound absolute video acquisition origin",
     "Pre-admission mismatch under paint fence is not stale accepted-source custody",
     "No new resource cache, readiness mirror, clock authority or registry proposed"
-  ]
+  ],
+  "sidebar_correction_249": "Earlier native member_rows advice corrected after constructor/assignment inspection; tuple is stored after await and can retain old references. Derive from existing native member_container rather than adding an index."
 }
