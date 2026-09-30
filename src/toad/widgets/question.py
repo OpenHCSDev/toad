@@ -16,6 +16,8 @@ from textual import widgets
 
 from toad.answer import Answer
 from toad.question_presentation import QuestionPresentation
+from toad.widget_actions import DeclaredWidgetActions
+from toad.question_actions import QuestionAction, SelectKindAction
 
 type Options = list[Answer]
 
@@ -107,58 +109,12 @@ class Option(containers.HorizontalGroup):
         self.post_message(self.Selected(self.index))
 
 
-class Question(containers.VerticalGroup, can_focus=True):
+class Question(DeclaredWidgetActions, containers.VerticalGroup, can_focus=True):
+    ACTIONS = QuestionAction
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"
     ALLOW_SELECT = False
-    CURSOR_GROUP = Binding.Group("Cursor", compact=True)
-    ALLOW_GROUP = Binding.Group("Allow once/always", compact=True)
-    REJECT_GROUP = Binding.Group("Reject once/always", compact=True)
-    BINDINGS = [
-        Binding(
-            "up",
-            "selection_up",
-            "Up",
-            group=CURSOR_GROUP,
-        ),
-        Binding(
-            "down",
-            "selection_down",
-            "Down",
-            group=CURSOR_GROUP,
-        ),
-        Binding(
-            "enter",
-            "select",
-            "Select",
-        ),
-        Binding(
-            "a",
-            "select_kind(('allow_once', 'allow'))",
-            "Allow once",
-            group=ALLOW_GROUP,
-        ),
-        Binding(
-            "A",
-            "select_kind('allow_always')",
-            "Allow always",
-            group=ALLOW_GROUP,
-        ),
-        Binding(
-            "r",
-            "select_kind(('reject_once', 'reject'))",
-            "Reject once",
-            group=REJECT_GROUP,
-        ),
-        Binding(
-            "R",
-            "select_kind('reject_always')",
-            "Reject always",
-            group=REJECT_GROUP,
-        ),
-    ]
-
     DEFAULT_CSS = """
     Question {
         width: 1fr;
@@ -197,13 +153,6 @@ class Question(containers.VerticalGroup, can_focus=True):
     selected: var[bool] = var(False, toggle_class="-selected")
     blink: var[bool] = var(False)
 
-
-    DEFAULT_KINDS = {
-        "allow_once": "a",
-        "allow_always": "A",
-        "reject_once": "r",
-        "reject_always": "R",
-    }
 
     @dataclass
     class Answer(Message):
@@ -251,6 +200,7 @@ class Question(containers.VerticalGroup, can_focus=True):
         self.selected = False
         self.presentation.detach()
         self.refresh(recompose=True, layout=True)
+        self.refresh_bindings()
 
     def compose(self) -> ComposeResult:
 
@@ -266,7 +216,7 @@ class Question(containers.VerticalGroup, can_focus=True):
             for index, answer in enumerate(self.options):
                 active = index == self.selection
                 key = (
-                    self.DEFAULT_KINDS.get(answer.kind)
+                    SelectKindAction.SHORTCUTS.get(answer.kind, (None, ""))[0]
                     if (answer.kind and answer.kind not in kinds)
                     else None
                 )
@@ -279,58 +229,18 @@ class Question(containers.VerticalGroup, can_focus=True):
                 if answer.kind is not None:
                     kinds.add(answer.kind)
 
+    @property
+    def accepts_selection(self) -> bool:
+        return not self.selected and 0 <= self.selection < len(self.options)
+
     def watch_selection(self, old_selection: int, new_selection: int) -> None:
         self.presentation.mount.select(new_selection)
 
     async def recompose(self) -> None:
         await self.presentation.recompose(self, super().recompose)
 
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if self.selected and action in ("selection_up", "selection_down"):
-            return False
-        if action == "select_kind":
-            kinds = {answer.kind for answer in self.options if answer.kind is not None}
-            check_kinds = set()
-            for parameter in parameters:
-                if isinstance(parameter, str):
-                    check_kinds.add(parameter)
-                elif isinstance(parameter, tuple):
-                    check_kinds.update(parameter)
-
-            return any(kind in kinds for kind in check_kinds)
-
-        return True
-
     def watch_blink(self, blink: bool) -> None:
         self.presentation.mount.blink(blink)
-
-    def action_selection_up(self) -> None:
-        self._reset_blink()
-        self.selection = max(0, self.selection - 1)
-
-    def action_selection_down(self) -> None:
-        self._reset_blink()
-        self.selection = min(len(self.options) - 1, self.selection + 1)
-
-    def action_select(self) -> None:
-        self._reset_blink()
-        self.post_message(
-            self.Answer(
-                index=self.selection,
-                answer=self.options[self.selection],
-                ask=self._ask,
-            )
-        )
-        self.selected = True
-
-    def action_select_kind(self, kind: str | tuple[str]) -> None:
-        kinds = kind if isinstance(kind, tuple) else (kind,)
-        for kind in kinds:
-            for index, answer in enumerate(self.options):
-                if answer.kind == kind:
-                    self.selection = index
-                    self.action_select()
-                    break
 
     @on(Option.Selected)
     def on_option_selected(self, event: Option.Selected) -> None:

@@ -1,0 +1,9 @@
+{
+  "base": "fda1b5d2dda13a55a6e3ae400af03a6e76e70ec1",
+  "head": "e86e903d47c7719626e715082a1feaf2f50c8297",
+  "paths": [
+    "src/toad/transcript_publication.py"
+  ],
+  "nonzero_debt_deltas": {},
+  "exit_code": 0
+}

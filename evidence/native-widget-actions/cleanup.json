@@ -1,0 +1,49 @@
+{
+  "canonical_registry_owners": {
+    "beta": {
+      "process_alive": false,
+      "process_identity": "ProcessIdentity(pid=2948461, start_time=23876445)"
+    },
+    "user": {
+      "process_alive": false,
+      "process_identity": "None"
+    }
+  },
+  "owned_attempt_process_leaks": [],
+  "inaccessible_processes": 294,
+  "scope": "read-only exact private attempt environment plus original registry process identity; same-user inaccessible processes all predate first fixture; no cleanup signals",
+  "original_private_root": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/retained-native07/private-root/wire",
+  "same_user_inaccessible_processes": [
+    {
+      "pid": 216738,
+      "status": "zombie",
+      "birth": 1790673436.86,
+      "predates_all_attempts": true
+    },
+    {
+      "pid": 1561676,
+      "status": "zombie",
+      "birth": 1790717008.64,
+      "predates_all_attempts": true
+    },
+    {
+      "pid": 1786010,
+      "status": "sleeping",
+      "birth": 1790544886.28,
+      "predates_all_attempts": true
+    },
+    {
+      "pid": 1786012,
+      "status": "sleeping",
+      "birth": 1790544886.3,
+      "predates_all_attempts": true
+    },
+    {
+      "pid": 3699396,
+      "status": "sleeping",
+      "birth": 1790598148.66,
+      "predates_all_attempts": true
+    }
+  ],
+  "first_fixture_config_timestamp": 1790761843.622401
+}

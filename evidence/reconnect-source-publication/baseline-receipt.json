@@ -1,0 +1,36 @@
+{
+  "provider": "localhost-only",
+  "paid_calls": 0,
+  "phases": [
+    {
+      "phase": "answer-1",
+      "canonical_assistants": 1,
+      "canonical_users": [
+        "cc48113b4d4f44c348a6d9cd55d522d9"
+      ],
+      "source_file": "/home/ts/wt/cw232b01/application/pi/sessions/--home-ts-wt-cw232b01-application-project--/2026-09-30T10-31-08-874Z_01a0f1de-3d49-75a6-ae72-bd0ae46f4da2.jsonl",
+      "source_offset": 2187,
+      "registered_response_resources": 2,
+      "resource_ids": [
+        140263440670928,
+        140263439363440
+      ],
+      "painted_bodies": 2,
+      "painted_headers": 2,
+      "histories": [
+        {
+          "resource": 140263439358880,
+          "registered": true,
+          "source": "/home/ts/wt/cw232b01/application/pi/sessions/--home-ts-wt-cw232b01-application-project--/2026-09-30T10-31-08-874Z_01a0f1de-3d49-75a6-ae72-bd0ae46f4da2.jsonl",
+          "offset": 2187
+        }
+      ],
+      "provider_requests": 1
+    }
+  ],
+  "installed": {
+    "batrachian-toad": "{\"url\":\"https://github.com/OpenHCSDev/toad.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"3f3e089b4f87c27532bb06f72d6d6b26aa285b8b\",\"requested_revision\":\"3f3e089b4f87c27532bb06f72d6d6b26aa285b8b\"}}",
+    "agent-comms": "{\"url\":\"https://github.com/OpenHCSDev/agent-comms.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817\",\"requested_revision\":\"095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817\"}}",
+    "textual": "{\"url\":\"https://github.com/OpenHCSDev/textual.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"65053c5a2df12249ef1c4193beeff7023c1f75d7\",\"requested_revision\":\"65053c5a2df12249ef1c4193beeff7023c1f75d7\"}}"
+  }
+}

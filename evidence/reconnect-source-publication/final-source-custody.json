@@ -1,0 +1,17 @@
+{
+  "tested_head": "e86e903d47c7719626e715082a1feaf2f50c8297",
+  "production_file": "src/toad/transcript_publication.py",
+  "installed_sha256": "52474cf814804c7cafa2b311c0d14bb21846ffa701f8de7b732d219874db01ab",
+  "source_equal": true,
+  "protected_originals": [
+    "/home/ts/wt/cw232b01",
+    "/home/ts/wt/cw232c02",
+    "/home/ts/wt/cw232c03",
+    "/home/ts/wt/cw232s04"
+  ],
+  "remaining_fixture_processes": [],
+  "new_store_or_seen_registry": false,
+  "production_lines_added": 3,
+  "production_lines_deleted": 4,
+  "custody_probe": "Scoped canonical private-root child environment; excludes current reporter and ancestors. Initial raw command-substring probe matched the enclosing tool shell; it exited. Failed broad probe retained under .artifacts/custody-initial-broad-probe.json."
+}
