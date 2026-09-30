@@ -16,7 +16,7 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from agent_comms.thread_status import StoppedThreadStatus
 from textual.geometry import Offset
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_fork_dialog
 from toad.screens.main import MainScreen
 from toad.slash_command import (
     AgentAdvertisedCommand,
@@ -206,7 +206,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
             # creates an owner or changes the exact target's registry/history.
             registry_before = comms.registry.all_threads()
             await submit(pilot, conversation, f"/{ForkAction.declared_name}")
-            await until(pilot, lambda: isinstance(app.screen, ForkDialog))
+            await wait_fork_dialog(app, pilot, seconds=8)
             assert "@slash" in app.screen.query_one("#title", Static).render().plain
             await pilot.press("escape")
             await until(pilot, lambda: not isinstance(app.screen, ForkDialog))
@@ -215,7 +215,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
             fork_item = next(item for item in app.screen.query(ContextMenuItem)
                              if item.action == ForkAction.declared_name)
             await pilot.click(fork_item)
-            await until(pilot, lambda: isinstance(app.screen, ForkDialog))
+            await wait_fork_dialog(app, pilot, seconds=8)
             assert "@slash" in app.screen.query_one("#title", Static).render().plain
             await pilot.press("escape")
             await until(pilot, lambda: not isinstance(app.screen, ForkDialog))

@@ -8,7 +8,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.runtime import socket_path
 from importlib.resources import files
 from l0a_native_installed_pilot import main, until, response_painted
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_fork_dialog
 from toad import messages
 from toad.widgets.conversation import Conversation
 from toad.navigation_preparation import ThreadNavigationRequest
@@ -35,8 +35,7 @@ async def dialog_content_only():
     async with app.run_test(size=(100, 38)) as pilot:
         await app.selected_session.wait_content_ready()
         app.push_screen(ForkDialog(parent), results.append)
-        await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-        dialog = app.screen
+        dialog = await wait_fork_dialog(app, pilot)
         await until(pilot, lambda: dialog.query_one_optional('#fork-tags', Input) is not None)
         assert dialog.query_one('#fork-tags', Input).value == 'keep, team'
         dialog.query_one('#fork-name', Input).value = 'fork-child'
@@ -79,7 +78,6 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     from saved_state_user_journey_pilot import reveal_thread_row
     from toad.widgets.comms_sidebar import ChannelGroup
     from toad.widgets.comms_menu import ContextMenuItem
-    from toad.widgets.comms_fork_dialog import ForkDialog
     from toad.thread_actions import ForkAction
     row = await reveal_thread_row(app, pilot, 'beta', '#team')
     group = row.query_ancestor(ChannelGroup)
@@ -98,8 +96,8 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     menu_item = next(item for item in app.screen.query(ContextMenuItem)
                      if item.action == ForkAction.declared_name)
     assert await pilot.click(menu_item)
-    await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    return parent_view, app.screen
+    dialog = await wait_fork_dialog(app, pilot)
+    return parent_view, dialog
 
 
 async def task_admission(app, pilot, agent, comms, entered, release, hold_next, requests):
