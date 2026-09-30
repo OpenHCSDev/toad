@@ -1,0 +1,983 @@
+{
+  "owner": "Einstein-default-entrypoint",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "fps": 30,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "default_history_return",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3487629,
+      "start_time": 25894836
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture",
+    "--owner",
+    "Einstein-default-entrypoint",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "default_history_return",
+    "--capture-state",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/actions.xdo",
+    "--review-timing",
+    "deferred",
+    "--fps",
+    "30",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--fit-window",
+    "--startup-wait",
+    "12",
+    "--max-duration",
+    "50",
+    "--tail-seconds",
+    "2",
+    "--",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "recorder_source_sha256": "e3d20d8f5e91514dbc3cfe881dad92dcc487c990ae49022abbfa4bd4e7f458dd",
+  "started_utc": "2026-09-30T15:51:19.947029+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": true,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/agent-comms-acp",
+        "sha256": "f9bc6f41a9f129ac6ba1685f1395cf669e31596d1eaa65fc95f54b67121db677"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/toad",
+        "sha256": "eed5370a16d4166a188c750e111a2b15009bf0485b29ab48a1668f8bc1ff09cb"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/agent-comms-acp",
+        "sha256": "f9bc6f41a9f129ac6ba1685f1395cf669e31596d1eaa65fc95f54b67121db677"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/activation.json",
+    "activation_sha256": "336a13c86d26ba1bb04fd56a4913926a94d4c337f6b2f37dc184ba68b4098db4",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930",
+      "pins": {
+        "agent-comms": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+        "batrachian-toad": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "76ab805c25117c67b189e18b405ac3d1a6ad137dc4273e5889762b910ce79275"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "4dc73e43c42ec2a3490bc9541834863185857bd3615cd6f1000ce5d93d092eb2",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+              "requested_revision": "308deb818152c104a77f5b0f0e2675a5c13955fa"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "a3509f56766886933e9c79df6804591241b3645237db6304755536c22b39abb7",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+              "requested_revision": "a80c15025624eec3ed6bd93ef6173cfb66a193b6"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":5374",
+  "ui_identity": {
+    "pid": 3492836,
+    "start_ticks": 25912003
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 259120.885610845,
+  "terminal_pid": 3492834,
+  "state_captures": {
+    "before": {
+      "started_seconds": 12.219449828000506,
+      "manifest": {
+        "pid": 3492836,
+        "created": 1790783480.03,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 156590080,
+        "started_ns": 1790783493984363421,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/before-screen": "complete"
+        },
+        "finished_ns": 1790783494116741957
+      },
+      "finished_seconds": 12.519622999010608
+    },
+    "after": {
+      "started_seconds": 28.019759371993132,
+      "manifest": {
+        "pid": 3492836,
+        "created": 1790783480.03,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 168673280,
+        "started_ns": 1790783509797575961,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/after-screen": "complete"
+        },
+        "finished_ns": 1790783509963056411
+      },
+      "finished_seconds": 28.418202053988352
+    }
+  },
+  "terminal_processes": {
+    "3492834": {
+      "start_ticks": 25911998,
+      "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+    },
+    "3492836": {
+      "start_ticks": 25912003,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                     "
+    },
+    "3492930": {
+      "start_ticks": 25912115,
+      "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "3492960": {
+      "start_ticks": 25912262,
+      "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=16) --multiprocessing-fork "
+    },
+    "3492962": {
+      "start_ticks": 25912298,
+      "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+    }
+  },
+  "driver_started_seconds": 12.543661512987455,
+  "driver_finished_seconds": 25.819972519995645,
+  "duration_seconds": 28.41820690300665,
+  "capture_returncode": 255,
+  "runtime_after": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/agent-comms-acp",
+        "sha256": "f9bc6f41a9f129ac6ba1685f1395cf669e31596d1eaa65fc95f54b67121db677"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/toad",
+        "sha256": "eed5370a16d4166a188c750e111a2b15009bf0485b29ab48a1668f8bc1ff09cb"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/agent-comms-acp",
+        "sha256": "f9bc6f41a9f129ac6ba1685f1395cf669e31596d1eaa65fc95f54b67121db677"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/activation.json",
+    "activation_sha256": "336a13c86d26ba1bb04fd56a4913926a94d4c337f6b2f37dc184ba68b4098db4",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930",
+      "pins": {
+        "agent-comms": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+        "batrachian-toad": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "76ab805c25117c67b189e18b405ac3d1a6ad137dc4273e5889762b910ce79275"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "4dc73e43c42ec2a3490bc9541834863185857bd3615cd6f1000ce5d93d092eb2",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+              "requested_revision": "308deb818152c104a77f5b0f0e2675a5c13955fa"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "a3509f56766886933e9c79df6804591241b3645237db6304755536c22b39abb7",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+              "requested_revision": "a80c15025624eec3ed6bd93ef6173cfb66a193b6"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c020",
+        "width": 1280,
+        "height": 900,
+        "coded_width": 1280,
+        "coded_height": 900,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 32,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "30/1",
+        "avg_frame_rate": "30/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 438784,
+        "duration": "28.566667",
+        "bit_rate": "114465",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "857",
+        "extradata_size": 38,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "28.566667",
+      "size": "413012",
+      "bit_rate": "115662",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "events": [
+    {
+      "label": "startup",
+      "utc": "2026-09-30T15:51:34.683496+00:00",
+      "seconds_since_capture_launch": 12.974955657002283,
+      "cpu": {
+        "3492960": {
+          "start_ticks": 25912262,
+          "cpu_seconds": 0.6,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=16) --multiprocessing-fork "
+        },
+        "3492834": {
+          "start_ticks": 25911998,
+          "cpu_seconds": 0.08,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3492930": {
+          "start_ticks": 25912115,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3492836": {
+          "start_ticks": 25912003,
+          "cpu_seconds": 4.54,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                     "
+        },
+        "3492962": {
+          "start_ticks": 25912298,
+          "cpu_seconds": 0.68,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+        }
+      },
+      "screenshot": "phase-startup.png",
+      "state_capture": {
+        "started_seconds": 13.175402216002112,
+        "manifest": {
+          "pid": 3492836,
+          "created": 1790783480.03,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 158388224,
+          "started_ns": 1790783494939565016,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/phase-startup-state": "complete"
+          },
+          "finished_ns": 1790783495072161265
+        },
+        "finished_seconds": 13.491857195011107
+      }
+    },
+    {
+      "label": "peer-opened",
+      "utc": "2026-09-30T15:51:38.781945+00:00",
+      "seconds_since_capture_launch": 17.07340649300022,
+      "cpu": {
+        "3492960": {
+          "start_ticks": 25912262,
+          "cpu_seconds": 0.6,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=16) --multiprocessing-fork "
+        },
+        "3492834": {
+          "start_ticks": 25911998,
+          "cpu_seconds": 0.09,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3492930": {
+          "start_ticks": 25912115,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3492836": {
+          "start_ticks": 25912003,
+          "cpu_seconds": 5.61,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                     "
+        },
+        "3492962": {
+          "start_ticks": 25912298,
+          "cpu_seconds": 0.68,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+        }
+      },
+      "screenshot": "phase-peer-opened.png",
+      "state_capture": {
+        "started_seconds": 17.274997530010296,
+        "manifest": {
+          "pid": 3492836,
+          "created": 1790783480.03,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 165769216,
+          "started_ns": 1790783499039946059,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/phase-peer-opened-state": "complete"
+          },
+          "finished_ns": 1790783499204634038
+        },
+        "finished_seconds": 17.63615039299475
+      }
+    },
+    {
+      "label": "original-returned",
+      "utc": "2026-09-30T15:51:43.080145+00:00",
+      "seconds_since_capture_launch": 21.37159943798906,
+      "cpu": {
+        "3492960": {
+          "start_ticks": 25912262,
+          "cpu_seconds": 0.6,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=16) --multiprocessing-fork "
+        },
+        "3492834": {
+          "start_ticks": 25911998,
+          "cpu_seconds": 0.09,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3492930": {
+          "start_ticks": 25912115,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3492836": {
+          "start_ticks": 25912003,
+          "cpu_seconds": 6.65,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                     "
+        },
+        "3492962": {
+          "start_ticks": 25912298,
+          "cpu_seconds": 0.68,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+        }
+      },
+      "screenshot": "phase-original-returned.png",
+      "state_capture": {
+        "started_seconds": 21.60916979101603,
+        "manifest": {
+          "pid": 3492836,
+          "created": 1790783480.03,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 168591360,
+          "started_ns": 1790783503376768972,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/phase-original-returned-state": "complete"
+          },
+          "finished_ns": 1790783503509237838
+        },
+        "finished_seconds": 21.927055248990655
+      }
+    },
+    {
+      "label": "return-stationary",
+      "utc": "2026-09-30T15:51:46.522626+00:00",
+      "seconds_since_capture_launch": 24.81408247401123,
+      "cpu": {
+        "3492960": {
+          "start_ticks": 25912262,
+          "cpu_seconds": 0.6,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=16) --multiprocessing-fork "
+        },
+        "3492834": {
+          "start_ticks": 25911998,
+          "cpu_seconds": 0.09,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3492930": {
+          "start_ticks": 25912115,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3492836": {
+          "start_ticks": 25912003,
+          "cpu_seconds": 7.19,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                     "
+        },
+        "3492962": {
+          "start_ticks": 25912298,
+          "cpu_seconds": 0.68,
+          "command": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+        }
+      },
+      "screenshot": "phase-return-stationary.png",
+      "state_capture": {
+        "started_seconds": 25.110379159013974,
+        "manifest": {
+          "pid": 3492836,
+          "created": 1790783480.03,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 168660992,
+          "started_ns": 1790783506890466040,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture/phase-return-stationary-state": "complete"
+          },
+          "finished_ns": 1790783507055348377
+        },
+        "finished_seconds": 25.46667530099512
+      }
+    }
+  ],
+  "journey_review": null,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 413012,
+      "sha256": "cbce388c4056e1a522913a344358f9b732516d2623c37424cef58b444e7a4acd"
+    },
+    "before.png": {
+      "bytes": 71316,
+      "sha256": "e0d030854729e056b2dd787c040e386f48bd99106ac18acba7b90a286089d44f"
+    },
+    "after.png": {
+      "bytes": 72738,
+      "sha256": "f45a8ccd128904c7852e522298a09732b26f9822a41caac3c8a78e799b9ca64f"
+    },
+    "before-state.json": {
+      "bytes": 622716,
+      "sha256": "2ae1363cd7432395ed17a66c4f12cb8f638e43aef8cb90235f4af454cd32c6de"
+    },
+    "before-state.pickle": {
+      "bytes": 268166,
+      "sha256": "031fb5a086153b2b10d7d9810d3408fb6c31025dc6c0bd7da4edae7163ee6c9c"
+    },
+    "before-screen.svg": {
+      "bytes": 49208,
+      "sha256": "27ecc37427fdcf1624e3dc1d7870c4c43fb3148cdad8057c6d6308756e4245ed"
+    },
+    "before-remote.py": {
+      "bytes": 802,
+      "sha256": "db3d98668dac33900c837389ad3af6b4b8d5adc3f4fe85907ddd5868746b996d"
+    },
+    "before-state-metadata.json": {
+      "bytes": 622689,
+      "sha256": "6a098b45524435b75ce986b8d8353727d6e54f34c44d0cfe947d6214a07c9c57"
+    },
+    "before-manifest.json": {
+      "bytes": 553,
+      "sha256": "f0bd4a0b067ccbb3ad73c789030906ea8e103c45da9bf55343ee973ce16b22f6"
+    },
+    "before-screen.json": {
+      "bytes": 167,
+      "sha256": "81319b995921e68e1e26750faeb500db7e5b339ddea2345553d47e3bc7cda40b"
+    },
+    "before-capture.log": {
+      "bytes": 99,
+      "sha256": "3f9fe97e462227118c68a4823ef7d79f2162dfe56070f81a7eae31275e5ef8d8"
+    },
+    "after-screen.svg": {
+      "bytes": 50044,
+      "sha256": "93a26c720c9ef126cbde77a22c1622aeb7f803bae2fca3918f81ff1811c37b22"
+    },
+    "after-state-metadata.json": {
+      "bytes": 629354,
+      "sha256": "3fb355d8742a8be497505b0de54c0286bf486d63a709c2fac4cfa75b97ef15be"
+    },
+    "after-remote.py": {
+      "bytes": 800,
+      "sha256": "3958a6bd607c70a367bc30d05974774b8041826dc014049caea271ab3e1e9e7d"
+    },
+    "after-manifest.json": {
+      "bytes": 551,
+      "sha256": "731ad18df87209862e4afc9d107377cb1cf370007afe68bcb45df9df598973c3"
+    },
+    "after-capture.log": {
+      "bytes": 98,
+      "sha256": "51227ff3adc0a78a6338111cc2dc6f95962a5490654dd973b7675134bc9c2ee0"
+    },
+    "after-state.json": {
+      "bytes": 629381,
+      "sha256": "a4aa3d46a561db4eaf3ae4ea1d6b98ba386773117acaf43fa60222e4520e6fcd"
+    },
+    "after-state.pickle": {
+      "bytes": 270265,
+      "sha256": "77aef230058909bb07cdd02cdd91ddba62ce4eba09d8dab482bf9784718d883d"
+    },
+    "after-screen.json": {
+      "bytes": 166,
+      "sha256": "037bc37753af470d53bc3ce9bd8d7ebbd88ed20020ddb25f8ee53bae47327c22"
+    },
+    "phase-return-stationary-manifest.json": {
+      "bytes": 459,
+      "sha256": "5bcc91872c8d4cce3072154f90a679d80a25e780787148ad1a52d37f0ec283ad"
+    },
+    "phase-peer-opened-capture.log": {
+      "bytes": 110,
+      "sha256": "2a2ddc3b8941c42268fefaecb21fbcbec6dc1a745b221dc372a61c29b6ad03b1"
+    },
+    "phase-original-returned.png": {
+      "bytes": 72717,
+      "sha256": "032eee1a714b6ecc68271001d5c885ca3c4543ce920703cb370da035c6d1b5aa"
+    },
+    "phase-original-returned-remote.py": {
+      "bytes": 437,
+      "sha256": "771f8191734c45909ab0a658b3438d79b2d6b7209ac7509f5dda988cef1f7873"
+    },
+    "phase-original-returned-manifest.json": {
+      "bytes": 459,
+      "sha256": "08dc9173c07943b9fd2be236093763c3f7aad17c2e186a8e925fb6a4d3adb49f"
+    },
+    "phase-startup.png": {
+      "bytes": 71316,
+      "sha256": "e0d030854729e056b2dd787c040e386f48bd99106ac18acba7b90a286089d44f"
+    },
+    "phase-peer-opened-state.json": {
+      "bytes": 631938,
+      "sha256": "4a066e0cf6fc08d230a2e87a44f342e8d0e2184fc07a7eb478070d22ab392e73"
+    },
+    "phase-peer-opened-state-metadata.json": {
+      "bytes": 631911,
+      "sha256": "ea9dad692ed54dbf6553b12144cb8747e665fa3c0192bc102b402f97a879f712"
+    },
+    "phase-startup-capture.log": {
+      "bytes": 106,
+      "sha256": "e19b275490b198f8021a6ab4c990af0f1c47dd519686dcce802e8cdc4bd3d93d"
+    },
+    "phase-startup-state.json": {
+      "bytes": 622716,
+      "sha256": "0964a255b94ed694c5cb54d542673559dfe39b212388478cf2361262efdd2be4"
+    },
+    "phase-peer-opened-manifest.json": {
+      "bytes": 453,
+      "sha256": "fa211525d461f2abbb8b90319575d180d66e2695d218d9ff00734515a9a9f0a2"
+    },
+    "phase-original-returned-capture.log": {
+      "bytes": 116,
+      "sha256": "c1178c153ec4101415e29afb42656f3b02774b332fbeb82ef42993ac9804400a"
+    },
+    "phase-return-stationary-state.json": {
+      "bytes": 629382,
+      "sha256": "1c2c796ad8e39d55ba6f61dd1d7fa2abd7fae620b3081e12732fc1758ec9bb5a"
+    },
+    "phase-return-stationary.png": {
+      "bytes": 72738,
+      "sha256": "f45a8ccd128904c7852e522298a09732b26f9822a41caac3c8a78e799b9ca64f"
+    },
+    "phase-original-returned-state-metadata.json": {
+      "bytes": 629356,
+      "sha256": "d3f707eb31324bc0e868b4f57beaee1e6671b6e56d6028c37141293c583127eb"
+    },
+    "phase-return-stationary-state.pickle": {
+      "bytes": 270265,
+      "sha256": "343d2c4fa30436f7d8587b4e2e7f8206b0fea3a3affdb67696769c4ba135a1e0"
+    },
+    "phase-peer-opened-remote.py": {
+      "bytes": 431,
+      "sha256": "fe0c5ffcf3762fa6779fc003133f20b3ec0652da24c66c8914b502585845a1e7"
+    },
+    "phase-original-returned-state.json": {
+      "bytes": 629383,
+      "sha256": "01bcb010a04712b8ccbd12984a7bb5d0e3b74be69a48e2665d6ffdfee7344f8a"
+    },
+    "phase-original-returned-state.pickle": {
+      "bytes": 270265,
+      "sha256": "0c5cebfcd28590cbccf2a61af1597e31e5af5314479366d893d518a0e5f24f5c"
+    },
+    "phase-peer-opened-state.pickle": {
+      "bytes": 270552,
+      "sha256": "2e4addb793c1f97961347fdb212d338a9ee67ad8a44b3f1226fd59d7299363a9"
+    },
+    "phase-return-stationary-state-metadata.json": {
+      "bytes": 629355,
+      "sha256": "82ea28bc0f1e12d6413ae635a8a0a31d6ad08cdac9cd746b00f966ecb59bb6f2"
+    },
+    "phase-startup-state-metadata.json": {
+      "bytes": 622689,
+      "sha256": "e30df76a9d44e2e5a64ed487d9d25ed3c9cca2440997e9cd125ea417c0d5e207"
+    },
+    "phase-peer-opened.png": {
+      "bytes": 74842,
+      "sha256": "f33a6798b16e4ac9dda078a0b9dab0e63a283bfd1d9607bbfc0735f655818053"
+    },
+    "phase-startup-manifest.json": {
+      "bytes": 449,
+      "sha256": "38407b2dc521f9283c22711a36f41c4ab13bd60401b25ced60b561f476f4b443"
+    },
+    "phase-return-stationary-remote.py": {
+      "bytes": 437,
+      "sha256": "d75781894728c89250ae2ea510e9e2eceed7e8c6457bed144d6b70fde6ae6ecd"
+    },
+    "phase-startup-remote.py": {
+      "bytes": 427,
+      "sha256": "7c2887cf015186b46c11227dd7fc6bae17c35f446a7b819328eded20a0eee1ea"
+    },
+    "phase-return-stationary-capture.log": {
+      "bytes": 116,
+      "sha256": "10f7d56277538a3e5c1e2db007f6b8f7fa69863f08e4074031c7d284da0b540c"
+    },
+    "phase-startup-state.pickle": {
+      "bytes": 268166,
+      "sha256": "d3383894c7b462866ecfb60790c21c5e8fbc224eaaeab19c9f66fa068be82067"
+    },
+    "original_tab-click-target.json": {
+      "bytes": 496,
+      "sha256": "ea741fc601089c4f11f8e9bcbff82eb5fd57a2df26a1afceb7670d2a15bb1e43"
+    },
+    "thread-click-target.json": {
+      "bytes": 489,
+      "sha256": "50d87a99afc2d330202f230441267603b3e06786048a545ef66d7aa22a8a4049"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3492738,
+        "start_ticks": 25911914,
+        "returncode": 0
+      },
+      {
+        "pid": 3492832,
+        "start_ticks": 25911991,
+        "returncode": 0
+      },
+      {
+        "pid": 3492834,
+        "start_ticks": 25911998,
+        "returncode": 0
+      },
+      {
+        "pid": 3492836,
+        "start_ticks": 25912003,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3492871,
+        "start_ticks": 25912061,
+        "returncode": 0
+      },
+      {
+        "pid": 3492910,
+        "start_ticks": 25912070,
+        "returncode": 0
+      },
+      {
+        "pid": 3492911,
+        "start_ticks": 25912077,
+        "returncode": 0
+      },
+      {
+        "pid": 3492912,
+        "start_ticks": 25912086,
+        "returncode": 255
+      },
+      {
+        "pid": 3493156,
+        "start_ticks": 25913288,
+        "returncode": 0
+      },
+      {
+        "pid": 3493161,
+        "start_ticks": 25913310,
+        "returncode": 0
+      },
+      {
+        "pid": 3493183,
+        "start_ticks": 25913342,
+        "returncode": 0
+      },
+      {
+        "pid": 3493258,
+        "start_ticks": 25913465,
+        "returncode": 0
+      },
+      {
+        "pid": 3493270,
+        "start_ticks": 25913542,
+        "returncode": 0
+      },
+      {
+        "pid": 3493287,
+        "start_ticks": 25913752,
+        "returncode": 0
+      },
+      {
+        "pid": 3493308,
+        "start_ticks": 25913878,
+        "returncode": 0
+      },
+      {
+        "pid": 3493383,
+        "start_ticks": 25913966,
+        "returncode": 0
+      },
+      {
+        "pid": 3493472,
+        "start_ticks": 25914180,
+        "returncode": 0
+      },
+      {
+        "pid": 3493548,
+        "start_ticks": 25914310,
+        "returncode": 0
+      },
+      {
+        "pid": 3493629,
+        "start_ticks": 25914522,
+        "returncode": 0
+      },
+      {
+        "pid": 3493732,
+        "start_ticks": 25914870,
+        "returncode": 0
+      },
+      {
+        "pid": 3493740,
+        "start_ticks": 25914890,
+        "returncode": 0
+      },
+      {
+        "pid": 3493813,
+        "start_ticks": 25914964,
+        "returncode": 0
+      },
+      {
+        "pid": 3493816,
+        "start_ticks": 25915044,
+        "returncode": 0
+      },
+      {
+        "pid": 3493905,
+        "start_ticks": 25915212,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3487629,
+      "start_time": 25894836
+    },
+    "original_owner_alive": true
+  }
+}

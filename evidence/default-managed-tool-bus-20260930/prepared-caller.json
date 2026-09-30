@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "recorder": "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py",
+  "recorder_sha256": "e3d20d8f5e91514dbc3cfe881dad92dcc487c990ae49022abbfa4bd4e7f458dd",
+  "peer_thread": "nra-domain-mapping",
+  "actions": "exec --sync /home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py --mark startup\nexec --sync /home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tools/performance/click_history.py --target thread --state phase-startup-state.pickle --name nra-domain-mapping\nsleep 2\nexec --sync /home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py --mark peer-opened\nexec --sync /home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tools/performance/click_history.py --target original_tab --state phase-peer-opened-state.pickle --original-state phase-startup-state.pickle\nsleep 2\nexec --sync /home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py --mark original-returned\nsleep 2\nexec --sync /home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/bin/python /home/ts/wt/toad-first-ui-end-keypad-20260930/tests/tools/record_installed_tui.py --mark return-stationary\n",
+  "journey": "default_history_return",
+  "launch_requires": "Parent explicitly announces reviewed default activation complete",
+  "prepared_only": false,
+  "scope": "Saved original history first paint and actual A/B/A tab return; no repeated keyboard/End journey",
+  "reconnect": "Middle-click original tab label, then actual canonical roster reopening; no owner restart",
+  "provider_calls": 0,
+  "prompt_submissions": 0
+}

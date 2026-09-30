@@ -1,0 +1,185 @@
+{
+  "state": "ACTUAL-DEFAULT-USER-LAUNCHER-FAIL-BEFORE-ACP-ATTACHMENT",
+  "overall_ready": false,
+  "actual_default_command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930",
+  "pins": {
+    "agent-comms": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+    "batrachian-toad": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "duration_seconds": 28.41820690300665,
+  "ui_runs": 1,
+  "raw": "/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930",
+  "driver_commit": "907b4c969cfa6db1ccc9362cff660bc21c5723a5",
+  "capture_completed": true,
+  "wrapper_exit": 1,
+  "physical_review": {
+    "startup": "Unreadable empty chat plus Failed to start agent import error; session idnra-architecture fallback visible tabnominal-refactor-advisor",
+    "peer_opened": "Actual nra-domain-mapping tab click selected it, same startup import failure; no savedhistory/ACPattach",
+    "original_return": "Original tab selected but no canonical coordination root and retainedhistory unavailable. Nativeoracleassertfailed; notrelaxed",
+    "current_sidebar": "Fresh roster shows Ready but cannot establish protocolattachment. Parent13process/prefix proof is separate",
+    "canonical_goal_queue_failure": "No ACP child/initialization, so requested canonical goal/queue/failure session facts NOT observed; no substitute inferred from Ready roster"
+  },
+  "failure": {
+    "type": "ImportError",
+    "message": "cannot import name 'private_nk_launch' from 'agent_comms.private_nk_entrypoint'",
+    "existing_owner": "Arendt01a0eedd450/452entrypointclosure, ownershipconfirmed;Schpairedconsumercoordinated",
+    "relation": {
+      "consumer": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/toad/acp/maintenance_ingress.py",
+      "consumer_sha256": "67430515384c3143e5ffb0476dd75b66e4e3dc11a4f8d4b753cc561f2ab73032",
+      "consumer_failed_import_lines": [
+        139,
+        140
+      ],
+      "consumer_removed_function_call_line": 164,
+      "owner": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/agent_comms/private_nk_entrypoint.py",
+      "owner_sha256": "4ac7d01666996fb8193e94764f53ed812052af8b938705380742f3986dc9fc78",
+      "owner_current_class": "PrivateNkLaunch.from_environment -> validate",
+      "actual_stderr": "No ACP child/log created; exception surfaced in actual application Failed to start agent error panel before spawn. Exact visible error saved in four PNGs."
+    }
+  },
+  "source_and_owner_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3492738,
+        "start_ticks": 25911914,
+        "returncode": 0
+      },
+      {
+        "pid": 3492832,
+        "start_ticks": 25911991,
+        "returncode": 0
+      },
+      {
+        "pid": 3492834,
+        "start_ticks": 25911998,
+        "returncode": 0
+      },
+      {
+        "pid": 3492836,
+        "start_ticks": 25912003,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3492871,
+        "start_ticks": 25912061,
+        "returncode": 0
+      },
+      {
+        "pid": 3492910,
+        "start_ticks": 25912070,
+        "returncode": 0
+      },
+      {
+        "pid": 3492911,
+        "start_ticks": 25912077,
+        "returncode": 0
+      },
+      {
+        "pid": 3492912,
+        "start_ticks": 25912086,
+        "returncode": 255
+      },
+      {
+        "pid": 3493156,
+        "start_ticks": 25913288,
+        "returncode": 0
+      },
+      {
+        "pid": 3493161,
+        "start_ticks": 25913310,
+        "returncode": 0
+      },
+      {
+        "pid": 3493183,
+        "start_ticks": 25913342,
+        "returncode": 0
+      },
+      {
+        "pid": 3493258,
+        "start_ticks": 25913465,
+        "returncode": 0
+      },
+      {
+        "pid": 3493270,
+        "start_ticks": 25913542,
+        "returncode": 0
+      },
+      {
+        "pid": 3493287,
+        "start_ticks": 25913752,
+        "returncode": 0
+      },
+      {
+        "pid": 3493308,
+        "start_ticks": 25913878,
+        "returncode": 0
+      },
+      {
+        "pid": 3493383,
+        "start_ticks": 25913966,
+        "returncode": 0
+      },
+      {
+        "pid": 3493472,
+        "start_ticks": 25914180,
+        "returncode": 0
+      },
+      {
+        "pid": 3493548,
+        "start_ticks": 25914310,
+        "returncode": 0
+      },
+      {
+        "pid": 3493629,
+        "start_ticks": 25914522,
+        "returncode": 0
+      },
+      {
+        "pid": 3493732,
+        "start_ticks": 25914870,
+        "returncode": 0
+      },
+      {
+        "pid": 3493740,
+        "start_ticks": 25914890,
+        "returncode": 0
+      },
+      {
+        "pid": 3493813,
+        "start_ticks": 25914964,
+        "returncode": 0
+      },
+      {
+        "pid": 3493816,
+        "start_ticks": 25915044,
+        "returncode": 0
+      },
+      {
+        "pid": 3493905,
+        "start_ticks": 25915212,
+        "returncode": 0
+      }
+    ]
+  },
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "unknown_replays": 0,
+  "default_mutations": 0,
+  "public_owner_restarts": 0,
+  "optional_real_fork": {
+    "started": false,
+    "reason": "Actual userACPattachment is blocked. Existing retained Sol/high resource driver requires High for paid mode and has multiple prompts; unchanged restoredOFF source/onepromptbudget not eligible. No bypass or inventedfourpromptjourney."
+  },
+  "remaining_scope": "453 model-budgetgeneration remains independent; oldoriginalUNKNOWN preserved and parentverifiespublic journals separately. Paired native inprocess2PASS still valid separate from this actualdefault failure."
+}

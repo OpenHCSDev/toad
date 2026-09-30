@@ -1,0 +1,9 @@
+# Actual managed-tool/BUS default user-launcher failure
+
+One normal `/home/ts/bin/toad-comms nra-architecture` short startup/A-B-A actualclick read-only isolatedst/Xvfb run28.418s. Actual paired metadataa80/308/Text2e49/SDK0.12.1/nativececa captured. No scroll/fullkeyboard/provider/nativeinput/default/backendrestart/originalreplay. Original41MB source hash and fresh originalowner identity unchanged, alltrackedcapturePIDs absent, cleanupzero.
+
+Allfour actualPNG frames show blank chat and Failed to start agent: cannot import name private_nk_launch from agent_comms.private_nk_entrypoint. Actual installed Toad maintenance_ingress.py139–140 imports deletedfunction unconditionally in spawn_under_lock, and164 calls it on explicit private branch. Core now owns PrivateNkLaunch.from_environment plus validate. Neither original nor peer reaches ACPspawn/initialization/savedhistory. Fresh rosterReady and prior13ownerprocessproof do not establish ACPattachment. No canonical goal/queue/failedinput session facts observed; wholeaffecteddefaultgateFAIL. Wrapperoriginalbindingassertfailed because initialization never formed; oracle unchanged. No extra relaunch.
+
+Arendt accepted entrypointwholecallerclosure immediately; exact consumer/path/PNGs sent directly with Schsharedcohort. No compatibilityalias or competingfix. Previous paired in-process fork/channelnative2PASS remains valid separate proof, demonstrably insufficient for actual GUIprocesslaunch. Parentactivationreceipt and publicjournalpreservationverification remain separate.
+
+No paid originalNRAfork started. ActualACPattachment blocked; existing paid retainedresource driver requiresSol/high and multipleprompts, so restoredOFF/one-short-input scope not eligible without a different existing driver. No model change, sourceaccount bypass or invented4promptjourney. 453budget remainsindependent unchanged; originalUNKNOWN preserved.

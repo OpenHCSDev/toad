@@ -1,0 +1,13 @@
+{
+  "consumer": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/toad/acp/maintenance_ingress.py",
+  "consumer_sha256": "67430515384c3143e5ffb0476dd75b66e4e3dc11a4f8d4b753cc561f2ab73032",
+  "consumer_failed_import_lines": [
+    139,
+    140
+  ],
+  "consumer_removed_function_call_line": 164,
+  "owner": "/home/ts/.local/share/agent-comms/runtime-managed-tool-bus-custody-20260930/lib/python3.14/site-packages/agent_comms/private_nk_entrypoint.py",
+  "owner_sha256": "4ac7d01666996fb8193e94764f53ed812052af8b938705380742f3986dc9fc78",
+  "owner_current_class": "PrivateNkLaunch.from_environment -> validate",
+  "actual_stderr": "No ACP child/log created; exception surfaced in actual application Failed to start agent error panel before spawn. Exact visible error saved in four PNGs."
+}

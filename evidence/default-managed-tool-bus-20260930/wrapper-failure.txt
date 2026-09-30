@@ -1,0 +1,15 @@
+Recording isolated display :5374: /home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture
+/home/ts/.cache/agent-scratch/comms-default-managed-tool-bus-20260930/capture
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/next-default-entrypoint-20260930/driver.py", line 272, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/next-default-entrypoint-20260930/driver.py", line 242, in main
+    publish_read_review(base)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/next-default-entrypoint-20260930/driver.py", line 169, in publish_read_review
+    checks = journey.verify(base)
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/next-default-entrypoint-20260930/driver.py", line 113, in verify
+    assert current["identity"]["_comms_thread"] == args.thread
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
