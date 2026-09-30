@@ -31,7 +31,10 @@ Keep old no-ID custody failure proof and unknown historical attribution intact.
 
 Actual248 Down32.312s: Screen.prepare→visible_bodies_ready→fragment.body_ready
 walks descendants. Sidebar forced mode publication at36.674/54.396s still DOM-
-queries row descendants despite original ChannelGroup.member_rows custody.
+queries row descendants. The original ChannelGroup.member_rows tuple is assigned
+only after awaited reconciliation; it is not the native order and may retain
+removed rows during that await. The current authoritative row custody is the
+existing member_container.children, not the stored tuple.
 These are sampled source chains, not CPU duration attribution.
 
 Readiness of nested body resources and completion of EVERY native Widget Mount
@@ -39,8 +42,11 @@ are different questions. Trace original AwaitMount/Window publication custody
 and all consumers before changing either; no copied ready flag or substitution
 of body_ready for Mount completion. Source-relative page admission/retirement
 must inherit that original contract, including asynchronous child recomposition.
-Sidebar traversal must derive actual existing native row custody, without a
-second row registry, state copy or independent scheduling policy.
+Sidebar traversal must derive actual existing native row custody. Delete the
+member_rows constructor/setter and all consumers; retain the keyed _members
+widget-reuse resource map, which answers a different question from native order.
+Check all Group variants and held reconciliation/prune custody before editing;
+no alias, stale-row filter, second registry or independent scheduling policy.
 
 ## Full remaining scope
 
