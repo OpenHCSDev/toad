@@ -141,7 +141,7 @@ Current source passes the same resource gate at0descendant walks/0.057ms per
 profiled admission and real content/retire/restore/native mount checks.
 
 A prior node-key run reached the final accepted-tree assertion and failed once;
-its exact log is native-custody-interruption.log and raw profiles remain at
+its exact log is native-custody-interruption.txt and raw profiles remain at
 `.artifacts/body-cost-245-nodes`. No identities were exported by that older
 assertion, so its cause is not established. The unchanged expectation now records
 actual roots/fragments/Contents IDs if it fails; that diagnostic run passed. No
