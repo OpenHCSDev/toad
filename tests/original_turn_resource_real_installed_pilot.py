@@ -5,6 +5,8 @@ are read only. Launch credentials remain in memory and are never saved here.
 """
 import asyncio
 import json
+import hashlib
+import sqlite3
 import os
 import shlex
 import sys
@@ -19,8 +21,6 @@ from agent_comms.goal_states import OwnerPause, PausedGoal
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_fork import ForkSessionHelper, ForkSessionRequest
 from agent_comms.native_package import verify_native_package
-from agent_comms.owner_launch import RetainedOwnerLaunch
-from agent_comms.registration import Registration
 from agent_comms.threads import Thread
 from agent_comms.turn_phase import ToolRunningPhase
 from toad.agent_schema import AgentDefinition
@@ -29,6 +29,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 from l0a_native_installed_pilot import until, response_painted
 from runtime_fixture import ToadApp as FixtureApp, stop_test_children
 from saved_state_user_journey_pilot import screen_paint, submit_editor
+from original_owner_capture import OriginalTypedCapture
 
 
 class ResourceJourneyApp(ToadApp):
@@ -36,11 +37,12 @@ class ResourceJourneyApp(ToadApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.frames = []
+        self.frames = [] if os.environ.get("AC_REAL_READ_ONLY_CUSTODY") != "1" else None
 
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
-        if renderable is not None and not self._batch_count and screen is self.screen:
+        if (self.frames is not None and renderable is not None
+                and not self._batch_count and screen is self.screen):
             view = self.selected_session.conversation
             if view is not None:
                 self.frames.append({
@@ -60,14 +62,20 @@ async def main():
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     evidence = Path(os.environ['L0A_EVIDENCE'])
     core_head = os.environ['AC_REAL_CORE_HEAD']
+    toad_head = os.environ['AC_REAL_TOAD_HEAD']
     assert stage.is_relative_to('/home/ts/wt')
     stage.mkdir(parents=True, exist_ok=False)
     evidence.mkdir(parents=True, exist_ok=True)
-    snapshot = Registration(Path(os.environ['AC_REAL_SOURCE_ROOT']) / 'registry.json').snapshot()
-    source = snapshot.require_active(os.environ['AC_REAL_SOURCE_OWNER'])
-    retained = RetainedOwnerLaunch.capture(source, snapshot)
-    assert 'sol' in source.model.lower() and source.thinking_level.declared_name == 'high'
+    capture = OriginalTypedCapture(
+        root=Path(os.environ['AC_REAL_SOURCE_ROOT']),
+        original_python=Path(os.environ['AC_REAL_ORIGINAL_PYTHON']),
+    ).read(os.environ['AC_REAL_SOURCE_OWNER'])
+    source, retained = capture.source, capture.retained
+    if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') != '1':
+        assert 'sol' in source.model.lower() and source.thinking_level.declared_name == 'high'
     original = Path(os.environ.get('AC_REAL_SOURCE_FILE', source.session_file))
+    with original.open('rb') as stream:
+        source_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     assert original.stat().st_size >= 40_000_000
     package = Path(os.environ['AC_NATIVE_COPIED_PACKAGE'])
     verify_native_package(package)
@@ -93,6 +101,8 @@ async def main():
         AGENT_COMMS_DEBUG_LOG=str(stage / 'acp-debug'),
         XDG_CONFIG_HOME=str(stage / 'config'), XDG_STATE_HOME=str(stage / 'state'),
         XDG_DATA_HOME=str(stage / 'data'), TOAD_TEST_ATTEMPT=stage.name,
+        AC_REAL_READ_ONLY_CUSTODY=os.environ.get('AC_REAL_READ_ONLY_CUSTODY', ''),
+        AC_REAL_SOURCE_ROOT=os.environ['AC_REAL_SOURCE_ROOT'],
     )
     for key in ('PI_PROMPT', 'PI_PARENT_ID', 'PI_TASK', 'PI_AGENT_ID',
                 'AGENT_COMMS_THREAD', 'AGENT_COMMS_STARTUP_INPUT_KEY', 'PYTHONPATH'):
@@ -117,7 +127,7 @@ async def main():
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                'original_bytes': original.stat().st_size, 'original_inputs_replayed': 0,
                'completed_phases': [], 'core': core_head,
-               'toad': 'e21363c8'}
+               'toad': toad_head}
 
     async def cancel_tool(pilot, view, marker):
         # The original retained context may first need the native multi-segment
@@ -155,6 +165,56 @@ async def main():
             await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
             await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)), 30)
             receipt['completed_phases'].append('original_saved_history_open')
+            if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1':
+                from toad.widgets.side_bar import SideBar
+                from toad.widgets.conversation import Window
+
+                app.workspace_chrome.channels.collapsed = True
+                app.settings.sidebar.hide = True
+                app.workspace_chrome.channels.roster.observation.set_enabled(False)
+                window = view.query_one(Window)
+                window.focus()
+                await pilot.press('end')
+                await pilot.pause(4)
+                def reader_paint():
+                    region = window.scrollable_content_region
+                    strips = app.screen._compositor.render_strips()
+                    return '\n'.join(strip.crop(region.x, region.right).text
+                        for strip in strips[region.y:region.bottom])
+
+                assert sum(ch.isalnum() for ch in reader_paint()) >= 20, 'Retained End chat body is blank'
+                app.save_screenshot(str(evidence / 'closed-bars-end.svg'))
+                from toad.widgets.observed_thread_activity import ObservedThreadActivity
+                observed = view.query_one(ObservedThreadActivity)
+                await until(pilot, lambda: observed.presentation is not None and not observed.unavailable, 10)
+                expected = service.views.thread_presentation('resource436')
+                assert observed.presentation.summary == expected.summary
+                assert observed.presentation.busy == expected.busy == view.turns.owner.busy
+                receipt['closed_bars_current_status'] = expected.summary
+                (evidence / 'read-only-ready.json').write_text(json.dumps({
+                    'pid': os.getpid(), 'wall_time': time.time(), 'monotonic': time.monotonic()}))
+                began, cpu = time.monotonic(), time.process_time()
+                await asyncio.sleep(40)
+                elapsed, used = time.monotonic()-began, time.process_time()-cpu
+                receipt['read_only_idle'] = {'wall_seconds': elapsed,
+                    'process_cpu_seconds': used, 'percent_one_core': used/elapsed*100}
+                assert sum(ch.isalnum() for ch in reader_paint()) >= 20, 'Retained stationary chat body is blank'
+                app.save_screenshot(str(evidence / 'closed-bars-idle.svg'))
+                assert app.workspace_chrome.channels.collapsed
+                assert app.screen.query_one('#thread-sidebar', SideBar).collapsed
+                with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+                    assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
+                assert disposition_rows(service) == {}
+                with original.open('rb') as stream:
+                    assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
+                current = capture.require_current()
+                assert current.process_identity == source.process_identity
+                receipt['original_source_custody'] = {'sha256': source_digest,
+                    'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+                receipt['closed_bars_read_only'] = True
+                receipt['complete'] = True
+                print('READ_ONLY_RETAINED_ACCEPTANCE', json.dumps(receipt), flush=True)
+                return
             command = f'printf started > {project}/ordinary-running; sleep 35; touch {project}/ordinary-running-finished'
             await submit_editor(pilot, view.prompt.prompt_text_area,
                 'Isolated acceptance. Do not resume inherited work. Use bash exactly once '

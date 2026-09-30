@@ -1,0 +1,19 @@
+{
+  "agent_comms": {
+    "head": "b236965ecf026a897b35007a7cb597e1bf2b32b7",
+    "installed": "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms",
+    "python_files": 287,
+    "mismatches": []
+  },
+  "toad": {
+    "head": "be8f37c39a2abfaebb5b485bdf5d316b8816dc0d",
+    "installed": "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/toad",
+    "python_files": 269,
+    "mismatches": []
+  },
+  "textual_path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_full_trust": "passed",
+  "driver_sha256": "b3f00cdfa0c1729f05a8e4e059362164760347714fa7a520b96e21ab91d105a9",
+  "helper_commit": "9c848a70f986375b7825e8b31d6ec4fd9091f856"
+}
