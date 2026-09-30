@@ -67,6 +67,20 @@ No provider prompt, input replay, public publish or original owner restart.
 
 ## Remaining admission and execution
 
+Current update after public C3 cutover: both source copies were completed and
+certified before retirement, and their public witness released. Attempt01 then
+used CurrentTypedCapture447 only to recover current launch resources in memory,
+not to recopy or compare current public settings to the independent snapshots.
+The existing prepared root was read under its canonical bus lock, never freshly
+initialized. The78s physical attempt retired its private owners with zero inputs.
+Its target observer failed after full layout because it consulted only the
+partial visible map. Readable snapshots do not establish A/B/A/scroll acceptance.
+Kepler owns the canonical visible_widgets/hit-test and checked driver correction;
+all raw captures and the failure are preserved. See
+[actual attempt01](../../evidence/workspace-rendered-history-236/physical-attempt01/README.md).
+Do not launch OriginalTypedCapture against the current public producer. The
+paragraphs below preserve the pre-copy chronology and its original proof boundary.
+
 The callback import and existing fixture source parse against the installed
 candidate. This is preparation only, not proof of a completed physical journey.
 Arendt confirms the current OriginalTypedCapture boundary is valid for authentic

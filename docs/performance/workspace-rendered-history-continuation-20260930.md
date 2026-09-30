@@ -1,6 +1,12 @@
 # Full workspace and rendered history continuation
 
 Integration owner: Heisenberg. Physical driver/video/profile contributor: Kepler.
+Current crossing reassignment: Sch owns the separate mid-compaction UI hang,
+NativeSessionSurface/GoalObservation and Conversation/TranscriptPresentation
+retained restoration and before-paint projection seam. Heisenberg released its
+uncommitted proposal; PR236 retains buffer, warm resources and whole workspace
+integration, without competing edits to those methods. Mendel owns the independent
+comms428 backend latency investigation. Kepler f6422a65 tools are normally inherited.
 This draft inherits ALL unfinished PR227 scope, not just its installed resource
 checkpoint. PR227 freezes at cb77ce9ad347c3b77a3e1abcb15a8a7ab05aeebb; exact installed
 production is486dedb197565a55589a3bc70431217ede34c0a8. Base is main; normal main94cfc

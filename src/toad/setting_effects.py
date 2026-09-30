@@ -2,11 +2,24 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.setting_choices import Scrollbar, SessionBar, ThemeChoice
+
+
+def history_buffer_viewports(app: ToadApp, value: int) -> None:
+    from toad.widgets.history_anchor import HistoryWindow
+
+    for view in app.workspace_sessions.views.values():
+        for window in view.query(HistoryWindow):
+            viewport = window.document_viewport
+            viewport.budget = replace(viewport.budget, buffer_viewports=value)
+            viewport.request()
+            for history in tuple(window.histories):
+                history.prepare_scroll()
 
 
 def column(app: ToadApp, value: bool) -> None:

@@ -473,8 +473,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def _visible_fragment_budget(self) -> int:
         visible = self.screen._compositor.visible_widgets
-        count = sum(child in visible for page in self.pages for child in page.children)
-        return self.budget.item_limit(count)
+        sequence = self.fragment_views
+        indexes = [index for index, child in enumerate(sequence) if child in visible]
+        if not indexes:
+            return self.budget.item_limit(0)
+        runway = self.window.document_viewport.budget.runway(
+            sequence, min(indexes), max(indexes) + 1, self.window.size.height,
+        )
+        return max(self.budget.item_limit(len(indexes)), len(indexes) + len(runway))
 
     @property
     def fragment_count(self) -> int:
@@ -835,7 +841,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             # page cap can evict the tail before even filling one screen,
             # causing the edge loaders to ping-pong forever. Bound actual
             # fragments (and empty page overhead), not transport batches.
-            self._fragment_budget = limit = self.budget.item_limit(len(set(self.fragment_views) & protected))
+            self._fragment_budget = limit = max(
+                self.budget.item_limit(len(set(self.fragment_views) & protected)),
+                self._visible_fragment_budget(),
+            )
             excess = self.fragment_count - limit
             trim_older = self._follow_source_tail or not older
             while (excess > 0 or len(self.pages) > limit
