@@ -1,0 +1,11 @@
+{
+  "native_descendants": 555,
+  "body_roots": 24,
+  "profiled_selection_walks": 0,
+  "unprofiled_selection_ms": {
+    "expanded_native_tree": 0.48661072994582355,
+    "registered_body_boundaries": 0.006865078001283109
+  },
+  "profiled_admission_walks": 2400,
+  "profiled_admission_ms": 0.7675526803359389
+}

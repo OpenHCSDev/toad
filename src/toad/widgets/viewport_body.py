@@ -63,6 +63,7 @@ class BodyMeasurement:
     width: int
     rows: int
     widgets: int = 1
+    geometry_revision: int | None = None
 
 
 class MeasuredViewportBody(ViewportBody):
@@ -95,13 +96,25 @@ class MeasuredViewportBody(ViewportBody):
     def retained_widget_count(self) -> int:
         if self._body_dormant:
             return self._body_measurement.widgets
-        return 1 + len(self.walk_children())
+        # Native subtree invalidation already follows child mount/remove and
+        # content/layout changes. Ancestor scroll does not change this body's
+        # materialization. Keep its cost with the original measured extent.
+        measurement = self._body_measurement
+        if measurement is not None and measurement.geometry_revision == self._geometry_revision:
+            return measurement.widgets
+        widgets = 1 + len(self.walk_children())
+        if measurement is not None:
+            self._body_measurement = replace(
+                measurement, widgets=widgets, geometry_revision=self._geometry_revision,
+            )
+        return widgets
 
     def retire_measurement(self) -> None:
         # This cost belongs to the reconstructible body, not a second viewport
         # counter. Keep it with the extent when the measured native tree retires.
         self._body_measurement = replace(
-            self._body_measurement, widgets=1 + len(self.walk_children()),
+            self._body_measurement, widgets=self.retained_widget_count,
+            geometry_revision=self._geometry_revision,
         )
         self._body_dormant = True
 
@@ -112,7 +125,9 @@ class MeasuredViewportBody(ViewportBody):
                 self._body_measurement_stale = True
             return self._body_measurement.rows
         height = super().get_content_height(container, viewport, width)
-        self._body_measurement = BodyMeasurement(width, height)
+        self._body_measurement = BodyMeasurement(
+            width, height, self.retained_widget_count, self._geometry_revision,
+        )
         self._body_measurement_stale = False
         return height
 

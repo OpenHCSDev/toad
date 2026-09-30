@@ -79,6 +79,47 @@ async def main():
                 timings[label] = (perf_counter() - started) * 1000 / 500
             receipt = dict(native_descendants=native_descendants, body_roots=len(originals),
                 profiled_selection_walks=walks, unprofiled_selection_ms=timings)
+            # Repeated admission of the same native materialization must reuse
+            # the body's measured cost, not expand all its rendered descendants.
+            native_costs = tuple(1 + len(body.walk_children()) for body in docs)
+            assert tuple(body.retained_widget_count for body in docs) == native_costs
+            cost_profile = cProfile.Profile()
+            cost_started = perf_counter()
+            cost_profile.enable()
+            for _ in range(100):
+                admitted = viewport.budget.admit(
+                    docs, (), window.size.height, app.preparation.max_bytes,
+                )
+                assert len(admitted) == len(docs)
+            cost_profile.disable()
+            cost_elapsed = (perf_counter() - cost_started) * 1000 / 100
+            cost_profile.dump_stats(str(evidence / 'body-cost.prof'))
+            cost_walks = sum(row[1] for (_, _, name), row in pstats.Stats(cost_profile).stats.items()
+                             if name == 'walk_children')
+            receipt.update(profiled_admission_walks=cost_walks,
+                           profiled_admission_ms=cost_elapsed)
+            (evidence / 'body-cost.json').write_text(json.dumps(receipt, indent=2) + '\n')
+            assert cost_walks == 0, receipt
+            # A real source update changes native custody and expires the cost.
+            await docs[0].update('## Changed body\n\n' + '\n\n'.join(
+                f'Changed paragraph {i}: actual native source reconstruction.' for i in range(30)))
+            await settle()
+            changed_cost = 1 + len(docs[0].walk_children())
+            assert changed_cost != native_costs[0]
+            assert docs[0].retained_widget_count == changed_cost
+            # Dormancy carries the retired native cost; restoring the original
+            # source measures the current native resource rather than reusing a
+            # count belonging to its removed descendants.
+            retired = docs[10]
+            retired_cost = retired.retained_widget_count
+            assert await retired.retire_body()
+            assert retired.body_dormant and retired.retained_widget_count == retired_cost
+            await retired.restore_body()
+            await settle()
+            assert not retired.body_dormant
+            assert retired.retained_widget_count == 1 + len(retired.walk_children())
+            receipt.update(native_content_cost_invalidated=True,
+                           retired_cost_retained=True, restored_cost_current=True)
             viewport.resume_source()
             window.focus(scroll_visible=False)
             await pilot.press('pageup', 'pageup', 'pagedown', 'pageup', 'end')

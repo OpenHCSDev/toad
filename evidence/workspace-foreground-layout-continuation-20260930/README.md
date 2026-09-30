@@ -83,3 +83,48 @@ completed85s gate or hold useful software for50ms/full-plan completion. Work onl
 under ~/wt, protect original/UNKNOWN data and other owners, no global package
 mutation or extra fleet/provider. CI deferred. Publish scoped ready checkpoints
 and retain every unfinished requirement before the next long implementation.
+
+## First production checkpoint: native materialization cost
+
+`MeasuredViewportBody` now keeps native widget cost in its original BodyMeasurement
+alongside measured extent, captured against Textual's existing subtree geometry
+revision. Native descendant mount/removal/content/layout invalidation expires it;
+ancestor scrolling leaves this body's native shape unchanged. The same property
+supplies PresentationBudget and all three existing retirement consumers:
+PreparedConversationMarkdown, StreamingMarkdown and TranscriptFragmentView.
+There is no separate cost catalog, status mirror, budget counter or timer.
+New body types inherit the contract; native shape changes use the existing native
+invalidation, without another producer roster or per-case update.
+
+Actual profile242 includes budget admission→retained_widget_count→walk_children.
+The same real ToadApp/555-native-node/24-body source pilot reproduces 2400 walks
+for100admissions on installed242; candidate uses0. Profiled admission0.768→0.053ms
+measures only this seam, not overall UI CPU, raster reuse or first paint. Real
+source replacement changes native count and invalidates it; actual dormant cost,
+restoration, reorder/removal, reverse/End/resize, held fragment Mount and accepted
+canonical tree all pass. No fake app/body/protocol or provider process is used.
+The existing pilot was extended rather than adding a duplicate resource harness.
+Baseline failure/profile remain under `.artifacts/body-cost-245-baseline`; candidate
+under `.artifacts/body-cost-245-source`. This is source-only against existing
+Core29b/Text2e49/SDK dependencies, not the parent's newer453 paired release.
+
+Changed production file ratchets are in resource-cost-ratchets.json. No dispatch,
+codec subclass or foreign None-probe growth. IMPL-12 repeated traversal is folded
+into the original resource measurement, rather than repeated at its budget and
+retirement consumers. Source and private temporary test data stay in this WT;
+no public source, journals, owners, runtime packages or config changed. Physical
+current-pair acceptance remains pending for this new source change. No unchanged
+242 or baseline capture is repeated.
+
+## Clock assessment correction for prior captures
+
+The original profiler-exec→sampling-ready bound estimates profiler-origin
+uncertainty only. FFmpeg frame0 acquisition is not recorded; the recorder's
+capture_launch timestamp is sampled after process launch. Therefore ±57.6ms242
+and ±79.6msrelease02 are not a bound on absolute source/video alignment or exact
+click→paint. Native captured_ns/manifest timestamps are Unix wall clock, while
+phase events/kernel counter boundaries use monotonic; do not join those as equal
+clock values. Physical PNGs/native checkpoints and coarse phase CPU remain valid.
+Diagnostic export is included in measured CPU and native-wait intervals, not an
+unprofiled idle rate or click-to-paint latency. Raw captures and prior receipts
+are protected; this correction limits interpretation without editing raw proof.
