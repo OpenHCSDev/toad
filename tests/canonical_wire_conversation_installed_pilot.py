@@ -14,9 +14,14 @@ from contextlib import asynccontextmanager
 import shutil
 import shlex
 import stat
+import sqlite3
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.field_codec import FieldCodec
+from agent_comms.native_runtime_input import NativeRuntimeInput
+from agent_comms.coordination_tables.assignments import WakeAssignment
+from agent_comms.coordination_tables.responses import ResponseObligation
 from l0a_native_installed_pilot import main, until, response_painted
 from runtime_fixture import ToadApp as FixtureApp
 from toad.app import ToadApp
@@ -109,6 +114,35 @@ def originals(view, reference, kind):
             if body.message_reference == reference]
 
 
+def original_native_reply_proof(comms, original, response):
+    """Read the original typed rows, never infer provenance from reply text."""
+    database = comms.root / 'coordination.sqlite3'
+    with sqlite3.connect(database.as_uri() + '?mode=ro', uri=True) as db:
+        db.row_factory = sqlite3.Row
+        claims = WakeAssignment.select(db, where='wire_seq=? AND message_id=? AND recipient=?',
+                                       parameters=(original.seq, original.message_id, 'beta'))
+        assert len(claims) == 1
+        claim = claims[0]
+        inputs = NativeRuntimeInput.select(db, where='assignment_id=? AND stage=?',
+                                           parameters=(claim.assignment_id, 'full'))
+        assert len(inputs) == 1
+        native = inputs[0]
+        assert native.owner_lookup == claim.recipient_lookup
+        assert native.session_entry_id is not None
+        obligations = ResponseObligation.select(db, where='execution_id=?',
+                                                parameters=(native.execution_id,))
+        assert len(obligations) == 1
+        published = obligations[0].lifecycle
+        assert (published.receipt_seq, published.receipt_message_id) == (
+            response.seq, response.message_id)
+        return {'assignment_id': claim.assignment_id,
+                'recipient_lookup': claim.recipient_lookup,
+                'native_input_id': native.input_id,
+                'execution_id': native.execution_id,
+                'native_entry_id': native.session_entry_id,
+                'native_session_file': native.session_file}
+
+
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
     recipient = app.selected_session.conversation
     sender_app = WindowApp(agent_data=app.agent_data, project_dir=str(app.project_dir),
@@ -175,6 +209,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert len(originals(recipient, response.reference, OutgoingMessage)) == 1
             assert len(originals(sender, response.reference, IncomingMessage)) == 1
             assert original.reference != response.reference
+            native_reply_proof = original_native_reply_proof(comms, original, response)
+            evidence.joinpath('original-native-reply-proof.json').write_text(
+                json.dumps(native_reply_proof, indent=2))
             await until(pilot, lambda: not comms.registry.require('beta').executing)
             # Additional real channel inputs may legitimately move this reply
             # off the tail. Navigate its original body before requiring paint.
@@ -214,6 +251,24 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert sum(body.content == 'HOT_ORIGINAL_TRIGGER'
                        for body in first.conversation.contents.query(UserInput)) == 1
             print('PHYSICAL_RETURN_ORIGINAL_ROWS_HANDLING_AND_STARTED_INPUT_ONCE', flush=True)
+            # A fresh window reads the same original source without sending or
+            # relaying an input. The existing owner remains the process owner.
+            cold_app = WindowApp(agent_data=app.agent_data, project_dir=str(app.project_dir),
+                                 agent_session_id='alpha')
+            async with cold_app.run_test(size=(160, 44)) as cold_pilot:
+                cold = cold_app.selected_session.conversation
+                await until(cold_pilot, lambda: cold.agent is not None and cold.agent_ready)
+                await until(cold_pilot, cold.agent.session.settled.is_set)
+                assert cold.agent.session.connected
+                await until(cold_pilot, lambda: len(originals(cold, original.reference, OutgoingMessage)) == 1)
+                await until(cold_pilot, lambda: len(originals(cold, response.reference, IncomingMessage)) == 1)
+                await until(cold_pilot, lambda: 'Responded' in str(
+                    originals(cold, original.reference, OutgoingMessage)[0].query_one(MessageNotifications).title))
+                assert sum(body.content == 'HOT_ORIGINAL_TRIGGER'
+                           for body in cold.contents.query(UserInput)) == 1
+                cold_app.save_screenshot(str(evidence / 'cold-sender.svg'))
+                assert cold_app._exception is None
+            print('COLD_SOURCE_ORIGINAL_IDENTITIES_AND_HANDLING_ONCE', flush=True)
             evidence.joinpath('receipt.json').write_text(json.dumps({
                 'original': {'seq': original.seq, 'id': original.message_id},
                 'reply': {'seq': response.seq, 'id': response.message_id},
@@ -221,6 +276,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 'all_views_open_before_send': True,
                 'original_target_handling': 'Responded',
                 'original_has_five_newer_channel_inputs': True,
+                'original_native_reply': native_reply_proof,
+                'public_cursor': FieldCodec.encode(agent._private_cursor.current),
+                'cold_source_once': True,
             }, indent=2))
 
 
