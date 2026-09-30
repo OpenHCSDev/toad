@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
@@ -22,11 +22,19 @@ class KeyboundAction:
     show: ClassVar[bool] = False
     priority: ClassVar[bool] = False
     system: ClassVar[bool] = False
+    group: ClassVar[Binding.Group | None] = None
+    key_display: ClassVar[str | None] = None
 
     @classmethod
     def binding(cls) -> Binding:
         return Binding(cls.key, cls.declared_name, cls.description, tooltip=cls.tooltip,
-                       show=cls.show, priority=cls.priority, system=cls.system)
+                       show=cls.show, priority=cls.priority, system=cls.system,
+                       group=cls.group, key_display=cls.key_display)
+
+
+    @classmethod
+    def bindings(cls):
+        return (cls.binding(),)
 
 
 class PaletteAction:
@@ -36,17 +44,31 @@ class PaletteAction:
     def label(self, app: ToadApp) -> str: ...
 
 
-class ApplicationAction(Command, DeclaredFamily, affix="Action"):
+Context = TypeVar("Context")
+
+
+class NativeAction(Command, Generic[Context]):
     """Only the Textual boundary decodes an external action name."""
 
     @classmethod
-    def parse(cls, parameters: tuple[object, ...]) -> ApplicationAction:
+    def parse(cls, parameters: tuple[object, ...]):
         if parameters:
             raise ValueError(f"{cls.declared_name} takes no parameters")
         return cls()
 
+    @classmethod
+    def bindings(cls):
+        return ()
+
+    def available(self, context: Context) -> bool | None:
+        return True
+
     @abstractmethod
-    async def apply(self, app: ToadApp) -> None: ...
+    async def apply(self, context: Context) -> None: ...
+
+
+class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
+    """Application action membership is owned by its declarations."""
 
 
 class SettingsAction(ApplicationAction, KeyboundAction, PaletteAction):
