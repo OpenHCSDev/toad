@@ -15,6 +15,7 @@ def capture(*, expected_pid, output_prefix):
     from textual.geometry import Offset
     from toad.widgets.conversation import CursorContainer
     from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.prompt import PromptTextArea
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -147,12 +148,19 @@ def capture(*, expected_pid, output_prefix):
                         view["visible_categories"] = tuple(data.get("_reactive_visible_categories", ()))
                         view["goal"] = data.get("_reactive_goal")
                         view["goal_execution"] = data.get("_reactive_goal_execution")
-                    if kind in {"PromptTextArea", "ChannelTextArea"}:
-                        document = data.get("document")
-                        lines = vars(document).get("_lines") if document is not None else None
-                        selection = data.get("_reactive_selection")
-                        view["drafts"].append({"object_id": id(node), "lines": tuple(lines) if lines is not None else None,
-                                               "selection": tuple(tuple(point) for point in selection) if selection is not None else None})
+                    if isinstance(node, PromptTextArea):
+                        geometry = compositor._visible_map.get(node) if compositor._visible_map is not None else None
+                        focus_target = None
+                        if geometry is not None:
+                            region = geometry.region.intersection(geometry.clip)
+                            if region:
+                                cell = Offset(*(int(value) for value in region.center))
+                                if node.screen.get_focusable_widget_at(*cell) is node:
+                                    focus_target = {"widget": node_identity(node), "cell": tuple(cell)}
+                        view["drafts"].append({"object_id": id(node), "lines": tuple(node.text.split("\n")),
+                                               "selection": tuple(tuple(point) for point in node.selection),
+                                               "focus_target": focus_target,
+                                               "region": tuple(geometry.region) if geometry is not None else None})
                     if kind == "Contents" and type(node).__module__ == "toad.widgets.conversation":
                         for child in tuple(children._nodes) if children is not None else ():
                             child_data = vars(child)
@@ -219,6 +227,10 @@ def capture(*, expected_pid, output_prefix):
                                 "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
                                 "reconciling": manager._running,
                                 "suspended": manager._suspended,
+                                "owners": [{**node_identity(body), "ready": body.body_ready,
+                                            "dormant": body.body_dormant, "visible": body in visible,
+                                            "measured_rows": body.measured_rows}
+                                           for body in owners],
                             }
                         view["history_windows"].append(window)
                     if data.get("_id") in {"channels-sidebar", "thread-sidebar"}:

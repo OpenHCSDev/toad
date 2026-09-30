@@ -8,7 +8,6 @@ import json
 import os
 from pathlib import Path
 import pickle
-import shlex
 import sqlite3
 import sys
 
@@ -45,10 +44,7 @@ def main():
             marker = recorder.marker_command()
             prompt = f"mousemove --sync {args.prompt_x} {args.prompt_y}"
             edit = ["key Left Left BackSpace Delete Right"]
-            history_helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
-            history_state = base / "capture/phase-edited-state.pickle"
-            history_click = (f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(history_helper))}"
-                             f" --state {shlex.quote(str(history_state))}")
+            history_click = recorder.native_click_command("phase-edited-state.pickle")
             return "\n".join([
                 prompt, "click 1", "type --clearmodifiers --delay 80 abcdef", "sleep 1",
                 marker + "typed", *edit, "sleep 1", marker + "edited",
@@ -147,7 +143,7 @@ def main():
     }
     target = json.loads((base / "capture/history-click-target.json").read_text())
     history = pickle.loads((base / "capture/phase-history-focused-state.pickle").read_bytes())
-    result["history_window_focused"] = history["metadata"]["screen"]["focused"]["object_id"] == target["history_window"]
+    result["history_window_focused"] = history["metadata"]["screen"]["focused"]["object_id"] == target["resource_object_id"]
     result["history_source_retained"] = history["metadata"]["current_mode"] == target["mode"]
     (base / "editing-acceptance.json").write_text(json.dumps(result, indent=2))
     assert result["history_window_focused"], "Physical history click did not focus its native window"
