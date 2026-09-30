@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/tests/l0a_native_installed_pilot.py", line 310, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/tests/canonical_wire_conversation_installed_pilot.py", line 315, in acceptance
+    assert all(count == 1 for count in counts.values()), counts
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'original_sender': 2, 'original_recipient': 1, 'reply_sender': 1, 'reply_recipient': 1}

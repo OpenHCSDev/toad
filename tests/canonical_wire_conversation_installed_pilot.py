@@ -15,17 +15,19 @@ import shutil
 import shlex
 import stat
 import sqlite3
+import time
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
 from agent_comms.native_runtime_input import NativeRuntimeInput
+from agent_comms.transcript_events import WireTextTranscript
 from agent_comms.coordination_tables.assignments import WakeAssignment
 from agent_comms.coordination_tables.responses import ResponseObligation
-from l0a_native_installed_pilot import main, until, response_painted
+from l0a_native_installed_pilot import main, until as native_until, response_painted
 from runtime_fixture import ToadApp as FixtureApp
 from toad.app import ToadApp
-from toad.navigation_target import NavigationContext, channel_target
+from toad.navigation_target import NavigationContext, channel_target, ThreadTarget
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.message_notifications import MessageNotifications
@@ -33,6 +35,35 @@ from toad.widgets.outgoing_message import OutgoingMessage
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.user_input import UserInput
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.message_divider import MessageDivider
+
+
+async def until(pilot, predicate, seconds=20):
+    """Invoke the existing driver in its actual Textual window's context."""
+    with pilot.app._context():
+        return await native_until(pilot, predicate, seconds)
+
+
+async def pause(pilot, delay=None):
+    with pilot.app._context():
+        await pilot.pause(delay)
+
+
+async def select_window(pilot, screen):
+    with pilot.app._context():
+        label = next(label for label in pilot.app.screen.query(SessionLabel) if label.id == screen.id)
+        label.scroll_visible(animate=False, immediate=True)
+        await pause(pilot)
+        began = time.monotonic()
+        assert await pilot.click(label, offset=(label.size.width // 2, 0))
+        await until(pilot, lambda: pilot.app.selected_session is screen)
+        return began
+
+
+def record_phase(receipt, evidence, phase):
+    receipt['phase'] = phase
+    (evidence / 'progress.json').write_text(json.dumps(receipt, indent=2))
+    print('CONTROLLED_JOURNEY_PHASE', phase, flush=True)
 
 
 class WindowApp(ToadApp):
@@ -91,6 +122,11 @@ def reply(request, number):
         decision = 'FULL' if 'HOT_ORIGINAL_WIRE_BODY' in str(messages[-1]['content']) else 'IGNORE'
         return {'role': 'assistant', 'content': json.dumps({'decision': decision})}, 'stop'
     last = messages[-1]
+    if last['role'] == 'user' and 'CONTROLLED_RETURN_' in str(last['content']):
+        text = str(last['content'])
+        token = next(f'CONTROLLED_RETURN_{index}' for index in range(3)
+                     if f'CONTROLLED_RETURN_{index}' in text)
+        return {'role': 'assistant', 'content': token}, 'stop'
     if last['role'] == 'user' and 'HOT_ORIGINAL_TRIGGER' in str(last['content']):
         return {'role': 'assistant', 'tool_calls': [{
             'index': 0, 'id': 'hot-original-send', 'type': 'function',
@@ -112,6 +148,32 @@ def reply(request, number):
 def originals(view, reference, kind):
     return [body for body in view.contents.query(kind)
             if body.message_reference == reference]
+
+
+def original_observation(view, reference, kind):
+    """Read existing source and presentation owners before any assertion."""
+    histories = tuple(view.window.histories)
+    return {'view_attached': view.is_attached,
+            'view_is_selected': view.app.selected_session.conversation is view,
+            'mounted_count': len(originals(view, reference, kind)),
+            'mounted_rows': [{'ancestors': [type(parent).__name__ for parent in body.ancestors],
+                              'region': str(body.region),
+                              'painted': body in view.screen._compositor.visible_widgets,
+                              'in_viewport': body.region.overlaps(view.window.region)}
+                             for body in originals(view, reference, kind)],
+            'source_events': [
+                {'history': type(history).__name__,
+                 'cursor': FieldCodec.encode(history.committed_cursor),
+                 'resident_pages': [
+                     {'before': FieldCodec.encode(page.page.before),
+                      'after': FieldCodec.encode(page.page.after),
+                      'first_fragment': page.start, 'last_fragment': page.stop,
+                      'fragment_count': len(page.fragments)}
+                     for page in history.pages],
+                 'matching_events': [type(event).__name__ for event in history.coverage_events
+                                     if isinstance(event, WireTextTranscript)
+                                     and event.source == reference]}
+                for history in histories]}
 
 
 def original_native_reply_proof(comms, original, response):
@@ -149,27 +211,35 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                            agent_session_id='alpha')
     irc_app = WindowApp(project_dir=str(app.project_dir))
     evidence = Path(os.environ['L0A_EVIDENCE'])
+    receipt = {'all_views_open_before_send': False, 'original_inputs_retried': 0}
+    record_phase(receipt, evidence, 'opening_sender')
     async with sender_app.run_test(size=(160, 44)) as sender_pilot:
         sender = sender_app.selected_session.conversation
         await until(sender_pilot, lambda: sender.agent is not None and sender.agent_ready)
         await until(sender_pilot, sender.agent.session.settled.is_set)
         assert sender.agent.session.connected
         async with irc_app.run_test(size=(160, 44)) as irc_pilot:
-            await irc_pilot.pause()
+            await pause(irc_pilot)
             user = comms.messaging.user_identity(str(app.project_dir)).name
-            await channel_target('#team').open(NavigationContext(
-                irc_app, irc_app.selected_mode, app.project_dir, user))
-            await irc_app.selected_session.wait_content_ready()
+            with irc_app._context():
+                await channel_target('#team').open(NavigationContext(
+                    irc_app, irc_app.selected_mode, app.project_dir, user))
+                await irc_app.selected_session.wait_content_ready()
             irc = irc_app.selected_session.query_one(CommsChatView)
             await until(irc_pilot, lambda: irc.message_history.initialized)
             # All three windows are already open before the native send.
-            sender.prompt.text = 'HOT_ORIGINAL_TRIGGER'
-            sender.prompt.prompt_text_area.focus()
-            await sender_pilot.press('enter')
+            receipt['all_views_open_before_send'] = True
+            record_phase(receipt, evidence, 'original_send')
+            with sender_app._context():
+                sender.prompt.text = 'HOT_ORIGINAL_TRIGGER'
+                sender.prompt.prompt_text_area.focus()
+                await sender_pilot.press('enter')
             await until(sender_pilot, lambda: any(m.body == '@beta HOT_ORIGINAL_WIRE_BODY'
                         for m in comms.bus.log.full_history()), 30)
             original = next(m for m in comms.bus.log.full_history()
                             if m.body == '@beta HOT_ORIGINAL_WIRE_BODY')
+            receipt['original'] = FieldCodec.encode(original.reference)
+            record_phase(receipt, evidence, 'original_durable')
             await until(sender_pilot, lambda: bool(originals(sender, original.reference, OutgoingMessage)))
             await until(pilot, lambda: bool(originals(recipient, original.reference, IncomingMessage)))
             await until(irc_pilot, lambda: any(m.reference == original.reference
@@ -185,6 +255,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await until(pilot, lambda: pending.state in str(received.query_one(MessageNotifications).title))
             assert comms.registry.require('alpha').executing
             print('BOTH_NATIVE_TURNS_HELD_ORIGINAL_ROWS_AND_PROCESSING_HOT', pending.state, flush=True)
+            receipt['processing'] = pending.state
+            record_phase(receipt, evidence, 'original_processing_hot')
             # Move the original outside the recent-five convenience window
             # while it is still processing. These are real durable channel
             # inputs; the controlled native provider declines their triage.
@@ -209,14 +281,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert len(originals(recipient, response.reference, OutgoingMessage)) == 1
             assert len(originals(sender, response.reference, IncomingMessage)) == 1
             assert original.reference != response.reference
+            receipt['reply'] = FieldCodec.encode(response.reference)
             native_reply_proof = original_native_reply_proof(comms, original, response)
             evidence.joinpath('original-native-reply-proof.json').write_text(
                 json.dumps(native_reply_proof, indent=2))
             await until(pilot, lambda: not comms.registry.require('beta').executing)
             # Additional real channel inputs may legitimately move this reply
             # off the tail. Navigate its original body before requiring paint.
-            originals(recipient, response.reference, OutgoingMessage)[0].scroll_visible(
-                animate=False, immediate=True)
+            with app._context():
+                originals(recipient, response.reference, OutgoingMessage)[0].scroll_visible(
+                    animate=False, immediate=True)
             try:
                 await until(pilot, lambda: response_painted(app, recipient, response.body))
             finally:
@@ -226,30 +300,87 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                                for body in bodies]
                 evidence.joinpath('recipient-reply-resources.json').write_text(
                     json.dumps(observation, indent=2))
-                app.save_screenshot(str(evidence / 'recipient-reply.svg'))
+                with app._context():
+                    app.save_screenshot(str(evidence / 'recipient-reply.svg'))
                 print('RECIPIENT_REPLY_RESOURCE_COUNT',
                       sum(body.source == response.body for body in bodies), flush=True)
             assert sum(body.source == response.body for body in bodies) == 1, \
                 'Original recipient reply must have exactly one rendered body'
+            assert len(originals(recipient, response.reference, OutgoingMessage)[0].query(MessageDivider)) == 1
+            receipt['original_native_reply'] = native_reply_proof
+            receipt['original_target_handling'] = 'Responded'
+            record_phase(receipt, evidence, 'hot_handling_reply_once_painted')
             print('THREE_OPEN_WINDOWS_ORIGINAL_OUTBOUND_INBOUND_TARGET_RESPONDED_HOT', flush=True)
             for name, window in (('sender', sender_app), ('recipient', app), ('irc', irc_app)):
-                window.save_screenshot(str(evidence / f'{name}.svg'))
+                with window._context():
+                    window.save_screenshot(str(evidence / f'{name}.svg'))
                 assert window._exception is None
-            # Actual A/B/A tab clicks retain the original source mapping.
-            first = sender_app.selected_session
-            await channel_target('#team').open(NavigationContext(
-                sender_app, sender_app.selected_mode, app.project_dir, user))
-            await sender_app.selected_session.wait_content_ready()
-            label = next(item for item in sender_app.screen.query(SessionLabel) if item.id == first.id)
-            label.scroll_visible(animate=False, immediate=True)
-            await sender_pilot.pause()
-            assert await sender_pilot.click(label, offset=(label.size.width // 2, 0))
-            await until(sender_pilot, lambda: sender_app.selected_session is first)
-            await until(sender_pilot, lambda: len(originals(first.conversation, original.reference, OutgoingMessage)) == 1)
-            assert 'Responded' in str(originals(first.conversation, original.reference, OutgoingMessage)[0].query_one(MessageNotifications).title)
-            # The ordinary prompt also has one original native input after return.
+            # Keep the same windows open beyond the user's 15–30s recurrence.
+            receipt['same_open_31s'] = []
+            for second in range(31):
+                await pause(pilot, 1)
+                counts = {'original_sender': len(originals(sender, original.reference, OutgoingMessage)),
+                          'original_recipient': len(originals(recipient, original.reference, IncomingMessage)),
+                          'reply_sender': len(originals(recipient, response.reference, OutgoingMessage)),
+                          'reply_recipient': len(originals(sender, response.reference, IncomingMessage))}
+                receipt['same_open_31s'].append({'second': second, **counts})
+                record_phase(receipt, evidence, 'same_open_observation')
+                if not all(count == 1 for count in counts.values()):
+                    receipt['failed_original_projection'] = {}
+                    for name, window, view, kind in (
+                        ('sender', sender_app, sender, OutgoingMessage),
+                        ('recipient', app, recipient, IncomingMessage)):
+                        with window._context():
+                            receipt['failed_original_projection'][name] = original_observation(
+                                view, original.reference, kind)
+                            window.save_screenshot(str(evidence / f'failed-original-{name}.svg'))
+                        page = await asyncio.to_thread(comms.transcripts.thread_transcript_page,
+                                                       view.agent.session_id)
+                        receipt['failed_original_projection'][name]['canonical_page'] = {
+                            'before': FieldCodec.encode(page.before),
+                            'after': FieldCodec.encode(page.after),
+                            'matching_events': [type(event).__name__ for event in page.events
+                                                if isinstance(event, WireTextTranscript)
+                                                and event.source == original.reference]}
+                    record_phase(receipt, evidence, 'original_projection_failure')
+                assert all(count == 1 for count in counts.values()), counts
+                assert sum(body.source == response.body for body in recipient.contents.query(AgentResponse)) == 1
+                assert all(window._exception is None for window in (app, sender_app, irc_app))
+            record_phase(receipt, evidence, 'same_open_31s_complete')
+            beta_screen = app.selected_session
+            with app._context():
+                await ThreadTarget('alpha').open(NavigationContext(app, app.selected_mode, app.project_dir, user))
+                await app.selected_session.wait_content_ready()
+            alpha_screen = app.selected_session
+            receipt['physical_return_immediate_send'] = []
+            for index, screen in enumerate((beta_screen, alpha_screen, beta_screen)):
+                began = await select_window(pilot, screen)
+                view = screen.conversation
+                await until(pilot, lambda: view.agent is not None and view.agent_ready)
+                token = f'CONTROLLED_RETURN_{index}'
+                with app._context():
+                    view.prompt.text = f'Bounded acceptance only. Reply exactly {token}.'
+                    view.prompt.prompt_text_area.focus()
+                    await pilot.press('enter')
+                record_phase(receipt, evidence, f'physical_return_{index}_input')
+                await until(pilot, lambda: sum(body.source == token for body in view.contents.query(AgentResponse)) == 1, 30)
+                await until(pilot, lambda: not comms.registry.require(view.agent.session_id).executing)
+                receipt['physical_return_immediate_send'].append({
+                    'thread': view.agent.session_id, 'reply_seconds': time.monotonic() - began})
+                record_phase(receipt, evidence, f'physical_return_{index}_reply')
+                with sender_app._context():
+                    observed_sender = original_observation(sender, original.reference, OutgoingMessage)
+                with app._context():
+                    observed_recipient = original_observation(recipient, original.reference, IncomingMessage)
+                receipt['physical_return_immediate_send'][-1]['original_views'] = {
+                    'sender': observed_sender, 'recipient': observed_recipient}
+                record_phase(receipt, evidence, f'physical_return_{index}_original_source')
+                await until(sender_pilot, lambda: len(originals(sender, original.reference, OutgoingMessage)) == 1)
+                await until(pilot, lambda: len(originals(recipient, original.reference, IncomingMessage)) == 1)
+                with app._context():
+                    app.save_screenshot(str(evidence / f'physical-return-{index}.svg'))
             assert sum(body.content == 'HOT_ORIGINAL_TRIGGER'
-                       for body in first.conversation.contents.query(UserInput)) == 1
+                       for body in sender.contents.query(UserInput)) == 1
             print('PHYSICAL_RETURN_ORIGINAL_ROWS_HANDLING_AND_STARTED_INPUT_ONCE', flush=True)
             # A fresh window reads the same original source without sending or
             # relaying an input. The existing owner remains the process owner.
@@ -266,22 +397,24 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     originals(cold, original.reference, OutgoingMessage)[0].query_one(MessageNotifications).title))
                 assert sum(body.content == 'HOT_ORIGINAL_TRIGGER'
                            for body in cold.contents.query(UserInput)) == 1
-                cold_app.save_screenshot(str(evidence / 'cold-sender.svg'))
+                with cold_app._context():
+                    cold_app.save_screenshot(str(evidence / 'cold-sender.svg'))
                 assert cold_app._exception is None
             print('COLD_SOURCE_ORIGINAL_IDENTITIES_AND_HANDLING_ONCE', flush=True)
-            evidence.joinpath('receipt.json').write_text(json.dumps({
-                'original': {'seq': original.seq, 'id': original.message_id},
-                'reply': {'seq': response.seq, 'id': response.message_id},
+            receipt.update({
                 'provider_requests': len(requests), 'original_inputs_retried': 0,
                 'all_views_open_before_send': True,
                 'original_target_handling': 'Responded',
                 'original_has_five_newer_channel_inputs': True,
                 'original_native_reply': native_reply_proof,
                 'public_cursor': FieldCodec.encode(agent._private_cursor.current),
-                'cold_source_once': True,
-            }, indent=2))
+                'cold_source_once': True, 'complete': True,
+            })
+            record_phase(receipt, evidence, 'complete')
+            evidence.joinpath('receipt.json').write_text(json.dumps(receipt, indent=2))
 
 
 if __name__ == '__main__':
     asyncio.run(main(app_type=EvidenceApp, prepare_state=prepare, acceptance=acceptance, provider_reply=reply,
-                     provider_request_budget=12))
+                     provider_request_budget=18,
+                     fixture_stage=Path(os.environ['AC_CONTROLLED_FIXTURE_STAGE'])))

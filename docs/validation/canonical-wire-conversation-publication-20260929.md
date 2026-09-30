@@ -494,3 +494,89 @@ coverage remain intact. Normal dependency resolution now declares parent Core
 commitment, e36/tree5ea25; the next stage must use its reviewed standalone native
 artifact, never the614 package from the completed control. This integrated pair
 has not yet passed the remaining native journey.
+
+## Native06: original reply passes; full journey remains blocked
+
+The normal standalone 68-package stage installed exactly Core41a835 / Toade59c8b5d /
+Textual650 / SDK0.12.1. Full installed native trust passed for manifest
+`e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07`, tree
+`5ea25e3f9e88d073e5506ce97ceeca4c763b6da19f986ab032880d45f020f35c`.
+Default processes and routes were unchanged.
+
+Fresh original `811956778224`, sequence1, was admitted as full native input
+`afbb66cc0a7bed222740a5b9d4274df9`, user entry `945beb5f`. Its original execution
+published reply `c136d11a5590`, sequence2. The actual driver's one-body and
+one-header assertions passed and saved `original-reply.svg`. That SVG contains
+one request instruction mentioning the expected reply token and one actual reply;
+these are two different original records, not duplicate reply bodies.
+
+The 360-second driver watchdog sent INT, then killed the application after its
+15-second cleanup grace; exit137. No final receipt was flushed. It had not sent
+any A/B/A inputs. Original recipient handling in all three painted views,
+31-second same-view observation, immediate A/B/A input and cold reopen remain
+unproven. The preserved canonical original notification is Responded; the reply's
+recipient checked it and chose no response. That backend result does not prove
+all already-open labels refreshed.
+
+The complete original private wire and native journals were archived before
+cleanup. Both remaining fixture owners were idle and were stopped through their
+canonical lifecycle; both processes are absent. Original05 and all uncertain
+attempts remain unreplayed. Committed bounded evidence is in
+`evidence/canonical-wire-native06/`; complete owned scratch is `real-wire215-06/`.
+The one sampled active main-thread stack was DOM.query from
+CommsChatView._read_notifications, with source worker threads idle. This sample
+alone does not establish the stalled coroutine or full CPU attribution.
+
+Before another paid input, the existing continuous driver is being extended with
+progress written before waits and a read-only retained-fixture mode. It opens the
+same original completed source through actual ACP/native/application paths,
+records mounted resource counts and feedback, and diagnoses Pilot.pause with
+actual suspended coroutine evidence. Original input IDs must remain unchanged.
+The first read-only attempt correctly refused automatic attachment to explicitly
+stopped owners; the next explicitly starts only those completed private fixture
+owners. No public owner, original input or package authority is changed.
+
+
+## Window-context and retained-read continuation, 2026-09-30
+
+The original06 identity remains protected. `readonly06-root03` proves all actual
+window routes, service roots, source readers and accepted ACP roots belong to
+that private fixture. The 230 count was Textual's widget registry, not comms
+participants. Nested `run_test` contexts leave IRC as the caller's active app;
+driver operations now enter each actual app's `_context()`. These helpers are
+shared by the controlled and retained drivers; production sources and installed
+candidate pins are unchanged.
+
+`readonly06-window04` completed 31 same-open observations with one original and
+one reply, then physical beta/alpha/beta returns (5.656/2.368/3.104 seconds).
+Both original native input IDs stayed identical. Pilot.pause(1) took 1.040 seconds.
+The watchdog interrupted ACP retirement after `readonly_complete`, exit124.
+This proves the recorded UI phases, not clean wrapper completion. Both private
+owner processes are absent. The resource-tracker bad-fd traceback followed
+watchdog interruption; it is not evidence of the original06 stall's cause.
+
+`controlled215-hot01` used the same installed41/e59/650/e36 application with only
+the localhost provider controlled. Both DMs and IRC were open before the native
+send. The original processing and Responded labels updated in all three; the
+reply had one body/header and actual paint. All 31 observations and three
+physical agent returns with distinct new inputs passed (10.209/13.886/13.005s).
+The subsequent mounted Incoming assertion failed before cold reopen; its actual
+count was not retained, so disappearance versus duplication is not established.
+The durable canonical source still contains that exact original once. Beta's
+selected native journal changed during the later direct inputs. The original
+FULL journal, wire and input dispositions are retained, with no retries.
+
+`controlled215-hot02` reproduced an actual count of TWO outgoing containers for
+one original in the already-open sender view, while original inbound and both
+reply containers remained one. The canonical/native/provider path stayed real;
+all five localhost requests had no provider errors. Painted duplication versus
+a publication transition is not yet established. `controlled215-hot03` now
+captures canonical source reference coverage, each resident page/fragment range,
+actual widget ancestry and SVG visibility before assertions. No production patch
+or body/seen-ID deduplication was added. These controls do not replay06 and do
+not establish full hot UI readiness. The original06 exit137 remains unclassified.
+
+Mendel's existing installed pilot now retains explicitly named private roots and
+application directories through its reviewed `fixture_stage` capability. Only
+bounded receipts are committed; original journals/config remain in owned private
+scratch. The completed controls are preserved before any new source cohort.
