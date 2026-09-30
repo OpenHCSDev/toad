@@ -85,3 +85,44 @@ Arendt owns controlled local transport delay versus blocked local publication
 and, if necessary, the single authorized actual selected Sol OFF fork prompt.
 This worker makes no duplicate request or replay. All23902 same-run CPU/pixel
 joins are already pushed;242's physical work remains active independently.
+
+## Defined producer checkpoint review
+
+Arendt454 cdfedfc46b8385c2b2471c6ffa47eb7d65d6ee8f now declares RequestProgress
+through the existing PiPayload/FieldCodec boundary. Its original requestId,
+sessionId, inputId, native hrtime observation, elapsed/callback counters and
+transport stage are emitted by NativeRequestObservation. Core diagnostics retain
+the exact TurnLeaseFence and this original record. No tool-side record family or
+stage roster is required. Native message_update callbacks accumulate bounded
+measurements without emitting a timing record for every chunk.
+
+Request-local native monotonic spans can be reviewed immediately. Python's
+PublicationMeasurements maximum start/end use Python monotonic and can be joined
+to the existing profile relation immediately. Neither requires a fabricated
+cross-clock offset. Callback counters measure awaited wall spans, not CPU or
+provider duration; cumulative totals are not necessarily independent additive
+work if callbacks become nested or concurrent.
+
+Concrete review issue sent directly to Arendt: record_request_progress samples
+`received_monotonic_ns` at diagnostic append, after the native_phase consumer's
+registry reads and any preceding queued work. It is not RPC byte arrival or
+decode time. Rename it to the actual record-site meaning, without an alias, or
+carry a timestamp captured at the existing sole ingress owner. Publication
+counters are recorded before the current transition and describe prior completed
+transport spans; a cumulative maximum must not be attributed to the current
+request without its original interval and identity.
+
+The record currently has no original native process/clock-domain witness. A
+matching existing RPC operation can provide one without a provider request:
+Python monotonic sampled before writing the operation, native hrtime sampled in
+its original matching response, Python monotonic after reading that response.
+Those bounds enclose the native sample and bound the offset. The witness must
+retain the actual original native process identity and request/turn fence; it
+must not use a response from a replacement process or a new clock command.
+One-way append time supplies only a receipt-side bound and cannot establish a
+clock offset or identify where preceding delay occurred.
+
+Controlled transport-delay and blocked-local-publication checks can first be
+distinguished within their own original clocks. Cross-clock native/provider/UI
+allocation remains unavailable until a measured original witness exists. The
+single actual selected Sol OFF fork, if needed, remains Arendt's sole custody.
