@@ -1,0 +1,12 @@
+{
+  "private_root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+  "project": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/project",
+  "evidence": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/warm-scroll-236-01",
+  "runtime": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin",
+  "sources": [
+    "resource436",
+    "resource236b"
+  ],
+  "public_process_witness_released": true,
+  "native_and_ui_started": false
+}

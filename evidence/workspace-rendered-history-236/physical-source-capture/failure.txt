@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/original_turn_resource_real_installed_pilot.py", line 210, in main
+    await readonly_capture(service, project, evidence, environment)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/physical-callback-236.py", line 16, in capture
+    raise RuntimeError('Physical driver argv was not supplied; copied sources retained')
+RuntimeError: Physical driver argv was not supplied; copied sources retained

@@ -57,17 +57,25 @@ def disposition_rows(service):
     return InputDispositions(service.root / InputDispositions.filename).read().rows
 
 
-def readonly_custody(service, capture, original, source_digest):
-    """Certify the original and zero inputs for either real read-only driver."""
+def readonly_inputs(service):
     with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
         assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
     assert disposition_rows(service) == {}
+
+
+def original_custody(capture, original, source_digest):
     with original.open('rb') as stream:
         assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
     current = capture.require_current()
     assert current.process_identity == capture.source.process_identity
     return {'sha256': source_digest,
             'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+
+
+def readonly_custody(service, capture, original, source_digest):
+    """Certify the original and zero inputs for the in-process driver."""
+    readonly_inputs(service)
+    return original_custody(capture, original, source_digest)
 
 
 async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=ResourceJourneyApp):
@@ -191,9 +199,16 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
             ))
             receipt['physical_sources'] = [FieldCodec.encode(service.registry.require(name))
                                           for name in ('resource436', 'resource236b')]
+            # Forking ends the public-process witness lifetime. The authorized
+            # cutover may replace that owner while the independent copies paint.
+            receipt['original_source_custody'] = original_custody(
+                capture, original, source_digest)
+            readonly_inputs(service)
+            receipt['original_process_witness_released'] = True
+            (evidence / 'source-capture.json').write_text(json.dumps(receipt, indent=2))
+            print('ORIGINAL_CAPTURE_COMPLETE_PUBLIC_WITNESS_RELEASED', flush=True)
             await readonly_capture(service, project, evidence, environment)
-            receipt['original_source_custody'] = readonly_custody(
-                service, capture, original, source_digest)
+            readonly_inputs(service)
             receipt['complete'] = True
             receipt['completed_phases'].append('readonly_physical_acceptance')
             return

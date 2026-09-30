@@ -23,7 +23,7 @@ and actual ACP/Toad imports passed. Pins:
   and build log remain in the owned `.artifacts` directory.
 
 The stage is75MiB. No global package, launcher, original owner or route changed.
-No fresh private fixture, native process or UI has run for this physical gate.
+The private source copies below are prepared; no native owner or UI has run.
 
 ## Existing builder callback
 
@@ -75,9 +75,25 @@ C3 original after442. He owns extending that boundary once the final producer is
 known. Never probe that future source with the unchanged old reader or invent a
 second carry helper. No historical PID is an admission proof.
 
-Before actual launch, require his current compatible original capture receipt
-and a fresh source/process/hash read, then a new named private fixture. Do not
-reuse completed22704 or interrupted/UNKNOWN children. Resource check last:
+The owner's latest instruction ends the public process witness after copying,
+so a subsequent authorized public cutover must not invalidate the private
+physical journey. Both SDK fork copies completed at12:41:30UTC before cutover;
+fresh post-copy original owner PID2823983/birth23393932/admission and original
+SHA888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c were
+certified. The builder published PUBLIC_WITNESS_RELEASED before its callback.
+Proof: evidence/workspace-rendered-history-236/physical-source-capture.
+
+The callback coordinator's non-TTY stdin was already at EOF; it stopped before
+any UI/native owner/input. Failure and both complete source copies are preserved
+in the fresh23601 private root; this is not an interrupted/UNKNOWN input. The
+private copies can be adopted for their planned first physical launch, without
+re-copying the original or reusing completed22704. Credential environment existed
+only in coordinator RAM and was not serialized; recovery uses Arendt's existing
+current typed capture capability if the public producer has cut over. Never run
+the old000 helper against that producer. No public PID assertion follows the
+physical recording; native-input/disposition guards and private cleanup remain.
+
+Resource check last:
 RAM18.3GiB/home21.4GiB, memory pressure avg10/60/300 all0.00; swap14.6GiB alone
 warns. One bounded physical capture, no additional fleet or paid lane. Exact
 recorder argv, maximum duration and output/custody paths must be shared before
