@@ -1,0 +1,16 @@
+{
+  "remaining_owned_processes": [
+    {
+      "pid": 3690351,
+      "cmdline": [
+        "/bin/zsh",
+        "-lc",
+        "/home/ts/.local/share/agent-comms/runtime-native-budget-request-progress-20260930/bin/python evidence/request-progress-paired-20260930/review_acp.py --output /home/ts/wt/g454e/u01; cat /home/ts/wt/g454e/u01/proof/terminal-receipt.json"
+      ],
+      "birth": 1790790821.31
+    }
+  ],
+  "cleanup_required": true,
+  "test_only_census": true,
+  "signals_sent": 0
+}

@@ -1,0 +1,98 @@
+{
+  "state": "READY-SCOPED-FINAL-454-INSTALLED-NATIVE-ACP-TOAD-JOURNEY",
+  "overall_product_ready": false,
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-native-budget-request-progress-20260930",
+  "pins": {
+    "agent-comms": "6feb634ba184d94d763028406152fff07027cccc",
+    "batrachian-toad": "8a924e1d6c4a32098876f7885cc06c7173d499fa",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "activation_unchanged_after_gate": true,
+  "staging_receipt": "/home/ts/.cache/agent-scratch/native454-paired-stage-20260930/paired-ready-receipt.json",
+  "staging_receipt_sha256": "da4d2b17fe05b42f28fd421ca82cd01fc245a4ee97b7bb20c80c5aee687a74bb",
+  "exit_code": 0,
+  "elapsed_seconds": 41.78260389500065,
+  "runs": 1,
+  "controlled_localhost_posts": 2,
+  "paid_calls": 0,
+  "public_inputs_or_store_mutations": 0,
+  "unknown_replays": 0,
+  "account_changes": 0,
+  "actual_paths": {
+    "app": "installed Toad Pilot/compositor/SVG (not physical st/Xvfb)",
+    "native": "canonical manifest-selected actual Pi process, controlled localhost response",
+    "protocol": "actual ACP subprocess/session load/prompt/typed callbacks",
+    "root": "fresh privately produced /home/ts/wt/g454e/u01/fixture/private-root/wire"
+  },
+  "continuous_workflow": {
+    "source_head": "8a924e1d6c4a32098876f7885cc06c7173d499fa",
+    "actual_canonical_fork": true,
+    "physical_open_before_rpc_socket": true,
+    "empty_task": true,
+    "automatic_child_provider_requests": 0,
+    "inherited_tags_in_dialog": [
+      "team"
+    ],
+    "parent_tags_after_fork": [
+      "team"
+    ],
+    "child_tags": [
+      "fork-added"
+    ],
+    "physical_added_channel_disclosure": true,
+    "pending_after_old_five_second_expiry": true,
+    "same_owner_process_through_first_reply": true,
+    "first_new_message_physical_enter": true,
+    "new_child_response_painted_once": true,
+    "one_logical_tab": true,
+    "new_child_response_resources": 1,
+    "new_child_response_paint_count": 1,
+    "title_without_at_placeholder": "immediate-fork",
+    "provider_inputs": 2
+  },
+  "native_progress": {
+    "typed_turn_callbacks": 44,
+    "measured_model_wait_callbacks": 30,
+    "stages": [
+      "callback",
+      "callback_end",
+      "dispatch",
+      "finished",
+      "first_delta_consumed",
+      "first_event",
+      "headers",
+      "preparing",
+      "stream_end"
+    ],
+    "protocol_errors": [],
+    "idle_observed": true,
+    "canonical_evidence": "canonical-acp-progress.json",
+    "clock_semantics": "Native elapsed/source values only; no subtraction between process clocks"
+  },
+  "paint_census": {
+    "mounted_child_answer_blocks": 1,
+    "painted_child_answer_occurrences": 1,
+    "current_child": "immediate-fork",
+    "rendered_viewport": "                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n                                                                                             \n \u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594   \n\u258c  \u25b6 Agent coordination context                                                              \n\u258c                                                                                            \n\u258c                                                                                            \n\u258c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 User \u00b7 13:52:56 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500    \n\u258c\u258a\u276f FORK_PARENT_SEED                                                                         \n\u258c                                                                                            \n\u258c                                                                                            \n\u258c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Agent \u00b7 13:52:57 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500    \n\u258cNATIVE_RESPONSE_1                                                                           \n\u258c                                                                                            \n\u258c\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594\u2594   \n\u258c  \u25b6 Agent coordination context                                                              \n\u258c                                                                                            \n\u258c                                                                                            \n\u258c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 User \u00b7 13:53:22 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500    \n\u258c\u258a\u276f FIRST_FORK_NEW_INPUT                                                                     \n\u258c                                                                                            \n\u258c                                                                                            \n\u258c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Agent \u00b7 13:53:22 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500    \n\u258cNATIVE_RESPONSE_2                                                                           \n\u258c                                                                                            "
+  },
+  "cleanup": {
+    "remaining_owned_processes": [],
+    "cleanup_required": false,
+    "custody": "Exact fixture attempt tag/private root environment; completed wrapper session exit0. Initial command-text census incorrectly included concurrent read-only reviewer shell, preserved separately.",
+    "signals_sent": 0
+  },
+  "raw_root": "/home/ts/wt/g454e/u01",
+  "raw_artifact_sha256": {
+    "/home/ts/wt/g454e/u01/proof/terminal-receipt.json": "b3c7247e9de492f6a32faba14247ce234815950c55f619b4a029197adeca3ea0",
+    "/home/ts/wt/g454e/u01/proof/canonical-acp-progress.json": "89f27d055f586e291fbff62f367f75f7336e106c5256a6c3d80b1cdeff047392",
+    "/home/ts/wt/g454e/u01/proof/immediate-open.svg": "3c6088fc1289e7c56bea89b7a0f9b829946f7e39e0488634246e3ea40a91e621",
+    "/home/ts/wt/g454e/ui-journey01.log": "4b6a2b79e63881c26fbbcf42b2e9b2492cd95b4c69d31add119508c07c4fa3f7",
+    "/home/ts/wt/g454e/u01/proof/toad-acp.log": "19d191cac00e0a929e8b27723ad6b1ebff77452e9ac90826509342ba80e3cfad"
+  },
+  "production_changes": 0,
+  "production_deleted_lines": 0,
+  "earlier_frozen_controls": "cb0552c667be538a91b857f5601a4846b6b46398 evidence/budget-source-paired-20260930/ready-receipt.json preserved. Native fork budget+saved restart channel prior exact453/242 cohort; no repeated unchanged control. Historical failed453/u01 remains retained, no replay.",
+  "remaining_scope": "Parent retained paired cutover with matched new owners/ACP clients and sole affected actual DEFAULT startup required. No paid provider long-run/protocol API fleet/auth/physical speed claim; performance/source other remaining issues stay separate."
+}
