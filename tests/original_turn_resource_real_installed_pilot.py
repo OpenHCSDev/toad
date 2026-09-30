@@ -71,7 +71,8 @@ async def main():
         original_python=Path(os.environ['AC_REAL_ORIGINAL_PYTHON']),
     ).read(os.environ['AC_REAL_SOURCE_OWNER'])
     source, retained = capture.source, capture.retained
-    assert 'sol' in source.model.lower() and source.thinking_level.declared_name == 'high'
+    if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') != '1':
+        assert 'sol' in source.model.lower() and source.thinking_level.declared_name == 'high'
     original = Path(os.environ.get('AC_REAL_SOURCE_FILE', source.session_file))
     with original.open('rb') as stream:
         source_digest = hashlib.file_digest(stream, 'sha256').hexdigest()

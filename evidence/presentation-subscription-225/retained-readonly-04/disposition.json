@@ -1,0 +1,9 @@
+{
+  "state": "rejected-before-fork",
+  "cause": "Readonly fixture incorrectly required previous paid Sol/high configuration",
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "authentic_reader": "runtime-canonical-source-publication-20260930",
+  "helper_commit": "9c848a70f986375b7825e8b31d6ec4fd9091f856",
+  "speed_claim": false
+}
