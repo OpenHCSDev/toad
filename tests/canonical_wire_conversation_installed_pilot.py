@@ -13,6 +13,7 @@ from threading import Event
 from contextlib import asynccontextmanager
 import shutil
 import shlex
+import stat
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
@@ -49,6 +50,15 @@ class EvidenceApp(FixtureApp):
                     shutil.copyfile(thread.session_file, evidence / f'native-{thread.name}.jsonl')
             evidence.joinpath('original-wire.json').write_text(json.dumps(
                 [message.to_wire() for message in service.bus.log.full_history()], indent=2))
+            # Retain original coordinator/native input proof, including selected
+            # journals that are not the ordinary registration.session_file.
+            def resources_only(directory, names):
+                return [name for name in names if not (
+                    stat.S_ISREG((Path(directory) / name).lstat().st_mode)
+                    or stat.S_ISDIR((Path(directory) / name).lstat().st_mode))]
+            shutil.copytree(service.root, evidence / 'canonical-wire', ignore=resources_only)
+            shutil.copytree(Path(os.environ['PI_CODING_AGENT_DIR']),
+                            evidence / 'native-config-and-journals', ignore=resources_only)
 
 
 recipient_entered, recipient_release = Event(), Event()
@@ -160,9 +170,20 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert len(originals(sender, response.reference, IncomingMessage)) == 1
             assert original.reference != response.reference
             await until(pilot, lambda: not comms.registry.require('beta').executing)
-            await pilot.pause(.3)
-            assert sum(body.source == response.body for body in recipient.contents.query(AgentResponse)) == 1, \
-                'One original recipient reply was also rendered from its native journal/stream'
+            try:
+                await until(pilot, lambda: response_painted(app, recipient, response.body))
+            finally:
+                bodies = tuple(recipient.contents.query(AgentResponse))
+                observation = [{'source': body.source, 'attached': body.is_attached,
+                                'parent': type(body.parent).__name__}
+                               for body in bodies]
+                evidence.joinpath('recipient-reply-resources.json').write_text(
+                    json.dumps(observation, indent=2))
+                app.save_screenshot(str(evidence / 'recipient-reply.svg'))
+                print('RECIPIENT_REPLY_RESOURCE_COUNT',
+                      sum(body.source == response.body for body in bodies), flush=True)
+            assert sum(body.source == response.body for body in bodies) == 1, \
+                'Original recipient reply must have exactly one rendered body'
             print('THREE_OPEN_WINDOWS_ORIGINAL_OUTBOUND_INBOUND_TARGET_RESPONDED_HOT', flush=True)
             for name, window in (('sender', sender_app), ('recipient', app), ('irc', irc_app)):
                 window.save_screenshot(str(evidence / f'{name}.svg'))
