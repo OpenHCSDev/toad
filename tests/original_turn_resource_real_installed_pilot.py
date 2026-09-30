@@ -62,6 +62,7 @@ async def main():
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     evidence = Path(os.environ['L0A_EVIDENCE'])
     core_head = os.environ['AC_REAL_CORE_HEAD']
+    toad_head = os.environ['AC_REAL_TOAD_HEAD']
     assert stage.is_relative_to('/home/ts/wt')
     stage.mkdir(parents=True, exist_ok=False)
     evidence.mkdir(parents=True, exist_ok=True)
@@ -125,7 +126,7 @@ async def main():
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                'original_bytes': original.stat().st_size, 'original_inputs_replayed': 0,
                'completed_phases': [], 'core': core_head,
-               'toad': os.environ['AC_REAL_TOAD_HEAD']}
+               'toad': toad_head}
 
     async def cancel_tool(pilot, view, marker):
         # The original retained context may first need the native multi-segment
