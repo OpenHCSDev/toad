@@ -108,7 +108,12 @@ establish that scrolling or tab navigation happened.
 
 Warm-scroll acceptance requires both saved histories loaded, a scrollable original
 history, native Window focus during the held-key phases, and actual Up/Down/reverse
-movement. Retaining an error body or an empty view is insufficient. Failed native
+source admission. The observer uses the existing TranscriptCursor comparison;
+absolute scroll-offset signs change when lazy pages prepend or trim. Source
+admission alone does not establish visible direction: inspect the corresponding
+physical frames. A cold peer still loading at its sampled phase remains a failed
+peer-history check, even if it later loads in the background. Retaining an error
+body or an empty view is insufficient. Failed native
 checks leave video/profile/phase artifacts intact but fail the recorder exit.
 Passing them still requires physical footage review before claiming UI readiness.
 
