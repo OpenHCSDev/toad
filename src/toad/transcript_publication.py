@@ -25,6 +25,21 @@ class TranscriptPublication(ABC):
         self.generation = owner.generation
         self.agent = view.agent
         self.window, self.contents = window, contents
+        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
+
+    def source_current(self, provisional=None) -> bool:
+        """Source transfer requires the original anonymous output cohort.
+
+        Identity-backed claims can remain live until their saved identity is
+        covered. Anonymous output cannot coexist with a newly advanced source
+        while its original turn is still producing that output.
+        """
+        from toad.widgets.committed_presentation import CommitParticipant
+
+        return self.current() and all(
+            widget is provisional or widget.commit_claim.admits_source(widget, self.captured)
+            for widget in self.contents.children if isinstance(widget, CommitParticipant)
+        )
 
     def current(self) -> bool:
         from toad.widgets.conversation import Window, Contents
@@ -73,7 +88,6 @@ class SnapshotPublication(TranscriptPublication):
         super().__init__(owner, view, window, contents)
         self.page = page
         self.scroll_revision = window.scroll_revision
-        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
@@ -98,6 +112,9 @@ class SnapshotPublication(TranscriptPublication):
         async with self.window.history_lock:
             if not self.current():
                 return
+            if not self.source_current():
+                self.owner.require_checkpoint()
+                return
             for history in self.owner.histories:
                 history.state.validate_snapshot(history, self.page)
             if not self.admitted():
@@ -114,6 +131,9 @@ class SnapshotPublication(TranscriptPublication):
             # a pre-render absence check cannot authorize a second full page.
             if not self.current() or not self.admitted():
                 return
+            if not self.source_current():
+                self.owner.require_checkpoint()
+                return
             history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                         fragments=fragments, committed=False)
             self.owner.prepare_reader(history)
@@ -121,7 +141,9 @@ class SnapshotPublication(TranscriptPublication):
                 accepted = False
                 try:
                     await self.contents.mount(history)
-                    if not self.current():
+                    if not self.source_current(history):
+                        if self.current():
+                            self.owner.require_checkpoint()
                         return
                     # This accepted full source replaces exactly the old
                     # history resources captured before its mount. Original
@@ -294,10 +316,10 @@ class CheckpointPublication(TranscriptPublication):
             for child in before_read
             if child is not history and isinstance(child, CommitParticipant)
         )
-        if not plan.ready(history) or not plan.permits(view, potential):
+        if not self.source_current() or not plan.ready(history) or not plan.permits(view, potential):
             return
 
-        is_current = self.current
+        is_current = self.source_current
 
         try:
             page = await agent.get_transcript_page()
@@ -315,7 +337,7 @@ class CheckpointPublication(TranscriptPublication):
         if prepared is None or not is_current():
             return
         evidence = CommitEvidence(
-            view.turns.owner.captured_snapshot(before_read), prepared.sequences, prepared.history,
+            self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
         async with window.history_lock:
@@ -338,7 +360,7 @@ class CheckpointPublication(TranscriptPublication):
                             committed=False,
                         )
                         await contents.mount(replacement, before=0)
-                    if not is_current():
+                    if not self.source_current(replacement):
                         return
                     # Identity-backed arrivals during a mount may now be covered;
                     # ordinary late arrivals remain outside the captured cohort.

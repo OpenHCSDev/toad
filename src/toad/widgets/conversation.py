@@ -1462,6 +1462,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         await self.output.settle()
+        self.transcript.retry()
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
         if (
