@@ -1,0 +1,9 @@
+# PR236 UI-only viewport buffer stage
+
+Ready immutable prefix: `/home/ts/.local/share/agent-comms/runtime-viewport-buffer-20260930`. Exact merged Toad `ddf180ddc40d681e2624a9c0570abcdb5052ed30`, Core4295/Text2e49/SDK0.12.1/nativee36 unchanged. Parent alone activates default links. No backend restart, provider/native prompt, replay or public root/store change.
+
+One normal frozen68 installation from activated goal-observation prefix, only the Toad git requirement changed. Cached normal wheel build and hardlinks; no dependency rebuild, new checkout, native copy or parallel builder. All273 installed Python files equal the exact merged Toad Git tree, Core/Textual noneditable provenance exact, frozen requirements equal and pip check passed68. Affected UiSettings/PresentationBudget/shared effect/viewport/history imports passed. Configured default is three message-area heights, setting effect is the existing shared effect callable.
+
+Existing RuntimeSelection.publish_verified_stage published activation.json from the same completed staging receipt and its normal runtime/package preflight passed; probe process exited0, cleanup no remaining PIDs/errors. The same receipt bytes are also copied to PREFIX/staging-receipt.json so discovery does not require guessing a worktree path. Activation SHA references those exact bytes; metadata records immutable identity, not live activation.
+
+Full receipt: evidence/viewport-buffer-ui-stage-20260930/ready-receipt.json. Production diff versus238:106 additions/29 deletions across six paths. Owner original41MB physical03 Up/reverse/End+A return proof accepted by parent; no repeated full native/provider/capture gate. One affected actual normal default check follows parent activation. Cold-B latency and highCPU remain239; fresh NRA InboxUnavailable/UNKNOWN452 remains separate, no overallReady claim. Earlier actual default23828.932s scoped history-return proof remains preserved without relaunch.

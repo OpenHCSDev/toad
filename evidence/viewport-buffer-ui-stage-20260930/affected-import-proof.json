@@ -1,0 +1,13 @@
+{
+  "state": "affected-installed-imports-pass",
+  "setting": "UiSettings.history_buffer_viewports",
+  "budget": "PresentationBudget",
+  "configured_default": 3,
+  "same_effect_callable": true,
+  "viewport": "ViewportPresentation",
+  "history": "TranscriptHistory",
+  "ui_launched": false,
+  "public_root_loaded": false,
+  "provider_calls": 0,
+  "native_inputs": 0
+}
