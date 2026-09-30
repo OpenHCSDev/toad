@@ -23,6 +23,13 @@ case, held terminal playback, CPU attribution or full TC1.
 
 ## Remaining acceptance and crossings
 
+PR217 now contains the [editor/source restoration checkpoint](../../evidence/editor-focus/README.md):
+actual source and isolated installed-wheel LinuxDriver saved-history A/B/A,
+typing/deletion/arrows, draft/caret and undo pass during real source loading.
+Queued history navigation now honors current workspace custody; source
+restoration is selected by the actual AgentPresentation. Native restoration and
+active/post-cancel editing remain separate affected-path acceptance.
+
 Primary void acceptance is held/repeated PageDown at a growing lazy end, then
 reverse and idle. End is a separate destination check. Inspect completed paint,
 including partial blank regions and body progression, through the existing

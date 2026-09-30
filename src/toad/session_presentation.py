@@ -219,32 +219,13 @@ class NativeSessionSurface:
             if owner.state is not None:
                 owner.state.restore(conversation)
                 owner.state = None
-            retained_history = None
-            if returning:
-                from toad.widgets.transcript_history import TranscriptHistory
-                retained_history = next((child for child in conversation.contents.children
-                                         if isinstance(child, TranscriptHistory)), None)
-            if retained_history is not None:
-                agent = conversation.agent
-                await conversation.transcript.reveal_retained(retained_history)
-                await conversation.refresh_native_projection()
-            elif conversation.agent is not None and conversation.agent.ready:
-                await conversation.agent.presentation.restore_saved_history(conversation)
+            await conversation.prepare_retained_session()
             conversation.display = True
             conversation.window.document_viewport.resume_source()
             if returning:
                 conversation.start_native_session()
             conversation.prompt.focus()
             await self._trim_retained(conversation)
-            if retained_history is not None:
-                def refresh_after_paint() -> None:
-                    if (self.widget is conversation and self.owner is owner
-                            and conversation.agent is agent):
-                        conversation.run_worker(
-                            conversation.transcript.refresh_revealed(agent),
-                            group="retained-native-refresh", exclusive=True,
-                        )
-                conversation.call_after_refresh(refresh_after_paint)
 
     async def _trim_retained(self, selected: Conversation) -> None:
         """Bound inactive native trees using the existing viewport resource policy.

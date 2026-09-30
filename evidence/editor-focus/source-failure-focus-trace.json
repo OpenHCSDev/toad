@@ -1,0 +1,440 @@
+{
+  "key_interval": [
+    {
+      "clock": 208288.177217311,
+      "source": "session-2",
+      "key": "o",
+      "character": "o",
+      "receiver": "KeyWorkflowApp",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.177351736,
+      "source": "session-2",
+      "key": "t",
+      "character": "t",
+      "receiver": "KeyWorkflowApp",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.177460612,
+      "source": "session-2",
+      "key": "h",
+      "character": "h",
+      "receiver": "KeyWorkflowApp",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.177562776,
+      "source": "session-2",
+      "key": "e",
+      "character": "e",
+      "receiver": "KeyWorkflowApp",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.177663797,
+      "source": "session-2",
+      "key": "r",
+      "character": "r",
+      "receiver": "KeyWorkflowApp",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.177766281,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "KeyWorkflowApp",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.179381862,
+      "source": "session-2",
+      "key": "o",
+      "character": "o",
+      "receiver": "PromptTextArea",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.179813761,
+      "source": "session-2",
+      "key": "t",
+      "character": "t",
+      "receiver": "PromptTextArea",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.180133296,
+      "source": "session-2",
+      "key": "h",
+      "character": "h",
+      "receiver": "PromptTextArea",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.180429818,
+      "source": "session-2",
+      "key": "e",
+      "character": "e",
+      "receiver": "PromptTextArea",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.180722603,
+      "source": "session-2",
+      "key": "r",
+      "character": "r",
+      "receiver": "PromptTextArea",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.181053329,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "PromptTextArea",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.182023137,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "HorizontalGroup",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.191943603,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "PromptContainer",
+      "focus": "PromptTextArea",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.200317129,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Prompt",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.218157271,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Vertical",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.226384309,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Conversation",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.227267753,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Vertical",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.227911272,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Center",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.235189051,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "MainScreen",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.235711481,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Container",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.239187167,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "Horizontal",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.240633217,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "WorkspaceScreen",
+      "focus": "Window",
+      "stopped": false,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "clock": 208288.242138699,
+      "source": "session-2",
+      "key": "left",
+      "character": null,
+      "receiver": "KeyWorkflowApp",
+      "focus": "Window",
+      "stopped": true,
+      "source_work": [
+        "LiveTranscript"
+      ]
+    },
+    {
+      "action": "scroll_left",
+      "namespace": "Window",
+      "accepted": false,
+      "focus": "Window",
+      "clock": 208288.242262123,
+      "source": "session-2",
+      "source_work": [
+        "LiveTranscript"
+      ]
+    }
+  ],
+  "window_request_origin": [
+    {
+      "clock": 209141.729476363,
+      "source": "session-1",
+      "focus_request": "Window",
+      "widget": 140676355957904,
+      "focus": "Window",
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "caller": [
+        {
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046,
+          "function": "_run_once"
+        },
+        {
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94,
+          "function": "_run"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604,
+          "function": "_process_messages"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703,
+          "function": "_process_messages_loop"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774,
+          "function": "_dispatch_message"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855,
+          "function": "on_event"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876,
+          "function": "_on_message"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96,
+          "function": "invoke"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56,
+          "function": "_invoke"
+        },
+        {
+          "file": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/src/toad/widgets/conversation.py",
+          "line": 1968,
+          "function": "on_click"
+        },
+        {
+          "file": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/src/toad/widgets/conversation.py",
+          "line": 2267,
+          "function": "refresh_block_cursor"
+        }
+      ]
+    },
+    {
+      "clock": 209142.291906041,
+      "source": "session-2",
+      "focus_request": "Window",
+      "widget": 140676355957904,
+      "focus": "PromptTextArea",
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "caller": [
+        {
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046,
+          "function": "_run_once"
+        },
+        {
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94,
+          "function": "_run"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604,
+          "function": "_process_messages"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703,
+          "function": "_process_messages_loop"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774,
+          "function": "_dispatch_message"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855,
+          "function": "on_event"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876,
+          "function": "_on_message"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96,
+          "function": "invoke"
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56,
+          "function": "_invoke"
+        },
+        {
+          "file": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/src/toad/widgets/conversation.py",
+          "line": 1968,
+          "function": "on_click"
+        },
+        {
+          "file": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/src/toad/widgets/conversation.py",
+          "line": 2267,
+          "function": "refresh_block_cursor"
+        }
+      ]
+    }
+  ],
+  "failure_note": "Source restoration change present; navigation focus still unpatched. Later request-origin run passed keys but timed out shutting down; not a PASS receipt."
+}
