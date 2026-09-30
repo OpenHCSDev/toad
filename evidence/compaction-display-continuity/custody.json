@@ -1,0 +1,32 @@
+[
+  {
+    "root": "/home/ts/wt/cw235m01",
+    "bytes": 1780681,
+    "process_refs": [],
+    "preserve_until_new_install": true
+  },
+  {
+    "root": "/home/ts/wt/cw235a02",
+    "bytes": 1888954,
+    "process_refs": [],
+    "preserve_until_new_install": true
+  },
+  {
+    "root": "/home/ts/wt/cw235c03",
+    "bytes": 1777426,
+    "process_refs": [],
+    "preserve_until_new_install": true
+  },
+  {
+    "root": "/home/ts/wt/cw235m04",
+    "bytes": 1792442,
+    "process_refs": [],
+    "preserve_until_new_install": true
+  },
+  {
+    "root": "/home/ts/wt/cw235c05",
+    "bytes": 1777760,
+    "process_refs": [],
+    "preserve_until_new_install": true
+  }
+]
