@@ -75,6 +75,47 @@ the affected continuous gate must cover both exact-once input and answer.
 
 Status: source checkpoint, not Ready or live. One existing declaration-family
 test passed; changed production parses and diff whitespace checks passed.
-Coherent Core458 integration of457/456/460 and the installed continuous native
-gate are still required. The checked-in dependency remains the base pin until
-the integration owner supplies that coherent artifact.
+The checked-in dependency now uses coherent Core458
+`d12f2d87e0c9d2b85f9aa6147c1eb659133e3dae`, including456/457/460. Its production
+source is identical to the later guard/documentation checkpoint c01dab4d.
+The installed continuous native gate remains required.
+
+## Queue-to-native paint and continuous driver
+
+The producer retains an accepted row during awaited Started publication. Prompt
+derives its visible queued rows from the original producer rows and mounted
+source claims: a StartedInputClaim identifies the same original request, so
+that retained row cannot appear again beside its native UserInput. Queue control
+authority stays with QueueAttachment. No retained seen list or copied status
+is introduced. This is a rare queue invalidation projection, not a per-frame
+history scan.
+
+`tests/input_visibility_native_installed_pilot.py` extends the existing installed
+first-fork journey rather than replacing its failed exact-once answer oracle.
+The actual application, ACP worker, Pi owner and private retained source remain
+real; only the provider response is controlled. The extended journey submits a
+busy turn, accepts a follow-up, clicks Send now, verifies its original native
+user once, and cancels a further original input after native start. A five-call
+local fixture budget prevents replay. UNKNOWN/refusal UI acceptance is not yet
+claimed by these added cases.
+
+The observer records original incremental compositor updates and typed original
+request/queue/Started sources. It never requests a full render or manufactures
+protocol facts. Offline terminal replay must find each outstanding original
+input once in submitting/queue/chat through its first native paint; the terminal
+driver and headless flag are recorded explicitly. Headless output is compositor
+evidence, not a physical-terminal readiness claim. Use the existing PTY driver
+with `INPUT_VISIBILITY_TERMINAL=1` for native terminal output; `pyte` is an existing
+development dependency for offline review. No extra paid provider calls.
+
+Deleted obsolete pilots: send_status (170 lines), send_now_failure (48 lines),
+queue_manage (85 lines), totaling 303 lines. They populated removed status/queue
+mirrors or patched transport replies. The real boundary pilot and manual journey
+helpers instead consume ConversationSubmissions in place. Historical receipts
+that mention these pilots remain preserved. No removed API is restored.
+
+Source checks: existing family test passed, typed frame FieldCodec round-trip
+passed, changed Python parses passed. No new UI/native capture has been run.
+Parent owns integration with249 and caller250; Heisenberg owns252 response
+publication. Run one new continuous paired candidate after substantial252 source
+is ready; never rerun the unchanged frozen250 candidate to hide its failure.
