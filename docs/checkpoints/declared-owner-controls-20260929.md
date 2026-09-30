@@ -100,3 +100,21 @@ unproven and untouched; this independent goal/control gate does not close it.
 Current required production ratchet versus main53154 has no positive delta;
 c3-current-required-ratchet.json records the exact candidate. Deleted lines use
 git numstat (the old file has an unterminated final line, so wc -l reports58).
+
+## Receiving status after reviewed paired merge
+
+Parent verified Core421 merge2519fb653d3dde780da729d8979b55df68026b95 and
+Toad216 merge4d239091240790fc95863a8e9b3edf009ca72e53. Exact reviewed source
+Core0b3a965a and Toade2014d81, and the earlier exact production wheel/native615
+proof pair, remain preserved. This update is documentation only. Default/backend
+remains720; no installation or full C3 runtime closure is claimed. Preserve this
+worktree, installed wheels, persistent fixture journals, original UNKNOWN,
+frames and receipts until installation; do not repeat native/menu acceptance.
+
+The reviewed consumer census finds no remaining allows_control/GoalPauseEvents
+caller or alternate relationship/mention/maintenance/ACP-error parser in Toad's
+assigned relation. Actual menus and target command callers derive declared tool
+availability. Core's full six-file/five-family ledger remains the receiving
+authority. Arendt FULL owns shared send-custody and future S14 initial admission,
+all-stop, nested RegistryDocument/OwnerReleaseReceipt.Thread closure and target
+launch; parent owns activation. No competing operator or legacy reader here.
