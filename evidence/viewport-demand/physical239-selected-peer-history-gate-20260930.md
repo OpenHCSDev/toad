@@ -69,3 +69,13 @@ No UI, native process or provider was launched by this source check; its owned
 temporary directory was removed. Heisenberg remains the sole actual capture
 owner. Native cold-peer publication and terminal-writer completion remain to be
 verified in the next affected actual journey, alongside A/B/A, scrolling and idle.
+
+That affected journey now completed: Heisenberg's239 attempt02 used the corrected
+observer and unchanged production candidate. Its native receipt identifies
+`session-2`/`resource236b`, elapsed4740.166ms and visible history written. All16
+original journey checks passed, driver exit0 and cleanup has no remaining owned
+PIDs/errors. Actual B, A return, idle and Undo physical frames were reviewed.
+This verifies the observer correction in the installed application/native path.
+It does not claim a4.7second cold peer is fast or resolve global CPU and projection
+debt. The same-run assessment and remaining contradictory history label are
+recorded in `physical23902-global-workflow-review-20260930.md`.
