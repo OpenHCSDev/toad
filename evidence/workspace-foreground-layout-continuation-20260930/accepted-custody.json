@@ -1,0 +1,149 @@
+{
+  "history_lock_held": true,
+  "source": 140622108344720,
+  "registered_pages": [
+    140622118567312
+  ],
+  "roots": [
+    {
+      "identity": 140622117952464,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105164560,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622117952784,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622117952144,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105155600,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105153680,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105165520,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105150160,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    }
+  ],
+  "fragments": [
+    {
+      "identity": 140622117952464,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105164560,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622117952784,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622117952144,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105155600,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105153680,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105165520,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    },
+    {
+      "identity": 140622105150160,
+      "kind": "TranscriptFragmentView",
+      "parent": 140622118567312,
+      "attached": true,
+      "closing": false
+    }
+  ],
+  "registration_boundary": [
+    {
+      "native_child": 140622118564112,
+      "parent": 140622118567312,
+      "source": 140622108344720,
+      "reader_publication_fenced": true
+    },
+    {
+      "native_child": 140622118564752,
+      "parent": 140622118567312,
+      "source": 140622108344720,
+      "reader_publication_fenced": true
+    },
+    {
+      "native_child": 140622118564432,
+      "parent": 140622118567312,
+      "source": 140622108344720,
+      "reader_publication_fenced": true
+    },
+    {
+      "native_child": 140622118565072,
+      "parent": 140622118567312,
+      "source": 140622108344720,
+      "reader_publication_fenced": true
+    }
+  ]
+}

@@ -151,9 +151,22 @@ async def main():
             view.set_reactive(type(view).agent, agent)
             entered, release = asyncio.Event(), asyncio.Event()
             mounting = []
+            registration_boundary = []
             original_mount = TranscriptFragmentView.on_mount
 
             async def held_mount(body):
+                # Native custody precedes the Mount handler's viewport
+                # registration. The original publication fence must exclude
+                # this intermediate tree from a reader's accepted source.
+                owning_history = body.query_ancestor(TranscriptHistory)
+                assert body in owning_history.fragment_views
+                assert body not in viewport.owners
+                assert window.history_lock.locked() and window.history_mutating()
+                assert not view.screen.viewport_presentation.prepare()
+                registration_boundary.append(dict(
+                    native_child=id(body), parent=id(body.parent),
+                    source=id(owning_history), reader_publication_fenced=True,
+                ))
                 original_mount(body)
                 mounting.append(body)
                 entered.set()
@@ -171,25 +184,73 @@ async def main():
                     release.set()
                     await asyncio.wait_for(task, 10)
             await settle()
+            # Exercise the same boundary on an already accepted source. A
+            # real native source update can mount the next tail while the
+            # viewport worker itself has no pending job. That is why its
+            # settlement is not an accepted-source observation fence.
             history = view.contents.query_children(TranscriptHistory).first()
-            assert history.state.reports_coverage
-            roots, fragments = tuple(viewport.body_roots()), history.fragment_views
-            if roots != fragments:
+            with journal.open('a') as target:
+                for i in range(6, 12):
+                    target.write(json.dumps({'type': 'message', 'message': {
+                        'role': 'assistant', 'content': f'New saved custody row {i}.'
+                    }}) + '\n')
+            changed_page = service.transcripts.thread_transcript_page('saved')
+            entered, release = asyncio.Event(), asyncio.Event()
+            async def held_registration(body):
+                assert body in history.fragment_views and body not in viewport.owners
+                assert window.history_lock.locked() and window.history_mutating()
+                assert not view.screen.viewport_presentation.prepare()
+                entered.set()
+                await release.wait()
+                original_mount(body)
+
+            with patch.object(TranscriptFragmentView, 'on_mount', held_registration):
+                task = asyncio.create_task(history.update_live(changed_page))
+                try:
+                    await asyncio.wait_for(entered.wait(), 5)
+                    assert history.state.reports_coverage
+                    raw_roots = tuple(viewport.body_roots())
+                    raw_fragments = history.fragment_views
+                    assert raw_roots != raw_fragments
+                    (evidence / 'pre-admission-custody.json').write_text(json.dumps({
+                        'history_lock_held': window.history_lock.locked(),
+                        'native_publication_fenced': window.history_mutating(),
+                        'raw_roots': [id(body) for body in raw_roots],
+                        'raw_fragments': [id(body) for body in raw_fragments],
+                        'pending_mount': [id(body) for body in mounting],
+                    }, indent=2) + '\n')
+                finally:
+                    release.set()
+                    await asyncio.wait_for(task, 10)
+            await settle()
+            # Scroll work can start another real page mount after snapshot()
+            # completes. Read accepted custody through its original owner,
+            # rather than treating viewport-work settlement as source admission.
+            async with window.history_lock:
+                history = view.contents.query_children(TranscriptHistory).first()
+                assert history.state.reports_coverage
+                roots, fragments = tuple(viewport.body_roots()), history.fragment_views
                 def custody(body):
                     return dict(identity=id(body), kind=type(body).__name__,
                                 parent=id(body.parent), attached=body.is_attached,
                                 closing=body._closing)
-                (evidence / 'custody-failure.json').write_text(json.dumps({
+                accepted_custody = {
+                    'history_lock_held': window.history_lock.locked(),
+                    'source': id(history),
+                    'registered_pages': [id(page) for page in history.pages],
                     'roots': [custody(body) for body in roots],
                     'fragments': [custody(body) for body in fragments],
-                    'contents': [custody(body) for body in view.contents.children],
-                }, indent=2) + '\n')
-            assert roots == fragments
+                    'registration_boundary': registration_boundary,
+                }
+                (evidence / 'accepted-custody.json').write_text(
+                    json.dumps(accepted_custody, indent=2) + '\n')
+                assert roots == fragments
             assert agent.process.process is None and agent.process.runner is None
             assert app._exception is None
             receipt.update(native_reorder=True, removed_body_released=True,
                            fast_reverse_end=True, resize=True, pending_native_mount=True,
-                           accepted_canonical_tree=True)
+                           accepted_canonical_tree=True, pre_registration_frame_fenced=True,
+                           raw_custody_mismatch_reproduced=True)
             (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
             print(json.dumps(receipt))
 

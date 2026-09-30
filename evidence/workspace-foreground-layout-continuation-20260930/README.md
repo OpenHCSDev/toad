@@ -149,3 +149,29 @@ assertion was loosened, no catch/restore retry was added. Do not claim the prior
 failure was an existing baseline issue or that full pending-mount lifetime scope
 is closed. This production cost checkpoint remains draft/pending installed proof;
 whole TC1/T9 custody and physical workflow acceptance continue under this owner.
+
+## Source custody disposition through the original admission owner
+
+The original final assertion compared raw native children with viewport-registered
+bodies without taking HistoryWindow.history_lock. Settling viewport._pending/
+_running does not settle the independent source page operation. The old failure
+has no IDs, so its exact historical producer cannot be recovered from that log.
+Do not classify it as an established product defect or a proven baseline issue.
+
+The extended same actual native pilot now holds an accepted source's real
+update_live Mount BEFORE its original viewport registration. It deterministically
+records5raw roots versus6native fragments while the original source lock and
+window publication fence are held. Actual ViewportPresentation.prepare returns
+False; no such partial scene is admitted. Releasing that actual Mount then reading
+through the original history_lock gives identical native roots/fragments and
+current source coverage. The equality assertion is retained, not weakened; no
+retry, catch, optional caller probe or product guard was added. The test's earlier
+post-registration hold cannot force a missing registration; its false attempt
+is preserved at `.artifacts/body-cost-245-live-custody/run.log` as a test error.
+
+pre-admission-custody.json and accepted-custody.json capture exact identities and
+fences in one continuous source journey. The original lock is the existing
+publication authority used by production; a second settlement flag is unnecessary.
+This disposes the source gate's unfenced-observation risk without claiming full
+TC1/T9 lifecycle or old failure attribution. The installed physical gate still
+must verify this resource-cost source checkpoint in the current declared pair.
