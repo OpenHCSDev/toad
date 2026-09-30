@@ -141,3 +141,31 @@ This is headless resource/timer acceptance, not physical or saved-native history
 acceptance. Corrected217/Text13 physical capture is frozen and not rerun here.
 An affected physical follow-up may include this change when the integration
 owner stages the remaining224 workflow; no live activation claim yet.
+
+## Recording profile interpretation checkpoint
+
+The old generic review summed open Chrome B/E spans across threads and recursive
+instances. An open frame can persist while another thread owns the GIL, so
+those sums cannot attribute CPU or recover durations of actual sampled work.
+Deleted that aggregation from record_installed_tui.profile_review. A readonly
+ProfileTrace boundary now decodes the external B/E records once through their
+declared transition family and reconstructs each changed thread stack in trace
+order. Recursive frame identities count once per observed stack; PID and TID
+stay explicit. Unchanged stack samples are absent from Chrome transitions, so
+the output reports transition groups, not sample counts, calls, time or CPU.
+
+Validated against the retained f92 actual physical run: 28,560 trace records,
+985 reported profiler samples, zero sampling errors, 933 reconstructed stack
+transitions across 16 threads and nine action phases. Every phase's kernel CPU
+list is exactly unchanged. Frame presence never exceeds its thread's observed
+transition count; leaf presence never exceeds stack presence. This corrects
+the existing recorder review rather than creating another profiling authority.
+The prior inclusive/self duration keys are deleted; no compatibility output.
+
+Proof: evidence/viewport-demand/profile-transition-review/review.json. Original
+video, trace and custody proof remain in Heisenberg's protected capture. This
+review did not launch a profiler, terminal, native process or provider. The
+temporary owned review directory held only readonly links and derived output,
+which are disposable after retaining this report. Recorder tool diff removes
+38 lines of the old aggregation; the new boundary adds explicit trace decoding
+and observations. These observations do not establish faster UI performance.

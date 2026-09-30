@@ -1,0 +1,2534 @@
+{
+  "profiler": "py-spy",
+  "rate_hz": 25,
+  "sampling": "consistent",
+  "threads": "gil",
+  "trace": "cpu-profile.json",
+  "trace_origin_monotonic_estimate": 222652.8959719795,
+  "trace_to_video_offset_seconds": -0.31111357850022614,
+  "ui_pid": 2524319,
+  "trace_origin_monotonic_bounds": [
+    222652.878569332,
+    222652.913374627
+  ],
+  "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
+  "alignment_nominal_uncertainty_seconds": 0.05740264749969356,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant"
+  ],
+  "processes": [
+    "2524319",
+    "2524346",
+    "2524350",
+    "2524539",
+    "2524548"
+  ],
+  "phases": [
+    {
+      "label": "focused",
+      "video_start_seconds": 13.134998352994444,
+      "video_end_seconds": 15.289469244977226,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 1.3399999999999999,
+          "average_cpu_percent": 62.19624525847195
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.4641510840184479
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 11
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "content_region",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2411,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 371,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/message_bus.py",
+          "line": 221,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "add_class",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1889,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__init__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/decoder.py",
+          "line": 337,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "is_docked",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 661,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "screen",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 825,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "cuts",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1175,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_iterencode_dict",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 361,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_iterencode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 444,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "__post_init__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/checkpoint_seals.py",
+          "line": 37,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "project",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 350,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 151,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "_from_parsed_parts",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 270,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 447,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2501,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 15.289469244977226,
+      "video_end_seconds": 20.4842791389965,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 4.98,
+          "average_cpu_percent": 95.86491328072313
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.5299999999999999,
+          "average_cpu_percent": 10.20249077084001
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.28,
+          "average_cpu_percent": 5.389995124217365
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.11000000000000001,
+          "average_cpu_percent": 2.117498084513965
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.19249982586490602
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 83
+        },
+        {
+          "pid": "2524539",
+          "tid": "140451016042368",
+          "transition_groups": 8
+        },
+        {
+          "pid": "2524548",
+          "tid": "139736010454912",
+          "transition_groups": 6
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 8,
+          "leaf_transition_groups": 8
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1535,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 847,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "is_attached",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "unique_wire_object",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/bus_publication.py",
+          "line": 58,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "one",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 491,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tools/performance/capture_state.py",
+          "line": 88,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 310,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2506,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 385,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "invoke_watcher",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 164,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__get__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/_style_properties.py",
+          "line": 827,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524539",
+          "tid": "140451016042368",
+          "function": "_call_with_frames_removed",
+          "filename": "<frozen importlib._bootstrap>",
+          "line": 491,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/thread_status.py",
+          "line": 63,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524539",
+          "tid": "140451016042368",
+          "function": "_code_to_timestamp_pyc",
+          "filename": "<frozen importlib._bootstrap_external>",
+          "line": 528,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524539",
+          "tid": "140451016042368",
+          "function": "_parse",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/re/_parser.py",
+          "line": 686,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "size",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 381,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "up-done",
+      "video_start_seconds": 20.4842791389965,
+      "video_end_seconds": 21.688840146001894,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 1.1399999999999988,
+          "average_cpu_percent": 94.64028748814485
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.8301779604223248
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.8301779604223243
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.009999999999999981,
+          "average_cpu_percent": 0.8301779604223226
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 8
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "resolve_box_models",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 242,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "create_task",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 468,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "query",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1470,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_render_chops",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1424,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 99,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "dumps",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 234,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 238,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "dump",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 182,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "_iterencode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 444,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2501,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_format_parsed_parts",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 264,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 805,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_positions",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 314,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "mkdir",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 1011,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "process_offset",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 178,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_run_once",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046,
+          "stack_presence_transition_groups": 8,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_on_timer_update",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 21.688840146001894,
+      "video_end_seconds": 26.83264500097721,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 4.910000000000002,
+          "average_cpu_percent": 95.45463209497214
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.10000000000000003,
+          "average_cpu_percent": 1.944086193380288
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.19440861933803322
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.19440861933802892
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.19440861933802892
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303576061632",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 88
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 5,
+          "leaf_transition_groups": 5
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "arrange",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1393,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 99,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1535,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_render_chops",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1420,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 356,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "_tail",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 362,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/channel_targets.py",
+          "line": 16,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 326,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "ancestors_with_self",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1300,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/match.py",
+          "line": 21,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 143,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "is_running",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 334,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 357,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "raw_decode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/decoder.py",
+          "line": 361,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "add_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862,
+          "stack_presence_transition_groups": 36,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "resolve_fraction_unit",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 196,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__new__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/fractions.py",
+          "line": 237,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "down-done",
+      "video_start_seconds": 26.83264500097721,
+      "video_end_seconds": 27.974789626983693,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 1.0499999999999972,
+          "average_cpu_percent": 91.93231540836723
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.029999999999999916,
+          "average_cpu_percent": 2.626637583096206
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 7
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 10
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__get__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/_style_properties.py",
+          "line": 827,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "dump",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 182,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 745,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__get__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/_style_properties.py",
+          "line": 674,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "render_line",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_styles_cache.py",
+          "line": 318,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "__init__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 138,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "visible_widgets",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 591,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "islink",
+          "filename": "<frozen genericpath>",
+          "line": 63,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "is_dataclass",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/dataclasses.py",
+          "line": 1472,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 163,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "helper",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 336,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "read_metadata_unlocked",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 549,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2502,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "__init__",
+          "filename": "<string>",
+          "line": 5,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 27.974789626983693,
+      "video_end_seconds": 33.120194757997524,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 4.860000000000003,
+          "average_cpu_percent": 94.45320390237974
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.09999999999999998,
+          "average_cpu_percent": 1.943481561777359
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.019999999999999907,
+          "average_cpu_percent": 0.3886963123554701
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.19434815617773613
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.19434815617773182
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 86
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__instancecheck__",
+          "filename": "<frozen abc>",
+          "line": 119,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_size_updated",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4331,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "display",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 955,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1535,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "lookup",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/channel_targets.py",
+          "line": 16,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_run",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94,
+          "stack_presence_transition_groups": 86,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/rich/control.py",
+          "line": 64,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "invoke",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96,
+          "stack_presence_transition_groups": 68,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "unread",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/navigation_target.py",
+          "line": 57,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "ancestors_with_self",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1301,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 141,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_from_parsed_string",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 277,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "arrange",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409,
+          "stack_presence_transition_groups": 24,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "is_relative_height",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 636,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "reverse-done",
+      "video_start_seconds": 33.120194757997524,
+      "video_end_seconds": 34.288996553979814,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 0.9699999999999989,
+          "average_cpu_percent": 82.99097446071143
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.8555770562959959
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 3
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 393,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "_dataclass_setstate",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/dataclasses.py",
+          "line": 1255,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 206,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tools/performance/capture_state.py",
+          "line": 88,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 365,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "_iterencode_dict",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 413,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "fdopen",
+          "filename": "<frozen os>",
+          "line": 1076,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "mkdir",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 1011,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 143,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "__init__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 51,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "query_ancestor",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1757,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "read_metadata_unlocked",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 560,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_run_once",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 34.288996553979814,
+      "video_end_seconds": 36.467703373986296,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 1.6899999999999977,
+          "average_cpu_percent": 77.56894982294908
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 1.8359514750993906
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.02999999999999997,
+          "average_cpu_percent": 1.3769636063245403
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 12
+        },
+        {
+          "pid": "2524539",
+          "tid": "140451016042368",
+          "transition_groups": 1
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "is_current",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 348,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "parent",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 385,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 416,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 128,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 69,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 146,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_parse_path",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 289,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "__init__",
+          "filename": "<string>",
+          "line": 9,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_resolved_paint_state",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1150,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 307,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524539",
+          "tid": "140451016042368",
+          "function": "_mk_bitmap",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/re/_compiler.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "layout",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2745,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_set_dirty",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2869,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "verbosity",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "line": 145,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "screen",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 836,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "__add__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/color.py",
+          "line": 513,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 36.467703373986296,
+      "video_end_seconds": 52.611368048994336,
+      "cpu": [
+        {
+          "pid": "2524319",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                            ",
+          "cpu_seconds": 9.29,
+          "average_cpu_percent": 57.54579388892921
+        },
+        {
+          "pid": "2524346",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.24777521588344137
+        },
+        {
+          "pid": "2524350",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12388760794172068
+        },
+        {
+          "pid": "2524336",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.019999999999999997,
+          "average_cpu_percent": 0.12388760794172056
+        },
+        {
+          "pid": "2524548",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.06194380397086034
+        },
+        {
+          "pid": "2524298",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2524539",
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "transition_groups": 24
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "transition_groups": 12
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "transition_groups": 21
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302922790592",
+          "transition_groups": 15
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "transition_groups": 21
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302940624576",
+          "transition_groups": 13
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "transition_groups": 20
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "transition_groups": 16
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "transition_groups": 20
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "transition_groups": 30
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "__subclasscheck__",
+          "filename": "<frozen abc>",
+          "line": 123,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303323350720",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2501,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302547412672",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "match",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/match.py",
+          "line": 21,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 407,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303669385088",
+          "function": "_check_type",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/model.py",
+          "line": 72,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302555805376",
+          "function": "__subclasscheck__",
+          "filename": "<frozen abc>",
+          "line": 123,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 445,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303593895616",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "is_dataclass",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/dataclasses.py",
+          "line": 1471,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "get_args",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2529,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "drive",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 345,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140303331743424",
+          "function": "__str__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 257,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 420,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302539019968",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 307,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2524319",
+          "tid": "140302932231872",
+          "function": "_trusted_root",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 120,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    }
+  ],
+  "sample_count": 985,
+  "sampling_errors": 0,
+  "sampling_quality": "no reported sampling errors"
+}
