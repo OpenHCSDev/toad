@@ -528,7 +528,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.delivery_observation = InputDeliveryObservation(self)
         self.transcript = TranscriptPresentation(self)
         self.tool_expansions: dict[str, bool] = {}
-        self._compacting = False
 
 
     async def release_native_session(self) -> None:
@@ -1793,8 +1792,6 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                     f"## Compaction failed\n\n{error}", category=OtherCategory
                 )
             )
-        finally:
-            self._compacting = False
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""

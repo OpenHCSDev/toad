@@ -205,9 +205,7 @@ class CompactCommand(SlashCommand, LocalCommand):
         return cls(arguments.strip() or None)
 
     async def apply(self, conversation: Conversation) -> bool:
-        if conversation._compacting:
-            conversation.flash("Context compaction is already running")
-        elif not conversation.turns.owner.can_compact:
+        if not conversation.turns.owner.can_compact:
             conversation.flash(
                 "Wait for the current response before compacting", style="error"
             )
@@ -216,7 +214,6 @@ class CompactCommand(SlashCommand, LocalCommand):
                 "Context compaction requires an agent-comms session", style="error"
             )
         else:
-            conversation._compacting = True
             conversation.compact_context(self.instructions)
         return True
 
