@@ -10,6 +10,7 @@ from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.tool_call import ToolCall, ToolCallHeader
 
 
 async def main():
@@ -73,6 +74,34 @@ async def main():
                 await pilot.pause(0.5)
                 assert view.window.max_scroll_y == 0, (size, view.window.virtual_size)
                 assert history in view.screen._compositor.visible_widgets, size
+            # Saved tools also publish cursor refreshes when their real header
+            # expands. Exercise the caller that the original capture exposed.
+            with journal.open("a") as output:
+                for message in (
+                    {"role": "assistant", "content": [{"type": "toolCall", "id": "cursor-tool",
+                        "name": "bash", "arguments": {"command": "echo TOOL_BODY_MARKER"}}]},
+                    {"role": "toolResult", "toolCallId": "cursor-tool", "toolName": "bash",
+                        "isError": False, "content": [{"type": "text", "text": "TOOL_BODY_MARKER"}]},
+                ):
+                    output.write(json.dumps({"type": "message", "message": message}) + "\n")
+            await history.update_live(comms.transcripts.thread_transcript_page("saved-cursor-source"))
+            await pilot.pause(0.5)
+            tool = history.query_one(ToolCall)
+            tool.set_expanded(False)
+            view.window.scroll_end(animate=False, immediate=True)
+            await pilot.pause(0.5)
+            for expanded in (True, False, True):
+                await pilot.click(tool.query_one(ToolCallHeader))
+                await pilot.pause(0.5)
+                assert tool.expanded is expanded
+                view.window.focus()
+                await pilot.press("end")
+                await pilot.pause(0.5)
+                visible = view.screen._compositor.visible_widgets
+                assert history in visible and tool in visible, expanded
+                assert 0 <= view.window.scroll_y <= view.window.max_scroll_y
+                assert app._exception is None
+            print("PASS saved native ToolCall header clicks expand/collapse/reopen without retired cursor API", flush=True)
             assert app._exception is None
 
 
