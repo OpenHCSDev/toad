@@ -7,7 +7,7 @@ from toad.widgets.message_filter import InboundCategory
 import asyncio
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, replace
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -112,10 +112,10 @@ class PreparedPageSource(ABC):
         pass
 
     @abstractmethod
-    async def prefetch(
+    def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
         keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> bool:
+    ) -> AsyncIterator[tuple[PreparedTranscriptPage, bool]]:
         pass
 
     @abstractmethod
@@ -208,15 +208,19 @@ class TranscriptPageBuffer(PreparedPageSource):
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
         keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> bool:
-        """Warm both edges fairly; stop hidden/closed work and failed read loops."""
+    ) -> AsyncIterator[tuple[PreparedTranscriptPage, bool]]:
+        """Yield read-ahead source for body preparation in the existing renderer.
+
+        The runtime owns each retained page. Consumers prepare its actual
+        leaves without copying the paging cursor into another resource owner.
+        """
         for _ in range(min(rounds, self.runtime.max_entries)):
             for older in (True, False):
                 cursor = before if older else after
                 if cursor is None:
                     continue
                 if self.closed or not keep_going():
-                    return False
+                    return
                 request = PageRequest(before=cursor) if older else PageRequest(after=cursor)
                 if request in self._blocked:
                     if older:
@@ -233,6 +237,10 @@ class TranscriptPageBuffer(PreparedPageSource):
                     if len(self._blocked) > self.runtime.max_entries:
                         self._blocked.popitem(last=False)
                     prepared = None
+                if prepared is not None:
+                    if self.closed or not keep_going():
+                        return
+                    yield prepared, older
                 if older:
                     before = (prepared.page.before if prepared is not None
                               and prepared.page.has_older and prepared.retained_bytes <= self.runtime.max_bytes
@@ -243,7 +251,6 @@ class TranscriptPageBuffer(PreparedPageSource):
                              else None)
             if before is None and after is None:
                 break
-        return True
 
 
 class ProjectedTranscriptSource(PreparedPageSource):
@@ -329,26 +336,28 @@ class ProjectedTranscriptSource(PreparedPageSource):
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
         keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> bool:
+    ) -> AsyncIterator[tuple[PreparedTranscriptPage, bool]]:
         if self.closed or not keep_going():
-            return False
+            return
         if self._raw is None:
-            return True
+            return
         limit = self._boundary.page.before
         if self._upstream is not None and not self._upstream.closed:
-            await self._upstream.prefetch(
+            async for prepared in self._upstream.prefetch(
                 before if before is not None and limit.contains(before) else None,
                 None, keep_going, rounds=rounds,
-            )
+            ):
+                yield prepared
             before = None
         if self.closed:
-            return False
+            return
         assert self._raw is not None
-        return await self._raw.prefetch(
+        async for prepared in self._raw.prefetch(
             before if before is not None and limit.contains(before) else None,
             after if after is not None and limit.contains(after) and after != limit else None,
             keep_going, rounds=rounds,
-        )
+        ):
+            yield prepared
 
     def close(self) -> None:
         if self._raw is not None:
