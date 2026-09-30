@@ -459,5 +459,20 @@
       "sha256": "b800aadbde8206045cccfbc66861337639fdfb2d0a6b4be26282592fb1ac7006",
       "bytes": 756491
     }
+  },
+  "physical_frame_review": {
+    "before": "Visible nra-architecture saved history, sidebar, top navigation and prompt",
+    "after_close": "Only agent-comms-ux tab remains; its actual saved history and sidebar visible",
+    "after_reopen": "agent-comms-ux and nra-architecture tabs present; nra selected, saved history glyphs visible"
+  },
+  "video_capture_exit": {
+    "process": "ffmpeg",
+    "returncode": 255,
+    "reason": "Recorder explicitly capture.stop(signal.SIGINT) after final screenshot; accepted0/255. Not Toad exit code."
+  },
+  "terminal_exit": {
+    "pid": 2257766,
+    "returncode": 0,
+    "proof": "Installed recorder cleanup child-process receipt for actual st terminal"
   }
 }
