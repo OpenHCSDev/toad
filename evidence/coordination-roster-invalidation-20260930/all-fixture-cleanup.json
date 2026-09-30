@@ -1,0 +1,13 @@
+{
+  "all_owned_probe_roots": [
+    "/home/ts/wt/cw233-observer01/private-root/wire",
+    "/home/ts/wt/cw233-observer02/private-root/wire",
+    "/home/ts/wt/cw233-observer03/private-root/wire",
+    "/home/ts/wt/cw233-observer05/private-root/wire",
+    "/home/ts/wt/cw233-observer06/private-root/wire",
+    "/home/ts/wt/cw233-observer07/private-root/wire",
+    "/home/ts/wt/cw233-observer08/private-root/wire"
+  ],
+  "remaining_owned_processes": [],
+  "preserved": "private roots, native source journals, disposition rows, installed source artifacts and all raw failures"
+}

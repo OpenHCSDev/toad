@@ -14,6 +14,50 @@ from toad.widgets.conversation import Conversation
 from toad.navigation_preparation import ThreadNavigationRequest
 
 
+async def dialog_content_only():
+    """Actual installed dialog paste, with no fork, owner or provider start."""
+    from textual import events
+    from textual.widgets import Input, TextArea
+    from agent_comms.threads import Thread
+    from agent_comms.field_codec import FieldCodec
+    from runtime_fixture import private_native_wire
+    from toad.widgets.comms_fork_dialog import ForkDialog
+    evidence = Path(os.environ['FORK_DIALOG_EVIDENCE'])
+    evidence.mkdir(parents=True, exist_ok=False)
+    project = evidence / 'project'
+    project.mkdir()
+    comms = private_native_wire(evidence / 'wire')
+    parent = Thread('fork-source', frozenset({'team', 'keep'}), str(project))
+    comms.registry.declare(parent)
+    results = []
+    task = '  First acceptance instruction.\n\n    Second instruction must survive the paste.\n'
+    app = InstalledApp(project_dir=str(project))
+    async with app.run_test(size=(100, 38)) as pilot:
+        await app.selected_session.wait_content_ready()
+        app.push_screen(ForkDialog(parent), results.append)
+        await until(pilot, lambda: isinstance(app.screen, ForkDialog))
+        dialog = app.screen
+        await until(pilot, lambda: dialog.query_one_optional('#fork-tags', Input) is not None)
+        assert dialog.query_one('#fork-tags', Input).value == 'keep, team'
+        dialog.query_one('#fork-name', Input).value = 'fork-child'
+        editor = dialog.query_one('#fork-task')
+        assert await pilot.click(editor)
+        app.post_message(events.Paste(task))
+        await pilot.pause()
+        app.save_screenshot(str(evidence / 'pasted-task.svg'))
+        assert await pilot.click('#fork-create')
+        await until(pilot, lambda: bool(results))
+        spec = results[0]
+        (evidence / 'dialog-content.json').write_text(json.dumps({
+            'expected_task': task, 'actual_spec': FieldCodec.encode(spec),
+            'provider_calls': 0, 'owner_starts': 0,
+        }, indent=2)+'\n')
+        assert spec.name == 'fork-child' and spec.tags == parent.tags
+        assert spec.task == task, (spec.task, task)
+        assert app._exception is None
+    (evidence / 'complete.txt').write_text('PASS: native dialog paste preserves full task text\n')
+
+
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
 
@@ -27,11 +71,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: response_painted(app, parent_view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     from runtime_fixture import wait_channel_roster
-    from toad.widgets.comms_sidebar import CommsRow
+    from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, CommsSidebar
     from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.comms_fork_dialog import ForkDialog
     from toad.thread_actions import ForkAction
-    from textual.widgets import Input
+    from textual.widgets import Input, TextArea
     sidebar = await wait_channel_roster(app, pilot, "#team")
     row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
     row.scroll_visible(animate=False, immediate=True)
@@ -45,7 +89,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     entry = app.screen.query_one("#fork-name", Input)
     assert await pilot.click(entry)
     entry.value = "immediate-fork"
-    app.screen.query_one("#fork-task", Input).value = "Reply briefly to this isolated first fork test."
+    inherited_tags = comms.registry.require('beta').tags
+    tags_editor = app.screen.query_one('#fork-tags', Input)
+    assert tags_editor.value == ', '.join(sorted(inherited_tags))
+    # Empty task is a ready child, not an automatic model input. Its tags are
+    # editable declarations: retain the parent, add one and remove one here.
+    tags_editor.value = 'fork-added'
+    app.save_screenshot(str(Path(os.environ['L0A_EVIDENCE']) / 'empty-task-tags.svg'))
     async def hold_actual_startup():
         async with asyncio.timeout(20):
             while True:
@@ -53,7 +103,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 if child is not None and child.pid > 0:
                     process = psutil.Process(child.pid)
                     assert ProcessIdentity.capture(child.pid) == child.process_identity
-                    assert Path(process.environ()["AGENT_COMMS_ROOT"]).resolve() == comms.root.resolve()
+                    process_root = process.environ().get("AGENT_COMMS_ROOT")
+                    if process_root is None:
+                        # Wait for exec to install the launched environment;
+                        # suspend only after its real private root is attested.
+                        await asyncio.sleep(.001)
+                        continue
+                    assert Path(process_root).resolve() == comms.root.resolve()
                     # The launcher publishes identity before its exec handshake
                     # completes. Suspending that launcher would deadlock ForkAction
                     # itself, before any physical opening could be exercised.
@@ -67,7 +123,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     # This guarantees an actual cold attach rather than a repaired warm fork.
     held_startup = asyncio.create_task(hold_actual_startup())
     try:
-        await pilot.press("enter")
+        assert await pilot.click('#fork-create')
         process = await held_startup
         project = parent_view.project_path
         await until(pilot, lambda: "immediate-fork" in comms.registry.all_threads())
@@ -86,16 +142,47 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             raise AssertionError('Active immediate-fork startup routed to empty DirectTarget')
         user = comms.messaging.user_identity(str(project)).name
         previous_modes = tuple(app.tab_order.names)
-        sidebar = await wait_channel_roster(app, pilot, "#team")
+        assert child.tags == frozenset({"fork-added"})
+        assert comms.registry.require("beta").tags == inherited_tags
+        try:
+            sidebar = await wait_channel_roster(app, pilot, "#fork-added")
+        except BaseException:
+            sidebar = parent_view.screen.query_one(CommsSidebar)
+            evidence = Path(os.environ['L0A_EVIDENCE'])
+            evidence.joinpath('fork-roster-state.json').write_text(json.dumps({
+                'screen': type(app.screen).__name__,
+                'screen_frame_ready': parent_view.screen.frame_presentation.ready,
+                'screen_frame_state': type(parent_view.screen.frame_presentation.state).__name__,
+                'screen_is_current': parent_view.screen.is_current,
+                'sidebar_attached': sidebar.is_attached, 'sidebar_display': sidebar.display,
+                'observation_enabled': sidebar.observation.enabled,
+                'accepts_publication': sidebar.accepts_publication(),
+                'source_root': str(sidebar.observation.service.root),
+                'navigation_ready': sidebar.navigation.ready.is_set(),
+                'observation_pending': sidebar.observation.pending,
+                'observation_lock': sidebar.observation.lock.locked(),
+                'projection_lock': sidebar.projection.lock.locked(),
+                'channel_rows': list(sidebar.projection.channels),
+                'row_targets': [row.target_name for row in sidebar.query(CommsRow)],
+                'original_registry_tags': {name: sorted(thread.tags) for name, thread in comms.registry.all_threads().items()},
+                'provider_requests': len(requests),
+            }, indent=2)+'\n')
+            app.save_screenshot(str(evidence/'fork-roster-failure.svg'))
+            raise
         print("FORK_MODAL_RETURN_FRAME", type(app.screen.frame_presentation.state).__name__,
               app.screen.frame_presentation.ready, app.screen.is_current, flush=True)
-        sidebar.observation.refresh()
-        await until(pilot, lambda: any(row.target_name == child.name for row in sidebar.query(CommsRow)))
-        child_row = next(row for row in sidebar.query(CommsRow) if row.target_name == child.name)
+        group = sidebar.projection.channels['#fork-added'].query_ancestor(ChannelGroup)
+        if not group.expanded:
+            group.disclosure.scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            assert await pilot.click(group.disclosure)
+        await until(pilot, lambda: any(row.target_name == child.name for row in group.query(CommsRow)))
+        child_row = next(row for row in group.query(CommsRow) if row.target_name == child.name)
         child_row.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
         assert await pilot.click(child_row)
-        await until(pilot, lambda: app.selected_session is not parent_view.screen)
+        await until(pilot, lambda: app.selected_session.conversation is not parent_view
+                    and app.selected_session.channels_context()[0] == child.name)
         print('PRODUCTION_FORK_RETURNED', flush=True)
         await app.selected_session.wait_content_ready()
         view = app.selected_session.query_one(Conversation)
@@ -128,16 +215,36 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: details.title == child.name)
         assert view.agent.session_id == child.name
         assert not details.title.startswith('@')
-        print('FIRST_FORK_INITIALIZED_TITLE', details.title, details.state, flush=True)
+        print('FIRST_FORK_INITIALIZED_TITLE', details.title, flush=True)
         evidence = Path(os.environ["L0A_EVIDENCE"])
         (evidence / 'immediate-open.svg').write_text(app.export_screenshot())
         print('FIRST_FORK_INHERITED_HISTORY_PAINTED', flush=True)
         await until(pilot, lambda: not comms.registry.require(child.name).executing, 30)
+        assert len(requests) == 1, 'An empty fork task must not make an automatic provider request'
         view.prompt.text = 'FIRST_FORK_NEW_INPUT'
         view.prompt.prompt_text_area.focus()
         await pilot.press('enter')
-        await until(pilot, lambda: len(requests) >= 3, 30)
-        await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_3'), 30)
+        await until(pilot, lambda: len(requests) == 2, 30)
+        await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
+        await until(pilot, lambda: not comms.registry.require(child.name).executing
+                    and view.agent.presentation.prompt_in_flight == 0, 30)
+        saved = comms.transcripts.thread_transcript_page(child.name)
+        await until(pilot, lambda: not view.window.history_lock.locked() and any(
+            history.committed_cursor == saved.after for history in view.window.histories
+            if history.is_attached and history.state.reports_coverage))
+        await pilot.pause()
+        from toad.widgets.agent_response import AgentResponse
+        viewport = view.window.region
+        paint = '\n'.join(strip.crop(viewport.x, viewport.right).text
+                          for strip in app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
+        response_blocks = [block for block in view.query(AgentResponse)
+                           if block.source == 'NATIVE_RESPONSE_2']
+        census = {'mounted_child_answer_blocks': len(response_blocks),
+                  'painted_child_answer_occurrences': paint.count('NATIVE_RESPONSE_2'),
+                  'current_child': app.selected_session.channels_context()[0],
+                  'rendered_viewport': paint}
+        (evidence / 'response-census.json').write_text(json.dumps(census, indent=2)+'\n')
+        assert len(response_blocks) == 1 and census['painted_child_answer_occurrences'] == 1, census
         from agent_comms.transcript_events import UserTranscript
         page = comms.transcripts.thread_transcript(child.name)
         assert sum(isinstance(event, UserTranscript) and event.text == 'FIRST_FORK_NEW_INPUT'
@@ -151,6 +258,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         (evidence / "fresh-fork.json").write_text(json.dumps({
             "source_head": os.environ.get("TOAD_TEST_SOURCE_HEAD"),
             "actual_canonical_fork": True, "physical_open_before_rpc_socket": cold_before_click,
+            "empty_task": True, "automatic_child_provider_requests": 0,
+            "inherited_tags_in_dialog": sorted(inherited_tags),
+            "parent_tags_after_fork": sorted(comms.registry.require('beta').tags),
+            "child_tags": sorted(child.tags), "physical_added_channel_disclosure": True,
             "pending_after_old_five_second_expiry": True,
             "same_owner_process_through_first_reply": True,
             "first_new_message_physical_enter": True,
@@ -170,4 +281,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 
 if __name__ == '__main__':
-    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))
+    if os.environ.get('FORK_DIALOG_EVIDENCE'):
+        asyncio.run(dialog_content_only())
+    else:
+        asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_request_budget=2,
+                         fixture_stage=Path(os.environ['FORK_FIXTURE_STAGE'])))
