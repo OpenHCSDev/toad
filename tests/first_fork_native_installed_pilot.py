@@ -75,7 +75,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.comms_fork_dialog import ForkDialog
     from toad.thread_actions import ForkAction
-    from textual.widgets import Input
+    from textual.widgets import Input, TextArea
     sidebar = await wait_channel_roster(app, pilot, "#team")
     row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
     row.scroll_visible(animate=False, immediate=True)
