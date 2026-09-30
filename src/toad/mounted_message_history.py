@@ -175,8 +175,7 @@ class MountedMessageHistory:
                 if not root_is_current(self.service.root):
                     self.view.display = False
                     return
-                with self.view.app.batch_update():
-                    await self.insert_page(page, pairs, older=older)
+                await self.insert_page(page, pairs, older=older)
         self.view.conversation_kind.remember_page(self, page, older)
         self.view.window.check_follow()
 

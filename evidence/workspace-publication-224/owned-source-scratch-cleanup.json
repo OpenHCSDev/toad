@@ -1,0 +1,40 @@
+{
+  "removed": [
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/filter-publication",
+      "bytes": 1402
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/filter-publication-current-caller",
+      "bytes": 130
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/frame-baseline",
+      "bytes": 118154
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/original-admission-baseline",
+      "bytes": 132385
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/original-admission-candidate",
+      "bytes": 134287
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/original-final-publication",
+      "bytes": 105971
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/original-local-admission-candidate",
+      "bytes": 118028
+    },
+    {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/original-source-baseline",
+      "bytes": 129341
+    }
+  ],
+  "bytes": 739698,
+  "active_private_processes": [],
+  "protected": "all217/f92 video/native/original root proofs and registered live owners unchanged",
+  "retained": "committed baseline/final frames, original-owner identity, lifetime/failure logs and derived CPU owner chains"
+}

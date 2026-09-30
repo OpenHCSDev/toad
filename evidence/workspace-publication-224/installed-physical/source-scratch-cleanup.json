@@ -1,0 +1,31 @@
+{
+  "owner": "Heisenberg-PR224",
+  "purpose": "completed source-only destination/publication differential and filter lifetime checks",
+  "retained_commit": "9bb20ce5ae6fc64371672299d7f48003fa0af95d",
+  "retained_evidence": "evidence/workspace-publication-224/installed-physical",
+  "removed": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-end-source-20260930/baseline",
+      "bytes": 121612
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-end-source-20260930/baseline-operation",
+      "bytes": 134544
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-end-source-20260930/candidate-operation",
+      "bytes": 136053
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-end-source-20260930/filter-lifetime",
+      "bytes": 130
+    }
+  ],
+  "protected": [
+    "actual installed physical capture and preflight failure",
+    "frozen217/native journals/UNKNOWN attempts",
+    "Sch215 hot03 original inputs/proofs",
+    "current worktree and .artifacts"
+  ],
+  "bytes_removed": 392339
+}

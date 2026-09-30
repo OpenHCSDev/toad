@@ -1,0 +1,643 @@
+{
+  "interval_seconds": [
+    35.2,
+    36.1
+  ],
+  "terminal_body_transition_seconds": 35.75,
+  "interpretation": "Physical priorbody remains beforedestination; no bodyblank; observedchangedstack rows only, not workdurations/calls/CPU attribution",
+  "clock_offset": -0.30533036598353647,
+  "clock_uncertainty_seconds": 0.06557855600025506,
+  "ui_pid": 2757007,
+  "observations": [
+    {
+      "video_seconds_estimate": 35.41455463401646,
+      "tid": 140574080673664,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 885
+        },
+        {
+          "function": "is_attached",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.557178634016466,
+      "tid": 140574080673664,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 740
+        },
+        {
+          "function": "_flush_next_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 749
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "_settle",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 245
+        },
+        {
+          "function": "request",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 227
+        },
+        {
+          "function": "run_worker",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 562
+        },
+        {
+          "function": "_new_worker",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker_manager.py",
+          "line": 118
+        },
+        {
+          "function": "add_worker",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker_manager.py",
+          "line": 79
+        },
+        {
+          "function": "_start",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 416
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 385
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 371
+        },
+        {
+          "function": "_run_async",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 356
+        },
+        {
+          "function": "_reconcile",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 310
+        },
+        {
+          "function": "_trim_warm",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 213
+        },
+        {
+          "function": "widget_count",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 210
+        },
+        {
+          "function": "<genexpr>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 210
+        },
+        {
+          "function": "walk_children",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1446
+        },
+        {
+          "function": "walk_depth_first",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.63480963401646,
+      "tid": 140574080673664,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 385
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 371
+        },
+        {
+          "function": "_run_async",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 358
+        },
+        {
+          "function": "execute",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/transcript_state.py",
+          "line": 149
+        },
+        {
+          "function": "_jump_latest",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 740
+        },
+        {
+          "function": "mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1549
+        },
+        {
+          "function": "_register",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 3674
+        },
+        {
+          "function": "_start_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 590
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "_on_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4945
+        },
+        {
+          "function": "_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4959
+        },
+        {
+          "function": "mount_composed_widgets",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4972
+        },
+        {
+          "function": "mount_all",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1607
+        },
+        {
+          "function": "mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1549
+        },
+        {
+          "function": "_register",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 3674
+        },
+        {
+          "function": "_start_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 590
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "_on_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4945
+        },
+        {
+          "function": "_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4959
+        },
+        {
+          "function": "mount_composed_widgets",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4972
+        },
+        {
+          "function": "mount_all",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1607
+        },
+        {
+          "function": "mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1549
+        },
+        {
+          "function": "_register",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 3674
+        },
+        {
+          "function": "_start_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 590
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "_on_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4945
+        },
+        {
+          "function": "_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4959
+        },
+        {
+          "function": "mount_composed_widgets",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4972
+        },
+        {
+          "function": "mount_all",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1607
+        },
+        {
+          "function": "mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1549
+        },
+        {
+          "function": "_register",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 3674
+        },
+        {
+          "function": "_start_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 590
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 644
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 868
+        },
+        {
+          "function": "_get_dispatch_methods",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 844
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.658924634016465,
+      "tid": 140574080673664,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 644
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "on_mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/tool_call.py",
+          "line": 199
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.80728963401646,
+      "tid": 140574080673664,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 736
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "_on_idle",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1202
+        },
+        {
+          "function": "_invoke_and_clear_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1310
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "check_mouse",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 3211
+        },
+        {
+          "function": "get_hover_widgets_at",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 688
+        },
+        {
+          "function": "get_widgets_at",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1014
+        },
+        {
+          "function": "visible",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1021
+        },
+        {
+          "function": "visible",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1021
+        },
+        {
+          "function": "visible",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1021
+        },
+        {
+          "function": "visible",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1021
+        }
+      ]
+    }
+  ]
+}

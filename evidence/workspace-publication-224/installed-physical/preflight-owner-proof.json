@@ -1,0 +1,21 @@
+{
+  "recorder_returncode": 1,
+  "original_before": {
+    "pid": 2126072,
+    "start_ticks": 20963438,
+    "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "inode": 2659658,
+    "bytes": 41270257,
+    "mtime_ns": 1790716487175340407
+  },
+  "original_after": {
+    "pid": 2126072,
+    "start_ticks": 20963438,
+    "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "inode": 2659658,
+    "bytes": 41270257,
+    "mtime_ns": 1790716487175340407
+  },
+  "original_unchanged": true,
+  "finished_ns": 1790753012927692968
+}

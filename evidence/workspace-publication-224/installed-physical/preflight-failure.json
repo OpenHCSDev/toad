@@ -1,0 +1,115 @@
+{
+  "owner": "Heisenberg-PR224-workspace-publication",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-installed-20260930/capture",
+  "command": [
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": true,
+  "state_capture_requested": true,
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "scroll",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-installed-20260930/capture",
+    "--owner",
+    "Heisenberg-PR224-workspace-publication",
+    "--capture-target",
+    "existing_thread",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-installed-20260930/actions.xdo",
+    "--scroll-idle-seconds",
+    "15",
+    "--profile",
+    "--profile-threads",
+    "gil",
+    "--profile-rate",
+    "25",
+    "--capture-state",
+    "--review-timing",
+    "deferred",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--fit-window",
+    "--startup-wait",
+    "12",
+    "--max-duration",
+    "65",
+    "--tail-seconds",
+    "3",
+    "--review-phase",
+    "down",
+    "--review-phase",
+    "reverse",
+    "--review-phase",
+    "end",
+    "--review-phase",
+    "idle",
+    "--",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "recorder_source_sha256": "86fd0e02ff904583edec176bc71710f06d481d6d36bc7493c56b07c67dea35a1",
+  "started_utc": "2026-09-30T07:23:32.043432+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": false,
+  "completed": false,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "error": "ValueError: Candidate activation and private route native packages must match",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2687848,
+        "start_ticks": 22865124,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  }
+}

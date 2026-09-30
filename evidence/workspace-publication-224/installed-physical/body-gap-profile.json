@@ -1,0 +1,1548 @@
+{
+  "gap_video_seconds": [
+    35.583333,
+    35.766667
+  ],
+  "ui_pid": 2693518,
+  "clock_offset": -0.37204194147489034,
+  "uncertainty_seconds": 0.059917973506380805,
+  "method": "main UI asyncio thread observations of changed Chrome stacks, not samples/calls/durations/CPU; approximate video alignment",
+  "observations": [
+    {
+      "video_seconds_estimate": 35.29326005852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "function": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402
+        },
+        {
+          "function": "reflow",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445
+        },
+        {
+          "function": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1405
+        },
+        {
+          "function": "get",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/cache.py",
+          "line": 256
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.30365405852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "function": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1426
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.50635305852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 615
+        },
+        {
+          "function": "_message_loop_exit",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4724
+        },
+        {
+          "function": "_remove",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_node_list.py",
+          "line": 175
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.50757505852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 615
+        },
+        {
+          "function": "_message_loop_exit",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4721
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "function": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 868
+        },
+        {
+          "function": "_get_dispatch_methods",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 846
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.60387005852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 788
+        },
+        {
+          "function": "_flush_next_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 749
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "request",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 224
+        },
+        {
+          "function": "prepare_scroll",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/transcript_source_preparation.py",
+          "line": 103
+        },
+        {
+          "function": "is_finished",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 229
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.60827105852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 788
+        },
+        {
+          "function": "_flush_next_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 749
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "await_watcher",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 87
+        },
+        {
+          "function": "watch_expanded",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/widgets/tool_call.py",
+          "line": 299
+        },
+        {
+          "function": "sync",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/tool_output.py",
+          "line": 392
+        },
+        {
+          "function": "query_one_optional",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1629
+        },
+        {
+          "function": "query_one",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1544
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.60949805852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "function": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 788
+        },
+        {
+          "function": "_flush_next_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 749
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "await_watcher",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 87
+        },
+        {
+          "function": "watch_expanded",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/widgets/tool_call.py",
+          "line": 301
+        },
+        {
+          "function": "update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widgets/_static.py",
+          "line": 95
+        },
+        {
+          "function": "refresh",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4566
+        },
+        {
+          "function": "_set_dirty",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2875
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.71175605852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "function": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402
+        },
+        {
+          "function": "reflow",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445
+        },
+        {
+          "function": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1393
+        },
+        {
+          "function": "screen",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 836
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.72086705852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 771
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.73246105852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "function": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402
+        },
+        {
+          "function": "reflow",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445
+        },
+        {
+          "function": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "function": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "function": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layouts/grid.py",
+          "line": 307
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "function": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "function": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 296
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "function": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "function": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "function": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 108
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.77020605852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "function": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 786
+        },
+        {
+          "function": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 868
+        },
+        {
+          "function": "_get_dispatch_methods",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 811
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.78081205852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "function": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "function": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 172
+        },
+        {
+          "function": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 206
+        },
+        {
+          "function": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402
+        },
+        {
+          "function": "reflow",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445
+        },
+        {
+          "function": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "function": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "function": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "function": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "function": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "function": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2045
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.79771205852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.826300058525106,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "markdown",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/render_tasks.py",
+          "line": 174
+        },
+        {
+          "function": "prepare_body",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/render_tasks.py",
+          "line": 124
+        },
+        {
+          "function": "submit",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/work_preparation.py",
+          "line": 360
+        },
+        {
+          "function": "submit",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/work_preparation.py",
+          "line": 287
+        },
+        {
+          "function": "_deliver",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/work_preparation.py",
+          "line": 315
+        },
+        {
+          "function": "run_thread",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/work_preparation.py",
+          "line": 257
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.87145405852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "refresh_checked",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "line": 240
+        },
+        {
+          "function": "poll",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "line": 273
+        },
+        {
+          "function": "read",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "line": 280
+        },
+        {
+          "function": "mark_visible_thread_read",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/app.py",
+          "line": 570
+        },
+        {
+          "function": "root_is_current",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/comms_root.py",
+          "line": 105
+        },
+        {
+          "function": "current_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/comms_root.py",
+          "line": 99
+        }
+      ]
+    },
+    {
+      "video_seconds_estimate": 35.92073705852511,
+      "tid": 140266973431680,
+      "frames": [
+        {
+          "function": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "function": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "function": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "function": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "function": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 736
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "function": "_on_idle",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1202
+        },
+        {
+          "function": "_invoke_and_clear_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1310
+        },
+        {
+          "function": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "function": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "function": "start_read",
+          "file": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "line": 218
+        }
+      ]
+    }
+  ]
+}
