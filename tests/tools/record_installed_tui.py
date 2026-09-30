@@ -581,29 +581,12 @@ def profile_review(output, receipt, rate):
     trace_path = output / "cpu-profile.json"
     if trace_path.stat().st_size > 128 * 1024 * 1024:
         raise RuntimeError("CPU profile exceeds the 128 MiB review bound")
-    trace = json.loads(trace_path.read_text())
-    stacks = defaultdict(list)
-    spans = []
-    for event in trace:
-        identity = (event["pid"], event["tid"])
-        if event["ph"] == "B":
-            stacks[identity].append((event, []))
-        elif event["ph"] == "E" and stacks[identity]:
-            begin, children = stacks[identity].pop()
-            cursor = begin["ts"]
-            self_spans = []
-            for child_start, child_end in children:
-                if child_start > cursor:
-                    self_spans.append((cursor, child_start))
-                cursor = max(cursor, child_end)
-            if event["ts"] > cursor:
-                self_spans.append((cursor, event["ts"]))
-            spans.append((begin, event["ts"], self_spans))
-            if stacks[identity]:
-                stacks[identity][-1][1].append((begin["ts"], event["ts"]))
+    from profile_trace import ProfileTrace
+    trace = ProfileTrace(trace_path)
+    observations = tuple(trace.observations())
     launch = json.loads((output / "profile-launch.json").read_text())
-    if not any(begin["pid"] == launch["ui_pid"] and begin["args"]["filename"] for begin, _, _ in spans):
-        raise RuntimeError("Profiler did not sample the actual installed UI PID")
+    if not any(observation.pid == launch["ui_pid"] for observation in observations):
+        raise RuntimeError("Profiler did not observe the actual installed UI PID")
     lower = launch["profiler_exec_monotonic"]
     upper = receipt["profiler"]["sampling_ready_observed_monotonic"]
     origin = (lower + upper) / 2
@@ -621,11 +604,12 @@ def profile_review(output, receipt, rate):
         "limits": ["Scheduler delays and sampling errors can increase clock uncertainty",
             sampling.limitation,
             threads.limitation,
-                   "Stack spans are sampled wall activity, not exact call counts or CPU time",
+                   "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+                   "Threads remain separate; recursive frame identities count once per observed stack",
                    "Kernel counter deltas give per-process CPU time at action boundaries",
                    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
                    "No automatic inference that a UI frame passed or a function is redundant"],
-        "processes": sorted({str(event["pid"]) for event in trace}), "phases": []}
+        "processes": sorted({str(record.pid) for record in trace.records}), "phases": []}
     log = (output / "profiler.log").read_text()
     quality = re.search(r"Samples: (\d+) Errors: (\d+)", log)
     if quality:
@@ -639,18 +623,18 @@ def profile_review(output, receipt, rate):
         end = following["seconds_since_capture_launch"]
         if end <= start:
             continue
-        hot = defaultdict(lambda: [0.0, 0.0])
-        for begin, stop, self_spans in spans:
-            filename = begin["args"]["filename"]
-            if not filename:
+        hot = defaultdict(lambda: [0, 0])
+        thread_groups = defaultdict(int)
+        for observation in observations:
+            observed_at = observation.timestamp / 1_000_000 + offset
+            if not start <= observed_at < end:
                 continue
-            overlap = min(end, stop / 1_000_000 + offset) - max(start, begin["ts"] / 1_000_000 + offset)
-            if overlap > 0:
-                key = (str(begin["pid"]), begin["name"], filename, begin["args"]["line"])
-                hot[key][0] += overlap
-                hot[key][1] += sum(max(0, min(end, segment_end / 1_000_000 + offset)
-                                         - max(start, segment_start / 1_000_000 + offset))
-                                   for segment_start, segment_end in self_spans)
+            thread_groups[observation.pid, observation.tid] += 1
+            leaf = observation.frames[-1]
+            for frame in set(observation.frames):
+                key = (str(observation.pid), str(observation.tid), frame)
+                hot[key][0] += 1
+                hot[key][1] += frame == leaf
         cpu = []
         for pid, before in event.get("cpu", {}).items():
             after = following.get("cpu", {}).get(pid)
@@ -660,9 +644,14 @@ def profile_review(output, receipt, rate):
                             "average_cpu_percent": elapsed_cpu / (end - start) * 100})
         result["phases"].append({"label": event["label"], "video_start_seconds": start,
             "video_end_seconds": end, "cpu": sorted(cpu, key=lambda item: item["cpu_seconds"], reverse=True),
-            "hot_sampled_frames": [{"pid": key[0], "function": key[1], "filename": key[2], "line": key[3],
-                                    "inclusive_sampled_wall_seconds": seconds[0], "self_sampled_wall_seconds": seconds[1]}
-                                   for key, seconds in sorted(hot.items(), key=lambda item: item[1][1], reverse=True)[:20]],
+            "observed_thread_stack_changes": [{"pid": str(pid), "tid": str(tid),
+                                                "transition_groups": count}
+                                               for (pid, tid), count in sorted(thread_groups.items())],
+            "observed_frames": [{"pid": key[0], "tid": key[1], "function": key[2].function,
+                                 "filename": key[2].filename, "line": key[2].line,
+                                 "stack_presence_transition_groups": counts[0],
+                                 "leaf_transition_groups": counts[1]}
+                                for key, counts in sorted(hot.items(), key=lambda item: item[1][1], reverse=True)[:20]],
             "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"})
     (output / "profile-review.json").write_text(json.dumps(result, indent=2) + "\n")
     return result

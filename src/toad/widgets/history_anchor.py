@@ -194,10 +194,14 @@ class HistoryWindow(VerticalScroll):
         self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
         return previous != self.scroll_y
 
+    def history_mutating(self) -> bool:
+        """Native tree locking is the publication fence, not source status."""
+        return self.lock.is_locked
+
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
 
-        """Serialize with history_lock; reflow retains the current reader position."""
+        """Publish one native tree mutation, then its compensated reader layout."""
         from toad.screens.workspace import WorkspaceScreen
 
         screen = self.screen
@@ -205,13 +209,21 @@ class HistoryWindow(VerticalScroll):
         if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
         try:
-            yield
+            # Mount/remove await native child composition. Until the mutation
+            # finishes, neither its page admission nor its extent is a scene
+            # the reader can consume. Source preparation precedes this phase;
+            # only this window's native tree lock holds its publication. A
+            # departing tab must not suppress another window's frames.
+            try:
+                async with self.lock:
+                    yield
+            finally:
+                self.refresh(layout=True)
             if (widget is not None and widget.is_attached and self.is_attached
                     and screen.is_current):
                 # A generic after-refresh callback can run before the pending
                 # mount's layout. Wait for an actual compensated reflow first.
                 self.history_layout_ready = asyncio.Event()
-                self.refresh(layout=True)
                 await self.history_layout_ready.wait()
                 if not self.is_attached or not screen.is_current or not widget.is_attached:
                     return

@@ -210,13 +210,6 @@ class FollowTailCheckpoint(CheckpointPlan):
         if self.current(window):
             window.anchor()
 
-    @asynccontextmanager
-    async def publication(self, view, prepared):
-        # Preserve the existing atomic live-to-saved tail replacement. Source
-        # reads and preparation finish before entering this publication phase.
-        with view.app.batch_update():
-            yield
-
 
 class RetainViewportCheckpoint(CheckpointPlan):
     def __init__(self, window: HistoryWindow) -> None:

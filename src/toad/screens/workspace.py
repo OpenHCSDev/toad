@@ -157,6 +157,11 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     def _on_timer_update(self) -> None:
         app = cast("ToadApp", self.app)
+        if self.viewport_presentation.has_pending_mutations():
+            # The window releases its native mutation lock before requesting
+            # the compensated layout. Keep damage/layout intent until then.
+            self._update_timer.pause()
+            return
         if app._atomic_mode_switch or (self.is_current and app._pending_mode_switch is not None
                 and app._pending_mode_switch != self.id):
             # Keep invalidation flags while the selected tree is reconciled,
