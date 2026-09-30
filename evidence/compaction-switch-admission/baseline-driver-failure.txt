@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-compaction-switch-admission-20260930/tests/compaction_summary_stream_native_installed_pilot.py", line 382, in reconnect_cancelled_source
+    await after_cold_load(app, pilot, agent, comms)
+  File "/home/ts/wt/toad-compaction-switch-admission-20260930/tests/native_goal_read_first_paint_pilot.py", line 59, in held_original_read
+    await click
+  File "/home/ts/wt/toad-compaction-switch-admission-20260930/tests/native_loaded_return_cache_pilot.py", line 164, in click_session
+    assert app.first_paint_at is not None, f"Session tab {source.id} never painted"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Session tab session-1 never painted

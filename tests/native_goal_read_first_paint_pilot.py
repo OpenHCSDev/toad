@@ -9,6 +9,17 @@ from native_loaded_return_cache_pilot import PaintedReturnApp, click_session
 from toad.navigation_target import NavigationContext, channel_target
 
 
+class ObservedGoalReturnApp(PaintedReturnApp):
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        if self.expected_source_id is not None:
+            self.goal_display_trace.append({
+                'rendered': renderable is not None, 'batch': self._batch_count,
+                'selected': self.selected_mode, 'expected': self.expected_source_id,
+                'current_screen': screen is self.screen,
+            })
+
+
 async def held_original_read(app, pilot, agent, comms):
     source = app.selected_session
     view = source.conversation
@@ -30,6 +41,7 @@ async def held_original_read(app, pilot, agent, comms):
         return result
 
     observation.read = held
+    app.goal_display_trace = []
     click = asyncio.create_task(click_session(app, pilot, source))
     try:
         async with asyncio.timeout(20):
@@ -56,7 +68,11 @@ async def held_original_read(app, pilot, agent, comms):
         (evidence / 'held-goal-read.svg').write_text(app.export_screenshot())
     finally:
         release.set()
-        await click
+        try:
+            await click
+        finally:
+            Path(os.environ['L0A_EVIDENCE'], 'display-trace.json').write_text(
+                json.dumps(app.goal_display_trace, indent=2))
         await observation.refresh()
         observation.read = original
     assert receipt['first_paint_before_read_release'], receipt
@@ -66,5 +82,5 @@ async def held_original_read(app, pilot, agent, comms):
 
 
 if __name__ == '__main__':
-    asyncio.run(reconnect_cancelled_source(app_type=PaintedReturnApp,
+    asyncio.run(reconnect_cancelled_source(app_type=ObservedGoalReturnApp,
                                          after_cold_load=held_original_read, headless=False))

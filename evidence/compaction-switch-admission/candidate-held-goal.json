@@ -1,0 +1,9 @@
+{
+  "first_paint_before_read_release": true,
+  "native_admission_lock_held": false,
+  "atomic_selection_held": false,
+  "original_goal_read_pending": true,
+  "source_agent_unchanged": true,
+  "canonical_busy": false,
+  "no_prompt_or_compaction": true
+}

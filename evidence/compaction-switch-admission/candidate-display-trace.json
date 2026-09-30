@@ -1,0 +1,135 @@
+[
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": false,
+    "batch": 0,
+    "selected": "comms-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "session-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "session-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "session-1",
+    "expected": "session-1",
+    "current_screen": true
+  },
+  {
+    "rendered": true,
+    "batch": 0,
+    "selected": "session-1",
+    "expected": "session-1",
+    "current_screen": true
+  }
+]
