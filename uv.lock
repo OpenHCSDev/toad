@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=63cdeede14ecc9a8a2b0d78f1daeff8465227905#63cdeede14ecc9a8a2b0d78f1daeff8465227905" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=2ed2ee3f41292e2bb94b9c40b0a227a620bd1fa3#2ed2ee3f41292e2bb94b9c40b0a227a620bd1fa3" }
 dependencies = [
     { name = "metaclass-registry" },
 ]
@@ -304,7 +304,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=63cdeede14ecc9a8a2b0d78f1daeff8465227905" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=2ed2ee3f41292e2bb94b9c40b0a227a620bd1fa3" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
