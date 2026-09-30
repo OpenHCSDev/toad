@@ -80,9 +80,19 @@ class StationaryPreparation(PreparationDemand):
         return 0
 
 
-@dataclass(frozen=True)
+@dataclass
 class MovingPreparation(PreparationDemand):
     velocity: float
+
+    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
+        velocity = travel / elapsed
+        if self.velocity * velocity > 0:
+            # This is still the same direction's owned demand. Refresh its
+            # measured speed without revoking every admitted batch on each
+            # held-key sample. Reversal creates a new demand and revokes it.
+            self.velocity = velocity
+            return self
+        return super().moved(travel, elapsed)
 
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon

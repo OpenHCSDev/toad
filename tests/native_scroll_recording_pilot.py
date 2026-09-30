@@ -9,12 +9,16 @@ import os
 from pathlib import Path
 import shlex
 import sys
+import subprocess
 
 from l0a_native_installed_pilot import main, until
-from native_session_retention_pilot import InstalledApp
+from native_session_retention_pilot import InstalledApp, conversation_paint
+from tools.record_installed_tui import ProcessOwner
 
 
 def reply(request, number):
+    if number > 1:
+        return {'role': 'assistant', 'content': 'NATIVE RECORDING OWNER SURVIVED'}, 'stop'
     sections = '\n\n'.join(
         f'### Saved block {index}\n\n| key | value |\n| --- | --- |\n'
         f'| {index} | owned source |\n\n```python\nsample_{index} = "SOURCE-{index}"\n```'
@@ -31,13 +35,14 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
     assert await pilot.click(editor)
     editor.insert('Produce the controlled rich saved scroll source.')
     await pilot.press('enter')
-    await until(pilot, lambda: len(requests) == 1 and not agent.current_turn.busy)
+    await until(pilot, lambda: len(requests) == 1 and not comms.registry.require('beta').executing)
     view.transcript.require_checkpoint()
-    await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
+    await until(pilot, lambda: 'NATIVE SOURCE END' in conversation_paint(app.screen))
     source = await agent.get_transcript_page()
     evidence = Path(os.environ['L0A_EVIDENCE'])
     evidence.mkdir(parents=True, exist_ok=True)
     session_file = Path(source.after.session_file)
+    assert 'NATIVE SOURCE END' in session_file.read_text()
     (evidence / 'saved-native-journal.jsonl').write_bytes(session_file.read_bytes())
     (evidence / 'seed.json').write_text(json.dumps({
         'native_requests': len(requests), 'cursor': repr(source.after),
@@ -46,8 +51,10 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
     }, indent=2))
     recorder = Path(__file__).parent / 'tools/record_installed_tui.py'
     actions = evidence / 'scroll.xdo'
-    generate = await asyncio.create_subprocess_exec(sys.executable, str(recorder), '--write-scroll-script', str(actions))
-    assert await generate.wait() == 0
+    custody = ProcessOwner(comms.registry)
+    await asyncio.to_thread(custody.run,
+        [sys.executable, str(recorder), '--write-scroll-script', str(actions)],
+        os.environ.copy(), timeout=10, stdout=subprocess.PIPE)
     runtime = Path(sys.prefix) / 'bin'
     env = dict(os.environ, AGENT_COMMS_RUNTIME_ROOT=str(runtime))
     output = evidence / ('profiled' if os.environ.get('SCROLL_PROFILE') == '1' else 'unprofiled')
@@ -62,13 +69,24 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
     command.extend(('--', str(runtime / 'toad'), 'acp',
                     shlex.join((str(runtime / 'python'), '-m', 'agent_comms.acp')),
                     str(agent.project_root_path), '--session', 'beta'))
-    process = await asyncio.create_subprocess_exec(*command, env=env)
-    async with asyncio.timeout(100):
-        assert await process.wait() == 0, 'Inspect real recorder/runtime errors; capture is not acceptance'
+    try:
+        with (evidence / 'recorder-controller.log').open('wb') as log:
+            await asyncio.to_thread(custody.run, command, env,
+                                    timeout=100, stdout=log, stderr=subprocess.STDOUT)
+    finally:
+        cleanup = await asyncio.to_thread(custody.cleanup)
+        (evidence / 'controller-cleanup.json').write_text(json.dumps(cleanup, indent=2))
+        assert not cleanup['remaining_owned_pids'] and not cleanup['errors'], cleanup
     assert len(requests) == 1, 'Navigation must never send a model prompt'
     assert comms.registry.require('beta').process_alive
+    # Recording must leave the same real owner usable by its original surface.
+    assert await pilot.click(editor)
+    editor.insert('Confirm the original recording owner still answers.')
+    await pilot.press('enter')
+    await until(pilot, lambda: 'NATIVE RECORDING OWNER SURVIVED' in conversation_paint(app.screen))
+    assert len(requests) == 2
 
 
 if __name__ == '__main__':
     asyncio.run(main(app_type=InstalledApp, acceptance=record, provider_reply=reply,
-                     provider_request_budget=1))
+                     provider_request_budget=2))

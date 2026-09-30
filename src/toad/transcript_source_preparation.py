@@ -94,14 +94,16 @@ class TranscriptSourcePreparation:
         rows = max(1, self.window.size.height)
         rounds = min(self.budget.reserve_batches,
                      1 + lookahead.ahead_rows(rows) // rows)
-        intent = edges, rounds, self.selected_categories, demand
+        pages = tuple(dict.fromkeys((self.pages[0], self.pages[-1])))
+        admissions = tuple(page.capture_admission() for page in pages)
+        intent = edges, rounds, self.selected_categories, demand, admissions
         if intent == self._prefetch_intent:
             return
         self._prefetch_intent = intent
         if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
             self._prefetch_worker.cancel()
 
-        if not any(edges) or not rounds:
+        if not rounds or not (any(edges) or lookahead.travel_rows):
             return
 
         async def prepare() -> None:
@@ -109,9 +111,18 @@ class TranscriptSourcePreparation:
             # intent. One owned snapshot identity is the publication fence.
             current = lambda: (self._prefetch_intent is intent
                                and demand is lookahead.demand)
+            from toad.render_tasks import TranscriptBodyPreparation
+            preparation = TranscriptBodyPreparation(
+                self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+            )
+            # The source page already owns these unmounted leaves. Prepare its
+            # actual neighboring range, never another paging cursor or list.
+            count = lookahead.admission(self.budget, rows)
+            for page in pages:
+                await page.prepare_adjacent(preparation, demand, count, current)
             await reader.prefetch(*edges, current, rounds=rounds)
 
-        self._prefetch_worker = self.run_worker(prepare(), group="history-lookahead", exit_on_error=False)
+        self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
 
 
     @property

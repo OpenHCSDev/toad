@@ -328,6 +328,15 @@ class TranscriptPageView(VerticalGroup):
         for child in self.children:
             child.set_categories(selected)
 
+    async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:
+        """Warm unmounted source leaves beside this page's actual admission."""
+        fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
+        for fragment in fragments:
+            if not keep_going():
+                return
+            for event in fragment.events:
+                await preparation.dispatch(event)
+
     async def extend(self, older: bool) -> None:
         start = max(0, self.start - self.batch_size) if older else self.stop
         stop = self.start if older else min(len(self.fragments), self.stop + self.batch_size)
