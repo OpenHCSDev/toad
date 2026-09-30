@@ -160,6 +160,14 @@ class DirectionalPreparation:
             self.position = position
         return bool(travel)
 
+    def relocated(self, position: float) -> None:
+        """Rebase measured travel after layout preserves the same source reader.
+
+        Restoration is geometry compensation, not another input sample. Keep
+        the existing demand's velocity, direction and expiry unchanged.
+        """
+        self.position = position
+
     def settle(self) -> None:
         self.demand = StationaryPreparation()
 

@@ -210,7 +210,7 @@ class DocumentViewport:
         if self._suspended or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
-        if self.lookahead.observe(self.window.scroll_y):
+        if not self.window._restoring and self.lookahead.observe(self.window.scroll_y):
             self._schedule_settle()
             for history in tuple(self.window.histories):
                 history.prepare_scroll()
