@@ -445,9 +445,52 @@ or null/source fallback checks. Eleven existing fixture files have been migrated
 to the current constructor and source contract; no old constructor alias remains.
 
 The initial production diff deletes 57 lines and adds 36. Syntax and whitespace
-checks pass. Installed acceptance of this pair is pending the parent's complete
-Core integration pin and normal dependency resolution. The previous real05
-provider result remains preserved. The next first check is the same provider-free
-installed composition journey requiring one original body and header; full
-messaging readiness still requires handling, headers, late-replay and A/B/A
-acceptance on the coherent pair.
+checks pass. The previous real05 provider result remains preserved. The actual
+installed composition control below passes; full messaging readiness still
+requires native handling, headers, late replay and A/B/A acceptance on the
+coherent pair.
+
+## Composition215-02: exact installed original paints once
+
+The standalone normal 68-package installation uses Core
+`700722ea88ca23c1404eda164aaff3c6f4de7268`, Toad
+`517f2ea303e8cf73f1039a9f882ebc670441a93e`, Textual
+`412b5a2b5da8875dc2f3dc5be2365abddce0537b` and official SDK 0.12.1.
+Installed VCS metadata and imports match those pins; dependency checks pass.
+Full native package trust passed for manifest `b68dfdced9148b50` / tree
+`614a956de3870ea47d6e217da6ae9b3b1a952d2214d90187b17351625110ff7a`.
+This standalone installation does not change the default runtime.
+
+The continuous actual UI driver exited 0 with both retained DM views and IRC
+open before publication, using the original 41,270,257-byte saved source.
+Original message `48234bc58eb1`, sequence 1, produced one OutgoingMessage parent,
+one AgentResponse child, one settled body and one header. At container admission
+the global body query had not yet admitted that child (count 0); the settled
+assertion waits for actual composition. The captured SVG has exactly one painted
+control token and one Outbound header. The preserved older control on Core8691 /
+Toad4e paints two bodies and two headers for its single original.
+
+The archived native-input table contains zero rows; ACP logs contain zero prompt
+requests. Both fixture owner processes are absent after canonical retirement.
+No provider calls, public input replay, uncertain-input retry or default changes
+occurred. Committed evidence: `evidence/canonical-wire-composition215-02/`, including
+the exact receipt, provenance/trust record, requirements, candidate SVG and
+baseline receipt/SVG. Complete scratch and original journals remain preserved.
+
+This closes exclusive wire-event composition. It does not complete the fresh
+native original reply and recipient handling journey in both DMs and IRC,
+31-second same-view observation, physical A/B/A with immediate distinct input or
+cold reopen. The PR remains draft until those actual acceptance phases pass.
+
+## Current-main integration for the next native journey
+
+Normal merge of Toad main `53154c7d` preserves its shared background body
+preparation and Textual650 frame-admission consumer. The source conflict retains
+its async page iterator and this branch's StaleRevision termination, expressed
+as an iterator return. Exclusive incoming/outgoing consumers and declaration-owned
+coverage remain intact. Normal dependency resolution now declares parent Core
+`41a83508e579be6c1adf3be28c582da24c865bbe` and Textual
+`65053c5a2df12249ef1c4193beeff7023c1f75d7`. That parent carries a different native
+commitment, e36/tree5ea25; the next stage must use its reviewed standalone native
+artifact, never the614 package from the completed control. This integrated pair
+has not yet passed the remaining native journey.
