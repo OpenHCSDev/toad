@@ -99,3 +99,11 @@ tracker relaunch failed; the first pre-timeout wait and actual FD provenance
 are unproven**. Runtime-versus-fixture root cause is not closed. Sch was asked
 only for an already-retained task/FD dump; no new probe or replay was requested.
 The current hot04 run and original journals were untouched.
+
+Sch subsequently confirmed there is no additional window04 task/FD dump.
+The optional five-second pause diagnostic did not fire because that pause
+did not block. An older original06 GIL stack belongs to another run and
+cannot supply the missing window04 task/descriptor provenance. This closes
+the available read-only artifact search; retrospective runtime-versus-fixture
+classification remains unresolved. Sch owns a teardown observation at the
+next already-required acceptance stage, rather than an additional replay.
