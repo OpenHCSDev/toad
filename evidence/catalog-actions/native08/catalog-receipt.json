@@ -1,0 +1,22 @@
+{
+  "native_requests": 1,
+  "paid_calls": 0,
+  "original_saved_definition_format": true,
+  "original_command_identity": true,
+  "exact_platform_choice": true,
+  "editor_cancel": true,
+  "edited_command_no_source_mutation": true,
+  "failed_install_no_launcher": true,
+  "successful_install_launcher": true,
+  "external_hyphen_adapter_id": true,
+  "arbitrary_external_id": true,
+  "pty_cancel": true,
+  "declaration_only_new_case": true,
+  "login_failure_explicit_ok_success_auto_close": true,
+  "grid_native_launch_no_prompt": true,
+  "launcher_pointer_detail": true,
+  "third_detail_route": "existing native run_action(details), no default key binding",
+  "original_native_process_draft_document_undo": true,
+  "installed_toad": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/installed/lib/python3.14/site-packages/toad/__init__.py",
+  "original_owner": "ProcessIdentity(pid=3098876, start_time=24421986)"
+}
