@@ -58,6 +58,7 @@ async def main():
     assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     evidence = Path(os.environ['L0A_EVIDENCE'])
+    core_head = os.environ['AC_REAL_CORE_HEAD']
     assert stage.is_relative_to('/home/ts/wt')
     stage.mkdir(parents=True, exist_ok=False)
     evidence.mkdir(parents=True, exist_ok=True)
@@ -114,10 +115,14 @@ async def main():
     app.began = time.monotonic()
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                'original_bytes': original.stat().st_size, 'original_inputs_replayed': 0,
-               'completed_phases': [], 'core': '82ba0856', 'toad': 'e21363c8'}
+               'completed_phases': [], 'core': core_head,
+               'toad': 'e21363c8'}
 
     async def cancel_tool(pilot, view, marker):
-        await until(pilot, lambda: (project / marker).exists(), 120)
+        # The original retained context may first need the native multi-segment
+        # summary. Its measured provider work precedes native input delivery;
+        # a short tool-start deadline would itself interrupt that operation.
+        await until(pilot, lambda: (project / marker).exists(), 600)
         owner = service.registry.require('resource436')
         assert isinstance(owner.active_turn.phase, ToolRunningPhase)
         receipt.setdefault('cancelled_turns', []).append(owner.active_turn.id)
