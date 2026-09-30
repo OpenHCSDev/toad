@@ -1,0 +1,248 @@
+{
+  "state": "SCOPED-DEFAULT-POSITIVES-ACCEPTED-WITH-OPEN-INBOX-FAILURE",
+  "overall_default_live_pass": false,
+  "actual_command": "/home/ts/bin/toad-comms nra-architecture",
+  "runtime_override": false,
+  "runtime_selection": "PATH agent-comms-acp",
+  "observed_stage": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+  "observed_pins": {
+    "agent-comms": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+    "batrachian-toad": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "duration_seconds": 30.598062353994465,
+  "capture_completed": true,
+  "raw_wrapper_exit_code": 1,
+  "raw_wrapper_failure": "AssertionError: ('cleared', 'abcf')",
+  "wrapper_failure_explanation": "Actual Textual Home/Ctrl+A binding, not SelectAll; extra private-draft clear assertion was incorrect. No capture repeated.",
+  "scoped_checks": {
+    "actual_saved_history_visible": true,
+    "actual_history_gutter_click": true,
+    "physical_editor_Delete": "abcdef -> abcf; caret4",
+    "End_stationary": "visible at scroll_y59/maximum59, follows_tailTrue"
+  },
+  "scope_limit": "Started at tail and focused editor retained; this verifies visible stationary end after physical End, not a jump from an older page/first paint speed.",
+  "phases": {
+    "startup": {
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "focused_class": "PromptTextArea",
+      "scroll_y": 59,
+      "maximum": 59,
+      "follows_tail": true
+    },
+    "history-clicked": {
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "focused_class": "PromptTextArea",
+      "scroll_y": 59,
+      "maximum": 59,
+      "follows_tail": true
+    },
+    "typed": {
+      "text": "abcdef",
+      "selection": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          6
+        ]
+      ],
+      "focused_class": "PromptTextArea",
+      "scroll_y": 59,
+      "maximum": 59,
+      "follows_tail": true
+    },
+    "edited": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "focused_class": "PromptTextArea",
+      "scroll_y": 59,
+      "maximum": 59,
+      "follows_tail": true
+    },
+    "cleared": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "focused_class": "PromptTextArea",
+      "scroll_y": 59,
+      "maximum": 59,
+      "follows_tail": true
+    },
+    "end-stationary": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "focused_class": "PromptTextArea",
+      "scroll_y": 59,
+      "maximum": 59,
+      "follows_tail": true
+    }
+  },
+  "native_owner_and_source_before": {
+    "identity": {
+      "pid": 3196764,
+      "start_time": 24802122
+    },
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "native_owner_and_source_unchanged": true,
+  "actual_screenshot_review": [
+    "phase-startup.png readable history",
+    "phase-end-stationary.png readable chat; no blank/collapse"
+  ],
+  "live_open_failure": {
+    "thread": "participant",
+    "tag_channel": "#bot",
+    "view_group": "#any",
+    "exact_error": "Inbox unavailable \u00b7 IdentityConflict: participant aggregate is not registered \u00b7 Waiting for recovery",
+    "owner": "Mendel 01a0eed6-20e1-7b80-988b-cc860742a21d",
+    "proof": "default-inbox-identity-conflict.json; native DTO phase-startup-state.pickle/phase-startup.png"
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3206088,
+        "start_ticks": 24833624,
+        "returncode": 0
+      },
+      {
+        "pid": 3206116,
+        "start_ticks": 24833694,
+        "returncode": 0
+      },
+      {
+        "pid": 3206118,
+        "start_ticks": 24833703,
+        "returncode": 0
+      },
+      {
+        "pid": 3206119,
+        "start_ticks": 24833707,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3206125,
+        "start_ticks": 24833759,
+        "returncode": 0
+      },
+      {
+        "pid": 3206126,
+        "start_ticks": 24833768,
+        "returncode": 0
+      },
+      {
+        "pid": 3206127,
+        "start_ticks": 24833776,
+        "returncode": 0
+      },
+      {
+        "pid": 3206128,
+        "start_ticks": 24833785,
+        "returncode": 255
+      },
+      {
+        "pid": 3206544,
+        "start_ticks": 24834987,
+        "returncode": 0
+      },
+      {
+        "pid": 3206549,
+        "start_ticks": 24835016,
+        "returncode": 0
+      },
+      {
+        "pid": 3206554,
+        "start_ticks": 24835051,
+        "returncode": 0
+      },
+      {
+        "pid": 3206890,
+        "start_ticks": 24836783,
+        "returncode": 0
+      },
+      {
+        "pid": 3206896,
+        "start_ticks": 24836810,
+        "returncode": 0
+      },
+      {
+        "pid": 3206969,
+        "start_ticks": 24836861,
+        "returncode": 0
+      },
+      {
+        "pid": 3206971,
+        "start_ticks": 24836946,
+        "returncode": 0
+      },
+      {
+        "pid": 3207088,
+        "start_ticks": 24837169,
+        "returncode": 0
+      }
+    ]
+  },
+  "default_or_public_owner_mutations_by_check": false,
+  "prompt_submissions": 0,
+  "provider_generation_requests": 0,
+  "default_user_drafts_mutated": false,
+  "private_draft": "abcf remained ONLY in copied UI state; preserved failed assertion raw proof",
+  "raw_proof": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/c3-default-entrypoint",
+  "original_capture": "/home/ts/.cache/agent-scratch/comms-c3-default-entrypoint-20260930",
+  "video": "capture/terminal.mp4",
+  "raw_run": ".artifacts/default-entrypoint-run.txt",
+  "source_driver": ".artifacts/default-entrypoint-check.py"
+}

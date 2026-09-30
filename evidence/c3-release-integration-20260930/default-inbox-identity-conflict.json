@@ -1,0 +1,73 @@
+{
+  "affected_thread": "participant",
+  "actual_tag_channel": "#bot",
+  "view_group": "#any",
+  "viewing_thread": "nra-architecture",
+  "exact_summary": "Inbox unavailable \u00b7 IdentityConflict: participant aggregate is not registered \u00b7 Waiting for recovery",
+  "native_sidebar_dto": {
+    "thread": {
+      "name": "participant",
+      "tags": [
+        "bot"
+      ],
+      "worktree": "/home/ts/wt/nra-refactor2-r1-20260928",
+      "parent": null,
+      "task": "Round2 R1a/b/c raw-record projection and detectors; isolated worktree, draft PR, no live install",
+      "process_identity": {
+        "pid": 3200830,
+        "start_time": 24812906
+      },
+      "session_file": null,
+      "model": "openrouter/z-ai/glm-5.3-flash",
+      "thinking_level": "low",
+      "goal": null,
+      "created_at": 1790772493.8319154,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "title": null,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "status": {
+      "kind": "running"
+    },
+    "activity": {
+      "thread": "participant",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790772509.3861625,
+      "diagnostic": {
+        "kind": "unavailable_drain",
+        "owner": {
+          "incarnation": {
+            "name": "participant",
+            "created_at": 1790772493.8319154
+          },
+          "generation": 1042
+        },
+        "error_type": "IdentityConflict",
+        "reason": "participant aggregate is not registered"
+      }
+    },
+    "runtime": null,
+    "last_seen": 1790772507.6780965,
+    "goal_execution": null,
+    "binding": {
+      "kind": "live",
+      "owner": {
+        "incarnation": {
+          "name": "participant",
+          "created_at": 1790772493.8319154
+        },
+        "generation": 1042
+      },
+      "process": {
+        "pid": 3200830,
+        "start_time": 24812906
+      }
+    }
+  }
+}
