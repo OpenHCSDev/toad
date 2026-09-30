@@ -1,0 +1,20 @@
+{
+  "requests": 4,
+  "sessionId": "beta",
+  "owner": "renamed-beta",
+  "inputId": "091a5f4c1d6d4496b385aba102b68c81",
+  "inputState": "started",
+  "draftPreserved": true,
+  "exitCode": 0,
+  "coreSource": "5e61097a",
+  "toadSource": "192259b55e3f3d13336e426325ac3096f8c1f414",
+  "nativePackage": "4ab910061590d1e0",
+  "loopbackCalls": 4,
+  "healthyRenameReconnected": false,
+  "firstOriginalVisibleOnceOnWarmReturn": true,
+  "officialSessionPreserved": true,
+  "warmPhysicalABA": true,
+  "editorDocumentAndUndoRetained": true,
+  "goalAndStatusRefreshPassed": true,
+  "nativeChildrenRetired": true
+}

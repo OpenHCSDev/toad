@@ -59,11 +59,8 @@ class SnapshotPublication(TranscriptPublication):
             return
         view = self.owner.view
         history = TranscriptHistory(self.page, self.agent.get_transcript_page, fragments=fragments)
-        restoring_reader = self.owner.prepare_reader(history)
+        self.owner.prepare_reader(history)
         view.output.boundary()
-        if not restoring_reader:
-            if self.window.scroll_revision == self.scroll_revision:
-                self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
             if self.current():
@@ -270,13 +267,11 @@ class TranscriptPresentation:
     def invalidate(self) -> None:
         self.generation += 1
 
-    def prepare_reader(self, history: TranscriptHistory) -> bool:
+    def prepare_reader(self, history: TranscriptHistory) -> None:
         """Apply this source's owned reader intent before mounting its history."""
         position = self.reader_position
-        if position is None:
-            return False
-        position.prepare_history(history)
-        return True
+        if position is not None:
+            position.prepare_history(history)
 
     async def reveal_retained(self, history: TranscriptHistory) -> None:
         """Display the mounted reader while its native source remains fenced."""

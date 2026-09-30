@@ -1,0 +1,652 @@
+{
+  "installed-baseline": {
+    "completed_frames": 65,
+    "phases": {
+      "startup": [
+        {
+          "y": 27,
+          "maximum": 27,
+          "follows_tail": true
+        },
+        {
+          "y": 25.6069445701246,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 24.317738303992826,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 22.57067977071919,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 21.64086265951704,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 20.423108561117907,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 19.287018305319123,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 18.31175141492493,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 17.256862632758327,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 16.236009576687636,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 15.253353867350945,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 14.172078587557206,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 13.292544472166425,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 15.349268256190026,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 37.34926825619003,
+          "maximum": 52,
+          "follows_tail": false
+        },
+        {
+          "y": 41.34926825619003,
+          "maximum": 56,
+          "follows_tail": false
+        },
+        {
+          "y": 62.34926825619003,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 62.98009347333079,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 63,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 63.871458839451805,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 64,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 64.71991918024462,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 65,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 65.9473022352097,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 66,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 66.97751260019453,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 67,
+          "maximum": 77,
+          "follows_tail": false
+        }
+      ],
+      "geometry-meets-reader": [
+        {
+          "y": 67,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 67,
+          "maximum": 67,
+          "follows_tail": true
+        }
+      ],
+      "geometry-restored": [
+        {
+          "y": 77,
+          "maximum": 77,
+          "follows_tail": true
+        }
+      ],
+      "downward-rejoin": [
+        {
+          "y": 77,
+          "maximum": 77,
+          "follows_tail": true
+        }
+      ],
+      "upward-release": [
+        {
+          "y": 76.99525746489546,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 74.95268008884352,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 70.56017075966739,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 66.76034904219684,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 63.60960862422286,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 60.93834169904282,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 58.787159859201275,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 57.076406194558494,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 55.95466064418606,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 55.475877948209344,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 55.04633291983214,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 54.71467825317701,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 54.31917242682324,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.88332029130501,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.71022212145456,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.49064863583588,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.296776866011285,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.19325575585596,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.11903574989868,
+          "maximum": 77,
+          "follows_tail": false
+        }
+      ],
+      "explicit-end": [
+        {
+          "y": 53,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 77,
+          "maximum": 77,
+          "follows_tail": true
+        }
+      ]
+    },
+    "violations": [
+      "Layout reacquired follow without reader input",
+      "Geometry expansion lost offset 67: y=77, follow=True",
+      "Downward movement did not rejoin follow at the bottom"
+    ]
+  },
+  "source-candidate": {
+    "completed_frames": 83,
+    "phases": {
+      "startup": [
+        {
+          "y": 27,
+          "maximum": 27,
+          "follows_tail": true
+        },
+        {
+          "y": 27,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 25.600176703548463,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 24.366141901237565,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 22.71029179270101,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 21.621379910528116,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 20.529027747578482,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 19.364982596166108,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 18.314182105459945,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 17.37253985075745,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 16.359340388085364,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 15.413962350926138,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 14.484243106681433,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 13.594121959511936,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 12.924039183966507,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 14.911702461134258,
+          "maximum": 27,
+          "follows_tail": false
+        },
+        {
+          "y": 36.911702461134254,
+          "maximum": 52,
+          "follows_tail": false
+        },
+        {
+          "y": 40.911702461134254,
+          "maximum": 56,
+          "follows_tail": false
+        },
+        {
+          "y": 61.911702461134254,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 62.98942202178082,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 63,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 63.99055317250107,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 64,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 64.8034152676835,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 65,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 65.75792906552545,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 66,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 66.86721583676362,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 67,
+          "maximum": 77,
+          "follows_tail": false
+        }
+      ],
+      "geometry-meets-reader": [
+        {
+          "y": 67,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 67,
+          "maximum": 67,
+          "follows_tail": false
+        }
+      ],
+      "geometry-restored": [
+        {
+          "y": 67,
+          "maximum": 77,
+          "follows_tail": false
+        }
+      ],
+      "downward-rejoin": [
+        {
+          "y": 67,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 68.9647427578573,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 70.90499873105877,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 72.82717940611217,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 74.01323152160347,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 75.03114230692736,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 75.73268339534764,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 76.28416599430106,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 76.57582694358557,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 76.8846645474875,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 77,
+          "maximum": 77,
+          "follows_tail": true
+        }
+      ],
+      "upward-release": [
+        {
+          "y": 76.99533095410108,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 74.76218234209799,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 72.32325807670261,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 69.40262101094044,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 67.84758682602585,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 66.28595256026534,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 64.76788390196073,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 63.08463661244096,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 61.90985218864456,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 60.62659699831588,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 59.52900361888791,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 58.45486389781392,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 57.59514250812363,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 56.98842431877117,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 56.153750624280434,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 55.573196845294945,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 55.147340092619984,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 54.59550331195431,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 54.28528370353342,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.912393540655486,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.7009113987629,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.484479899713456,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.29592028557798,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.19113261152803,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 53.116587171152474,
+          "maximum": 77,
+          "follows_tail": false
+        }
+      ],
+      "explicit-end": [
+        {
+          "y": 53,
+          "maximum": 77,
+          "follows_tail": false
+        },
+        {
+          "y": 77,
+          "maximum": 77,
+          "follows_tail": true
+        }
+      ]
+    },
+    "violations": []
+  }
+}
