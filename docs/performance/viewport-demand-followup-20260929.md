@@ -74,16 +74,15 @@ counterevidence, not readiness. Review receipt is retained under
 evidence/viewport-demand/original-history-candidate-887; raw video/profile remain
 in Heisenberg's owned toad-reader-217-original-20260929 scratch.
 
-The serial unprofiled geometry diagnostic reproduced a broader physical failure:
-roster, menu, tab and session-details text disappeared together with chat text;
-gutters, prompt and scrollbars remained. After-state showed scroll161 equal to
-max161, virtual height193,16 registered bodies, zero dormant bodies and zero
-visible bodies. It was neither overscroll nor a final wait on dormant visible
-bodies. Before-state had scroll47/max47, virtual height79 and three visible
-bodies. These observations do not establish the cause. Heisenberg owns the
-global screen/compositor/render transaction investigation and integration.
+The earlier diagnostic interpretation that chrome disappeared with the body
+was invalidated by exact raw PNG review: menu, tabs, roster and details retain
+identical pixels. After-state showed scroll161 equal to max161, virtual height193,
+16 registered bodies, zero dormant bodies and zero visible bodies. Before-state
+had scroll47/max47, virtual height79 and three visible bodies. These geometry
+observations alone do not establish correct source extent or the blank cause.
+Heisenberg owns the canonical history geometry/publication investigation.
 
-After-SVG retained menu/tab/roster text missing from the preceding physical PNG.
+The earlier claim that SVG recovered chrome missing from PNG was also invalidated.
 Textual export_screenshot invokes a full compositor render, consuming its dirty
 regions, then the existing capture helper requests a refresh. Thus exported SVG
 is separate observer evidence and can alter subsequent terminal paint. The
@@ -107,3 +106,38 @@ Remaining profile-review ownership: PR221 owns correcting recursive inclusive
 span overcount and retaining the limitations of stale Chrome stack spans. This
 does not delay the urgent physical disposal/global blanking workflow. Existing
 kernel CPU deltas remain the measured totals; no per-function CPU claim is made.
+
+## PR221 demand checkpoint, 2026-09-30
+
+Normally integrated current main53154c7d, including the corrected217 geometry,
+into this existing worktree. PR224/Heisenberg owns frame/page handoff and the
+remaining 33-ms fast PageDown blank frame. PR221/Kepler owns the disjoint
+DirectionalPreparation input cadence versus measured delivery horizon.
+
+Concrete defect: idle_seconds used max(configured input idle, body delivery).
+A slow actual restoration thus kept moving demand alive after configured input
+cessation. The same measurement was already correctly used for the prediction
+horizon. Idle expiry now uses the existing scroll_idle_seconds configuration;
+delivery remains measured for lookahead, bounded by existing resource admission.
+One production line replaced; no new timer, flag, cache, cursor or resource owner.
+
+The new focused actual-framework journey uses real ToadApp, Markdown bodies,
+Window, HistoryLock, viewport restoration and native timers. Real history-lock
+contention produces a measured 0.500395-second body delivery, then PageUp,
+configured 0.2-second idle, PageDown, reversal, End and idle. It passes with
+stationary demand after cessation and new positive/negative demand after input.
+The identical journey on the original property fails the stationary assertion.
+Only owned source was temporarily changed for that baseline and restored in a
+finally block. No UI/state/protocol object, clock or provider was substituted.
+
+Proofs: evidence/viewport-demand/idle-cadence/actual-resource-timer.txt and
+baseline-resource-timer.txt; runner tests/viewport_idle_cadence_pilot.py. The
+existing viewport_body_lifetime_pilot stops at its hardcoded 32-body dormancy
+assertion before this cadence journey. That failure is preserved in
+native-body-lifetime.txt and remains unclassified; it is not waived, rewritten
+or called a pre-existing failure without baseline counterevidence.
+
+This is headless resource/timer acceptance, not physical or saved-native history
+acceptance. Corrected217/Text13 physical capture is frozen and not rerun here.
+An affected physical follow-up may include this change when the integration
+owner stages the remaining224 workflow; no live activation claim yet.
