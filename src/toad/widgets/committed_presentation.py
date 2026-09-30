@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
+from textual.message import Message
+from agent_comms.transcript_events import TranscriptEvent
 
 from toad.widgets.presentation_window import protected_presentations
 
@@ -25,6 +27,23 @@ class CommitEvidence:
     sequences: frozenset[int] = frozenset()
     retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
+
+
+class TranscriptCoverage(Message):
+    """An accepted source publication owns its original message/input identities."""
+
+    def __init__(self, events: tuple[TranscriptEvent, ...], history=None):
+        super().__init__()
+        self.events, self.history = events, history
+
+    @property
+    def sequences(self) -> frozenset[int]:
+        from toad.transcript_preparation import incoming_sequences
+        return incoming_sequences(self.events)
+
+    @property
+    def native_inputs(self) -> frozenset[str]:
+        return frozenset(native_id for event in self.events for native_id in event.native_inputs)
 
 
 class CommitClaim(ABC):

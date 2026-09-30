@@ -1630,7 +1630,7 @@ class Conversation(ConversationSessionBinding):
             style="error",
         )
 
-    async def on_transcript_history_covered(self, message) -> None:
+    async def on_transcript_coverage(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
         observed = self.query_one_optional(ObservedThreadActivity)
