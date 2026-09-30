@@ -25,6 +25,7 @@ from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.outgoing_message import OutgoingMessage
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.user_input import UserInput
+from toad.widgets.agent_response import AgentResponse
 
 
 class WindowApp(ToadApp):
@@ -63,7 +64,8 @@ async def prepare(comms, project, requests, entered, release, hold_next):
 
 def reply(request, number):
     messages = request['messages']
-    if 'bounded triage' in str(messages).lower():
+    if any('IGNORE' in str(message.get('content')) and 'FULL' in str(message.get('content'))
+           for message in messages):
         return {'role': 'assistant', 'content': '{"decision":"IGNORE"}'}, 'stop'
     last = messages[-1]
     if last['role'] == 'user' and 'HOT_ORIGINAL_TRIGGER' in str(last['content']):
@@ -149,6 +151,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert len(originals(recipient, response.reference, OutgoingMessage)) == 1
             assert len(originals(sender, response.reference, IncomingMessage)) == 1
             assert original.reference != response.reference
+            await until(pilot, lambda: not comms.registry.require('beta').executing)
+            await pilot.pause(.3)
+            assert sum(body.source == response.body for body in recipient.contents.query(AgentResponse)) == 1, \
+                'One original recipient reply was also rendered from its native journal/stream'
             print('THREE_OPEN_WINDOWS_ORIGINAL_OUTBOUND_INBOUND_TARGET_RESPONDED_HOT', flush=True)
             for name, window in (('sender', sender_app), ('recipient', app), ('irc', irc_app)):
                 window.save_screenshot(str(evidence / f'{name}.svg'))
