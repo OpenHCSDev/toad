@@ -37,7 +37,11 @@ native prompts were started by this check. Python compilation and diff whitespac
 checks pass. The corrected physical236 journey remains integration-owner work;
 this tools checkpoint does not claim product readiness.
 
-Heisenberg236 owns the requested three-viewport buffer and production
-cache/preparation integration. The severe mid-compaction tab-switch hang is a
-separate reported lifecycle risk, explicitly handed to that integration owner
-for a named cross-owner claim. This zero-input capture cannot prove it fixed.
+Current owner correction: Heisenberg236 owns the three-viewport buffer,
+cache/preparation integration and actual scrolling acceptance. Sch238 owns the
+mid-compaction UI hang (NativeSurface, GoalObservation, conversation restoration
+and revealed lifecycle); Heisenberg released that seam. Mendel450 owns the
+separate backend comms428 delay. Kepler221 owns physical recorder/observer and
+profile correlation only. This zero-input capture cannot prove a compaction
+switch or backend-delay fix. Einstein's default-entrypoint check follows parent
+activation; it does not authorize another concurrent scroll capture.
