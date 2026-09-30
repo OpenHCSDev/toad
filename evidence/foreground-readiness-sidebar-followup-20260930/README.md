@@ -24,7 +24,7 @@ from one native/ACP response, LiveOutput/Snapshot/Checkpoint/CommitEvidence and
 source/live retirement. It is one Heisenberg production ownership lane, not a
 competing patch to these files. Kepler251 owns submission/queue/native USER paint,
 with exact shared-method grants recorded in249; response/publication methods stay
-Heisenberg's. Sch460 onlyCoreS14/T5producer boundary. Arendt nativeproducer trace.
+Heisenberg's. Sch460 onlyCoreS14/T5producer boundary. Einstein nativeproducer trace.
 Coordinate whole firstinput user journey into251 rather than duplicate gate runs.
 
 Next source: original Window/AwaitMount vsnestedbody readiness/paint-owner question
@@ -37,3 +37,19 @@ affected journey with honest CPU/video clock limits; no unchanged gate/optionalC
 Protect default/user processes/original journals/UNKNOWN/publicroute and all raw
 proofs. No global installs, paidmodel changes, nativeinput replay or other WT edits.
 Open before sustained work; normal currentmain integration, no rebase/force.
+
+## Bounded body-readiness contribution
+
+Einstein thread01a0ef42-347d-7242-98d1-d7573f1d91eb owns production edits in
+his persistent toad-body-readiness-253-contribution-20260930 worktree:
+ViewportBody/MeasuredViewportBody readiness and DocumentViewport.visible_bodies_ready
+in viewport_body.py, plus TranscriptFragmentView.body_ready, retire_body,
+restore_body and necessary lifecycle registration within that class.
+
+Native Mount completion and nested/live body readiness remain distinct contracts.
+Derive readiness from original native body resources; no ready flag or registry.
+Kepler251 retains TranscriptBlockConsumer.user constructor/import exclusively.
+Heisenberg retains DocumentViewport budget/LRU/_reconcile/cost and all history
+checkpoint/publication/Conversation/LiveOutput methods. Broader consumer changes
+require direct method handoff. Heisenberg remains the single253 integration owner;
+this contribution proceeds independently of252 response-custody repair.
