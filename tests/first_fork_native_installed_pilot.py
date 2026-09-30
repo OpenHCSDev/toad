@@ -152,7 +152,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 if child is not None and child.pid > 0:
                     process = psutil.Process(child.pid)
                     assert ProcessIdentity.capture(child.pid) == child.process_identity
-                    assert Path(process.environ()["AGENT_COMMS_ROOT"]).resolve() == comms.root.resolve()
+                    process_root = process.environ().get("AGENT_COMMS_ROOT")
+                    if process_root is None:
+                        # Wait for exec to install the launched environment;
+                        # suspend only after its real private root is attested.
+                        await asyncio.sleep(.001)
+                        continue
+                    assert Path(process_root).resolve() == comms.root.resolve()
                     # The launcher publishes identity before its exec handshake
                     # completes. Suspending that launcher would deadlock ForkAction
                     # itself, before any physical opening could be exercised.
@@ -269,22 +275,28 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await pilot.press('enter')
         await until(pilot, lambda: len(requests) == 2, 30)
         await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
-        from agent_comms.transcript_events import UserTranscript
-        from toad.widgets.agent_response import AgentResponse
+        await until(pilot, lambda: not comms.registry.require(child.name).executing
+                    and view.agent.presentation.prompt_in_flight == 0, 30)
         saved = comms.transcripts.thread_transcript_page(child.name)
         await until(pilot, lambda: not view.window.history_lock.locked() and any(
             history.committed_cursor == saved.after for history in view.window.histories
             if history.is_attached and history.state.reports_coverage))
         await pilot.pause()
-        response_resources = tuple(block for block in view.query(AgentResponse)
-                                   if block.source == 'NATIVE_RESPONSE_2')
+        from toad.widgets.agent_response import AgentResponse
         viewport = view.window.region
-        paint = '\n'.join(strip.crop(viewport.x, viewport.right).text for strip in
-                          app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
-        assert len(response_resources) == 1 and paint.count('NATIVE_RESPONSE_2') == 1
-        page = comms.transcripts.thread_transcript(child.name)
+        paint = '\n'.join(strip.crop(viewport.x, viewport.right).text
+                          for strip in app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
+        response_blocks = [block for block in view.query(AgentResponse)
+                           if block.source == 'NATIVE_RESPONSE_2']
+        census = {'mounted_child_answer_blocks': len(response_blocks),
+                  'painted_child_answer_occurrences': paint.count('NATIVE_RESPONSE_2'),
+                  'current_child': app.selected_session.channels_context()[0],
+                  'rendered_viewport': paint}
+        (evidence / 'response-census.json').write_text(json.dumps(census, indent=2)+'\n')
+        assert len(response_blocks) == 1 and census['painted_child_answer_occurrences'] == 1, census
+        from agent_comms.transcript_events import UserTranscript
         assert sum(isinstance(event, UserTranscript) and event.text == 'FIRST_FORK_NEW_INPUT'
-                   for event in page) == 1
+                   for event in saved.events) == 1
         assert app.selected_mode == mode
         assert app.session_tracker.get_session(mode) is details and view.agent is attached_agent
         assert tuple(app.tab_order.names) == (*previous_modes, mode)
@@ -302,7 +314,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             "same_owner_process_through_first_reply": True,
             "first_new_message_physical_enter": True,
             "new_child_response_painted_once": True, "one_logical_tab": True,
-            "new_child_response_resources": len(response_resources),
+            "new_child_response_resources": len(response_blocks),
             "new_child_response_paint_count": paint.count('NATIVE_RESPONSE_2'),
             "title_without_at_placeholder": details.title, "provider_inputs": len(requests),
         }, indent=2)+"\n")

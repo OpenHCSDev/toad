@@ -1,0 +1,29 @@
+225 retained-readonly05 mechanism, reuse without repeating CPU/capture:
+Existing driver: /home/ts/wt/toad-presentation-subscription-20260930/tests/original_turn_resource_real_installed_pilot.py
+OriginalTypedCapture: /home/ts/wt/comms-phased-owner-cutover-20260930/tools/cutover/original_owner_capture.py
+Helper commit: 9c848a70f986375b7825e8b31d6ec4fd9091f856
+Source original interpreter: /home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/bin/python
+Original retained file: /home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl
+Historical05 SHA256: 888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c
+Historical05 size: 41270257. Capture revalidates CURRENT producer identity; do not reuse the historical PID.
+
+Historical installed runtime (protected): /home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed
+Run your CURRENT reviewed C3 candidate instead; no FIRSTUI backport.
+Select FRESH private persistent fixture and evidence paths. The source and credentials are read authentically with OriginalTypedCapture and retained in RAM; SDK fork produces the private saved session, then CURRENT Thread is declared on a fresh private root. No public format carry or local schema stripping.
+
+Recipe env:
+PYTHONPATH=/home/ts/wt/comms-phased-owner-cutover-20260930/tools/cutover
+AC_REAL_READ_ONLY_CUSTODY=1
+AC_REAL_PROVIDER_AUTHORIZED=Sol/high retained acceptance
+AC_REAL_CORE_HEAD=<actual reviewed C3 candidate full SHA>
+AC_REAL_TOAD_HEAD=<actual reviewed C3 candidate full SHA>
+AC_REAL_SOURCE_ROOT=/var/tmp/agent-comms-live-20260927-wzjtqhza
+AC_REAL_SOURCE_OWNER=nra-architecture
+AC_REAL_ORIGINAL_PYTHON=/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/bin/python
+AC_REAL_SOURCE_FILE=/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl
+AC_REAL_FIXTURE_STAGE=<FRESH own persistent WT fixture>
+L0A_EVIDENCE=<own evidence>
+AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent
+PYTHONDONTWRITEBYTECODE=1
+
+Invoke current C3 candidate/bin/python with that driver from its WT (existing bounded timeout120s). The readonly branch returns BEFORE any native input/provider call; the authorization label is the existing fixture guard, not permission to run paid branches. For warm A/B/A extend your existing journey using this capture/fork mechanism; do not repeat idle CPU or a full capture solely to import it. Arendt442 owns any producer interpreter/capture gaps. Preserve original read proof and all failed disposition receipts.
