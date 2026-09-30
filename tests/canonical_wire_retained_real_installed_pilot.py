@@ -30,6 +30,7 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.outgoing_message import OutgoingMessage
 from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.message_divider import MessageDivider
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
@@ -160,14 +161,31 @@ async def main():
                 receipt['completed_phases'].append('original_recipient_hot')
                 await until(ip, lambda: any(message.reference == original.reference for message, _ in irc.message_history.rows), 40)
                 receipt['completed_phases'].append('original_irc_hot')
-                await until(rp, lambda: any(message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body
-                                          for message in service.bus.log.full_history()), 60)
-                reply = next(message for message in service.bus.log.full_history()
+                irc_original = next(widget for message, widget in irc.message_history.rows
+                                    if message.reference == original.reference)
+                handling = []
+
+                def reply_visible():
+                    handling.append({
+                        'sender': str(originals(sender, original.reference, OutgoingMessage)[0]
+                                      .query_one(MessageNotifications).title),
+                        'recipient': str(originals(receiver, original.reference, IncomingMessage)[0]
+                                         .query_one(MessageNotifications).title),
+                        'irc': str(irc_original.query_one(MessageNotifications).title),
+                    })
+                    return any(message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body
+                               for message, _ in irc.message_history.rows)
+
+                receipt['original_handling_timeline'] = handling
+                await until(rp, reply_visible, 60)
+                reply = next(message for message, _ in irc.message_history.rows
                              if message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body)
                 await until(rp, lambda: len(originals(receiver, reply.reference, OutgoingMessage)) == 1, 30)
                 await until(sp, lambda: len(originals(sender, reply.reference, IncomingMessage)) == 1, 30)
                 assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1, \
                     'Original wire reply and native assistant were both published'
+                assert len(originals(receiver, reply.reference, OutgoingMessage)[0].query(MessageDivider)) == 1, \
+                    'One original reply must own one header'
                 originals(receiver, reply.reference, OutgoingMessage)[0].scroll_visible(animate=False, immediate=True)
                 await rp.pause()
                 receiver_app.save_screenshot(str(evidence / 'original-reply.svg'))
@@ -175,6 +193,7 @@ async def main():
                 for view, pilot, kind in ((sender, sp, OutgoingMessage), (receiver, rp, IncomingMessage)):
                     await until(pilot, lambda: 'Responded' in str(originals(view, original.reference, kind)[0]
                                                                 .query_one(MessageNotifications).title), 30)
+                await until(ip, lambda: 'Responded' in str(irc_original.query_one(MessageNotifications).title), 30)
                 # Same already-open views, beyond both reported 15–30s delays.
                 timeline = []
                 idle_began, idle_cpu = time.monotonic(), time.process_time()
