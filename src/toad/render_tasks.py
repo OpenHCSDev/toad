@@ -150,7 +150,7 @@ class TranscriptBodyPreparation(MroDispatch):
         self.renderer, self.ansi, self.dark = renderer, ansi, dark
 
     @handles(TranscriptEvent)
-    def undisclosed(self, event: TranscriptEvent) -> None:
+    async def undisclosed(self, event: TranscriptEvent) -> None:
         # Metadata and tool disclosure contents retain their existing lazy
         # owners. A viewport prediction does not open those disclosures.
         pass

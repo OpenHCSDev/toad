@@ -1,0 +1,1 @@
+transcript history: scroll to first record and back, bounded DOM and adjacent cursors passed
