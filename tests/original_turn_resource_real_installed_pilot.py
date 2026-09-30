@@ -5,6 +5,8 @@ are read only. Launch credentials remain in memory and are never saved here.
 """
 import asyncio
 import json
+import hashlib
+import sqlite3
 import os
 import shlex
 import sys
@@ -36,11 +38,12 @@ class ResourceJourneyApp(ToadApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.frames = []
+        self.frames = [] if os.environ.get("AC_REAL_READ_ONLY_CUSTODY") != "1" else None
 
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
-        if renderable is not None and not self._batch_count and screen is self.screen:
+        if (self.frames is not None and renderable is not None
+                and not self._batch_count and screen is self.screen):
             view = self.selected_session.conversation
             if view is not None:
                 self.frames.append({
@@ -68,6 +71,8 @@ async def main():
     retained = RetainedOwnerLaunch.capture(source, snapshot)
     assert 'sol' in source.model.lower() and source.thinking_level.declared_name == 'high'
     original = Path(os.environ.get('AC_REAL_SOURCE_FILE', source.session_file))
+    with original.open('rb') as stream:
+        source_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     assert original.stat().st_size >= 40_000_000
     package = Path(os.environ['AC_NATIVE_COPIED_PACKAGE'])
     verify_native_package(package)
@@ -93,6 +98,8 @@ async def main():
         AGENT_COMMS_DEBUG_LOG=str(stage / 'acp-debug'),
         XDG_CONFIG_HOME=str(stage / 'config'), XDG_STATE_HOME=str(stage / 'state'),
         XDG_DATA_HOME=str(stage / 'data'), TOAD_TEST_ATTEMPT=stage.name,
+        AC_REAL_READ_ONLY_CUSTODY=os.environ.get('AC_REAL_READ_ONLY_CUSTODY', ''),
+        AC_REAL_SOURCE_ROOT=os.environ['AC_REAL_SOURCE_ROOT'],
     )
     for key in ('PI_PROMPT', 'PI_PARENT_ID', 'PI_TASK', 'PI_AGENT_ID',
                 'AGENT_COMMS_THREAD', 'AGENT_COMMS_STARTUP_INPUT_KEY', 'PYTHONPATH'):
@@ -155,6 +162,48 @@ async def main():
             await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
             await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)), 30)
             receipt['completed_phases'].append('original_saved_history_open')
+            if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1':
+                from toad.widgets.side_bar import SideBar
+                from toad.widgets.conversation import Window
+
+                app.workspace_chrome.channels.collapsed = True
+                app.settings.sidebar.hide = True
+                app.workspace_chrome.channels.roster.observation.set_enabled(False)
+                window = view.query_one(Window)
+                window.focus()
+                await pilot.press('end')
+                await pilot.pause(4)
+                app.save_screenshot(str(evidence / 'closed-bars-end.svg'))
+                from toad.widgets.observed_thread_activity import ObservedThreadActivity
+                observed = view.query_one(ObservedThreadActivity)
+                await until(pilot, lambda: observed.presentation is not None and not observed.unavailable, 10)
+                expected = service.views.thread_presentation('resource436')
+                assert observed.presentation.summary == expected.summary
+                assert observed.presentation.busy == expected.busy == view.turns.owner.busy
+                receipt['closed_bars_current_status'] = expected.summary
+                (evidence / 'read-only-ready.json').write_text(json.dumps({
+                    'pid': os.getpid(), 'wall_time': time.time(), 'monotonic': time.monotonic()}))
+                began, cpu = time.monotonic(), time.process_time()
+                await asyncio.sleep(40)
+                elapsed, used = time.monotonic()-began, time.process_time()-cpu
+                receipt['read_only_idle'] = {'wall_seconds': elapsed,
+                    'process_cpu_seconds': used, 'percent_one_core': used/elapsed*100}
+                app.save_screenshot(str(evidence / 'closed-bars-idle.svg'))
+                assert app.workspace_chrome.channels.collapsed
+                assert app.screen.query_one('#thread-sidebar', SideBar).collapsed
+                with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+                    assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
+                assert disposition_rows(service) == {}
+                with original.open('rb') as stream:
+                    assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
+                current = Registration(Path(os.environ['AC_REAL_SOURCE_ROOT']) / 'registry.json').snapshot().require_active(source.name)
+                assert current.process_identity == source.process_identity
+                receipt['original_source_custody'] = {'sha256': source_digest,
+                    'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+                receipt['closed_bars_read_only'] = True
+                receipt['complete'] = True
+                print('READ_ONLY_RETAINED_ACCEPTANCE', json.dumps(receipt), flush=True)
+                return
             command = f'printf started > {project}/ordinary-running; sleep 35; touch {project}/ordinary-running-finished'
             await submit_editor(pilot, view.prompt.prompt_text_area,
                 'Isolated acceptance. Do not resume inherited work. Use bash exactly once '
