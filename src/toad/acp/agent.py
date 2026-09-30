@@ -7,7 +7,6 @@ from toad.acp.agent_configuration import AgentConfiguration, ModelConfigurationS
 from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
-from toad.conversation_turn import AgentTurn, ClientTurn
 from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
@@ -115,12 +114,9 @@ class Agent(AgentBase):
             self.server.expose_instance(owner.resolve(self))
         self.session = AgentSession(self, session_pk)
         self.done_event = asyncio.Event()
-        self._active_turn: AgentTurn | None = None
-        self._turn_lifecycle_sequence = 0
         self._private_cursor = ProjectionAttachment()
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
-        self._queue_sequence = 0
         log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
         if log_path := os.environ.get("TOAD_LOG"):
             self.presentation.log_path = Path(log_path).resolve().absolute()
@@ -247,13 +243,7 @@ class Agent(AgentBase):
 
     @property
     def current_turn(self):
-        return self._active_turn or ClientTurn()
-
-    def describe_turn(self, activity: str) -> AgentTurn:
-        if self._active_turn is None:
-            raise ValueError("No active managed turn owns activity")
-        self._active_turn = self._active_turn.with_activity(activity)
-        return self._active_turn
+        return self.presentation.turns.owner
 
     async def retire_surface(self, surface):
         if self.controller.surface.owns(surface):
@@ -286,13 +276,11 @@ class Agent(AgentBase):
             consumer.dispatch_sync(fact)
 
     def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
-        self._queue_sequence += 1
         self.post_message(
             messages.CommsUpdated(
-                QueuePresentation(self.queue_attachment.projection, starts),
+                QueuePresentation(starts),
                 self,
                 self.session_id,
-                self._queue_sequence,
             )
         )
 
@@ -333,10 +321,10 @@ class Agent(AgentBase):
         ) is None:
             return None, None
         async with asyncio.timeout(3):
-            turn_token = self._turn_lifecycle_sequence
+            turn_token = self.presentation.turns.sequence
             result = await self.controller.request_owner("goal_snapshot")
-        self._receive_comms_metadata(result.get("_meta"), self._private_cursor_sequence,
-                                     self._queue_sequence, turn_token,
+        self._receive_comms_metadata(result.get("_meta"), None,
+                                     None, turn_token,
                                      consumer_class=OwnerSnapshotConsumer)
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None

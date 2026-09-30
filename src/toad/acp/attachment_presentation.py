@@ -14,5 +14,4 @@ class CursorPresentation:
 
 @dataclass(frozen=True)
 class QueuePresentation:
-    projection: QueueProjection
     starts: tuple[QueueItem, ...] = ()

@@ -22,17 +22,16 @@ from agent_comms.acp_extension import (
     TextRouteUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
-    TurnSettledUpdate,
-    TurnStartedUpdate,
+    TurnChangedUpdate,
 )
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.conversation_turn import AgentTurn, ObservedAgentTurn
+from toad.conversation_turn import OrderedManagedTurn, ManagedTurn
 
 from . import messages
 
 
 class CommsUpdateConsumer(MroDispatch):
-    turn_class = AgentTurn
+    turn_class = OrderedManagedTurn
     def __init__(
         self,
         agent,
@@ -53,7 +52,7 @@ class CommsUpdateConsumer(MroDispatch):
     def accepts_turn(self):
         return (self.agent.process.accepts_session(self.session_id)
                 and (self.turn_token is None or (
-                    self.turn_token == self.agent._turn_lifecycle_sequence
+                    self.turn_token == self.agent.presentation.turns.sequence
                     # A snapshot response can observe native completion before
                     # the ordered ACP stream delivers its remaining chunks.
                     # Only ordered lifecycle notifications settle that turn.
@@ -86,44 +85,16 @@ class CommsUpdateConsumer(MroDispatch):
             messages.CommsUpdated(update, self.agent, self.session_id)
         )
 
-    @handles(TurnStartedUpdate)
-    def turn_started(self, update: TurnStartedUpdate) -> None:
-        agent = self.agent
+    @handles(TurnChangedUpdate)
+    def turn_changed(self, update: TurnChangedUpdate) -> None:
         if not self.accepts_turn():
             return
-        turn = self.turn_class(
-            update.turn_id, update.activity_detail or "Thinking…", update.started_at,
-        )
-        if turn == agent._active_turn:
-            return
-        agent._active_turn = turn
-        agent._turn_lifecycle_sequence += 1
-        agent.post_message(
-            messages.CommsUpdated(
-                update,
-                agent=agent,
-                session_id=self.session_id,
-                sequence=agent._turn_lifecycle_sequence,
-            )
-        )
-
-    @handles(TurnSettledUpdate)
-    def turn_settled(self, update: TurnSettledUpdate) -> None:
         agent = self.agent
-        if not self.accepts_turn() or agent._active_turn is None:
+        binding = agent.presentation.managed_turns()
+        if not binding.receive(update.state, self.turn_class):
             return
-        if update.turn_id is not None and not agent.current_turn.matches_settlement(update.turn_id):
-            return
-        agent._active_turn = None
-        agent._turn_lifecycle_sequence += 1
-        agent.post_message(
-            messages.CommsUpdated(
-                update,
-                agent=agent,
-                session_id=self.session_id,
-                sequence=agent._turn_lifecycle_sequence,
-            )
-        )
+        agent.post_message(messages.CommsUpdated(
+            update, agent=agent, session_id=self.session_id, sequence=binding.sequence))
 
     @handles(CursorAdvancedUpdate)
     def cursor_advanced(self, update: CursorAdvancedUpdate) -> None:
@@ -251,4 +222,4 @@ class CommsUpdateConsumer(MroDispatch):
 
 class OwnerSnapshotConsumer(CommsUpdateConsumer):
     """Snapshot turns reconcile controls without overtaking ordered output."""
-    turn_class = ObservedAgentTurn
+    turn_class = ManagedTurn

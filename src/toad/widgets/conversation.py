@@ -33,8 +33,7 @@ from agent_comms.acp_extension import (
     QueueProjection,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
-    TurnSettledUpdate,
-    TurnStartedUpdate,
+    TurnChangedUpdate,
 )
 from agent_comms.backend import compaction_summary
 from agent_comms.goal_presentation import GoalExecution
@@ -437,16 +436,12 @@ class ConversationSessionBinding(containers.Vertical):
     queue_supported = var(False)
 
 
-    queued_prompts: var[list[str]] = var(list)
 
 
-    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
 
 
-    delivering_prompt = var("")
 
 
-    sending_queued_prompt = var("")
 
 
     current_model: var[Model | None] = var(None)
@@ -489,7 +484,7 @@ class ConversationSessionBinding(containers.Vertical):
         initial_prompt: str | None = None,
     ) -> None:
         super().__init__()
-        self.turns = ConversationTurn(self._turn_changed)
+        self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt)
 
@@ -504,10 +499,8 @@ class ConversationSessionBinding(containers.Vertical):
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
         self._filter_scroll_positions = {}
-        self._mcp_live_turn: str | None = None
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
-        self._queue_sequence = 0
         self.submissions = ConversationSubmissions(self)
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -581,9 +574,10 @@ class ConversationSessionBinding(containers.Vertical):
         agent = self.agent
         if agent is None or not agent.ready:
             return
-        self.status = agent.context_measurement.status()
+        await self.refresh_native_projection()
         page, _ = await asyncio.gather(
-            agent.get_transcript_page(), self.goal_observation.refresh(),
+            agent.get_transcript_page(),
+            self.delivery_observation.refresh(),
         )
         if self.agent is not agent:
             return
@@ -592,6 +586,16 @@ class ConversationSessionBinding(containers.Vertical):
             return
         await self.query(ThreadLoading).remove()
         self.remove_class("-initial-loading")
+
+    async def refresh_native_projection(self) -> None:
+        """Invalidate the returning view from its original source owners."""
+        agent = self.agent
+        if agent is None:
+            return
+        self.status = agent.context_measurement.status()
+        self.turns.bound()
+        self.submissions.publish_pending()
+        await self.goal_observation.refresh()
 
 
 
@@ -868,8 +872,6 @@ class Conversation(ConversationSessionBinding):
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
         self.refresh_bindings()
-        if self.is_mounted and self.agent_ready and owner.session_state is not None:
-            self.post_message(messages.SessionUpdate(state=owner.session_state))
 
     def make_throbber(self) -> ObservedThrobber:
         return ObservedThrobber(
@@ -911,7 +913,7 @@ class Conversation(ConversationSessionBinding):
             )
             yield self.make_throbber()
             yield GoalBar(self)
-            yield Prompt(turns=self.turns).data_bind(
+            yield Prompt(turns=self.turns, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -922,10 +924,6 @@ class Conversation(ConversationSessionBinding):
                 models=Conversation.models,
                 model_history_scope=Conversation.model_history_scope,
                 queue_supported=Conversation.queue_supported,
-                queued_prompts=Conversation.queued_prompts,
-                queue_projection=Conversation.queue_projection,
-                delivering_prompt=Conversation.delivering_prompt,
-                sending_queued_prompt=Conversation.sending_queued_prompt,
                 status=Conversation.status,
             )
 
@@ -1094,40 +1092,11 @@ class Conversation(ConversationSessionBinding):
             return
         if event.presentation is not None:
             await self._show_assigned_inbound(event.presentation.notifications)
-        if not self.agent_ready or self.turns.managed_id is not None or self.turns.owner.busy:
-            return
-        if event.unavailable:
-            self.post_message(
-                messages.SessionUpdate(state="idle", summary="Agent status unavailable")
-            )
-        elif event.presentation is not None:
-            self.post_message(
-                messages.SessionUpdate(
-                    state="busy" if event.presentation.busy else "idle",
-                    summary=event.presentation.summary,
-                )
-            )
 
     async def _show_assigned_inbound(self, notifications) -> None:
         from toad.transcript_publication import AssignedInboundPublication
 
         await self.transcript.publish(AssignedInboundPublication, notifications)
-
-    @on(messages.SessionUpdate)
-    def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
-        """ACP readiness is not proof that a separate channel turn is idle."""
-        if event.state != "idle":
-            return
-        observed = next(iter(self.query(ObservedThreadActivity)), None)
-        if observed is None:
-            return
-        if observed.unavailable:
-            event.summary = "Agent status unavailable"
-        elif observed.presentation is not None and (
-            observed.presentation.busy or observed.presentation.attention
-        ):
-            event.state = "busy" if observed.presentation.busy else "idle"
-            event.summary = observed.presentation.summary
 
     @on(AgentReady)
     async def on_agent_ready(self, message: AgentReady) -> None:
@@ -1146,9 +1115,6 @@ class Conversation(ConversationSessionBinding):
         self.call_later(self.goal_observation.refresh)
         self.call_later(self.delivery_observation.refresh)
         self.transcript.request()
-        if self.turns.managed_id is None:
-            self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
-
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
             await self.agent.set_session_name(name)
@@ -1216,7 +1182,6 @@ class Conversation(ConversationSessionBinding):
         self.turns.finish_client()
         self.agent_ready = True
         self._agent_fail = True
-        self.post_message(messages.SessionUpdate(state="idle", summary="Agent failed"))
         self.notify(message.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
@@ -1306,7 +1271,7 @@ class Conversation(ConversationSessionBinding):
                     return
                 while (
                     self.turns.owner.busy
-                    or self.queued_prompts
+                    or self.submissions.queue_projection.items
                     or agent.presentation.prompt_in_flight
                 ):
                     await asyncio.sleep(0.1)
@@ -1416,9 +1381,6 @@ class Conversation(ConversationSessionBinding):
 
         self._turn_count += 1
 
-        self.post_message(
-            messages.SessionUpdate(state="idle", summary="Ready for review")
-        )
 
         if stop_reason is not None:
             await stop_reason.present(self)
@@ -1482,7 +1444,6 @@ class Conversation(ConversationSessionBinding):
         )
 
     async def _clear_mcp_live(self) -> None:
-        self._mcp_live_turn = None
         if self._mcp_live_note is not None:
             await self._mcp_live_note.remove()
             self._mcp_live_note = None
@@ -1525,9 +1486,8 @@ class Conversation(ConversationSessionBinding):
             # Late or forged: the projection dies with its turn and is never
             # shown outside the active-turn lifetime.
             return
-        if self._mcp_live_turn == self.turns.managed_id:
+        if self._mcp_live_note is not None:
             return  # The package emits at most one receipt per turn.
-        self._mcp_live_turn = self.turns.managed_id
         rows = message.update.receipt.servers
         summary = (
             "; ".join(
@@ -1552,53 +1512,34 @@ class Conversation(ConversationSessionBinding):
             return
         if self.turns.owner.busy:
             self.turns.describe("Writing response…")
-            self.post_message(
-                messages.SessionUpdate(state="busy", summary="Writing response")
-            )
         await self.output.append(message.stream, message.text)
 
-    async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
-        if not self.turns.start(message):
+    async def on_turn_changed(self, message: acp_messages.CommsUpdated) -> None:
+        if not self.turns.changed(message):
             return
-        self.transcript.invalidate()
-        await self._clear_mcp_live()
-        self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
-        self.output.boundary()
-        self.post_message(messages.SessionUpdate(state="busy", summary=self.turns.owner.activity))
-
-    async def on_turn_settled(self, message: acp_messages.CommsUpdated) -> None:
-        if not self.turns.settle(message):
+        if self.turns.owner.busy:
+            self.transcript.invalidate()
             return
-        if self.agent is not None:
-            observed = self.query_one(ObservedThreadActivity)
-            observed.bind(self.agent.get_thread_presentation)
         await self._clear_mcp_live()
         self.submissions.reset()
-        self.app.open_tabs_changed.publish(None)
-        if message.update.turn_id is not None:
-            await self.agent_turn_over(EndTurnStopReason)
-            return
-        self.post_message(messages.SessionUpdate(state="idle", summary="Ready for review"))
+        self._agent_activity_boundary.reset()
+        await self.output.settle()
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
         if (
             self.agent is None
             or message.agent is not self.agent
             or message.session_id != self.agent.session_id
-            or message.sequence <= self._queue_sequence
         ):
             return
-        self._queue_sequence = message.sequence
-        self.queue_projection = message.update.projection
-        self.queued_prompts = [row.text for row in message.update.projection.items]
+        self.submissions.publish_pending()
         for started in message.update.starts:
             if (
                 message.agent is not self.agent
                 or message.session_id != self.agent.session_id
             ):
                 return
-            self.submissions.started(started)
             self.output.boundary()
             await self.post(UserInput(started.text))
 
@@ -1644,7 +1585,6 @@ class Conversation(ConversationSessionBinding):
         message.stop()
         self.turns.describe("Thinking…")
         activity = " ".join(message.text.splitlines()).strip() or "Thinking"
-        self.post_message(messages.SessionUpdate(state="busy", summary=activity))
         await self.output.append(ThoughtStream(), message.text)
 
     @on(acp_messages.RequestPermission)
@@ -1917,7 +1857,7 @@ class Conversation(ConversationSessionBinding):
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""
-        if self.queued_prompts:
+        if self.submissions.queue_projection.items:
             self._queue_edit_unavailable()
 
     def _queue_edit_unavailable(self) -> None:
@@ -1960,16 +1900,13 @@ class Conversation(ConversationSessionBinding):
         if agent is not None:
             agent.attach_surface(self)
         attachments = (agent.presentation.attachments if agent is not None
-                       else AgentAttachmentView(None, 0, PendingQueueProjection(), 0))
+                       else AgentAttachmentView(None, 0))
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
-        self.queue_projection = attachments.queue
-        self.queued_prompts = [row.text for row in self.queue_projection.items]
-        self._queue_sequence = attachments.queue_sequence
         self.submissions.reset()
         if (observed := self.query_one_optional(ObservedThreadActivity)) is not None:
             observed.bind(agent.get_thread_presentation if agent is not None else self._read_thread_activity)
-        self.turns.bind(agent)
+        self.turns.bound()
         self.busy_count = 0
         if agent is None:
             self.agent_info = Content.styled("shell")
@@ -2205,9 +2142,6 @@ class Conversation(ConversationSessionBinding):
                 self.turns.describe("Cancelling…")
                 if self._loading is not None and self._loading.is_attached:
                     self._loading.update("Cancelling…")
-                self.post_message(
-                    messages.SessionUpdate(state="busy", summary="Cancelling")
-                )
                 if await agent.cancel():
                     self.flash("Turn cancelled", style="success")
                 else:
@@ -2387,13 +2321,9 @@ class ConversationCommsConsumer(MroDispatch):
     async def transcript_changed(self, update):
         self.conversation.transcript.changed(update.cursor)
 
-    @handles(TurnStartedUpdate)
-    async def turn_started(self, update: TurnStartedUpdate):
-        await self.conversation.on_turn_started(self.message)
-
-    @handles(TurnSettledUpdate)
-    async def turn_settled(self, update: TurnSettledUpdate):
-        await self.conversation.on_turn_settled(self.message)
+    @handles(TurnChangedUpdate)
+    async def turn_changed(self, update):
+        await self.conversation.on_turn_changed(self.message)
 
     @handles(GoalChangedUpdate)
     async def goal_changed(self, update: GoalChangedUpdate):
@@ -2421,43 +2351,12 @@ class CompactionRenderer(MroDispatch):
     def __init__(self, conversation):
         self.conversation = conversation
 
-    @handles(comms_events.CompactionStart)
-    async def start(self, event):
-        view = self.conversation
-        view.turns.describe("Compacting context…")
-        view.post_message(
-            messages.SessionUpdate(state="busy", summary="Compacting context")
-        )
-
     @handles(comms_events.CompactionSummaryProgress)
     async def selected_summary_progress(self, event):
         view = self.conversation
-        detail = "Compacting context… selected model is summarizing"
-        if event.source is not None and event.source.source_bytes_total > 0:
-            detail += f" · {event.source.source_bytes_done * 100 // event.source.source_bytes_total}% of input processed"
-        view.turns.describe(detail)
-        view.post_message(messages.SessionUpdate(state="busy", summary=view.turns.owner.activity))
         if event.text and event.source is not None and event.source.summary_phase != "map":
             from toad.live_output import CompactionStream
             await view.output.append(CompactionStream(event.operation_id), event.text)
-
-    @handles(comms_events.CompactionProgress)
-    async def progress(self, event):
-        view = self.conversation
-        done, total = event.source_bytes_done, event.source_bytes_total
-        if done is not None and total is not None and 0 <= done <= total and total > 0:
-            summaries = "summary" if event.chunk_index == 1 else "summaries"
-            detail = f"Compacting context… {done * 100 // total}% of input processed · {event.chunk_index} {summaries} completed"
-            if event.summary_phase == "shrink":
-                detail += " (last step: summary shrink)"
-        else:
-            detail = (
-                f"Compacting context… summary step {event.chunk_index} completed"
-            )
-        if event.summary_phase == "synthesis":
-            detail += " · combining summaries"
-        view.turns.describe(detail)
-        view.post_message(messages.SessionUpdate(state="busy", summary=detail))
 
     @handles(comms_events.CompactionEnd)
     async def end(self, event):
@@ -2466,15 +2365,7 @@ class CompactionRenderer(MroDispatch):
         view = self.conversation
         from toad.live_output import CompactionStream
         await view.output.finish(CompactionStream)
-        active = view.agent is not None and view.agent.current_turn.busy
-        if active:
-            view.turns.describe("Thinking…")
-        else:
-            view.turns.finish_client()
         title = event.result_label
-        view.post_message(
-            messages.SessionUpdate(state="busy" if active else "idle", summary=title)
-        )
         summary = compaction_summary(event.publication_summary)
         detail = summary or (
             "Compaction did not complete. Context usage will update after the next measurement."
