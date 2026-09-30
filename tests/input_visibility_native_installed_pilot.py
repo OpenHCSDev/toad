@@ -16,6 +16,7 @@ from time import monotonic_ns
 from agent_comms.acp_extension import InputStartedUpdate, PromptRequest, QueueItem
 from agent_comms.field_codec import FieldCodec
 from agent_comms.input_disposition import InputDispositions
+from agent_comms.transcript_events import UserTranscript
 from textual._compositor import CompositorUpdate
 
 from first_fork_native_installed_pilot import InstalledApp as ForkApp, acceptance as fork_acceptance
@@ -98,10 +99,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert row.has_started and row.native_id
     records.append({'phase': 'native_started', 'input_id': queued.input_id,
                     'native_id': row.native_id})
-    native_rows = [json.loads(line) for line in Path(
-        comms.registry.require(agent.session_id).session_file).read_text().splitlines()]
-    assert sum(item.get('message', {}).get('inputId') == row.native_id
-               for item in native_rows) == 1
+    saved = comms.transcripts.thread_transcript_page(agent.session_id)
+    assert sum(isinstance(event, UserTranscript) and event.native_id == row.native_id
+               for event in saved.events) == 1
     assert not agent.queue_attachment.projection.items
     await until(pilot, lambda: not view.submissions.active)
 
@@ -166,6 +166,10 @@ def review_frames(path: Path):
 
 
 if __name__ == '__main__':
+    # Fail before starting any native owner if the existing review dependency
+    # is missing; do not spend the fixture journey before discovering that.
+    import pyte
+
     asyncio.run(main(app_type=InstalledApp, acceptance=acceptance,
                      expected_response_disconnects=frozenset({3, 5}),
                      provider_request_budget=5,
