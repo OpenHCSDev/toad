@@ -1,0 +1,43 @@
+{
+  "source": "/home/ts/.cache/agent-scratch/comms-live-repro-20260929-original-read/capture.mp4",
+  "source_owner": "parent",
+  "scope": "read-only offline frames; no UI/native process",
+  "video_seconds": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35
+  ],
+  "phase_alignment": "parent native action seconds minus recording-started0.917; capture-frame uncertainty not measured",
+  "observed": {
+    "20-25": "readable source during PageUp then first PageDown",
+    "26-28": "entire chat body blank during held PageDown",
+    "29-32": "reverse PageUp temporarily restores readable source",
+    "33-35": "blank again at end of reverse then End; after PNG remains blank through15s idle"
+  },
+  "proof_limits": "sampled1Hz frames show failure and recovery, not exact onset or a pending-read acknowledgement; candidate must record actual current pager operation",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2188277,
+        "start_ticks": 21154751,
+        "returncode": 0
+      }
+    ]
+  }
+}
