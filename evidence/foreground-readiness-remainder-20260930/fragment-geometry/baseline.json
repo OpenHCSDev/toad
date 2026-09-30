@@ -1,0 +1,8 @@
+{
+  "fragment_arrangements": 400,
+  "profiled_100_reflows_seconds": 0.35515852295793593,
+  "fragments": 4,
+  "native_cache_capacity": 64,
+  "provider_calls": 0,
+  "boundary": "actual saved source/Toad widgets/native compositor, source only"
+}

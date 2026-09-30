@@ -170,6 +170,10 @@ class JumpToLatest(Static, can_focus=True):
 
 
 class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
+    # A sibling/page mutation invalidates the outer Window, but unchanged
+    # retained bodies still own the same native scene. Textual bounds and
+    # invalidates this geometry on content/style/size/pruning changes.
+    CACHE_SUBTREE_GEOMETRY = True
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 

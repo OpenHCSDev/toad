@@ -149,3 +149,32 @@ strengthened driver tried to reserve source work while its prior original pager
 already owned that resource; its failure remains under the protected owned
 .artifacts/edge-readiness-native-candidate.log. Corrected driver leaves custody
 with the admitted pager. The production bytes are unchanged from f4f0ac62.
+
+## Independent retained native geometry checkpoint
+
+`TranscriptFragmentView` now opts into Textual's existing bounded compositor
+subtree cache, as the original HistoryWindow already does. Sibling/page
+invalidation still rebuilds the window, while unchanged independently retained
+bodies can reuse their original native scene. No new store or rendering lane.
+
+The actual saved-journal / ToadApp / native compositor resource pilot observed
+400 fragment arrangements across 100 outer-history invalidations at baseline,
+zero at candidate. Profiled total loop cost was 355.159ms versus 304.422ms;
+these are source loops with profiling, not physical scroll CPU or first-paint
+measurements. Source update painted; style/resize, retirement/restoration and
+final disposal matched an uncached native scene. Native cache capacity stayed
+64; removal discarded the original cached resources. Logs and receipts are in
+`fragment-geometry/`; command is `FRAGMENT_GEOMETRY_EVIDENCE=<owned-path>
+PYTHONPATH=$PWD/src:$PWD/tests <existing-253-python>
+tests/retained_fragment_geometry_pilot.py`. The dependency pair is retained
+Coreba938/Text2e49, not live or the pending970/d3ba/6b native acceptance.
+
+### Remaining source lifetime closure
+
+Parent's frozen d3ba census identifies two remaining six-plus T9 conditions:
+StreamingMarkdown paged-body retirement, and TranscriptHistory page publication
+after async preparation. This existing PR254 owns both. The intended closure
+is shared native body retirement across ordinary/paged Markdown and an original
+source/edge admission contract, preserving source revision, reader, focus and
+retirement invalidation. Screening count alone is not an ownership proof.
+Full physical CPU/warm/scroll and TC1/T9 scope remains open.
