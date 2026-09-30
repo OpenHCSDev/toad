@@ -276,3 +276,40 @@ The next installed real04 gate uses the parent's single published Core cohort
 including #430/#434/#436/#437/#438, Toad #215, Textual `412b5a2b` and the reviewed
 native package tree `614a956d`. It starts a fresh private root and new input;
 failed attempts real01–03 remain preserved and unreplayed.
+
+## Real04: coherent installed cohort still cannot admit the original prompt
+
+The installed Core `94152909` / Toad `48b460ac` / Textual `412b5a2b` / native
+tree `614a956d` pair passed the original read-handoff journey before any input.
+Both packages were built from immutable Git exports and installed into the
+owned thin fixture environment; dependency packages were borrowed read only.
+The native package's complete manifest verified. Pin and wheel hashes are in
+owned scratch `real-wire215-04-pins.json`.
+
+Fresh real04 retained the actual 41MB history. Original wire sequence 1,
+message `89d9d8c1ab20`, appeared hot in sender DM, recipient DM and IRC, and all
+three original handling projections changed from Responding to Failed. The
+original native input `4af6db4b3b2a1ff1c69c66a0644b918c` failed in the bus-lock
+response boundary before writing any bytes. Its native session entry and verdict
+remain absent. The full coordinator, original native journals and diagnostic
+remain preserved without replay; owned fixture processes retired successfully.
+The real driver exited 1 waiting for the missing reply. Reply-once, header,
+31-second and A/B/A immediate-send phases were not reached.
+
+The independent kernel capture records 407 samples over 94.741 seconds. UI PID
+2406922 appears as bus holder in 322 sample lines and bus waiter in 644; native
+and ACP processes also wait. These are sample lines, not a continuous hold
+duration, CPU time or proof of self-deadlock. The exact native failure identifies
+bus custody as the original admission blocker. Sharing the notification window
+and passing its original witness removed redundant work but did not close that
+blocker. Mendel owns the complete per-lock certified read-resource lifetime:
+reuse the original opened certificate/database/wire within that lock operation,
+not a proof cache, wider timeout or semantic state mirror.
+
+Evidence: `real-wire215-04/original-attempt-disposition.json`,
+`kernel-lock-review.json`, `kernel-lock-custody.json`, `receipt.json`,
+`actual-real-retained.prof` and
+`original-private-wire/diagnostics/4af6db4b3b2a1ff1c69c66a0644b918c.json`.
+No full readiness or global installation change is claimed. A newer source
+checkpoint arrived after the original was committed; the running fixture stayed
+on its original coherent pin and was not restarted to conceal this result.
