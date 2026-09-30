@@ -812,8 +812,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         page: TranscriptPage | None, protected: set[Widget],
         fragments: tuple[TranscriptFragment, ...] | None,
     ) -> None:
-        # Serialize this native presentation, not every screen's paint. The
-        # history anchor compensates each committed layout while mounts await.
+        # HistoryWindow owns the mutation's native frame publication and
+        # compensated layout; this lock serializes the page's admission.
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = self.filter.projection_visible()
