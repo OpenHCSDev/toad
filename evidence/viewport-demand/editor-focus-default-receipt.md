@@ -51,3 +51,38 @@ its failed test coverage.
 
 Production lines deleted in this Toad diagnosis: **0**. Diagnostic tool fields
 replace one line, adding native focus and draft object identities only.
+
+## Subsequent scoped keypad acceptance
+
+The preserved baseline above remains a FAIL. The sole corrected physical
+candidate capture is
+`/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02`.
+Its 46.042-second journey uses Toad `9354b391880980c9c987f421e16b9a1fd59b3f3b`,
+the same Core000/SDK0.12.1/nativee36, and Textual code
+`4e8d13d21bf98e4ad52e610277d7d06c9035ccfa`. Textual publication head
+`f0051410e33ac51056739fb6d5868b73f7dc41ce` adds the reviewed receipt only;
+its production source is byte-identical to the installed candidate.
+
+Agent and channel physical edited frames show **abcf / caret4**, without
+opening Help. Parent editor `140425345526160` remains the focused native
+editor on both child/parent and channel/parent return, retaining and extending
+its draft. Native parent and child source/process receipts are byte-equal;
+all seven phase markers completed and cleanup reports zero remaining owned
+processes and zero errors. No input was submitted or replayed, no provider
+was called, and the default installation was not changed.
+
+**Scoped Delete PASS; whole focus workflow NOT READY.** The body click at
+(750,350) hit an outbound `comms428` link, opening a third tab and its own
+editor. The strict additive-parent/editor-identity assertions failed, and
+`editing-acceptance.json` remains unchanged. This is a physical selection
+coverage gap, not evidence that the original parent editor was replaced.
+Heisenberg227 retains the intended pure history-click/PageUp focus gap.
+Intermittent Backspace/arrow failure was not reproduced or claimed fixed.
+
+[Machine receipt](editor-keypad-candidate-assessment.json) records all
+physical frame paths/hashes, exact native focus/ancestor/draft identities,
+installed source and metadata hashes before/after, protected original
+receipts, and Toad9354-to-bf561/718030 production source equivalence. Those
+later Toad publication commits change evidence only. Candidate01's missing
+activation metadata failure occurred before UI launch and is protected;
+the builder corrected metadata without changing packages, source or route.
