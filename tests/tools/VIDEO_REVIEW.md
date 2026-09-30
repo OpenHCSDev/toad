@@ -237,6 +237,22 @@ from the interrupted run; never infer continuity or replay an uncertain attempt.
 
 ## Assess the visible behavior
 
+For an extent or dormant-body defect, add `--capture-state`. Immediately after
+each physical before/after PNG, the recorder calls the existing
+`tools/performance/capture_live.py --state --screen --sudo` against its verified
+UI process identity. This exports loaded DTOs, scroll bounds, body resource
+counts and a Textual SVG without issuing owner RPCs or native input. The helper
+uses non-interactive sudo for CPython remote attachment; it does not change
+ptrace policy. Use the same selected runtime Python and leave time within the
+existing capture budget for these two observations.
+
+The receipt retains each attachment interval, manifest, errors and artifact
+hashes. Check both state/screen receipt files for errors or pending completion;
+`completed` alone means the physical recording completed. Attachment failures
+preserve the video and diagnostics. State export and screenshot refresh are
+observer work, so identify this diagnostic run separately from uninstrumented
+performance comparisons. No extra monitoring process remains active.
+
 1. Verify readable saved history, actual destination sources and keyboard focus.
 2. Inspect the normal video, slow intervals and contact sheets around every cold
    open, warm return, held scroll/reversal, End and idle. Extract full-resolution

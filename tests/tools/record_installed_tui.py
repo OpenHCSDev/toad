@@ -701,6 +701,7 @@ def record(args):
         "output": str(output), "command": command, "terminal_command": ["st", "-e", *command],
         "fps": args.fps, "screen": [args.width, args.height],
         "profiling_requested": args.profile,
+        "state_capture_requested": args.capture_state,
         "private_root": str(private_root),
         "capture_target": target.declared_name,
         "original_owner_before": target.observe(),
@@ -816,8 +817,30 @@ def record(args):
                 owner.run(["import", "-display", env["DISPLAY"], "-window", "root", str(output / name)],
                           env, timeout=min(10, remaining()))
 
+            def capture_state(name):
+                if not args.capture_state:
+                    return
+                identity = transferred_program.child.identity
+                if not identity.alive():
+                    raise RuntimeError("UI identity exited before state capture")
+                helper = Path(__file__).resolve().parents[2] / "tools/performance/capture_live.py"
+                observation = {"started_seconds": time.monotonic() - started}
+                receipt.setdefault("state_captures", {})[name] = observation
+                try:
+                    with (output / f"{name}-capture.log").open("w") as log:
+                        owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
+                                   "--output-dir", str(output), "--name", name,
+                                   "--state", "--screen", "--sudo"], env,
+                                  stdout=log, stderr=subprocess.STDOUT, timeout=remaining())
+                    observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
+                except (OSError, subprocess.SubprocessError, ValueError) as error:
+                    # Retain the actual video even when diagnostic attachment fails.
+                    observation["error"] = f"{type(error).__name__}: {error}"
+                observation["finished_seconds"] = time.monotonic() - started
+
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
+            capture_state("before")
             receipt["terminal_processes"] = {str(identity.pid): {"start_ticks": identity.start_time,
                 "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
                 for group in (transferred_terminal or terminal, transferred_program)
@@ -839,6 +862,7 @@ def record(args):
             if terminal.process.poll() is not None or not transferred_program.child.identity.alive():
                 raise RuntimeError(f"Installed terminal exited during recording: {terminal.process.returncode}")
             screenshot("after.png")
+            capture_state("after")
             receipt["duration_seconds"] = time.monotonic() - started
             capture.stop(signal.SIGINT)
             receipt["capture_returncode"] = capture.process.returncode
@@ -889,6 +913,9 @@ def record(args):
             receipt["review_intervals"] = [{"label": label or "main", "start": start, "seconds": seconds}
                                            for label, start, seconds in intervals]
             names = ["terminal.mp4", "before.png", "after.png"]
+            if args.capture_state:
+                names.extend(path.name for name in ("before", "after")
+                             for path in output.glob(f"{name}-*") if path.is_file() and path.stat().st_size)
             if args.profile:
                 names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
             names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
@@ -998,6 +1025,8 @@ def main():
     parser.add_argument("--review-timing", type=ReviewTiming.decode, default=InlineReviewTiming,
                         help="Clip encoding lifetime: " + ", ".join(ReviewTiming.names()))
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
+    parser.add_argument("--capture-state", action="store_true",
+                        help="Capture existing loaded DTOs and Textual SVG before/after via capture_live --sudo")
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
     parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
