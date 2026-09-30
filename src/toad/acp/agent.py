@@ -21,7 +21,7 @@ import rich.repr
 from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
     PromptRequest,
-    QueueItem,
+    InputStartedUpdate,
     decode_updates,
 )
 from agent_comms.acp_failure import ACPFailure
@@ -275,7 +275,7 @@ class Agent(AgentBase):
         for fact in decode_updates(metadata):
             consumer.dispatch_sync(fact)
 
-    def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
+    def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
         self.post_message(
             messages.CommsUpdated(
                 QueuePresentation(starts),

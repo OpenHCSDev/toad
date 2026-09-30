@@ -1540,7 +1540,7 @@ class Conversation(ConversationSessionBinding):
             ):
                 return
             self.output.boundary()
-            await self.post(UserInput(started.text))
+            await self.post(UserInput(started.text, native_id=started.native_id))
 
     async def on_input_started(self, message: acp_messages.CommsUpdated):
         if (
@@ -1551,7 +1551,7 @@ class Conversation(ConversationSessionBinding):
             return
         if message.update.text is not None:
             self.output.boundary()
-            await self.post(UserInput(message.update.text))
+            await self.post(UserInput(message.update.text, native_id=message.update.native_id))
 
     def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
         """Only a locally failed request may recover its own draft text."""

@@ -6,7 +6,6 @@ from agent_comms.acp_extension import (
     InputStartedUpdate,
     PendingQueueProjection,
     QueueChangedUpdate,
-    QueueItem,
     UnavailableQueueProjection,
 )
 
@@ -54,7 +53,7 @@ class QueueAttachment(ProjectionAttachment):
 
     def started(
         self, update: InputStartedUpdate, session_id: str
-    ) -> tuple[QueueItem, ...]:
+    ) -> tuple[InputStartedUpdate, ...]:
         if update.scope is None or update.scope.session_id != session_id:
             return ()
         if self._pending:
@@ -77,4 +76,4 @@ class QueueAttachment(ProjectionAttachment):
         ):
             return ()
         self._last_started = update
-        return (QueueItem(update.input_id, update.text),)
+        return (update,)
