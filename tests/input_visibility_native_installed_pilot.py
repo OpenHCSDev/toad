@@ -131,7 +131,7 @@ def review_frames(path: Path):
     terminal = pyte.Screen(frames[0].width, frames[0].height)
     stream = pyte.Stream(terminal)
     observed = {}
-    painted = set()
+    painted = {}
     for frame in frames:
         terminal.resize(lines=frame.height, columns=frame.width)
         stream.feed(frame.ansi)
@@ -145,6 +145,10 @@ def review_frames(path: Path):
             if start.input_id not in painted:
                 observed.setdefault(start.input_id, start.text)
         text = '\n'.join(terminal.display)
+        for input_id, marker in painted.items():
+            assert text.count(marker) <= 1, (
+                'Original input painted twice after handoff', input_id,
+                frame.observed_ns, text.count(marker), text)
         starts = {source.input_id for source in frame.mounted_starts}
         for input_id, marker in tuple(observed.items()):
             # Check the selected request through its first actual native paint.
@@ -157,7 +161,7 @@ def review_frames(path: Path):
             assert marker and text.count(marker) == 1, (
                 input_id, frame.observed_ns, text.count(marker or ''), text)
             if input_id in starts:
-                painted.add(input_id)
+                painted[input_id] = marker
                 observed.pop(input_id)
     assert not observed, ('Inputs lacked a native paint in the completed journey', observed)
     return {'frames': len(frames), 'drivers': sorted({frame.driver for frame in frames}),
