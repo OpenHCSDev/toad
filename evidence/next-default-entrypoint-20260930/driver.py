@@ -28,6 +28,7 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--thread", default="nra-architecture")
     parser.add_argument("--peer-thread", default="nra-domain-mapping")
+    parser.add_argument("--journey", default="default_entrypoint")
     parser.add_argument("--prepare-only", action="store_true")
     args = parser.parse_args()
     sys.dont_write_bytecode = True  # Borrow the reviewed tools without writing to their WT.
@@ -39,6 +40,9 @@ def main():
     spec.loader.exec_module(recorder)
 
     class DefaultEntrypointJourney(recorder.PhysicalJourney):
+        scope = "Saved original history, actual message focus, Home/Delete, A/B/A, End, close/reopen attachment"
+        duration_seconds = 90
+
         @classmethod
         def script(cls, options):
             marker = recorder.marker_command()
@@ -67,15 +71,64 @@ def main():
                 "sleep 3", marker + "reopened", "",
             ])
 
+        @classmethod
+        def verify(cls, base):
+            return verify_editor_journey(base, args.thread)
+
+    class DefaultHistoryReturnJourney(DefaultEntrypointJourney):
+        """Affected238 startup and real tab return; no repeated keyboard journey."""
+
+        scope = "Saved original history first paint and actual A/B/A tab return; no repeated keyboard/End journey"
+        duration_seconds = 50
+
+        @classmethod
+        def script(cls, options):
+            marker = recorder.marker_command()
+            click = recorder.native_click_command
+            return "\n".join([
+                marker + "startup",
+                click("phase-startup-state.pickle", target="thread", name=args.peer_thread),
+                "sleep 2", marker + "peer-opened",
+                click("phase-peer-opened-state.pickle", target="original_tab",
+                      original_state="phase-startup-state.pickle"),
+                "sleep 2", marker + "original-returned",
+                "sleep 2", marker + "return-stationary", "",
+            ])
+
+        @classmethod
+        def verify(cls, base):
+            def phase(label):
+                return pickle.loads((base / f"capture/phase-{label}-state.pickle").read_bytes())
+
+            start = phase("startup")
+            original = selected_view(start)
+            peer = phase("peer-opened")
+            returned = phase("original-returned")
+            settled = phase("return-stationary")
+            assert selected_view(peer)["identity"]["_comms_thread"] == args.peer_thread
+            assert returned["metadata"]["current_mode"] == start["metadata"]["current_mode"]
+            current = selected_view(settled)
+            assert current["identity"]["_comms_thread"] == args.thread
+            assert current["drafts"][0]["lines"] == original["drafts"][0]["lines"]
+            assert current["drafts"][0]["object_id"] == original["drafts"][0]["object_id"]
+            assert current["history_windows"][0]["object_id"] == original["history_windows"][0]["object_id"]
+            return {"journey": cls.declared_name, "actual_A_B_A": True,
+                    "editor_and_history_window_reused": True, "draft_unchanged": True,
+                    "goal_start": original.get("goal"), "goal_return": current.get("goal"),
+                    "goal_read_pending": "Not exposed by existing recorder DTO; no pending-goal fault injection",
+                    "physical_frames_require_review": True}
+
     command = ["/home/ts/bin/toad-comms", args.thread]
-    actions = DefaultEntrypointJourney.script(None)
+    journey = recorder.PhysicalJourney.decode(args.journey)
+    actions = journey.script(None)
     preparation = {
         "command": command, "recorder": str(recorder_path),
         "recorder_sha256": hashlib.sha256(recorder_path.read_bytes()).hexdigest(),
         "peer_thread": args.peer_thread, "actions": actions,
+        "journey": journey.declared_name,
         "launch_requires": "Parent explicitly announces reviewed default activation complete",
         "prepared_only": args.prepare_only,
-        "scope": "Saved original history, actual message focus, Home/Delete, A/B/A, End, close/reopen attachment",
+        "scope": journey.scope,
         "reconnect": "Middle-click original tab label, then actual canonical roster reopening; no owner restart",
         "provider_calls": 0, "prompt_submissions": 0,
     }
@@ -117,15 +170,25 @@ def main():
     action_file = base / "actions.xdo"
     action_file.write_text(actions)
     sys.argv = [str(recorder_path), "--output", str(base / "capture"), "--owner", "Einstein-default-entrypoint",
-                "--capture-target", "existing_thread", "--journey", DefaultEntrypointJourney.declared_name,
+                "--capture-target", "existing_thread", "--journey", journey.declared_name,
                 "--capture-state", "--actions", str(action_file), "--review-timing", "deferred", "--fps", "30",
                 "--width", "1280", "--height", "900", "--fit-window", "--startup-wait", "12",
-                "--max-duration", "90", "--tail-seconds", "2", "--", *command]
+                "--max-duration", str(journey.duration_seconds), "--tail-seconds", "2", "--", *command]
     try:
         recorder.main()
     finally:
         (base / "original-after.json").write_text(json.dumps(original(), indent=2) + "\n")
 
+    checks = journey.verify(base)
+    assert (base / "original-before.json").read_bytes() == (base / "original-after.json").read_bytes(), "Original native owner/source changed"
+    (base / "scoped-native-review.json").write_text(json.dumps({
+        "checks": checks, "source_and_owner_unchanged": True, "runtime_override": False,
+        "prompt_submissions": 0, "physical_review": "Required before any default live PASS",
+        "scope": journey.declared_name,
+    }, indent=2) + "\n")
+
+
+def verify_editor_journey(base, thread):
     def phase(label):
         return pickle.loads((base / f"capture/phase-{label}-state.pickle").read_bytes())
 
@@ -147,13 +210,8 @@ def main():
     assert "\n".join(returned_draft["lines"]) == "abcf" + baseline
     assert phase("peer-opened")["metadata"]["current_mode"] != start_mode
     assert start_mode not in phase("tab-closed")["metadata"]["open_tab_order"]
-    assert selected_view(phase("reopened"))["identity"]["_comms_thread"] == args.thread
-    assert (base / "original-before.json").read_bytes() == (base / "original-after.json").read_bytes(), "Original native owner/source changed"
-    (base / "scoped-native-review.json").write_text(json.dumps({
-        "checks": checks, "source_and_owner_unchanged": True, "runtime_override": False,
-        "prompt_submissions": 0, "physical_review": "Required before any default live PASS",
-        "scope": preparation["scope"],
-    }, indent=2) + "\n")
+    assert selected_view(phase("reopened"))["identity"]["_comms_thread"] == thread
+    return checks
 
 
 if __name__ == "__main__":
