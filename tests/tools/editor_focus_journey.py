@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import pickle
 import sqlite3
 import sys
 
@@ -108,6 +109,41 @@ def main():
         ], "The physical editing journey did not complete"
     finally:
         (base / "originals-after.json").write_text(json.dumps(originals(), indent=2))
+
+    # Read the recorder's native editor snapshots, never an alternate UI model.
+    # Every assertion below is part of the same physical keystroke journey.
+    expected = {
+        "typed": ("abcdef", 6),
+        "edited": ("abcf", 4),
+        "history-edit": ("abcfabcf", 8),
+        "child-open": ("", 0),
+        "parent-return-edit": ("abcfabcfabcf", 12),
+        "channel-edit": ("abcf", 4),
+        "channel-return-edit": ("abcfabcfabcfabcf", 16),
+    }
+    observations = {}
+    for phase, (text, column) in expected.items():
+        snapshot = pickle.loads((base / f"capture/phase-{phase}-state.pickle").read_bytes())
+        focus = snapshot["metadata"]["screen"]["focused"]
+        draft = next(draft for view in snapshot["views"] for draft in view["drafts"]
+                     if draft["object_id"] == focus["object_id"])
+        observations[phase] = {
+            "focused_editor": focus["object_id"], "class": focus["class"],
+            "text": "\n".join(draft["lines"]), "selection": draft["selection"],
+            "edit_passed": tuple(draft["lines"]) == (text,)
+                           and draft["selection"] == ((0, column), (0, column)),
+        }
+    parent_phases = ("typed", "edited", "history-edit", "parent-return-edit", "channel-return-edit")
+    result = {
+        "phases": observations,
+        "parent_editor_retained": len({observations[p]["focused_editor"] for p in parent_phases}) == 1,
+        "originals_unchanged": (base / "originals-before.json").read_bytes()
+                               == (base / "originals-after.json").read_bytes(),
+    }
+    (base / "editing-acceptance.json").write_text(json.dumps(result, indent=2))
+    assert all(phase["edit_passed"] for phase in observations.values()), "Physical editor keys failed; see editing-acceptance.json"
+    assert result["parent_editor_retained"], "Returning to the parent replaced its native editor"
+    assert result["originals_unchanged"], "The readonly editing journey changed an original native thread"
 
 
 if __name__ == "__main__":
