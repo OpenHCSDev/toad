@@ -19,7 +19,7 @@ Acceptance: actual installed implicit default -> dead registration -> ACP load
 -> strict private native owner launch -> ready saved source, without prompts or
 replaying failed input. Preserve explicit independent roots, conflicting pins
 denial, stale default-route denial and cancellation/child custody. Parent owns
-the continuous baseline/candidate UI gate. This draft is not ready or live.
+the continuous baseline/candidate UI gate.
 
 ## Source checkpoint
 
@@ -46,3 +46,18 @@ spy timed out before reaching spawn admission. This is not a passing gate and
 does not establish a launch regression. Parent's actual installed default-route
 dead-owner UI journey is the outstanding readiness boundary. No user inputs,
 live owner restarts or global package changes were made by this worker.
+
+## Installed acceptance: READY
+
+Parent executed the actual installed `toad-comms refactor-r1` against the
+original live failing registration with Toad `7b86e838`, Core `720629`, Textual
+`412b` and native `4ab`. The existing dead registration ensured a new real owner;
+its root, root ID and native package match the authoritative active route.
+`session/load` succeeded with 40 saved events, zero errors and zero prompt
+requests. The parent closed only its test window; the user's window was untouched.
+Receipt: [candidate-dead-owner-launch.json](../../evidence/canonical-launch-admission/candidate-dead-owner-launch.json).
+
+Normal integration of merged viewport #214 (`cc68c51e`) changed none of the
+three launch production files from tested `7b86e838`. This checkpoint is ready
+for parent merge/activation. The default install has not been changed by this
+worker; activation remains owned by the parent.
