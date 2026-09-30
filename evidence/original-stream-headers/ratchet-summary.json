@@ -1,0 +1,11 @@
+{
+  "root": "src/toad/",
+  "base_revision": "d56f8138467f5f5277ab524a4969bc9f3f59ff79",
+  "head_revision": "bfabbcb86f0bb78b1036d18874fffc5477ae3ead",
+  "paths": [
+    "src/toad/live_output.py",
+    "src/toad/transcript_publication.py"
+  ],
+  "exit_code": 0,
+  "nonzero_delta": {}
+}
