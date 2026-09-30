@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Iterator, Mapping
 from agent_comms.child_process import AttachedChild
 from .shell_command import ShellCommand
+from toad.comms_root import RouteSelection
 
 
 _pending_spawns = 0
@@ -91,6 +92,7 @@ async def admitted_spawn(
     command: str, *, root: str | None = None, env: dict[str, str] | None = None,
     cwd: str | Path | None = None, pass_fds: tuple[int, ...] = (),
     input_enabled: bool = True, limit: int = 65536,
+    selection: RouteSelection | None = None,
 ) -> AttachedChild:
     """Hold the core wire lock until the asynchronous ACP spawn settles.
 
@@ -105,16 +107,12 @@ async def admitted_spawn(
     loop = asyncio.get_running_loop()
     child_env = (env if env is not None else os.environ).copy()
     child_cwd = str(Path(cwd if cwd is not None else os.getcwd()).resolve())
-    ingress_root = configured_root(child_env, child_cwd)
+    selection = selection or RouteSelection.for_child(child_env, child_cwd)
+    ingress_root = selection.root
+    if configured_root(child_env, child_cwd) != ingress_root:
+        raise ValueError("ACP child environment conflicts with its selected route")
     from toad.comms_root import selected_write
 
-    # Capture how this CHILD selected its root before pinning AGENT_COMMS_ROOT.
-    # A caller's explicit child override remains independent even if the
-    # Toad process itself currently uses an implicit default route.
-    default_route = "AGENT_COMMS_ROOT" not in child_env
-    # The gate and child must use the *same* target even if an alias symlink
-    # changes after admission but before exec. Never inherit a relative root.
-    child_env["AGENT_COMMS_ROOT"] = str(ingress_root)
     process_ready: concurrent.futures.Future[AttachedChild] = concurrent.futures.Future()
     decision: concurrent.futures.Future[bool] = concurrent.futures.Future()
 
@@ -135,19 +133,22 @@ async def admitted_spawn(
             # Route SH precedes the maintenance/bus lock, matching the core
             # publisher's route EX -> private-root preflight ordering. Hold it
             # through the actual spawn and settlement, not just UI preflight.
-            with selected_write(ingress_root, implicit=default_route), admission(
+            with selected_write(ingress_root, implicit=selection.implicit), admission(
                 root, ingress_root=ingress_root, cwd=child_cwd
             ):
                 from agent_comms.private_nk_entrypoint import (
                     PACKAGE_ENV, ROOT_ID_ENV, private_nk_launch,
                 )
 
-                if default_route:
+                # Publish the captured root only after locked admission; this
+                # projection must never redefine how the route was selected.
+                child_env["AGENT_COMMS_ROOT"] = str(ingress_root)
+                if selection.implicit:
                     from agent_comms.active_route import read_active_route
 
                     route = read_active_route()
                     if route is not None:
-                        if route.root.resolve() != ingress_root:
+                        if route != selection.route:
                             raise ValueError("ACP root changed before private launch")
                         for key, expected in (
                             (ROOT_ID_ENV, route.wire_root_id),

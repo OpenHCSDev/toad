@@ -34,8 +34,7 @@ class AgentProcess:
         self.agent = agent
         self.env = None
         self.cwd = None
-        self.root = None
-        self.implicit_root = None
+        self.route_selection = None
         self.process = None
         self.runner = None
         self.session_task = None
@@ -48,24 +47,17 @@ class AgentProcess:
         # Freeze exactly the environment and working directory passed to the
         # child. A relative wire root is relative to the child cwd, not Toad's.
         # Preflight is early denial; the actual spawn takes the core wire lock.
-        from .maintenance_ingress import configured_root, preflight
+        from toad.comms_root import RouteSelection
+        from .maintenance_ingress import preflight
 
         self.env = os.environ.copy()
-        self.implicit_root = (
-            "AGENT_COMMS_ROOT" not in self.env
-        )
         self.cwd = str(self.agent.project_root_path.resolve())
-        self.root = configured_root(
-            self.env, self.cwd
-        )
-        # The later process runner must not re-resolve an alias after the
-        # preflight snapshot while prompt admission still uses this root.
-        self.env["AGENT_COMMS_ROOT"] = str(self.root)
+        self.route_selection = RouteSelection.for_child(self.env, self.cwd)
         try:
             await asyncio.to_thread(
                 preflight,
                 (self.agent.coordination.wire_root if self.agent.coordination else None),
-                ingress_root=self.root,
+                ingress_root=self.route_selection.root,
                 cwd=self.cwd,
             )
         except Exception as error:
@@ -94,9 +86,9 @@ class AgentProcess:
 
                 with admitted_prompt(
                     (self.agent.coordination.wire_root if self.agent.coordination else None),
-                    ingress_root=self.root,
+                    ingress_root=self.route_selection.root,
                     cwd=self.cwd,
-                    implicit=self.implicit_root,
+                    implicit=self.route_selection.implicit,
                 ):
                     stdin.write(b"%s\n" % request.body_json)
             else:
@@ -198,6 +190,7 @@ class AgentProcess:
                 command,
                 root=agent.coordination.wire_root if agent.coordination else None,
                 env=env,
+                selection=self.route_selection,
                 cwd=self.cwd or str(agent.project_root_path.resolve()),
                 limit=10 * 1024 * 1024,
             )
