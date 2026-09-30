@@ -23,3 +23,33 @@ added and removed tags. Arendt442 supplies the existing canonical private
 fixture/pin. Current main216 requires Core421 API; it must not be adapted to000
 or mixed into the accepted first-release173 stage. This baseline modal content
 case is independent and does not claim that full fork journey has passed.
+
+
+## Installed candidate content and full fork baseline
+
+Candidate production88d5a1a4/Core2519/Text650/e36 installed normally with all
+68 dependencies. Actual application paste entrypoint preserves both task
+paragraphs, indentation and the final newline in canonical ForkSpec. Enter is
+an editing newline; the explicit Fork button submits. No provider or owner
+starts. The first candidate03 driver erroneously posted an unforwarded Paste
+directly to TextArea: TextArea bubbled it to App, which forwarded it a second
+time. That driver entry was corrected to the actual App paste dispatch; no
+product paste special case or text deduplication was introduced. Candidate04
+passes exact content equality; original failed driver evidence is preserved.
+
+The actual empty-task baseline forks the canonical child with the requested
+added tag and the parent tag removed; parent tags stay unchanged. Before first
+child RPC socket and first message, physical opening is blocked by a stale
+channel roster: after eight seconds the current ready Workspace/PresentedFrame
+has an attached, displayed, enabled, ready sidebar, no pending read or locks,
+but its rows still contain only beta/#team, while the original registry declares
+immediate-fork/#fork-added. One parent provider request, zero child prompts and
+zero provider errors. This is not an idle-predicate assertion or dialog task
+loss. Einstein225 owns the existing roster source/subscription investigation;
+Heisenberg227 owns any frame/resource crossing. No new refresh timer, local
+flush, duplicated registry or forced child replay was added here.
+
+Fresh private roots cw228b03 and cw228b04 and their native journals remain
+protected. The full empty-task/immediate-open/first-native-message acceptance
+has not passed, so PR228 remains a draft. Evidence captures exact canonical
+registry versus actual published rows and native SVG, not inferred status.
