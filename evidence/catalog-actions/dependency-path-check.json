@@ -1,0 +1,6 @@
+{
+  "canonical_metadata_resolution_via_actual_python_sys_path": "PASS",
+  "checked_distribution_extra_pairs": 71,
+  "errors": [],
+  "uv_pip_check": "fails partial-prefix enumeration: borrowed readonly pth dependencies are importable but not counted; not a self-contained release stage"
+}

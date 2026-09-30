@@ -6,7 +6,6 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec, TextRepresentation
 
 type OS = Literal['macos', 'linux', 'windows', '*']
-type Action = str
 
 
 class AgentKind(DeclaredFamily, affix='AgentKind'):
@@ -64,6 +63,20 @@ class Command:
     command: str
     bootstrap_uv: bool = False
 
+    def bind(self, name: str):
+        """Bind this original record to a native catalog operation."""
+        from toad.catalog_actions import CatalogCommandAction, RunAction
+        try:
+            # External catalog IDs permit hyphens as well as underscores.
+            # Keep the original ID on the bound operation; only this lookup
+            # uses the declaration's native snake-case spelling.
+            operation = CatalogCommandAction.decode(name.replace('-', '_'))
+        except ValueError:
+            # Configured command IDs are open: arbitrary scripts have ordinary
+            # completion behavior, not an implicit installation/login policy.
+            operation = RunAction
+        return operation(name, self)
+
 
 @dataclass(frozen=True)
 class AgentDefinition:
@@ -85,6 +98,10 @@ class AgentDefinition:
     actions: dict[str, dict[str, Command]] = field(default_factory=dict)
     active: bool = True
     recommended: bool = False
+
+    def commands_for(self, platform: OS) -> dict[str, Command]:
+        """Select the catalog's exact platform or its declared wildcard."""
+        return self.actions.get(platform, self.actions.get('*', {}))
 
     @classmethod
     def decode(cls, value: object) -> AgentDefinition:
