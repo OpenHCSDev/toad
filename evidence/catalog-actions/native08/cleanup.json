@@ -1,0 +1,12 @@
+{
+  "private_root": "/home/ts/.cache/agent-scratch/cat234-20260930/n8/private-root/wire",
+  "registry_owner_alive": {
+    "beta": false,
+    "user": false,
+    "project": false
+  },
+  "exact_attempt_leaks": [],
+  "live_or_default_actions": [],
+  "custody": "existing fixture Comms.owners.stop against its exclusive private root; no descendant/name cleanup or public owner signals",
+  "retained_history": "private root and all native/input journals retained; fresh input per attempt, no failed/UNKNOWN replay"
+}

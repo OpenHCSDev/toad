@@ -1,0 +1,60 @@
+{
+  "state": "READY-reviewed-paired-installed-native-journey",
+  "stage": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+  "pins": {
+    "agent-comms": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+    "batrachian-toad": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "source_proof": {
+    "agent-comms": {
+      "pin": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+      "python_files_equal": 288,
+      "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/agent_comms",
+      "noneditable": true
+    },
+    "batrachian-toad": {
+      "pin": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+      "python_files_equal": 273,
+      "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/toad",
+      "noneditable": true
+    },
+    "textual": {
+      "pin": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+      "python_files_equal": 249,
+      "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/textual",
+      "noneditable": true
+    }
+  },
+  "build_count": 1,
+  "installed_package_count": 68,
+  "mechanical_preflight": "preflight.json passed; zero remaining probe PIDs",
+  "journey": "Existing233native08 caller unchanged; only selected runtime/native/fixture environment differs",
+  "journey_exit_code": 0,
+  "fork_proof": "native-pair01/fresh-fork.json",
+  "visible_answer_census": "native-pair01/response-census.json",
+  "canonical_idle_and_prompt_settled": true,
+  "controlled_loopback_requests": 2,
+  "external_paid_calls": 0,
+  "original_input_replays": 0,
+  "cleanup": "cleanup.json; zero remaining attempt PIDs; two StartedInput rows; zero UNKNOWN",
+  "scope": "fork declaration/inherited-edited tags -> sidebar disclosure/child -> pre-socket pending beyond5s -> native/ACPload inherited history -> physical Enter first childinput -> one native user/one mounted+painted reply -> idle/source cursor",
+  "limits": [
+    "Real installed Textual Pilot/UI clicks/native/ACP; not a new st/X11 physical recording",
+    "236 adaptive/raster/physical/velocity/void/budget excluded",
+    "235 cancellation05 failure not fixed by this cohort"
+  ],
+  "activation": "NOT public; parent432 sole owner after old CLIENT writer retirement requirement",
+  "public_root_loaded": false,
+  "default_changed": false,
+  "public_owner_restarted": false,
+  "own_production_lines_deleted": 0,
+  "paired_dependency_lines_deleted": 3,
+  "paired_dependency_lines_added": 3,
+  "scratch_cleanup": {
+    "removed_empty_directory": "/home/ts/.cache/agent-scratch/toad-c3-final-native-20260930"
+  }
+}

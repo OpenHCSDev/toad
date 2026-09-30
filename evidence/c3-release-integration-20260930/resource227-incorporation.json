@@ -1,0 +1,16 @@
+{
+  "phase": "227-reviewed-resource-checkpoint-incorporated-awaiting-final-Core442",
+  "merge_commit": "477c082279bd348978ebef378ea046e9b73fdaf2",
+  "incorporated_227": "cb77ce9ad347c3b77a3e1abcb15a8a7ab05aeebb",
+  "followup_pr": 236,
+  "production_added": 43,
+  "production_deleted": 39,
+  "own_production_implementation_edits": 0,
+  "accepted_evidence": "evidence/workspace-custody-227/original-native-warm/attempt-04-receipt.json",
+  "accepted_scope": "Original41MB A/channel/A twice; same reader/prepared/page/children/editor/undo/draft and position; zero native inputs/custody unchanged",
+  "accepted_pair": "Core095 / Text650 / SDK0.12.1 / nativee36",
+  "target_Textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347; not part of original227 acceptance",
+  "remaining_scope": "236 raster/physical/velocity/void/budget; no first-paint or terminalStrip claim",
+  "build_started": false,
+  "default_changed": false
+}

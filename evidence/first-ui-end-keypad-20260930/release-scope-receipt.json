@@ -1,0 +1,23 @@
+{
+  "state": "ready-scoped-first-ui-checkpoint",
+  "preflight_before": "preflight-historical-missing.json",
+  "preflight_after": "preflight-fixed.json",
+  "historical_preui_guard_error": "ValueError: Candidate activation and private route native packages must match",
+  "staging_publication_owner": "RuntimeSelection.publish_verified_stage",
+  "immutable_artifact": "activation.json derives stage/pins/sdk/native from staging-receipt.json; verification state only",
+  "actual_live_activation_owner": "canonical route and installed launcher receipt, parent only",
+  "cohort_equal_completed_physical_capture": true,
+  "current_runtime_source_fingerprints_equal_physical_capture": true,
+  "physical_review": "physical-keypad-scoped-review.json",
+  "physical_status": "SCOPED_DELETE_PASS_WHOLE_FOCUS_NOT_READY",
+  "physical_seconds": 46.04230093600927,
+  "scope": "Delete/application keypad + previously reviewed224 End source; no whole history-focus or comparative CPU/warmth claim",
+  "whole_focus_counterevidence": "Historyclick hit legitimate comms428 outbound link and opened another tab; raw strict FAIL preserved; Heisenberg227 owns remaining coverage",
+  "default_mutations": 0,
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "new_production_implementation_edits": 0,
+  "source_composition_deletions_from173": 40,
+  "integration_dependency_lines_deleted": 3,
+  "helper_lines_added": 20
+}

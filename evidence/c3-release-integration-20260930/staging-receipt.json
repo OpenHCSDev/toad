@@ -1,0 +1,43 @@
+{
+  "stage": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+  "pins": {
+    "agent-comms": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+    "batrachian-toad": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "native_tree_commitment": "8189b66abc4f9f431dbb70941dcba690d76d040de1fbfff212886be35a53639d  dist/cli.js",
+  "native_trust": "Reused accepted standalonee36 full-trust artifact; current wheel commitment unchanged; no repeated native tree hash/journey",
+  "frozen_package_count": 68,
+  "requirements_sha256": "dc3c94ef2fd5c26613811372ad28c3be20755009b81a3113e24e9a9f4bbc8360",
+  "package_compatibility": "uv pip check passed68",
+  "component_source_proof": {
+    "agent-comms": {
+      "pin": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+      "python_files_equal": 288,
+      "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/agent_comms",
+      "noneditable": true
+    },
+    "batrachian-toad": {
+      "pin": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+      "python_files_equal": 273,
+      "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/toad",
+      "noneditable": true
+    },
+    "textual": {
+      "pin": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+      "python_files_equal": 249,
+      "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/textual",
+      "noneditable": true
+    }
+  },
+  "build_count": 1,
+  "public_root_loaded": false,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "defaults_changed": false,
+  "public_owners_restarted": false,
+  "physical_acceptance": "existing scoped235/227/234 receipts; new paired runtime physical journey pending"
+}

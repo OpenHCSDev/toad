@@ -1,0 +1,39 @@
+{
+  "state": "installed-inactive-source-verified-physical-gate-pending",
+  "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+  "pins": {
+    "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+    "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+    "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+  },
+  "sdk": "0.12.1",
+  "python_sources": {
+    "agent_comms": {
+      "source": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/agent_comms",
+      "files": 288,
+      "mismatches": []
+    },
+    "toad": {
+      "source": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/toad",
+      "files": 269,
+      "mismatches": []
+    },
+    "textual": {
+      "source": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/textual",
+      "files": 249,
+      "mismatches": []
+    }
+  },
+  "providers_called": 0,
+  "default_mutations": 0,
+  "physical_owner": "Kepler",
+  "frozen_package_count": 68,
+  "requirements_sha256": "aae8e9caf02200c657884eb5768272ef72b318123f5bdac5752ff9c99c654107",
+  "package_compatibility": "uv pip check passed all68",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_full_trust": "passed",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07"
+}
