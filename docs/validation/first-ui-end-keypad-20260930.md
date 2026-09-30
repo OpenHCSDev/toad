@@ -22,3 +22,11 @@ This draft tracks an inactive source cohort, not a rollback of current main. No 
 ## Source composition checkpoint
 
 Normal merge2e200a79 joins both exact reviewed heads without conflicts. Both216 head and merge are excluded from resulting ancestry, and thread_actions contains no available_for call. No implementation edits. Dependency resolution changes only the3Textual source-pin lines,3deleted/3added; Core000/SDK0.12.1 remain fixed. Installed physical acceptance is pending Kepler.
+
+## Inactive installed candidate
+
+Protected runtime: /home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin. Frozen68packages from reviewed173 donor, normal uv pip hardlink install. Only To9354b391880980c9c987f421e16b9a1fd59b3f3b and Text4e8d13d21bf98e4ad52e610277d7d06c9035ccfa replace donor pins. Core000a31c562b6d048e26e288b24fcd3f1ac64f803/SDK0.12.1 preserved. uv pip check accepts all68; expected freeze equals actual package set.
+
+Exact immutable git tree byte proof:288Core/269Toad/249TextPython files, zero mismatches. Native e36 standalone full trust passed; installed manifest SHAe36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07. Stage imported packages resolve only within candidate; no editable source/dependency fallback. See staging-receipt.json, requirements.txt and raw staging log. No provider calls or defaults/public owner changes.
+
+Kepler was given these immutable full pins for the sole45s affected physical editor/focus journey. Ready for that gate, not activation or product success. Do not rewrite the candidate during capture; parent owns final installation/cutover. Current C3/CPU225 live activation remains442;227 warmth/adaptive/CPU work is outside this source composition.
