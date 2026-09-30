@@ -44,7 +44,8 @@ class ResourceJourneyApp(ToadApp):
             if view is not None:
                 self.frames.append({
                     'elapsed': round(time.monotonic() - self.began, 3),
-                    'phase': view.turns.owner.state.phase.declared_name,
+                    'activity': view.turns.owner.activity,
+                    'turn_id': view.turns.owner.managed_id,
                     'paint': screen_paint(self),
                 })
 
