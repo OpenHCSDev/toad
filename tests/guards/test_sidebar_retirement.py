@@ -11,6 +11,13 @@ from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 ROOT = Path(__file__).resolve().parents[2] / "src/toad/widgets"
 
 
+def test_channel_row_order_has_no_stored_copy():
+    for path in ROOT.parent.rglob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Attribute):
+                assert node.attr != "member_rows", (path, node.lineno)
+
+
 def test_new_panel_case_is_derived_and_owns_its_presentation():
     assert inspect.isabstract(SessionPanel)
 
