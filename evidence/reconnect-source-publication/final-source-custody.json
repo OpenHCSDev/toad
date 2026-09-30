@@ -9,10 +9,9 @@
     "/home/ts/wt/cw232c03",
     "/home/ts/wt/cw232s04"
   ],
-  "remaining_fixture_processes": [
-    2993679
-  ],
+  "remaining_fixture_processes": [],
   "new_store_or_seen_registry": false,
   "production_lines_added": 3,
-  "production_lines_deleted": 4
+  "production_lines_deleted": 4,
+  "custody_probe": "Scoped canonical private-root child environment; excludes current reporter and ancestors. Initial raw command-substring probe matched the enclosing tool shell; it exited. Failed broad probe retained under .artifacts/custody-initial-broad-probe.json."
 }
