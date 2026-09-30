@@ -304,5 +304,144 @@ async def main():
             print(json.dumps(receipt))
 
 
+async def readiness_journey():
+    """One real mount/expansion/retirement/restore journey; no provider."""
+    from agent_comms.transcript_events import AssistantTranscript
+    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.widgets.transcript_history import TranscriptPageView
+
+    evidence = Path(os.environ['BODY_ORDER_EVIDENCE']).resolve()
+    evidence.mkdir(parents=True, exist_ok=True)
+    entered, release = asyncio.Event(), asyncio.Event()
+
+    class HeldBody(AgentResponse):
+        async def _parse_tokens(self, parser, markdown, *, use_thread):
+            entered.set()
+            await release.wait()
+            return await super()._parse_tokens(parser, markdown, use_thread=use_thread)
+
+    class HeldFragment(TranscriptFragmentView):
+        def compose(self):
+            yield HeldBody('NATIVE_BODY_READY\n\nOriginal mounted Markdown.', paginate=False)
+
+    with TemporaryDirectory(prefix='body-readiness-', dir=evidence) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
+                          XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
+        Comms(root / 'wire').messaging.initialize_private_initial_protocol()
+        app = ToadApp(project_dir=str(root))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            operations = []
+            try:
+                view = app.selected_session.conversation
+                viewport = view.window.document_viewport
+                await viewport.suspend_source()
+                fragment = HeldFragment(TranscriptFragment((AssistantTranscript('NATIVE_BODY_READY'),)))
+
+                class HeldPage(TranscriptPageView):
+                    def _body(self, source):
+                        assert source == fragment.fragment
+                        return fragment
+
+                cursor = TranscriptCursor('', 0)
+                page = TranscriptPage(fragment.fragment.events, cursor, cursor, False, False)
+                history = TranscriptHistory(page, fragments=(fragment.fragment,))
+                history.pages[0] = HeldPage(page, fragments=(fragment.fragment,))
+                mounting = asyncio.ensure_future(view.contents.mount(history))
+                operations.append(mounting)
+                await asyncio.wait_for(entered.wait(), 5)
+                print("HELD_NATIVE_PARSE", flush=True)
+                assert not fragment.is_mounted and not fragment.body_ready
+                release.set()
+                await asyncio.wait_for(mounting, 5)
+                await pilot.pause()
+                assert fragment.is_mounted and fragment.body_ready
+
+                # Later native composition is independent of the parent's Mount.
+                entered.clear()
+                release.clear()
+                child = HeldBody('LATER_NATIVE_BODY', paginate=False)
+                child.styles.min_height = 1
+                expanding = asyncio.ensure_future(fragment.mount(child))
+                operations.append(expanding)
+                await asyncio.wait_for(entered.wait(), 5)
+                print("HELD_NATIVE_PARSE", flush=True)
+                assert fragment.is_mounted and fragment.body_ready
+                assert not child.is_mounted and not child.body_ready
+                assert child not in viewport.owners
+                assert child not in app.screen._compositor.visible_widgets
+                assert not await fragment.retire_body(), 'Pruning abandoned a pending nested Mount'
+                release.set()
+                await asyncio.wait_for(expanding, 5)
+                await pilot.pause()
+                assert viewport.visible_bodies_ready
+                assert fragment._body_measurement is not None
+                # Restore a visible nested resource through its original body
+                # owner while the containing fragment remains mounted.
+                assert child._body_measurement is not None
+                assert await child.retire_body()
+                await pilot.pause()
+                assert child.is_mounted and not child.body_ready
+                assert child not in viewport.owners
+                assert child in app.screen._compositor.visible_widgets
+                assert not viewport.visible_bodies_ready
+                assert not await fragment.retire_body()
+                entered.clear()
+                release.clear()
+                restoring_child = asyncio.create_task(child.restore_body())
+                operations.append(restoring_child)
+                await asyncio.wait_for(entered.wait(), 5)
+                assert fragment.is_mounted and fragment.body_ready
+                assert child.is_mounted and not child.body_ready
+                assert not viewport.visible_bodies_ready
+                assert not await fragment.retire_body()
+                release.set()
+                await asyncio.wait_for(restoring_child, 5)
+                await pilot.pause()
+                assert child.body_ready and viewport.visible_bodies_ready
+
+                # Frame admission consumes native visibility, not a subtree census.
+                profile = cProfile.Profile()
+                profile.enable()
+                for _ in range(100):
+                    assert viewport.visible_bodies_ready
+                profile.disable()
+                walks = sum(row[1] for (_, _, name), row in pstats.Stats(profile).stats.items()
+                            if name == 'walk_children')
+                profile.dump_stats(str(evidence / 'readiness.prof'))
+                assert walks == 0
+
+                assert await fragment.retire_body()
+                assert not fragment.body_ready and not fragment.children
+                entered.clear()
+                release.clear()
+                restoring = asyncio.create_task(fragment.restore_body())
+                operations.append(restoring)
+                await asyncio.wait_for(entered.wait(), 5)
+                print("HELD_NATIVE_PARSE", flush=True)
+                assert fragment.is_mounted and not fragment.body_ready
+                release.set()
+                await asyncio.wait_for(restoring, 5)
+                await pilot.pause()
+                assert fragment.body_ready and viewport.visible_bodies_ready
+                paint = '\n'.join(strip.text for strip in app.screen._compositor.render_strips())
+                assert 'NATIVE_BODY_READY' in paint
+                (evidence / 'restored.svg').write_text(app.export_screenshot())
+                receipt = dict(initial_native_mount_joined=True, later_pending_mount_not_yet_visible=True,
+                               visible_nested_restore_blocks_frame=True,
+                               retirement_preserves_pending_nested_mount=True, restored_native_body_painted=True,
+                               profiled_frame_subtree_walks=walks, provider_calls=0,
+                               boundary='Actual Toad native widgets/Pilot; source scope, not installed physical CPU acceptance')
+                (evidence / 'readiness-receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
+                assert app._exception is None
+                print(json.dumps(receipt))
+            finally:
+                release.set()
+                await asyncio.wait_for(asyncio.gather(*operations, return_exceptions=True), 10)
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    import sys
+    asyncio.run(readiness_journey() if '--readiness' in sys.argv else main())
