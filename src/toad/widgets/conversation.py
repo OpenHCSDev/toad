@@ -1164,6 +1164,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     async def action_provider_login(self) -> None:
         import shlex
         from textual.geometry import Offset
+        from toad.agent_schema import Command
         from toad.screens.action_modal import ActionModal
         from toad.widgets.comms_menu import ContextMenu
 
@@ -1196,9 +1197,8 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 command = command + (" " + shlex.join(arguments) if arguments else "")
                 code = await self.app.push_screen_wait(
                     ActionModal(
-                        "login",
-                        self.model_history_scope,
-                        method.name,
+                        Command(method.name, command).bind("login"),
+                        agent.definition,
                         command,
                         env=method.env or {},
                         cwd=str(self.project_path),
