@@ -1,0 +1,618 @@
+{
+  "all_views_open_before_send": true,
+  "original_inputs_retried": 0,
+  "phase": "original_projection_failure",
+  "original": {
+    "seq": 1,
+    "message_id": "9599c411bebf"
+  },
+  "processing": "Responding\u2026",
+  "reply": {
+    "seq": 7,
+    "message_id": "bc4cb24d214b"
+  },
+  "original_native_reply": {
+    "assignment_id": "cohort-v1:16fdc293b9146185ac63a63acc1e1d5b97d21bd46ccdbe30d1721d66c377118f",
+    "recipient_lookup": "ad868963c31dabb77e13365cd6a9ac2f",
+    "native_input_id": "92d081dcc05de8d82d7723a431a9693d",
+    "execution_id": "wirev19a4672bd72d1a0b12f4a019492b203c68b15922ef321b0aba22f51db2f35040c",
+    "native_entry_id": "9023de70",
+    "native_session_file": "/home/ts/wt/cw215h04/private-root/wire/native-sessions/ad868963c31dabb77e13365cd6a9ac2f/2026-09-30T07-52-52-716Z_01a0f14d-56ec-7095-a38a-ef63a91af183.jsonl"
+  },
+  "original_target_handling": "Responded",
+  "same_open_31s": [
+    {
+      "second": 0,
+      "original_sender": 2,
+      "original_recipient": 1,
+      "reply_sender": 1,
+      "reply_recipient": 1
+    }
+  ],
+  "failed_original_projection": {
+    "sender": {
+      "view_attached": true,
+      "view_is_selected": true,
+      "mounted_count": 2,
+      "mounted_rows": [
+        {
+          "resource_id": 139659351288592,
+          "ancestors": [
+            {
+              "kind": "TranscriptFragmentView",
+              "resource_id": 139659351289200
+            },
+            {
+              "kind": "TranscriptPageView",
+              "resource_id": 139659353400464
+            },
+            {
+              "kind": "TranscriptHistory",
+              "resource_id": 139659353400144
+            },
+            {
+              "kind": "Contents",
+              "resource_id": 139660326015440
+            },
+            {
+              "kind": "ContentsGrid",
+              "resource_id": 139660326014800
+            },
+            {
+              "kind": "Window",
+              "resource_id": 139660326014480
+            },
+            {
+              "kind": "Conversation",
+              "resource_id": 139660326625488
+            },
+            {
+              "kind": "Vertical",
+              "resource_id": 139659777783952
+            },
+            {
+              "kind": "Center",
+              "resource_id": 139659777775952
+            },
+            {
+              "kind": "MainScreen",
+              "resource_id": 139660326628048
+            },
+            {
+              "kind": "Container",
+              "resource_id": 139659777769552
+            },
+            {
+              "kind": "Horizontal",
+              "resource_id": 139660326633168
+            },
+            {
+              "kind": "WorkspaceScreen",
+              "resource_id": 139660326627728
+            },
+            {
+              "kind": "WindowApp",
+              "resource_id": 139660389638432
+            }
+          ],
+          "history_resources": [
+            {
+              "resource_id": 139659353400144,
+              "registered_here": true,
+              "window_resource_id": 139660326014480,
+              "current_window_resource_id": 139660326014480,
+              "cursor": {
+                "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+                "offset": 3302,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 7
+                }
+              }
+            }
+          ],
+          "region": "Region(x=65, y=-51, width=88, height=7)",
+          "painted": false,
+          "in_viewport": false
+        },
+        {
+          "resource_id": 139659472616064,
+          "ancestors": [
+            {
+              "kind": "TranscriptFragmentView",
+              "resource_id": 139659472613024
+            },
+            {
+              "kind": "TranscriptPageView",
+              "resource_id": 139659482439568
+            },
+            {
+              "kind": "TranscriptHistory",
+              "resource_id": 139659482438928
+            },
+            {
+              "kind": "Contents",
+              "resource_id": 139660326015440
+            },
+            {
+              "kind": "ContentsGrid",
+              "resource_id": 139660326014800
+            },
+            {
+              "kind": "Window",
+              "resource_id": 139660326014480
+            },
+            {
+              "kind": "Conversation",
+              "resource_id": 139660326625488
+            },
+            {
+              "kind": "Vertical",
+              "resource_id": 139659777783952
+            },
+            {
+              "kind": "Center",
+              "resource_id": 139659777775952
+            },
+            {
+              "kind": "MainScreen",
+              "resource_id": 139660326628048
+            },
+            {
+              "kind": "Container",
+              "resource_id": 139659777769552
+            },
+            {
+              "kind": "Horizontal",
+              "resource_id": 139660326633168
+            },
+            {
+              "kind": "WorkspaceScreen",
+              "resource_id": 139660326627728
+            },
+            {
+              "kind": "WindowApp",
+              "resource_id": 139660389638432
+            }
+          ],
+          "history_resources": [
+            {
+              "resource_id": 139659482438928,
+              "registered_here": true,
+              "window_resource_id": 139660326014480,
+              "current_window_resource_id": 139660326014480,
+              "cursor": {
+                "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+                "offset": 2782,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 1
+                }
+              }
+            }
+          ],
+          "region": "Region(x=65, y=23, width=88, height=7)",
+          "painted": true,
+          "in_viewport": true
+        }
+      ],
+      "source_events": [
+        {
+          "history": "TranscriptHistory",
+          "resource_id": 139659739283856,
+          "cursor": {
+            "session_file": "",
+            "offset": 0,
+            "receipts": {
+              "root": "/home/ts/wt/cw215h04/private-root/wire",
+              "recipient": {
+                "name": "alpha",
+                "created_at": 1790754743.7569108
+              },
+              "sequence": 0
+            }
+          },
+          "resident_pages": [
+            {
+              "before": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 0
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 0,
+              "fragment_count": 0
+            }
+          ],
+          "matching_events": []
+        },
+        {
+          "history": "TranscriptHistory",
+          "resource_id": 139659482438928,
+          "cursor": {
+            "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+            "offset": 2782,
+            "receipts": {
+              "root": "/home/ts/wt/cw215h04/private-root/wire",
+              "recipient": {
+                "name": "alpha",
+                "created_at": 1790754743.7569108
+              },
+              "sequence": 1
+            }
+          },
+          "resident_pages": [
+            {
+              "before": {
+                "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+                "offset": 2782,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 1
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 4,
+              "fragment_count": 4
+            }
+          ],
+          "matching_events": [
+            "SentTranscript"
+          ]
+        },
+        {
+          "history": "TranscriptHistory",
+          "resource_id": 139659353400144,
+          "cursor": {
+            "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+            "offset": 3302,
+            "receipts": {
+              "root": "/home/ts/wt/cw215h04/private-root/wire",
+              "recipient": {
+                "name": "alpha",
+                "created_at": 1790754743.7569108
+              },
+              "sequence": 7
+            }
+          },
+          "resident_pages": [
+            {
+              "before": {
+                "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+                "offset": 3302,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790754743.7569108
+                  },
+                  "sequence": 7
+                }
+              },
+              "first_fragment": 3,
+              "last_fragment": 11,
+              "fragment_count": 11
+            }
+          ],
+          "matching_events": [
+            "SentTranscript"
+          ]
+        }
+      ],
+      "canonical_page": {
+        "before": {
+          "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+          "offset": 0,
+          "receipts": {
+            "root": "/home/ts/wt/cw215h04/private-root/wire",
+            "recipient": {
+              "name": "alpha",
+              "created_at": 1790754743.7569108
+            },
+            "sequence": 0
+          }
+        },
+        "after": {
+          "session_file": "/home/ts/wt/cw215h04/application/pi/sessions/--home-ts-wt-cw215h04-application-project--/2026-09-30T07-52-46-639Z_01a0f14d-3f2e-7245-9566-0fcdf932d22a.jsonl",
+          "offset": 3302,
+          "receipts": {
+            "root": "/home/ts/wt/cw215h04/private-root/wire",
+            "recipient": {
+              "name": "alpha",
+              "created_at": 1790754743.7569108
+            },
+            "sequence": 7
+          }
+        },
+        "matching_events": [
+          "SentTranscript"
+        ]
+      }
+    },
+    "recipient": {
+      "view_attached": true,
+      "view_is_selected": true,
+      "mounted_count": 1,
+      "mounted_rows": [
+        {
+          "resource_id": 139659470791056,
+          "ancestors": [
+            {
+              "kind": "TranscriptFragmentView",
+              "resource_id": 139659723151376
+            },
+            {
+              "kind": "TranscriptPageView",
+              "resource_id": 139659471684624
+            },
+            {
+              "kind": "TranscriptHistory",
+              "resource_id": 139660344606416
+            },
+            {
+              "kind": "Contents",
+              "resource_id": 139660615254736
+            },
+            {
+              "kind": "ContentsGrid",
+              "resource_id": 139660615264016
+            },
+            {
+              "kind": "Window",
+              "resource_id": 139660615255056
+            },
+            {
+              "kind": "Conversation",
+              "resource_id": 139660625468048
+            },
+            {
+              "kind": "Vertical",
+              "resource_id": 139660617693968
+            },
+            {
+              "kind": "Center",
+              "resource_id": 139660636127648
+            },
+            {
+              "kind": "MainScreen",
+              "resource_id": 139660625466448
+            },
+            {
+              "kind": "Container",
+              "resource_id": 139660616295360
+            },
+            {
+              "kind": "Horizontal",
+              "resource_id": 139660616295024
+            },
+            {
+              "kind": "WorkspaceScreen",
+              "resource_id": 139660616287968
+            },
+            {
+              "kind": "EvidenceApp",
+              "resource_id": 139660635525472
+            }
+          ],
+          "history_resources": [
+            {
+              "resource_id": 139660344606416,
+              "registered_here": true,
+              "window_resource_id": 139660615255056,
+              "current_window_resource_id": 139660615255056,
+              "cursor": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 7
+                }
+              }
+            }
+          ],
+          "region": "Region(x=65, y=-16, width=88, height=6)",
+          "painted": false,
+          "in_viewport": false
+        }
+      ],
+      "source_events": [
+        {
+          "history": "TranscriptHistory",
+          "resource_id": 139660344606416,
+          "cursor": {
+            "session_file": "",
+            "offset": 0,
+            "receipts": {
+              "root": "/home/ts/wt/cw215h04/private-root/wire",
+              "recipient": {
+                "name": "beta",
+                "created_at": 1790754743.7357728
+              },
+              "sequence": 7
+            }
+          },
+          "resident_pages": [
+            {
+              "before": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 0
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 0,
+              "fragment_count": 0
+            },
+            {
+              "before": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 1
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 1,
+              "fragment_count": 1
+            },
+            {
+              "before": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 1
+                }
+              },
+              "after": {
+                "session_file": "",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h04/private-root/wire",
+                  "recipient": {
+                    "name": "beta",
+                    "created_at": 1790754743.7357728
+                  },
+                  "sequence": 7
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 6,
+              "fragment_count": 6
+            }
+          ],
+          "matching_events": [
+            "IncomingTranscript"
+          ]
+        }
+      ],
+      "canonical_page": {
+        "before": {
+          "session_file": "",
+          "offset": 0,
+          "receipts": {
+            "root": "/home/ts/wt/cw215h04/private-root/wire",
+            "recipient": {
+              "name": "beta",
+              "created_at": 1790754743.7357728
+            },
+            "sequence": 0
+          }
+        },
+        "after": {
+          "session_file": "",
+          "offset": 0,
+          "receipts": {
+            "root": "/home/ts/wt/cw215h04/private-root/wire",
+            "recipient": {
+              "name": "beta",
+              "created_at": 1790754743.7357728
+            },
+            "sequence": 7
+          }
+        },
+        "matching_events": [
+          "IncomingTranscript"
+        ]
+      }
+    }
+  }
+}

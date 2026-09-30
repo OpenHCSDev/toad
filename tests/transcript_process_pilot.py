@@ -1,4 +1,6 @@
 """Real process/heartbeat evidence and deterministic stale transcript publication races."""
+
+from agent_comms.message_reference import MessageReference
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 
 import asyncio
@@ -23,6 +25,7 @@ from agent_comms.transcript_events import (
     ToolEndTranscript,
     ToolStartTranscript,
     UserTranscript,
+    IncomingTranscript,
 )
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from runtime_fixture import ToadApp
@@ -104,16 +107,17 @@ async def main():
         )
     )
     table = "| A | B |\n| --- | --- |\n" + "| cell | value |\n" * 100
+    request = Message("sender", "#channel", "incoming", MessageType.INFO, timestamp=1)
     routing = TurnRouting(
-        (Message("sender", "#channel", "incoming", MessageType.INFO, timestamp=1),),
+        (request,),
         MessageRoute("worker", ("#channel", "peer")),
     )
     events = (
-        UserTranscript("Incoming message", routing=routing),
+        IncomingTranscript("Incoming message", route=MessageRoute(request.sender, (request.target,)), source=request.reference),
         AssistantTranscript(text, routing=routing),
         ThinkingTranscript("A thought\n\n" + table),
         NoticeTranscript("Notice"),
-        SentTranscript("Sent"),
+        SentTranscript("Sent", source=MessageReference(2, "process-outbound")),
         ToolStartTranscript(
             tool_call_id="edit/1",
             tool_name="edit",

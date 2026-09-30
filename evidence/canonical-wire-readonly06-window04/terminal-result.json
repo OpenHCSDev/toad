@@ -1,0 +1,9 @@
+{
+  "exit_code": 124,
+  "reason": "watchdog interrupted native ACP spawn retirement after UI phases completed",
+  "native_inputs_unchanged": true,
+  "owned_owner_processes_absent": [
+    2687299,
+    2687393
+  ]
+}

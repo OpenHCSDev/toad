@@ -1,0 +1,343 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "high",
+  "source_bytes": 41270257,
+  "original_inputs_replayed": 0,
+  "completed_phases": [
+    "original_saved_history_both_open",
+    "irc_open_before_send"
+  ],
+  "native_input_ids_before_readonly": [
+    "00e1f1dc51b43ad4e42b4a59358c77bb",
+    "afbb66cc0a7bed222740a5b9d4274df9"
+  ],
+  "phase": "readonly_complete",
+  "original_native_reply": {
+    "assignment_id": "cohort-v1:4370a41873ce057002d5a68831c866bf72cac4e6e2d2ebc4b3106e53b55d381d",
+    "recipient_lookup": "f2d1b106976d40521899875ce49ce13b",
+    "native_input_id": "afbb66cc0a7bed222740a5b9d4274df9",
+    "execution_id": "wirev1754258bdbf341dc0c3872fb80871a7681d78409c2799e3c183a237810f03c616",
+    "native_entry_id": "945beb5f",
+    "native_session_file": "/var/tmp/comms-real-wire-twt0ihzt/wire/native-sessions/f2d1b106976d40521899875ce49ce13b/2026-09-30T06-38-03-181Z_01a0f108-d5ac-77bb-9bc1-f879eb98147c.jsonl"
+  },
+  "retained_originals": [
+    {
+      "seq": 1,
+      "message_id": "811956778224"
+    },
+    {
+      "seq": 2,
+      "message_id": "c136d11a5590"
+    }
+  ],
+  "readonly_views_before_pause": {
+    "sender": {
+      "declared_app_is_caller_app": false,
+      "selected_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "ui_service_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "ui_registered_threads": 3,
+      "irc_history_root": null,
+      "agent_coordination_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "source_reader_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "registered_widgets": 325,
+      "mounted_widgets": 243,
+      "batch_count": 0,
+      "feedback": [
+        "Responded (1)",
+        "Checked \u2014 no response (1)"
+      ]
+    },
+    "recipient": {
+      "declared_app_is_caller_app": false,
+      "selected_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "ui_service_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "ui_registered_threads": 3,
+      "irc_history_root": null,
+      "agent_coordination_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "source_reader_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "registered_widgets": 224,
+      "mounted_widgets": 145,
+      "batch_count": 0,
+      "feedback": [
+        "Responded (1)",
+        "Checked \u2014 no response (1)"
+      ]
+    },
+    "irc": {
+      "declared_app_is_caller_app": true,
+      "selected_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "ui_service_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "ui_registered_threads": 3,
+      "irc_history_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+      "agent_coordination_root": null,
+      "source_reader_root": null,
+      "registered_widgets": 230,
+      "mounted_widgets": 39,
+      "batch_count": 0,
+      "feedback": [
+        "Notification status not checked",
+        "Notification status not checked"
+      ]
+    }
+  },
+  "readonly_pilot_pause": {
+    "wall_seconds": 1.0402083109947853,
+    "process_cpu_seconds": 1.2199605749999982,
+    "views": {
+      "sender": {
+        "declared_app_is_caller_app": false,
+        "selected_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "ui_service_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "ui_registered_threads": 3,
+        "irc_history_root": null,
+        "agent_coordination_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "source_reader_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "registered_widgets": 325,
+        "mounted_widgets": 243,
+        "batch_count": 0,
+        "feedback": [
+          "Responded (1)",
+          "Checked \u2014 no response (1)"
+        ]
+      },
+      "recipient": {
+        "declared_app_is_caller_app": false,
+        "selected_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "ui_service_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "ui_registered_threads": 3,
+        "irc_history_root": null,
+        "agent_coordination_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "source_reader_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "registered_widgets": 224,
+        "mounted_widgets": 145,
+        "batch_count": 0,
+        "feedback": [
+          "Responded (1)",
+          "Checked \u2014 no response (1)"
+        ]
+      },
+      "irc": {
+        "declared_app_is_caller_app": true,
+        "selected_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "ui_service_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "ui_registered_threads": 3,
+        "irc_history_root": "/var/tmp/comms-real-wire-twt0ihzt/wire",
+        "agent_coordination_root": null,
+        "source_reader_root": null,
+        "registered_widgets": 230,
+        "mounted_widgets": 39,
+        "batch_count": 0,
+        "feedback": [
+          "Responded (1)",
+          "Checked \u2014 no response (1)"
+        ]
+      }
+    }
+  },
+  "readonly_same_open_31s": [
+    {
+      "second": 0,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 1,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 2,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 3,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 4,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 5,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 6,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 7,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 8,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 9,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 10,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 11,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 12,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 13,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 14,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 15,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 16,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 17,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 18,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 19,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 20,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 21,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 22,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 23,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 24,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 25,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 26,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 27,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 28,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 29,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    },
+    {
+      "second": 30,
+      "original_sender": 1,
+      "original_recipient": 1,
+      "reply_sender": 1
+    }
+  ],
+  "readonly_physical_returns": [
+    {
+      "thread": "beta",
+      "return_seconds": 5.655819706997136
+    },
+    {
+      "thread": "alpha",
+      "return_seconds": 2.36823271799949
+    },
+    {
+      "thread": "beta",
+      "return_seconds": 3.103949948999798
+    }
+  ],
+  "native_input_ids_after_readonly": [
+    "00e1f1dc51b43ad4e42b4a59358c77bb",
+    "afbb66cc0a7bed222740a5b9d4274df9"
+  ]
+}

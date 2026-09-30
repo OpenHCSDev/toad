@@ -1,5 +1,7 @@
 """Earlier pages start loading before the viewport reaches its top edge."""
 
+from agent_comms.message_reference import MessageReference
+
 import asyncio
 import os
 from pathlib import Path
@@ -68,12 +70,12 @@ async def main():
             route = TurnRouting(reply=MessageRoute("owner", ("#team",)))
             filtered_tail = (
                 *(ThinkingTranscript(f'HIDDEN_{index}') for index in range(90)),
-                SentTranscript('VISIBLE_ROUTE\n\n' + 'Long routed line\n\n' * 50, routing=route),
+                SentTranscript('VISIBLE_ROUTE\n\n' + 'Long routed line\n\n' * 50, routing=route, source=MessageReference(1, 'prefetch-visible')),
             )
 
             async def filtered_loader(**kwargs):
                 filtered_calls.append(view.window.scroll_y)
-                return TranscriptPage((SentTranscript('FILTERED_PREFETCH', routing=route),),
+                return TranscriptPage((SentTranscript('FILTERED_PREFETCH', routing=route, source=MessageReference(2, 'prefetch-filtered')),),
                                       TranscriptCursor(file, 0), TranscriptCursor(file, 100),
                                       False, True)
 

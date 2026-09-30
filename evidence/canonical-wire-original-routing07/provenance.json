@@ -1,0 +1,35 @@
+{
+  "imports": {
+    "agent_comms": "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-original-routing07/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "toad": "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-original-routing07/lib/python3.14/site-packages/toad/__init__.py",
+    "textual": "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-original-routing07/lib/python3.14/site-packages/textual/__init__.py"
+  },
+  "sdk": "0.12.1",
+  "direct_urls": {
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+      }
+    },
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "56a7a9ec05444eeeee6d17458ebed529d3858aa2",
+        "requested_revision": "56a7a9ec05444eeeee6d17458ebed529d3858aa2"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "full_native_trust": true
+}

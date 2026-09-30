@@ -1,0 +1,125 @@
+{
+  "alpha": {
+    "original": {
+      "seq": 1,
+      "message_id": "0d4b79a92ee3"
+    },
+    "before": {
+      "session_file": "/home/ts/wt/cw215h03/application/pi/sessions/--home-ts-wt-cw215h03-application-project--/2026-09-30T07-41-20-610Z_01a0f142-c761-77f8-88d1-649b03dd8c56.jsonl",
+      "offset": 0,
+      "receipts": {
+        "root": "/home/ts/wt/cw215h03/private-root/wire",
+        "recipient": {
+          "name": "alpha",
+          "created_at": 1790754058.021749
+        },
+        "sequence": 0
+      }
+    },
+    "after": {
+      "session_file": "/home/ts/wt/cw215h03/application/pi/sessions/--home-ts-wt-cw215h03-application-project--/2026-09-30T07-41-20-610Z_01a0f142-c761-77f8-88d1-649b03dd8c56.jsonl",
+      "offset": 5245,
+      "receipts": {
+        "root": "/home/ts/wt/cw215h03/private-root/wire",
+        "recipient": {
+          "name": "alpha",
+          "created_at": 1790754058.021749
+        },
+        "sequence": 7
+      }
+    },
+    "matches": [
+      {
+        "kind": "sent",
+        "routing": {
+          "requests": [],
+          "reply": {
+            "sender": "alpha",
+            "targets": [
+              "#team"
+            ]
+          }
+        },
+        "source": {
+          "seq": 1,
+          "message_id": "0d4b79a92ee3"
+        },
+        "timestamp": 1790754083.254029,
+        "text": "@beta HOT_ORIGINAL_WIRE_BODY"
+      }
+    ],
+    "current_registration_source": "/home/ts/wt/cw215h03/application/pi/sessions/--home-ts-wt-cw215h03-application-project--/2026-09-30T07-41-20-610Z_01a0f142-c761-77f8-88d1-649b03dd8c56.jsonl",
+    "process_alive": false
+  },
+  "beta": {
+    "original": {
+      "seq": 1,
+      "message_id": "0d4b79a92ee3"
+    },
+    "before": {
+      "session_file": "/home/ts/wt/cw215h03/application/pi/sessions/--home-ts-wt-cw215h03-application-project--/2026-09-30T07-42-26-804Z_01a0f143-c9f3-7637-8c5c-0aec8858e1a1.jsonl",
+      "offset": 0,
+      "receipts": {
+        "root": "/home/ts/wt/cw215h03/private-root/wire",
+        "recipient": {
+          "name": "beta",
+          "created_at": 1790754058.0036433
+        },
+        "sequence": 0
+      }
+    },
+    "after": {
+      "session_file": "/home/ts/wt/cw215h03/application/pi/sessions/--home-ts-wt-cw215h03-application-project--/2026-09-30T07-42-26-804Z_01a0f143-c9f3-7637-8c5c-0aec8858e1a1.jsonl",
+      "offset": 4326,
+      "receipts": {
+        "root": "/home/ts/wt/cw215h03/private-root/wire",
+        "recipient": {
+          "name": "beta",
+          "created_at": 1790754058.0036433
+        },
+        "sequence": 7
+      }
+    },
+    "matches": [
+      {
+        "kind": "incoming",
+        "routing": {
+          "requests": [
+            {
+              "seq": 1,
+              "from": "alpha",
+              "to": "#team",
+              "ts": 1790754083.254029,
+              "type": "info",
+              "text": "@beta HOT_ORIGINAL_WIRE_BODY",
+              "sender_role": "agent",
+              "mentions": [
+                {
+                  "thread": "beta",
+                  "start": 0,
+                  "end": 5
+                }
+              ],
+              "id": "0d4b79a92ee3"
+            }
+          ],
+          "reply": null
+        },
+        "source": {
+          "seq": 1,
+          "message_id": "0d4b79a92ee3"
+        },
+        "timestamp": 1790754083.254029,
+        "text": "@beta HOT_ORIGINAL_WIRE_BODY",
+        "route": {
+          "sender": "alpha",
+          "targets": [
+            "#team"
+          ]
+        }
+      }
+    ],
+    "current_registration_source": "/home/ts/wt/cw215h03/application/pi/sessions/--home-ts-wt-cw215h03-application-project--/2026-09-30T07-42-26-804Z_01a0f143-c9f3-7637-8c5c-0aec8858e1a1.jsonl",
+    "process_alive": false
+  }
+}

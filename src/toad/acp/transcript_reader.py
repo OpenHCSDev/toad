@@ -6,12 +6,13 @@ import asyncio
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 
 from agent_comms.comms import wire
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.coordination_errors import StaleRevision
-from agent_comms.transcripts import TranscriptRead, TranscriptPage
+from agent_comms.transcripts import TranscriptRead, TranscriptPage, TranscriptReadIdentity
 
 from toad.work_preparation import (
     ScopedWork, SerializedWork, ThreadWork, PreparationRuntime, WorkKey,
@@ -25,10 +26,10 @@ class NativeTranscriptReadWork(ScopedWork[TranscriptPage],
 
     @property
     def work_key(self) -> WorkKey:
-        # The canonical owner already supplies a frozen semantic identity.
-        # Pickle bytes include incidental object-sharing and transient fields;
-        # equal source snapshots must name the same preparation work.
-        return WorkKey(NativeTranscriptReadWork, self.read.identity)
+        # The source owner names page content independently of annotations.
+        # Notification/reader changes refresh their projections without causing
+        # another native history read or inventing a second source identity.
+        return WorkKey(NativeTranscriptReadWork, self.read.identity.content_identity)
 
     def prepare(self) -> TranscriptPage:
         return self.read.read()
@@ -39,7 +40,7 @@ class PublishedNativeTranscriptReadWork(NativeTranscriptReadWork):
     page: TranscriptPage
 
     def prepare(self) -> TranscriptPage:
-        if not self.read.current():
+        if not self.read.content_current():
             raise StaleRevision("Published transcript inputs changed before admission")
         return self.page
 
@@ -115,27 +116,32 @@ class CoordinationTranscriptReader:
         except StaleRevision:
             return await self.snapshot(identity.root, identity.requested_name,
                 before=identity.before, after=identity.after, through=identity.through)
-        if not await asyncio.to_thread(read.current):
+        if not await asyncio.to_thread(read.content_current):
             return await self.snapshot(identity.root, identity.requested_name,
                 before=identity.before, after=identity.after, through=identity.through)
         return TranscriptSnapshotUpdate(page, identity)
 
-    async def page(self, root, thread, *, before=None, after=None, through=None):
-        snapshot = await self.snapshot(root, thread, before=before, after=after, through=through)
+    async def notifications(self, root, references):
+        async with self.bind(root) as reader:
+            return await asyncio.to_thread(reader.views.message_notifications_for_references, references)
+
+    async def page(self, root, thread, *, before=None, after=None, through=None,
+                   read_identity: TranscriptReadIdentity | None = None):
+        snapshot = await self.snapshot(root, thread, before=before, after=after, through=through,
+                                       read_identity=read_identity)
         return snapshot.page
 
-    async def snapshot(self, root, thread, *, before=None, after=None, through=None):
-        while True:
-            async with self.bind(root) as reader:
-                read = await asyncio.to_thread(
-                    reader.transcripts.capture_page_read, thread,
-                    before=before, after=after, through=through,
-                )
-            try:
-                page = await self.delivery.deliver(NativeTranscriptReadWork(read))
-            except StaleRevision:
-                # A changed canonical source is a new work identity. No old
-                # result is promoted just because it finished before its copy.
-                continue
-            if await asyncio.to_thread(read.current):
-                return TranscriptSnapshotUpdate(page, read.identity)
+    async def snapshot(self, root, thread, *, before=None, after=None, through=None,
+                       read_identity: TranscriptReadIdentity | None = None):
+        async with self.bind(root) as reader:
+            if read_identity is None:
+                request = partial(reader.transcripts.capture_page_read, thread)
+            else:
+                request = partial(reader.transcripts.bind_page_read, thread, read_identity)
+            read = await asyncio.to_thread(request, before=before, after=after, through=through)
+        page = await self.delivery.deliver(NativeTranscriptReadWork(read))
+        # The preparation cache may supply an earlier result. Its original
+        # content witness still has to admit it; annotations refresh separately.
+        if not await asyncio.to_thread(read.content_current):
+            raise StaleRevision("Transcript content changed before publication")
+        return TranscriptSnapshotUpdate(page, read.identity)
