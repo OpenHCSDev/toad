@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar, TYPE_CHECKING
@@ -148,6 +149,19 @@ class TranscriptBodyPreparation(MroDispatch):
 
     def __init__(self, renderer, ansi: bool, dark: bool):
         self.renderer, self.ansi, self.dark = renderer, ansi, dark
+
+    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:
+        """Warm a bounded source range in shared workers, without native mounts.
+
+        Reversal/retirement stops the next batch. Already admitted render work
+        keeps its existing runtime custody and resource limits.
+        """
+        for first in range(0, len(fragments), batch_size):
+            if not keep_going():
+                return
+            await asyncio.gather(*(self.dispatch(event)
+                                   for fragment in fragments[first:first + batch_size]
+                                   for event in fragment.events))
 
     @handles(TranscriptEvent)
     async def undisclosed(self, event: TranscriptEvent) -> None:

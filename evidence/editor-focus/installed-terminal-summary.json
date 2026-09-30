@@ -1,0 +1,2428 @@
+{
+  "parent_head": "aa110aa69818742a275937daba01f00496fb757c",
+  "wheel_sha256": "9a9b80cdc5980e4a7606644919579ee65993dc4a01055c46445f438d50914bd3",
+  "matched_installed_source_files": 267,
+  "source_hashes": {
+    "toad/__init__.py": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+    "toad/__main__.py": "c6d5a4802fec39fdbeff05333271f65cdc95d9a9bd530705c7b5f4595a22185b",
+    "toad/_loop.py": "c03baabeff8f1e427f1030f3793fe3d341947160dda40ac77dc825b07b5fff5c",
+    "toad/_path_fuzzy_search.py": "cb72f3ffe0b1bd225ff7494a801ac9b5d01fd1684509f3442daf4037b16620ce",
+    "toad/about.py": "f169f61925cb678abd5712fd1e30696cc6e9a2499c92fccb76fbc3441620d0d5",
+    "toad/agent.py": "ce7b96828dc9b9714f0e10034bca5accd3563447a843d594221e20080aaa4145",
+    "toad/agent_presentation.py": "66d0332a1632b795f18b55b3482b006de85cad5669e58b6cd5f97e4262a8c348",
+    "toad/agent_schema.py": "a60dffd2635376e8f260d095d2efb31e52760bb08e6d650822a27c66e06438cf",
+    "toad/agents.py": "bad668e3a4854c6682b35f0a6b90a86aaca87114cdb319496e92baf978ffc786",
+    "toad/answer.py": "400fdb677c5746b366cf93f32bc7fb386b5c6270e339b451b0537465a22008df",
+    "toad/app.py": "55dbcb0f246f0c50ad9337ad0b006edf4c8baf27b0dca085e4880770d3adf56a",
+    "toad/application_actions.py": "73818b40b653fb1c869adc213bdfca7133caf3a2c648eb96cf3790f90dde6da5",
+    "toad/application_lifetime.py": "ea6df71d056df6d47d2befbc523fd332c7e7bc22fcd8932945833125113b10c5",
+    "toad/atomic.py": "280e8cc64f35131b2db25e1e9d724384be4a2ca80fd9c75ebc22b62f196d57bc",
+    "toad/block_content.py": "ca0a66d3df6b7e7bc987a51f20a7d8f0dfbbae09a44c907bb65450fa66cfbe11",
+    "toad/block_navigation.py": "6c5b1a3e238af1dedd0852c5c10d350a5867a9fbd96b0f54a97540bd4918e709",
+    "toad/channel_preparation.py": "2daab06bbed4052d29ae2435e6b4286536cb628db396d1dafde24dc6ebab4097",
+    "toad/cli.py": "1b6d2a6312982ded5401ad08bd0f5a2927af9921de6acc851d1125a6ee5c7fee",
+    "toad/clipboard.py": "bfb4dee5e07235a7c0123f391ebc3ed9c77e148560056e785b1d764392bbd0fb",
+    "toad/clipboard_image.py": "49271f14235b0782c4cccf6ddb20e8ac7ecb9ad3838abda2bc3ad82eced42abc",
+    "toad/command_catalog.py": "c7cce493f89f5a5127c97810d50570de44a64f7621cda446569d6abac50ed348",
+    "toad/comms_root.py": "82ac0bfc7e481226b562ff9cd5ff8e9220a9e8cfb56d005be9f5a76b46e226c2",
+    "toad/complete.py": "7014d97a0c7d6750d928bf947b76674d00a4a076b806bb90616599d2dff194e8",
+    "toad/constants.py": "2ba25ad4d27235637293bf7e0fc601880ab178dde17bb33ac594cea9075208f5",
+    "toad/conversation_kind.py": "ba2d2400d4fc953a3f975f33fd90239a31ba5c84d48975ee82f148cba1711894",
+    "toad/conversation_markdown.py": "7023cbd2ddec778e8ab9c9a004552527c1112b67cfbc1006e3aa7d200cd7f947",
+    "toad/conversation_submission.py": "5463a2139cd0944018d4820bf8c17f92b3518ceaa50971532b7b80095e4366fd",
+    "toad/conversation_turn.py": "ac43ec1050878ef7eb25d37f1b431e8a126b41ab4dcc102c5bfce03d984646a7",
+    "toad/coordination_context_format.py": "4737bcabcec18fe2240e23c19a2cd7afee68cfeee5e5bc4f54be34f8a92bce4a",
+    "toad/danger.py": "13813f77a1c4d46780113dfd94a3264487f157aeb5a34eabb878e8ceea7f03cd",
+    "toad/db.py": "a62bcac0cba7ec7067362b4631022f703a8ff6ce98fbccb2f6c60b5905dda621",
+    "toad/dec.py": "c2d9c3f3a3ac0309a1971a40a603ac2f6db5eabe72f5d6037e08d8f6940fabaf",
+    "toad/delivery_failure_view.py": "d422f55c80ca7a635a1302f16701390aafcab63cfb90aa1990f4f9b8b26a7c8f",
+    "toad/directory.py": "2bf35783c55b5ae89d7504d005039aca3830107bbc68638fe90561604dbd1901",
+    "toad/directory_suggester.py": "b486e7683c4c626e08a895d64bf295adf5010bba446e15cc33f96a0dd85f4ea1",
+    "toad/directory_watcher.py": "954aa7e5772dd7925d241a162f777301638c70b811a0a1b528137d0e317e9d64",
+    "toad/file_kind.py": "0d444cf081eb10864a490a9777838cd1e8f4b00ca1fd672cf12753f0987309fa",
+    "toad/format_path.py": "e24cc71ab4818bf4aae61d6f2155ad2488c34e963c2d2bbacc544f5853f102e2",
+    "toad/frame_presentation.py": "506b74c67c2699cbc7fde2babe6d2d9f5e3df129188ec0ab1e274a4b860e451b",
+    "toad/fuzzy.py": "056f87d6865b2dd51c275132370103fc4a1e548a4ed672f889a7597c9be88e41",
+    "toad/fuzzy_index.py": "6fbc2b94916d018574068d0d994c7ea5bbf90679a0798100957c8e3c9ad157e9",
+    "toad/goal_display.py": "46a02c2633a0fe1211022f8684ffea9a629f35a38e489647a876ee4091b84a83",
+    "toad/goal_interaction.py": "bbd6e4f8f1e657b93e574c4fadd7fc1c6dacbcd07e80d32556b0a12ff7fe3afb",
+    "toad/history.py": "252205e7fb0f2407818e4adc81726755497e47835c360ad6048b88e21e604359",
+    "toad/input_history.py": "710bf5a2f3823d22699ca5a037258a2ba18fc772fe5172456cafac8714d408a6",
+    "toad/jsonrpc.py": "48ba846bf95f654d22487d9e4038ee77fbec438c601758a3bd8a86ccfda335bb",
+    "toad/layout.py": "fa33813691ed4602ed333a983eacfdbb1787d2836c6e6d55b0aeb8d34ca6b3c9",
+    "toad/live_output.py": "7bed78b0028c8972b02fb10d4135e9c13c9643fedcf38a05013dd46949dcfc9f",
+    "toad/markdown_preparation.py": "f735cce23d3d51bb0c3c4477b71dd7e870612c5b6749e539efbd7230eefff959",
+    "toad/mcp_commands.py": "8ce7c118fb61871482621b6ceaa52a52604c0b9e260b387924362852aa55c623",
+    "toad/mcp_decision.py": "646cecd8261e0e4218f128abc76ead6225747c5136cb417ee12a11b46f57c0ab",
+    "toad/mcp_declarations.py": "c39bcb880b14ef1d350f7d4cda03e77420e9ebe9f768f24b37b6beb8404d7e9d",
+    "toad/mcp_inventory.py": "5071e43a1c1404e1459bb8e01945f62eaa4f67254d1a37a0347fec325c7dc1f9",
+    "toad/mcp_outcomes.py": "8157b467a4b6fb8bca5e202ed9e7335d8c1720d616ef371a1f690f3b2c1d1e64",
+    "toad/menus.py": "a4d53453feac3db81bd6f208d6d428aec474bc74a9af0baf109703f2bde82ad8",
+    "toad/message_viewport.py": "7b0b67af74094b3e083f01b0128d66b02870330643b9c68b3b34363022cf3625",
+    "toad/messages.py": "c7d03057258ad4167c388b665206176bf2e59eda3c1be136ce15225a12aad4c5",
+    "toad/mounted_message_history.py": "846058c402823f75d2421bb4be460b11b75eba4b6ad135669bf7cccbe50ddb7d",
+    "toad/navigation_preparation.py": "1b6d2f4afcca396497c3f3935b6dc382c4f55e27a1e8964b3277697b4d7e8e8f",
+    "toad/navigation_target.py": "bc419a57bfd7f54cb066f19b4f6702e119a45a6d25e49568ad6fd0de885a101c",
+    "toad/owner_preparation.py": "0070b6e99c2b97384b8065b9d7e9d696f85a06635ac237f28d72f7b269ed7b02",
+    "toad/path_complete.py": "86c4a2deb72824143cbb82301c32f3c710cc9493b69b24e8ddeb8e7ec1895eea",
+    "toad/path_filter.py": "7a2c397f15aff6fd1d76ebdec81cf37440056c8f25c92ecbbf7463f251e77af1",
+    "toad/path_search_ranking.py": "740cd5e3cc821fa7d30d1087fe997ff1dffd09467bdb723defebebf88b7e113f",
+    "toad/paths.py": "8fab705c6bb31439c938cb20740564ad655548d4e86c300b0972519b15d688cf",
+    "toad/permission_presentation.py": "6e663c376ad9744eee3e4ee98c5e8ba34f3cb04326b018193167f8bdbb596cc6",
+    "toad/pill.py": "16a6d250cac2696d25b4f7770999433c5f0f4688dfe30317374c492fa6ef1b9b",
+    "toad/plan.py": "ef2926b7e288f28bd771323c825c77fdb4f559cef603b4369635ab6a80c048f5",
+    "toad/preferences.py": "186009ddb5eaaa2b3c6b847f6f59b30035b71425bb58f0e152f9145445a43cb4",
+    "toad/private_native_cursor.py": "e0466d6b64b39721750cc2d207bef8b5d71dafb7aa4192176b1d079f54e4662e",
+    "toad/prompt_cursor.py": "ceb3858585f232e769ffb51a1335a87cdf861f1d246fb054dd5a684e93e62dc3",
+    "toad/question_presentation.py": "b590c74572e8dfc6d1240b34c43dba98f5d2761b5e807c98b216600304776c31",
+    "toad/render_backend.py": "431bb0752f2dc64ff01d171cb33bd938b812cc25dabb14635b3101b8b09df66a",
+    "toad/render_choices.py": "35dc97844bac87ac1f75becd151c814cc9dedeb190893b14d42cbcc1c135c388",
+    "toad/render_identity.py": "f589a6c819b19656c3943d385e13afc9c0e8243030fb83f79b38c17ae73b27e9",
+    "toad/render_processes.py": "88ce36a64dc841f3bddc1d176ea2cdd00f62a61006f18605e88250c0fcf2bed2",
+    "toad/render_protocol.py": "c3913f31ec233f0ac4a46bcb7a9febeb4ac12ae3d539d65f6b5bbb5577b54470",
+    "toad/render_runtime.py": "2cedc750e10189f8f83934060eea4bcb5328abbd159262a6b3dc46b0aed2b915",
+    "toad/render_server.py": "c4ca8920ed173e7a6367a7761c481a016abf905c5684c1fdb55a9cfd98844965",
+    "toad/render_service.py": "f168901e484efd8e0dc4744f66c00712b18e9634d0c7fc50ceae133ca3fdb44e",
+    "toad/render_tasks.py": "2363404f3650e35bb03ec1ccdbc514dbaf256e98625b7f1f2c890ca2a619d783",
+    "toad/render_zmq.py": "451f107faf433ce1d0d11b9e4051ff73051f14e2a298a534afee88860bc6ee0e",
+    "toad/rich_preparation.py": "360b9e1e89d954392be798bc6b2c416fb3036adbd2ba6dfa03c6554ae2530a37",
+    "toad/session_admission.py": "7f1a312f35a0b974242fb7e970474111019266f2fc2046aa7ed41c9388f39d90",
+    "toad/session_navigation.py": "f3e8b61d9f4d20c644012a8e767008ac88e1f0bc12c92145338c1471d59187ee",
+    "toad/session_observation.py": "d07835edd419719470b3194315fd1baf06ef9e2cb56caf0c1cecd187d2635c48",
+    "toad/session_presentation.py": "bba511aca5843421029271cb1dee283f85502ed02c90927d9a79ebca876f9df9",
+    "toad/session_tracker.py": "4d43be5f22d0782a9321cfcecaa21485fcd8595d98d538f975406a4b11583ffe",
+    "toad/setting_choices.py": "0890a7bdc721fd9bbc3af8a136a32b09ab5d7070f3a03cc8fd05f62d78b90419",
+    "toad/setting_effects.py": "377c2cf2d37bb45f0e5ee84e6a80ff7dc3718948b219caebc5f24eecd37e7066",
+    "toad/setting_widgets.py": "eaac63d3fbd3602de17d0082535ebad2c63ac3def6a302307d6db3ffd57677d5",
+    "toad/settings.py": "130a8f94bc0ed5f7a41bb006cf6de76f631251d1a312589a4973f115c0b5f0d0",
+    "toad/shell.py": "31ee45a5af2a1bdf3b0a12c7275cd93e85c3b6e12475fff4875abeb5734eb6e3",
+    "toad/shell_output.py": "f54ea3ca0e0ff7f0f3e3bdbba509a21587741b63cbf0f92c23a8aa544e8eb09f",
+    "toad/shell_read.py": "986bdff8731a7a2237b2a7429e067a2c38e0037f6e190f5ce632bdebb139ed02",
+    "toad/shell_source.py": "3ab48680a800f81e1a81f4f59ade3c8c1255573c6af26a3a2527c82b87708ad3",
+    "toad/sidebar_layout.py": "4f212a560955042e28fe1c24e20ed4142e97120c8dc2f14a6cc284749375d186",
+    "toad/sidebar_navigation.py": "f086a1d0fe53cbb725cd90a3368d00c3cfcf7c67cfafee832c8c699b87104d1a",
+    "toad/sidebar_observation.py": "2d91f60ca2128d261c4e1a6c176a001bbb3e5b040f192f05ff504a8e0b1a4206",
+    "toad/sidebar_preparation.py": "28c526412e3845edbf30baa0ba74dad96042351027f79b03345e53253ae177ad",
+    "toad/sidebar_projection.py": "411ae2e5fa2e381748b4932a92328eefa69d6a43c07ee603f51ea52bfed63797",
+    "toad/sidebar_snapshot.py": "409340714c45e4d8c2809fe15a4dea96d2d4f2a7b219d02aa4abe7ba869082aa",
+    "toad/slash_command.py": "a92a8a0a1c398cd1ef7a46a30596c7633937e6fa35f00fc45f2e14a5fe21dd68",
+    "toad/slash_command_results.py": "aae1f6512ab3db4a8a82188bae8b7c0a6dd4b5fee9e556ba56d8ead73e17e83c",
+    "toad/tab_order.py": "a554545565df1f75593c1ff7d6d14e80fa453b6a0ad1b8f50d1c38b93118e5d0",
+    "toad/target_commands.py": "ad548854a887a9bb84484dfb2f911a1f58dfb014fd1892e8b565f04bde24aead",
+    "toad/terminal_attention.py": "c72a43b2c4a7d622562c5b33a1bddafb1515e2cb4f767cfa3df4284b6a498454",
+    "toad/terminal_environment.py": "2d7bf0eb49eae31953063ce1c7f173ae8d015d9ae7d5e545dd591d5acaabb3a2",
+    "toad/terminal_execution.py": "153363ff9c74901270cabbf4029b8b82fe9f277729be81db3aca39aea85edebb",
+    "toad/thread_actions.py": "68cc28c31c4d98da835a2c5db108227a4727ae8bb53a8f88e58c6adac2142107",
+    "toad/thread_navigation.py": "ac8a58794b2f8f6f537efc7d6404c57c98389d1f0f6da45cf5713d158af7ea6c",
+    "toad/tool_output.py": "12edb2437d574f2a19d2d7f805e93f57eed56711e01f82bd352ffa9b9ae20899",
+    "toad/transcript_filter.py": "5df0536038fa6ef89bf068fd7aa13ee40266bee5312a366873ea5d113cc3d8b5",
+    "toad/transcript_preparation.py": "6e47d934f9493d3cfc664b07d95e2503733580fdd7e36e7dfcf3fed148bb49f2",
+    "toad/transcript_publication.py": "745d56d6dac818d715ce706687d8052162d03f56ec0416d5a462e9799e3e05dc",
+    "toad/transcript_source_preparation.py": "4ef6c92e7bc5635f0916a0c33c24e467b945dc2d04696115b4e2bea0b36de283",
+    "toad/transcript_state.py": "33e7a74a96818c14459813ef515018554a363e08da7f80802341544c05eccce4",
+    "toad/twitter.py": "ca03130bdfb18259a59f63972c45b752fced609dca0dcec89134512ea220e135",
+    "toad/version.py": "7dd5ad99ac84afc06dc282c489e33fb1d11752d1e65b97a5c2f9a346260f40a8",
+    "toad/web_server.py": "ea1a59167972742d1fb799b92ef9bcd696451a478d1811973447c7a339bd1d40",
+    "toad/work_preparation.py": "cbc88384ff4abbb9ea8b6947a7275e2a68188629351d36db141d20b0f110c5a2",
+    "toad/workspace_chrome.py": "259184944d4950f28491a3805617e56326ddcb4529f5d1e9e6c4eb66ca3b2a05",
+    "toad/workspace_sessions.py": "57641b31468c9445a8dd5a12aa36f2d7bbb5be21107c40f9a1d6e478e769dd04",
+    "toad/acp/agent.py": "574191d0354ae4e1c0c806587fbb33bfc876484c13bbfa3064adfd612346a383",
+    "toad/acp/agent_configuration.py": "6fb1a41095c2fdb6cebcf8a90c703f043a8078f56b0363eadf876cef86d94839",
+    "toad/acp/agent_controller.py": "489a284031243d154f37a7afa9545717d65ced232924ac864580f6b96cebc393",
+    "toad/acp/agent_process.py": "6e58a23316c86a262b7a0eff8826463b59c3c49a204ae6ec2d3253b61aa6ab8b",
+    "toad/acp/agent_session.py": "f156a1debaac8e6e273bf54d2cd853ebc18b19e6761ffcf60495b89819491006",
+    "toad/acp/api.py": "ab1058f80af2dfbc9e4133f2ae375657acdaeeb382442f584e3e57dba64a633e",
+    "toad/acp/attachment_presentation.py": "2da8fbd976c38d13302f3f866c79cd06031fb73bd8b8e4f5bb9880820a20a825",
+    "toad/acp/client_files.py": "62c8fea900c5ab380bf4adc625df5f9aa94def5314d0928b96590019a2d1d5ad",
+    "toad/acp/client_session.py": "3be2e90dd989858ba7dfe5eda193f18d39c91e2deaea5ba181009b277adfba7c",
+    "toad/acp/comms_updates.py": "37f9c30dfb7f59a9d3eec58f01318bd5f26a45b5f6ac28de8a607f332202a932",
+    "toad/acp/context_measurement.py": "2719ebf5a7dc5821a278562ea4d4ca14742893b3f6e7c628fffebfc9c42918ec",
+    "toad/acp/encode_tool_call_id.py": "8aa517eeba15904e55a2bc5de211e6c5373e7fea1113fce9de66980631cd749f",
+    "toad/acp/log_records.py": "f013aa98467c682722dc518d2f434609631fb62201978db236962d896fabbda1",
+    "toad/acp/maintenance_ingress.py": "5c2334f2d7a227e306ea926fdeab78b8cde119cfdce7a41a8ce76c97c50a3518",
+    "toad/acp/messages.py": "7c211135c37b5e6be29b59ea91ad99ae5c2c5ff32d334fdc6b682341b3f5b586",
+    "toad/acp/notification_items.py": "7a0a576b7233d45ff76645c461a393e5a82a0e95bf6d85ea4a4748206e5efe4d",
+    "toad/acp/permission_controller.py": "259aa664f4aa9af5cdba614f3220d5a3b46fd153b6b6b15731bfb1be4e1bd9cb",
+    "toad/acp/projection_attachment.py": "ec14c493a5400a5e4c5c9ebcb26760ffd3fec5c340ed7ac3f70fb46dd463d71f",
+    "toad/acp/prompt.py": "58a9ad4cd996c662da4566154d21b3742236d39b77269ac42f3584637ce7fdc9",
+    "toad/acp/queue_attachment.py": "42a3f7656c72cad937107a9736d80cae367f1a2255d1a656194b1547481e1c69",
+    "toad/acp/sdk_boundary.py": "68520c5b3c8b2bf5b59d802b96370876e0456bd82745faf086df6bac8a33e60a",
+    "toad/acp/session_updates.py": "e6783a254489b1c75ac155868a7af7c1d3806547746460a9fba36b5befe4a03c",
+    "toad/acp/shell_command.py": "6b986221d2e6b9a991013bc9e5ed71acc78b0ec26e43308ddbd34179c1a14826",
+    "toad/acp/status.py": "a835acb3a334fea4998e1cbe252a7efed6bb61caddce687a79dc0f2ba0271fe3",
+    "toad/acp/terminal_controller.py": "3517f1f6e7fdb01ffb566776b5ab9b1f2de4bbe04eecda0358b3765b4b161404",
+    "toad/acp/terminal_owner.py": "2f5bc6782b626892dd391a3897afcfd919786f1d3fa16972bee2335569b97c58",
+    "toad/acp/tool_calls.py": "96656c288b84b6f8273ee35f772160f302badb6e43fd80b1330098b3a667b55d",
+    "toad/acp/transcript_reader.py": "85a1015cd5533f6662ca476ffd2b1f088924ed936cf312bb5eaaf1ce3fbfc73c",
+    "toad/acp/wire_message.py": "e4869ca75436887d0150af91ac17b6962d8306008ac49b12597a4a8f013050be",
+    "toad/ansi/__init__.py": "f5f865077c4a291dd0c34926ac98f630e9f8e9ccc958a1a15c71b24196c6d360",
+    "toad/ansi/_ansi.py": "055b0649fe427c3465d91a23453bb6f3a6f9caba29a34b96a64fcbe08d6e6257",
+    "toad/ansi/_ansi_colors.py": "224879973595d5daf15340062dab5fb51cc99d2ab732d91073681728ba04da2b",
+    "toad/ansi/_control_codes.py": "e03519962e14d609c91ee2060d9503357896e26873ec16211389157d33d179d0",
+    "toad/ansi/_keys.py": "d1cb58c0bbf37d435a796a3e49991b4402f74703be60177c46865076d1d71899",
+    "toad/ansi/_sgr_styles.py": "b99f9027fa55e351522367acace7c813919baf20abd8f5ddfa5a0564ccdccdff",
+    "toad/ansi/_stream_parser.py": "9340de03c3c311e27e5ce3406c294dd499c6cd52703b3ba83b78527c72dada0a",
+    "toad/prompt/extract.py": "96d65fdaab773d55c2b6596299a349c414d6dd7605d91c9752df287672cb5b84",
+    "toad/prompt/resource.py": "d8ad4cda8b0017b9958f33ef12cbc6543c3075acb54c73b3e66c420a48c0f591",
+    "toad/screens/action_modal.py": "59c1b9939837840d00430072695b87fb820575ef1887f56d689dedd14eb640fe",
+    "toad/screens/agent_modal.py": "aa5fb93cda6e97ad8bf0293135cbc44ac57777912ece61f02e9ac4c254a97e94",
+    "toad/screens/command_edit_modal.py": "e1a6d840e66d70c3a6cfd7c154cea1fe58884f79f28b5cc0ae2a1bbfc8b77207",
+    "toad/screens/comms.py": "f3469751466f023de5ab1d3270d881271dec2efdef24fa9a117ab45967c1a491",
+    "toad/screens/file_preview.py": "a9e96ebc81c48a3ac12d4322cf63e128b730f4fda9bf23babca63e18d07eec38",
+    "toad/screens/goal_details.py": "1841c706408571a0dd7b7612f943c67fa7ba41eda6b294f9afe8fe73a81a06a4",
+    "toad/screens/goal_edit.py": "e4cc780d1eb71516fd20207c42d02719c9650af435edbde9c0e6eb82382eef0b",
+    "toad/screens/historical_sessions.py": "754b340953de457abdc1d54caf25158e258a32c2e4e4d6434eeb084c266d0a83",
+    "toad/screens/main.py": "e54029c10227f9c3bdc7acec2c52afb542971770e45c78239cc70ac709042bd9",
+    "toad/screens/mcp_decision.py": "14601fd5db6928e0bca4103730d7e36cf6924724861b6031fde8917da65407e1",
+    "toad/screens/mcp_inventory.py": "bebaedf7fac0ed2c00643b38ad3d4e780dc7396dd60214301a93ceac5f5ce80a",
+    "toad/screens/permissions.py": "f04a865de030979af2978fe0f7347d0732b96d26001f7ed2b69ebff1d58c2f26",
+    "toad/screens/session_resume_modal.py": "11019580f0f253f5e1c399eaa88de201b34ea90ea58aee3846e36e35d4508a9d",
+    "toad/screens/session_view.py": "4314e8492fc2d99297eb49e4dc684ec89f199964888468e19a09efe8856806d1",
+    "toad/screens/settings.py": "eb3769a92bc4980d39610ce05be5cd0d9cbd84d165451e7bc2ba8cbe854d1493",
+    "toad/screens/store.py": "d79dd337fe82fd7ab6aaa99d6231e0a3d799ef00c0eeba06752aed9fdc635080",
+    "toad/screens/workspace.py": "8161f33a26defdfbcce6511606f78704623cc5f51f16b3fe3e86377d31082c34",
+    "toad/visuals/columns.py": "242d17c229ea8ce887dd37236fd6cbf6a589e767b9491863db285192153670d3",
+    "toad/widgets/acp_content.py": "53876ecbc7abbc65f71ab89f416186550d33dc02b92fe360b97f750ca88a2bd6",
+    "toad/widgets/acp_log.py": "b2f992331ea417be6676db3426acfa0d41b0e5d533c9efa4fb822d282fc830ca",
+    "toad/widgets/activity_spinner.py": "7647a7165b23e6a470e861e9a70e386330dd5d34d15eb75cdc1b0f894b9bffaf",
+    "toad/widgets/agent_activity.py": "43923d9238dde099667038699000c4c7fc9e6ec29d788b8597237b3728cad257",
+    "toad/widgets/agent_response.py": "424ba03d98f544b66231e0161192a84a64be6295cdf3262988c8a3686e8c12e6",
+    "toad/widgets/agent_thought.py": "743a2e9a6c98d1ef14d790660ab4fce90e8740426042b90ac333ffcb5d1d9953",
+    "toad/widgets/channel_participants.py": "d3c15cf077aa2be218e4a532f54747031abc4344100ddb69cba320dc70e06a32",
+    "toad/widgets/channel_prompt.py": "a894f714c907414aaadac97ff523ef032aacd2338816266fb3406e75273716a6",
+    "toad/widgets/channels_sidebar.py": "cfc530b4239c62c289bb22df7918bd7dd43822efbb96cfaf0b8e2d5e1315ad11",
+    "toad/widgets/command_pane.py": "ab178756e31783de4152d0bb3bbede0fb6a55b9aa5f063913ce26a162e771814",
+    "toad/widgets/committed_presentation.py": "c8d7ad33269c9beedffc7050f9c10a4fdab83b41a6f174a6f910bddc0ddd8030",
+    "toad/widgets/comms_chat.py": "24bae0343c7f91c8c84aa5ae30c26c09fa7cb036ed7e00b68cdd890f9564e7a2",
+    "toad/widgets/comms_fork_dialog.py": "4a01bc49685378285b849bc52f4feb3afc8b27434dc8b861f0a091f70e606986",
+    "toad/widgets/comms_menu.py": "e7e82864deba737a4bb76f78494083e09e8e1840063dec25162bb2636df5839b",
+    "toad/widgets/comms_sidebar.py": "0a268f09c7e77251bd761d92861af4f8ffc1a99c397b2c91ffdde8e750358510",
+    "toad/widgets/comms_transfer.py": "f2e73204cfe9fe317a4b278bfa73a2c813f6da4a4bdf175d8c335d3ff6d0f74d",
+    "toad/widgets/condensed_path.py": "4409e8483feaad783345e1547f6d5967ecb4378695bd2694aad82ca1cebfc5fc",
+    "toad/widgets/conversation.py": "2d8bed86e2fe5fd1d6062b1c5719d5fc5a17360be0828f08a924db935365086c",
+    "toad/widgets/coordination_context.py": "55424b1ce165e15b55aa3119c9ae375a211af39c4d6e515cefa5f02f049a8703",
+    "toad/widgets/diff_view.py": "3658324136b17cdb9e1084866d2adfd25c8c51513e4803e2d96cc87a3427fecb",
+    "toad/widgets/directory_input.py": "580c2c3334bcf26615bd26ea1a1a076488973e5ff84af2a36cf4a98ddea8a81a",
+    "toad/widgets/flash.py": "e2fad46bc5f24b344d7d6600f399085ed1b50534937813ecd078fbae4ce3e638",
+    "toad/widgets/footer.py": "b5aeb83e5e3dd5e1e31d5b313c2f3e2b7c8d4a543b146711c0d6f547553f402b",
+    "toad/widgets/future_text.py": "b27b6ea6dd5939804408cab7c60d6a77a5869deed01902b11fbd831bb1f02e3f",
+    "toad/widgets/goal_bar.py": "cef095cc696054d85358d6752598de1a6db5940847a849c4a6be19db86a278f1",
+    "toad/widgets/goal_text.py": "6defed8dced85dac4f1ec1acd919b4fff08c98da06d2daa1a71734047f11e6dd",
+    "toad/widgets/grid_select.py": "ef385c9fad738d55a36138155b23cd50f3076c758254da4d7c9504acdd4aa2e4",
+    "toad/widgets/highlighted_textarea.py": "e7bee63b3297fe0e30dc8953e6cc15f7734c4ef2b4884461c094d07db821a5c2",
+    "toad/widgets/history_anchor.py": "46e28b24cdb5484213076b316384edd8e9d18127014330a357a019b1b054b3ee",
+    "toad/widgets/incoming_message.py": "5eba34ad79221a8a90983175162482484aee1e2a3fb0f01a86a5ccded40acbf6",
+    "toad/widgets/inline_message.py": "b9371d79f0e584dfce0ae5434040f05336a02f31ff9190f5cb4e81977faf9949",
+    "toad/widgets/input_delivery.py": "c9831f8818c2e6ccc962221c534ba6dbf40f98d6122faf69226b224c980881e4",
+    "toad/widgets/irc_message.py": "6fc036d510385032b9b40e6ea15df2b321a9f0458be75fdc2b542377a8efd93d",
+    "toad/widgets/mandelbrot.py": "e6d462d875ae852cd3e2fa1165036aabd519af578cc09bc828d5a7d938625b1a",
+    "toad/widgets/markdown_note.py": "0facca2e534500d3c3dacd414028cada9b50da42bd1c017f8345e488025c3d50",
+    "toad/widgets/menu.py": "3c067608264eefd338bbbe33cbcec9d2ae47042da294664d744288bdd76e07c1",
+    "toad/widgets/message_divider.py": "345fea8323a847e247fd7f8b1031a5c2140e2acf0a77ee80813b82562fba8cf8",
+    "toad/widgets/message_filter.py": "5bd7be3b752a7acfeb7d6d84f8581367c6230f0287371673e9423adc685eda62",
+    "toad/widgets/message_notifications.py": "3ef8099489eebdd4b5a9d3837f791ac4f0e0dd02c6c3fc1ed404650922051528",
+    "toad/widgets/model_switcher.py": "78ff9b33498b46e6f93c226df8ed9b4d97301417ed1e5cf0ca4acb675668fcaf",
+    "toad/widgets/native_history.py": "d7f94c0ef5bba2abcb5a19d04826ecf490a115fdb73aa311ad2cd780ebf672c5",
+    "toad/widgets/non_selectable_label.py": "1f396c518bd6578cce97d7a13391d4581d5523a37e7c35a1d20a827af9762cb8",
+    "toad/widgets/note.py": "38c0eaac045e89e0d0d71214b1316ffbd97f7482e6c13bc786b3b6f179307aca",
+    "toad/widgets/observed_thread_activity.py": "646a5a04c34619948d7817d7fce990f53fae7af8d186e6d1c3acd7531697998f",
+    "toad/widgets/patch_diff.py": "9cfb808e8ae5035262a7aa2e68171c1b1cc02afa8063f7bed355046f07032f11",
+    "toad/widgets/path_search.py": "43c8682b7bad5c45c95bd016fb9c7d7e40a9ee5d6506758fea88f52d03b7db32",
+    "toad/widgets/plan.py": "a424c005b3cd5ed03e1d73c0381597ed0f271a721e05411c2a609a63d6410944",
+    "toad/widgets/prepared_markdown.py": "166d7c7c79edcb574b6d3086ea380554428322cd4ba7f4d7f04a0539ffa39867",
+    "toad/widgets/presentation_window.py": "f7dadadf138bd861f9a6817e5327c84e5c224db9b2384ae8f0c81aa900ea805b",
+    "toad/widgets/project_directory_tree.py": "33b8a3d68be4f2ac74865712eccdc02ea50cf0d1ddeda3a73abedbf74d8eb436",
+    "toad/widgets/project_panel.py": "e3ff6cd97b4e08cc8870c4ebd690d8e74e95ec1deb3a513155c51044f395f9f5",
+    "toad/widgets/project_tree_intent.py": "50cbf462c034b4372f5f617d087d2ae5c2debc856e3b545f87ea9513f63b96c8",
+    "toad/widgets/prompt.py": "728750977fc8c351e71cf650af0db9a089b96b274e01027b120d6b5e28c3267b",
+    "toad/widgets/prompt_popup.py": "ad94850ef35f0488d19288d753168734d46f63b7adc3677ca0fd082c2ea4e59e",
+    "toad/widgets/question.py": "73d9ef8d1148e9c9a316627b695311a431860a5140193d05457666593f0f7bd0",
+    "toad/widgets/recovery_view.py": "e335124f2e64c768f4500446bcf4f2659da6ba04a861786574f46f41128ed3cb",
+    "toad/widgets/retiring_sidebar.py": "8d7d497586f7e27825ad436e4bf3edd2505d3ca4062b1efae80410a3fcf2cfba",
+    "toad/widgets/route_header.py": "b6d18d854464da0b69ebcfd97908f90bc1b46df6519714bfd9053370f3e5fa78",
+    "toad/widgets/selection.py": "6bbd67518be4772152efc69ff2b5aa87c3a9b7fbbe93f10d3ba78dc4eca9b956",
+    "toad/widgets/session_details.py": "cb3b84b5da7da6fed29e08aad96a4baf815be433a98656e620f802da91b43686",
+    "toad/widgets/session_history_details.py": "c5490e0a07e7c00b8ecef850205af62e9a6a3d0484ac8af99c845468bcd6e1b9",
+    "toad/widgets/session_sidebar.py": "321a42c2220ce8e80887d4adaf5a2ccd43bbfc93486f113e1c8365f4f92f781d",
+    "toad/widgets/session_sort.py": "044cec20f338654833a390203ff39533d6251ef74d2fedd303c901dd7d8bf42d",
+    "toad/widgets/session_tabs.py": "7a5c93e7c0a5d8b16ec53bac404abd5a09486f070c0001255a4e971281eccfbf",
+    "toad/widgets/session_thread_panels.py": "ab629142915bd4ec90fa0c85ca1d3095d274b6e8b1a77d77307c23b8a34f88fa",
+    "toad/widgets/session_thread_sidebar.py": "5d3f7858eadf06f9350c630081c34af841525fc7eebea72b95fbee9746796d28",
+    "toad/widgets/shell_result.py": "2239524a078afb997577e92f3d4309477023934a6f1007e229b7b7bb812da5a9",
+    "toad/widgets/shell_terminal.py": "825b111951fc908ba423581e6ceda525334045562f617ae6c2ead2a216a55daa",
+    "toad/widgets/side_bar.py": "f2651255eaff3f42b6886b34753fb6f30a9f04160d16609c69c7b6acb8511647",
+    "toad/widgets/sidebar_tree.py": "01e7b56959373e8688a8a05c782060903f8cf27d7b1dcb5a70bf6495017f8fb6",
+    "toad/widgets/sidebar_viewport.py": "29629ff6904c2cd0a94282014cb86ab9803347aa8be141324e08936cafd514a4",
+    "toad/widgets/slash_complete.py": "91594d9b26edd266954c06b442bea149a00c6102d349423332ba2e222fe3e2bb",
+    "toad/widgets/streaming_markdown.py": "3131d5c37295e2f1e5322aceab2d920d35527c06854ac8e91cb3079b3f887bc3",
+    "toad/widgets/strike_text.py": "a4bd5e1708e952b79866d204838247d6f14d247f5cc2c595449aeca4d90eaaa2",
+    "toad/widgets/terminal.py": "250754dec0a8353195da736732be618c22f6b5d87d9e9e46121be16475da8ade",
+    "toad/widgets/terminal_projection.py": "31dffe864d4a7e2f88f52b6bcfe3a881d047f6f7255ad2f18e74b070de899621",
+    "toad/widgets/terminal_tool.py": "b84d1fa4260e991ae224a285c3911bfd4045f0f9b737ea4e88b23a7f144b3ec3",
+    "toad/widgets/thread_comms.py": "8ffe78f60e54321d89dcd658de20966f53fd8f04da1d55e65cd707163d96a0ff",
+    "toad/widgets/thread_comms_model.py": "0bf8a7a0117ba311e644c747b13eaff1d778101d5e7052a1c68deb220da2b749",
+    "toad/widgets/thread_comms_source.py": "e50fe222b8a1d31b22408e94a7bb0cf0f1db940356510011e07cd99ee6d15b7c",
+    "toad/widgets/throbber.py": "bc9e861ce3454f94d2fbbe4e242376961f9a05c4717a4dd8b017089175447837",
+    "toad/widgets/tool_call.py": "a2dd865174e98635ca0c08f843913853095bbbaeff938ed7f3a56e8e43e60251",
+    "toad/widgets/tool_content.py": "6d8242546fcf41870afc6a67efa9ecfd770f6a8ba33a0d78c3da0a4529ce01f1",
+    "toad/widgets/transcript_fragments.py": "d9a3a05ce2a43ad2e5548c820d9a8c9cb8f247e916a884fa3387a0488c5ec963",
+    "toad/widgets/transcript_history.py": "41396a8990bd4e9c0a2cb2176944673f8b03a3223c86c34f7cf111cdcb66f549",
+    "toad/widgets/user_input.py": "6e112c9e29536eb409523838e24ea397e43c85aec6541e75c68715f6e91760db",
+    "toad/widgets/viewport_body.py": "660148f45320c1871656839e4143ddce0c76361bbcfe71bc2a4fb5778b14a4d6",
+    "toad/widgets/worker_static.py": "593508075b4ac67993338f2a6531d0fa17d68f57780e6357059f42a07331034b"
+  },
+  "dependencies": {
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "72062939239b0f07707406309305a056a23f925f",
+        "requested_revision": "72062939239b0f07707406309305a056a23f925f"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "412b5a2b5da8875dc2f3dc5be2365abddce0537b",
+        "requested_revision": "412b5a2b5da8875dc2f3dc5be2365abddce0537b"
+      }
+    }
+  },
+  "sdk": "0.12.1",
+  "native_or_provider_started": false,
+  "phase_count": 38,
+  "editing_key_observations_during_load": 142,
+  "phases": [
+    {
+      "phase": "clicked-typed",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.343981612,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        4
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "clicked-left",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.390254443,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        3
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "clicked-backspace",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.458822982,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abd",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "clicked-delete",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.545467854,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "clicked-arrows",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.545467854,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "clicked-empty",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.590203132,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "traversal-typed",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.690313399,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        4
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "traversal-left",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.740360692,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        3
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "traversal-backspace",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.790566296,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abd",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "traversal-delete",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.841565573,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "traversal-arrows",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.874083912,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        1
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "traversal-empty",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209529.925309258,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-typed",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.126282878,
+      "source_work": [
+        "WorkingTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        4
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-left",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.199057828,
+      "source_work": [
+        "WorkingTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        3
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-backspace",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.259810948,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abd",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-delete",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.293829138,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-arrows",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.337732901,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        1
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-empty",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.390652317,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-2-typed",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.540371507,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        4
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-2-left",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.59054559,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        3
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-2-backspace",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.646579588,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abd",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-2-delete",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.709274518,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-2-arrows",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.740773975,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-2-empty",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.793383734,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-typed",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.944511664,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        4
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-left",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209530.990414003,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abcd",
+      "cursor": [
+        0,
+        3
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-backspace",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.058632479,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "abd",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-delete",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.140552217,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-arrows",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.140552217,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "return-session-1-empty",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.190367571,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "transcript-focused",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "Window",
+      "editor_focused": false,
+      "editor_owns_keys": false,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.296144205,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "transcript-key-burst",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.418707037,
+      "source_work": [
+        "WorkingTranscript"
+      ],
+      "text": "ab",
+      "cursor": [
+        0,
+        2
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "prepare-saved-history-reader",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.514247094,
+      "source_work": [
+        "WorkingTranscript"
+      ],
+      "text": "",
+      "cursor": [
+        0,
+        0
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "saved-load-draft-and-caret",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.718285983,
+      "source_work": [
+        "WorkingTranscript"
+      ],
+      "text": "draftab",
+      "cursor": [
+        0,
+        6
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "saved-load-other-draft",
+      "source": "session-2",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.848399412,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "other",
+      "cursor": [
+        0,
+        4
+      ],
+      "document": 140127540531504,
+      "history": 140127275747920,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "saved-load-return-draft-caret",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209531.956312415,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "draftab",
+      "cursor": [
+        0,
+        6
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "saved-load-return-undo",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209532.041678172,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "draftabcd",
+      "cursor": [
+        0,
+        8
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "saved-load-return-delete-arrows",
+      "source": "session-1",
+      "driver": "LinuxDriver",
+      "toad_package": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/toad",
+      "focused": "PromptTextArea",
+      "editor_focused": true,
+      "editor_owns_keys": true,
+      "loading": false,
+      "disabled": false,
+      "read_only": false,
+      "usable_cursor": true,
+      "clock": 209532.094984401,
+      "source_work": [
+        "LiveTranscript"
+      ],
+      "text": "draftab",
+      "cursor": [
+        0,
+        7
+      ],
+      "document": 140127573642128,
+      "history": 140127573060176,
+      "editor_region": [
+        52,
+        36,
+        64,
+        1
+      ],
+      "window_region": [
+        48,
+        3,
+        69,
+        29
+      ],
+      "tabs": [
+        {
+          "source": "session-1",
+          "region": [
+            21,
+            1,
+            13,
+            1
+          ]
+        },
+        {
+          "source": "session-2",
+          "region": [
+            36,
+            1,
+            13,
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "scratch_root": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217",
+  "result": "PASS"
+}

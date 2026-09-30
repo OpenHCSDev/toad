@@ -53,7 +53,7 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
     actions = evidence / 'scroll.xdo'
     custody = ProcessOwner(comms.registry)
     await asyncio.to_thread(custody.run,
-        [sys.executable, str(recorder), '--write-scroll-script', str(actions)],
+        [sys.executable, str(recorder), '--write-journey-script', str(actions)],
         os.environ.copy(), timeout=10, stdout=subprocess.PIPE)
     runtime = Path(sys.prefix) / 'bin'
     env = dict(os.environ, AGENT_COMMS_RUNTIME_ROOT=str(runtime))
@@ -66,6 +66,8 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
         command.extend(('--review-phase', phase))
     if os.environ.get('SCROLL_PROFILE') == '1':
         command.append('--profile')
+        if threads := os.environ.get('SCROLL_PROFILE_THREADS'):
+            command.extend(('--profile-threads', threads))
     command.extend(('--', str(runtime / 'toad'), 'acp',
                     shlex.join((str(runtime / 'python'), '-m', 'agent_comms.acp')),
                     str(agent.project_root_path), '--session', 'beta'))

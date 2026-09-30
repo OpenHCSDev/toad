@@ -13,6 +13,7 @@ import psutil
 from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.agent_schema import AgentDefinition
+from toad.transcript_state import WorkingTranscript
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.session_tabs import SessionLabel
 from saved_state_user_journey_pilot import click_thread
@@ -49,7 +50,8 @@ class SavedReaderApp(ToadApp):
                                 body_hash=sha256(body.encode()).hexdigest(),
                                 body_nonwhite=len("".join(body.split())),
                                 has_newer=any(history.has_newer for history in histories),
-                                loading=any(history._loading for history in histories)))
+                                loading=any(isinstance(history.state, WorkingTranscript)
+                                            for history in histories)))
 
 
 async def until(pilot, app, condition):
@@ -155,9 +157,12 @@ async def main():
                 app.checkpoint("SEPARATE_END_COMPLETE")
                 assert observed and all(frame["body_nonwhite"] for frame in observed), "Blank destination frame"
                 assert all(0 <= frame["y"] <= frame["maximum"] for frame in observed), "Scroll beyond canonical extent"
-                assert any(frame["phase"] == "repeated-pagedown-lazy-bottom"
-                           and (frame["loading"] or frame["has_newer"])
-                           for frame in observed), "Lazy bottom was not exercised"
+                primary = [frame for frame in observed
+                           if frame["phase"] == "repeated-pagedown-lazy-bottom"]
+                assert any(frame["loading"] and frame["has_newer"]
+                           for frame in primary), "PageDown missed an admitted lazy edge read"
+                assert len({frame["maximum"] for frame in primary}) > 1, \
+                    "PageDown did not exercise a changing native extent"
             await asyncio.get_running_loop().shutdown_default_executor()
     finally:
         if app is not None:

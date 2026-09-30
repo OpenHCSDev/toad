@@ -1,0 +1,935 @@
+{
+  "removed_class": "src/toad/widgets/conversation.py:Cursor",
+  "owner_base": "d3703dae",
+  "declared_methods": [
+    "on_mount",
+    "_update_blink",
+    "watch_follow_widget",
+    "update_follow",
+    "follow"
+  ],
+  "declared_fields": [
+    "blink",
+    "blink_timer",
+    "follow_widget",
+    "offset",
+    "visible"
+  ],
+  "snapshots": {
+    "d3703dae": {
+      "attribute_consumers": {
+        "blink_timer": [
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 257,
+            "expression": "self.blink_timer"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 284,
+            "expression": "self.blink_timer"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 285,
+            "expression": "self.blink_timer"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 289,
+            "expression": "self.blink_timer"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 290,
+            "expression": "self.blink_timer"
+          }
+        ],
+        "follow_widget": [
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 280,
+            "expression": "self.follow_widget"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 269,
+            "expression": "self.follow_widget"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 269,
+            "expression": "self.follow_widget"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 270,
+            "expression": "self.follow_widget"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 272,
+            "expression": "self.follow_widget"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 273,
+            "expression": "self.follow_widget"
+          }
+        ],
+        "follow": [
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 217,
+            "expression": "view.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 567,
+            "expression": "self.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2069,
+            "expression": "self.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 1072,
+            "expression": "self.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 1078,
+            "expression": "self.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 1416,
+            "expression": "self.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2275,
+            "expression": "self.cursor.follow"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2282,
+            "expression": "self.cursor.follow"
+          }
+        ],
+        "blink": [
+          {
+            "path": "src/toad/question_presentation.py",
+            "line": 91,
+            "expression": "question.blink"
+          },
+          {
+            "path": "src/toad/question_presentation.py",
+            "line": 91,
+            "expression": "question.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 281,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 261,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 263,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 261,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/question.py",
+            "line": 242,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/question.py",
+            "line": 305,
+            "expression": "self.presentation.mount.blink"
+          }
+        ],
+        "_update_blink": [
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 257,
+            "expression": "self._update_blink"
+          }
+        ],
+        "visible": [
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 72,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 82,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 84,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/transcript_filter.py",
+            "line": 295,
+            "expression": "self.state.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 235,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 256,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 266,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2068,
+            "expression": "self.cursor.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 283,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 288,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2183,
+            "expression": "self.cursor.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2274,
+            "expression": "self.cursor.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2280,
+            "expression": "self.cursor.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 72,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 81,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 76,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 173,
+            "expression": "self.goal_display.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 140,
+            "expression": "throbber.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 142,
+            "expression": "controls.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 220,
+            "expression": "throbber.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 195,
+            "expression": "action.visible"
+          }
+        ],
+        "watch_follow_widget": [],
+        "on_mount": [
+          {
+            "path": "src/toad/screens/permissions.py",
+            "line": 264,
+            "expression": "self.on_mount"
+          },
+          {
+            "path": "src/toad/widgets/terminal_tool.py",
+            "line": 22,
+            "expression": "super().on_mount"
+          }
+        ],
+        "offset": [
+          {
+            "path": "src/toad/ansi/_ansi.py",
+            "line": 1468,
+            "expression": "fold.offset"
+          },
+          {
+            "path": "src/toad/ansi/_ansi.py",
+            "line": 1470,
+            "expression": "fold.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 340,
+            "expression": "page.after.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 340,
+            "expression": "history.through.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 341,
+            "expression": "page.after.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 341,
+            "expression": "history.through.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 377,
+            "expression": "cursor.offset"
+          },
+          {
+            "path": "src/toad/widgets/comms_menu.py",
+            "line": 133,
+            "expression": "menu.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2208,
+            "expression": "menu.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 275,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2208,
+            "expression": "block.region.offset"
+          },
+          {
+            "path": "src/toad/widgets/mandelbrot.py",
+            "line": 169,
+            "expression": "event.offset"
+          },
+          {
+            "path": "src/toad/widgets/mandelbrot.py",
+            "line": 180,
+            "expression": "event.offset"
+          },
+          {
+            "path": "src/toad/widgets/session_tabs.py",
+            "line": 96,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/side_bar.py",
+            "line": 172,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/side_bar.py",
+            "line": 800,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/sidebar_viewport.py",
+            "line": 37,
+            "expression": "header.offset"
+          }
+        ],
+        "update_follow": [
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 291,
+            "expression": "self.update_follow"
+          },
+          {
+            "path": "src/toad/widgets/tool_call.py",
+            "line": 311,
+            "expression": "conversation.cursor.update_follow"
+          }
+        ]
+      },
+      "class_references": [
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 32,
+          "node": "alias"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 126,
+          "node": "Name"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 247,
+          "node": "ClassDef"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 766,
+          "node": "Name"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 911,
+          "node": "Name"
+        }
+      ],
+      "string_selectors": []
+    },
+    "f8bad541": {
+      "attribute_consumers": {
+        "blink_timer": [],
+        "follow_widget": [],
+        "follow": [],
+        "blink": [
+          {
+            "path": "src/toad/question_presentation.py",
+            "line": 91,
+            "expression": "question.blink"
+          },
+          {
+            "path": "src/toad/question_presentation.py",
+            "line": 91,
+            "expression": "question.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 297,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 298,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 294,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 314,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/question.py",
+            "line": 242,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/question.py",
+            "line": 305,
+            "expression": "self.presentation.mount.blink"
+          }
+        ],
+        "_update_blink": [
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 291,
+            "expression": "self._update_blink"
+          }
+        ],
+        "visible": [
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 72,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 82,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 84,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/transcript_filter.py",
+            "line": 295,
+            "expression": "self.state.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 235,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 72,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 81,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 76,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 173,
+            "expression": "self.goal_display.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 140,
+            "expression": "throbber.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 142,
+            "expression": "controls.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 220,
+            "expression": "throbber.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 195,
+            "expression": "action.visible"
+          }
+        ],
+        "watch_follow_widget": [],
+        "on_mount": [
+          {
+            "path": "src/toad/screens/permissions.py",
+            "line": 264,
+            "expression": "self.on_mount"
+          },
+          {
+            "path": "src/toad/widgets/terminal_tool.py",
+            "line": 22,
+            "expression": "super().on_mount"
+          }
+        ],
+        "offset": [
+          {
+            "path": "src/toad/ansi/_ansi.py",
+            "line": 1468,
+            "expression": "fold.offset"
+          },
+          {
+            "path": "src/toad/ansi/_ansi.py",
+            "line": 1470,
+            "expression": "fold.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 338,
+            "expression": "page.after.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 338,
+            "expression": "history.through.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 339,
+            "expression": "page.after.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 339,
+            "expression": "history.through.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 375,
+            "expression": "cursor.offset"
+          },
+          {
+            "path": "src/toad/widgets/comms_menu.py",
+            "line": 133,
+            "expression": "menu.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2188,
+            "expression": "menu.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2188,
+            "expression": "block.region.offset"
+          },
+          {
+            "path": "src/toad/widgets/mandelbrot.py",
+            "line": 169,
+            "expression": "event.offset"
+          },
+          {
+            "path": "src/toad/widgets/mandelbrot.py",
+            "line": 180,
+            "expression": "event.offset"
+          },
+          {
+            "path": "src/toad/widgets/session_tabs.py",
+            "line": 96,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/side_bar.py",
+            "line": 172,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/side_bar.py",
+            "line": 800,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/sidebar_viewport.py",
+            "line": 37,
+            "expression": "header.offset"
+          }
+        ],
+        "update_follow": [
+          {
+            "path": "src/toad/widgets/tool_call.py",
+            "line": 311,
+            "expression": "conversation.cursor.update_follow"
+          }
+        ]
+      },
+      "class_references": [],
+      "string_selectors": []
+    },
+    "working": {
+      "attribute_consumers": {
+        "blink_timer": [],
+        "follow_widget": [],
+        "follow": [],
+        "blink": [
+          {
+            "path": "src/toad/question_presentation.py",
+            "line": 91,
+            "expression": "question.blink"
+          },
+          {
+            "path": "src/toad/question_presentation.py",
+            "line": 91,
+            "expression": "question.blink"
+          },
+          {
+            "path": "src/toad/widgets/question.py",
+            "line": 242,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/question.py",
+            "line": 305,
+            "expression": "self.presentation.mount.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 297,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 298,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 294,
+            "expression": "self.blink"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 314,
+            "expression": "self.blink"
+          }
+        ],
+        "_update_blink": [
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 291,
+            "expression": "self._update_blink"
+          }
+        ],
+        "visible": [
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 72,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 82,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/application_actions.py",
+            "line": 84,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/transcript_filter.py",
+            "line": 295,
+            "expression": "self.state.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 72,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 81,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/flash.py",
+            "line": 76,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 235,
+            "expression": "self.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 173,
+            "expression": "self.goal_display.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 140,
+            "expression": "throbber.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 142,
+            "expression": "controls.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 220,
+            "expression": "throbber.visible"
+          },
+          {
+            "path": "src/toad/widgets/goal_bar.py",
+            "line": 195,
+            "expression": "action.visible"
+          }
+        ],
+        "watch_follow_widget": [],
+        "on_mount": [
+          {
+            "path": "src/toad/screens/permissions.py",
+            "line": 264,
+            "expression": "self.on_mount"
+          },
+          {
+            "path": "src/toad/widgets/terminal_tool.py",
+            "line": 22,
+            "expression": "super().on_mount"
+          }
+        ],
+        "offset": [
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 338,
+            "expression": "page.after.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 338,
+            "expression": "history.through.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 339,
+            "expression": "page.after.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 339,
+            "expression": "history.through.offset"
+          },
+          {
+            "path": "src/toad/transcript_publication.py",
+            "line": 375,
+            "expression": "cursor.offset"
+          },
+          {
+            "path": "src/toad/ansi/_ansi.py",
+            "line": 1468,
+            "expression": "fold.offset"
+          },
+          {
+            "path": "src/toad/ansi/_ansi.py",
+            "line": 1470,
+            "expression": "fold.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2188,
+            "expression": "menu.offset"
+          },
+          {
+            "path": "src/toad/widgets/conversation.py",
+            "line": 2188,
+            "expression": "block.region.offset"
+          },
+          {
+            "path": "src/toad/widgets/sidebar_viewport.py",
+            "line": 37,
+            "expression": "header.offset"
+          },
+          {
+            "path": "src/toad/widgets/comms_menu.py",
+            "line": 133,
+            "expression": "menu.offset"
+          },
+          {
+            "path": "src/toad/widgets/mandelbrot.py",
+            "line": 169,
+            "expression": "event.offset"
+          },
+          {
+            "path": "src/toad/widgets/mandelbrot.py",
+            "line": 180,
+            "expression": "event.offset"
+          },
+          {
+            "path": "src/toad/widgets/session_tabs.py",
+            "line": 96,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/side_bar.py",
+            "line": 172,
+            "expression": "self.offset"
+          },
+          {
+            "path": "src/toad/widgets/side_bar.py",
+            "line": 800,
+            "expression": "self.offset"
+          }
+        ],
+        "update_follow": []
+      },
+      "class_references": [],
+      "string_selectors": []
+    }
+  },
+  "classification": {
+    "removed_contract": [
+      "Cursor",
+      "follow",
+      "update_follow",
+      "watch_follow_widget",
+      "follow_widget",
+      "blink_timer"
+    ],
+    "inherited_framework_lifecycle": [
+      "on_mount"
+    ],
+    "retained_paint_resource": [
+      "blink",
+      "_update_blink"
+    ],
+    "missed_external_consumer": "widgets/tool_call.py:311 watch_expanded; Cursor.follow internal update_follow call deleted with class",
+    "current_cursor_calls": "all eight external cursor callbacks use inherited Textual Widget.refresh; full names captured below",
+    "new_case_edits": "zero cursor policy/callback edits for a new content widget; it participates through ContentNavigation/committed geometry",
+    "inherited_framework_properties": [
+      "offset",
+      "visible"
+    ],
+    "current_cursor_attribute_consumers": [
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 549,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 2049,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 2251,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1053,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1059,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1397,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 2163,
+        "expression": "self.cursor.refresh"
+      },
+      {
+        "path": "src/toad/widgets/tool_call.py",
+        "line": 311,
+        "expression": "conversation.cursor.refresh"
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "current_production_guard": "PASS",
+  "historical_missed_callback": [
+    {
+      "head": "d3703dae",
+      "rejected": [
+        "widgets/tool_call.py",
+        311,
+        "update_follow"
+      ]
+    },
+    {
+      "head": "f8bad541",
+      "rejected": [
+        "widgets/tool_call.py",
+        311,
+        "update_follow"
+      ]
+    }
+  ],
+  "coverage": "all src/toad Python definitions/imports/attributes/dynamic unique API names and TCSS Cursor selectors",
+  "external_taxonomy": "Python AST; symbolic API names, not arbitrary Cursor labels, native lifecycle hooks, history reader intent or affixes"
+}
