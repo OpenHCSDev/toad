@@ -1,0 +1,34 @@
+{
+  "toad_source_head": "92ea38b43b0b8112bc789d131bf16041cfa326c9",
+  "installed_toad": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/installed/lib/python3.14/site-packages/toad",
+  "source_python_files_identical": 273,
+  "mismatches": [],
+  "wheel_sha256": "29fdf6a9d2438171c79546d223723ee0063c6bd470dc7ddbb8284763568b6efc",
+  "core_direct_url": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "224bb8e305bdd47276c4a853749b35e6d7c41ae0",
+      "requested_revision": "224bb8e305bdd47276c4a853749b35e6d7c41ae0"
+    }
+  },
+  "textual_direct_url": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+      "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+    }
+  },
+  "sdk_version": "0.12.1",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "native_tree_pin": [
+    "5ea25e3f9e88d073e5506ce97ceeca4c763b6da19f986ab032880d45f020f35c"
+  ],
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "full_native_trust": "existing verify_native_package required before fixture creation",
+  "borrowed_dependency_resource": "readonly runtime-canonical-source-publication-20260930 site-packages via pth; exact Core224 and Toad234 installed in owned prefix",
+  "private_catalog_data": "zz-private-catalog.toml is owned test configuration added to this prefix only",
+  "format_changed": false,
+  "public_or_default_changed": false
+}

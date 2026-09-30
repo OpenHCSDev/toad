@@ -1,0 +1,7 @@
+{
+  "original_toml_files_roundtripped": 21,
+  "configured_commands_bound": 31,
+  "format_changed": false,
+  "original_record_identity_preserved": true,
+  "boundary": "Command.bind; hyphen only normalized for declaration lookup, original external ID retained; arbitrary IDs are ordinary external scripts"
+}
