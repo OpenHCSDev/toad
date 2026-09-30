@@ -108,9 +108,7 @@ class AgentSession:
         if coordination is None:
             return
         binding = presentation.binding
-        scope = self.agent.queue_attachment.scope
-        attached_owner = scope.owner if scope is not None else None
-        if not self.load_admission.superseded_by(binding, attached_owner):
+        if not self.load_admission.superseded_by(binding):
             return
         await self.reconnect(ExistingSessionLoadAdmission(binding))
 
@@ -334,6 +332,7 @@ class AgentSession:
 
 
     def publish_configuration(self, response):
+        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         if (modes := response.modes) is not None:
             self.agent.controller.publish_modes(modes.current_mode_id, {
                 mode.id: mode

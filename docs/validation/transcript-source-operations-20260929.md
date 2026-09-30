@@ -1,6 +1,6 @@
 # T5 source-operation lifetime and same-open attachment recovery
 
-Production lines deleted relative to current main: 107. Core #426 deletes nine.
+Production lines deleted relative to current main: 107. Core #426 deletes ten.
 This removes the pager `_loading`, `_advancing`, pending `_latest_revision`
 encodings and the Conversation notification forwarding method with all callers.
 The existing TranscriptState family owns one admitted operation, completion,
@@ -13,8 +13,9 @@ Read-only failed attachment recovery consumes the canonical RegistrySnapshot
 binding in ThreadPresentation. Core carries the ORIGINAL failed load command's
 full owner/process witness in its typed RequestError disposition. The existing
 load command slot retains that failed disposition; it never permits replay,
-input or owner start. Accepted attachments use their original trusted queue
-owner scope. A strictly newer generation for the same incarnation detects even
+input or owner start. Accepted attachments use their original successful load response
+proof through the same WitnessedSessionLoadAdmission family. Queue admission
+counters are never compared with registry owner generations. A strictly newer generation for the same incarnation detects even
 PID reuse; the new load revalidates complete OwnerIdentity and ProcessIdentity.
 No last-PID field, last-owner cache, prebind-floor trust or second recovery path.
 
@@ -54,3 +55,35 @@ source publication and target recipient handling. It will delete the synthetic
 AssignedInboundPublication path and update same-frontier original handling
 through existing source/notification owners. This follow-up does not hold the
 useful #426/#210 recovery checkpoint.
+
+
+## Original accepted load correction
+
+Concrete review caught different counter domains in the initial accepted-path
+comparison. The queue-scope recovery consumer is deleted; both ACP new/load
+successful responses retain their ORIGINAL registry owner/process proof in the
+existing load command record. The same witnessed-command family handles failure
+and success without a current-owner cache or prebind evidence promotion.
+Owner=950/admission=914 same-process, same PID/new birth/generation, rename and
+absent proof negatives pass; source ratchets have zero positive measures.
+Exact affected installed accepted-record assertions remain to run when the
+active #425 native fixture retires. Previous receipt proves the failed path,
+not this new accepted-path closure. Parent owns final paired activation.
+
+
+## Final corrected installed pair: READY
+
+The affected journey passed again with ORIGINAL accepted registry/process proof
+assertions: Core 3e4e0c88 + Toad 93dbb8a8, fixture 5d40d302, native 4ab/Textual412.
+Exit 0. Same open failed view recovers in 4.793 seconds, preserved original
+Agent/editor/Document/undo, zero provider calls during repair, explicit new reply
+painted and stopped-owner load refused without starting it. No input replay.
+The accepted original load record exactly matches RegistrySnapshot owner and
+process; its unchanged binding does not invalidate. No queue admission counter
+is read by replacement. The committed receipt replaces the earlier pair's
+receipt; complete raw ACP/UI logs remain under owned persistent scratch
+`owner-recovery-original-accepted-final`.
+
+This closes the named accepted-path review blocker. No broader suite or CI hold.
+Parent owns final paired merge/install and verification of the selected default
+entrypoint. #215 remains the separately scoped full sender/source presentation.
