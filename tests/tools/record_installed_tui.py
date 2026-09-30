@@ -500,6 +500,14 @@ def profile_launch(command):
         deadline = time.monotonic() + 10
         program = terminal_program(owner, terminal.child.identity, deadline, transfer_program)
         ui_pid = program.child.identity.pid
+        # The real default wrapper first resolves its registered worktree in
+        # a child Python process, then execs the UI in this same identity. A
+        # profiler must attach after that exec, not to the temporary shell.
+        expected_python = Path(sys.executable).resolve()
+        while Path(f"/proc/{ui_pid}/exe").resolve() != expected_python:
+            if not program.child.identity.alive() or time.monotonic() >= deadline:
+                raise RuntimeError("Installed terminal did not exec the selected Python UI before profiling")
+            time.sleep(.02)
         sampling = ProfileSampling.decode(os.environ["TOAD_VIDEO_PROFILE_SAMPLING"])
         threads = ThreadSampling.decode(os.environ["TOAD_VIDEO_PROFILE_THREADS"])
         argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
