@@ -128,6 +128,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert after.document is before.document and after.history is before.history
     assert editor.text == 'draft'
     assert len(requests) == requests_before, 'Read-only recovery called the provider'
+    from agent_comms.session_load import ExistingSessionLoadAdmission
+    accepted_command = agent.session.load_admission
+    assert isinstance(accepted_command, ExistingSessionLoadAdmission)
+    accepted_snapshot = comms.registry.snapshot()
+    assert accepted_command.binding.owner == accepted_snapshot.owner_identity('beta')
+    assert accepted_command.binding.process == comms.registry.require('beta').require_process()
+    assert not accepted_command.superseded_by(accepted_snapshot.owner_binding('beta'))
     assert comms.registry.require('beta').pid == replacement.pid
     await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)))
     assert all(history.is_attached for history in original_history)
@@ -160,6 +167,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert not comms.registry.require('beta').process_alive
     assert len(requests) == 2
     (evidence / 'receipt.json').write_text(json.dumps({
+        'accepted_original_registry_witness': True,
         'same_open_view_recovered': True, 'recovery_seconds': recovered_seconds,
         'healthy_window_physical_beta_click': bool(os.environ.get('ATTACHMENT_HEALTHY_WINDOW')),
         'same_agent_editor_document_undo': True,
