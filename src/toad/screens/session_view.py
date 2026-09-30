@@ -67,9 +67,6 @@ class SessionView(SidebarFocusOwner, Vertical):
         """Declare admitted native trees; non-native views own no such trees."""
         return ()
 
-    async def on_unmount(self) -> None:
-        await self.close_presentation()
-
     async def wait_presented(self) -> bool:
         return await self.screen.frame_presentation.wait() and self.is_current
 
