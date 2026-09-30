@@ -656,5 +656,5 @@
     "raw_initial_failure": "original-wrapper-failure.txt"
   },
   "driver_source_commit_at_capture": "9f6428d9",
-  "corrected_driver_pending_commit": true
+  "corrected_driver_receipt_checkpoint": "f9046b82 (published driver and retained read-only review; no repeat UI run)"
 }
