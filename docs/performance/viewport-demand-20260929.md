@@ -47,3 +47,9 @@ Consistent py-spy produced **674 samples, zero reported errors**. Kernel UI CPU:
 Reading the shared MroDispatch contract then caught another concrete defect: every handler is awaited, but TranscriptBodyPreparation's base handler returned synchronously. It is now async, and the actual decoded saved-source/render journey exercises that contract. The obsolete mounted prefetch test patched out production edge checking and referenced the deleted _prefetched_edges field; 67 deleted lines remove that patched UI path, its dead field consumer and unused waiter and it reuses the actual installed source-history journey instead. No replacement UI or protocol mock.
 
 The corrected async-handler candidate passed the actual installed 105-record history journey, shared source-body rendering, held-edge End, tail paint and bounded DOM. This focused pass does not replace the pending whole saved-native capture/post-message journey.
+
+## Current integration and capture boundary
+
+Current main #211 3b019be0 is normally merged without source conflicts. The owned pair now pins merged Core425 b554c1e37373c29a578341f543018af92df3e800 with the same verified native4ab/Textual412. The native driver derives readiness from the canonical turn owner and submission queue rather than the removed view-level queue mirror.
+
+Mendel explicitly accepted the disjoint recorder postprocessing claim. Declared ReviewTiming cases own inline versus deferred encoding; the native driver requests deferred review. The existing recorder captures raw footage, profile/action correlation and cleanup, then returns to the original native-owner input check. The separate --review-recording operation reuses the same artifact encoder after native retirement, preserves the original receipt and produces its own review receipt. Controller deadlines are unchanged. Historical failed cd3 footage is being encoded independently; this does not convert that failed native journey into a pass.

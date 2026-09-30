@@ -30,7 +30,7 @@ def reply(request, number):
 async def record(app, pilot, agent, comms, entered, release, hold_next, requests):
     release.set()
     view = app.selected_session.conversation
-    await until(pilot, lambda: view.agent_ready and view.queue_projection.status == 'available')
+    await until(pilot, lambda: view.turns.owner.accepts_prompt and view.submissions.queue_projection.status == 'available')
     editor = view.prompt.prompt_text_area
     assert await pilot.click(editor)
     editor.insert('Produce the controlled rich saved scroll source.')
@@ -61,7 +61,7 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
     command = [sys.executable, str(recorder), '--private-root', str(comms.root),
                '--owner', 'toad-viewport-demand-214', '--actions', str(actions), '--fit-window',
                '--startup-wait', '12', '--max-duration', '50', '--review-seconds', '5',
-               '--review-frames', '40', '--output', str(output)]
+               '--review-frames', '40', '--review-timing', 'deferred', '--output', str(output)]
     for phase in ('up', 'down', 'reverse', 'end', 'idle'):
         command.extend(('--review-phase', phase))
     if os.environ.get('SCROLL_PROFILE') == '1':

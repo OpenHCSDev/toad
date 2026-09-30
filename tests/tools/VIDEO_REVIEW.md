@@ -277,3 +277,17 @@ from the profiled run alone. Associate inspected stall frame intervals with the
 matching `profile-review.json` phase and supporting sampled stacks in the local
 `assessment.json`. Leave absent/unsampled phases explicit. The performance owner
 must decide whether sampled work is redundant and implement its fix.
+
+## Separate capture and review lifetimes
+
+For native acceptance journeys, add `--review-timing deferred`. Capture still records the exact installed runtime, all physical actions, raw terminal video, screenshots, profile correlation and process cleanup. Its receipt records the selected timing and `assessment: unreviewed`; the slow clips and contact sheets are absent until the independent review operation completes. The fixture can then verify its original owner still accepts a prompt and retire its native processes.
+
+After that journey retires, encode the recorded intervals through the same tool:
+
+```sh
+"$candidate_python" tests/tools/record_installed_tui.py \
+  --review-recording /home/ts/.cache/agent-scratch/YOUR-RUN/recording \
+  --review-frames 40
+```
+
+This operation launches only bounded serial encoding processes. It reads the completed raw capture and its intervals; it opens no X display, application, ACP or native owner. It preserves the original capture receipt and writes `review-receipt.json` with artifact sizes, digests and cleanup. Default slowdown remains 8×. Encoding completion still does not assess the UI. This boundary avoids spending the native fixture's deadline on offline video generation.
