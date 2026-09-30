@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--thread", default="nra-architecture")
     parser.add_argument("--peer-thread", default="nra-domain-mapping")
     parser.add_argument("--journey", default="default_entrypoint")
+    parser.add_argument("--candidate-bin", type=Path,
+                        help="Explicit immutable candidate through normal toad-comms; defaults untouched")
     parser.add_argument("--prepare-only", action="store_true")
     parser.add_argument("--review-existing", action="store_true",
                         help="Review retained native artifacts without launching the UI")
@@ -169,7 +171,8 @@ def main():
         checks = journey.verify(base)
         assert (base / "original-before.json").read_bytes() == (base / "original-after.json").read_bytes(), "Original native owner/source changed"
         (base / "scoped-native-review.json").write_text(json.dumps({
-            "checks": checks, "source_and_owner_unchanged": True, "runtime_override": False,
+            "checks": checks, "source_and_owner_unchanged": True,
+            "runtime_override": args.candidate_bin is not None,
             "prompt_submissions": 0, "physical_review": "Required before any default live PASS",
             "scope": journey.declared_name,
         }, indent=2) + "\n")
@@ -187,7 +190,8 @@ def main():
         "recorder_sha256": hashlib.sha256(recorder_path.read_bytes()).hexdigest(),
         "peer_thread": args.peer_thread, "actions": actions,
         "journey": journey.declared_name,
-        "launch_requires": "Parent explicitly announces reviewed default activation complete",
+        "launch_requires": "Reviewed immutable candidate dispatch or parent-confirmed default activation",
+        "candidate_bin": str(args.candidate_bin) if args.candidate_bin is not None else None,
         "prepared_only": args.prepare_only,
         "scope": journey.scope,
         "reconnect": "Middle-click original tab label, then actual canonical roster reopening; no owner restart",
@@ -213,6 +217,12 @@ def main():
                 "AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
                 "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
         os.environ.pop(key, None)
+    if args.candidate_bin is not None:
+        candidate = args.candidate_bin.resolve(strict=True)
+        assert Path(sys.prefix).resolve() == candidate.parent, "Use the candidate's Python"
+        assert (candidate.parent / "activation.json").is_file()
+        os.environ["AGENT_COMMS_RUNTIME_ROOT"] = str(candidate)
+        os.environ["AGENT_COMMS_ACP_LAUNCHER"] = str(candidate / "agent-comms-acp")
     from agent_comms.comms import wire
 
     def original():
