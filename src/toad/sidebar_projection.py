@@ -32,13 +32,18 @@ class SidebarProjection:
     def rows(self):
         from toad.widgets.comms_sidebar import ChannelGroup
         return [row for group in self.sidebar.children if isinstance(group, ChannelGroup)
-                for row in (group.row, *group.member_rows)
+                for row in (group.row, *group.member_container.children)
                 if row.is_navigation_row()]
 
     @property
+    def thread_rows(self):
+        from toad.widgets.comms_sidebar import ChannelGroup
+        return [row for group in self.sidebar.children if isinstance(group, ChannelGroup)
+                for row in group.member_container.children]
+
+    @property
     def session_rows(self):
-        from toad.widgets.comms_sidebar import ThreadRow
-        return [row for row in self.sidebar.query(ThreadRow) if row.has_open_view()]
+        return [row for row in self.thread_rows if row.has_open_view()]
 
     def mount(self) -> None:
         self.timer = self.sidebar.set_interval(.18, self.animate, pause=True)
