@@ -587,7 +587,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         viewport = window.__dict__.get("document_viewport")
         if viewport is not None and not viewport.visible_bodies_ready:
             return
-        if any(history.is_attached and (history.has_newer or history._loading)
+        if any(history.is_attached and (history.has_newer or not history.checkpoint_available)
                for history in window.histories):
             return
         try:

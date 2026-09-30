@@ -1,0 +1,213 @@
+{
+  "app_revision": {
+    "files": [
+      [
+        14692944,
+        2934,
+        1790764252761198722,
+        1790764252761857343
+      ],
+      [
+        14692932,
+        515,
+        1790764251548835709,
+        1790764251549835726
+      ],
+      [
+        14692896,
+        0,
+        1790764231517478461,
+        1790764231517478461
+      ],
+      null,
+      [
+        14692937,
+        76,
+        1790764245136418543,
+        1790764245136418543
+      ],
+      [
+        14692934,
+        189,
+        1790764245073720226,
+        1790764245075568084
+      ],
+      [
+        14692900,
+        85,
+        1790764251571836119,
+        1790764251572836137
+      ],
+      null,
+      [
+        14692891,
+        393216,
+        1790764252752857183,
+        1790764252752857183
+      ],
+      null
+    ],
+    "expiry_tick": 1790764261
+  },
+  "canonical_revision": {
+    "files": [
+      [
+        14692944,
+        2934,
+        1790764252761198722,
+        1790764252761857343
+      ],
+      [
+        14692932,
+        515,
+        1790764251548835709,
+        1790764251549835726
+      ],
+      [
+        14692896,
+        0,
+        1790764231517478461,
+        1790764231517478461
+      ],
+      null,
+      [
+        14692937,
+        76,
+        1790764245136418543,
+        1790764245136418543
+      ],
+      [
+        14692934,
+        189,
+        1790764245073720226,
+        1790764245075568084
+      ],
+      [
+        14692900,
+        85,
+        1790764251571836119,
+        1790764251572836137
+      ],
+      null,
+      [
+        14692891,
+        393216,
+        1790764252752857183,
+        1790764252752857183
+      ],
+      null
+    ],
+    "expiry_tick": 1790764261
+  },
+  "app_service_root": "/home/ts/wt/cw233-observer01/private-root/wire",
+  "app_service_is_sidebar_service": true,
+  "app_task": "<Task finished name='Task-1153' coro=<CoordinationAccess.observe() done, defined at /home/ts/wt/toad-fork-task-editor-20260930/.artifacts/installed-core440-fork/lib/python3.14/site-packages/toad/comms_root.py:139> result=None>",
+  "app_timer": "Timer(0.05, name='set_interval#1')",
+  "app_timer_active": true,
+  "app_timer_task": "<Task pending name='set_interval#1' coro=<Timer._run_timer() running at /home/ts/wt/toad-fork-task-editor-20260930/.artifacts/installed-core440-fork/lib/python3.14/site-packages/textual/timer.py:148> wait_for=<Future pending cb=[Task.task_wakeup()]>>",
+  "route_stamp": [
+    [
+      7904083,
+      254,
+      1790758865345916698,
+      1790758866040361413
+    ],
+    [
+      14692899,
+      818,
+      1790764231551634954,
+      1790764231551634954
+    ]
+  ],
+  "current_route_stamp": [
+    [
+      7904083,
+      254,
+      1790758865345916698,
+      1790758866040361413
+    ],
+    [
+      14692899,
+      818,
+      1790764231551634954,
+      1790764231551634954
+    ]
+  ],
+  "observer_identity": null,
+  "observer_revision": {
+    "files": [
+      [
+        14692944,
+        2934,
+        1790764252761198722,
+        1790764252761857343
+      ],
+      [
+        14692932,
+        515,
+        1790764251548835709,
+        1790764251549835726
+      ],
+      [
+        14692896,
+        0,
+        1790764231517478461,
+        1790764231517478461
+      ],
+      null,
+      [
+        14692937,
+        76,
+        1790764245136418543,
+        1790764245136418543
+      ],
+      [
+        14692934,
+        189,
+        1790764245073720226,
+        1790764245075568084
+      ],
+      [
+        14692900,
+        85,
+        1790764251571836119,
+        1790764251572836137
+      ],
+      null,
+      [
+        14692891,
+        393216,
+        1790764252752857183,
+        1790764252752857183
+      ],
+      null
+    ],
+    "expiry_tick": 1790764261
+  },
+  "observer_task": "<Task finished name='Task-1155' coro=<SidebarObservation.refresh_checked() done, defined at /home/ts/wt/toad-fork-task-editor-20260930/.artifacts/installed-core440-fork/lib/python3.14/site-packages/toad/sidebar_observation.py:211> result=None>",
+  "accepts_observation": true,
+  "canonical_channels": [
+    "#any",
+    "#none",
+    "#all",
+    "#fork-added",
+    "#team"
+  ],
+  "projected_channels": [
+    "#any",
+    "#none",
+    "#all",
+    "#team"
+  ],
+  "frame_callbacks": [
+    "(CommsSidebar(), <bound method SidebarObservation.start_read of <toad.sidebar_observation.SidebarObservation object at 0x7fe8e26f01a0>>)"
+  ],
+  "screen_callbacks": [],
+  "screen_refresh_pending": false,
+  "screen_batch_count": 0,
+  "signal_subscribers": [
+    "CommsSidebar()",
+    "ObservedThreadActivity()"
+  ],
+  "sidebar_next_callbacks": []
+}
