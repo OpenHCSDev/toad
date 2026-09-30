@@ -14,6 +14,50 @@ from toad.widgets.conversation import Conversation
 from toad.navigation_preparation import ThreadNavigationRequest
 
 
+async def dialog_content_only():
+    """Actual installed dialog paste, with no fork, owner or provider start."""
+    from textual import events
+    from textual.widgets import Input
+    from agent_comms.threads import Thread
+    from agent_comms.field_codec import FieldCodec
+    from runtime_fixture import private_native_wire
+    from toad.widgets.comms_fork_dialog import ForkDialog
+    evidence = Path(os.environ['FORK_DIALOG_EVIDENCE'])
+    evidence.mkdir(parents=True, exist_ok=False)
+    project = evidence / 'project'
+    project.mkdir()
+    comms = private_native_wire(evidence / 'wire')
+    parent = Thread('fork-source', frozenset({'team', 'keep'}), str(project))
+    comms.registry.declare(parent)
+    results = []
+    task = 'First acceptance instruction.\n\nSecond instruction must survive the paste.'
+    app = InstalledApp(project_dir=str(project))
+    async with app.run_test(size=(100, 38)) as pilot:
+        await app.selected_session.wait_content_ready()
+        app.push_screen(ForkDialog(parent), results.append)
+        await until(pilot, lambda: isinstance(app.screen, ForkDialog))
+        dialog = app.screen
+        await until(pilot, lambda: dialog.query_one_optional('#fork-tags', Input) is not None)
+        assert dialog.query_one('#fork-tags', Input).value == 'keep, team'
+        dialog.query_one('#fork-name', Input).value = 'fork-child'
+        editor = dialog.query_one('#fork-task')
+        assert await pilot.click(editor)
+        editor.post_message(events.Paste(task))
+        await pilot.pause()
+        app.save_screenshot(str(evidence / 'pasted-task.svg'))
+        assert await pilot.click('#fork-create')
+        await until(pilot, lambda: bool(results))
+        spec = results[0]
+        (evidence / 'dialog-content.json').write_text(json.dumps({
+            'expected_task': task, 'actual_spec': FieldCodec.encode(spec),
+            'provider_calls': 0, 'owner_starts': 0,
+        }, indent=2)+'\n')
+        assert spec.name == 'fork-child' and spec.tags == parent.tags
+        assert spec.task == task, (spec.task, task)
+        assert app._exception is None
+    (evidence / 'complete.txt').write_text('PASS: native dialog paste preserves full task text\n')
+
+
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
 
@@ -170,4 +214,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 
 if __name__ == '__main__':
-    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))
+    if os.environ.get('FORK_DIALOG_EVIDENCE'):
+        asyncio.run(dialog_content_only())
+    else:
+        asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))
