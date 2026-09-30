@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/textual/message_pump.py", line 749, in _flush_next_callbacks
+    await invoke(callback.callback)
+  File "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/textual/reactive.py", line 87, in await_watcher
+    await awaitable
+  File "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/toad/widgets/tool_call.py", line 311, in watch_expanded
+    self.call_after_refresh(conversation.cursor.update_follow)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CursorContainer' object has no attribute 'update_follow'

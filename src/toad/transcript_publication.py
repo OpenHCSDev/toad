@@ -213,8 +213,6 @@ class CheckpointPublication(TranscriptPublication):
             ):
                 return
             view.output.boundary()
-            if view.cursor_block in retired:
-                view.cursor.follow(None)
             async with plan.publication(view, prepared):
                 replacement = None
                 accepted = False

@@ -1,0 +1,3925 @@
+{
+  "source": "cpu-profile.json Chrome B/E events",
+  "ui_pid": 2524319,
+  "ui_main_tid": 140303669385088,
+  "clock_offset": -0.31111357850022614,
+  "uncertainty_seconds": 0.05740264749969356,
+  "method": "main UI thread only; stack rebuilt in trace order at each changed timestamp; counts are observed transition groups, NOT sample counts/CPU/duration. Recursive frame identities deduplicated per stack. Unchanged stack samples cannot be recovered from Chrome transitions.",
+  "raw_profile_review_limit": "open GIL threads and recursive B/E spans overlap; generic profile-review hot seconds overcount, not used for CPU attribution. Kernel counters authoritative for CPU",
+  "near_blank_frame_observations": [
+    {
+      "video_seconds": 25.922333421499776,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "name": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 771
+        }
+      ]
+    },
+    {
+      "video_seconds": 25.950817421499774,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "name": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 167
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1288
+        },
+        {
+          "name": "_compositor_refresh",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1251
+        },
+        {
+          "name": "render_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1266
+        },
+        {
+          "name": "render_partial_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1329
+        },
+        {
+          "name": "_render_chops",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1420
+        }
+      ]
+    },
+    {
+      "video_seconds": 25.974492421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "name": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "name": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "name": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_leave",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4989
+        },
+        {
+          "name": "__set__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 441
+        },
+        {
+          "name": "_set",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 421
+        },
+        {
+          "name": "_check_watchers",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 454
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.093613421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "name": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "name": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "name": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "name": "_on_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4945
+        },
+        {
+          "name": "_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4959
+        },
+        {
+          "name": "mount_composed_widgets",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4972
+        },
+        {
+          "name": "await_mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 179
+        },
+        {
+          "name": "refresh",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4549
+        },
+        {
+          "name": "_invalidate_subtree_geometry",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 336
+        },
+        {
+          "name": "_parent",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.105505421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "name": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 788
+        },
+        {
+          "name": "_flush_next_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 749
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "name": "_check_recompose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1838
+        },
+        {
+          "name": "recompose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1852
+        },
+        {
+          "name": "mount_all",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1607
+        },
+        {
+          "name": "mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1549
+        },
+        {
+          "name": "_register",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 3674
+        },
+        {
+          "name": "_start_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 590
+        },
+        {
+          "name": "create_task",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+          "line": 395
+        },
+        {
+          "name": "create_task",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 468
+        },
+        {
+          "name": "factory",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+          "line": 1050
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "name": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 639
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "name": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "name": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "name": "_on_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4945
+        },
+        {
+          "name": "_compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4949
+        },
+        {
+          "name": "compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/compose.py",
+          "line": 54
+        },
+        {
+          "name": "compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/patch_diff.py",
+          "line": 459
+        },
+        {
+          "name": "compose",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual_diff_view/_diff_view.py",
+          "line": 922
+        },
+        {
+          "name": "compose_unified",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual_diff_view/_diff_view.py",
+          "line": 952
+        },
+        {
+          "name": "_compose_unified",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual_diff_view/_diff_view.py",
+          "line": 956
+        },
+        {
+          "name": "highlighted_code_lines",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/patch_diff.py",
+          "line": 478
+        },
+        {
+          "name": "get_visual_style",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1309
+        },
+        {
+          "name": "multiply_alpha",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/color.py",
+          "line": 442
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.135003421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "name": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 644
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "name": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "name": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "name": "on_mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual_diff_view/_diff_view.py",
+          "line": 944
+        },
+        {
+          "name": "size",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2375
+        },
+        {
+          "name": "content_region",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2411
+        },
+        {
+          "name": "region",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2462
+        },
+        {
+          "name": "find_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 771
+        },
+        {
+          "name": "find_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146
+        },
+        {
+          "name": "full_map",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560
+        },
+        {
+          "name": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1393
+        },
+        {
+          "name": "screen",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 837
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.213698421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "name": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 167
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 208
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402
+        },
+        {
+          "name": "reflow",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445
+        },
+        {
+          "name": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 726
+        },
+        {
+          "name": "get_visible_placements",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 77
+        },
+        {
+          "name": "get_values_in_region",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_spatial_map.py",
+          "line": 102
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.215846421499773,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "name": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 167
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 208
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1402
+        },
+        {
+          "name": "reflow",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 445
+        },
+        {
+          "name": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 104
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.245258421499774,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "name": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 167
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 208
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1427
+        },
+        {
+          "name": "_size_updated",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4338
+        },
+        {
+          "name": "_set_dirty",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2871
+        },
+        {
+          "name": "clear",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_styles_cache.py",
+          "line": 97
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.277731421499773,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "name": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 788
+        },
+        {
+          "name": "_flush_next_callbacks",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 749
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_settle",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 236
+        },
+        {
+          "name": "request",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 218
+        },
+        {
+          "name": "run_worker",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 562
+        },
+        {
+          "name": "_new_worker",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker_manager.py",
+          "line": 118
+        },
+        {
+          "name": "add_worker",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker_manager.py",
+          "line": 79
+        },
+        {
+          "name": "_start",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 416
+        },
+        {
+          "name": "create_task",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+          "line": 395
+        },
+        {
+          "name": "create_task",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 468
+        },
+        {
+          "name": "factory",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py",
+          "line": 1050
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 385
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 371
+        },
+        {
+          "name": "_run_async",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 356
+        },
+        {
+          "name": "_reconcile",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 301
+        },
+        {
+          "name": "_trim_warm",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 203
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.328233421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 385
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 371
+        },
+        {
+          "name": "_run_async",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/worker.py",
+          "line": 358
+        },
+        {
+          "name": "execute",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/transcript_state.py",
+          "line": 149
+        },
+        {
+          "name": "_load_page",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 800
+        },
+        {
+          "name": "_extend_and_trim",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 835
+        },
+        {
+          "name": "_report_coverage",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 442
+        },
+        {
+          "name": "__init__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 563
+        },
+        {
+          "name": "incoming_sequences",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/transcript_preparation.py",
+          "line": 46
+        },
+        {
+          "name": "<genexpr>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/transcript_preparation.py",
+          "line": 49
+        },
+        {
+          "name": "event_category",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/message_filter.py",
+          "line": 142
+        },
+        {
+          "name": "dispatch_sync",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/mro_dispatch.py",
+          "line": 50
+        },
+        {
+          "name": "handlers_for",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/mro_dispatch.py",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.438531421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 601
+        },
+        {
+          "name": "_pre_process",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 644
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "name": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "name": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 58
+        },
+        {
+          "name": "on_mount",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual_diff_view/_diff_view.py",
+          "line": 944
+        },
+        {
+          "name": "size",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2375
+        },
+        {
+          "name": "content_region",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2411
+        },
+        {
+          "name": "region",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2462
+        },
+        {
+          "name": "find_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 771
+        },
+        {
+          "name": "find_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1146
+        },
+        {
+          "name": "full_map",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 560
+        },
+        {
+          "name": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 86
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 80
+        },
+        {
+          "name": "partition",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_partition.py",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.489740421499775,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "name": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 167
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 208
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1427
+        },
+        {
+          "name": "_size_updated",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4350
+        },
+        {
+          "name": "_set",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 424
+        },
+        {
+          "name": "_compute",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 489
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.502990421499774,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_run_timer",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 148
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 186
+        },
+        {
+          "name": "_tick",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "line": 199
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 167
+        },
+        {
+          "name": "_on_timer_update",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1279
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "line": 213
+        },
+        {
+          "name": "_refresh_layout",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1377
+        },
+        {
+          "name": "reflow_visible",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 523
+        },
+        {
+          "name": "_arrange_root",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 896
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 876
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 805
+        },
+        {
+          "name": "add_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 862
+        },
+        {
+          "name": "arrange_widget",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 704
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 55
+        },
+        {
+          "name": "resolve_box_models",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 254
+        },
+        {
+          "name": "_get_box_model",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2010
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2101
+        },
+        {
+          "name": "get_content_height",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 294
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 1409
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "line": 97
+        },
+        {
+          "name": "arrange",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "line": 106
+        },
+        {
+          "name": "__floor__",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/fractions.py",
+          "line": 963
+        }
+      ]
+    },
+    {
+      "video_seconds": 26.527628421499774,
+      "stack": [
+        {
+          "name": "process 2524319:\"/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad acp /home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python -m agent_comms.acp /home/ts/code/projects/nominal-refactor-advisor --title Agent Comms --session nra-architecture\"",
+          "file": "",
+          "line": 0
+        },
+        {
+          "name": "<module>",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/toad",
+          "line": 10
+        },
+        {
+          "name": "__call__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1524
+        },
+        {
+          "name": "main",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1445
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1912
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 1308
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/click/core.py",
+          "line": 877
+        },
+        {
+          "name": "acp",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 319
+        },
+        {
+          "name": "run_terminal",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "line": 37
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 2352
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 204
+        },
+        {
+          "name": "run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+          "line": 127
+        },
+        {
+          "name": "run_until_complete",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 706
+        },
+        {
+          "name": "run_forever",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 677
+        },
+        {
+          "name": "_run_once",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 2046
+        },
+        {
+          "name": "_run",
+          "file": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94
+        },
+        {
+          "name": "_process_messages",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 604
+        },
+        {
+          "name": "_process_messages_loop",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 703
+        },
+        {
+          "name": "_dispatch_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 774
+        },
+        {
+          "name": "on_event",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 855
+        },
+        {
+          "name": "_on_message",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 876
+        },
+        {
+          "name": "invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 96
+        },
+        {
+          "name": "_invoke",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "line": 56
+        },
+        {
+          "name": "_on_hide",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 5074
+        },
+        {
+          "name": "__get__",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 385
+        },
+        {
+          "name": "get",
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 99
+        }
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "label": "up",
+      "video_start": 15.289469244977226,
+      "video_end": 20.4842791389965,
+      "main_thread_observed_transition_groups": 83,
+      "top_owned_stacks": [
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "acp",
+          "observed_transition_groups": 83
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "run_terminal",
+          "observed_transition_groups": 83
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "function": "run",
+          "observed_transition_groups": 83
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "invoke",
+          "observed_transition_groups": 71
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "_invoke",
+          "observed_transition_groups": 71
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run_timer",
+          "observed_transition_groups": 48
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run",
+          "observed_transition_groups": 48
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_tick",
+          "observed_transition_groups": 48
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "function": "_on_timer_update",
+          "observed_transition_groups": 47
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "function": "_on_timer_update",
+          "observed_transition_groups": 47
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "function": "_refresh_layout",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "function": "_refresh_layout",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "_arrange_root",
+          "observed_transition_groups": 34
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "add_widget",
+          "observed_transition_groups": 34
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "arrange_widget",
+          "observed_transition_groups": 34
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages",
+          "observed_transition_groups": 30
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages_loop",
+          "observed_transition_groups": 26
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "function": "arrange",
+          "observed_transition_groups": 24
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "reflow",
+          "observed_transition_groups": 22
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "function": "arrange",
+          "observed_transition_groups": 21
+        }
+      ]
+    },
+    {
+      "label": "down",
+      "video_start": 21.688840146001894,
+      "video_end": 26.83264500097721,
+      "main_thread_observed_transition_groups": 88,
+      "top_owned_stacks": [
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "acp",
+          "observed_transition_groups": 88
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "run_terminal",
+          "observed_transition_groups": 88
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "function": "run",
+          "observed_transition_groups": 88
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "invoke",
+          "observed_transition_groups": 75
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "_invoke",
+          "observed_transition_groups": 75
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run_timer",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_tick",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "function": "_on_timer_update",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "function": "_on_timer_update",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "function": "_refresh_layout",
+          "observed_transition_groups": 42
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "function": "_refresh_layout",
+          "observed_transition_groups": 39
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "_arrange_root",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "add_widget",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "arrange_widget",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages",
+          "observed_transition_groups": 34
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "function": "arrange",
+          "observed_transition_groups": 26
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages_loop",
+          "observed_transition_groups": 25
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "reflow",
+          "observed_transition_groups": 25
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "function": "arrange",
+          "observed_transition_groups": 24
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "video_start": 27.974789626983693,
+      "video_end": 33.120194757997524,
+      "main_thread_observed_transition_groups": 86,
+      "top_owned_stacks": [
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "acp",
+          "observed_transition_groups": 86
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "run_terminal",
+          "observed_transition_groups": 86
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "function": "run",
+          "observed_transition_groups": 86
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "invoke",
+          "observed_transition_groups": 68
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "_invoke",
+          "observed_transition_groups": 67
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run_timer",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_tick",
+          "observed_transition_groups": 49
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "function": "_on_timer_update",
+          "observed_transition_groups": 48
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "function": "_on_timer_update",
+          "observed_transition_groups": 48
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/screens/workspace.py",
+          "function": "_refresh_layout",
+          "observed_transition_groups": 41
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "function": "_refresh_layout",
+          "observed_transition_groups": 38
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "_arrange_root",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "add_widget",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "arrange_widget",
+          "observed_transition_groups": 36
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "function": "reflow",
+          "observed_transition_groups": 29
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages",
+          "observed_transition_groups": 27
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "function": "arrange",
+          "observed_transition_groups": 24
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_arrange.py",
+          "function": "arrange",
+          "observed_transition_groups": 24
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/layouts/vertical.py",
+          "function": "arrange",
+          "observed_transition_groups": 24
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "video_start": 36.467703373986296,
+      "video_end": 52.611368048994336,
+      "main_thread_observed_transition_groups": 30,
+      "top_owned_stacks": [
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "acp",
+          "observed_transition_groups": 30
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/cli.py",
+          "function": "run_terminal",
+          "observed_transition_groups": 30
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/app.py",
+          "function": "run",
+          "observed_transition_groups": 30
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "function": "refresh_checked",
+          "observed_transition_groups": 11
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "function": "poll",
+          "observed_transition_groups": 11
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/sidebar_observation.py",
+          "function": "read",
+          "observed_transition_groups": 11
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/app.py",
+          "function": "mark_visible_thread_read",
+          "observed_transition_groups": 11
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "invoke",
+          "observed_transition_groups": 7
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/_callback.py",
+          "function": "_invoke",
+          "observed_transition_groups": 7
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages",
+          "observed_transition_groups": 6
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "function": "_process_messages_loop",
+          "observed_transition_groups": 6
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run_timer",
+          "observed_transition_groups": 6
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/timer.py",
+          "function": "_run",
+          "observed_transition_groups": 6
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "function": "query_one_optional",
+          "observed_transition_groups": 5
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "function": "query_one",
+          "observed_transition_groups": 5
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/textual/css/match.py",
+          "function": "match",
+          "observed_transition_groups": 4
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/comms_root.py",
+          "function": "root_is_current",
+          "observed_transition_groups": 4
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/comms_root.py",
+          "function": "current_root",
+          "observed_transition_groups": 4
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "function": "read_metadata_unlocked",
+          "observed_transition_groups": 4
+        },
+        {
+          "file": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/lib/python3.14/site-packages/toad/session_observation.py",
+          "function": "_run",
+          "observed_transition_groups": 4
+        }
+      ]
+    }
+  ]
+}

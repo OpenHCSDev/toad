@@ -1,0 +1,18 @@
+{
+  "before": {
+    "scroll": 86.89832392197445,
+    "maximum": 108,
+    "selection": "TranscriptHistory"
+  },
+  "after": {
+    "scroll": 0,
+    "maximum": 0,
+    "selection": "NoneType",
+    "history_visible": true,
+    "visible_bodies": 1,
+    "extent": 14
+  }
+}
+PASS saved native ToolCall header clicks expand/collapse/reopen without retired cursor API
+
+EXIT 0
