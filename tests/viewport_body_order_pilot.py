@@ -21,6 +21,9 @@ from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptFragmentView
 from toad.widgets.agent_response import AgentResponse
+from textual.widget import Widget
+from textual.widgets import Label
+from textual.widgets._markdown import MarkdownBlock
 
 
 async def main():
@@ -111,15 +114,48 @@ async def main():
             # source measures the current native resource rather than reusing a
             # count belonging to its removed descendants.
             retired = docs[10]
+            fixed = Label('Native decoration survives Markdown block retirement')
+            await retired.mount(fixed)
+            await settle()
             retired_cost = retired.retained_widget_count
-            assert await retired.retire_body()
+            removing = next(child for child in retired.children if isinstance(child, MarkdownBlock))
+            pruning, release_prune = asyncio.Event(), asyncio.Event()
+            original_prune = Widget.on_prune
+
+            async def held_prune(widget, event):
+                if widget is removing:
+                    pruning.set()
+                    await release_prune.wait()
+                await original_prune(widget, event)
+
+            with patch.object(Widget, 'on_prune', held_prune):
+                retirement = asyncio.create_task(retired.retire_body())
+                try:
+                    await asyncio.wait_for(pruning.wait(), 5)
+                    assert retired.body_dormant and removing in retired.children
+                    current = 1 + len(retired.walk_children())
+                    assert retired.materialized_widget_count == current > 1
+                    assert retired.retained_widget_count == retired_cost
+                    (evidence / 'pending-prune-cost.json').write_text(json.dumps(dict(
+                        resource=id(retired), native_children=[id(c) for c in retired.children],
+                        dormant=retired.body_dormant, restore_reservation=retired_cost,
+                        actual_native_cost=current, declared_native_cost=retired.materialized_widget_count,
+                    ), indent=2) + '\n')
+                finally:
+                    release_prune.set()
+                    assert await asyncio.wait_for(retirement, 5)
             assert retired.body_dormant and retired.retained_widget_count == retired_cost
+            assert fixed in retired.children
+            assert retired.materialized_widget_count == 1 + len(retired.walk_children())
+            assert retired.materialized_widget_count < retired.retained_widget_count
             await retired.restore_body()
             await settle()
             assert not retired.body_dormant
             assert retired.retained_widget_count == 1 + len(retired.walk_children())
             receipt.update(native_content_cost_invalidated=True,
-                           retired_cost_retained=True, restored_cost_current=True)
+                           retired_cost_retained=True, restored_cost_current=True,
+                           pending_prune_residency_exact=True,
+                           retained_nonblock_residency_exact=True)
             viewport.resume_source()
             window.focus(scroll_visible=False)
             await pilot.press('pageup', 'pageup', 'pagedown', 'pageup', 'end')
@@ -245,6 +281,19 @@ async def main():
                 (evidence / 'accepted-custody.json').write_text(
                     json.dumps(accepted_custody, indent=2) + '\n')
                 assert roots == fragments
+                exact_native_cost = len(history.walk_children())
+                assert history.widget_count == exact_native_cost
+                resident_profile = cProfile.Profile()
+                resident_profile.enable()
+                for _ in range(100):
+                    assert history.widget_count == exact_native_cost
+                resident_profile.disable()
+                resident_profile.dump_stats(str(evidence / 'history-native-cost.prof'))
+                resident_walks = sum(value[0] for (_, _, name), value in
+                                     pstats.Stats(resident_profile).stats.items() if name == 'walk_children')
+                receipt.update(history_native_cost_exact=True,
+                               history_native_widgets=exact_native_cost,
+                               profiled_resident_walks=resident_walks)
             assert agent.process.process is None and agent.process.runner is None
             assert app._exception is None
             receipt.update(native_reorder=True, removed_body_released=True,

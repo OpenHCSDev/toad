@@ -492,7 +492,18 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     @property
     def widget_count(self) -> int:
-        return sum(1 for _ in self.walk_children())
+        # Body descendants have one native cost owner. Headers, pages, filters
+        # and pending native mounts remain part of this history's actual tree.
+        pending = list(self.children)
+        count = 0
+        while pending:
+            child = pending.pop()
+            if isinstance(child, ViewportBody):
+                count += child.materialized_widget_count
+            else:
+                count += 1
+                pending.extend(child.children)
+        return count
 
     @property
     def retained_source_bytes(self) -> int:
@@ -878,7 +889,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 if over_widgets > 0:
                     self._saturated_widget_limit = self.widget_limit
                     for index, child in enumerate(available, 1):
-                        over_widgets -= 1 + sum(1 for _ in child.walk_children())
+                        over_widgets -= child.materialized_widget_count
                         remove_count = max(remove_count, index)
                         if over_widgets <= 0:
                             break

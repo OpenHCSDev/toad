@@ -50,3 +50,32 @@ undo are bounded resources. Latest NRA/refactor-audit ownership and changed-file
 ratchets apply. Work only in this persistent WT; no global runtime mutations.
 Parent owns merge/pairing/live gates. Ship useful installed-tested checkpoints
 without claiming the fullCPU/50ms target or completed TC1/T9 from source pilots.
+
+## First code-bearing source checkpoint
+
+Existing ViewportBody now reports materialized native cost; MeasuredViewportBody
+reuses live cost through its original measurement/revision. A dormant body counts
+its actual native children without altering its last reconstruction reservation.
+TranscriptHistory counts native headers/pages/filters and delegates descendants
+at each body boundary; trimming uses the same body contract. Replaced complete
+history traversal and copied per-fragment traversal are deleted in place.
+
+Same actual source pilot passes against installed Core6feb/Text2e/593b dependencies:
+hold real MarkdownBlock Prune with dormancy already true, original reservation24,
+actual resident widgets4 and declared resident widgets4. After removal a retained
+non-Markdown Label still contributes to native residency; restore uses its current
+native tree. After accepted source publication,35 native history widgets match
+the new cost contract across100 checks with zero descendant walks. The previous
+mount-fence/equality, source-change/reorder/remove/resize/reverse/End checks pass.
+
+`receipt.json` and `pending-prune-cost.json` retain the result and exact native
+custody; raw `.artifacts/native-resident-cost-source` contains profile/output.
+Two changed production-file ratchets parse successfully and show no dispatch,
+codec or foreign absence-probe growth. IMPL-12 copied counting collapses into the
+existing body's resource capability; IDEN-1 keeps resident cost distinct from
+reconstruction reservation without a second store. A new native body inherits
+the default actual-tree contract; measured bodies inherit revision validity.
+
+This is source/resource proof, not installed current-source physical acceptance
+or fullCPU/firstpaint readiness. One affected installed saved-history gate is
+next. No native provider process, input/replay, public source or owner change.
