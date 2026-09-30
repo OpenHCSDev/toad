@@ -23,7 +23,7 @@ from first_fork_native_installed_pilot import InstalledApp as ForkApp, acceptanc
 from l0a_native_installed_pilot import main, until, response_painted
 from saved_state_user_journey_pilot import submit_editor
 from toad.widgets.committed_presentation import StartedInputClaim
-from toad.widgets.prompt import SendNow
+from toad.widgets.prompt import QueueSummary, SendNow
 from toad.widgets.user_input import UserInput
 
 
@@ -45,6 +45,8 @@ class InputPaintFrame:
     submissions: tuple[SubmissionObservation, ...]
     queue: tuple[QueueItem, ...]
     mounted_starts: tuple[InputStartedUpdate, ...]
+    queue_region: tuple[int, int, int, int]
+    chat_region: tuple[int, int, int, int]
 
 
 class InstalledApp(ForkApp):
@@ -64,6 +66,8 @@ class InstalledApp(ForkApp):
             view.submissions.queue_projection.items if managed else (),
             tuple(block.commit_claim.source for block in view.contents.query(UserInput)
                   if isinstance(block.commit_claim, StartedInputClaim)) if managed else (),
+            tuple(view.prompt.query_one(QueueSummary).region) if managed else (0, 0, 0, 0),
+            tuple(view.window.scrollable_content_region) if managed else (0, 0, 0, 0),
         )
         with (Path(os.environ['L0A_EVIDENCE']) / 'input-frames.jsonl').open('a') as output:
             output.write(json.dumps(FieldCodec.encode(frame)) + '\n')
@@ -91,7 +95,23 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert not view.prompt.text
     records.append({'phase': 'accepted_pending', 'input_id': queued.input_id,
                     'queue': FieldCodec.encode(agent.queue_attachment.projection)})
-    assert await pilot.click(SendNow)
+    control = view.prompt.query_one(SendNow)
+    control.scroll_visible(animate=False, immediate=True)
+    await until(pilot, lambda: control.region.width > 0 and control.region.height > 0
+                and app.screen.get_widget_at(*control.region.offset)[0] is control)
+    assert app.selected_session.conversation is view and view.agent is agent
+    global_control = app.screen.query_one(SendNow)
+    from toad.widgets.conversation import Conversation
+    (evidence / 'queue-control-target.json').write_text(json.dumps({
+        'selected_session': agent.session_id,
+        'actual_target_owner': control.query_ancestor(Conversation).agent.session_id,
+        'actual_target_region': tuple(control.region),
+        'global_selector_owner': global_control.query_ancestor(Conversation).agent.session_id,
+        'global_selector_region': tuple(global_control.region),
+        'original_input_id': queued.input_id,
+        'original_admission_unresolved': rows.read().lookup('acp:' + queued.input_id).unresolved,
+    }, indent=2) + '\n')
+    assert await pilot.click(control)
     release.set()
     await until(pilot, lambda: len(requests) == 4 and not comms.registry.require(agent.session_id).executing)
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_4'))
@@ -132,6 +152,13 @@ def review_frames(path: Path):
     stream = pyte.Stream(terminal)
     observed = {}
     painted = {}
+    source_observed = {}
+    first_paint = {}
+
+    def region_text(region):
+        x, y, width, height = region
+        return '\n'.join(line[x:x + width] for line in terminal.display[y:y + height])
+
     for frame in frames:
         terminal.resize(lines=frame.height, columns=frame.width)
         stream.feed(frame.ansi)
@@ -144,7 +171,9 @@ def review_frames(path: Path):
         for start in frame.mounted_starts:
             if start.input_id not in painted:
                 observed.setdefault(start.input_id, start.text)
-        text = '\n'.join(terminal.display)
+        text = '\n'.join((region_text(frame.queue_region), region_text(frame.chat_region)))
+        for input_id in observed:
+            source_observed.setdefault(input_id, frame.observed_ns)
         for input_id, marker in painted.items():
             assert text.count(marker) <= 1, (
                 'Original input painted twice after handoff', input_id,
@@ -158,7 +187,15 @@ def review_frames(path: Path):
                         or input_id in starts)
             if not relevant:
                 continue
-            assert marker and text.count(marker) == 1, (
+            occurrences = text.count(marker)
+            # Source receipt/admission can precede its first presentation paint.
+            # Measure that join; after physical presentation begins, no missing
+            # frame is allowed through the original native user paint.
+            if input_id not in first_paint:
+                if not occurrences:
+                    continue
+                first_paint[input_id] = frame.observed_ns
+            assert marker and occurrences == 1, (
                 input_id, frame.observed_ns, text.count(marker or ''), text)
             if input_id in starts:
                 painted[input_id] = marker
@@ -166,7 +203,11 @@ def review_frames(path: Path):
     assert not observed, ('Inputs lacked a native paint in the completed journey', observed)
     return {'frames': len(frames), 'drivers': sorted({frame.driver for frame in frames}),
             'headless': sorted({frame.headless for frame in frames}),
-            'native_painted_request_ids': sorted(painted)}
+            'native_painted_request_ids': sorted(painted),
+            'source_to_first_paint_ns': {
+                input_id: first_paint[input_id] - source_observed[input_id]
+                for input_id in painted},
+            'scope': 'original selected queue and native chat viewport; excludes status captions'}
 
 
 if __name__ == '__main__':
