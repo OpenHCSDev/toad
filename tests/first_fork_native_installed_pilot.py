@@ -72,11 +72,10 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     await until(pilot, lambda: response_painted(app, parent_view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     from runtime_fixture import wait_channel_roster
-    from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, CommsSidebar
+    from toad.widgets.comms_sidebar import CommsRow
     from toad.widgets.comms_menu import ContextMenuItem
     from toad.widgets.comms_fork_dialog import ForkDialog
     from toad.thread_actions import ForkAction
-    from textual.widgets import Input, TextArea
     sidebar = await wait_channel_roster(app, pilot, "#team")
     row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
     row.scroll_visible(animate=False, immediate=True)
