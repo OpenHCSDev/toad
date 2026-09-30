@@ -61,6 +61,7 @@ def capture_lock_custody(root: Path, stop: threading.Event, evidence: Path):
 
 async def main():
     assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
+    read_only_custody = os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1'
     evidence = Path(os.environ['L0A_EVIDENCE'])
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     assert stage.is_relative_to('/home/ts/wt')
@@ -151,7 +152,7 @@ async def main():
                 await until(ip, lambda: irc.message_history.initialized)
                 receipt['completed_phases'].append('irc_open_before_send')
                 profile.enable()
-                if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1':
+                if read_only_custody:
                     (evidence / 'read-only-ready.json').write_text(json.dumps({'pid': os.getpid()}))
                     await rp.pause(40)
                     receipt['read_only_source_custody'] = True
