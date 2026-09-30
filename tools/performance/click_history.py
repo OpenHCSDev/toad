@@ -64,6 +64,32 @@ class OriginalTabTarget(NativeFocusTarget):
         return next(tab for tab in snapshot["metadata"]["navigation_targets"]["tabs"] if tab["name"] == mode)
 
 
+class WidgetTarget(NativeFocusTarget):
+    """Click a visible native control by class and optional Textual ID."""
+
+    @classmethod
+    def locate(cls, snapshot, args):
+        if not args.name:
+            raise ValueError("Widget target requires --name Class or Class#id")
+        kind, _, identifier = args.name.partition("#")
+        focused = snapshot["metadata"]["screen"]["focused"]
+        nodes = snapshot["metadata"]["compositor"]["maps"]["full"]["nodes"]
+        candidates = []
+        for node in nodes:
+            if node["class"] != kind or (identifier and node["id"] != identifier):
+                continue
+            if args.focused and (focused is None or node["object_id"] != focused["object_id"]):
+                continue
+            geometry = node["geometry"]
+            region = Region(*geometry["region"]).intersection(Region(*geometry["clip"]))
+            if region.width and region.height:
+                candidates.append({**node, "region": tuple(region),
+                    "focus_target": {"widget": node, "cell": tuple(int(value) for value in region.center)}})
+        if len(candidates) != 1:
+            raise ValueError(f"Expected one visible {args.name}, found {len(candidates)}")
+        return candidates[0]
+
+
 def read_snapshot(path):
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()
     state = (path if path.is_absolute() else output / path).resolve()
@@ -110,7 +136,8 @@ def main():
     parser.add_argument("--state", required=True, type=Path, help="Fresh native recorder state snapshot")
     parser.add_argument("--target", type=NativeFocusTarget.decode, default=HistoryTarget,
                         help="Native resource: " + ", ".join(NativeFocusTarget.names()))
-    parser.add_argument("--name", help="Native thread row's actual declaration name")
+    parser.add_argument("--name", help="Native thread name or widget Class#id")
+    parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
     parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
     args = parser.parse_args()
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()

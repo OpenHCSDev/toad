@@ -1165,13 +1165,15 @@ def marker_command():
     return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
 
 
-def native_click_command(state, *, target="history", name=None, original_state=None):
+def native_click_command(state, *, target="history", name=None, original_state=None, focused=False):
     helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
     argv = [sys.executable, str(helper), "--target", target, "--state", state]
     if name is not None:
         argv.extend(("--name", name))
     if original_state is not None:
         argv.extend(("--original-state", original_state))
+    if focused:
+        argv.append("--focused")
     return "exec --sync " + shlex.join(argv)
 
 
