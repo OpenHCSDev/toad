@@ -326,3 +326,21 @@ method is needed. Heisenberg owns #217's cursor painting and removal of the
 `follow_widget` mirror and its layout extent contribution. This deletion is
 compatible with the current API and prepares its consumer closure; it does not
 claim #217's full installed viewport acceptance.
+
+## Prepared read-only response-custody comparison
+
+The existing three-view, original 41MB read-only driver now records process CPU
+and elapsed time, plus four response-lock acquisition probes. The probes enter
+the actual `_response_boundary` through the native writer's `_enter_admission`
+and existing send budget. They reserve no input and write no prompt bytes.
+Each measurement records whether custody was obtained within that budget;
+the fixture joins the probe worker before retiring its resources.
+
+This is prepared tooling, not an executed result or full admission proof.
+It does not check an original input's lease or irreversible write admission.
+Core `9149d5ad` and the parent's `f510` cohort remain unstaged: review identified
+the direct `CompactionBoundary` descriptor caller and outstanding family-owner
+closure. Mendel owns those changes and the inherited-native-descriptor control.
+The next comparison requires that complete checkpoint and the parent's reviewed
+coherent pin. Only a successful read-only custody comparison permits a fresh
+paid messaging journey; uncertain attempts real01–04 remain unreplayed.

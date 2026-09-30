@@ -6,6 +6,7 @@ All new wire records, owners and inputs belong to the isolated fixture.
 """
 import asyncio
 import cProfile
+from contextlib import contextmanager
 import json
 import os
 import shlex
@@ -57,6 +58,40 @@ def capture_lock_custody(root: Path, stop: threading.Event, evidence: Path):
                         'identities': identities, 'locks': rows})
         stop.wait(0.2)
     (evidence / 'kernel-lock-custody.json').write_text(json.dumps(samples, indent=2))
+
+
+def probe_response_custody(bus, cancelled, *, probes=4, spacing=6):
+    """Acquire the real response locks, without reserving or writing an input."""
+    from agent_comms.coordination_response import _response_boundary
+    from agent_comms.native_prompt_send import (
+        _enter_admission, _MAX_SEND_SECONDS, PromptAdmissionBusy, PromptSendUnknown,
+    )
+
+    @contextmanager
+    def boundary():
+        try:
+            with _response_boundary(bus, blocking=False):
+                yield
+        except BlockingIOError as error:
+            raise PromptAdmissionBusy("Fixture response custody is busy") from error
+
+    measurements = []
+    for index in range(probes):
+        began = time.monotonic()
+        try:
+            with _enter_admission(boundary, cancelled, began + _MAX_SEND_SECONDS):
+                elapsed = time.monotonic() - began
+                measurements.append({'probe': index, 'acquired': True,
+                    'elapsed_seconds': elapsed, 'budget_seconds': _MAX_SEND_SECONDS,
+                    'within_budget': elapsed < _MAX_SEND_SECONDS})
+        except PromptSendUnknown as error:
+            measurements.append({'probe': index, 'acquired': False,
+                'elapsed_seconds': time.monotonic() - began,
+                'budget_seconds': _MAX_SEND_SECONDS, 'within_budget': False,
+                'error': str(error)})
+        if index + 1 < probes and cancelled.wait(spacing):
+            break
+    return measurements
 
 
 async def main():
@@ -153,8 +188,18 @@ async def main():
                 receipt['completed_phases'].append('irc_open_before_send')
                 profile.enable()
                 if read_only_custody:
-                    (evidence / 'read-only-ready.json').write_text(json.dumps({'pid': os.getpid()}))
-                    await rp.pause(40)
+                    began, cpu = time.monotonic(), time.process_time()
+                    (evidence / 'read-only-ready.json').write_text(json.dumps({'pid': os.getpid(),
+                        'monotonic': began, 'wall_time': time.time()}))
+                    probes = asyncio.create_task(asyncio.to_thread(
+                        probe_response_custody, service.bus, lock_capture_stop))
+                    try:
+                        await rp.pause(40)
+                    finally:
+                        lock_capture_stop.set()
+                        receipt['response_lock_custody'] = await probes
+                    receipt['read_only_idle'] = {'wall_seconds': time.monotonic() - began,
+                        'process_cpu_seconds': time.process_time() - cpu}
                     receipt['read_only_source_custody'] = True
                     return
                 original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
