@@ -262,8 +262,17 @@ later content admission remains owned by `TranscriptRead`.
 
 The existing reader/UI journey includes the exact original observed witness,
 page delivery and rejection after the same Agent changes to another route.
-This source checkpoint depends on Mendel's published read-owner API. Its paired
-check and real retained-source acceptance are pending; no passing installed
-result is claimed for this extension yet. The continuous real driver retains
+Mendel published the read-owner API at Core `e59ead3b`. The paired bounded
+source/UI journey passes with Toad `48b460ac` and current installed dependencies:
+it retains the exact original witness, delivers the same page and rejects a
+late foreign-route witness after the Agent attachment changes. Evidence:
+owned scratch `original-read-handoff-journey.txt`. This source-overlay check
+does not establish the full installed real retained-source acceptance.
+The continuous real driver retains
 its original handling, reply-once, one-header, 31-second and immediate A/B/A
 input checks.
+
+The next installed real04 gate uses the parent's single published Core cohort
+including #430/#434/#436/#437/#438, Toad #215, Textual `412b5a2b` and the reviewed
+native package tree `614a956d`. It starts a fresh private root and new input;
+failed attempts real01–03 remain preserved and unreplayed.
