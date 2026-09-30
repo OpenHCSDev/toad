@@ -31,6 +31,7 @@ class WindowRestoration(ABC):
         window._restoring = True
         try:
             self._restore(window)
+            window.document_viewport.lookahead.relocated(window.scroll_y)
         finally:
             window._restoring = False
 
