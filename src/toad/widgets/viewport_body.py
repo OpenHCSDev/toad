@@ -63,7 +63,7 @@ class BodyMeasurement:
     width: int
     rows: int
     widgets: int = 1
-    geometry_revision: int | None = None
+    nodes_revision: int | None = None
 
 
 class MeasuredViewportBody(ViewportBody):
@@ -96,16 +96,16 @@ class MeasuredViewportBody(ViewportBody):
     def retained_widget_count(self) -> int:
         if self._body_dormant:
             return self._body_measurement.widgets
-        # Native subtree invalidation already follows child mount/remove and
-        # content/layout changes. Ancestor scroll does not change this body's
-        # materialization. Keep its cost with the original measured extent.
+        # NodeList propagates descendant custody changes to this native owner.
+        # Layout/style/scroll alone do not change the count. Keep the measured
+        # cost with its original extent, not another viewport resource catalog.
         measurement = self._body_measurement
-        if measurement is not None and measurement.geometry_revision == self._geometry_revision:
+        if measurement is not None and measurement.nodes_revision == self._nodes._updates:
             return measurement.widgets
         widgets = 1 + len(self.walk_children())
         if measurement is not None:
             self._body_measurement = replace(
-                measurement, widgets=widgets, geometry_revision=self._geometry_revision,
+                measurement, widgets=widgets, nodes_revision=self._nodes._updates,
             )
         return widgets
 
@@ -114,7 +114,7 @@ class MeasuredViewportBody(ViewportBody):
         # counter. Keep it with the extent when the measured native tree retires.
         self._body_measurement = replace(
             self._body_measurement, widgets=self.retained_widget_count,
-            geometry_revision=self._geometry_revision,
+            nodes_revision=self._nodes._updates,
         )
         self._body_dormant = True
 
@@ -126,7 +126,7 @@ class MeasuredViewportBody(ViewportBody):
             return self._body_measurement.rows
         height = super().get_content_height(container, viewport, width)
         self._body_measurement = BodyMeasurement(
-            width, height, self.retained_widget_count, self._geometry_revision,
+            width, height, self.retained_widget_count, self._nodes._updates,
         )
         self._body_measurement_stale = False
         return height

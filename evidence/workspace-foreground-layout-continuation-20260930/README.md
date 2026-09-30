@@ -87,9 +87,9 @@ and retain every unfinished requirement before the next long implementation.
 ## First production checkpoint: native materialization cost
 
 `MeasuredViewportBody` now keeps native widget cost in its original BodyMeasurement
-alongside measured extent, captured against Textual's existing subtree geometry
-revision. Native descendant mount/removal/content/layout invalidation expires it;
-ancestor scrolling leaves this body's native shape unchanged. The same property
+alongside measured extent, captured against Textual's existing NodeList generation, which propagates
+descendant mount/removal/reorder to the original body. Pure style/layout/scroll
+changes do not alter widget membership and need not recount it. The same property
 supplies PresentationBudget and all three existing retirement consumers:
 PreparedConversationMarkdown, StreamingMarkdown and TranscriptFragmentView.
 There is no separate cost catalog, status mirror, budget counter or timer.
@@ -105,6 +105,7 @@ restoration, reorder/removal, reverse/End/resize, held fragment Mount and accept
 canonical tree all pass. No fake app/body/protocol or provider process is used.
 The existing pilot was extended rather than adding a duplicate resource harness.
 Baseline failure/profile remain under `.artifacts/body-cost-245-baseline`; candidate
+under `.artifacts/body-cost-245-custody`; the earlier geometry-key run is kept
 under `.artifacts/body-cost-245-source`. This is source-only against existing
 Core29b/Text2e49/SDK dependencies, not the parent's newer453 paired release.
 
@@ -128,3 +129,23 @@ clock values. Physical PNGs/native checkpoints and coarse phase CPU remain valid
 Diagnostic export is included in measured CPU and native-wait intervals, not an
 unprofiled idle rate or click-to-paint latency. Raw captures and prior receipts
 are protected; this correction limits interpretation without editing raw proof.
+
+### Narrowed cost validity and remaining custody witness
+
+The cost key is native NodeList._updates, not the wider geometry revision. The
+original NodeList.updated increments all ancestor memberships on descendant
+changes before child Mount callbacks. Budget counts native widgets, so this is
+the owning relation; style/layout/scroll alone cannot change that count. Delete
+the geometry key introduced in the first source checkpoint, with no alias.
+Current source passes the same resource gate at0descendant walks/0.057ms per
+profiled admission and real content/retire/restore/native mount checks.
+
+A prior node-key run reached the final accepted-tree assertion and failed once;
+its exact log is native-custody-interruption.log and raw profiles remain at
+`.artifacts/body-cost-245-nodes`. No identities were exported by that older
+assertion, so its cause is not established. The unchanged expectation now records
+actual roots/fragments/Contents IDs if it fails; that diagnostic run passed. No
+assertion was loosened, no catch/restore retry was added. Do not claim the prior
+failure was an existing baseline issue or that full pending-mount lifetime scope
+is closed. This production cost checkpoint remains draft/pending installed proof;
+whole TC1/T9 custody and physical workflow acceptance continue under this owner.

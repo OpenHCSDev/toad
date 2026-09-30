@@ -3,11 +3,11 @@
   "body_roots": 24,
   "profiled_selection_walks": 0,
   "unprofiled_selection_ms": {
-    "expanded_native_tree": 0.4545599219854921,
-    "registered_body_boundaries": 0.006794766057282686
+    "expanded_native_tree": 0.5715061200316995,
+    "registered_body_boundaries": 0.00726070802193135
   },
   "profiled_admission_walks": 0,
-  "profiled_admission_ms": 0.052968100062571466,
+  "profiled_admission_ms": 0.05677551031112671,
   "native_content_cost_invalidated": true,
   "retired_cost_retained": true,
   "restored_cost_current": true,

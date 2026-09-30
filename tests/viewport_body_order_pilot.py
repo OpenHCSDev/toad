@@ -173,7 +173,18 @@ async def main():
             await settle()
             history = view.contents.query_children(TranscriptHistory).first()
             assert history.state.reports_coverage
-            assert tuple(viewport.body_roots()) == history.fragment_views
+            roots, fragments = tuple(viewport.body_roots()), history.fragment_views
+            if roots != fragments:
+                def custody(body):
+                    return dict(identity=id(body), kind=type(body).__name__,
+                                parent=id(body.parent), attached=body.is_attached,
+                                closing=body._closing)
+                (evidence / 'custody-failure.json').write_text(json.dumps({
+                    'roots': [custody(body) for body in roots],
+                    'fragments': [custody(body) for body in fragments],
+                    'contents': [custody(body) for body in view.contents.children],
+                }, indent=2) + '\n')
+            assert roots == fragments
             assert agent.process.process is None and agent.process.runner is None
             assert app._exception is None
             receipt.update(native_reorder=True, removed_body_released=True,
