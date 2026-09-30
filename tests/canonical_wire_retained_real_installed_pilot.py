@@ -23,7 +23,7 @@ from agent_comms.native_package import verify_native_package
 from agent_comms.owner_launch import RetainedOwnerLaunch
 from agent_comms.registration import Registration
 from agent_comms.threads import Thread
-from agent_comms.transcript_events import TextTranscript
+from agent_comms.transcript_events import AssistantTranscript
 from toad.agent_schema import AgentDefinition
 from toad.navigation_target import NavigationContext, channel_target, ThreadTarget
 from toad.widgets.comms_chat import CommsChatView
@@ -108,7 +108,8 @@ async def main():
         receiver_app = WindowApp(agent_data=definition, project_dir=str(project), agent_session_id='beta')
         irc_app = WindowApp(project_dir=str(project))
         receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
-                   'source_bytes': source_file.stat().st_size, 'original_inputs_replayed': 0}
+                   'source_bytes': source_file.stat().st_size, 'original_inputs_replayed': 0,
+                   'completed_phases': []}
         try:
             async with sender_app.run_test(size=(160, 44)) as sp, \
                        receiver_app.run_test(size=(160, 44)) as rp, \
@@ -118,18 +119,24 @@ async def main():
                     await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
                     assert view.agent.session.connected
                     await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)), 30)
+                receipt['completed_phases'].append('original_saved_history_both_open')
                 user = service.messaging.user_identity(str(project)).name
                 await channel_target('#team').open(NavigationContext(irc_app, irc_app.selected_mode, project, user))
                 await irc_app.selected_session.wait_content_ready()
                 irc = irc_app.selected_session.query_one(CommsChatView)
                 await until(ip, lambda: irc.message_history.initialized)
+                receipt['completed_phases'].append('irc_open_before_send')
                 profile.enable()
                 original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
                     '@beta Bounded acceptance only. Do not resume prior work or use tools. '
                     'Reply exactly REAL_RETAINED_WIRE_REPLY to this channel message.')
+                receipt['original'] = FieldCodec.encode(original.reference)
                 await until(sp, lambda: len(originals(sender, original.reference, OutgoingMessage)) == 1, 40)
+                receipt['completed_phases'].append('original_sender_hot')
                 await until(rp, lambda: len(originals(receiver, original.reference, IncomingMessage)) == 1, 40)
+                receipt['completed_phases'].append('original_recipient_hot')
                 await until(ip, lambda: any(message.reference == original.reference for message, _ in irc.message_history.rows), 40)
+                receipt['completed_phases'].append('original_irc_hot')
                 await until(rp, lambda: any(message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body
                                           for message in service.bus.log.full_history()), 60)
                 reply = next(message for message in service.bus.log.full_history()
@@ -180,7 +187,7 @@ async def main():
                     await rp.press('enter')
                     await until(rp, lambda: service.registry.require(view.agent.session_id).last_finished_turn_id
                                 and not service.registry.require(view.agent.session_id).executing
-                                and any(isinstance(event, TextTranscript) and token in event.text
+                                and any(isinstance(event, AssistantTranscript) and token in event.text
                                         for history in view.window.histories for event in history.coverage_events), 60)
                     timings.append({'thread': view.agent.session_id, 'reply_seconds': round(time.monotonic() - began, 3)})
                     assert len(originals(sender, original.reference, OutgoingMessage)) == 1

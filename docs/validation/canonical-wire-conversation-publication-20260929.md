@@ -119,3 +119,38 @@ aliases. This is not the outstanding real-provider continuous acceptance.
 Current production delta against 7e4465c7: 112 lines deleted, 260 added. The actual
 large-history/provider fixture and paired installed gate remain pending; no live
 readiness or regression closure is claimed yet.
+
+## Real retained-source gate: original admission remains blocked
+
+The primary installed gate now uses the actual selected Sol/high provider and
+two native forks of the original 41,270,257-byte journal. The public source and
+owners remain read only. Core `874965be` includes #430's scoped content fence,
+#434's reader transaction, #435's retained launch and #436's published original
+failure consumer. Toad `00ae7feb` includes #217's resource disposal checkpoint.
+Textual remains `412b5a2b`; native remains the verified `4ab91006` package.
+
+Fresh attempt `real-wire215-02` loaded both saved histories and opened IRC before
+the original send. Its original outgoing, incoming and IRC rows appeared hot.
+The expected reply did not arrive. The original diagnostic identifies native
+admission failure at the wire exclusion: `BlockingIOError` became
+`PromptAdmissionBusy`, then the fenced writer's deadline produced
+`PromptSendUnknown` before any bytes. The original coordinator contains one
+FULL reservation, two wake claims, one obligation and no publication receipt.
+No input was replayed; every owned private process was verified stopped.
+
+Evidence is preserved under
+`/home/ts/.cache/agent-scratch/toad-restored-inbound-chronology-20260929/real-wire215-02`,
+including the original private wire, native input disposition, diagnostic and
+CPU profile. This is a failed user-path gate, not a readiness receipt. Einstein
+owns wire/transaction admission custody with Mendel's canonical read boundary;
+Schrodinger retains the source/UI integration and subsequent positive gate.
+The same-open 31-second, reply-once and immediate-send return phases were not
+reached. Full #436 resource rewrite and blank-viewport geometry are separate
+unverified scopes, and neither is represented as closed here.
+
+Attempt `real-wire215-01` failed in the driver after the initial committed send:
+it called `Messaging.send` expecting a message instead of the returned ID.
+The driver now uses the existing `send_message` boundary. That first attempt's
+FULL reservation, engaged wake and pending obligation remain preserved; it
+was not retried. The immediate-return check requires an AssistantTranscript,
+so a newly echoed user prompt cannot falsely satisfy the reply condition.
