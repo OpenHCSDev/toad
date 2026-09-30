@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/original_turn_resource_real_installed_pilot.py", line 170, in main
+    await readonly_acceptance(app, pilot, service, project, evidence)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 311, in private_original_warm
+    await warm_pages(app, pilot, channel, original, evidence)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 153, in warm_pages
+    raise AssertionError('The native return retired the original retained history; see retained-validation.json')
+AssertionError: The native return retired the original retained history; see retained-validation.json

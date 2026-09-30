@@ -1,0 +1,73 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "0433dc37422cb5d6fb83c48830f49fad2bf8f4cc",
+        "requested_revision": "0433dc37422cb5d6fb83c48830f49fad2bf8f4cc"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+        "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "toad_module": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/toad/__init__.py",
+  "boundary": "Actual private native source and resource journey, no ACP/provider/original root.",
+  "parked": {
+    "scope_closed": false,
+    "prepared_page_retained": true
+  },
+  "source_advance": {
+    "old_scope_closed": true,
+    "old_page_retained": false,
+    "reader_replaced": true,
+    "new_page_retained": true
+  },
+  "final_retirement": {
+    "scope_closed": true,
+    "prepared_page_retained": false
+  },
+  "returns": [
+    {
+      "reader_reused": true,
+      "request_native_reads": 0,
+      "prepared_page_reused": true,
+      "native_body_reused": true,
+      "native_children_reused": true,
+      "editor_reused": true,
+      "draft_preserved": true,
+      "reader_preserved": true,
+      "settled_return_ms": 303.34800499258563,
+      "retained_bytes": 75367,
+      "within_budget": true
+    },
+    {
+      "reader_reused": true,
+      "request_native_reads": 0,
+      "prepared_page_reused": true,
+      "native_body_reused": true,
+      "native_children_reused": true,
+      "editor_reused": true,
+      "draft_preserved": true,
+      "reader_preserved": true,
+      "settled_return_ms": 333.64582899957895,
+      "retained_bytes": 75367,
+      "within_budget": true
+    }
+  ],
+  "application_exit": "normal"
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "clock": 241884.156547838,
+    "phase": "warm-away-0",
+    "source": "resource436",
+    "y": 25,
+    "maximum": 25,
+    "follows_tail": true,
+    "body_hash": "e3ba2e692b4eb079ba4b26088326562db7227febe6cbb1fc95672ed5703c0d44",
+    "body_nonwhite": 840,
+    "has_newer": false,
+    "loading": false
+  },
+  {
+    "clock": 241884.183576509,
+    "phase": "warm-away-0",
+    "source": "resource436",
+    "y": 25,
+    "maximum": 25,
+    "follows_tail": true,
+    "body_hash": "e3ba2e692b4eb079ba4b26088326562db7227febe6cbb1fc95672ed5703c0d44",
+    "body_nonwhite": 840,
+    "has_newer": false,
+    "loading": false
+  }
+]

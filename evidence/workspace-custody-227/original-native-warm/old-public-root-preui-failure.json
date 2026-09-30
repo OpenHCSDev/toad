@@ -1,0 +1,6 @@
+{
+  "phase": "PREUI: read default active route then wire() with installed Core2519",
+  "error": "RelationViolationError: Invalid registry document: Unknown fields for Thread: ['last_goal_report_turn']",
+  "boundary": "No Toad UI or ACP process started. No owner launch, provider request, replay, or public write was invoked.",
+  "disposition": "Preserved; replaced by existing OriginalTypedCapture current-format private fixture. No backport or field stripping."
+}

@@ -40,6 +40,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def resume_if_parked(self, owner) -> None:
         """Resource reveal cannot admit work from an inactive source."""
 
+    def validate_snapshot(self, owner, page) -> None:
+        """A captured source page may validate its existing parked resource."""
+
     def observed(self, widget: Widget) -> "TranscriptState":
         # Textual sets these before dispatching Prune/Unmount, including when
         # an ancestor is removed. Decode at this framework boundary so an
@@ -238,3 +241,9 @@ class ParkedSourceTranscript(SuspendedTranscript):
 
     def resume_if_parked(self, owner) -> None:
         owner.resume_source()
+
+    def validate_snapshot(self, owner, page) -> None:
+        # The publication already holds a certified current source page. Its
+        # native/assigned cursor, not rendered content, validates this resource.
+        if page.after.contains(owner.through):
+            owner.resume_source()

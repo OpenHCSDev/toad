@@ -8,6 +8,9 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import monotonic
+from importlib.metadata import distribution
+from dataclasses import fields
+import sys
 
 import psutil
 from agent_comms.comms import wire
@@ -15,7 +18,9 @@ from toad.app import ToadApp
 from toad.agent_schema import AgentDefinition
 from toad.transcript_state import WorkingTranscript
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.conversation import Conversation
 from toad.widgets.session_tabs import SessionLabel
+from toad.transcript_preparation import PageRequest, TranscriptPageWork
 from saved_state_user_journey_pilot import click_thread
 
 
@@ -36,7 +41,12 @@ class SavedReaderApp(ToadApp):
         super()._display(screen, renderable)
         if self.phase is None or renderable is None or self._batch_count:
             return
-        view = self.selected_session.conversation
+        session = self.selected_session
+        view = session.query_one_optional(Conversation)
+        if view is None:
+            self.frames.append(dict(clock=monotonic(), phase=self.phase,
+                                    source=session.id, body_nonwhite=0))
+            return
         window = view.window
         region = window.scrollable_content_region
         strips = screen._compositor.render_strips()
@@ -44,7 +54,7 @@ class SavedReaderApp(ToadApp):
                          for strip in strips[region.y:region.bottom])
         histories = tuple(window.histories)
         self.frames.append(dict(clock=monotonic(), phase=self.phase,
-                                source=view.agent.session_id if view.agent else None,
+                                source=session.id,
                                 y=window.scroll_y, maximum=window.max_scroll_y,
                                 follows_tail=window.follows_tail,
                                 body_hash=sha256(body.encode()).hexdigest(),
@@ -63,19 +73,120 @@ async def until(pilot, app, condition):
 
 
 async def ready(pilot, app, source):
-    await until(pilot, app, lambda: source.conversation.agent_ready
-                and source.conversation.contents.query(TranscriptHistory))
+    await until(pilot, app, lambda: source.query(Conversation))
+    view = source.query_one(Conversation)
+    await until(pilot, app, lambda: view.agent_ready)
     await pilot.pause()
-    return source.conversation
+    return view
 
 
 async def select(app, pilot, source):
     label = app.screen.query_one(f"SessionLabel#{source.id}", SessionLabel)
     label.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
+    started = monotonic()
     assert await pilot.click(label)
     await until(pilot, app, lambda: app.selected_session is source)
     await ready(pilot, app, source)
+    return started
+
+
+async def record_retained_validation(source, view, history, reader, page, evidence):
+    current_view = source.conversation
+    current_histories = tuple(current_view.window.histories)
+    current_page = await current_view.agent.get_transcript_page()
+    previous_page = page.page
+    differences = []
+    for index, (previous, current) in enumerate(zip(previous_page.events, current_page.events)):
+        if previous != current:
+            differences.append(dict(index=index, previous=type(previous).__name__,
+                                    current=type(current).__name__,
+                                    fields=[field.name for field in fields(previous)
+                                            if type(previous) is type(current)
+                                            and getattr(previous, field.name) != getattr(current, field.name)]))
+    (evidence/'retained-validation.json').write_text(json.dumps(dict(
+        view_reused=current_view is view, old_attached=history.is_attached,
+        old_registered=history in current_histories,
+        old_state=type(history.state).__name__, old_scope_closed=reader.closed,
+        old_through=repr(history.through), old_after=repr(previous_page.after),
+        new_after=repr(current_page.after), old_events=len(previous_page.events),
+        new_events=len(current_page.events), differences=differences,
+        attached_histories=[dict(state=type(h.state).__name__, registered=h in current_histories,
+                                original=h is history, through=repr(h.through))
+                           for h in current_view.contents.query(TranscriptHistory)]), indent=2)+'\n')
+
+
+async def warm_pages(app, pilot, first, second, evidence):
+    """Original native source, real tab clicks and final parked disposal."""
+    view = second.conversation
+    source_name = second.id
+    window = view.window
+    await until(pilot, app, lambda: all(h.state.accepts_source_work for h in window.histories))
+    history = next(iter(window.histories))
+    reader = history._reader()
+    request = PageRequest(before=history.pages[0].page.before)
+    await reader.get(request)
+    key = TranscriptPageWork(reader.scope, reader.loader, reader.through, request).work_key
+    prepared = app.preparation._ready[key][0]
+    page = history.pages[0]
+    children = tuple(page.children)
+    visible = app.screen._compositor.visible_widgets
+    cached_strips = tuple((node, y, strip) for node in page.walk_children()
+                          if node in visible for y, strip in node._styles_cache._cache.items())
+    editor = view.prompt.prompt_text_area
+    document, undo, draft = editor.document, editor.history, editor.text
+    position, follow = window.scroll_y, window.follows_tail
+    records = []
+    for index in range(2):
+        app.phase = f'warm-away-{index}'
+        await select(app, pilot, first)
+        assert not reader.closed, 'Leaving an actual saved-source tab closed its prepared scope'
+        app.phase = f'warm-return-{index}'
+        started = await select(app, pilot, second)
+        try:
+            await until(pilot, app, lambda: history.state.accepts_source_work or not history.is_attached)
+        except TimeoutError:
+            await record_retained_validation(second, view, history, reader, page, evidence)
+            raise
+        if not history.is_attached:
+            await record_retained_validation(second, view, history, reader, page, evidence)
+            raise AssertionError('The native return retired the original retained history; see retained-validation.json')
+        current = history._reader()
+        await current.get(request)
+        displayed = [frame for frame in app.frames
+                     if frame['phase'] == app.phase and frame['source'] == source_name]
+        records.append(dict(reader_reused=current is reader,
+                            prepared_reused=app.preparation._ready.get(key, (None,))[0] is prepared,
+                            page_reused=history.pages[0] is page,
+                            children_reused=tuple(page.children) == children,
+                            observed_native_strip_lines=len(cached_strips),
+                            reused_native_strip_lines=sum(node._styles_cache._cache.get(y) is strip
+                                                          for node, y, strip in cached_strips),
+                            editor_reused=editor.document is document and editor.history is undo,
+                            draft_preserved=editor.text == draft,
+                            reader_preserved=(window.scroll_y, window.follows_tail) == (position, follow),
+                            completed_frames=len(displayed),
+                            all_frames_readable=bool(displayed) and all(f['body_nonwhite'] for f in displayed),
+                            first_completed_body_frame_ms=(displayed[0]['clock']-started)*1000 if displayed else None,
+                            within_budget=app.preparation.retained_bytes <= app.preparation.max_bytes))
+    app.phase = 'dispose-parked-original'
+    await select(app, pilot, first)
+    closer = app.screen.query_one(f'#close-{second.id}')
+    closer.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(closer)
+    await until(pilot, app, lambda: second.id not in app.workspace_sessions.views)
+    receipt = dict(pins={name: json.loads(distribution(name).read_text('direct_url.json'))
+                         for name in ('batrachian-toad', 'agent-comms', 'textual')},
+                   returns=records, final_scope_closed=reader.closed,
+                   final_prepared_retained=key in app.preparation._ready,
+                   final_history_attached=history.is_attached,
+                   boundary='Actual installed original native/ACP and Pilot tab clicks/completed compositor frames; no LinuxDriver video or source mutation.')
+    (evidence/'warm-pages.json').write_text(json.dumps(receipt, indent=2)+'\n')
+    assert all(all(row[k] for k in ('reader_reused','prepared_reused','page_reused','children_reused',
+                                  'editor_reused','draft_preserved','reader_preserved','all_frames_readable',
+                                  'within_budget')) for row in records), records
+    assert reader.closed and key not in app.preparation._ready and not history.is_attached
 
 
 async def main():
@@ -98,7 +209,7 @@ async def main():
                               XDG_DATA_HOME=str(root / "data"))
             definition = AgentDefinition.decode(dict(
                 name="Agent Comms", identity="saved-reader-check", short_name="agent",
-                protocol="acp", run_command={"*": "/home/ts/.local/bin/agent-comms-acp"}))
+                protocol="acp", run_command={"*": str(Path(sys.executable).with_name('agent-comms-acp'))}))
             app = SavedReaderApp(agent_data=definition,
                                 project_dir=comms.registry.require(names[0]).worktree,
                                 agent_session_id=names[0])
@@ -109,6 +220,12 @@ async def main():
                 second = await click_thread(app, pilot, names[1], "#nra")
                 view = await ready(pilot, app, second)
                 app.checkpoint("SECOND_ACTUAL_SAVED_READY")
+                if os.environ.get('READONLY_WARM_PAGES_ONLY') == '1':
+                    try:
+                        await warm_pages(app, pilot, first, second, evidence)
+                    finally:
+                        app.checkpoint('ORIGINAL_WARM_PAGES_FINAL')
+                    return
                 window = view.window
                 app.phase = "reader-input"
                 window.focus(scroll_visible=False)
@@ -173,5 +290,33 @@ async def main():
     print("INSTALLED_READONLY_SAVED_ABA_PAGEDOWN_REVERSE_IDLE_END_PASS")
 
 
+async def private_original_warm(app, pilot, service, project, evidence):
+    """Reuse the declared original capture and current-format private fixture."""
+    from toad.navigation_target import channel_target, NavigationContext
+
+    os.environ['READONLY_READER_EVIDENCE'] = str(evidence)
+    original = app.selected_session
+    view = original.conversation
+    await until(pilot, app, lambda: all(h.state.accepts_source_work for h in view.window.histories))
+    editor = view.prompt.prompt_text_area
+    await pilot.click(editor)
+    await pilot.press('d', 'r', 'a', 'f', 't', 'left', 'backspace', 'ctrl+z')
+    user = service.messaging.user_identity(str(project)).name
+    await channel_target('#retained').open(NavigationContext(
+        app, original.id, project, user))
+    channel = app.selected_session
+    await channel.wait_content_ready()
+    await select(app, pilot, original)
+    try:
+        await warm_pages(app, pilot, channel, original, evidence)
+    finally:
+        app.checkpoint('PRIVATE_ORIGINAL_WARM_PAGES_FINAL')
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    if sys.argv[1:] == ['--private-original-warm']:
+        from original_turn_resource_real_installed_pilot import main as retained_fixture
+        asyncio.run(retained_fixture(readonly_acceptance=private_original_warm,
+                                     app_type=SavedReaderApp))
+    else:
+        asyncio.run(main())
