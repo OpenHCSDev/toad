@@ -102,7 +102,10 @@ claimed by these added cases.
 The observer records original incremental compositor updates and typed original
 request/queue/Started sources. It never requests a full render or manufactures
 protocol facts. Offline terminal replay must find each outstanding original
-input once in submitting/queue/chat through its first native paint; the terminal
+input once in submitting/queue/chat through its first native paint. Subsequent
+frames still reject a second occurrence after that handoff; retirement to saved
+history must not resurrect the accepted queue row alongside the same user text.
+These are offline measurement records, never application state. The terminal
 driver and headless flag are recorded explicitly. Headless output is compositor
 evidence, not a physical-terminal readiness claim. Use the existing PTY driver
 with `INPUT_VISIBILITY_TERMINAL=1` for native terminal output; `pyte` is an existing
