@@ -34,10 +34,10 @@ class PresentationBudget:
 
     max_items: int = 24
     admission_items: int = 4
-    reserve_batches: int = 2
+    reserve_batches: int = 4
     minimum_widgets: int = 300
     widgets_per_row: int = 10
-    lookahead_seconds: float = 0.15
+    lookahead_seconds: float = 0.3
     scroll_idle_seconds: float = 0.2
 
     def __post_init__(self) -> None:

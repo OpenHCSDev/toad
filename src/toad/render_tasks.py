@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcript_events import TranscriptEvent, LiveTextTranscript
+from agent_comms.mro_dispatch import MroDispatch, handles
 from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
@@ -116,6 +117,11 @@ class MarkdownSyntaxRenderTask(ReusableRenderTask[list[Token]]):
         from toad.conversation_markdown import parse_markdown_syntax
         return parse_markdown_syntax(self.source)
 
+    async def prepare_body(self, renderer, ansi: bool, dark: bool) -> None:
+        """Warm the same grammar and highlighted rows used by native delivery."""
+        tokens = await renderer.submit(self)
+        await renderer.submit(TokenRenderTask(tuple(tokens), ansi, dark))
+
     def accept_result(self, result: object) -> list[Token]:
         if not isinstance(result, list) or not all(isinstance(token, Token) for token in result):
             raise TypeError("Markdown syntax renderer returned invalid tokens")
@@ -135,6 +141,25 @@ class TokenRenderTask(ReusableRenderTask[PreparedMarkdown]):
         if not isinstance(result, PreparedMarkdown):
             raise TypeError("Token renderer returned an invalid result")
         return result
+
+
+class TranscriptBodyPreparation(MroDispatch):
+    """Pure body work for declared transcript cases, without native widgets."""
+
+    def __init__(self, renderer, ansi: bool, dark: bool):
+        self.renderer, self.ansi, self.dark = renderer, ansi, dark
+
+    @handles(TranscriptEvent)
+    def undisclosed(self, event: TranscriptEvent) -> None:
+        # Metadata and tool disclosure contents retain their existing lazy
+        # owners. A viewport prediction does not open those disclosures.
+        pass
+
+    @handles(LiveTextTranscript)
+    async def markdown(self, event: LiveTextTranscript) -> None:
+        await MarkdownSyntaxRenderTask(event.text).prepare_body(
+            self.renderer, self.ansi, self.dark,
+        )
 
 
 @dataclass(frozen=True)

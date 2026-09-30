@@ -218,6 +218,14 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             finally:
                 self._body_restoring = False
 
+    async def prepare_body(self) -> None:
+        from toad.render_tasks import TranscriptBodyPreparation
+        preparation = TranscriptBodyPreparation(
+            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+        )
+        for event in self.fragment.events:
+            await preparation.dispatch(event)
+
     @property
     def message_category(self) -> type[MessageCategory]:
         return self._message_category
@@ -720,7 +728,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
             self.pages = deque([view])
             await self.mount(view, before=self.newer)
-            await view.admit_retained()
             self._update_edges()
             self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
 

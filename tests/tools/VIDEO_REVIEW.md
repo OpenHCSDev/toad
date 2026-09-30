@@ -141,6 +141,14 @@ owner's preparation evidence.
 
 ## Runtime provenance and artifacts
 
+`--profile` uses consistent stack reads by default. `--profile-sampling
+nonblocking` selects py-spy's nonblocking reads explicitly. The actual policy
+is recorded with the launch command and profile review. Consistent sampling
+briefly pauses Python; nonblocking sampling can read an inconsistent stack.
+Inspect reported sampling errors and missing intervals, and compare a short
+unprofiled capture of the same actions before attributing a visible delay.
+Neither a profiler exit code nor a sparse profile establishes correctness.
+
 `AGENT_COMMS_RUNTIME_ROOT` selects a reviewed candidate **bin directory** holding
 `python` and `toad`. Otherwise selection follows `AGENT_COMMS_ACP_LAUNCHER`, then
 the installed ACP launcher on PATH. Selection is pinned for this run. The actual private route and native package
@@ -226,7 +234,7 @@ the active bus, worktrees or another agent's evidence.
 ## Same-run UI and renderer CPU profile
 
 Add `--profile --profile-rate 25` to the same physical journey. This uses the
-installed **py-spy**, nonblocking sampling and its existing Chrome trace format;
+installed **py-spy**, the selected stack-read policy and its existing Chrome trace format;
 Python renderer subprocesses are included. A small recorder wrapper
 launches plain `st -e <installed toad> acp ...`, waits for its actual Python UI PID and then
 executes py-spy as that UI process's ancestor under Linux `ptrace_scope=1`.
