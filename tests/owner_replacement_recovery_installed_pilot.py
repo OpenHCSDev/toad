@@ -89,6 +89,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, agent.session.settled.is_set)
     assert not agent.session.connected and agent.session.settled.is_set()
     assert agent.coordination is not None
+    from agent_comms.session_load import FailedSessionLoadAdmission
+    assert isinstance(agent.session.load_admission, FailedSessionLoadAdmission)
+    original_command = agent.session.load_admission
+    assert original_command.binding.process == comms.registry.require('beta').require_process()
+    assert original_command.binding.owner == comms.registry.snapshot().owner_identity('beta')
     initial_pid = comms.registry.require('beta').pid
     initial_log = agent.presentation.log_path.read_text()
     assert 'receipt_frontier' in initial_log, initial_log[-3000:]
