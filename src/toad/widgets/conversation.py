@@ -670,7 +670,12 @@ class ConversationSessionBinding(containers.Vertical):
             self._native_agent_started_here = False
 
 
-class Conversation(ConversationSessionBinding):
+from toad.widget_actions import DeclaredWidgetActions
+from toad.conversation_actions import ConversationAction
+
+
+class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
+    ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
     BLANK = True
@@ -698,40 +703,6 @@ class Conversation(ConversationSessionBinding):
             "select_block",
             "Select",
             tooltip="Select this block",
-        ),
-        Binding(
-            "space",
-            "expand_block",
-            "Expand",
-            key_display="␣",
-            tooltip="Expand cursor block",
-        ),
-        Binding(
-            "space",
-            "collapse_block",
-            "Collapse",
-            key_display="␣",
-            tooltip="Collapse cursor block",
-        ),
-        Binding(
-            "escape",
-            "cancel",
-            "Cancel",
-            tooltip="Cancel agent's turn",
-        ),
-        Binding(
-            "ctrl+f",
-            "focus_terminal",
-            "Focus",
-            tooltip="Focus the active terminal",
-            priority=True,
-            show=False,
-        ),
-        Binding(
-            "ctrl+o",
-            "mode_switcher",
-            "Modes",
-            tooltip="Open the mode switcher",
         ),
         Binding(
             "ctrl+c",
@@ -1026,37 +997,13 @@ class Conversation(ConversationSessionBinding):
         """
         self.query_one(Flash).flash(content, duration=duration, style=style)
 
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "focus_terminal":
-            return None if self._terminal is None else True
-        if action == "mode_switcher":
-            return bool(self.modes)
-        if action == "cancel":
-            return True if (self.agent and self.turns.owner.busy) else None
-        if action in {"expand_block", "collapse_block"}:
-            if (cursor_block := self.cursor_block) is None:
-                return False
-            return cursor_block.can_expand() if action == "expand_block" else cursor_block.is_block_expanded()
+    @property
+    def terminal_action_state(self) -> bool | None:
+        return None if self._terminal is None else True
 
-        return True
-
-    async def action_focus_terminal(self) -> None:
-        if self._terminal is not None:
-            self._terminal.focus()
-        else:
-            self.flash("Nothing to focus...", style="error")
-
-    async def action_expand_block(self) -> None:
-        if (cursor_block := self.cursor_block) is not None:
-            cursor_block.expand_block()
-            self.refresh_bindings()
-            self.call_after_refresh(self.cursor.refresh)
-
-    async def action_collapse_block(self) -> None:
-        if (cursor_block := self.cursor_block) is not None:
-            cursor_block.collapse_block()
-            self.refresh_bindings()
-            self.call_after_refresh(self.cursor.refresh)
+    def focus_terminal(self) -> None:
+        if (terminal := self._terminal) is not None:
+            terminal.focus()
 
     @cached_property
     def navigation(self) -> ContentNavigation:
@@ -2133,7 +2080,7 @@ class Conversation(ConversationSessionBinding):
         self.move_cursor(DownCursor())
 
     @work
-    async def action_cancel(self) -> None:
+    async def cancel_turn(self) -> None:
         if monotonic() - self._last_escape_time < 3:
             if (agent := self.agent) is not None:
                 self.flash("Cancelling agent turn…")
@@ -2241,9 +2188,6 @@ class Conversation(ConversationSessionBinding):
         import webbrowser
 
         webbrowser.open(f"file:///{svg_path}")
-
-    async def action_mode_switcher(self) -> None:
-        self.prompt.mode_switcher.focus()
 
     def refresh_block_cursor(self) -> None:
         self.cursor.refresh()

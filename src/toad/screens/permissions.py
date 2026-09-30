@@ -16,6 +16,7 @@ from textual.widgets.option_list import Option
 
 from toad.answer import Answer
 from toad.widgets.question import Question
+from toad.question_actions import SelectKindAction
 
 from toad.app import ToadApp
 
@@ -42,8 +43,6 @@ class PermissionsScreen(Screen[Answer]):
 
     TAB_GROUP = Binding.Group("Focus")
     NAVIGATION_GROUP = Binding.Group("Navigation", compact=True)
-    ALLOW_GROUP = Binding.Group("Allow once/always", compact=True)
-    REJECT_GROUP = Binding.Group("Reject once/always", compact=True)
     BINDINGS = [
         Binding("j", "next", "Next", group=NAVIGATION_GROUP),
         Binding("k", "previous", "Previous", group=NAVIGATION_GROUP),
@@ -63,39 +62,11 @@ class PermissionsScreen(Screen[Answer]):
             show=True,
             priority=True,
         ),
-        Binding(
-            "a",
-            "select_kind(('allow_once', 'allow'))",
-            "Allow once",
-            group=ALLOW_GROUP,
-            priority=True,
-        ),
-        Binding(
-            "A",
-            "select_kind('allow_always')",
-            "Allow always",
-            group=ALLOW_GROUP,
-            priority=True,
-        ),
-        Binding(
-            "r",
-            "select_kind(('reject_once', 'reject'))",
-            "Reject once",
-            group=REJECT_GROUP,
-            priority=True,
-        ),
-        Binding(
-            "R",
-            "select_kind('reject_always')",
-            "Reject always",
-            group=REJECT_GROUP,
-            priority=True,
-        ),
+        *SelectKindAction.bindings(priority=True),
     ]
 
     tool_container = getters.query_one("#tool-container", containers.VerticalScroll)
     navigator = getters.query_one("#navigator", OptionList)
-    question = getters.query_one(PermissionsQuestion)
     index: var[int] = var(0)
 
     def __init__(
@@ -118,7 +89,7 @@ class PermissionsScreen(Screen[Answer]):
             classe: Textual classes.
         """
         super().__init__(name=name, id=id, classes=classes)
-        self.options = options
+        self.question = PermissionsQuestion("", options=options)
         self.diffs = diffs
         self.agent_name = agent_name
 
@@ -147,32 +118,19 @@ class PermissionsScreen(Screen[Answer]):
                 id="instructions",
             )
             with containers.Vertical(id="nav-container"):
-                yield PermissionsQuestion("", options=self.options)
+                yield self.question
                 yield ChangesOptionList(id="navigator")
             yield ToolScroll(id="tool-container")
 
         yield Footer()
 
-    def action_select_kind(self, kind: str | tuple[str]) -> None:
-        self.question.action_select_kind(kind)
+    async def action_select_kind(self, kind: str | tuple[str, ...]) -> None:
+        command = SelectKindAction.parse((kind,))
+        if command.available(self.question):
+            await command.apply(self.question)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "select_kind":
-            kinds = {
-                answer.kind
-                for answer in self.question.options
-                if answer.kind is not None
-            }
-            check_kinds = set()
-            for parameter in parameters:
-                if isinstance(parameter, str):
-                    check_kinds.add(parameter)
-                elif isinstance(parameter, tuple):
-                    check_kinds.update(parameter)
-
-            return any(kind in kinds for kind in check_kinds)
-
-        return True
+        return self.question.check_action(action, parameters)
 
     async def on_mount(self):
         app = self.app
