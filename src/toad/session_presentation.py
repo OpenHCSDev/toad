@@ -229,9 +229,7 @@ class NativeSessionSurface:
             if retained_history is not None:
                 agent = conversation.agent
                 await conversation.transcript.reveal_retained(retained_history)
-                conversation.status = agent.context_measurement.status()
-                conversation.turns.bind(agent)
-                await conversation.goal_observation.refresh()
+                await conversation.refresh_native_projection()
             elif conversation.agent is not None and conversation.agent.ready:
                 await conversation.agent.presentation.restore_saved_history(conversation)
             conversation.display = True

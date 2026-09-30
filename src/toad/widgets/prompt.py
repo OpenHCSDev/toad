@@ -194,7 +194,6 @@ See on-screen instructions for details.
         super().__init__()
         self.simple_input = simple_input
         self.turns = turns
-        self.submissions = submissions
         self._submit_pending = False
         self._submit_immediate = False
 
@@ -617,10 +616,14 @@ class Prompt(containers.VerticalGroup):
 
     def watch_queue_supported(self, supported):
         self.sync_turn()
-        self._update_queue_summary()
+        self.sync_queue()
 
     def sync_queue(self) -> None:
-        self._update_queue_summary()
+        if self.is_mounted:
+            self._update_queue_summary()
+
+    def on_mount(self) -> None:
+        self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:
         if self.simple_input:
