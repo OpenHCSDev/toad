@@ -94,3 +94,21 @@ inputs/replays or owner restarts. No unchanged capture/optionalCI repeat. A new
 coherent source change earns one installed affected physical workflow; use
 existing normal immutable builders/recorders/current approved route and honest
 profile clocks. Publish useful checkpoints before final50ms/wholeCPU completion.
+
+## Submission visibility handoff
+
+At the owner's new user defect (submitted input disappears from both queue and
+chat), Kepler is write integration owner in a new draft for prompt submission,
+queue/input rendering and canonical submissions consumers. His Conversation
+methods: on_user_input_submitted, submit_input, on_queue_view_update,
+on_input_started, on_input_failed, unresolved_inputs,
+on_input_dispositions_changed, queue controls and their update consumers.
+Coordinate backend receipt/queue facts with Mendel457 and native admission with
+Arendt456. Continuous visibility must follow canonical accepted receipt, pending
+queue and native user paint; no optimistic admission or second store.
+
+Heisenberg retains Conversation history/binding/viewport/warm and sidebar methods
+here. _initialize_session, release_native_session and restoration/presentation
+lifetime crossings need direct method handoff before overlapping edits. This
+reassignment does not remove the original editor focus/caret/Undo acceptance;
+coordinate canonical prompt ownership with Kepler while diagnosing that scope.
