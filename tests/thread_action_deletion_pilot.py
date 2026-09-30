@@ -9,6 +9,8 @@ def main():
     for path in source.rglob('*.py'):
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and node.attr == 'allows_control':
+                raise AssertionError((path, node.lineno, 'retired string control eligibility'))
             if isinstance(node, ast.ImportFrom) and node.module == 'agent_comms.tools':
                 assert not {entry.name for entry in node.names} & {
                     'TOOLS', 'ToolDeclaration', 'ToolParameter'
