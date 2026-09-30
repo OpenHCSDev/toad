@@ -7,6 +7,7 @@ from toad.navigation_target import DirectTarget, channel_target
 
 from toad.thread_actions import StartAction
 import asyncio
+from contextlib import nullcontext
 import json
 import os
 import shlex
@@ -103,11 +104,16 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                acceptance=None, provider_reply=None, provider_usage=None,
                native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12,
                provider_chunk_characters=None, provider_after_chunk=None,
-               attachment_expected=True):
+               attachment_expected=True, fixture_stage=None):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
+    if fixture_stage is not None:
+        fixture_stage = Path(fixture_stage)
+        fixture_stage.mkdir(mode=0o700, parents=True, exist_ok=False)
+        (fixture_stage / "private-root").mkdir(mode=0o700)
+        (fixture_stage / "application").mkdir(mode=0o700)
     requests, failures = [], []
     entered, release, hold_next = (
         threading.Event(),
@@ -202,15 +208,12 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
-    # Core private-root validation currently requires /var/tmp. Only disposable
-    # wire data goes here; project/code/config/candidate wheels remain under ~/wt.
+    # A retained fixture keeps native paths and original proof records intact.
     with (
-        tempfile.TemporaryDirectory(
-            prefix="comms-l0a-native-", dir="/var/tmp"
-        ) as wire_dir,
-        tempfile.TemporaryDirectory(
-            prefix="l0a-native-", dir=os.environ["TMPDIR"]
-        ) as stage_dir,
+        (nullcontext(str(fixture_stage / "private-root")) if fixture_stage is not None
+         else tempfile.TemporaryDirectory(prefix="comms-l0a-native-", dir="/var/tmp")) as wire_dir,
+        (nullcontext(str(fixture_stage / "application")) if fixture_stage is not None
+         else tempfile.TemporaryDirectory(prefix="l0a-native-", dir=os.environ["TMPDIR"])) as stage_dir,
     ):
         stage = Path(stage_dir)
         project = stage / "project"
