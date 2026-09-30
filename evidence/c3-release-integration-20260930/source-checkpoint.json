@@ -1,0 +1,18 @@
+{
+  "phase": "source-checkpoint-awaiting-final-reviewed-Core442",
+  "toad_merge_commit": "a18c3fd62eb1654bbbeee0ab64da2face05cafcc",
+  "merged_main": "94cfc1d2",
+  "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+  "core": "current-main095 placeholder only; final reviewed merged442 required before recipe execution",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "sdk": "0.12.1",
+  "checks": [
+    "git diff --check exit0",
+    "uv lock --check exit0"
+  ],
+  "build_started": false,
+  "default_changed": false,
+  "public_owner_restarted": false,
+  "first_ui_artifacts": "accepted9354 requirements/receipts/runtimes preserved immutable",
+  "own_production_lines_deleted": 0
+}

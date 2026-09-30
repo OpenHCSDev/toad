@@ -1,3 +1,17 @@
+# C3 release integration — current assignment
+
+PR231 now advances normally to current Toad main after merged233/228. This section supersedes the original firstUI-only composition restrictions below. The accepted9354 source, installed runtime and receipts remain immutable historical evidence.
+
+Normal merge a18c3fd6 includes current main94cfc1d2 (225CPU,230controls,232reconnect,233fork/observer and incorporated228). The dependency conflict is resolved to current main Core095; **that is a temporary source checkpoint, not the final build pin**. Textual uses merged14main2e49cb838af44d69aa5a6d76b2a1d74cfbe67347. Lock resolution and check pass. No production implementation was edited; zero own production lines deleted.
+
+Arendt owns442 final reviewed merged Core source and the installed cutover gate;444 alone does not establish the final442 pin. Replace Core dependency/lock with his final reviewed merged head, publish that source checkpoint, then execute the existing frozen68 recipe once for the coherent pair. Native remains the existing trusted standalonee36 artifact and SDK0.12.1. Do not build intermediate cohorts, add C3 backports, restore Core000, rebase main, restart owners or change defaults. Parent432 alone reviews and authorizes public activation.
+
+Heisenberg227 warmth may join only if ready without delaying the critical fixes. Existing paired journey receipts remain scoped evidence; source composition and lock checks do not establish new installed or live readiness. Current phase and build recipe are in `evidence/c3-release-integration-20260930/`.
+
+---
+
+## Historical accepted firstUI release
+
 # Inactive first UI End and keypad integration
 
 Integration owner: Einstein; parent owns activation. Kepler owns one affected physical editor/focus journey. Heisenberg owns224/227 frame and resource work; Sch owns215 source publication.
