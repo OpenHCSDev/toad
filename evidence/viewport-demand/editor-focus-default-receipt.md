@@ -108,3 +108,39 @@ identity 140425312875088 and cursor identity 140425312875728. The selected
 native cell is (71,19). Source geometry conversion and parsing were checked;
 no focus readiness claim or repeat of the unchanged full journey is made.
 Heisenberg227 remains the production focus/workspace integration owner.
+
+## Actual default Delete and End readiness
+
+Parent activated the persistent paired default installation. The scoped
+actual `/home/ts/bin/toad-comms nra-architecture` gate selected it through
+PATH `agent-comms-acp`, with no runtime-root or ACP-launcher override.
+Core000/Toad9354/Textual4e/SDK0.12.1/nativee36 source and activation hashes
+are unchanged before/after. The only user-state override is an isolated copy
+of the UI database, preserving actual user drafts and native source.
+
+The corrected 26.300-second physical capture is
+`/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03`.
+Native editor 139879637394576 holds `abcf / caret4`, and the physical edited
+frame shows no Help panel. The native history-window gutter target derives
+cell (71,19) from window 139879605136720 and cursor 139879605137360. Actual
+TIOCGWINSZ (43,179,1253,860) and X11 geometry produce pixel (503,400).
+Physical End and four stationary seconds leave body/chrome readable;
+native window scroll59 equals maximum59 and follows the tail. Saved-history
+startup is readable. Original 41 MB native source and owner identity remain
+byte-equal; shutdown/cleanup leave zero owned processes and zero errors.
+No prompt submission, provider call, public mutation or input replay occurs.
+
+[Default readiness receipt](default-keypad-end-readiness.json) includes exact
+physical-frame paths/hashes, default selection/source identities, native DTOs,
+original source witness, cleanup and retained failures. This is **live verified
+scoped Delete/End**, not full focus, warm tab performance, PageUp focus or
+intermittent-arrow closure. Heisenberg227 owns those remaining workflows.
+
+Counterevidence remains protected: the first short attempt was rejected before
+UI admission because its bounded journey was not declared; the corrected
+26-second run02 had physical editing evidence but the new exporter queried
+the logical MainScreen variable rather than `node.screen`. The exporter
+owner fix restores native queries in place. Run03 was already underway when
+parent narrowed further work to remaining End/nativeDTO review; no further
+capture was launched. No installation or product source changed during these
+diagnostic corrections.
