@@ -1,0 +1,13 @@
+{
+  "method": "same f92 complete-body screening: every recorded60fps frame, ROI512,80..1212,710, grayscale350x315 >65, threshold200 (screens Jump-to-latest control+mouse contamination; inspect minima regardless); physical individual frames must establish meaning",
+  "limits": "No proof of source identity/order, absence of partial unfilled regions, or timing attribution from pixel counts alone",
+  "recorded_frames": 3453,
+  "eligible_interval": [
+    13.18045158701716,
+    57.55
+  ],
+  "minimum_pixels": 983,
+  "minimum_frame": 1492,
+  "complete_body_blank_candidate_runs": [],
+  "profiler_overhead": "same25Hz GIL/synchronous diagnostic exporter as f92; no unprofiled comparison"
+}

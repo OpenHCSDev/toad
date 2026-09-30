@@ -111,10 +111,50 @@ and passes current source. Per-file dispatch/probe/chain ratchets for the two
 newly touched production files are unchanged. This is bounded ownership evidence,
 not whole-codebase completion.
 
-**No Ready/default activation claim.** Changed caller closure still needs an
-installed physical comparison. Einstein owns CPU/presentation-read closure;
+At the earlier source checkpoint, no Ready/default activation claim was made.
+The caller closure was awaiting the installed comparison recorded below. Einstein owns CPU/presentation-read closure;
 Schrodinger215 owns source identity/coverage and the hot03 wire-only to native
 history transition.224 owns that transition's mounted resource lifetime and
 registry/layout integration, without a count-based deduplication patch. Growing
 end/adaptive bounds, warm strips/A/B/A/draft/undo, focus and full workspace/T9
 acceptance remain open.217 evidence/source remain frozen.
+
+
+## Installed caller-closure followup: scoped READY
+
+Exact installed **e583dc79e5a03e30882687b88facee23623d4fbd**, Core720/Text650/
+SDK0.12.1/native4ab completed the same original41MB isolatedST journey in57.418s.
+Held Up4s/Down4s/reverse4s/End/15idle; zero provider prompts or owner restarts.
+Original owner PID/start identity and journal inode/41,270,257 bytes/mtime remain
+exactly unchanged. Recorder/ST/profiler terminal exit0; FFmpeg SIGINT255 accepted;
+cleanup remaining-owned-pids/errors empty. Global default was not changed.
+
+**Physical scoped PASS:** all3453 recorded frames screened with threshold200;
+no complete-body candidate run. Individual Down minimum frame1492 at24.867s
+contains real saved tool/header rows, not only a mouse or Jump-to-latest control.
+The60fps End neighbors35.3–36.3s show the prior body retained until the destination
+appears at35.75s, with no intervening blank. End/idle completed body is readable;
+Window y88/max88/followtrue,3 visible body resources/zero dormant resources.
+The earlier6e183ms failure remains intact in installed-physical.
+
+This establishes the affected native mutation/End publication path in one actual
+installed journey. Sparse saved tool rows and pixel screening do not establish
+all partial-gap, source-order, growing-end, warm-resource or fullT9 acceptance.
+No sub50ms, first-paint speedup or raster-cache claim. Legitimate existing terminal
+frame retention comes from the Window publication fence, not a bitmap mirror.
+
+Kernel UI CPU remains high: Up97.31%, Down94.36%, reverse95.88%, idle59.16%
+(9.57CPU/16.177wall).991GIL samples,0errors. Same-run End neighborhood changed
+stacks include DocumentViewport._trim_warm/walk_children, ToolCall.on_mount and
+compositor.get_widgets_at, aligned with approximately66ms uncertainty. These
+transitions are not calls/duration/CPU attribution; kernel phase CPU is separate.
+Profiler/export overhead is included; no unprofiled comparison or meaningful CPU
+improvement claimed. Einstein225/Core440 owns canonical presentation-read CPU.
+
+Committed [assessment](installed-followup/assessment.json), native phase maps,
+raw profile, event timeline, minima and60fps End sheet are retained. Full rawvideo:
+/home/ts/.cache/agent-scratch/toad-workspace-publication-224-followup-physical-20260930/capture.
+Do not remove it before physical parent review. Sch215 Snapshot admission and
+orphan retirement/finally changes are not installed here; cancellation before
+acceptance and during old-resource retirement remain a separate paired custody
+check. Full workspace/focus/warm-resource/TC1/T9 scope remains open.

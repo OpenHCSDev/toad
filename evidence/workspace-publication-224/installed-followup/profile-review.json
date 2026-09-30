@@ -1,0 +1,2579 @@
+{
+  "profiler": "py-spy",
+  "rate_hz": 25,
+  "sampling": "consistent",
+  "threads": "gil",
+  "trace": "cpu-profile.json",
+  "trace_origin_monotonic_estimate": 231331.735387102,
+  "trace_to_video_offset_seconds": -0.30533036598353647,
+  "ui_pid": 2757007,
+  "trace_origin_monotonic_bounds": [
+    231331.709808546,
+    231331.760965658
+  ],
+  "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
+  "alignment_nominal_uncertainty_seconds": 0.06557855600025506,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant"
+  ],
+  "processes": [
+    "2757007",
+    "2757130",
+    "2757138",
+    "2757254",
+    "2757328"
+  ],
+  "phases": [
+    {
+      "label": "focused",
+      "video_start_seconds": 13.18045158701716,
+      "video_end_seconds": 15.345766195008764,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 1.4699999999999989,
+          "average_cpu_percent": 67.88851811993588
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.28000000000000014,
+          "average_cpu_percent": 12.931146308559233
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.1200000000000001,
+          "average_cpu_percent": 5.541919846525388
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "transition_groups": 4
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "function": "__getitem__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/re/_parser.py",
+          "line": 168,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "function": "_compile",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/re/__init__.py",
+          "line": 335,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "function": "_call_with_frames_removed",
+          "filename": "<frozen importlib._bootstrap>",
+          "line": 491,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 791,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "function": "_write_atomic",
+          "filename": "<frozen importlib._bootstrap_external>",
+          "line": 211,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "function": "_parse_path",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 298,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "__init__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 137,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_iterencode_dict",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 413,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 288,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "function": "_translate",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/fnmatch.py",
+          "line": 121,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "function": "iter_entry_points",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/pygments/plugin.py",
+          "line": 45,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "function": "_process_state",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/pygments/lexer.py",
+          "line": 562,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "__new__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 635,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "__init__",
+          "filename": "<string>",
+          "line": 7,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2503,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "_decode_row",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 321,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 15.345766195008764,
+      "video_end_seconds": 20.54573500502738,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 5.0600000000000005,
+          "average_cpu_percent": 97.30827596986845
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.16999999999999993,
+          "average_cpu_percent": 3.2692503784343137
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.08,
+          "average_cpu_percent": 1.5384707663220305
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.07999999999999985,
+          "average_cpu_percent": 1.5384707663220276
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.384617691580508
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.19230884579025828
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 6
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573687125696",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573695518400",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 6
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573981791936",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 86
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "transition_groups": 4
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 6,
+          "leaf_transition_groups": 6
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_run",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+          "line": 94,
+          "stack_presence_transition_groups": 86,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "is_attached",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_style_rules_updated",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 152,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "function": "get_tokens_unprocessed",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/pygments/lexer.py",
+          "line": 714,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 843,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "__get__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 385,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 36,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "__post_init__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/wire_metadata.py",
+          "line": 76,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2506,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 256,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 424,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "total_region",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 63,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 726,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "spatial_map",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/layout.py",
+          "line": 40,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "create_task",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+          "line": 468,
+          "stack_presence_transition_groups": 26,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "up-done",
+      "video_start_seconds": 20.54573500502738,
+      "video_end_seconds": 21.67887122600223,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 0.7599999999999998,
+          "average_cpu_percent": 67.07048860781846
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 2
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2483,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 353,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "persist",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tools/performance/capture_state.py",
+          "line": 226,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "__subclasscheck__",
+          "filename": "<frozen abc>",
+          "line": 121,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "remove_class",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1908,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 357,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 242,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "wrapper",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/functools.py",
+          "line": 982,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "project_array",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py",
+          "line": 58,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "normalize_field",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py",
+          "line": 378,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "wire_options",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py",
+          "line": 28,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "normalize_wire",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py",
+          "line": 84,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "run",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+          "line": 1024,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "_bootstrap_inner",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py",
+          "line": 1082,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "run",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "from_wire",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py",
+          "line": 93,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "prepare",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/acp/transcript_reader.py",
+          "line": 34,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "read",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/native_entries.py",
+          "line": 49,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "project_object",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py",
+          "line": 42,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 21.67887122600223,
+      "video_end_seconds": 26.90331520201289,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 4.93,
+          "average_cpu_percent": 94.36410884368414
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.07,
+          "average_cpu_percent": 1.3398555008231015
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3828158573780293
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.19140792868901466
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 93
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "post_message",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 929,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "<lambda>",
+          "filename": "<string>",
+          "line": 1,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_style_rules_updated",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 153,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/walk.py",
+          "line": 81,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1535,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 807,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "screen",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 836,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "size",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/screen.py",
+          "line": 381,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "has_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1514,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2501,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "read_metadata_unlocked",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 548,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "function": "raw_decode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/decoder.py",
+          "line": 361,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 416,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/enum.py",
+          "line": 780,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "down-done",
+      "video_start_seconds": 26.90331520201289,
+      "video_end_seconds": 28.037363597017247,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 1.2300000000000004,
+          "average_cpu_percent": 108.46097974463211
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 3.5271863331587694
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 1.7635931665793847
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.8817965832896728
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "transition_groups": 5
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 15
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 370,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "from_text",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/wire_metadata.py",
+          "line": 26,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "arrange_widget",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 782,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "is_headless",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 1195,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "mkdir",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 1011,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 69,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "presentation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/thread_status.py",
+          "line": 63,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 444,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 280,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 300,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "dump",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 182,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 288,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/walk.py",
+          "line": 84,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "layer",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2781,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "resolve_box_models",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_resolve.py",
+          "line": 241,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_has_relative_children_height",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2607,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "is_container",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2750,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 803,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "__get__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 385,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 28.037363597017247,
+      "video_end_seconds": 33.34596829902148,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 5.09,
+          "average_cpu_percent": 95.88206856084615
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.06999999999999995,
+          "average_cpu_percent": 1.3186139094811837
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.050000000000000044,
+          "average_cpu_percent": 0.9418670782008473
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.18837341564016943
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.18837341564016943
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.1883734156401693
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573687125696",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 8
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 96
+        },
+        {
+          "pid": "2757254",
+          "tid": "139771118114688",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757328",
+          "tid": "140305321334656",
+          "transition_groups": 2
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 7,
+          "leaf_transition_groups": 7
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "is_attached",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "__get__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/reactive.py",
+          "line": 385,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 843,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1537,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_screen_stack",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/app.py",
+          "line": 1226,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "get_rule",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/css/styles.py",
+          "line": 1535,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "check_idle",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 890,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_sync_members",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/comms_sidebar.py",
+          "line": 150,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "lstat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 661,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 148,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "turn_state",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/threads.py",
+          "line": 75,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "capture",
+          "filename": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tools/performance/capture_state.py",
+          "line": 88,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_dict",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 347,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "dump",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 182,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_compile",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/re/__init__.py",
+          "line": 334,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "request",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 227,
+          "stack_presence_transition_groups": 10,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "reverse-done",
+      "video_start_seconds": 33.34596829902148,
+      "video_end_seconds": 34.51593866501935,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 0.8299999999999983,
+          "average_cpu_percent": 70.94196777301192
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.8547225032893218
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.8547225032893029
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 5
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_dict",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 413,
+          "stack_presence_transition_groups": 3,
+          "leaf_transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "present",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/comms_sidebar.py",
+          "line": 171,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_parent",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "render_regions",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1399,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "query_ancestor",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1752,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 249,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "_identifier",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 36,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 402,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "get_args",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2534,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 148,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "is_attached",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 315,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "__subclasscheck__",
+          "filename": "<frozen abc>",
+          "line": 123,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "stable_thread_lookup",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/bus_publication.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "run",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 73,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "all_activity",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/agent_activity.py",
+          "line": 53,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 34.51593866501935,
+      "video_end_seconds": 36.72986378200585,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 1.5,
+          "average_cpu_percent": 67.75296908152586
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.45168646054350614
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.45168646054350614
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 3
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 4
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 5
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_decode_row",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 322,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "__init__",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 51,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "dump",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 182,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 286,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_iterencode_list",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py",
+          "line": 334,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 357,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "__enter__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 141,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 217,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "is_attached",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "<genexpr>",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 421,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 420,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "_get_dispatch_methods",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 844,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "on_mount",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/toad/widgets/tool_call.py",
+          "line": 199,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "search",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/re/__init__.py",
+          "line": 177,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "function": "_store_lock",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 381,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "function": "visible",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/textual/dom.py",
+          "line": 1021,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 362,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 36.72986378200585,
+      "video_end_seconds": 52.9064463370014,
+      "cpu": [
+        {
+          "pid": "2757007",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+          "cpu_seconds": 9.57,
+          "average_cpu_percent": 59.15959052207016
+        },
+        {
+          "pid": "2757130",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.039999999999999925,
+          "average_cpu_percent": 0.24727101576622798
+        },
+        {
+          "pid": "2757138",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12363550788311432
+        },
+        {
+          "pid": "2757254",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.06181775394155716
+        },
+        {
+          "pid": "2757006",
+          "command": "st -e toad-comms nra-architecture ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.06181775394155716
+        },
+        {
+          "pid": "2757328",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.06181775394155716
+        },
+        {
+          "pid": "2757040",
+          "command": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.06181775394155711
+        }
+      ],
+      "observed_thread_stack_changes": [
+        {
+          "pid": "2757007",
+          "tid": "140572836738752",
+          "transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572845131456",
+          "transition_groups": 14
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572853524160",
+          "transition_groups": 6
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572861916864",
+          "transition_groups": 13
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "transition_groups": 10
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "transition_groups": 7
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "transition_groups": 13
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573126158016",
+          "transition_groups": 9
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "transition_groups": 11
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "transition_groups": 9
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "transition_groups": 14
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "transition_groups": 10
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573999625920",
+          "transition_groups": 10
+        },
+        {
+          "pid": "2757007",
+          "tid": "140574080673664",
+          "transition_groups": 24
+        }
+      ],
+      "observed_frames": [
+        {
+          "pid": "2757007",
+          "tid": "140572836738752",
+          "function": "dump",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py",
+          "line": 181,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572845131456",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 358,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "raw_decode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/decoder.py",
+          "line": 361,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "raw_decode",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/decoder.py",
+          "line": 361,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 2,
+          "leaf_transition_groups": 2
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572861916864",
+          "function": "_parse_path",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 298,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "function": "__enter__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 139,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573734332096",
+          "function": "_projections",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 359,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573135599296",
+          "function": "__new__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/enum.py",
+          "line": 1155,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573087352512",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 425,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "read",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 355,
+          "stack_presence_transition_groups": 4,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572845131456",
+          "function": "decorating_function",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/functools.py",
+          "line": 595,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 163,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "get_origin",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2508,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572845131456",
+          "function": "encode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 233,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573111473856",
+          "function": "_decode",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 445,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573725939392",
+          "function": "schema_objects",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/typed_table.py",
+          "line": 440,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140573717546688",
+          "function": "_value_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 161,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        },
+        {
+          "pid": "2757007",
+          "tid": "140572870309568",
+          "function": "_representation",
+          "filename": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 148,
+          "stack_presence_transition_groups": 1,
+          "leaf_transition_groups": 1
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    }
+  ],
+  "sample_count": 991,
+  "sampling_errors": 0,
+  "sampling_quality": "no reported sampling errors"
+}
