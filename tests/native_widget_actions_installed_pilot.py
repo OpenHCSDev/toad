@@ -21,6 +21,11 @@ from l0a_native_installed_pilot import main, until, response_painted
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
 
+    async def on_load(self):
+        from toad.setting_choices import ThemeChoice
+        self.settings.ui.theme = ThemeChoice.decode('textual-dark')
+        await super().on_load()
+
 
 def frame(app):
     return '\n'.join(strip.text for strip in app.screen._compositor.render_strips())
