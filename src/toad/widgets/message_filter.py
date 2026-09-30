@@ -7,6 +7,7 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     TranscriptEvent,
     UserTranscript,
+    IncomingTranscript,
     AssistantTranscript,
     NoticeTranscript,
     SentTranscript,
@@ -114,7 +115,11 @@ class TranscriptCategoryConsumer(MroDispatch):
 
     @handles(UserTranscript)
     def user(self, event: UserTranscript):
-        self.category = InboundCategory if event.routed else UserCategory
+        self.category = UserCategory
+
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript):
+        self.category = InboundCategory
 
     @handles(AssistantTranscript)
     def assistant(self, event: AssistantTranscript):

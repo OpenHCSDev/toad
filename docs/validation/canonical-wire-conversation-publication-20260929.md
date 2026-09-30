@@ -424,3 +424,30 @@ The driver now waits for the actual original outbound body to compose before
 its exact-one check, records native lineage plus the count and ancestor owners,
 and captures painted output before asserting. This closes the diagnostic gap;
 it does not fix the product declaration or authorize an unchanged paid repeat.
+
+## Exclusive canonical wire consumers: paired source checkpoint
+
+Core's WireTextTranscript family separates original wire records from native
+user and agent events. Sent and Incoming share MarkdownTranscript preparation
+without inheriting another body-authoring event. Incoming supplies its original
+route and required MessageReference; its incoming_sources capability owns
+coverage membership. The larger durable routing-reference migration remains
+outside this checkpoint.
+
+Toad renders native UserTranscript only as a native user input and dispatches
+IncomingTranscript to the attributed incoming widget. IncomingMessage retains
+that original event, deriving text, route, clock and identity; its six separately
+held fields and the reconstructing IncomingSender subclass are deleted.
+Filtering distinguishes Incoming from native User. Preparation and fragment
+splitting share MarkdownTranscript rather than maintaining native/wire rosters.
+Coverage consumes the source owner's incoming_sources, without route inspection
+or null/source fallback checks. Eleven existing fixture files have been migrated
+to the current constructor and source contract; no old constructor alias remains.
+
+The initial production diff deletes 57 lines and adds 36. Syntax and whitespace
+checks pass. Installed acceptance of this pair is pending the parent's complete
+Core integration pin and normal dependency resolution. The previous real05
+provider result remains preserved. The next first check is the same provider-free
+installed composition journey requiring one original body and header; full
+messaging readiness still requires handling, headers, late-replay and A/B/A
+acceptance on the coherent pair.

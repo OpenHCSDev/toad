@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from toad.widgets.message_filter import InboundCategory
-
 import asyncio
 from abc import ABC, abstractmethod
 from collections import OrderedDict
@@ -15,7 +13,7 @@ from agent_comms.transcript_events import TranscriptEvent
 
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.render_tasks import TranscriptRenderTask
-from toad.widgets.message_filter import MessageCategory, event_category, keep_events
+from toad.widgets.message_filter import MessageCategory, keep_events
 from toad.work_preparation import (
     PreparationRuntime,
     RenderPreparation,
@@ -44,13 +42,10 @@ class PageRequest:
 
 def incoming_sequences(events: tuple[TranscriptEvent, ...]) -> frozenset[int]:
     return frozenset(
-        message.seq
+        source.seq
         for event in events
-        if event_category(event) is InboundCategory
-        and event.routing is not None
-        and event.routing.requests
-        for message in event.routing.requests
-        if message.seq > 0
+        for source in event.incoming_sources
+        if source.seq > 0
     )
 
 

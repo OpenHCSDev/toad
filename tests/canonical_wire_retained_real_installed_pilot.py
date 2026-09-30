@@ -225,8 +225,10 @@ async def main():
                     receipt['composition_control']['body_count_after_composition'] = sum(
                         body.source == original.body for body in
                         receiver.contents.query(AgentResponse))
+                    receipt['composition_control']['original_header_count'] = len(block.query(MessageDivider))
                     receiver_app.save_screenshot(str(evidence / 'composition-control.svg'))
                     assert receipt['composition_control']['body_count_after_composition'] == 1
+                    assert receipt['composition_control']['original_header_count'] == 1
                     return
                 original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
                     '@beta Bounded acceptance only. Do not resume prior work or use tools. '

@@ -16,7 +16,7 @@ from weakref import ref
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
-    TranscriptEvent, ContextTranscript, UserTranscript, AgentTextTranscript, SentTranscript,
+    TranscriptEvent, ContextTranscript, UserTranscript, IncomingTranscript, AgentTextTranscript, SentTranscript,
     ThinkingTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
 )
 from agent_comms.tool_results import tool_result_content
@@ -78,17 +78,14 @@ class TranscriptBlockConsumer(MroDispatch):
 
     @handles(UserTranscript)
     def user(self, event: UserTranscript):
-        if event.routed:
-            from toad.widgets.incoming_message import IncomingMessage
-            for message in event.routing.requests:
-                self.blocks.append(IncomingMessage(
-                    message.sender, event.text, message.target, show_header=self.show_divider,
-                    source=message.reference, clock=MessageClock.recorded(message.timestamp),
-                ))
-        else:
-            self.blocks.append(UserInput(event.text, native_id=event.native_id,
-                                         show_divider=self.show_divider,
-                                         clock=MessageClock.recorded(event.timestamp)))
+        self.blocks.append(UserInput(event.text, native_id=event.native_id,
+                                     show_divider=self.show_divider,
+                                     clock=MessageClock.recorded(event.timestamp)))
+
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript):
+        from toad.widgets.incoming_message import IncomingMessage
+        self.blocks.append(IncomingMessage(event, show_header=self.show_divider))
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):

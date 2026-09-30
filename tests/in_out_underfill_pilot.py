@@ -1,5 +1,7 @@
 """Filtered history must fill empty viewport from older routed records."""
 
+from agent_comms.message_reference import MessageReference
+
 import asyncio
 import os
 from pathlib import Path
@@ -26,7 +28,7 @@ async def main():
             file = "read-only-fixture"
             tail = tuple(ThinkingTranscript(f'HIDDEN_TAIL_{index}')
                          for index in range(90))
-            older = SentTranscript('OLDER_ROUTED_MESSAGE', routing=TurnRouting(reply=MessageRoute('owner', ('#team',))))
+            older = SentTranscript('OLDER_ROUTED_MESSAGE', source=MessageReference(1, 'underfill-outbound'), routing=TurnRouting(reply=MessageRoute('owner', ('#team',))))
             calls = []
 
             async def load_page(**kwargs):
