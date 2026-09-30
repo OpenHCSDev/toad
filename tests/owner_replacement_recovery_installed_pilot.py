@@ -77,7 +77,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     evidence = Path(os.environ['L0A_EVIDENCE'])
     view = app.selected_session.conversation
     if os.environ.get('ATTACHMENT_HEALTHY_WINDOW'):
-        sidebar = await wait_channel_roster(app, pilot, 'beta')
+        sidebar = await wait_channel_roster(app, pilot, '#team')
         row = next(row for row in sidebar.query(CommsRow) if row.target_name == 'beta')
         row.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
