@@ -1402,7 +1402,7 @@
     "completed_physical_endpoints": "Down, idle and returned A remain readable; historical UNKNOWN diagnostic content preserved",
     "whole_workflow_cpu": "Not improved conclusively; Down and idle CPU remain high",
     "source_body_cost": "Existing installed source gate is separate; no rerun by Kepler",
-    "frame_gap_assessment": "Heisenberg owns deferred Down/return/B slow-video extraction; completed endpoint PNGs alone do not quantify transient gaps",
+    "frame_gap_assessment": "Reviewed existing three24-frame8fps sheets: Down content advances with readable chrome/body; cold B loading remains visible; ReturnA pre-click B then actual A. This does not quantify unsampled60fps gaps or key-to-first-paint delay.",
     "ownership_next": "Heisenberg production closure through original sidebar/history/frame owners; Kepler offline measurement only"
   },
   "limits": [
@@ -1443,5 +1443,22 @@
         "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
       }
     ]
-  }
+  },
+  "physical_sheets_reviewed": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/down-frames.png",
+      "bytes": 1649448,
+      "sha256": "3dcf3d7c22e62a05f8235211fff89399913aa5d43b54635f4a41f3118c83ad02"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/return-a-frames.png",
+      "bytes": 1241966,
+      "sha256": "bf6ca4c7e065f7ebe8eb375c71c9e910854afa2aa7446d7509cec9183cc6202c"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture/switch-b-frames.png",
+      "bytes": 810631,
+      "sha256": "a0b9dce0574a7e50e80de16ffd80265fb377f43818467ab5265622a5a55ab442"
+    }
+  ]
 }
