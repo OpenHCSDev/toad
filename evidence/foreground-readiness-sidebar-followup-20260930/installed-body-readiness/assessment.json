@@ -1,0 +1,61 @@
+{
+  "source": "2f3181994c54ad8afc02600b6bf9bf3909630ef0",
+  "raw_capture": "/home/ts/.cache/agent-scratch/toad-body-readiness-253-20260930-attempt01/capture",
+  "duration_seconds": 83.71474524697987,
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "sample_count": 1115,
+  "sampling_errors": 0,
+  "alignment": {
+    "trace_origin_monotonic_bounds": [
+      277741.665194341,
+      277741.710417878
+    ],
+    "trace_to_video_offset_seconds": -0.3257009375374764,
+    "alignment_nominal_uncertainty_seconds": 0.06261176850879566,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "ui_cpu": {
+    "up": 92.68676316831318,
+    "down": 90.2930153814602,
+    "reverse": 84.88481426958916,
+    "idle": 21.722327350608605,
+    "return-a": 43.95818814530942
+  },
+  "physical_review": {
+    "down": "24 frames at8fps: readable moving chat/chrome; no wholebody blank observed",
+    "return-a": "24 frames at8fps: peer body remains before selection, destination body then visible; no instant-firstpaint claim",
+    "switch-b": "cold peer visibly switches to Loading thread and history; pending cold performance"
+  },
+  "limits": [
+    "profile/export overhead included; no overall CPU improvement claim",
+    "sampling/contact sheet do not exclude sub125ms gaps",
+    "no Strip/raster retention or 50ms claim",
+    "no provider prompts/active-postcancel acceptance"
+  ]
+}

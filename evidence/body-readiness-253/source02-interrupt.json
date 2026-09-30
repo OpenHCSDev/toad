@@ -1,0 +1,22 @@
+{
+  "reason": "bounded fixture held native Mount did not finish; no native/provider input",
+  "parent": {
+    "pid": 3929594,
+    "birth": 1790799823.7
+  },
+  "children": [
+    {
+      "pid": 3929605,
+      "birth": 1790799824.93
+    },
+    {
+      "pid": 3929618,
+      "birth": 1790799825.47
+    },
+    {
+      "pid": 3929619,
+      "birth": 1790799825.57
+    }
+  ],
+  "signal": "SIGINT"
+}
