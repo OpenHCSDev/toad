@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, TypeVar
 if TYPE_CHECKING:
     from agent_comms.active_route import CommsRoute
     from agent_comms.comms import Comms
+    from agent_comms.presentation import WireRevision
 
 T = TypeVar("T")
 
@@ -64,9 +65,9 @@ class CoordinationAccess:
         self.observation: ObservedCommsService | None = None
         self.changed = changed
         self.observed = observed
-        self.revision = None
-        self.route_stamp = None
-        self.task = None
+        self.revision: WireRevision | None = None
+        self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
+        self.task: asyncio.Task[None] | None = None
 
     @property
     def observed_service(self) -> Comms | None:
@@ -105,7 +106,7 @@ class CoordinationAccess:
             self.task.cancel()
             await asyncio.gather(self.task, return_exceptions=True)
 
-    def current_route_stamp(self):
+    def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
         from agent_comms.active_route import active_route_path
         from agent_comms.store_files import file_revision
 
@@ -126,25 +127,29 @@ class CoordinationAccess:
             if (service is not None and revision == self.revision
                     and route_stamp == self.route_stamp):
                 return
-            self.task = asyncio.create_task(self.observe())
+            self.task = asyncio.create_task(self.observe(revision, route_stamp))
         except (OSError, ValueError, RuntimeError):
             # A route publication may be replacing its marker. Its next revision
             # retries validation; no sidebar visibility can disable observation.
             return
 
-    async def observe(self) -> None:
+    async def observe(self, revision: WireRevision | None,
+                      route_stamp: tuple[tuple[int, int, int, int] | None, ...]) -> None:
         try:
             service = await asyncio.to_thread(lambda: self.service)
             route_stamp = self.current_route_stamp()
             revision = service.views.revision()
             if not await asyncio.to_thread(root_is_current, service.root):
-                return
+                raise ValueError("Observed Comms route changed before publication")
             if service is not self.observed_service or self.current_route_stamp() != route_stamp:
                 return
-            self.revision, self.route_stamp = revision, route_stamp
-            self.observed()
         except (OSError, ValueError, RuntimeError):
-            return
+            # Invalidation must also reach mounted views when validation fails.
+            # They retain their original read/route fence and show unavailable;
+            # a change notification never certifies a presentation or a send.
+            pass
+        self.revision, self.route_stamp = revision, route_stamp
+        self.observed()
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. The existing

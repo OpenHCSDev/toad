@@ -164,6 +164,7 @@ async def main():
                 for item in observed.presentation.notifications if item.message))
             original = NotificationAssignment.select(comms.root, "w.wire_seq=?", (message.seq,))[0].assignment
             wire_bytes = comms.bus.log.path.read_bytes()
+            projection_before = roster.observation.identity
             with Coordination(str(comms.root / "coordination.sqlite3")) as store:
                 store.assignments.transition_preengagement(original.assignment_id,
                     IgnoredAssignment, expected_revision=original.revision)
@@ -171,6 +172,7 @@ async def main():
                 and item.state == "Checked — no response"
                 for item in observed.presentation.notifications if item.message))
             assert comms.bus.log.path.read_bytes() == wire_bytes
+            assert roster.observation.identity == projection_before, "Closed roster projected remote receipt"
             assert app.workspace_chrome.channels.collapsed
             assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
             cpu_start, wall_start = time.process_time(), time.monotonic()

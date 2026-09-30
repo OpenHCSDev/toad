@@ -102,7 +102,7 @@ class SidebarObservation:
             self.sidebar.projection.sync_spinner()
 
     async def session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
-        if not self.sidebar.accepts_publication():
+        if not self.accepts_observation():
             return
         # Session routes/title changes are local projection facts. The wire's
         # own revision invalidates its snapshot; do not force a full history
@@ -122,7 +122,7 @@ class SidebarObservation:
                 await self.read(revision)
 
     async def actions_changed(self, _update: None) -> None:
-        if not self.sidebar.accepts_publication():
+        if not self.accepts_observation():
             self.identity = None
             return
         if self.sidebar.projection.has_snapshot() and self.sidebar.is_attached:
@@ -132,6 +132,8 @@ class SidebarObservation:
 
     async def present_cached(self) -> None:
         """Paint the last observed projection; refresh disk state after activation."""
+        if not self.accepts_observation():
+            return
         state = self.sidebar.app._sidebar_snapshot
         if state is not None and (
             state.show_stopped, state.show_archived
