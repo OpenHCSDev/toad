@@ -17,7 +17,7 @@ from toad.navigation_preparation import ThreadNavigationRequest
 async def dialog_content_only():
     """Actual installed dialog paste, with no fork, owner or provider start."""
     from textual import events
-    from textual.widgets import Input
+    from textual.widgets import Input, TextArea
     from agent_comms.threads import Thread
     from agent_comms.field_codec import FieldCodec
     from runtime_fixture import private_native_wire
@@ -89,7 +89,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     entry = app.screen.query_one("#fork-name", Input)
     assert await pilot.click(entry)
     entry.value = "immediate-fork"
-    app.screen.query_one("#fork-task", Input).value = "Reply briefly to this isolated first fork test."
+    app.screen.query_one("#fork-task", TextArea).text = "Reply briefly to this isolated first fork test."
     async def hold_actual_startup():
         async with asyncio.timeout(20):
             while True:
@@ -111,7 +111,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     # This guarantees an actual cold attach rather than a repaired warm fork.
     held_startup = asyncio.create_task(hold_actual_startup())
     try:
-        await pilot.press("enter")
+        assert await pilot.click('#fork-create')
         process = await held_startup
         project = parent_view.project_path
         await until(pilot, lambda: "immediate-fork" in comms.registry.all_threads())
