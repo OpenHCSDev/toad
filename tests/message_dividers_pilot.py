@@ -1,3 +1,5 @@
+
+from agent_comms.transcript_events import IncomingTranscript
 from toad.navigation_target import NavigationContext
 from toad.live_output import ResponseStream
 """Full-width timed headers stay inside text blocks across native and wire views."""
@@ -46,7 +48,7 @@ async def main() -> None:
             user = await native.post(UserInput("human text"))
             reply = await native.output.append(ResponseStream(), "agent text")
             assert reply is not None
-            incoming = await native.post(IncomingMessage("peer", "hello", "#all"))
+            incoming = await native.post(IncomingMessage(IncomingTranscript(sent.body, route=MessageRoute(sent.sender, (sent.target,)), source=sent.reference, timestamp=sent.timestamp)))
             thought = await native.post(AgentThought("not a displayed message"))
             tool = await native.post(ToolCall({"toolCallId": "tool-one", "title": "Read source"}))
             await pilot.pause()

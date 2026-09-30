@@ -1,0 +1,505 @@
+"""Explicitly authorized real-provider journey over native-forked retained history.
+
+The public registration and source are read only. Original process credentials
+stay in RAM; the native SessionManager owns two new private journal forks.
+All new wire records, owners and inputs belong to the isolated fixture.
+"""
+import asyncio
+import cProfile
+from contextlib import contextmanager, nullcontext
+import json
+import os
+import shlex
+import shutil
+import sqlite3
+import stat
+import sys
+import tempfile
+import threading
+import time
+from pathlib import Path
+
+from agent_comms.comms import Comms
+from agent_comms.field_codec import FieldCodec
+from agent_comms.native_fork import ForkSessionHelper, ForkSessionRequest
+from agent_comms.native_package import verify_native_package
+from agent_comms.owner_launch import RetainedOwnerLaunch
+from agent_comms.registration import Registration
+from agent_comms.threads import Thread
+from agent_comms.transcript_events import AssistantTranscript
+from toad.agent_schema import AgentDefinition
+from toad.navigation_target import NavigationContext, channel_target, ThreadTarget
+from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.incoming_message import IncomingMessage
+from toad.widgets.outgoing_message import OutgoingMessage
+from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.message_divider import MessageDivider
+from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptHistory
+from canonical_wire_conversation_installed_pilot import (
+    WindowApp, originals, original_native_reply_proof, until, pause, select_window,
+)
+from runtime_fixture import stop_test_children
+
+
+def record_phase(receipt, evidence, phase):
+    """Persist observed progress before the next application await can stall."""
+    receipt['phase'] = phase
+    (evidence / 'progress.json').write_text(json.dumps(receipt, indent=2))
+    print('RETAINED_JOURNEY_PHASE', phase, flush=True)
+
+
+def native_input_ids(service):
+    with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+        return tuple(row[0] for row in db.execute('SELECT input_id FROM native_runtime_input ORDER BY input_id'))
+
+
+def capture_lock_custody(root: Path, stop: threading.Event, evidence: Path):
+    """Record kernel custody of this fixture's actual admission locks only."""
+    began = time.monotonic()
+    samples = []
+    while not stop.is_set():
+        identities = {}
+        for name in ('wire', 'bus.jsonl', 'registry.json'):
+            path = root / f'.{name}.lock'
+            if path.exists():
+                info = path.stat()
+                identities[f'{os.major(info.st_dev):02x}:{os.minor(info.st_dev):02x}:{info.st_ino}'] = name
+        rows = [line for line in Path('/proc/locks').read_text().splitlines()
+                if any(identity in line.split() for identity in identities)]
+        samples.append({'elapsed': round(time.monotonic() - began, 3),
+                        'identities': identities, 'locks': rows})
+        stop.wait(0.2)
+    (evidence / 'kernel-lock-custody.json').write_text(json.dumps(samples, indent=2))
+
+
+def probe_response_custody(bus, cancelled, *, probes=4, spacing=6):
+    """Acquire the real response locks, without reserving or writing an input."""
+    from agent_comms.coordination_response import _response_boundary
+    from agent_comms.native_prompt_send import (
+        _enter_admission, _MAX_SEND_SECONDS, PromptAdmissionBusy, PromptSendUnknown,
+    )
+
+    @contextmanager
+    def boundary():
+        try:
+            with _response_boundary(bus, blocking=False):
+                yield
+        except BlockingIOError as error:
+            raise PromptAdmissionBusy("Fixture response custody is busy") from error
+
+    measurements = []
+    for index in range(probes):
+        began = time.monotonic()
+        try:
+            with _enter_admission(boundary, cancelled, began + _MAX_SEND_SECONDS):
+                elapsed = time.monotonic() - began
+                measurements.append({'probe': index, 'acquired': True,
+                    'elapsed_seconds': elapsed, 'budget_seconds': _MAX_SEND_SECONDS,
+                    'within_budget': elapsed < _MAX_SEND_SECONDS})
+        except PromptSendUnknown as error:
+            measurements.append({'probe': index, 'acquired': False,
+                'elapsed_seconds': time.monotonic() - began,
+                'budget_seconds': _MAX_SEND_SECONDS, 'within_budget': False,
+                'error': str(error)})
+        if index + 1 < probes and cancelled.wait(spacing):
+            break
+    return measurements
+
+
+async def main():
+    assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
+    read_only_custody = os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1'
+    composition_control = os.environ.get('AC_REAL_COMPOSITION_CONTROL') == '1'
+    retained_root = os.environ.get('AC_REAL_RETAINED_FIXTURE_ROOT')
+    retained_root_id = os.environ.get('AC_REAL_RETAINED_FIXTURE_ROOT_ID')
+    if retained_root:
+        assert retained_root_id and not read_only_custody and not composition_control
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
+    assert stage.is_relative_to('/home/ts/wt')
+    stage.mkdir(parents=True, exist_ok=False)
+    evidence.mkdir(parents=True, exist_ok=True)
+    source_root = Path(os.environ['AC_REAL_SOURCE_ROOT'])
+    snapshot = Registration(source_root / 'registry.json').snapshot()
+    source = snapshot.require_active(os.environ['AC_REAL_SOURCE_OWNER'])
+    retained = RetainedOwnerLaunch.capture(source, snapshot)
+    assert source.model is not None and 'sol' in source.model.lower()
+    assert source.thinking_level.declared_name == 'high'
+    source_file = Path(os.environ.get('AC_REAL_SOURCE_FILE', source.session_file))
+    assert source_file.stat().st_size >= 40_000_000
+    package = Path(os.environ['AC_NATIVE_COPIED_PACKAGE'])
+    verify_native_package(package)
+    if retained_root:
+        prior = Comms(Path(retained_root))
+        assert all(not thread.executing for thread in prior.registry.all_threads().values())
+        project = Path(prior.registry.require('alpha').worktree)
+        assert project.is_relative_to('/home/ts/wt/toad-restored-inbound-chronology-20260929/real-fixtures')
+    else:
+        project = stage / 'project'
+        project.mkdir()
+        helper_env = dict(retained.environment, PI_CODING_AGENT_DIR=str(stage / 'native-forks'))
+        identities = [await ForkSessionHelper.run(
+            ForkSessionRequest(str(package), str(source_file), str(project)),
+            cwd=project, env=helper_env,
+        ) for _ in range(2)]
+        assert all(Path(identity.session_file).is_relative_to(stage) for identity in identities)
+    profile = cProfile.Profile()
+    context = (nullcontext(str(Path(retained_root).parent)) if retained_root else
+               tempfile.TemporaryDirectory(prefix='comms-real-wire-', dir='/var/tmp'))
+    with context as directory:
+        service = Comms(Path(directory) / 'wire')
+        root_id = retained_root_id if retained_root else service.messaging.initialize_private_initial_protocol()
+        service.owners.pin_private_nk_launch(service.root, root_id, package)
+        # Preserve the selected provider, arguments, auth and settings. Only
+        # the reviewed runtime and fixture-owned routing/UI resources change.
+        runtime_path = str(Path(sys.executable).parent)
+        environment = dict(retained.environment)
+        environment.update(
+            AGENT_COMMS_ROOT=str(service.root),
+            AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
+            AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=str(package),
+            AGENT_COMMS_AGENT_BIN=str(Path(sys.executable).with_name('pi-comms-native')),
+            AGENT_COMMS_AGENT_ARGS=shlex.join(retained.arguments or ()),
+            PATH=runtime_path + os.pathsep + environment.get('PATH', ''),
+            VIRTUAL_ENV=str(Path(sys.executable).parent.parent),
+            AGENT_COMMS_RUNTIME_ROOT=runtime_path,
+            AGENT_COMMS_DEBUG_LOG=str(stage / 'acp-debug'),
+            XDG_CONFIG_HOME=str(stage / 'config'),
+            XDG_STATE_HOME=str(stage / 'state'),
+            XDG_DATA_HOME=str(stage / 'data'),
+        )
+        for name in ('PI_PROMPT', 'PI_PARENT_ID', 'PI_TASK', 'PI_AGENT_ID',
+                     'AGENT_COMMS_THREAD', 'AGENT_COMMS_STARTUP_INPUT_KEY', 'PYTHONPATH'):
+            environment.pop(name, None)
+        os.environ.clear()
+        os.environ.update(environment)
+        os.environ['TOAD_TEST_ATTEMPT'] = stage.name
+        for name, identity in (() if retained_root else zip(('alpha', 'beta'), identities, strict=True)):
+            service.registry.declare(Thread(
+                name, frozenset({'team'}), str(project), session_file=identity.session_file,
+                model=source.model, thinking_level=source.thinking_level,
+                task='Bounded live acceptance only. Do not resume inherited work. '
+                     'For acceptance messages answer exactly the requested token. No tools or goals.',
+            ))
+        definition = AgentDefinition.decode({
+            'name': 'Real retained acceptance', 'identity': 'real-retained',
+            'short_name': 'real', 'protocol': 'acp',
+            'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])},
+        })
+        sender_app = WindowApp(agent_data=definition, project_dir=str(project), agent_session_id='alpha')
+        receiver_app = WindowApp(agent_data=definition, project_dir=str(project), agent_session_id='beta')
+        irc_app = WindowApp(project_dir=str(project))
+        receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
+                   'source_bytes': source_file.stat().st_size, 'original_inputs_replayed': 0,
+                   'completed_phases': []}
+        if retained_root:
+            receipt['native_input_ids_before_readonly'] = native_input_ids(service)
+            # The preceding run deliberately stopped these fixture owners.
+            # An explicit start of this completed private fixture admits only
+            # attachment; it cannot grant a retry of either original input.
+            messages = tuple(service.bus.log.full_history())
+            assert len(messages) == 2
+            original_native_reply_proof(service, *messages)
+            for name in ('alpha', 'beta'):
+                await asyncio.to_thread(service.owners.start, name)
+        record_phase(receipt, evidence, 'opening_saved_history')
+        lock_capture_stop = threading.Event()
+        lock_capture = asyncio.create_task(asyncio.to_thread(
+            capture_lock_custody, service.root, lock_capture_stop, evidence))
+        try:
+            async with sender_app.run_test(size=(160, 44)) as sp, \
+                       receiver_app.run_test(size=(160, 44)) as rp, \
+                       irc_app.run_test(size=(160, 44)) as ip:
+                sender, receiver = sender_app.selected_session.conversation, receiver_app.selected_session.conversation
+                for view, pilot in ((sender, sp), (receiver, rp)):
+                    await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
+                    assert view.agent.session.connected
+                    await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)), 30)
+                receipt['completed_phases'].append('original_saved_history_both_open')
+                record_phase(receipt, evidence, 'opening_irc')
+                user = service.messaging.user_identity(str(project)).name
+                with irc_app._context():
+                    await channel_target('#team').open(NavigationContext(irc_app, irc_app.selected_mode, project, user))
+                    await irc_app.selected_session.wait_content_ready()
+                irc = irc_app.selected_session.query_one(CommsChatView)
+                await until(ip, lambda: irc.message_history.initialized)
+                receipt['completed_phases'].append('irc_open_before_send')
+                record_phase(receipt, evidence, 'three_views_open')
+                profile.enable()
+                if retained_root:
+                    messages = tuple(service.bus.log.full_history())
+                    assert len(messages) == 2
+                    original, reply = messages
+                    receipt['original_native_reply'] = original_native_reply_proof(service, original, reply)
+                    receipt['retained_originals'] = [FieldCodec.encode(message.reference) for message in messages]
+                    def observe():
+                        observations = {}
+                        for name, app, view in (('sender', sender_app, sender),
+                                                ('recipient', receiver_app, receiver),
+                                                ('irc', irc_app, irc)):
+                            observation = app.coordination_access.observation
+                            reader = view.agent.controller.transcripts._reader if view.agent else None
+                            row = {
+                                'declared_app_is_caller_app': view.app is app,
+                                'selected_root': str(observation.selection.root) if observation else None,
+                                'ui_service_root': str(observation.service.root) if observation else None,
+                                'ui_registered_threads': len(observation.service.registry.snapshot().threads) if observation else None,
+                                'irc_history_root': str(view.message_history.service.root) if view is irc else None,
+                                'agent_coordination_root': view.agent.coordination.wire_root if view.agent else None,
+                                'source_reader_root': str(reader.root) if reader else None,
+                            }
+                            for field in ('selected_root', 'ui_service_root', 'irc_history_root',
+                                          'agent_coordination_root', 'source_reader_root'):
+                                if row[field] is not None:
+                                    assert Path(row[field]) == service.root, (name, field, row[field])
+                            with app._context():
+                                assert view.app is app
+                                row.update(registered_widgets=len(app._registry),
+                                    mounted_widgets=sum(1 for _ in view.walk_children()),
+                                    batch_count=app._batch_count,
+                                    feedback=[str(feedback.title) for feedback in view.query(MessageNotifications)])
+                            observations[name] = row
+                        return observations
+                    receipt['readonly_views_before_pause'] = observe()
+                    record_phase(receipt, evidence, 'readonly_pilot_pause_begin')
+                    # Source/widget counts and exact suspended coroutines are
+                    # diagnostic observations, not a parallel application state.
+                    def suspended():
+                        receipt['readonly_suspended'] = {
+                            'views': observe(),
+                            'tasks': [{'name': task.get_name(), 'stack': [
+                                f'{Path(frame.f_code.co_filename).name}:{frame.f_lineno}:{frame.f_code.co_name}'
+                                for frame in task.get_stack()]} for task in asyncio.all_tasks()],
+                        }
+                        record_phase(receipt, evidence, 'readonly_pilot_pause_observed')
+                    timer = asyncio.get_running_loop().call_later(5, suspended)
+                    began, cpu = time.monotonic(), time.process_time()
+                    try:
+                        with receiver_app._context():
+                            assert receiver.app is receiver_app
+                            body = originals(receiver, reply.reference, OutgoingMessage)[0]
+                            body.scroll_visible(animate=False, immediate=True)
+                            await pause(rp, 1)
+                    finally:
+                        timer.cancel()
+                    receipt['readonly_pilot_pause'] = {'wall_seconds': time.monotonic() - began,
+                        'process_cpu_seconds': time.process_time() - cpu, 'views': observe()}
+                    record_phase(receipt, evidence, 'readonly_pilot_pause_complete')
+                    receipt['readonly_same_open_31s'] = []
+                    for second in range(31):
+                        await pause(rp, 1)
+                        counts = {
+                            'original_sender': len(originals(sender, original.reference, OutgoingMessage)),
+                            'original_recipient': len(originals(receiver, original.reference, IncomingMessage)),
+                            'reply_sender': len(originals(receiver, reply.reference, OutgoingMessage)),
+                        }
+                        assert all(count == 1 for count in counts.values())
+                        receipt['readonly_same_open_31s'].append({'second': second, **counts})
+                        record_phase(receipt, evidence, 'readonly_same_open_observation')
+                    beta_screen = receiver_app.selected_session
+                    with receiver_app._context():
+                        await ThreadTarget('alpha').open(NavigationContext(receiver_app, receiver_app.selected_mode, project, user))
+                        await receiver_app.selected_session.wait_content_ready()
+                    alpha_screen = receiver_app.selected_session
+                    receipt['readonly_physical_returns'] = []
+                    for screen in (beta_screen, alpha_screen, beta_screen):
+                        began = await select_window(rp, screen)
+                        receipt['readonly_physical_returns'].append({
+                            'thread': screen.conversation.agent.session_id,
+                            'return_seconds': time.monotonic() - began})
+                        record_phase(receipt, evidence, 'readonly_physical_return')
+                    receipt['native_input_ids_after_readonly'] = native_input_ids(service)
+                    assert receipt['native_input_ids_before_readonly'] == receipt['native_input_ids_after_readonly']
+                    for app, name in ((sender_app, 'sender'), (receiver_app, 'recipient'), (irc_app, 'irc')):
+                        with app._context():
+                            app.save_screenshot(str(evidence / f'readonly-{name}.svg'))
+                    record_phase(receipt, evidence, 'readonly_complete')
+                    return
+                if read_only_custody:
+                    began, cpu = time.monotonic(), time.process_time()
+                    (evidence / 'read-only-ready.json').write_text(json.dumps({'pid': os.getpid(),
+                        'monotonic': began, 'wall_time': time.time()}))
+                    probes = asyncio.create_task(asyncio.to_thread(
+                        probe_response_custody, service.bus, lock_capture_stop))
+                    try:
+                        await pause(rp, 40)
+                    finally:
+                        lock_capture_stop.set()
+                        receipt['response_lock_custody'] = await probes
+                    receipt['read_only_idle'] = {'wall_seconds': time.monotonic() - began,
+                        'process_cpu_seconds': time.process_time() - cpu}
+                    receipt['read_only_source_custody'] = True
+                    return
+                if composition_control:
+                    # The fixture's human participant cannot launch a native
+                    # turn. This isolates actual source/widget composition
+                    # without replaying a previous input or paying a provider.
+                    assert not service.registry.require(user).role.executable
+                    original = await asyncio.to_thread(service.messaging.send_message,
+                        'beta', user, 'ORIGINAL_COMPOSITION_CONTROL')
+                    await until(rp, lambda: len(originals(receiver, original.reference,
+                                                        OutgoingMessage)) == 1, 30)
+                    block = originals(receiver, original.reference, OutgoingMessage)[0]
+                    receipt['composition_control'] = {
+                        'original': FieldCodec.encode(original.reference),
+                        'body_count_at_container_mount': sum(
+                            body.source == original.body for body in
+                            receiver.contents.query(AgentResponse)),
+                        'children_at_container_mount': len(block.query(AgentResponse)),
+                    }
+                    await until(rp, lambda: bool(block.query(AgentResponse)), 30)
+                    await pause(rp)
+                    receipt['composition_control']['body_count_after_composition'] = sum(
+                        body.source == original.body for body in
+                        receiver.contents.query(AgentResponse))
+                    receipt['composition_control']['original_header_count'] = len(block.query(MessageDivider))
+                    with receiver_app._context():
+                        receiver_app.save_screenshot(str(evidence / 'composition-control.svg'))
+                    assert receipt['composition_control']['body_count_after_composition'] == 1
+                    assert receipt['composition_control']['original_header_count'] == 1
+                    return
+                original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
+                    '@beta Bounded acceptance only. Do not resume prior work or use tools. '
+                    'Reply exactly REAL_RETAINED_WIRE_REPLY to this channel message.')
+                receipt['original'] = FieldCodec.encode(original.reference)
+                await until(sp, lambda: len(originals(sender, original.reference, OutgoingMessage)) == 1, 40)
+                receipt['completed_phases'].append('original_sender_hot')
+                await until(rp, lambda: len(originals(receiver, original.reference, IncomingMessage)) == 1, 40)
+                receipt['completed_phases'].append('original_recipient_hot')
+                await until(ip, lambda: any(message.reference == original.reference for message, _ in irc.message_history.rows), 40)
+                receipt['completed_phases'].append('original_irc_hot')
+                record_phase(receipt, evidence, 'native_reply_pending')
+                irc_original = next(widget for message, widget in irc.message_history.rows
+                                    if message.reference == original.reference)
+                handling = []
+
+                def reply_visible():
+                    handling.append({
+                        'sender': str(originals(sender, original.reference, OutgoingMessage)[0]
+                                      .query_one(MessageNotifications).title),
+                        'recipient': str(originals(receiver, original.reference, IncomingMessage)[0]
+                                         .query_one(MessageNotifications).title),
+                        'irc': str(irc_original.query_one(MessageNotifications).title),
+                    })
+                    return any(message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body
+                               for message, _ in irc.message_history.rows)
+
+                receipt['original_handling_timeline'] = handling
+                await until(rp, reply_visible, 60)
+                reply = next(message for message, _ in irc.message_history.rows
+                             if message.sender == 'beta' and 'REAL_RETAINED_WIRE_REPLY' in message.body)
+                await until(rp, lambda: len(originals(receiver, reply.reference, OutgoingMessage)) == 1, 30)
+                await until(sp, lambda: len(originals(sender, reply.reference, IncomingMessage)) == 1, 30)
+                # A mounted container does not prove its composed body exists.
+                # Wait for that actual body before counting duplicate replies;
+                # retain the observed count even when the assertion fails.
+                await until(rp, lambda: any(body.query(AgentResponse) for body in
+                            originals(receiver, reply.reference, OutgoingMessage)), 30)
+                receipt['original_native_reply'] = original_native_reply_proof(service, original, reply)
+                reply_bodies = [body for body in receiver.contents.query(AgentResponse)
+                                if body.source == reply.body]
+                receipt['rendered_reply_count'] = len(reply_bodies)
+                receipt['rendered_reply_owners'] = [
+                    [type(parent).__name__ for parent in body.ancestors]
+                    for body in reply_bodies
+                ]
+                with receiver_app._context():
+                    receiver_app.save_screenshot(str(evidence / 'reply-before-once-check.svg'))
+                assert len(reply_bodies) == 1, f'Original reply rendered {len(reply_bodies)} times'
+                assert len(originals(receiver, reply.reference, OutgoingMessage)[0].query(MessageDivider)) == 1, \
+                    'One original reply must own one header'
+                with receiver_app._context():
+                    originals(receiver, reply.reference, OutgoingMessage)[0].scroll_visible(animate=False, immediate=True)
+                    await pause(rp)
+                    receiver_app.save_screenshot(str(evidence / 'original-reply.svg'))
+                record_phase(receipt, evidence, 'original_reply_once_painted')
+                for view, pilot, kind in ((sender, sp, OutgoingMessage), (receiver, rp, IncomingMessage)):
+                    await until(pilot, lambda: 'Responded' in str(originals(view, original.reference, kind)[0]
+                                                                .query_one(MessageNotifications).title), 30)
+                await until(ip, lambda: 'Responded' in str(irc_original.query_one(MessageNotifications).title), 30)
+                record_phase(receipt, evidence, 'all_original_handling_responded')
+                # Same already-open views, beyond both reported 15–30s delays.
+                timeline = []
+                idle_began, idle_cpu = time.monotonic(), time.process_time()
+                for second in range(31):
+                    await pause(rp, 1)
+                    timeline.append({'second': second,
+                        'original_sender': len(originals(sender, original.reference, OutgoingMessage)),
+                        'original_receiver': len(originals(receiver, original.reference, IncomingMessage)),
+                        'reply_receiver': len(originals(receiver, reply.reference, OutgoingMessage))})
+                    assert all(value == 1 for key, value in timeline[-1].items() if key != 'second')
+                    assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1
+                    assert all(app._exception is None for app in (sender_app, receiver_app, irc_app))
+                    receipt['same_open_31s'] = timeline
+                    record_phase(receipt, evidence, 'same_open_observation')
+                receipt['same_open_31s'] = timeline
+                receipt['idle'] = {'wall_seconds': round(time.monotonic() - idle_began, 3),
+                                   'process_cpu_seconds': round(time.process_time() - idle_cpu, 3)}
+                record_phase(receipt, evidence, 'same_open_31s_complete')
+                # Actual A/B/A clicks followed immediately by new bounded input.
+                beta_screen = receiver_app.selected_session
+                with receiver_app._context():
+                    await ThreadTarget('alpha').open(NavigationContext(receiver_app, receiver_app.selected_mode, project, user))
+                    await receiver_app.selected_session.wait_content_ready()
+                alpha_screen = receiver_app.selected_session
+                timings = []
+                for index, screen in enumerate((beta_screen, alpha_screen, beta_screen)):
+                    with receiver_app._context():
+                        began = await select_window(rp, screen)
+                        token = f'REAL_RETAINED_RETURN_{index}'
+                        view = screen.conversation
+                        view.prompt.text = f'Bounded acceptance only; do not resume inherited work or use tools. Reply exactly {token}.'
+                        view.prompt.prompt_text_area.focus()
+                        await rp.press('enter')
+                    await until(rp, lambda: service.registry.require(view.agent.session_id).last_finished_turn_id
+                                and not service.registry.require(view.agent.session_id).executing
+                                and any(isinstance(event, AssistantTranscript) and token in event.text
+                                        for history in view.window.histories for event in history.coverage_events), 60)
+                    timings.append({'thread': view.agent.session_id, 'reply_seconds': round(time.monotonic() - began, 3)})
+                    receipt['physical_return_immediate_send'] = timings
+                    record_phase(receipt, evidence, 'physical_return_reply_complete')
+                    assert len(originals(sender, original.reference, OutgoingMessage)) == 1
+                    assert len(originals(receiver, original.reference, IncomingMessage)) == 1
+                receipt['physical_return_immediate_send'] = timings
+                cold_app = WindowApp(agent_data=definition, project_dir=str(project), agent_session_id='alpha')
+                async with cold_app.run_test(size=(160, 44)) as cp:
+                    cold = cold_app.selected_session.conversation
+                    await until(cp, lambda: cold.agent is not None and cold.agent_ready, 40)
+                    await until(cp, lambda: len(originals(cold, original.reference, OutgoingMessage)) == 1, 30)
+                    await until(cp, lambda: len(originals(cold, reply.reference, IncomingMessage)) == 1, 30)
+                    assert cold_app._exception is None
+                receipt['cold_window_once'] = True
+                receipt['original'] = FieldCodec.encode(original.reference)
+                receipt['reply'] = FieldCodec.encode(reply.reference)
+                for app, name in ((sender_app, 'sender'), (receiver_app, 'receiver'), (irc_app, 'irc')):
+                    with app._context():
+                        app.save_screenshot(str(evidence / f'{name}.svg'))
+                receipt['complete'] = True
+                record_phase(receipt, evidence, 'complete')
+        except BaseException:
+            import traceback
+            (evidence / 'failure.txt').write_text(traceback.format_exc())
+            raise
+        finally:
+            lock_capture_stop.set()
+            await lock_capture
+            profile.disable()
+            profile.dump_stats(str(evidence / 'actual-real-retained.prof'))
+            (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2))
+            # Never archive retained launch environment or auth/settings files.
+            for thread in service.registry.all_threads().values():
+                if thread.role.executable and thread.process_alive:
+                    await asyncio.to_thread(service.owners.stop, thread.name)
+            def nonresources(directory, names):
+                return [name for name in names if not (stat.S_ISREG((Path(directory) / name).lstat().st_mode)
+                                                       or stat.S_ISDIR((Path(directory) / name).lstat().st_mode))]
+            shutil.copytree(service.root, evidence / 'original-private-wire', ignore=nonresources)
+            await stop_test_children(stage.name)
+            assert all(not thread.process_alive for thread in service.registry.all_threads().values())
+    print('REAL_RETAINED_WIRE_ACCEPTANCE', json.dumps(receipt), flush=True)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())

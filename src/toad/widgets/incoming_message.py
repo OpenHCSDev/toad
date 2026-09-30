@@ -1,38 +1,22 @@
-from toad.block_navigation import ConversationBlock
 """An attributed wire message with native thread navigation."""
 
+from toad.block_navigation import ConversationBlock
 from toad.widgets.message_filter import InboundCategory
 
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.widgets.route_header import RouteHeader
-from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
-from agent_comms.routing import MessageRoute
+from toad.widgets.message_divider import MessageDivider, MessageClock
+from agent_comms.transcript_events import IncomingTranscript
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
-from textual.widgets import Static
+from toad.widgets.wire_message_handling import WireMessageHandling
+from toad.widgets.message_notifications import MessageNotifications
 
 
 
-class IncomingSender(RouteHeader):
-
-    def __init__(self, sender: str, target: str | None = None) -> None:
-        self.sender = sender
-        self.target = target
-        route = MessageRoute(sender, (target,) if target else ())
-        super().__init__(route, incoming=True)
-
-    def action_open_thread(self) -> None:
-        self.action_open_target(self.sender)
-
-
-class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
+class IncomingMessage(WireMessageHandling, ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
-    DEFAULT_CSS = """
-    IncomingMessage .assignment-handling {
-        height: 1; color: $text-muted; text-overflow: ellipsis;
-    }
-    """
 
     @property
     def message_category(self) -> type[MessageCategory]:
@@ -42,49 +26,29 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
     def commit_claim(self) -> SequenceClaim:
         return SequenceClaim(self.sequence)
 
-    def __init__(self, sender: str, text: str, target: str | None = None,
-                 *, show_header: bool = True, sequence: int | None = None, clock: MessageClock = LiveMessageClock()) -> None:
+    def __init__(self, event: IncomingTranscript, *, show_header: bool = True) -> None:
         super().__init__()
-        self.sender = sender
-        self.text = text
-        self.target = target
+        self.event = event
         self.show_header = show_header
-        self.sequence = sequence
-        self.clock = clock
+
+    @property
+    def message_reference(self):
+        return self.event.source
+
+    @property
+    def sequence(self):
+        return self.event.source.seq
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
         if self.show_header:
-            yield MessageDivider(f"Inbound · @{self.sender}", clock=self.clock)
-            yield IncomingSender(self.sender, self.target)
-        yield AgentResponse(self.text, show_divider=False).add_class("routed-body")
+            yield MessageDivider(f"Inbound · @{self.event.route.sender}",
+                                 clock=MessageClock.recorded(self.event.timestamp))
+            yield RouteHeader(self.event.route, incoming=True)
+        yield AgentResponse(self.event.text, show_divider=False).add_class("routed-body")
+        if self.handling_references:
+            yield MessageNotifications()
 
     def get_clipboard_text(self) -> str:
-        route = MessageRoute(self.sender, (self.target,) if self.target else ())
-        return f"{route.incoming_label}\n{self.text}"
-
-    async def on_mount(self) -> None:
-        """Lazy saved bodies derive handling from the existing observation source."""
-        from toad.widgets.conversation import Conversation
-        from toad.widgets.observed_thread_activity import ObservedThreadActivity
-
-        view = self.query_ancestor(Conversation)
-        observed = view.query_one_optional(ObservedThreadActivity)
-        if observed is not None and observed.presentation is not None:
-            for receipt in observed.presentation.notifications:
-                if receipt.message is not None and receipt.message.seq == self.sequence:
-                    await self.show_handling(receipt.state, receipt.detail)
-
-    async def show_handling(self, state: str, detail: str) -> None:
-        """Attach the bus decision to the original inbound chat block."""
-        status = self.query_one_optional(".assignment-handling", Static)
-        if status is None:
-            status = Static(markup=False, classes="assignment-handling")
-            await self.mount(status)
-        status.update(f"Handling: {state}")
-        status.tooltip = detail or None
-
-
-class AssignedIncomingMessage(IncomingMessage):
-    """A bus assignment visible before or without a matching native input."""
+        return f"{self.event.route.incoming_label}\n{self.event.text}"

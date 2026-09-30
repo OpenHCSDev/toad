@@ -36,6 +36,10 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def matches_settlement(self, turn_id) -> bool:
         return not turn_id
 
+    def captured_snapshot(self, widgets):
+        """Settled output may retire against the captured source snapshot."""
+        return frozenset(widgets)
+
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self
 
@@ -78,6 +82,10 @@ class AgentTurn(TurnOwner):
 
     def matches_settlement(self, turn_id) -> bool:
         return self.managed_id == turn_id
+
+    def captured_snapshot(self, widgets):
+        """An active local request needs its own final output before capture."""
+        return frozenset()
 
     def with_activity(self, activity: str) -> TurnOwner:
         return replace(self, activity=activity or "Thinking…")
@@ -127,6 +135,10 @@ class ManagedTurn(TurnOwner):
 
     def matches_settlement(self, turn_id):
         return self.state.matches(turn_id)
+
+    def captured_snapshot(self, widgets):
+        """The published lease decides whether anonymous output is settled."""
+        return frozenset() if self.busy else super().captured_snapshot(widgets)
 
     def with_activity(self, activity):
         # Text, tool and heartbeat rendering cannot change backend phase.

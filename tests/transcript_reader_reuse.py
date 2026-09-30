@@ -1,18 +1,16 @@
 """An attachment reuses core page-reader caches without retaining stale routes."""
-from toad.navigation_target import NavigationContext
-
-from toad.navigation_target import FeedTarget
-
 import asyncio
 import json
 import os
 import tempfile
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.comms import Comms, wire
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.field_codec import FieldCodec
+from agent_comms.coordination_errors import StaleRevision
 from agent_comms.transcripts import TranscriptRead
 from toad.acp.transcript_reader import NativeTranscriptReadWork
 from agent_comms.routing import MessageRoute, TurnRouting
@@ -21,6 +19,7 @@ from comms_boundary_fixture import attach_coordination
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
 
 
 def record(identifier, text):
@@ -52,13 +51,13 @@ async def main():
         )
         agent = Agent(
             root,
-            {
+            AgentDefinition.decode({
                 "name": "Fixture",
                 "identity": "fixture",
                 "short_name": "fixture",
                 "run_command": {"*": "true"},
                 "protocol": "acp",
-            },
+            }),
             "fixture",
         )
         attach_coordination(agent, str(root / "wire"), "fixture")
@@ -99,13 +98,13 @@ async def main():
             attachments = [
                 Agent(
                     root,
-                    {
+                    AgentDefinition.decode({
                         "name": "Fixture",
                         "identity": "fixture",
                         "short_name": "fixture",
                         "run_command": {"*": "true"},
                         "protocol": "acp",
-                    },
+                    }),
                     "fixture",
                 )
                 for _ in range(3)
@@ -133,28 +132,40 @@ async def main():
             await attachments[0].controller.transcripts.publication(decoded)
             assert await attachments[0].get_transcript_page() == snapshot.page
             assert reader.transcripts.page_reads == before, "Published page was read again"
+            # An actual registry annotation changes the observation without
+            # changing this original content. Its published page stays admitted.
+            reader.registry.register(replace(reader.registry.require("fixture"), title="Annotation changed"))
+            assert not read.current() and read.content_current()
+            annotation_read = reader.transcripts.capture_page_read("fixture")
+            assert NativeTranscriptReadWork(read).work_key == NativeTranscriptReadWork(annotation_read).work_key
+            annotated = await attachments[0].controller.transcripts.publication(decoded)
+            assert annotated.page == snapshot.page
+            assert await attachments[0].get_transcript_page() == snapshot.page
+            assert reader.transcripts.page_reads == before, "Annotations reread original content"
             source.write_text(source.read_text() + record("three", "Changed after publication"))
             current = await attachments[0].controller.transcripts.publication(decoded)
             assert current.identity != decoded.identity
             assert current.page.events[-1].text == "Changed after publication"
             assert reader.transcripts.page_reads == before + 1, "Stale publication must recapture"
-            owner_mode = app.selected_mode
-            with (
-                patch(
-                    "toad.widgets.comms_chat.wire",
-                    side_effect=AssertionError("new chat reader"),
-                ),
-                patch(
-                    "toad.widgets.comms_sidebar.wire",
-                    side_effect=AssertionError("new sidebar reader"),
-                ),
-            ):
-                await FeedTarget().open(NavigationContext(app, owner_mode, root, "fixture"))
-            from toad.widgets.comms_chat import CommsChatView
-            from toad.widgets.comms_sidebar import CommsSidebar
-
-            assert app.screen.query_one(CommsChatView)._wire is app.coordination_access.service
-            assert app.screen.query_one(CommsSidebar).observation.service is app.coordination_access.service
+            # An observed canonical packet already owns its read witness. Pass
+            # that original through the real Agent/reader boundary, rather than
+            # recapturing a witness merely to transfer it to preparation.
+            observed = await attachments[0].get_thread_presentation()
+            handed = await attachments[0].controller.transcripts.snapshot(
+                str(reader.root), "fixture", read_identity=observed.read_identity)
+            assert handed.identity is observed.read_identity
+            assert handed.page.events[-1].text == "Changed after publication"
+            assert await attachments[0].get_transcript_page(
+                read_identity=observed.read_identity) == handed.page
+            # A late packet cannot become the other route's history merely
+            # because the same Agent object now owns a different attachment.
+            attach_coordination(attachments[0], str(other.root), "fixture")
+            try:
+                await attachments[0].get_transcript_page(read_identity=observed.read_identity)
+            except StaleRevision:
+                pass
+            else:
+                raise AssertionError("Foreign observed source was rebound to another route")
         await asyncio.get_running_loop().shutdown_default_executor()
     print(
         "page reader: reused across concurrent pages; routing changes, appended replies and wire changes remain current"

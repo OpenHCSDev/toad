@@ -16,7 +16,7 @@ from weakref import ref
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
-    TranscriptEvent, ContextTranscript, UserTranscript, AgentTextTranscript,
+    TranscriptEvent, ContextTranscript, UserTranscript, IncomingTranscript, AgentTextTranscript, SentTranscript,
     ThinkingTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
 )
 from agent_comms.tool_results import tool_result_content
@@ -47,7 +47,7 @@ from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
 from toad.work_preparation import retained_bytes
-from toad.widgets.committed_presentation import CommittedHistory
+from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
@@ -78,17 +78,19 @@ class TranscriptBlockConsumer(MroDispatch):
 
     @handles(UserTranscript)
     def user(self, event: UserTranscript):
-        if event.routed:
-            from toad.widgets.incoming_message import IncomingMessage
-            for message in event.routing.requests:
-                self.blocks.append(IncomingMessage(
-                    message.sender, message.body, message.target, show_header=self.show_divider,
-                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
-                ))
-        else:
-            self.blocks.append(UserInput(event.text, native_id=event.native_id,
-                                         show_divider=self.show_divider,
-                                         clock=MessageClock.recorded(event.timestamp)))
+        self.blocks.append(UserInput(event.text, native_id=event.native_id,
+                                     show_divider=self.show_divider,
+                                     clock=MessageClock.recorded(event.timestamp)))
+
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript):
+        from toad.widgets.incoming_message import IncomingMessage
+        self.blocks.append(IncomingMessage(event, show_header=self.show_divider))
+
+    @handles(SentTranscript)
+    def sent(self, event: SentTranscript):
+        from toad.widgets.outgoing_message import OutgoingMessage
+        self.blocks.append(OutgoingMessage(event, show_header=self.show_divider))
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript):
@@ -439,12 +441,12 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
-            self.post_message(self.Covered(page.events, self))
+            self.post_message(TranscriptCoverage(page.events, self))
 
     def publish_committed(self) -> None:
         """Acquire live-row ownership only after a provisional mount is accepted."""
         self._source_state = self._source_state.publish()
-        self.post_message(self.Covered(tuple(self.coverage_events), self))
+        self.post_message(TranscriptCoverage(tuple(self.coverage_events), self))
         self._scroll_changed()
         self.prepare_scroll()
 
@@ -553,22 +555,12 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
 
 
-    class Covered(Message):
-        """A saved page now owns these exact inbound wire identities."""
-
-        def __init__(self, events: tuple[TranscriptEvent, ...],
-                     history: TranscriptHistory | None = None) -> None:
-            super().__init__()
-            self.history = history
-            self.sequences = incoming_sequences(events)
-            self.native_inputs = frozenset(native_id for event in events for native_id in event.native_inputs)
-
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:
             return False
         if self.committed_cursor.covers_incoming(sequence):
             return True
-        if sequence in self.Covered(tuple(self.coverage_events)).sequences:
+        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
         return self.filter.covers_incoming(sequence)
 

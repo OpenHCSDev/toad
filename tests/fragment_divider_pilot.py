@@ -1,5 +1,9 @@
 """A long logical message keeps one divider through saved and live pagination."""
 
+from agent_comms.transcript_events import IncomingTranscript
+
+from agent_comms.message_reference import MessageReference
+
 import asyncio
 import os
 import tempfile
@@ -8,10 +12,9 @@ from pathlib import Path
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import NoticeTranscript, SentTranscript, UserTranscript
+from agent_comms.transcript_events import NoticeTranscript, SentTranscript, IncomingTranscript
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.incoming_message import IncomingSender
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.route_header import RouteHeader
 from toad.widgets.transcript_fragments import transcript_fragments
@@ -44,7 +47,7 @@ async def main() -> None:
             await conversation.contents.remove_children()
             route = MessageRoute("worker", ("#updates",))
             sent_page = TranscriptPage(
-                (SentTranscript(text, routing=TurnRouting(reply=route)),),
+                (SentTranscript(text, routing=TurnRouting(reply=route), source=MessageReference(1, "fragment-outbound")),),
                 cursor, cursor, False, False,
             )
             sent = TranscriptPageView(
@@ -58,7 +61,7 @@ async def main() -> None:
             await conversation.contents.remove_children()
             incoming = Message("worker", "#updates", text, MessageType.INFO)
             user_page = TranscriptPage(
-                (UserTranscript(text, routing=TurnRouting(requests=(incoming,))),),
+                (IncomingTranscript(text, route=MessageRoute(incoming.sender, (incoming.target,)), source=incoming.reference),),
                 cursor, cursor, False, False,
             )
             user = TranscriptPageView(
@@ -67,7 +70,7 @@ async def main() -> None:
             await conversation.post(user)
             await pilot.pause()
             assert len(user.query(MessageDivider)) == 1
-            assert len(user.query(IncomingSender)) == 1, "inbound header repeated in fragments"
+            assert len(user.query(RouteHeader)) == 1, "inbound header repeated in fragments"
 
             await conversation.contents.remove_children()
             live = await conversation.post(AgentResponse(text))

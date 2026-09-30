@@ -1,5 +1,7 @@
 """Filter changes during either mount await must retire the old publication."""
 
+from agent_comms.transcript_events import IncomingTranscript
+
 from toad.widgets.message_filter import InboundCategory, ThinkingCategory
 
 import asyncio
@@ -11,8 +13,8 @@ from unittest.mock import patch
 
 from agent_comms.messages import Message, MessageType
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, UserTranscript
-from agent_comms.routing import TurnRouting
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, IncomingTranscript
+from agent_comms.routing import MessageRoute
 from runtime_fixture import ToadApp
 from textual.await_complete import AwaitComplete
 from textual.containers import VerticalGroup
@@ -28,7 +30,7 @@ async def exercise(app, pilot, stage):
     view = app.selected_session.conversation
     view.visible_categories = all_categories()
     message = Message("peer", "owner", "OLD_INBOUND", MessageType.INFO, timestamp=0)
-    incoming = UserTranscript(message.body, routing=TurnRouting((message,), None))
+    incoming = IncomingTranscript(message.body, route=MessageRoute(message.sender, (message.target,)), source=message.reference)
     thinking = ThinkingTranscript('NEW_THINKING')
     events = (incoming, thinking) * 8 + tuple(AssistantTranscript(f'tail {i}') for i in range(4))
     cursor = TranscriptCursor("mount-fixture", 0)
@@ -114,7 +116,7 @@ async def exercise_batched_selection(app, pilot):
     view.visible_categories = all_categories()
     message = Message("peer", "owner", "INBOUND", MessageType.INFO, timestamp=0)
     events = tuple(event for index in range(20) for event in (
-        UserTranscript(f'INBOUND_{index}', routing=TurnRouting((message,), None)),
+        IncomingTranscript(f'INBOUND_{index}', route=MessageRoute(message.sender, (message.target,)), source=message.reference),
         ThinkingTranscript(f'THINKING_{index}'),
     )) + tuple(AssistantTranscript(f'tail {index}') for index in range(4))
     page = TranscriptPage(events, TranscriptCursor("batch-fixture", 0),
@@ -162,7 +164,7 @@ async def main():
             cursor = TranscriptCursor("empty-filter", 10)
             calls = []
             message = Message("peer", "owner", "SELECTED_INBOUND", MessageType.INFO, timestamp=0)
-            incoming = UserTranscript(message.body, routing=TurnRouting((message,), None))
+            incoming = IncomingTranscript(message.body, route=MessageRoute(message.sender, (message.target,)), source=message.reference)
 
             async def earlier(**kwargs):
                 calls.append(kwargs)

@@ -1,5 +1,7 @@
 """A late older-page result cannot publish rows from a previous filter."""
 
+from agent_comms.transcript_events import IncomingTranscript
+
 from toad.widgets.message_filter import InboundCategory, ThinkingCategory
 
 import asyncio
@@ -9,8 +11,8 @@ import tempfile
 
 from agent_comms.messages import Message, MessageType
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, UserTranscript
-from agent_comms.routing import TurnRouting
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, IncomingTranscript
+from agent_comms.routing import MessageRoute
 
 from runtime_fixture import ToadApp
 from toad.widgets.message_filter import MessageCategory
@@ -30,7 +32,8 @@ async def main():
             file = "fixture"
             cursor = TranscriptCursor(file, 100)
             entered, release = asyncio.Event(), asyncio.Event()
-            incoming = UserTranscript('OLD_INBOUND', routing=TurnRouting((Message('peer', 'owner', 'OLD_INBOUND', MessageType.INFO),), None))
+            message = Message('peer', 'owner', 'OLD_INBOUND', MessageType.INFO)
+            incoming = IncomingTranscript(message.body, route=MessageRoute(message.sender, (message.target,)), source=message.reference)
             thinking = ThinkingTranscript('OLDER_THINKING')
             calls = []
 

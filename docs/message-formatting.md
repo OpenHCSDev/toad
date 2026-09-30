@@ -84,10 +84,12 @@ incoming routing by native input ID and exact sent-text digest, including busy
 steering. Human/internal input bindings explicitly override stale turn routing.
 No sender is inferred from `[agent-comms from ...]` text.
 
-The new `native_input_attribution_pilot.py` checks mounted live/replay FROM/TO
-parity, incoming body/copy text, human quoted-header controls, and IN/OUT
-filtering. It covers fresh input bindings and historical repair from existing
-native-ID disposition receipts; repair does not acknowledge delivery.
+That synthetic tool-receipt/live append pilot has been deleted in #215. The
+current acceptance entrypoint is `canonical_wire_conversation_installed_pilot.py`:
+real sender and recipient native/ACP windows and IRC are already open before
+the original durable send; source and original target handling update while
+responses are held, then survive physical tab return. The loopback provider is
+controlled; application delivery, source state and rendering are real.
 
 Historical repair is preview-only unless explicitly applied, and missing
 receipts remain unattributed. No live history repair or owner restart has been

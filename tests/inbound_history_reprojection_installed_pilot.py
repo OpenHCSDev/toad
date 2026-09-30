@@ -7,6 +7,7 @@ from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main, until
 from receiver_inbound_installed_pilot import paint
 from toad.widgets.incoming_message import IncomingMessage
+from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.comms_sidebar import CommsRow
 from toad.widgets.session_tabs import SessionLabel
 from toad.screens.comms import CommsScreen
@@ -95,7 +96,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert len(requests) == 3
     expected = next(receipt.state for receipt in comms.views.recent_notifications("beta")
                     if receipt.message is not None and receipt.message.seq == message.seq)
-    assert str(original.query_one(".assignment-handling").render()) == f"Handling: {expected}"
+    assert expected in str(original.query_one(MessageNotifications).title)
     assert app._exception is None
     print("FRESH_INPUT_ONE_WIRE_IDENTITY_AND_LATE_HANDLING_IN_PLACE", flush=True)
 

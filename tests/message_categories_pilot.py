@@ -1,4 +1,6 @@
 """One multi-select semantic filter governs live blocks and saved transcript."""
+
+from agent_comms.message_reference import MessageReference
 from runtime_fixture import coordination_update
 
 from toad.widgets.message_filter import AgentCategory, InboundCategory, OtherCategory, OutboundCategory, ThinkingCategory, ToolCategory, UserCategory
@@ -21,6 +23,7 @@ from agent_comms.transcript_events import (
     ToolEndTranscript,
     ToolStartTranscript,
     UserTranscript,
+    IncomingTranscript,
 )
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from comms_boundary_fixture import coordination_fact
@@ -74,7 +77,7 @@ async def main():
             live = {
                 UserCategory: UserInput("user"),
                 AgentCategory: AgentResponse("agent"),
-                InboundCategory: IncomingMessage("peer", "incoming", "owner"),
+                InboundCategory: IncomingMessage(IncomingTranscript("incoming", route=MessageRoute("peer", ("owner",)), source=MessageReference(1, "category-inbound"))),
                 OutboundCategory: AgentResponse("outgoing", delivery=ResponseDelivery.from_route(MessageRoute("owner", ("peer",)))),
                 ThinkingCategory: AgentThought("thinking"),
                 ToolCategory: ToolCall({"toolCallId": "filter-tool", "kind": "execute",
@@ -86,9 +89,9 @@ async def main():
             saved = (
                 UserTranscript("SAVED_USER"),
                 AssistantTranscript("SAVED_AGENT"),
-                UserTranscript("SAVED_IN", routing=TurnRouting((message,), None)),
+                IncomingTranscript("SAVED_IN", route=MessageRoute(message.sender, (message.target,)), source=message.reference),
                 SentTranscript(
-                    "SAVED_OUT",
+                    "SAVED_OUT", source=MessageReference(2, "category-outbound"),
                     routing=TurnRouting((), MessageRoute("owner", ("peer",))),
                 ),
                 ThinkingTranscript("SAVED_THINKING"),

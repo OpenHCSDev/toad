@@ -15,7 +15,8 @@ from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main, until
 from inbound_history_reprojection_installed_pilot import send_channel, matching
 from receiver_inbound_installed_pilot import paint
-from toad.widgets.incoming_message import AssignedIncomingMessage
+from toad.widgets.incoming_message import IncomingMessage
+from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 
@@ -112,14 +113,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     for second in range(31):
         appearances.append((round(time.monotonic()-started, 2),
                             len(matching(view, message.seq)),
-                            sum(isinstance(child, AssignedIncomingMessage) and child.sequence == message.seq
+                            sum(isinstance(child, IncomingMessage) and child.sequence == message.seq
                                 for child in view.contents.children)))
         await pilot.pause(1)
     print('SAME_OPEN_30_SECOND_INBOUND_TIMELINE', appearances, flush=True)
     assert len(requests) == 3, 'Observation replayed an old native input'
     assert view.contents.query(TranscriptHistory), 'Saved native source never mounted'
     assert 'NATIVE_AFTER_OLD_CHANNEL' in paint(app), 'Latest saved history never painted'
-    assert not any(isinstance(child, AssignedIncomingMessage) and child.sequence == message.seq
+    assert not any(isinstance(child, IncomingMessage) and child.sequence == message.seq
                    for child in view.contents.children), 'Old checked inbound reappeared as a new live tail block'
     print('COLD_RETAINED_HISTORY_NO_LATE_OLD_TAIL_INPUT', flush=True)
     await agent.session.reconnect()
@@ -127,7 +128,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     observed.refresh_observation()
     await pilot.pause(2)
     assert len(requests) == 3
-    assert not any(isinstance(child, AssignedIncomingMessage) and child.sequence == message.seq
+    assert not any(isinstance(child, IncomingMessage) and child.sequence == message.seq
                    for child in view.contents.children)
     print('ACTUAL_ACP_RECONNECT_NO_OLD_TAIL_INPUT', flush=True)
     # A fresh first input in the cold retained view must not resurrect old inputs.
@@ -138,7 +139,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     observed.refresh_observation()
     await pilot.pause(2)
     assert len(requests) == 4
-    assert not any(isinstance(child, AssignedIncomingMessage) and child.sequence == message.seq
+    assert not any(isinstance(child, IncomingMessage) and child.sequence == message.seq
                    for child in view.contents.children)
     assert app._exception is None
     print('FIRST_NATIVE_INPUT_IN_COLD_RETAINED_VIEW_NO_OLD_REPLAY', flush=True)
@@ -183,7 +184,7 @@ async def switching_inputs(app, pilot, comms, requests, old):
             reached_provider = time.monotonic()
             await until(pilot, lambda: not comms.registry.require(view.agent.session_id).executing, 30)
             await pilot.pause(.3)
-            assert not any(isinstance(child, AssignedIncomingMessage) and child.sequence == old.seq
+            assert not any(isinstance(child, IncomingMessage) and child.sequence == old.seq
                            for child in view.contents.children)
             samples.append({'thread': view.agent.session_id,
                 'select_ms': round(1000*(selected-started), 1),
@@ -210,7 +211,7 @@ async def switching_inputs(app, pilot, comms, requests, old):
         view.query_one(ObservedThreadActivity).refresh_observation()
         await pilot.pause(.3)
         assert len(matching(view, fresh.seq)) == 1
-        assert 'no response' in str(matching(view, fresh.seq)[0].query_one('.assignment-handling').render()).lower()
+        assert 'no response' in str(matching(view, fresh.seq)[0].query_one(MessageNotifications).title).lower()
     # Return through the real native retained source, not a notice suppression cache.
     page = comms.transcripts.thread_transcript_page('beta')
     assert sum(isinstance(event, UserTranscript) and event.routed

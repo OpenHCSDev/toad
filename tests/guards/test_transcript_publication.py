@@ -64,6 +64,25 @@ async def declaration_case():
                             for strip in app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
             assert 'Declared publication painted' in frame
             await view.contents.remove_children()
+            # One blocked operation and a coalesced pending request share the
+            # ORIGINAL source. Neither may adopt the next source at drain time.
+            entered.clear();release.clear()
+            view.transcript.source_requests.request(DeclaredPublication,entered,release)
+            await entered.wait()
+            queued_entered,queued_release=asyncio.Event(),asyncio.Event()
+            queued_release.set()
+            view.transcript.source_requests.request(DeclaredPublication,queued_entered,queued_release)
+            view.transcript.invalidate()
+            release.set()
+            await view.transcript.source_requests.worker.wait()
+            await pilot.pause()
+            assert not view.contents.query(AgentResponse), 'A pending original request painted the replacement source'
+            assert not queued_entered.is_set()
+            view.transcript.source_requests.request(DeclaredPublication,queued_entered,queued_release)
+            await view.transcript.source_requests.worker.wait()
+            await pilot.pause()
+            assert len(view.contents.query(AgentResponse)) == 1
+            await view.contents.remove_children()
             entered.clear();release.clear()
             pending=asyncio.create_task(view.transcript.publish(DeclaredPublication,entered,release))
             await entered.wait()

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.transcript_events import TranscriptEvent, LiveTextTranscript
+from agent_comms.transcript_events import TranscriptEvent, MarkdownTranscript
 from agent_comms.mro_dispatch import MroDispatch, handles
 from markdown_it.token import Token
 
@@ -169,8 +169,8 @@ class TranscriptBodyPreparation(MroDispatch):
         # owners. A viewport prediction does not open those disclosures.
         pass
 
-    @handles(LiveTextTranscript)
-    async def markdown(self, event: LiveTextTranscript) -> None:
+    @handles(MarkdownTranscript)
+    async def markdown(self, event: MarkdownTranscript) -> None:
         await MarkdownSyntaxRenderTask(event.text).prepare_body(
             self.renderer, self.ansi, self.dark,
         )
