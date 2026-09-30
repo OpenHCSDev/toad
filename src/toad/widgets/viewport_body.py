@@ -202,17 +202,24 @@ class DocumentViewport:
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
+
     async def _trim_warm(self) -> None:
-        def source_bytes():
-            return sum(owner.retained_source_bytes for key in self._warm.values()
-                       if (owner := key()) is not None)
-        def widget_count():
-            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm.values()
-                       if (owner := key()) is not None)
-        while (source_bytes() > self.window.app.preparation.max_bytes or
-               widget_count() > self.budget.widget_limit(self.window.size.height)):
+        # No suspension or DOM mutation occurs in this pass. Measure each
+        # native tree once, then subtract its cost as the existing LRU retires
+        # it. Recounting every survivor after every eviction is quadratic.
+        costs = [(owner.retained_source_bytes, 1 + len(owner.walk_children()))
+                 if (owner := key()) is not None else (0, 0)
+                 for key in self._warm.values()]
+        source_bytes = sum(size for size, _ in costs)
+        widget_count = sum(count for _, count in costs)
+        for size, count in costs:
+            if (source_bytes <= self.window.app.preparation.max_bytes and
+                    widget_count <= self.budget.widget_limit(self.window.size.height)):
+                break
             self._warm.popitem(last=False)
             self.body_evictions += 1
+            source_bytes -= size
+            widget_count -= count
 
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
