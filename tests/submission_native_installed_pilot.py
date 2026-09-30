@@ -1,5 +1,6 @@
 """Warm saved history -> native rename -> physical queued send -> reply and return."""
 import asyncio
+import faulthandler
 import json
 import os
 import shlex
@@ -19,7 +20,6 @@ provider_hold = None
 
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
-
 
     def _handle_exception(self, error):
         with Path(os.environ['L0A_EVIDENCE'], 'app-failure.txt').open('a') as log:
@@ -64,6 +64,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     channel = app.selected_session
     await click_tab(app, pilot, mode)
     assert app.selected_session.conversation is view
+    assert screen_paint(app).count('SUBMISSION_SAVED_HISTORY') == 1
     entered.clear(); release.clear()
     view.prompt.text = 'SUBMISSION_RENAME_WHILE_WARM'
     view.prompt.prompt_text_area.focus()
@@ -122,8 +123,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         'draftPreserved': view.prompt.text == 'SUBMISSION_UNSENT_DRAFT',
         'paint': screen_paint(app),
     }, indent=2))
+    assert screen_paint(app).count('SUBMISSION_SAVED_HISTORY') <= 1
+    faulthandler.dump_traceback_later(3, file=teardown_log)
     print('PASS actual installed native rename, saved history, warm physical A/B/A, busy queue/start/input paint/first reply, no replay; four loopback requests', flush=True)
 
 if __name__ == '__main__':
-    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_reply=reply,
-                    provider_request_budget=4, expected_response_disconnects=frozenset({3})))
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    evidence.mkdir(parents=True, exist_ok=True)
+    with (evidence / 'teardown-threads.txt').open('w') as teardown_log:
+        try:
+            asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_reply=reply,
+                            provider_request_budget=4, expected_response_disconnects=frozenset({3})))
+        finally:
+            faulthandler.cancel_dump_traceback_later()
