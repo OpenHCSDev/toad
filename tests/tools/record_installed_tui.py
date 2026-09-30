@@ -696,7 +696,7 @@ def review_recording(args):
     return output
 
 
-def capture_loaded_state(output, name, identity, owner, env, *, timeout):
+def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -707,7 +707,7 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout):
         with (output / f"{name}-capture.log").open("w") as log:
             owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
                        "--output-dir", str(output), "--name", name,
-                       "--state", "--screen", "--sudo"], env,
+                       "--state", "--sudo", *(["--screen"] if screen else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
     except (OSError, subprocess.SubprocessError, ValueError) as error:
@@ -871,7 +871,7 @@ def record(args):
                 if not args.capture_state:
                     return
                 receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
-                    output, name, transferred_program.child.identity, owner, env, timeout=remaining())
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True)
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")

@@ -249,7 +249,7 @@ from the interrupted run; never infer continuity or replay an uncertain attempt.
 ## Assess the visible behavior
 
 For an extent or dormant-body defect, add `--capture-state`. Immediately after
-each physical before/after PNG and native phase-marker PNG, the recorder calls the existing
+each physical before/after PNG, the recorder calls the existing
 `tools/performance/capture_live.py --state --screen --sudo` against its verified
 UI process identity. This exports loaded DTOs, scroll bounds, body resource
 counts and a Textual SVG without issuing owner RPCs or native input. The helper
@@ -257,7 +257,11 @@ uses non-interactive sudo for CPython remote attachment; it does not change
 ptrace policy. Use the same selected runtime Python and leave time within the
 existing capture budget for the requested observations. Phase snapshots include
 Down and its completion, reverse and its completion, End, idle and idle
-completion. They use the same exporter and exact UI identity as before/after.
+completion. Phase markers use the same exporter and exact UI identity with
+`--state --sudo` only. Textual's full SVG export consumes compositor dirty
+regions, so it is excluded from intermediate phase observations. Physical PNGs
+remain the visual evidence. Before/after SVG exports are explicitly separate
+observer work and may differ from their preceding terminal PNGs.
 
 The receipt retains each attachment interval, manifest, errors and artifact
 hashes. Check both state/screen receipt files for errors or pending completion;
