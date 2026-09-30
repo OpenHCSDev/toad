@@ -88,7 +88,8 @@ class DeferredReviewTiming(ReviewTiming):
         return []
 
 if TYPE_CHECKING:
-    from agent_comms.child_process import ParentedProcess, ObservedProcess
+    from agent_comms.child_process import ParentedProcess, ObservedProcess, ProcessIdentity
+    from agent_comms.active_route import ActiveRoute
     from agent_comms.registration import Registration
 
 
@@ -237,11 +238,8 @@ def digest(path):
 def runtime_probe():
     """Executed by the selected runtime interpreter, without loading the app."""
     result = {"python": sys.executable, "prefix": sys.prefix, "packages": {}}
-    if os.environ.get("TOAD_VIDEO_PRIVATE_ROUTE_REQUIRED") == "1":
-        from agent_comms.active_route import ActiveRoute
-        route = ActiveRoute(Path(os.environ["AGENT_COMMS_ROOT"]),
-                            os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
-                            Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]))
+    if target := os.environ.get("TOAD_VIDEO_CAPTURE_TARGET"):
+        route = CaptureTarget.decode(target).read_route(os.environ)
         root = route.observe_root()
         result["route"] = {"root": str(root), "wire_root_id": route.wire_root_id,
                            "native_package": str(route.native_package.resolve())}
@@ -279,8 +277,6 @@ class RuntimeSelection:
     @classmethod
     def from_environment(cls, command, env):
         launcher = Path(shutil.which(command[0]) or command[0]).resolve()
-        if Path(command[0]).name != "toad":
-            raise ValueError("Use installed toad acp with an explicitly matched private fixture; toad-comms clears private pins")
         runtime = env.get("AGENT_COMMS_RUNTIME_ROOT")
         if runtime:
             return cls(launcher, Path(runtime).expanduser().absolute(), "AGENT_COMMS_RUNTIME_ROOT")
@@ -309,6 +305,113 @@ class RuntimeSelection:
             if not native or Path(native).resolve() != Path(route["native_package"]):
                 raise ValueError("Candidate activation and private route native packages must match")
         return result
+
+
+class CaptureTarget(DeclaredFamily, affix="Capture"):
+    """Own launch authorization and original native-owner preservation proof."""
+
+    @classmethod
+    @abstractmethod
+    def admit(cls, args, command, env): ...
+
+    @classmethod
+    @abstractmethod
+    def read_route(cls, env): ...
+
+    @abstractmethod
+    def observe(self): ...
+
+
+@dataclass(frozen=True)
+class PrivateCapture(CaptureTarget):
+    root: Path
+    selection: RuntimeSelection
+
+    @classmethod
+    def read_route(cls, env):
+        from agent_comms.active_route import ActiveRoute
+        return ActiveRoute(Path(env["AGENT_COMMS_ROOT"]), env["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
+                           Path(env["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]))
+
+    @classmethod
+    def admit(cls, args, command, env):
+        from agent_comms.active_route import read_active_route
+        if args.private_root is None:
+            raise ValueError("Private capture requires an existing matched --private-root")
+        root = args.private_root.expanduser().resolve()
+        if not root.is_dir() or root == (Path.home() / ".agent-comms").resolve():
+            raise ValueError("Private fixture root must already exist")
+        if Path(env.get("AGENT_COMMS_ROOT", "")).resolve() != root:
+            raise ValueError("Private fixture root must match explicit AGENT_COMMS_ROOT")
+        active = read_active_route()
+        if active is not None and root == active.root.resolve():
+            raise ValueError("Private capture refuses the owner's active bus")
+        if Path(command[0]).name != "toad":
+            raise ValueError("Private capture requires installed toad acp; toad-comms clears private pins")
+        selection = RuntimeSelection.from_environment(command, env)
+        expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
+        if (len(command) < 4 or command[1:3] != ["acp", expected_acp]
+                or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve()):
+            raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
+        return cls(root, selection)
+
+    def observe(self):
+        return {"root": str(self.root), "mode": self.declared_name}
+
+
+@dataclass(frozen=True)
+class ExistingThreadCapture(CaptureTarget):
+    """Explicit authorized read-only attachment, never a fixture/native owner."""
+
+    route: ActiveRoute
+    name: str
+    identity: ProcessIdentity
+    selection: RuntimeSelection
+
+    @property
+    def root(self):
+        return self.route.root
+
+    @classmethod
+    def read_route(cls, env):
+        from agent_comms.active_route import read_active_route
+        route = read_active_route()
+        if route is None:
+            raise ValueError("Existing-thread capture requires the installed active route")
+        return route
+
+    @classmethod
+    def admit(cls, args, command, env):
+        from agent_comms.registration import Registration
+        if args.private_root is not None:
+            raise ValueError("Existing-thread capture derives its root from the canonical active route")
+        if len(command) != 2 or Path(command[0]).name != "toad-comms":
+            raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
+        if args.actions is not None and args.actions.read_text() != scroll_script():
+            raise ValueError("Existing-thread capture permits only the shared physical scroll-only script")
+        # Match the real default launcher's environment, not a copied private
+        # route or thread identity that would redirect its retained history.
+        for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+                    "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
+            env.pop(key, None)
+        route = cls.read_route(env)
+        route.observe_root()
+        thread = Registration(route.root / "registry.json").require(command[1])
+        identity = thread.process_identity
+        if identity is None or not identity.alive():
+            raise ValueError("Existing-thread capture requires an already running owner; it must not start one")
+        return cls(route, thread.name, identity, RuntimeSelection.from_environment(command, env))
+
+    def observe(self):
+        from agent_comms.registration import Registration
+        from agent_comms.field_codec import FieldCodec
+        if self.read_route(os.environ) != self.route:
+            raise ValueError("Existing-thread capture's canonical route changed")
+        thread = Registration(self.root / "registry.json").require(self.name)
+        if thread.process_identity != self.identity or not self.identity.alive():
+            raise ValueError("Existing-thread capture's original native owner changed or exited")
+        return {"root": str(self.root), "mode": self.declared_name, "name": self.name,
+                "identity": FieldCodec.encode(self.identity), "original_owner_alive": True}
 
 
 def cpu_snapshot(root_pid):
@@ -378,7 +481,8 @@ def profile_launch(command):
     """Launch plain st, then exec py-spy as an ancestor of the verified UI PID."""
     from agent_comms.registration import Registration
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
-    owner = ProcessOwner(Registration(Path(os.environ["AGENT_COMMS_ROOT"]) / "registry.json"))
+    route = CaptureTarget.decode(os.environ["TOAD_VIDEO_CAPTURE_TARGET"]).read_route(os.environ)
+    owner = ProcessOwner(Registration(route.root / "registry.json"))
     def interrupted(signum, frame):
         raise InterruptedError(f"Profiler launch interrupted by signal {signum}")
     for sig in (signal.SIGTERM, signal.SIGHUP):
@@ -575,26 +679,14 @@ def record(args):
     env.pop("DISPLAY", None)
     env.pop("NO_COLOR", None)
     env.pop("PYTHONPATH", None)  # The installed toad-comms launcher also clears it.
-    if args.private_root is None:
-        raise ValueError("Recording requires --private-root from an existing matched fixture; active owner routes are refused")
-    private_root = args.private_root.expanduser().resolve()
-    if not private_root.is_dir() or private_root == (Path.home() / ".agent-comms").resolve():
-        raise ValueError("Private fixture root must already exist")
-    if Path(env.get("AGENT_COMMS_ROOT", "")).resolve() != private_root:
-        raise ValueError("Private fixture root must match explicit AGENT_COMMS_ROOT")
-    from agent_comms.active_route import read_active_route
-    active = read_active_route()
-    if active is not None and private_root == active.root.resolve():
-        raise ValueError("Refusing the owner's active bus")
-    env["TOAD_VIDEO_PRIVATE_ROUTE_REQUIRED"] = "1"
-    selection = RuntimeSelection.from_environment(command, env)
+    target = args.capture_target.admit(args, command, env)
+    private_root = target.root
+    selection = target.selection
+    env["TOAD_VIDEO_CAPTURE_TARGET"] = target.declared_name
     # Pin the selection before a concurrently changed launcher symlink can redirect it.
     env["AGENT_COMMS_RUNTIME_ROOT"] = str(selection.bin_directory.resolve())
     if selection.bin_directory.parent.resolve() != Path(sys.prefix).resolve():
         raise ValueError("Run recorder with the selected installed runtime's Python")
-    expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
-    if len(command) < 4 or command[1:3] != ["acp", expected_acp] or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve():
-        raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
     output.mkdir(parents=True, exist_ok=False)
     receipt = {
         "owner": args.owner, "purpose": "installed TUI physical interaction video review",
@@ -602,6 +694,8 @@ def record(args):
         "fps": args.fps, "screen": [args.width, args.height],
         "profiling_requested": args.profile,
         "private_root": str(private_root),
+        "capture_target": target.declared_name,
+        "original_owner_before": target.observe(),
         "recorder_argv": sys.argv,
         "recorder_source_sha256": digest(Path(__file__)),
         "started_utc": datetime.now(timezone.utc).isoformat(),
@@ -817,6 +911,11 @@ def record(args):
             except (OSError, subprocess.SubprocessError) as error:
                 receipt["capture_cleanup_error"] = str(error)
         receipt["cleanup"] = owner.cleanup()
+        try:
+            receipt["original_owner_after"] = target.observe()
+        except (OSError, ValueError) as error:
+            receipt["original_owner_error"] = str(error)
+            receipt["completed"] = False
         if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
             receipt["completed"] = False
         (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
@@ -880,6 +979,8 @@ def main():
     parser.add_argument("--output", type=Path, default=Path.home() / ".cache/agent-scratch/toad-video" / stamp)
     parser.add_argument("--owner", default="installed-tui-video-tools", help="Owner retaining/cleaning this evidence")
     parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
+    parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
+                        help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
     parser.add_argument("--write-scroll-script", type=Path, help="Write an editable native held-key script, then exit")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
