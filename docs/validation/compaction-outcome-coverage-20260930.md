@@ -43,5 +43,37 @@ identity, applies that older snapshot, returns via physical tabs and reconnects
 ACP. It requires one source-backed outcome/painted resource, unchanged native
 bytes and no new provider request. Positive235 manual04 is not repeated.
 
-Status: working source awaiting the paired installed cancellation gate. Defaults
-and public roots are unchanged; no readiness or live claim.
+## Installed acceptance and ready checkpoint
+
+Original cw237c01 performed one changed actual native/ACP/UI cancellation using
+only the controlled localhost provider. Partial text/progress, original UNKNOWN
+outcome, the older source snapshot and physical A/B/A return passed. Its fresh
+ACP reconnect failed with `Unknown TranscriptEvent name: compaction_outcome`.
+Preserve the original failure; do not claim that interrupted journey exited0.
+
+Core2ed2ee3f moves the outcome declaration into the canonical transcript family,
+removing its lazy-journal declaration and every old import. A fresh-process
+boundary gate decodes the original operation without importing the journal.
+16 affected source/decoder/paging tests passed. Both required production debt
+ratchets have zero positive changes.
+
+Normal frozen68 install: Core2ed2ee3f / Toadda396755 / Textual2e49cb83 /
+SDK0.12.1 / fully trusted nativee36.290 Core and273 Toad Python files were
+byte-identical to these published heads; all68 dependencies are compatible.
+The later17e290f4 changes only the continuation driver, not installed production
+or dependency bytes. The driver first observed the correct stopped-agent
+refusal, then explicitly started only its owned stopped private worker through
+the canonical lifecycle. It sent no input, compaction or provider request.
+
+Preserved cancellation continuation03 exited0: cold load -> source read ->
+physical A/B/A -> actual ACP reconnect. Each phase contained and painted one
+original operation027a6ed8 outcome. The707507-byte native source and entire
+UNKNOWN journal bytes stayed unchanged. Actual client packets were exclusively
+initialize/session-load twice. Owned process references were empty after normal
+shutdown. Receipt and source provenance are in
+`evidence/compaction-outcome-coverage/`.
+
+READY for paired review/merge/install. Defaults and public roots remain
+unchanged; this is installed acceptance, not public activation. Mid-compaction
+switch latency remains a separate236 investigation, with445 source interaction.
+Positive235 and busy/equal-body contracts remain preserved, not rerun.
