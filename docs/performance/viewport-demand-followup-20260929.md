@@ -20,3 +20,9 @@ Real installed native/ACP/UI journey plus physical st/Xvfb actions and same-run 
 Initial status: scoped draft; unprofiled comparison queued after Arendt433/219 and the prepared usage-blocking Mendel422 selected-summary gate. Both owners received the direct release order; no performance reservation delays recovery work. No production change yet. Current paired Core720629/Textual412/native4ab and #211-integrated Toad remain the accepted base.
 
 PR214 is now merged in main cc68c51e from READY778db19f65409646c7d074ba2d6e61e8337a1f18. This follow-up is retargeted to main and normally integrated without conflicts; its initial diff is only this scope document. No new native fixture or production change yet.
+
+## Current default and continuation
+
+The owner reports default LIVE Toad540bc85c with urgent #220 opening fix, Core720629, Textual412 and native4ab. Parent verified the actual default launcher/new dead registration opening with the correct pair, no error and no prompt. Main #219 subsequently adds only the accepted read-attachment receipt/driver; it is normally integrated here without repeating completed journeys. The earlier private candidate PASS remains historical evidence, not a new claim about changed source.
+
+Continuation retains the full visual/profiling/resource target through existing measured viewport/render ownership. Native slots prioritize Mendel422 then Sch215 before #221's unprofiled observer comparison. No extra worktree or helper fleet. Disposable derived clips/wheels are cleaned only after retaining original raw capture/profile, saved-native journals and reviewed frames/receipts.
