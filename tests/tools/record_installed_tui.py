@@ -293,7 +293,8 @@ class RuntimeSelection:
 
     def receipt(self, owner, env, command):
         observed = self.from_environment(command, env)
-        if observed != self:
+        if (observed.launcher != self.launcher
+                or observed.bin_directory.resolve() != self.bin_directory.resolve()):
             raise ValueError("Installed launcher selection changed during capture")
         result = {"selection": self.selection, "bin_directory": str(self.bin_directory.resolve()),
                   "launcher": str(self.launcher), "launcher_sha256": digest(self.launcher)}
