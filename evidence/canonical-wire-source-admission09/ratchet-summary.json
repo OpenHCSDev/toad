@@ -1,0 +1,10 @@
+{
+  "base_revision": "56a7a9ec05444eeeee6d17458ebed529d3858aa2",
+  "head_revision": "173901b9329af36116158ec492db839af7d872c6",
+  "delta": {},
+  "production_change": {
+    "added_lines": 54,
+    "deleted_lines": 37,
+    "path": "src/toad/transcript_publication.py"
+  }
+}
