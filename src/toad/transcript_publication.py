@@ -27,19 +27,45 @@ class TranscriptPublication(ABC):
         self.window, self.contents = window, contents
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
-    def source_current(self, provisional=None) -> bool:
-        """Source transfer requires the original anonymous output cohort.
-
-        Identity-backed claims can remain live until their saved identity is
-        covered. Anonymous output cannot coexist with a newly advanced source
-        while its original turn is still producing that output.
-        """
+    def native_current(self) -> bool:
+        """Only anonymous native output requires settled resource custody."""
         from toad.widgets.committed_presentation import CommitParticipant
 
         return self.current() and all(
-            widget is provisional or widget.commit_claim.admits_source(widget, self.captured)
+            widget.commit_claim.admits_native(widget, self.captured)
             for widget in self.contents.children if isinstance(widget, CommitParticipant)
         )
+
+    def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
+        """Wire assignment can advance without transferring anonymous native output.
+
+        The mounted canonical history retains the native/outcome prefix. The
+        current certified source supplies its original assigned-wire frontier.
+        This is a bounded read of that source, not another presentation store.
+        """
+        if self.native_current():
+            return cursor
+        prefixes = tuple(history.committed_cursor for history in self.owner.histories
+                         if history in self.captured and history.state.reports_coverage)
+        prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
+                     key=lambda bound: bound.offset,
+                     default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
+        return TranscriptCursor(prefix.session_file, prefix.offset,
+                                cursor.receipts, prefix.outcomes)
+
+    def source_current(self, cursor: TranscriptCursor) -> bool:
+        return self.current() and self.source_bound(cursor) == cursor
+
+    async def read_source_page(self) -> TranscriptPage:
+        page = await self.agent.get_transcript_page()
+        return await self.read_bound(page)
+
+    async def read_bound(self, page: TranscriptPage) -> TranscriptPage:
+        bound = self.source_bound(page.after)
+        if bound != page.after:
+            self.owner.dirty = self.owner.checkpoint_required = True
+            page = await self.agent.get_transcript_page(through=bound)
+        return page
 
     def current(self) -> bool:
         from toad.widgets.conversation import Window, Contents
@@ -112,7 +138,7 @@ class SnapshotPublication(TranscriptPublication):
         async with self.window.history_lock:
             if not self.current():
                 return
-            if not self.source_current():
+            if not self.source_current(self.page.after):
                 self.owner.require_checkpoint()
                 return
             for history in self.owner.histories:
@@ -131,7 +157,7 @@ class SnapshotPublication(TranscriptPublication):
             # a pre-render absence check cannot authorize a second full page.
             if not self.current() or not self.admitted():
                 return
-            if not self.source_current():
+            if not self.source_current(self.page.after):
                 self.owner.require_checkpoint()
                 return
             history = TranscriptHistory(self.page, self.agent.get_transcript_page,
@@ -141,7 +167,7 @@ class SnapshotPublication(TranscriptPublication):
                 accepted = False
                 try:
                     await self.contents.mount(history)
-                    if not self.source_current(history):
+                    if not self.source_current(self.page.after):
                         if self.current():
                             self.owner.require_checkpoint()
                         return
@@ -191,7 +217,7 @@ class CanonicalSourcePublication(TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_page(self) -> TranscriptPage:
-        return await self.agent.get_transcript_page()
+        return await self.read_source_page()
 
     async def publish(self) -> None:
         if self.agent is None or not self.agent.transcript_ready:
@@ -208,7 +234,12 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         self.presentation = presentation
 
     async def read_page(self) -> TranscriptPage:
-        return await self.agent.get_transcript_page(read_identity=self.presentation.read_identity)
+        identity = self.presentation.read_identity
+        bound = self.source_bound(identity.page_bound)
+        if bound != identity.page_bound:
+            self.owner.dirty = self.owner.checkpoint_required = True
+            return await self.agent.get_transcript_page(through=bound)
+        return await self.agent.get_transcript_page(read_identity=identity)
 
     async def publish(self) -> None:
         if self.agent is None:
@@ -316,13 +347,12 @@ class CheckpointPublication(TranscriptPublication):
             for child in before_read
             if child is not history and isinstance(child, CommitParticipant)
         )
-        if not self.source_current() or not plan.ready(history) or not plan.permits(view, potential):
+        if not self.current() or not plan.ready(history) or not plan.permits(view, potential):
             return
 
-        is_current = self.source_current
-
         try:
-            page = await agent.get_transcript_page()
+            page = await self.read_source_page()
+            is_current = partial(self.source_current, page.after)
             if not page.events or not is_current():
                 return
             prepared = await plan.prepare(view, history, page, before_read, is_current)
@@ -331,7 +361,7 @@ class CheckpointPublication(TranscriptPublication):
             # transcript notification has drained. Its view is closing too.
             return
         except (OSError, ValueError) as error:
-            if is_current():
+            if self.current():
                 view.notify(str(error), title="Committed history", severity="error")
             return
         if prepared is None or not is_current():
@@ -360,7 +390,7 @@ class CheckpointPublication(TranscriptPublication):
                             committed=False,
                         )
                         await contents.mount(replacement, before=0)
-                    if not self.source_current(replacement):
+                    if not is_current():
                         return
                     # Identity-backed arrivals during a mount may now be covered;
                     # ordinary late arrivals remain outside the captured cohort.
@@ -383,8 +413,9 @@ class CheckpointPublication(TranscriptPublication):
                         await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
-        self.owner.dirty = False
-        self.owner.checkpoint_required = False
+        if self.native_current():
+            self.owner.dirty = False
+            self.owner.checkpoint_required = False
         plan.finish(view, page.after)
 
 

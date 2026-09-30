@@ -50,7 +50,7 @@ class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def admits_source(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return True
 
     @property
@@ -68,7 +68,7 @@ class CapturedClaim(CommitClaim):
     def capture(self, settled: bool) -> bool:
         return settled
 
-    def admits_source(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return widget in captured
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
@@ -79,6 +79,9 @@ class RetainedSourceClaim(CapturedClaim):
     """An original saved source is transferable independently of live output."""
 
     def capture(self, settled: bool) -> bool:
+        return True
+
+    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return True
 
 

@@ -43,6 +43,49 @@ other-owner WT edits. All failed original proofs and fixture dispositions retain
 Do not close full remaining performance scope on this usage-blocking checkpoint.
 Source-only sanity/custody checks differ from installed/native and physical gates.
 
+## Independent wire/native publication domains
+
+Actual460u02 is preserved at Sch's s14-bus-projection/installed-bus-gate/u02:
+canonical Sent/Incoming exist once while both provider responses are held, but
+sender OutgoingMessage is absent. No post-wire ACP snapshots does not prove
+an absent page observation; delivery/start of ObservedSourcePublication was not
+instrumented. u03 sampled current/source_current=true, so it refutes assigning
+that failure to the coarse guard without further evidence. Sch owns its read/
+observation trace; no replay of either attempt.
+
+The coarse guard nevertheless blocks the entire page on unrelated anonymous
+output (IDEN-7). The current source-only red/green uses the actual application,
+Window, private Comms wire journal, original page reader, claim families and
+native widget resources. Baseline784 retains the live answer but shows Sent0,
+Incoming0 and wire frontier0. Candidate shows original Sent1/Incoming1 and wire
+frontier2 while retaining native prefix90 and exactly one live answer. Ordered
+settlement then advances native history and retires the live answer exactly once.
+Initial saved-source admission remains green. Proof: independent-wire/.
+
+CommitClaim.admits_native replaces admits_source; every consumer migrated. The
+original captured saved history supplies the native/outcome prefix and the
+certified source cursor supplies assigned-wire membership. All domains remain
+on the existing TranscriptCursor/TranscriptHistory and original reader. No
+second wire projection, appended notice path, seen IDs or body matching.
+Bounded reads recapture their original producer witness with through=bound;
+an unbounded observation witness is never altered or reused for different bounds.
+The existing dirty checkpoint retains native-transfer work until settlement.
+No new None-as-state/provisional parameter, lifecycle flag or semantic store.
+
+Sch verified the producer contract: current/ancestor native files and the empty
+native domain are supported. An unrelated nonempty file pivot still declines;
+it needs an original source relation, not relaxed equality. A newer compaction
+outcome beyond the retained native prefix needs producer classification because
+all outcomes are verified before the bounded slice. These are explicit remaining
+integration risks. Neither u02 causal closure nor native readiness is claimed.
+
+The source environment is frozen Coreba938/SDK0.12.1/Text2e49, source-only Toad;
+no ACP/native runner/provider starts, no public root writes/restarts/inputs.
+Four production files parse under Python3.14; same-run bounded dispatch/arms,
+type switches/arms, codec, foreign-absence and long-chain measures do not increase.
+Einstein owns the next single installed joint251/252 firstfork+held-source+wire
+gate after parent250's normal integration. Preserve all raw failures and custody.
+
 ## Source transfer checkpoint
 
 The actual Window probe reproduces the same ownership relation at baseline516daa:
