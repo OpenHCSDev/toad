@@ -1,0 +1,164 @@
+[
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [],
+    "allocated_file_bytes": 83472384,
+    "unique_file_bytes": 23896064
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-first-ui-end-keypad-20260930",
+    "core": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+    "protection": [
+      "current-source-config-reference",
+      "protected-historical-Core000",
+      "protected-firstUI"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [],
+    "allocated_file_bytes": 85225472,
+    "unique_file_bytes": 25657344
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-progressive-summary-20260929",
+    "core": "ab3397a6faaec148418dc82c87db4f02bd943a36",
+    "protection": [],
+    "allocated_file_bytes": 85110784,
+    "unique_file_bytes": 30306304
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-context-budget-20260929",
+    "core": "fc47c15a214bdc0808f759043579b323909a8c84",
+    "protection": [
+      "active-process-environment-reference"
+    ],
+    "allocated_file_bytes": 84140032,
+    "unique_file_bytes": 32415744
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-journaled-original-20260929",
+    "core": "c1d2849b90023acf5206c35b7da4664407d6dce5",
+    "protection": [
+      "current-source-config-reference"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [],
+    "allocated_file_bytes": 83468288,
+    "unique_file_bytes": 23900160
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-admission-identity-domain-20260929",
+    "core": "ea7cbaed5bf6f99d621b4be3ec659af22b26e990",
+    "protection": [],
+    "allocated_file_bytes": 73105408,
+    "unique_file_bytes": 21385216
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+    "core": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+    "protection": [
+      "active-process",
+      "current-source-config-reference",
+      "retained-source-tool-reference"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930",
+    "core": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+    "protection": [
+      "current-source-config-reference",
+      "protected-historical-Core000"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-ordered-view-disposal-20260929",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [
+      "pth-donor"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-retained-native-history-20260929",
+    "core": "ab3397a6faaec148418dc82c87db4f02bd943a36",
+    "protection": [],
+    "allocated_file_bytes": 83107840,
+    "unique_file_bytes": 28303360
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-reader-preparation-candidate-20260929",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [],
+    "allocated_file_bytes": 83492864,
+    "unique_file_bytes": 28643328
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-stream-reply-ratchet-20260929",
+    "core": "707c91170fa307f7ec75199baea00d7e55c47dab",
+    "protection": [],
+    "allocated_file_bytes": 83542016,
+    "unique_file_bytes": 31817728
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-backend-cohort-20260930",
+    "core": "94152909d34a099afc70232f922ba78e0d9af7cd",
+    "protection": [],
+    "allocated_file_bytes": 75563008,
+    "unique_file_bytes": 15953920
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-bus-resource-20260930",
+    "core": "8691d6ee1a0fa6734c056afc30e01dd7a890bd2e",
+    "protection": [],
+    "allocated_file_bytes": 84774912,
+    "unique_file_bytes": 25153536
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-summary-accounting-20260929",
+    "core": "ab3397a6faaec148418dc82c87db4f02bd943a36",
+    "protection": [
+      "current-source-config-reference"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [],
+    "allocated_file_bytes": 83484672,
+    "unique_file_bytes": 23908352
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-inbound-20260929",
+    "core": "66ee0ca21b1e701167cea8ac54d1298f9d0dc6a9",
+    "protection": [],
+    "allocated_file_bytes": 80257024,
+    "unique_file_bytes": 23805952
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-launch-admission-20260929",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [
+      "current-source-config-reference"
+    ]
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [],
+    "allocated_file_bytes": 80797696,
+    "unique_file_bytes": 21229568
+  },
+  {
+    "path": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929",
+    "core": "72062939239b0f07707406309305a056a23f925f",
+    "protection": [
+      "pth-donor",
+      "current-source-config-reference"
+    ]
+  }
+]

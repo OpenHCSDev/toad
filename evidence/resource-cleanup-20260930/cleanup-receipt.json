@@ -1,0 +1,155 @@
+{
+  "state": "cleanup-complete",
+  "results": [
+    {
+      "kind": "merged-worktree",
+      "path": "/home/ts/wt/comms-failure-consumer-proof-20260929",
+      "head": "f955ee52fa702d95192cc297e926caa9e9ccba28",
+      "branch": null,
+      "exit": 0,
+      "output": "",
+      "removed": true
+    },
+    {
+      "kind": "merged-worktree",
+      "path": "/home/ts/wt/comms-historical-views-20260927",
+      "head": "a2c05f2a1fe75483995c5d108c8643b049d42d24",
+      "branch": "refs/heads/codex/complete-historical-views-20260927",
+      "exit": 0,
+      "output": "",
+      "removed": true,
+      "branch_preserved_verified": true
+    },
+    {
+      "kind": "merged-worktree",
+      "path": "/home/ts/wt/comms-native-admission-contention-20260929",
+      "head": "bd18e9c3af02291d10fcc6b116a9d95b83001c6e",
+      "branch": "refs/heads/fix/native-admission-contention-20260929",
+      "exit": 0,
+      "output": "",
+      "removed": true,
+      "branch_preserved_verified": true
+    },
+    {
+      "kind": "merged-worktree",
+      "path": "/home/ts/wt/comms-selected-summary-native-fixture-20260929",
+      "head": "24e710c39e197fbc4fe2a010ea72e17983cc889a",
+      "branch": "refs/heads/test/selected-summary-native-fixture-cleanup-20260929",
+      "exit": 0,
+      "output": "",
+      "removed": true,
+      "branch_preserved_verified": true
+    },
+    {
+      "kind": "merged-worktree",
+      "path": "/home/ts/wt/toad-catalog-action-commands-20260930",
+      "head": "15a0e5f77c8ad5ffe1385c2bac31ddc3324b8ebc",
+      "branch": "refs/heads/refactor/catalog-action-commands-20260930",
+      "exit": 0,
+      "output": "",
+      "removed": true,
+      "branch_preserved_verified": true
+    },
+    {
+      "kind": "merged-worktree",
+      "path": "/home/ts/wt/toad-native-admission-paired-probe-20260929",
+      "head": "75e21367606bbdadf5e49a3ffa9acf2d8e2e1632",
+      "branch": null,
+      "exit": 0,
+      "output": "",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930",
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930",
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-progressive-summary-20260929",
+      "core": "ab3397a6faaec148418dc82c87db4f02bd943a36",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930",
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-admission-identity-domain-20260929",
+      "core": "ea7cbaed5bf6f99d621b4be3ec659af22b26e990",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-retained-native-history-20260929",
+      "core": "ab3397a6faaec148418dc82c87db4f02bd943a36",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-reader-preparation-candidate-20260929",
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-stream-reply-ratchet-20260929",
+      "core": "707c91170fa307f7ec75199baea00d7e55c47dab",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-canonical-backend-cohort-20260930",
+      "core": "94152909d34a099afc70232f922ba78e0d9af7cd",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-canonical-bus-resource-20260930",
+      "core": "8691d6ee1a0fa6734c056afc30e01dd7a890bd2e",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930",
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-canonical-inbound-20260929",
+      "core": "66ee0ca21b1e701167cea8ac54d1298f9d0dc6a9",
+      "removed": true
+    },
+    {
+      "kind": "retired-runtime",
+      "path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930",
+      "core": "72062939239b0f07707406309305a056a23f925f",
+      "removed": true
+    }
+  ],
+  "removed_exclusive_allocated_bytes_preflight": 651653120,
+  "home_free_before": 21535637504,
+  "home_free_after": 22189920256,
+  "observed_free_delta_not_attributed_exclusively": 654282752,
+  "protected_state": "native/journals/UNKNOWN/private-roots/preimages/raw-captures/current-default/firstUI/Core000/context-budget/shared-donors retained",
+  "no_force": true,
+  "no_branch_deletions": true,
+  "raw_audit_path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/resource-cleanup-20260930",
+  "default_links_unchanged": {
+    "/home/ts/.local/bin/toad": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/toad",
+    "/home/ts/.local/bin/agent-comms": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/agent-comms",
+    "/home/ts/.local/bin/agent-comms-acp": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/agent-comms-acp"
+  },
+  "unavailable_several_gib_reason": "Large remaining folders hold retained native fixtures, failed captures, active/dependent resources or unreviewed OpenHCS work; they were preserved."
+}

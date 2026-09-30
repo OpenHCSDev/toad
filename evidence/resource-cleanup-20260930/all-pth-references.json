@@ -1,0 +1,46 @@
+[
+  {
+    "path": "/home/ts/wt/comms-retained-batch-index-cutover-20260929/.runtime438/lib/python3.14/site-packages/runtime-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/comms-original-turn-custody-20260929/.routing-carry-runtime/lib/python3.14/site-packages/paired-dependencies.pth",
+    "text": "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages\n/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-real04/lib/python3.14/site-packages/reviewed-runtime-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-ordered-view-disposal-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/paired-runtime.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/comms-tr0-ratchet-20260928/.artifacts/venv/lib/python3.14/site-packages/prepared-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/toad-original-turn-resource-native-20260929/.runtime436/lib/python3.14/site-packages/runtime-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/comms-t2-boundary-sol-20260928/.artifacts/paired-installed/lib/python3.14/site-packages/runtime-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/owned-reviewed-dependencies.pth",
+    "text": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/toad-first-fork-startup-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/paired-runtime.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-native-token-admission-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/editor-focus-217/package/runtime/lib/python3.14/site-packages/paired-stage-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-canonical-native-checkpoint-20260929/lib/python3.14/site-packages\n"
+  },
+  {
+    "path": "/home/ts/wt/comms-compaction-live-fix-20260928/.artifacts/runtime/lib/python3.14/site-packages/acceptance-dependencies.pth",
+    "text": "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages\n/home/ts/wt/comms-acp-saved-session-startup-20260928/.venv/lib/python3.14/site-packages\n"
+  }
+]

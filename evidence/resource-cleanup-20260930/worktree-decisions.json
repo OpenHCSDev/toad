@@ -1,0 +1,154 @@
+[
+  {
+    "worktree": "/home/ts/wt/comms-failure-consumer-proof-20260929",
+    "HEAD": "f955ee52fa702d95192cc297e926caa9e9ccba28",
+    "detached": "",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".pytest_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 269,
+    "protection": []
+  },
+  {
+    "worktree": "/home/ts/wt/comms-historical-views-20260927",
+    "HEAD": "a2c05f2a1fe75483995c5d108c8643b049d42d24",
+    "branch": "refs/heads/codex/complete-historical-views-20260927",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".pytest_cache",
+      ".ruff_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 129,
+    "protection": []
+  },
+  {
+    "worktree": "/home/ts/wt/comms-native-admission-contention-20260929",
+    "HEAD": "bd18e9c3af02291d10fcc6b116a9d95b83001c6e",
+    "branch": "refs/heads/fix/native-admission-contention-20260929",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".coverage",
+      ".pytest_cache",
+      ".ruff_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 403,
+    "protection": []
+  },
+  {
+    "worktree": "/home/ts/wt/comms-pr17-injected-harness",
+    "HEAD": "eaa542b8da8b567fa4997e4e9d14fca849bebda0",
+    "branch": "refs/heads/feat/pr17-injected-harness",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".coverage",
+      ".mypy_cache",
+      ".pytest_cache",
+      ".ruff_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 204,
+    "protection": [
+      "current-source-or-retained-registry-reference",
+      "canonical-registry-reference"
+    ]
+  },
+  {
+    "worktree": "/home/ts/wt/comms-presentation-source-revision-20260930",
+    "HEAD": "306e3232b6e49f86caef6375235d1589da0264a2",
+    "branch": "refs/heads/perf/presentation-source-revision-20260930",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".pytest_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 202,
+    "protection": [
+      "borrowed-original-capture-source"
+    ]
+  },
+  {
+    "worktree": "/home/ts/wt/comms-selected-summary-native-fixture-20260929",
+    "HEAD": "24e710c39e197fbc4fe2a010ea72e17983cc889a",
+    "branch": "refs/heads/test/selected-summary-native-fixture-cleanup-20260929",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".pytest_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 275,
+    "protection": []
+  },
+  {
+    "worktree": "/home/ts/wt/toad-catalog-action-commands-20260930",
+    "HEAD": "15a0e5f77c8ad5ffe1385c2bac31ddc3324b8ebc",
+    "branch": "refs/heads/refactor/catalog-action-commands-20260930",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      "src",
+      "tests"
+    ],
+    "ignored_count": 67,
+    "protection": []
+  },
+  {
+    "worktree": "/home/ts/wt/toad-default-route-20260927",
+    "HEAD": "f30be48987850c7780fc0d852db87797a8436eb5",
+    "branch": "refs/heads/feat/toad-default-route-20260927",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      ".ruff_cache",
+      "src",
+      "tests"
+    ],
+    "ignored_count": 209,
+    "protection": [
+      "current-source-or-retained-registry-reference",
+      "canonical-registry-reference"
+    ]
+  },
+  {
+    "worktree": "/home/ts/wt/toad-native-admission-paired-probe-20260929",
+    "HEAD": "75e21367606bbdadf5e49a3ffa9acf2d8e2e1632",
+    "detached": "",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      "tests"
+    ],
+    "ignored_count": 2,
+    "protection": []
+  },
+  {
+    "worktree": "/home/ts/wt/toad-presentation-subscription-20260930",
+    "HEAD": "8dc20b152c2c2b122e27d4b02dd1b168510a9a8d",
+    "branch": "refs/heads/perf/presentation-subscription-20260930",
+    "status": "",
+    "merged": true,
+    "ignored_roots": [
+      "src",
+      "tests"
+    ],
+    "ignored_count": 227,
+    "protection": [
+      "borrowed-original-capture-source"
+    ]
+  }
+]

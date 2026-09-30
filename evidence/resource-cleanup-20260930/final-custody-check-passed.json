@@ -1,0 +1,25 @@
+{
+  "blocking": [],
+  "checked_paths": [
+    "/home/ts/wt/comms-failure-consumer-proof-20260929",
+    "/home/ts/wt/comms-historical-views-20260927",
+    "/home/ts/wt/comms-native-admission-contention-20260929",
+    "/home/ts/wt/comms-selected-summary-native-fixture-20260929",
+    "/home/ts/wt/toad-catalog-action-commands-20260930",
+    "/home/ts/wt/toad-native-admission-paired-probe-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-workspace-publication-20260930",
+    "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930",
+    "/home/ts/.local/share/agent-comms/runtime-progressive-summary-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-canonical-paint-admission-20260930",
+    "/home/ts/.local/share/agent-comms/runtime-admission-identity-domain-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-retained-native-history-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-reader-preparation-candidate-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-stream-reply-ratchet-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-canonical-backend-cohort-20260930",
+    "/home/ts/.local/share/agent-comms/runtime-canonical-bus-resource-20260930",
+    "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930",
+    "/home/ts/.local/share/agent-comms/runtime-canonical-inbound-20260929",
+    "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930"
+  ],
+  "ts": 1790775696.0791776
+}
