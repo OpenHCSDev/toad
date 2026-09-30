@@ -83,14 +83,18 @@ class SnapshotPublication(TranscriptPublication):
             # a pre-render absence check cannot authorize a second full page.
             if not self.current() or not self.admitted():
                 return
-            history = TranscriptHistory(self.page, self.agent.get_transcript_page, fragments=fragments)
+            history = TranscriptHistory(self.page, self.agent.get_transcript_page,
+                                        fragments=fragments, committed=False)
             self.owner.prepare_reader(history)
             view.output.boundary()
             captured = frozenset(child for child in self.contents.children
                                  if isinstance(child, CommittedHistory))
             async with self.window.preserve_history(None):
-                await self.contents.mount(history)
-                if self.current():
+                accepted = False
+                try:
+                    await self.contents.mount(history)
+                    if not self.current():
+                        return
                     # This accepted full source replaces exactly the old
                     # history resources captured before its mount. Original
                     # live inputs still need native identity evidence.
@@ -99,11 +103,15 @@ class SnapshotPublication(TranscriptPublication):
                         native_inputs=frozenset(native_id for event in self.page.events
                                                 for native_id in event.native_inputs),
                     )
+                    history.publish_committed()
+                    accepted = True
                     await self.contents.remove_children(retirement_candidates(self.contents.children, evidence))
-            if not self.current():
-                if history.is_attached:
-                    await history.remove()
-                return
+                finally:
+                    # A provisional mount owns no source coverage. Its cleanup
+                    # must finish before native frame admission is released.
+                    # Accepted source survives cancellation while old rows retire.
+                    if not accepted and history.is_attached:
+                        await history.remove()
         view.query_one(SessionDetails)._refresh_summary()
         self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
 
