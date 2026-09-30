@@ -39,7 +39,7 @@ class PublishedNativeTranscriptReadWork(NativeTranscriptReadWork):
     page: TranscriptPage
 
     def prepare(self) -> TranscriptPage:
-        if not self.read.current():
+        if not self.read.content_current():
             raise StaleRevision("Published transcript inputs changed before admission")
         return self.page
 
@@ -115,7 +115,7 @@ class CoordinationTranscriptReader:
         except StaleRevision:
             return await self.snapshot(identity.root, identity.requested_name,
                 before=identity.before, after=identity.after, through=identity.through)
-        if not await asyncio.to_thread(read.current):
+        if not await asyncio.to_thread(read.content_current):
             return await self.snapshot(identity.root, identity.requested_name,
                 before=identity.before, after=identity.after, through=identity.through)
         return TranscriptSnapshotUpdate(page, identity)
@@ -129,17 +129,14 @@ class CoordinationTranscriptReader:
         return snapshot.page
 
     async def snapshot(self, root, thread, *, before=None, after=None, through=None):
-        while True:
-            async with self.bind(root) as reader:
-                read = await asyncio.to_thread(
-                    reader.transcripts.capture_page_read, thread,
-                    before=before, after=after, through=through,
-                )
-            try:
-                page = await self.delivery.deliver(NativeTranscriptReadWork(read))
-            except StaleRevision:
-                # A changed canonical source is a new work identity. No old
-                # result is promoted just because it finished before its copy.
-                continue
-            if await asyncio.to_thread(read.current):
-                return TranscriptSnapshotUpdate(page, read.identity)
+        async with self.bind(root) as reader:
+            read = await asyncio.to_thread(
+                reader.transcripts.capture_page_read, thread,
+                before=before, after=after, through=through,
+            )
+        page = await self.delivery.deliver(NativeTranscriptReadWork(read))
+        # The preparation cache may supply an earlier result. Its original
+        # content witness still has to admit it; annotations refresh separately.
+        if not await asyncio.to_thread(read.content_current):
+            raise StaleRevision("Transcript content changed before publication")
+        return TranscriptSnapshotUpdate(page, read.identity)

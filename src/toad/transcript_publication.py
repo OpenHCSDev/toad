@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import weakref
+import asyncio
 from abc import ABC, abstractmethod
 from functools import partial
 from typing import TYPE_CHECKING
@@ -112,6 +113,58 @@ class CanonicalSourcePublication(TranscriptPublication):
         if self.current():
             await self.owner.snapshot(page)
             await self.owner.publish(HandlingPublication)
+
+
+class ObservedSourcePublication(CanonicalSourcePublication):
+    def __init__(self, owner, view, window, contents, presentation):
+        super().__init__(owner, view, window, contents)
+        self.presentation = presentation
+
+    async def publish(self) -> None:
+        if self.agent is None:
+            return
+        await self.agent.observe_thread_presentation(self.presentation)
+        if self.current():
+            await super().publish()
+
+
+class SourcePublicationRequests:
+    """One running read and one coalesced original request, never model state."""
+
+    def __init__(self, owner: TranscriptPresentation):
+        self.owner = owner
+        self.pending: asyncio.Queue[tuple[type[TranscriptPublication], tuple[object, ...]]] = asyncio.Queue(maxsize=1)
+        self.worker: Worker[None] | None = None
+
+    def request(self, kind: type[TranscriptPublication], *args: object) -> None:
+        view = self.owner.view
+        if view is None or not view.is_attached:
+            return
+        if self.pending.full():
+            self.pending.get_nowait()
+        self.pending.put_nowait((kind, args))
+        if self.worker is None or self.worker.is_finished:
+            self.worker = view.run_worker(self.publish, group="transcript-source")
+
+    async def publish(self) -> None:
+        from agent_comms.coordination_errors import StaleRevision
+
+        while not self.pending.empty():
+            kind, args = self.pending.get_nowait()
+            try:
+                await self.owner.publish(kind, *args)
+            except StaleRevision:
+                # A changed original source declines this request. A subsequent
+                # observation owns the next read; do not spin on page capture.
+                continue
+
+    def cancel(self) -> Worker[None] | None:
+        while not self.pending.empty():
+            self.pending.get_nowait()
+        worker, self.worker = self.worker, None
+        if worker is not None:
+            worker.cancel()
+        return worker
 
 
 class CheckpointPublication(TranscriptPublication):
@@ -259,6 +312,7 @@ class TranscriptPresentation:
         self.worker: Worker[None] | None = None
         self.reader_position: ReaderPosition | None = None
         self._revealed_history: TranscriptHistory | None = None
+        self.source_requests = SourcePublicationRequests(self)
 
     @property
     def view(self) -> Conversation | None:
@@ -376,6 +430,7 @@ class TranscriptPresentation:
         view.call_after_refresh(record)
 
     def source_changed(self) -> None:
+        self.source_requests.cancel()
         self.invalidate()
         self._revealed_history = None
         self.dirty = self.checkpoint_required = False
@@ -417,14 +472,19 @@ class TranscriptPresentation:
             self.request()
 
     async def close(self) -> None:
-        self._view = lambda: None
         await self.suspend()
+        self._view = lambda: None
 
     async def suspend(self) -> None:
         """Revoke in-flight publications while retaining this source's mounted frontier."""
         self.invalidate()
         worker, self.worker = self.worker, None
-        if worker is not None:
+        workers = [worker, self.source_requests.cancel()]
+        if (view := self.view) is not None:
+            workers.extend(view.workers.cancel_group(view, "transcript-handling"))
+        for worker in workers:
+            if worker is None:
+                continue
             worker.cancel()
             try:
                 await worker.wait()

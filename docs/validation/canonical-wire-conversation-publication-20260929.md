@@ -21,7 +21,16 @@ fragments and handling through their original MessageReference and frozen target
 identity. No seen list, revision mirror, inferred read acknowledgment or second
 message store. Reader position, draft, undo and bounded warm resources remain.
 
-Acceptance: actual installed native/ACP/UI controlled-localhost journey with
+Primary acceptance: actual installed native/ACP/UI journey with the configured
+Sol/high provider and a native SessionManager fork of the original 41MB saved
+history. Public registration and history remain read only; credentials remain in
+RAM through the existing RetainedOwnerLaunch witness. New private wire records
+are new inputs, never replays of public or uncertain inputs. Keep sender,
+recipient and IRC open before sending, then keep the same view open for at least
+31 seconds and perform physical A/B/A returns with immediate inputs. Controlled
+localhost journeys remain causal diagnostics, not primary readiness proof.
+
+The diagnostic journey uses
 both DM views and IRC open before sending; original outbound, received input,
 notice/processing/handled transitions appear without reopen or selection.
 Include an older original outside the recent-five window, same-frontier handling,
@@ -82,3 +91,31 @@ state remain preserved; no automatic replay. Einstein was asked to own the
 native lifecycle/admission investigation, separate from Mendel's source join.
 All native05 processes were verified retired and the serial fixture slot released.
 The candidate remains draft until the full corrected installed journey passes.
+
+## Original retained-source continuation
+
+The actual original-history recording shows high stationary CPU, repeated
+certified notification reads and a blank viewport after scrolling. Mendel owns
+the batched canonical source/proof transaction (#430), Einstein the native
+pre-byte database reader contention (#434), Arendt the canonical failure
+consumer, and Heisenberg the retained viewport/disposal lifecycle (#217).
+
+Removed the frontend's unbounded snapshot retry and full annotation fence for
+page-content admission. TranscriptRead.content_current owns the comparison;
+canonical notification handling still reads current original recipient state.
+The observed activity handler now submits to a session-owned serialized worker
+with one pending original publication request. It neither holds the conversation
+input message pump during a read nor repeatedly cancels a large read on polls.
+Retirement cancels the read, checkpoint and handling resources before removing
+their source view. The request queue is a bounded execution resource, not a
+message, owner, input or status authority.
+
+Installed page-reader sanity check passes: canonical shared Comms reuse, actual
+routing revision, native append, original ACP snapshot reuse, annotation changes
+without rereading the page, and stale content recapture. Removed obsolete fixture
+dictionary Agent construction and deleted probes for removed sidebar/chat wire
+aliases. This is not the outstanding real-provider continuous acceptance.
+
+Current production delta against 7e4465c7: 112 lines deleted, 260 added. The actual
+large-history/provider fixture and paired installed gate remain pending; no live
+readiness or regression closure is claimed yet.

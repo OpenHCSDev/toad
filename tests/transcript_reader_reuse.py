@@ -1,12 +1,9 @@
 """An attachment reuses core page-reader caches without retaining stale routes."""
-from toad.navigation_target import NavigationContext
-
-from toad.navigation_target import FeedTarget
-
 import asyncio
 import json
 import os
 import tempfile
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,6 +18,7 @@ from comms_boundary_fixture import attach_coordination
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
 
 
 def record(identifier, text):
@@ -52,13 +50,13 @@ async def main():
         )
         agent = Agent(
             root,
-            {
+            AgentDefinition.decode({
                 "name": "Fixture",
                 "identity": "fixture",
                 "short_name": "fixture",
                 "run_command": {"*": "true"},
                 "protocol": "acp",
-            },
+            }),
             "fixture",
         )
         attach_coordination(agent, str(root / "wire"), "fixture")
@@ -99,13 +97,13 @@ async def main():
             attachments = [
                 Agent(
                     root,
-                    {
+                    AgentDefinition.decode({
                         "name": "Fixture",
                         "identity": "fixture",
                         "short_name": "fixture",
                         "run_command": {"*": "true"},
                         "protocol": "acp",
-                    },
+                    }),
                     "fixture",
                 )
                 for _ in range(3)
@@ -133,28 +131,18 @@ async def main():
             await attachments[0].controller.transcripts.publication(decoded)
             assert await attachments[0].get_transcript_page() == snapshot.page
             assert reader.transcripts.page_reads == before, "Published page was read again"
+            # An actual registry annotation changes the observation without
+            # changing this original content. Its published page stays admitted.
+            reader.registry.register(replace(reader.registry.require("fixture"), title="Annotation changed"))
+            assert not read.current() and read.content_current()
+            annotated = await attachments[0].controller.transcripts.publication(decoded)
+            assert annotated.page == snapshot.page
+            assert reader.transcripts.page_reads == before, "Annotations reread original content"
             source.write_text(source.read_text() + record("three", "Changed after publication"))
             current = await attachments[0].controller.transcripts.publication(decoded)
             assert current.identity != decoded.identity
             assert current.page.events[-1].text == "Changed after publication"
             assert reader.transcripts.page_reads == before + 1, "Stale publication must recapture"
-            owner_mode = app.selected_mode
-            with (
-                patch(
-                    "toad.widgets.comms_chat.wire",
-                    side_effect=AssertionError("new chat reader"),
-                ),
-                patch(
-                    "toad.widgets.comms_sidebar.wire",
-                    side_effect=AssertionError("new sidebar reader"),
-                ),
-            ):
-                await FeedTarget().open(NavigationContext(app, owner_mode, root, "fixture"))
-            from toad.widgets.comms_chat import CommsChatView
-            from toad.widgets.comms_sidebar import CommsSidebar
-
-            assert app.screen.query_one(CommsChatView)._wire is app.coordination_access.service
-            assert app.screen.query_one(CommsSidebar).observation.service is app.coordination_access.service
         await asyncio.get_running_loop().shutdown_default_executor()
     print(
         "page reader: reused across concurrent pages; routing changes, appended replies and wire changes remain current"

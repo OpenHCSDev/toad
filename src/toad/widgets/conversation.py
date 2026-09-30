@@ -1090,11 +1090,9 @@ class Conversation(ConversationSessionBinding):
         event.stop()
         if not event.current:
             return
-        if agent := self.agent:
-            await agent.observe_thread_presentation(event.presentation)
         if event.presentation is not None:
-            from toad.transcript_publication import CanonicalSourcePublication
-            await self.transcript.publish(CanonicalSourcePublication)
+            from toad.transcript_publication import ObservedSourcePublication
+            self.transcript.source_requests.request(ObservedSourcePublication, event.presentation)
 
 
     @on(AgentReady)
