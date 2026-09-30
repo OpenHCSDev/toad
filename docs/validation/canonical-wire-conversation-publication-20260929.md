@@ -248,3 +248,22 @@ Evidence: owned scratch `pending-source-baseline.txt` and
 `pending-source-candidate.txt`. Full #215 acceptance still awaits the published
 #430 read transaction and #437 compaction-check fixes in a coherent installed
 cohort, using a new fixture without replaying prior uncertain attempts.
+
+## Original canonical read handoff to preparation
+
+The observed publication now passes `ThreadPresentation.read_identity` through
+the existing Agent page request and coordination reader. Core #430's public
+`bind_page_read` validates the original witness against the actual service root,
+original thread incarnation and exact page bounds. The frontend does not
+recapture an identity merely to hand it to preparation, reconstruct a source
+key, compare owner counters or retain another current-source authority.
+Ordinary cold/paged requests still use the same source owner's capture operation;
+later content admission remains owned by `TranscriptRead`.
+
+The existing reader/UI journey includes the exact original observed witness,
+page delivery and rejection after the same Agent changes to another route.
+This source checkpoint depends on Mendel's published read-owner API. Its paired
+check and real retained-source acceptance are pending; no passing installed
+result is claimed for this extension yet. The continuous real driver retains
+its original handling, reply-once, one-header, 31-second and immediate A/B/A
+input checks.

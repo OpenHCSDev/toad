@@ -106,10 +106,13 @@ class HandlingPublication(TranscriptPublication):
 class CanonicalSourcePublication(TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
+    async def read_page(self) -> TranscriptPage:
+        return await self.agent.get_transcript_page()
+
     async def publish(self) -> None:
         if self.agent is None or not self.agent.transcript_ready:
             return
-        page = await self.agent.get_transcript_page()
+        page = await self.read_page()
         if self.current():
             await self.owner.snapshot(page)
             await self.owner.publish(HandlingPublication)
@@ -119,6 +122,9 @@ class ObservedSourcePublication(CanonicalSourcePublication):
     def __init__(self, owner, view, window, contents, presentation):
         super().__init__(owner, view, window, contents)
         self.presentation = presentation
+
+    async def read_page(self) -> TranscriptPage:
+        return await self.agent.get_transcript_page(read_identity=self.presentation.read_identity)
 
     async def publish(self) -> None:
         if self.agent is None:
