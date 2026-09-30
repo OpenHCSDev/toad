@@ -3,6 +3,15 @@ import ast
 from pathlib import Path
 
 
+def test_publication_loaders_use_captured_actor():
+    tree = ast.parse((Path(__file__).parents[2] / 'src/toad/transcript_publication.py').read_text())
+    loaders = [node.args[1] for node in ast.walk(tree)
+               if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+               and node.func.id == 'TranscriptHistory']
+    assert loaders
+    assert all(ast.unparse(loader) == 'self.agent.get_transcript_page' for loader in loaders)
+
+
 def test_root_custody_deleted():
     tree = ast.parse((Path(__file__).parents[2]/'src/toad/widgets/conversation.py').read_text())
     removed = {'_transcript_generation','_transcript_dirty','_needs_transcript_checkpoint',
@@ -100,6 +109,7 @@ def test_declared_case():
 
 
 if __name__=='__main__':
+    test_publication_loaders_use_captured_actor()
     test_root_custody_deleted()
     test_source_operation_flags_deleted()
     test_declared_case()

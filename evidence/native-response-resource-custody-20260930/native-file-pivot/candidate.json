@@ -1,0 +1,16 @@
+{
+  "old_native_file": "",
+  "new_native_file": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/checkpoint-pivot-final/tmpgu4_xmku/first-native.jsonl",
+  "registered_histories": 1,
+  "direct_histories": 1,
+  "old_attached": false,
+  "live_attached": false,
+  "response_resources": 1,
+  "frontier_matches": true,
+  "loader_captured_agent": true,
+  "wire_notice_covered": true,
+  "native_input_ids": [],
+  "response_painted": true,
+  "native_process_started": false,
+  "native_runner_started": false
+}
