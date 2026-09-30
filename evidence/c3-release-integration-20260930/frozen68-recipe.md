@@ -17,7 +17,9 @@ from pathlib import Path
 import subprocess, tomllib
 source = tomllib.loads(Path('pyproject.toml').read_text())['tool']['uv']['sources']
 toad = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-assert subprocess.check_output(['git', 'status', '--porcelain'], text=True) == ''
+assert subprocess.check_output(
+    ['git', 'status', '--porcelain', '--', '.', ':(exclude).artifacts'], text=True
+) == ''
 assert source['agent-comms']['rev'] not in (
     '000a31c562b6d048e26e288b24fcd3f1ac64f803',
     '095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817',
