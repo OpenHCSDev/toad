@@ -84,7 +84,8 @@ def capture(*, expected_pid, output_prefix):
         for name, mapping in (("full", compositor._full_map), ("visible", compositor._visible_map)):
             metadata["compositor"]["maps"][name] = None if mapping is None else {
                 "count": len(mapping), "truncated": len(mapping) > 50000,
-                "nodes": [{**node_identity(node), "geometry": geometry._asdict()}
+                "nodes": [{**node_identity(node),
+                           "geometry": {field: tuple(value) for field, value in geometry._asdict().items()}}
                           for node, geometry in tuple(mapping.items())[:50000]],
             }
         payload["session_details"] = {mode: asdict(details) for mode, details in app.session_tracker.sessions.items()}
