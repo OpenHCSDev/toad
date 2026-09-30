@@ -27,7 +27,7 @@ from textual._compositor import CompositorUpdate
 
 from first_fork_native_installed_pilot import InstalledApp as ForkApp, acceptance as fork_acceptance
 from l0a_native_installed_pilot import main, until, response_painted
-from saved_state_user_journey_pilot import submit_editor
+from saved_state_user_journey_pilot import prepare_editor
 from toad.widgets.committed_presentation import StartedInputClaim
 from toad.widgets.prompt import QueueSummary, SendNow
 from toad.widgets.user_input import UserInput
@@ -122,6 +122,14 @@ class BeforeDeliveryCapture:
 class InstalledApp(ForkApp):
     before_delivery_capture = None
 
+    async def submit_editor(self, view, pilot, comms, text):
+        await prepare_editor(pilot, view.prompt.prompt_text_area, text)
+        # AgentReady precedes queued owner-metadata callbacks. Finish the native
+        # editor/widget barrier while the worker can still answer those reads.
+        await pilot.pause()
+        async with self.input_presentation_gate(view, pilot, comms, text):
+            await pilot.press('enter')
+
     @asynccontextmanager
     async def input_presentation_gate(self, view, pilot, comms, text):
         """Hold only this fixture's attested worker until pre-delivery paint."""
@@ -199,12 +207,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     records = []
 
     entered.clear(); release.clear(); hold_next.set()
-    async with app.input_presentation_gate(view, pilot, comms, 'VISIBILITY_BUSY_TURN'):
-        await submit_editor(pilot, view.prompt.prompt_text_area, 'VISIBILITY_BUSY_TURN')
+    await app.submit_editor(view, pilot, comms, 'VISIBILITY_BUSY_TURN')
     await until(pilot, entered.is_set)
     assert len(requests) == 3
-    async with app.input_presentation_gate(view, pilot, comms, 'VISIBILITY_QUEUED_FOLLOWUP'):
-        await submit_editor(pilot, view.prompt.prompt_text_area, 'VISIBILITY_QUEUED_FOLLOWUP')
+    await app.submit_editor(view, pilot, comms, 'VISIBILITY_QUEUED_FOLLOWUP')
     await until(pilot, lambda: any(row.text == 'VISIBILITY_QUEUED_FOLLOWUP'
                                   for row in agent.queue_attachment.projection.items))
     queued = next(row for row in agent.queue_attachment.projection.items
@@ -245,8 +251,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: not view.submissions.active)
 
     entered.clear(); release.clear(); hold_next.set()
-    async with app.input_presentation_gate(view, pilot, comms, 'VISIBILITY_CANCEL_STARTED'):
-        await submit_editor(pilot, view.prompt.prompt_text_area, 'VISIBILITY_CANCEL_STARTED')
+    await app.submit_editor(view, pilot, comms, 'VISIBILITY_CANCEL_STARTED')
     await until(pilot, entered.is_set)
     assert len(requests) == 5
     await pilot.press('escape', 'escape')
