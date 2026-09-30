@@ -1,0 +1,32 @@
+{
+  "source_python_files": 272,
+  "source_equal": true,
+  "native_full_trust": true,
+  "native_manifest": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "distributions": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "b0c63aef8480320ff0e6a7da2d223011a022ac84",
+        "requested_revision": "b0c63aef8480320ff0e6a7da2d223011a022ac84"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+        "requested_revision": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  }
+}

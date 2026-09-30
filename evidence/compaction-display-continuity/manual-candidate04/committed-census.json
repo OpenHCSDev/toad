@@ -1,0 +1,14 @@
+{
+  "canonical_summaries": 1,
+  "registered_committed_headers": 1,
+  "provisional_streams": 0,
+  "histories": [
+    {
+      "state": "LiveTranscript",
+      "offset": 708233,
+      "wire_seq": 0
+    }
+  ],
+  "native_saved_bytes": 708233,
+  "backend_busy": false
+}

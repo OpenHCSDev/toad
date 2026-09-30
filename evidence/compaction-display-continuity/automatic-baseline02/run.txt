@@ -1,0 +1,27 @@
+INSTALLED_APP_RUN_TEST_ENTER
+StaleRevision exception in shielded future
+future: <Task finished name='prepare-TranscriptPageWork' coro=<PreparationRuntime._execute() done, defined at /home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final/lib/python3.14/site-packages/toad/work_preparation.py:320> exception=StaleRevision('Transcript content changed before publication')>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final/lib/python3.14/site-packages/toad/transcript_preparation.py", line 157, in execute
+    page = await self.loader(before=request.before, after=request.after, through=self.through)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final/lib/python3.14/site-packages/toad/acp/agent.py", line 411, in get_transcript_page
+    page = await self.controller.transcripts.page(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final/lib/python3.14/site-packages/toad/acp/transcript_reader.py", line 130, in page
+    snapshot = await self.snapshot(root, thread, before=before, after=after, through=through,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                   read_identity=read_identity)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final/lib/python3.14/site-packages/toad/acp/transcript_reader.py", line 146, in snapshot
+    raise StaleRevision("Transcript content changed before publication")
+agent_comms.coordination_errors.StaleRevision: Transcript content changed before publication
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+{"mode": "goal", "saved_bytes": 707507, "provider_posts": 10, "partial_before_commit": true, "immediate_committed_summary": true, "followup_inputs": 0, "partial_tab_return": true, "committed_tab_return": true, "committed_reconnect_once": true, "goal_originals": 1, "visible_frames": 1165}
