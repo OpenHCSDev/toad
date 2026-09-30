@@ -1,0 +1,11 @@
+{
+  "actual_provider_choice_click": true,
+  "actual_login_modal": true,
+  "actual_cancel_click": true,
+  "original_source_and_owner_unchanged": true,
+  "credential_account_changes": 0,
+  "provider_requests": 0,
+  "native_prompts": 0,
+  "physical_native_login_prompt_review_required": true,
+  "scope": "Installed provider chooser, first advertised method, native Pi PTY and Cancel before login submission"
+}

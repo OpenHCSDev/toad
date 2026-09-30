@@ -1,0 +1,180 @@
+{
+  "state": "READY-SCOPED-INSTALLED-LOGIN-HANDOFF-CANCEL",
+  "tested_source": "82f454cd5a1e5fa82483f37e802c598eba84efe0",
+  "candidate": "/home/ts/.local/share/agent-comms/runtime-provider-login-candidate-20260930",
+  "raw": "/home/ts/.cache/agent-scratch/toad-provider-login-physical-20260930-02",
+  "failed_first_wrapper": "/home/ts/.cache/agent-scratch/toad-provider-login-physical-20260930",
+  "duration_seconds": 31.88662995697814,
+  "production_added_lines": 3,
+  "production_deleted_lines": 3,
+  "production_files": [
+    "src/toad/widgets/conversation.py"
+  ],
+  "source_sanity": "2 existing catalog/action family guards passed 0.55s",
+  "actual_clicks": [
+    "AgentInfo",
+    "ConnectProvider",
+    "focused ChatGPT subscription ContextMenuItem",
+    "ActionModal Cancel"
+  ],
+  "native_handoff": "Canonical nativececa trust-project prompt is first USER approval boundary. No trust decision, /login submission, credential entry or network authentication completion. Login preloaded /login editor not yet observed; not claimed.",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "credential_isolation": "Owned initially-empty PI_CODING_AGENT_DIR; configured packaged native binary; inherited *_API_KEY removed; private auth.json initialized {} has zero credential entries. Public accounts unchanged.",
+  "original_source_owner": "before/after byte-identical original41MB hash + owner/active_turn",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3567851,
+        "start_ticks": 26186813,
+        "returncode": 0
+      },
+      {
+        "pid": 3567854,
+        "start_ticks": 26186889,
+        "returncode": 0
+      },
+      {
+        "pid": 3567856,
+        "start_ticks": 26186897,
+        "returncode": 0
+      },
+      {
+        "pid": 3567857,
+        "start_ticks": 26186903,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3567860,
+        "start_ticks": 26186960,
+        "returncode": 0
+      },
+      {
+        "pid": 3567919,
+        "start_ticks": 26186970,
+        "returncode": 0
+      },
+      {
+        "pid": 3567930,
+        "start_ticks": 26186979,
+        "returncode": 0
+      },
+      {
+        "pid": 3567931,
+        "start_ticks": 26186990,
+        "returncode": 255
+      },
+      {
+        "pid": 3568356,
+        "start_ticks": 26188191,
+        "returncode": 0
+      },
+      {
+        "pid": 3568361,
+        "start_ticks": 26188220,
+        "returncode": 0
+      },
+      {
+        "pid": 3568368,
+        "start_ticks": 26188252,
+        "returncode": 0
+      },
+      {
+        "pid": 3568395,
+        "start_ticks": 26188384,
+        "returncode": 0
+      },
+      {
+        "pid": 3568403,
+        "start_ticks": 26188467,
+        "returncode": 0
+      },
+      {
+        "pid": 3568404,
+        "start_ticks": 26188529,
+        "returncode": 0
+      },
+      {
+        "pid": 3568478,
+        "start_ticks": 26188672,
+        "returncode": 0
+      },
+      {
+        "pid": 3568484,
+        "start_ticks": 26188752,
+        "returncode": 0
+      },
+      {
+        "pid": 3568485,
+        "start_ticks": 26188812,
+        "returncode": 0
+      },
+      {
+        "pid": 3568524,
+        "start_ticks": 26188956,
+        "returncode": 0
+      },
+      {
+        "pid": 3568599,
+        "start_ticks": 26189042,
+        "returncode": 0
+      },
+      {
+        "pid": 3568720,
+        "start_ticks": 26189455,
+        "returncode": 0
+      },
+      {
+        "pid": 3568779,
+        "start_ticks": 26189586,
+        "returncode": 0
+      },
+      {
+        "pid": 3568809,
+        "start_ticks": 26189673,
+        "returncode": 0
+      },
+      {
+        "pid": 3568820,
+        "start_ticks": 26189783,
+        "returncode": 0
+      },
+      {
+        "pid": 3569063,
+        "start_ticks": 26190111,
+        "returncode": 0
+      },
+      {
+        "pid": 3569068,
+        "start_ticks": 26190138,
+        "returncode": 0
+      },
+      {
+        "pid": 3569076,
+        "start_ticks": 26190220,
+        "returncode": 0
+      },
+      {
+        "pid": 3569078,
+        "start_ticks": 26190295,
+        "returncode": 0
+      },
+      {
+        "pid": 3569092,
+        "start_ticks": 26190530,
+        "returncode": 0
+      }
+    ]
+  },
+  "public_mutations": 0,
+  "prompts": 0,
+  "provider_requests": 0,
+  "activation": "Parent only; candidate positive before default publication",
+  "historical_failures": [
+    "01 float Region.center in new native hit-target; no login command launched; cleanup0",
+    "02 initial wrapper oracle incorrectly rejected native initialized auth.json{}; original31.8866s raw and failure retained. Read-only review corrected to actual zero-credential contract without rerun."
+  ],
+  "remaining": "Provider auth completion intentionally user-owned; known historical native UNKNOWN/status and453 budget failure outside this fix."
+}
