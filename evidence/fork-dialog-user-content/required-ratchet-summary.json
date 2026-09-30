@@ -1,0 +1,12 @@
+{
+  "base": "3d2c7fa7db5e705f29cd0b6e8132098724c27f2b",
+  "head": "5b3d6e495bfda0a788263056c26387e9f16b9937",
+  "paths": [
+    "src/toad/app.py",
+    "src/toad/frame_presentation.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/widgets/comms_fork_dialog.py"
+  ],
+  "nonzero_debt_deltas": {},
+  "exit_code": 0
+}
