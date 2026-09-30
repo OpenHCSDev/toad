@@ -31,7 +31,7 @@
       "observation_span_seconds": 13.882301502977498
     }
   },
-  "boundary": "source ToaApp + original native page reader + headless physical key dispatch; not installed LinuxDriver/ST capture, no ACP/model prompt",
+  "boundary": "source ToaApp + original native page reader + headless Pilot key dispatch; not installed LinuxDriver/ST capture, no ACP/model prompt",
   "source_dependencies": {
     "python": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python",
     "textual_source": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
