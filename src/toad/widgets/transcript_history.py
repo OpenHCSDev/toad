@@ -465,6 +465,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return page.stop < len(page.fragments) or page.page.has_newer
 
     @property
+    def blocks_visible_read(self) -> bool:
+        """Do not acknowledge a tail while its source/filter is still advancing."""
+        return self.has_newer or not self.checkpoint_available
+
+    @property
     def fragment_limit(self) -> int:
         # Screen rows are not fragment counts: one prepared fragment may contain
         # a dozen lines or a whole indivisible Markdown block. Grow with the
