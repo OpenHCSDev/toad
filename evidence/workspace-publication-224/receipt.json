@@ -1,0 +1,58 @@
+{
+  "source_base": "7707e3ead416fa0b0ae00df54b7e6bafb2b0a37c",
+  "source_sha256": {
+    "src/toad/mounted_message_history.py": "33e5a1b246454a7261efbb153e9f3ee97f8465c08fc74c1b57a40be987b7a8a7",
+    "src/toad/screens/workspace.py": "4ba537f6361f3ab33104d90b30d94f8623304ab432225293433430a7e1df44f0",
+    "src/toad/widgets/committed_presentation.py": "5123366f26af4dd2c55984842a847baf51697d42fdbdd79802e14679bce053b9",
+    "src/toad/widgets/history_anchor.py": "ebe51c50c0b90f96c4a1edd0675166444b619574c505c012d6a459fd1ab3b9d1",
+    "src/toad/widgets/transcript_history.py": "41e68c6d77ae00e3146321e0a7b84bd82f598e1da7fbbd93ca3c8a0ee47a5712",
+    "src/toad/widgets/viewport_body.py": "f6321023d1db0319a6281285a2e24fa77ddfadf4048d8b7b8a6036f92fda3e6f"
+  },
+  "runs": {
+    "original-admission-baseline": {
+      "frames": 571,
+      "partial_admission_frames": 44,
+      "blank_body_frames": 0,
+      "unmounted_visible_fragments": 0,
+      "observation_span_seconds": 15.630196796002565
+    },
+    "original-local-admission-candidate": {
+      "frames": 525,
+      "partial_admission_frames": 0,
+      "blank_body_frames": 0,
+      "unmounted_visible_fragments": 0,
+      "observation_span_seconds": 15.12757987898658
+    },
+    "original-final-publication": {
+      "frames": 470,
+      "partial_admission_frames": 0,
+      "blank_body_frames": 0,
+      "unmounted_visible_fragments": 0,
+      "observation_span_seconds": 13.882301502977498
+    }
+  },
+  "boundary": "source ToaApp + original native page reader + headless Pilot key dispatch; not installed LinuxDriver/ST capture, no ACP/model prompt",
+  "source_dependencies": {
+    "python": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-tool-20260930/bin/python",
+    "textual_source": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+    "core": "72062939239b0f07707406309305a056a23f925f"
+  },
+  "primary_physical_gap": {
+    "still_open": true,
+    "frozen_f92_frames": [
+      1574,
+      1575
+    ],
+    "video_seconds": [
+      26.233333,
+      26.266667
+    ],
+    "causal_claim": "partial page publication reproduced and prevented; physical gap identity not established"
+  },
+  "cpu_claim": "no process CPU speedup established; frame counts are not CPU or wall-latency measurements",
+  "provider_calls": 0,
+  "owner_starts_or_restarts": 0,
+  "global_mutations": 0,
+  "filter_gate": "held native mount, typing, another tab and physical SessionLabel return passed; obsolete fixture app.switch_mode removed",
+  "production_deletions": 20
+}

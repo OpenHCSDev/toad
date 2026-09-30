@@ -180,7 +180,7 @@ class DirectionalPreparation:
 
     @property
     def idle_seconds(self) -> float:
-        return max(self.budget.scroll_idle_seconds, self.delivery_seconds)
+        return self.budget.scroll_idle_seconds
 
     @property
     def travel_rows(self) -> float:

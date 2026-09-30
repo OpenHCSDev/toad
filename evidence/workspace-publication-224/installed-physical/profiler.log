@@ -1,0 +1,6 @@
+py-spy> Sampling process 25 times a second for 95 seconds. Press Control-C to exit.
+
+
+py-spy> Stopped sampling because process exited
+py-spy> Wrote chrome trace to '/home/ts/.cache/agent-scratch/toad-workspace-publication-224-physical-20260930/capture/cpu-profile.json'. Samples: 1076 Errors: 0
+py-spy> Visit chrome://tracing or https://ui.perfetto.dev/ to view

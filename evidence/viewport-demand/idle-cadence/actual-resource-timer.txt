@@ -1,0 +1,1 @@
+{"actual_body_delivery_seconds": 0.5003950060054194, "configured_idle_seconds": 0.2, "boundary": "actual headless framework resource/timer journey; not physical capture", "phases": ["contended_restore", "pageup", "idle", "pagedown", "reverse", "end", "idle"]}

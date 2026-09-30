@@ -122,22 +122,27 @@ class ViewportPresentation:
         for window in self.anchors:
             window.retire_presentation_wait()
 
+    def frame_windows(self):
+        return (window for window in self.windows
+                if window.document_viewport.accepts_frame())
+
+    def has_pending_mutations(self) -> bool:
+        return any(window.history_mutating() for window in self.frame_windows())
+
     def prepare(self) -> bool:
         screen = self.screen
         if not screen.is_current:
             return True
+        if self.has_pending_mutations():
+            return False
         # Visible source bodies must be ready on every frame, including rapid
         # PageDown/End frames outside a session activation.
-        for window in self.windows:
-            if window.document_viewport._suspended:
-                continue
+        for window in self.frame_windows():
             if not window.document_viewport.visible_bodies_ready:
                 window.document_viewport.request()
                 return False
         changed = False
-        for window in self.windows:
-            if window.document_viewport._suspended:
-                continue
+        for window in self.frame_windows():
             changed |= window.check_follow()
         if changed:
             # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
@@ -183,6 +188,10 @@ class DocumentViewport:
         if window is None:
             raise ReferenceError("The document viewport's window has been retired")
         return window
+
+    def accepts_frame(self) -> bool:
+        """Only this resource's bound lifetime participates in publication."""
+        return not self._suspended
 
     def register(self, owner: ViewportBody) -> None:
         self.owners.add(owner)

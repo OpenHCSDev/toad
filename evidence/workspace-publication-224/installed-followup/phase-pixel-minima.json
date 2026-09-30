@@ -1,0 +1,50 @@
+[
+  {
+    "phase": "focused",
+    "start": 13.18045158701716,
+    "stop": 15.345766195008764,
+    "minimum_frame": 791,
+    "minimum_pixels": 12630,
+    "minimum_seconds": 13.183333333333334
+  },
+  {
+    "phase": "up",
+    "start": 15.345766195008764,
+    "stop": 20.54573500502738,
+    "minimum_frame": 1061,
+    "minimum_pixels": 3409,
+    "minimum_seconds": 17.683333333333334
+  },
+  {
+    "phase": "down",
+    "start": 21.67887122600223,
+    "stop": 26.90331520201289,
+    "minimum_frame": 1492,
+    "minimum_pixels": 983,
+    "minimum_seconds": 24.866666666666667
+  },
+  {
+    "phase": "reverse",
+    "start": 28.037363597017247,
+    "stop": 33.34596829902148,
+    "minimum_frame": 1895,
+    "minimum_pixels": 3811,
+    "minimum_seconds": 31.583333333333332
+  },
+  {
+    "phase": "end",
+    "start": 34.51593866501935,
+    "stop": 36.72986378200585,
+    "minimum_frame": 2122,
+    "minimum_pixels": 5147,
+    "minimum_seconds": 35.36666666666667
+  },
+  {
+    "phase": "idle",
+    "start": 36.72986378200585,
+    "stop": 52.9064463370014,
+    "minimum_frame": 2204,
+    "minimum_pixels": 13860,
+    "minimum_seconds": 36.733333333333334
+  }
+]
