@@ -47,4 +47,34 @@ include original cancel/refusal/UNKNOWN dispositions. Record exact candidate
 pins, physical frames, cleanup and deleted lines. Source checks alone are not
 Ready. No public-owner replay, restart or provider duplicate.
 
-Status: draft opened before implementation; producer/consumer tracing underway.
+## Working checkpoint
+
+Core457 `7f64d7ac0b72a8a2a7be373cf1ddb045a86dcaad` supplies the original
+PromptRequest.input_id. The same request object is held by SubmissionExecution
+and encoded at ACP ingress. Its accepted queue row and native-start receipt
+join by that identity, never by equal text or arrival order.
+
+The local outstanding request displays Submitting only while neither its
+canonical accepted queue row nor its actual received native-start receipt owns
+the input. The execution retains the same typed receipt after native mounting
+until the real RPC finishes; this resource cannot authorize a retry. Removing
+the idle-turn reset leaves request retirement with its original finally/finish.
+
+Native user mounting and queue invalidation share the existing HistoryWindow
+publication transaction. UserInput holds a source-backed commit claim instead
+of a separately copied native_id. StartedInputClaim retains the original start
+fact; TranscriptInputClaim retains the original saved UserTranscript. Their
+shared NativeInputClaim owns source coverage. The saved-history constructor and
+its native installed consumer migrate in place, with no alias or fallback.
+
+The frozen250 first-fork failure is preserved at
+`/home/ts/wt/g458e/u01/proof/terminal-receipt.json` and
+`/home/ts/wt/g458e/ui-firstinput01.log`: native answer once, mounted/painted
+answer twice. Heisenberg owns that live/snapshot publication defect in PR252;
+the affected continuous gate must cover both exact-once input and answer.
+
+Status: source checkpoint, not Ready or live. One existing declaration-family
+test passed; changed production parses and diff whitespace checks passed.
+Coherent Core458 integration of457/456/460 and the installed continuous native
+gate are still required. The checked-in dependency remains the base pin until
+the integration owner supplies that coherent artifact.
