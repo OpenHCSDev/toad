@@ -46,3 +46,17 @@ both original2246e183ms failure and217f92PageDown33ms failure. Further physical
 comparison requires a concrete coherent source change, not repetition of unchanged
 bytes. This draft opens the full followup before long work; no new production
 mechanism is introduced by this initial mapping.
+
+
+## First bounded custody checkpoint completed
+
+Actual noneditable173/Core000/Text650 source/resource run passes both held-mount
+preacceptance cancellation and accepted retirement cancellation. Existing Snapshot
+finally removes the provisional resource; existing shielded AwaitRemove lets the
+old native Unmount finish independently after the publishing waiter is cancelled.
+The old resource remains Closing/registered during the intentional hold, then
+fully detaches/unregisters on release; new accepted resource survives. No Snapshot
+production edit, provider, original root, native process or physical capture.
+[Exact receipt and command](../../evidence/workspace-custody-227/installed173/README.md).
+This closes the reported abandonment concern under caller cancellation, not all
+TC1/T9/performance or global/default activation acceptance.
