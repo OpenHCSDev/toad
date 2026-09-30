@@ -569,6 +569,21 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
+    async def prepare_retained_session(self) -> None:
+        """The actual source chooses restoration; a history widget is not an actor."""
+        agent = self.agent
+        if agent is None:
+            self.resume_retained_history()
+        elif agent.ready:
+            await agent.presentation.restore_saved_history(self)
+
+    def resume_retained_history(self) -> None:
+        """The selected view restores its existing non-native pager resources."""
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        for history in self.contents.query(TranscriptHistory):
+            history.state.resume_if_parked(history)
+
     async def present_retained_native_session(self) -> None:
         """Bring a returning native source into the atomic first frame."""
         agent = self.agent
@@ -1929,6 +1944,11 @@ class Conversation(ConversationSessionBinding):
             goal_bar.begin_separator_resize(event)
 
     def on_click(self, event: events.Click) -> None:
+        from toad.screens.session_view import SessionView
+
+        # A queued history click may arrive after its logical source retired.
+        if not self.query_ancestor(SessionView).is_current:
+            return
         if (
             self._mouse_down_offset is not None
             and event.screen_offset != self._mouse_down_offset
@@ -2247,7 +2267,8 @@ class Conversation(ConversationSessionBinding):
 
     def refresh_block_cursor(self) -> None:
         if (cursor_block := self.cursor_block_child) is not None:
-            self.window.focus()
+            # Resolve this navigation event before a later tab/editor event.
+            self.screen.set_focus(self.window)
             self.cursor.visible = True
             self.cursor.follow(cursor_block)
             self.call_after_refresh(

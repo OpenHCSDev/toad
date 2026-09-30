@@ -327,6 +327,28 @@ class TranscriptPresentation:
         if position is not None:
             position.prepare_history(history)
 
+    async def restore_native(self, agent) -> None:
+        """The live calling actor owns retained reveal and source validation."""
+        from toad.screens.session_view import SessionView
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        view = self.view
+        history = next((child for child in view.contents.children
+                        if isinstance(child, TranscriptHistory)), None)
+        if history is None:
+            await view.present_retained_native_session()
+            return
+        source = view.query_ancestor(SessionView)
+        await self.reveal_retained(history)
+        await view.refresh_native_projection()
+
+        def refresh_after_paint() -> None:
+            if view.app.workspace_sessions.owns(source) and view.agent is agent:
+                view.run_worker(self.refresh_revealed(agent),
+                                group="retained-native-refresh", exclusive=True)
+
+        view.call_after_refresh(refresh_after_paint)
+
     async def reveal_retained(self, history: TranscriptHistory) -> None:
         """Display the mounted reader while its native source remains fenced."""
         from toad.widgets.conversation import ThreadLoading
