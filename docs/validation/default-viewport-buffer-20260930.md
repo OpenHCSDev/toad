@@ -1,0 +1,9 @@
+# Actual default PR236 affected buffer scroll
+
+One original41MB readonly normal `/home/ts/bin/toad-comms nra-architecture` st/Xvfb continuous scroll;48.724s, runtime-viewport-buffer, exactddf180/Core4295/Text2e49/SDK12.1/nativee36. Native DTO verified actual application setting3 and each viewport budget3; message HistoryWindow actually focused. Held PageUp3s/PageDown3s/reverse3s/End/idle5s, no full keyboard/editor journey, paid calls, prompts, replay or backend/public changes.
+
+Startup and down/reverse/End frames show readable retained history. Up-done and movie contact frames have partially blank expanded tool regions: full rendering success is not claimed. End/idle both at bottom189/189 and follows-tail true, no past-end void observed at sampled frames. Loaded pages1→3→5→1; warm/registered bodies12→24→27→43→20,20stableidle,2evictions. Sampled visible dormant0 does not prove painted bodies are correct. Counts plateau in this run, not a global memory-bound proof. Original native frontier41,270,257/receipt259 and owner/source unchanged.
+
+Kernel UI boundary deltas: Up94.4%,Down106.4%,reverse88.1%; idle1.68CPU/6.466s=26.0%. Observer DTO/PNG overhead is included. No comparative speed or cause claim; remaining physical gaps/CPU sent directly to Heisenberg239. Current452 NRA InboxUnavailable/UNKNOWN preserved; overallReady false.
+
+Capture and actual application completed; all owned tracked processes absent, cleanup errors/remaining[]. Existing recorder FFmpeg SIGINT stop255 accepted. Wrapper then failed while serializing TranscriptCursor after all physical/native assertions; retained exact failure. Corrected read-only review uses canonical FieldCodec and resource-only page summaries, no relaunch/replay. Full raw movie/pickle/protocol/SVG source remains in named scratch; published receipt links it and preserves phase PNGs/contact/native summary.

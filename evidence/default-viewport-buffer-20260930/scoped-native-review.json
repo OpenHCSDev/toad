@@ -1,0 +1,2847 @@
+{
+  "checks": {
+    "journey": "default_buffer_scroll",
+    "actual_history_focus": true,
+    "actual_setting_and_viewport_budget": 3,
+    "observations": [
+      {
+        "phase": "startup",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 99,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            131
+          ],
+          "scroll_y": 99,
+          "maximum": 99,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 12,
+            "body_evictions": 0,
+            "demand": "StationaryPreparation",
+            "registered": 12,
+            "dormant": 0,
+            "visible": 4,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140652750692880,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652749804624,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731598480,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140652749800144,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731604880,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 19
+              },
+              {
+                "object_id": 140652749804304,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652750685520,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652749139280,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731610000,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731598800,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652749804944,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652749803984,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "LiveTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 237
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 259
+                  },
+                  "outcomes": null
+                },
+                "event_count": 20,
+                "start": 8,
+                "stop": 20
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "focused",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 99,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            131
+          ],
+          "scroll_y": 99,
+          "maximum": 99,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 12,
+            "body_evictions": 0,
+            "demand": "StationaryPreparation",
+            "registered": 12,
+            "dormant": 0,
+            "visible": 4,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140652750692880,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652749804624,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731598480,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140652749800144,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731604880,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 19
+              },
+              {
+                "object_id": 140652749804304,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652750685520,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652749139280,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731610000,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652731598800,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652749804944,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652749803984,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750824912,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "LiveTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 237
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 259
+                  },
+                  "outcomes": null
+                },
+                "event_count": 20,
+                "start": 8,
+                "stop": 20
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "up-done",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 27,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": true,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            227
+          ],
+          "scroll_y": 27,
+          "maximum": 195,
+          "follows_tail": false,
+          "history_lock_held": true,
+          "restoring": false,
+          "anchor": {
+            "object_id": 140652749142160,
+            "class": "TranscriptFragmentView",
+            "module": "toad.widgets.transcript_history",
+            "id": null,
+            "parent_object_id": 140652749131920
+          },
+          "layout_ready": false,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 24,
+            "body_evictions": 0,
+            "demand": "StationaryPreparation",
+            "registered": 24,
+            "dormant": 0,
+            "visible": 3,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140652731607120,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138847824,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 18
+              },
+              {
+                "object_id": 140652164317264,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749131920,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652749132880,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749131920,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652731611280,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652749142160,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749131920,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 79
+              },
+              {
+                "object_id": 140652779155728,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652226387216,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652750699920,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652749132240,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749131920,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140653141942800,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138845264,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 15
+              },
+              {
+                "object_id": 140652164308560,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749131920,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140652731603600,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652779155088,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653141945040,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653141950160,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652749137680,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749131920,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140653138839504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 17
+              },
+              {
+                "object_id": 140652226383696,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652226381776,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652191111824,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140653141947280,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652164319184,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653193567184,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652164314960,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 5
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "WorkingTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41057631,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41121681,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 23,
+                "start": 5,
+                "stop": 13
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41121681,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41176028,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 12,
+                "start": 0,
+                "stop": 6
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41176028,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41236165,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 26,
+                "start": 0,
+                "stop": 10
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "down-done",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 109,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": true,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            231
+          ],
+          "scroll_y": 109,
+          "maximum": 199,
+          "follows_tail": false,
+          "history_lock_held": true,
+          "restoring": false,
+          "anchor": {
+            "object_id": 140652191108944,
+            "class": "TranscriptFragmentView",
+            "module": "toad.widgets.transcript_history",
+            "id": null,
+            "parent_object_id": 140652731597520
+          },
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 27,
+            "body_evictions": 2,
+            "demand": "StationaryPreparation",
+            "registered": 27,
+            "dormant": 0,
+            "visible": 4,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140652144641040,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652191107984,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749814544,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 0
+              },
+              {
+                "object_id": 140652750684240,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 12
+              },
+              {
+                "object_id": 140652750692560,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749814544,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652749807504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138842704,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652126619920,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138842704,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652750822672,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652191112464,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652751706448,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 16
+              },
+              {
+                "object_id": 140652750690640,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 12
+              },
+              {
+                "object_id": 140652144208272,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138842704,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652750699920,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652191120784,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749814544,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 0
+              },
+              {
+                "object_id": 140652751709648,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652749141520,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 13
+              },
+              {
+                "object_id": 140652750698000,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140652226382736,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138842704,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652749134480,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 15
+              },
+              {
+                "object_id": 140652750822032,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652750690960,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749814544,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 17
+              },
+              {
+                "object_id": 140652751716048,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652749805264,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652144211792,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749814544,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 12
+              },
+              {
+                "object_id": 140652191108944,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652750688080,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652749814544,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140652126620560,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138842704,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653164922832,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652731597520,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 13
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "WorkingTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41176028,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41240825,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 28,
+                "start": 10,
+                "stop": 15
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41240825,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 239
+                  },
+                  "outcomes": null
+                },
+                "event_count": 24,
+                "start": 0,
+                "stop": 16
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 239
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 259
+                  },
+                  "outcomes": null
+                },
+                "event_count": 18,
+                "start": 0,
+                "stop": 4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "reverse-done",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 106.3135437399242,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": true,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            331
+          ],
+          "scroll_y": 106.3135437399242,
+          "maximum": 299,
+          "follows_tail": false,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 43,
+            "body_evictions": 2,
+            "demand": "StationaryPreparation",
+            "registered": 43,
+            "dormant": 0,
+            "visible": 3,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140652731596880,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138847824,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653164925072,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 5
+              },
+              {
+                "object_id": 140652750829712,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 5
+              },
+              {
+                "object_id": 140653138845904,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652126626000,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 75
+              },
+              {
+                "object_id": 140652144646480,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138843984,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652144640400,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652731597200,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 6
+              },
+              {
+                "object_id": 140652750694800,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140653183154640,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138846224,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138844304,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652750826192,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652751700688,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 3
+              },
+              {
+                "object_id": 140653138838224,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652750689040,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 13
+              },
+              {
+                "object_id": 140652144653200,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140653141937040,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653193567184,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138844624,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652226391056,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652750695440,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 3
+              },
+              {
+                "object_id": 140652144641040,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140652751715408,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 3
+              },
+              {
+                "object_id": 140653138840784,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653183143120,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 27
+              },
+              {
+                "object_id": 140652191112464,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653141949840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 83
+              },
+              {
+                "object_id": 140652750826832,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652731602320,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653164922512,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652750827152,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652751705808,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 5
+              },
+              {
+                "object_id": 140652751716048,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652126633680,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652191115024,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140652144650000,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652144640080,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140653141944080,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 4
+              },
+              {
+                "object_id": 140652731610960,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750688720,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653141948240,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140652750693840,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 7
+              },
+              {
+                "object_id": 140653138845584,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              },
+              {
+                "object_id": 140653138839504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653138839184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 2
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "LiveTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 40886259,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 188
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 40937665,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 28,
+                "start": 18,
+                "stop": 26
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 40937665,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 40999956,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 18,
+                "start": 0,
+                "stop": 12
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 40999956,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41057631,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 16,
+                "start": 0,
+                "stop": 9
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41057631,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41121681,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 23,
+                "start": 0,
+                "stop": 13
+              },
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41121681,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41176028,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 228
+                  },
+                  "outcomes": null
+                },
+                "event_count": 12,
+                "start": 0,
+                "stop": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "idle",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 189,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            221
+          ],
+          "scroll_y": 189,
+          "maximum": 189,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 20,
+            "body_evictions": 2,
+            "demand": "StationaryPreparation",
+            "registered": 20,
+            "dormant": 0,
+            "visible": 4,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140653138837584,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138847824,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140653138846864,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138845904,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138840784,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140653138843984,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138838864,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138848144,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138843024,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138842064,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138847184,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138846224,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653193071504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138844304,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 17
+              },
+              {
+                "object_id": 140653138848464,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138838224,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138841424,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 12
+              },
+              {
+                "object_id": 140653138839504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 19
+              },
+              {
+                "object_id": 140653138845584,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138844624,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "LiveTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 237
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 259
+                  },
+                  "outcomes": null
+                },
+                "event_count": 20,
+                "start": 0,
+                "stop": 20
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "idle-done",
+        "window": {
+          "object_id": 140653193567504,
+          "class": "Window",
+          "module": "toad.widgets.conversation",
+          "id": null,
+          "parent_object_id": 140653193562384,
+          "_reactive_scroll_y": 189,
+          "_reactive_scroll_x": 0.0,
+          "_is_anchored": null,
+          "_anchor_released": false,
+          "region": [
+            71,
+            3,
+            105,
+            32
+          ],
+          "focus_target": {
+            "widget": {
+              "object_id": 140653193567824,
+              "class": "CursorContainer",
+              "module": "toad.widgets.conversation",
+              "id": "cursor-container",
+              "parent_object_id": 140653193566544
+            },
+            "cell": [
+              71,
+              19
+            ]
+          },
+          "_reactive_virtual_size": [
+            102,
+            221
+          ],
+          "scroll_y": 189,
+          "maximum": 189,
+          "follows_tail": true,
+          "history_lock_held": false,
+          "restoring": false,
+          "anchor": null,
+          "layout_ready": null,
+          "paint_ready": null,
+          "body_resources": {
+            "budget": {
+              "max_items": 24,
+              "admission_items": 4,
+              "reserve_batches": 4,
+              "minimum_widgets": 300,
+              "widgets_per_row": 10,
+              "buffer_viewports": 3,
+              "lookahead_seconds": 0.3,
+              "scroll_idle_seconds": 0.2
+            },
+            "warm": 20,
+            "body_evictions": 2,
+            "demand": "StationaryPreparation",
+            "registered": 20,
+            "dormant": 0,
+            "visible": 4,
+            "visible_dormant": 0,
+            "reconciling": false,
+            "suspended": false,
+            "owners": [
+              {
+                "object_id": 140653138837584,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138847824,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140653138846864,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138845904,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138840784,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 9
+              },
+              {
+                "object_id": 140653138843984,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138838864,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138848144,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138843024,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138842064,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138847184,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138846224,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653193071504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 11
+              },
+              {
+                "object_id": 140653138844304,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 17
+              },
+              {
+                "object_id": 140653138848464,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": true,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138838224,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138841424,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 12
+              },
+              {
+                "object_id": 140653138839504,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 19
+              },
+              {
+                "object_id": 140653138845584,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              },
+              {
+                "object_id": 140653138844624,
+                "class": "TranscriptFragmentView",
+                "module": "toad.widgets.transcript_history",
+                "id": null,
+                "parent_object_id": 140653193567184,
+                "ready": true,
+                "dormant": false,
+                "visible": false,
+                "measured_rows": 10
+              }
+            ]
+          }
+        },
+        "pages": [
+          {
+            "through": {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipts": {
+                "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                "recipient": {
+                  "name": "nra-architecture",
+                  "created_at": 1790049182.3907015
+                },
+                "sequence": 259
+              },
+              "outcomes": null
+            },
+            "source_state": "LiveTranscript",
+            "pages": [
+              {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 237
+                  },
+                  "outcomes": null
+                },
+                "after": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 259
+                  },
+                  "outcomes": null
+                },
+                "event_count": 20,
+                "start": 0,
+                "stop": 20
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "physical_frames_require_review": true,
+    "no_full239_readiness_claim": true
+  },
+  "source_and_owner_unchanged": true,
+  "runtime_override": false,
+  "prompt_submissions": 0,
+  "physical_review": "Required before any default live PASS",
+  "scope": "default_buffer_scroll"
+}

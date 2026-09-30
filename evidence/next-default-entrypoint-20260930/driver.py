@@ -30,6 +30,8 @@ def main():
     parser.add_argument("--peer-thread", default="nra-domain-mapping")
     parser.add_argument("--journey", default="default_entrypoint")
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--review-existing", action="store_true",
+                        help="Review retained native artifacts without launching the UI")
     args = parser.parse_args()
     sys.dont_write_bytecode = True  # Borrow the reviewed tools without writing to their WT.
     recorder_path = args.recorder.resolve()
@@ -146,8 +148,14 @@ def main():
                 assert state["metadata"]["history_buffer_viewports"] == 3
                 assert current["body_resources"]["budget"]["buffer_viewports"] == 3
                 assert view["identity"]["_comms_thread"] == args.thread
-                observations.append({"phase": label, "window": current,
-                                     "pages": view["history_pages"]})
+                pages = [{"through": FieldCodec.encode(history["through"]),
+                          "source_state": history["source_state"],
+                          "pages": [{"before": FieldCodec.encode(page.before),
+                                     "after": FieldCodec.encode(page.after),
+                                     "event_count": len(page.events), "start": first, "stop": last}
+                                    for page, first, last in history["pages"]]}
+                         for history in view["history_pages"]]
+                observations.append({"phase": label, "window": current, "pages": pages})
             return {"journey": cls.declared_name, "actual_history_focus": True,
                     "actual_setting_and_viewport_budget": 3,
                     "observations": observations, "physical_frames_require_review": True,
@@ -155,6 +163,24 @@ def main():
 
     command = ["/home/ts/bin/toad-comms", args.thread]
     journey = recorder.PhysicalJourney.decode(args.journey)
+    from agent_comms.field_codec import FieldCodec
+
+    def publish_read_review(base):
+        checks = journey.verify(base)
+        assert (base / "original-before.json").read_bytes() == (base / "original-after.json").read_bytes(), "Original native owner/source changed"
+        (base / "scoped-native-review.json").write_text(json.dumps({
+            "checks": checks, "source_and_owner_unchanged": True, "runtime_override": False,
+            "prompt_submissions": 0, "physical_review": "Required before any default live PASS",
+            "scope": journey.declared_name,
+        }, indent=2) + "\n")
+
+    if args.review_existing:
+        base = args.output.resolve()
+        receipt = json.loads((base / "capture/receipt.json").read_text())
+        assert receipt["completed"] and receipt["capture_completed"]
+        assert receipt["physical_journey"] == journey.declared_name
+        publish_read_review(base)
+        return
     actions = journey.script(None)
     preparation = {
         "command": command, "recorder": str(recorder_path),
@@ -188,7 +214,6 @@ def main():
                 "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
         os.environ.pop(key, None)
     from agent_comms.comms import wire
-    from agent_comms.field_codec import FieldCodec
 
     def original():
         thread = wire().registry.require(args.thread)
@@ -214,13 +239,7 @@ def main():
     finally:
         (base / "original-after.json").write_text(json.dumps(original(), indent=2) + "\n")
 
-    checks = journey.verify(base)
-    assert (base / "original-before.json").read_bytes() == (base / "original-after.json").read_bytes(), "Original native owner/source changed"
-    (base / "scoped-native-review.json").write_text(json.dumps({
-        "checks": checks, "source_and_owner_unchanged": True, "runtime_override": False,
-        "prompt_submissions": 0, "physical_review": "Required before any default live PASS",
-        "scope": journey.declared_name,
-    }, indent=2) + "\n")
+    publish_read_review(base)
 
 
 def verify_editor_journey(base, thread):

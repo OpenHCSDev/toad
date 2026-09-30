@@ -1,0 +1,660 @@
+{
+  "state": "ACTUAL-DEFAULT-236-BUFFER-SCOPE-VERIFIED-WITH-OPEN-RENDERING-AND-INBOX-GAPS",
+  "overall_ready": false,
+  "default_command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-viewport-buffer-20260930/bin",
+  "pins": {
+    "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+    "batrachian-toad": "ddf180ddc40d681e2624a9c0570abcdb5052ed30",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "duration_seconds": 48.7238078880182,
+  "raw": "/home/ts/.cache/agent-scratch/comms-default-viewport-buffer-20260930",
+  "capture_returncode": 255,
+  "actual_setting": 3,
+  "actual_viewport_budget": 3,
+  "native_history_focus": true,
+  "observations": [
+    {
+      "phase": "startup",
+      "scroll_y": 99,
+      "maximum": 99,
+      "follows_tail": true,
+      "source_state": [
+        "LiveTranscript"
+      ],
+      "loaded_pages": 1,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 12,
+        "warm": 12,
+        "dormant": 0,
+        "visible": 4,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 0
+      }
+    },
+    {
+      "phase": "focused",
+      "scroll_y": 99,
+      "maximum": 99,
+      "follows_tail": true,
+      "source_state": [
+        "LiveTranscript"
+      ],
+      "loaded_pages": 1,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 12,
+        "warm": 12,
+        "dormant": 0,
+        "visible": 4,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 0
+      }
+    },
+    {
+      "phase": "up-done",
+      "scroll_y": 27,
+      "maximum": 195,
+      "follows_tail": false,
+      "source_state": [
+        "WorkingTranscript"
+      ],
+      "loaded_pages": 3,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 24,
+        "warm": 24,
+        "dormant": 0,
+        "visible": 3,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 0
+      }
+    },
+    {
+      "phase": "down-done",
+      "scroll_y": 109,
+      "maximum": 199,
+      "follows_tail": false,
+      "source_state": [
+        "WorkingTranscript"
+      ],
+      "loaded_pages": 3,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 27,
+        "warm": 27,
+        "dormant": 0,
+        "visible": 4,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 2
+      }
+    },
+    {
+      "phase": "reverse-done",
+      "scroll_y": 106.3135437399242,
+      "maximum": 299,
+      "follows_tail": false,
+      "source_state": [
+        "LiveTranscript"
+      ],
+      "loaded_pages": 5,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 43,
+        "warm": 43,
+        "dormant": 0,
+        "visible": 3,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 2
+      }
+    },
+    {
+      "phase": "idle",
+      "scroll_y": 189,
+      "maximum": 189,
+      "follows_tail": true,
+      "source_state": [
+        "LiveTranscript"
+      ],
+      "loaded_pages": 1,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 20,
+        "warm": 20,
+        "dormant": 0,
+        "visible": 4,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 2
+      }
+    },
+    {
+      "phase": "idle-done",
+      "scroll_y": 189,
+      "maximum": 189,
+      "follows_tail": true,
+      "source_state": [
+        "LiveTranscript"
+      ],
+      "loaded_pages": 1,
+      "through": [
+        {
+          "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+          "offset": 41270257,
+          "receipts": {
+            "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+            "recipient": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "sequence": 259
+          },
+          "outcomes": null
+        }
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "registered": 20,
+        "warm": 20,
+        "dormant": 0,
+        "visible": 4,
+        "visible_dormant": 0,
+        "demand": "StationaryPreparation",
+        "reconciling": false,
+        "suspended": false,
+        "body_evictions": 2
+      }
+    }
+  ],
+  "cpu_phase_evidence": [
+    {
+      "phase": "startup",
+      "next_phase": "focused",
+      "wall_seconds": 2.1137933600111865,
+      "ui_cpu_seconds": 0.6000000000000005,
+      "average_cpu_percent": 28.384988398148113,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "focused",
+      "next_phase": "up",
+      "wall_seconds": 2.516792706999695,
+      "ui_cpu_seconds": 0.6500000000000004,
+      "average_cpu_percent": 25.826521119209488,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "up",
+      "next_phase": "up-done",
+      "wall_seconds": 4.649480093998136,
+      "ui_cpu_seconds": 4.389999999999999,
+      "average_cpu_percent": 94.41915894353238,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "up-done",
+      "next_phase": "down",
+      "wall_seconds": 1.2630142069829162,
+      "ui_cpu_seconds": 1.3499999999999996,
+      "average_cpu_percent": 106.88715871414263,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "down",
+      "next_phase": "down-done",
+      "wall_seconds": 4.867542479012627,
+      "ui_cpu_seconds": 5.18,
+      "average_cpu_percent": 106.41920481094094,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "down-done",
+      "next_phase": "reverse",
+      "wall_seconds": 1.422573977994034,
+      "ui_cpu_seconds": 1.4000000000000021,
+      "average_cpu_percent": 98.41315964278614,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "reverse",
+      "next_phase": "reverse-done",
+      "wall_seconds": 4.7009532029915135,
+      "ui_cpu_seconds": 4.140000000000001,
+      "average_cpu_percent": 88.06724554002064,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "reverse-done",
+      "next_phase": "end",
+      "wall_seconds": 1.525654836994363,
+      "ui_cpu_seconds": 1.2699999999999996,
+      "average_cpu_percent": 83.24294389561798,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "end",
+      "next_phase": "idle",
+      "wall_seconds": 2.6167145440122113,
+      "ui_cpu_seconds": 2.3099999999999987,
+      "average_cpu_percent": 88.27863953620532,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    },
+    {
+      "phase": "idle",
+      "next_phase": "idle-done",
+      "wall_seconds": 6.465943035989767,
+      "ui_cpu_seconds": 1.6799999999999997,
+      "average_cpu_percent": 25.982288904325856,
+      "basis": "Kernel counters at actual phase boundaries; includes DTO/screenshot observer overhead, no causal attribution or comparative speed claim"
+    }
+  ],
+  "physical_review": {
+    "startup": "Original retained history readable",
+    "up": "Expanded edit/read tool regions partially blank in up-done PNG and movie contact frames; no claim that all bodies render correctly",
+    "down": "Retained messages readable in down-done",
+    "reverse": "Retained code/diff text readable in reverse-done",
+    "end_idle": "Readable bottom retained messages; scroll_y==maximum189, follows_tail true at both idle samples; no past-end void observed at those samples",
+    "resource_scope": "Loaded pages1->3->5->1; registered/warm bodies12->24->27->43->20,20stableidle,2bodyevictions; source41,270,257 frontier/receipt259 unchanged, visible_dormant0 sampled. Observation of bounded counts, not proof of global memory bound/zero render gaps",
+    "remaining_239": "High scrollCPU and partial blank tool regions handed to Heisenberg239; warm-B/whole239Ready not claimed",
+    "remaining_452": "FreshNRA InboxUnavailable/NativePiUnavailable/PromptSendUnknown retained, parent452 ownership"
+  },
+  "source_and_owner_unchanged": true,
+  "prompts": 0,
+  "provider_calls": 0,
+  "native_owner_restarts": 0,
+  "defaults_changed_by_worker": 0,
+  "ui_runs": 1,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3433771,
+        "start_ticks": 25688165,
+        "returncode": 0
+      },
+      {
+        "pid": 3433775,
+        "start_ticks": 25688243,
+        "returncode": 0
+      },
+      {
+        "pid": 3433777,
+        "start_ticks": 25688252,
+        "returncode": 0
+      },
+      {
+        "pid": 3433779,
+        "start_ticks": 25688258,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3433797,
+        "start_ticks": 25688314,
+        "returncode": 0
+      },
+      {
+        "pid": 3433798,
+        "start_ticks": 25688328,
+        "returncode": 0
+      },
+      {
+        "pid": 3433799,
+        "start_ticks": 25688338,
+        "returncode": 0
+      },
+      {
+        "pid": 3433801,
+        "start_ticks": 25688347,
+        "returncode": 255
+      },
+      {
+        "pid": 3434309,
+        "start_ticks": 25689549,
+        "returncode": 0
+      },
+      {
+        "pid": 3434314,
+        "start_ticks": 25689576,
+        "returncode": 0
+      },
+      {
+        "pid": 3434339,
+        "start_ticks": 25689613,
+        "returncode": 0
+      },
+      {
+        "pid": 3434353,
+        "start_ticks": 25689743,
+        "returncode": 0
+      },
+      {
+        "pid": 3434359,
+        "start_ticks": 25689824,
+        "returncode": 0
+      },
+      {
+        "pid": 3434464,
+        "start_ticks": 25689964,
+        "returncode": 0
+      },
+      {
+        "pid": 3434534,
+        "start_ticks": 25690076,
+        "returncode": 0
+      },
+      {
+        "pid": 3434586,
+        "start_ticks": 25690204,
+        "returncode": 0
+      },
+      {
+        "pid": 3434619,
+        "start_ticks": 25690215,
+        "returncode": 0
+      },
+      {
+        "pid": 3434702,
+        "start_ticks": 25690528,
+        "returncode": 0
+      },
+      {
+        "pid": 3434703,
+        "start_ticks": 25690539,
+        "returncode": 0
+      },
+      {
+        "pid": 3434735,
+        "start_ticks": 25690667,
+        "returncode": 0
+      },
+      {
+        "pid": 3434748,
+        "start_ticks": 25690810,
+        "returncode": 0
+      },
+      {
+        "pid": 3434750,
+        "start_ticks": 25690824,
+        "returncode": 0
+      },
+      {
+        "pid": 3434901,
+        "start_ticks": 25691138,
+        "returncode": 0
+      },
+      {
+        "pid": 3434902,
+        "start_ticks": 25691150,
+        "returncode": 0
+      },
+      {
+        "pid": 3434924,
+        "start_ticks": 25691295,
+        "returncode": 0
+      },
+      {
+        "pid": 3434937,
+        "start_ticks": 25691428,
+        "returncode": 0
+      },
+      {
+        "pid": 3434940,
+        "start_ticks": 25691443,
+        "returncode": 0
+      },
+      {
+        "pid": 3434963,
+        "start_ticks": 25691757,
+        "returncode": 0
+      },
+      {
+        "pid": 3434964,
+        "start_ticks": 25691768,
+        "returncode": 0
+      },
+      {
+        "pid": 3434980,
+        "start_ticks": 25691917,
+        "returncode": 0
+      },
+      {
+        "pid": 3435143,
+        "start_ticks": 25692052,
+        "returncode": 0
+      },
+      {
+        "pid": 3435144,
+        "start_ticks": 25692064,
+        "returncode": 0
+      },
+      {
+        "pid": 3435175,
+        "start_ticks": 25692178,
+        "returncode": 0
+      },
+      {
+        "pid": 3435251,
+        "start_ticks": 25692315,
+        "returncode": 0
+      },
+      {
+        "pid": 3435318,
+        "start_ticks": 25692829,
+        "returncode": 0
+      },
+      {
+        "pid": 3435481,
+        "start_ticks": 25693162,
+        "returncode": 0
+      },
+      {
+        "pid": 3435487,
+        "start_ticks": 25693190,
+        "returncode": 0
+      },
+      {
+        "pid": 3435502,
+        "start_ticks": 25693275,
+        "returncode": 0
+      },
+      {
+        "pid": 3435503,
+        "start_ticks": 25693348,
+        "returncode": 0
+      },
+      {
+        "pid": 3435509,
+        "start_ticks": 25693593,
+        "returncode": 0
+      }
+    ]
+  },
+  "receipt_writer_history": {
+    "initial_wrapper_exit": 1,
+    "error": "Post-capture JSON TypeError: TranscriptCursor is not JSON serializable",
+    "correction": "Existing FieldCodec encodes cursor boundaries, page resource summaries exclude event bodies; readonly --review-existing passes on retained exact artifacts",
+    "ui_relaunches": 0,
+    "raw_initial_failure": "original-wrapper-failure.txt"
+  },
+  "driver_source_commit_at_capture": "9f6428d9",
+  "corrected_driver_pending_commit": true
+}
