@@ -55,6 +55,11 @@ class ViewportBody:
     def retained_widget_count(self) -> int:
         raise NotImplementedError
 
+    @property
+    def materialized_widget_count(self) -> int:
+        """Current native custody, including children still awaiting removal."""
+        return 1 + len(self.walk_children())
+
 
 @dataclass(frozen=True)
 class BodyMeasurement:
@@ -108,6 +113,14 @@ class MeasuredViewportBody(ViewportBody):
                 measurement, widgets=widgets, nodes_revision=self._nodes._updates,
             )
         return widgets
+
+    @property
+    def materialized_widget_count(self) -> int:
+        # A dormant body keeps its reconstruction reservation. Its native
+        # children may still be pruning or may include retained fixed widgets.
+        # Count that custody without overwriting the restore reservation.
+        return (super().materialized_widget_count if self._body_dormant
+                else self.retained_widget_count)
 
     def retire_measurement(self) -> None:
         # This cost belongs to the reconstructible body, not a second viewport
