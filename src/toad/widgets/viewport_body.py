@@ -340,7 +340,10 @@ class DocumentViewport:
                     wanted = owner in retained
                     if owner.body_dormant and wanted:
                         anchor = next((item for item in owners if item in visible and item.is_attached), owner)
+                        started = monotonic()
                         await self._restore_body(owner, anchor)
+                        if owner in visible:
+                            self.lookahead.delivered(monotonic() - started)
                     if (not wanted and not owner.body_dormant and owner not in self.protected()
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
@@ -368,7 +371,6 @@ class DocumentViewport:
             self._running = False
 
     async def _restore_body(self, owner: ViewportBody, anchor: Widget) -> None:
-        started = monotonic()
         async with self.window.history_lock:
             if not self.window.is_attached or not owner.is_attached or not self.window.screen.is_current:
                 return
@@ -377,4 +379,3 @@ class DocumentViewport:
                     await owner.restore_body()
             else:
                 await owner.restore_body()
-        self.lookahead.delivered(monotonic() - started)
