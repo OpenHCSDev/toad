@@ -45,6 +45,22 @@ class NonblockingSampling(ProfileSampling):
     limitation = "Nonblocking reads can observe inconsistent Python stacks; inspect sampling errors before attribution"
 
 
+class ThreadSampling(DeclaredFamily, affix="ThreadSampling"):
+    """Declare which sampled threads answer the intended profiling question."""
+
+    arguments = ()
+    limitation = "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution"
+
+
+class AllThreadSampling(ThreadSampling):
+    pass
+
+
+class GilThreadSampling(ThreadSampling):
+    arguments = ("--gil",)
+    limitation = "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters"
+
+
 class ReviewTiming(DeclaredFamily, affix="ReviewTiming"):
     """Clip encoding is an independent resource lifetime, never native work."""
 
@@ -381,8 +397,9 @@ def profile_launch(command):
         program = terminal_program(owner, terminal.child.identity, deadline, transfer_program)
         ui_pid = program.child.identity.pid
         sampling = ProfileSampling.decode(os.environ["TOAD_VIDEO_PROFILE_SAMPLING"])
+        threads = ThreadSampling.decode(os.environ["TOAD_VIDEO_PROFILE_THREADS"])
         argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
-                "--subprocesses", "--full-filenames", *sampling.arguments,
+                "--subprocesses", "--full-filenames", *sampling.arguments, *threads.arguments,
                 "--rate", os.environ["TOAD_VIDEO_PROFILE_RATE"],
                 "--duration", os.environ["TOAD_VIDEO_PROFILE_DURATION"],
                 "--output", str(output / "cpu-profile.json")]
@@ -390,6 +407,7 @@ def profile_launch(command):
             "terminal_pid": terminal.process.pid, "terminal_start_ticks": terminal.child.identity.start_time,
             "ui_pid": ui_pid, "ui_start_ticks": program.child.identity.start_time, "profiler_command": argv,
             "sampling": sampling.declared_name,
+            "threads": threads.declared_name,
             "profiler_exec_monotonic": time.monotonic()}) + "\n")
         # exec preserves the ancestor identity that Linux ptrace admission requires.
         os.execv(argv[0], argv)
@@ -430,7 +448,9 @@ def profile_review(output, receipt, rate):
     origin = (lower + upper) / 2
     offset = origin - receipt["capture_launch_monotonic"]
     sampling = ProfileSampling.decode(launch["sampling"])
+    threads = ThreadSampling.decode(launch["threads"])
     result = {"profiler": "py-spy", "rate_hz": rate, "sampling": sampling.declared_name,
+        "threads": threads.declared_name,
         "trace": "cpu-profile.json", "trace_origin_monotonic_estimate": origin,
         "trace_to_video_offset_seconds": offset,
         "ui_pid": launch["ui_pid"],
@@ -438,7 +458,8 @@ def profile_review(output, receipt, rate):
         "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
         "alignment_nominal_uncertainty_seconds": (upper - lower) / 2 + 1 / rate,
         "limits": ["Scheduler delays and sampling errors can increase clock uncertainty",
-                   sampling.limitation,
+            sampling.limitation,
+            threads.limitation,
                    "Stack spans are sampled wall activity, not exact call counts or CPU time",
                    "Kernel counter deltas give per-process CPU time at action boundaries",
                    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
@@ -630,6 +651,7 @@ def record(args):
                     raise RuntimeError("Optional profiling needs the existing py-spy installation")
                 env["TOAD_VIDEO_PROFILE_RATE"] = str(args.profile_rate)
                 env["TOAD_VIDEO_PROFILE_SAMPLING"] = args.profile_sampling.declared_name
+                env["TOAD_VIDEO_PROFILE_THREADS"] = args.profile_threads.declared_name
                 env["TOAD_VIDEO_PROFILE_DURATION"] = str(math.ceil(args.max_duration + 30))
                 argv = [sys.executable, str(Path(__file__).resolve()), "--profile-launch", *command]
                 receipt["profiler"] = {"command": argv, "executable_sha256": digest(Path(profiler)),
@@ -868,6 +890,8 @@ def main():
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
     parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
+    parser.add_argument("--profile-threads", type=ThreadSampling.decode, default=AllThreadSampling,
+                        help="Thread selection: " + ", ".join(ThreadSampling.names()))
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=800)

@@ -66,6 +66,8 @@ async def record(app, pilot, agent, comms, entered, release, hold_next, requests
         command.extend(('--review-phase', phase))
     if os.environ.get('SCROLL_PROFILE') == '1':
         command.append('--profile')
+        if threads := os.environ.get('SCROLL_PROFILE_THREADS'):
+            command.extend(('--profile-threads', threads))
     command.extend(('--', str(runtime / 'toad'), 'acp',
                     shlex.join((str(runtime / 'python'), '-m', 'agent_comms.acp')),
                     str(agent.project_root_path), '--session', 'beta'))
