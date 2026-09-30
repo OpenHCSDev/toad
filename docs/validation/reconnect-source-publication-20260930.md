@@ -17,3 +17,19 @@ Preserve PR229 accepted 39-chunk continuous response and joined cancellation ret
 SnapshotPublication captures only existing CommittedHistory before mounting the accepted replacement. A settled live AgentResponse is a SnapshotPresentation but is not included in that evidence. CheckpointPublication instead asks the existing TurnOwner.captured_snapshot for its captured cohort. Investigate whether the full source consumer bypasses that original capture authority and whether capture occurs before asynchronous page preparation.
 
 Patterns: BOUND-2 (bypassing the existing capture owner), IMPL-12 (two publication consumers with divergent retirement decisions), IDEN-6 (canonical event identity versus body equality). These are source leads until the matched actual retained-resource reproducer proves them.
+
+## Tested checkpoint
+
+Deleted 4 production lines; added 3. Full snapshots now ask the existing TurnOwner.captured_snapshot at original operation capture, before asynchronous rendering. Their accepted source replaces that original resource cohort using existing CommitClaim evidence and the existing joined retirement operation. Busy turns still declare empty anonymous-output coverage. Original NativeInputClaim and SequenceClaim remain unchanged; unrelated widgets do not acquire capture membership. The divergent CommittedHistory-only capture was deleted. No body comparison chooses retirement.
+
+Exact installed candidate e86e903d47c7719626e715082a1feaf2f50c8297 / Core095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817 / Text65053c5a2df12249ef1c4193beeff7023c1f75d7 / SDK0.12.1 / nativee36 passed normal 68-package installation, dependency checking and full native trust. This is a compatible private C3 fixture, not installed-default activation.
+
+Fresh native baseline cw232b01 reproduces the broader automatic-source defect even before explicit reconnect: one original native user, one saved assistant and one localhost request yielded two registered and painted response resources/headers. Original native07 proves explicit reconnect too. Both failed originals remain protected.
+
+Fresh candidate cw232c03 exited 0 through one answer, actual ACP reconnect, a distinct second input producing an equal answer body, and another actual ACP reconnect. Canonical native inputs have distinct IDs. There were exactly one, one, two, two original assistant events, registered response resources, painted bodies and painted headers. Original process identity stayed unchanged; provider requests remained exactly two. The driver waits for the accepted original source frontier and history lock retirement before making resource/paint assertions. Candidate02's premature provisional-mount assertion is retained as driver diagnosis, not a product failure or acceptance claim.
+
+Changed busy-capture behavior was checked using the existing continuous native39-chunk PR229 driver on a new cw232s04 fixture. One native input, one provider request and one saved assistant. Context publication during the held response kept the original uncovered ResponseStream association, with one header throughout. Exit0. Joined cancellation retirement is byte-identical to merged229 and was not rerun.
+
+Required packaged debt ratchet fda1b5d2→e86e903d exited0 with no nonzero debt delta. Final installed production bytes match the tested commit; final changes are receipts/driver source only. All four scoped fixture roots/journals and original native07 remain protected; remaining owned fixture processes are empty. No original request was replayed, no public owner or installation was changed, and paid calls were zero.
+
+Evidence lives in evidence/reconnect-source-publication. The accepted resource/paint gate covers fresh small retained native history and equal-body identity; it does not claim all large-history performance, fork roster visibility, or global live activation.

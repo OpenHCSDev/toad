@@ -39,11 +39,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     async def observe(label, expected):
         await until(pilot, lambda: response_painted(app, view, BODY))
         page = await agent.get_transcript_page()
-        if label.startswith("reconnect"):
-            await until(pilot, lambda: not view.window.history_lock.locked() and any(
-                history.committed_cursor == page.after for history in view.window.histories
-                if history.is_attached and history.state.reports_coverage))
-            await pilot.pause()
+        await until(pilot, lambda: not view.window.history_lock.locked() and any(
+            history.committed_cursor == page.after for history in view.window.histories
+            if history.is_attached and history.state.reports_coverage))
+        await pilot.pause()
         source = [event for event in page.events if isinstance(event, AssistantTranscript)]
         users = [event for event in page.events if isinstance(event, UserTranscript)]
         widgets = tuple(block for block in view.query(AgentResponse) if block.source == BODY)
