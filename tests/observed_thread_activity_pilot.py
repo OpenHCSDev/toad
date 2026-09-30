@@ -8,6 +8,8 @@ import os
 import tempfile
 import time
 import json
+import traceback
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from agent_comms.activity import ActivityState, UnavailableDrainDiagnostic
@@ -15,7 +17,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from comms_boundary_fixture import attach_coordination
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp as FixtureApp
 
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
@@ -24,6 +26,19 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.side_bar import SideBar
 from toad.widgets.comms_sidebar import CommsSidebar
+
+
+class ToadApp(FixtureApp):
+    @asynccontextmanager
+    async def run_test(self, **kwargs):
+        async with super().run_test(**kwargs) as pilot:
+            try:
+                yield pilot
+            except BaseException:
+                # Preserve the original assertion if application teardown also
+                # raises; it must not hide the actual failed user journey.
+                traceback.print_exc()
+                raise
 
 
 async def until(predicate):

@@ -68,6 +68,7 @@ class CoordinationAccess:
         self.revision: WireRevision | None = None
         self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self.task: asyncio.Task[None] | None = None
+        self.timer = None
 
     @property
     def observed_service(self) -> Comms | None:
@@ -98,10 +99,12 @@ class CoordinationAccess:
         """One application revision observer serves visible views and roster paint."""
         from toad.constants import COMMS_REFRESH_INTERVAL
 
-        app.set_interval(COMMS_REFRESH_INTERVAL, self.refresh)
+        self.timer = app.set_interval(COMMS_REFRESH_INTERVAL, self.refresh)
         self.refresh()
 
     async def close(self) -> None:
+        if self.timer is not None:
+            self.timer.stop()
         if self.task is not None:
             self.task.cancel()
             await asyncio.gather(self.task, return_exceptions=True)

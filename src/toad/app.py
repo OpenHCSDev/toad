@@ -330,12 +330,12 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
+        await self.coordination_access.close()
         await self.thread_navigation.close()
         await self.thread_actions.close()
         await super()._close_all()
 
     async def on_unmount(self) -> None:
-        await self.coordination_access.close()
         self.terminal_attention.close()
         await self.thread_navigation.close()
         await self.navigation_reader.aclose()
