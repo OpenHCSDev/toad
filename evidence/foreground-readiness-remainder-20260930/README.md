@@ -70,3 +70,26 @@ optional CI or target ceremony. Open before sustained work; normal main merges.
 
 Protect all originals/user processes/journals/private roots and raw proof. No
 global activation, public writes, prompts, owner restart or original attempt replay.
+
+## Canonical lazy geometry caption damage contribution
+
+Critical input caption ownership now maps to Textual PR15, persistent WT
+/home/ts/wt/textual-lazy-geometry-publication-damage-20260930. Source5fbf893e3,
+receipt head a5c6678da. One production compositor file:25 lines deleted /15 added.
+Real ToadApp source red/green and five native compositor/viewport-layout checks
+pass; no native/provider/input starts or global package changes.
+
+The original full_map lazy query replaced visible geometry without preserving
+its old/new damage; subsequent reflow could no longer clear the old caption row.
+One Compositor damage operation now covers reflow, visible reflow and lazy scene
+publication. This eliminates duplicated damage code and corrects all callers.
+No forced screen repaint, status store, caption copy or parallel render state.
+The same-run source counterexample matches u02's retained-old-caption symptom;
+the original u02 exact call stack is not recorded, so causal closure of that
+native attempt remains unclaimed. Einstein owns one new coherent native gate.
+Kepler251 owns original accepted queue/submission workflow;252 owns source
+transfer/custody, latest ad4a32d4 includes completion retry proof. Combined
+installed queued-before-delivery→once-chat acceptance remains pending.
+
+Full CPU, physical warm first paint/Strip, focus/caret/Undo, adaptive resource
+and TC1/T9 scope remains open here. Textual15 source tests do not close it.
