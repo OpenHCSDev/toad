@@ -1,0 +1,616 @@
+{
+  "src/toad/widgets/history_anchor.py": {
+    "before": {
+      "file": {
+        "long_boolean_chain": 1,
+        "boolean_chain_terms": 4,
+        "foreign_absence_probe": 3,
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "functions": {
+        "current": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "restore": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "_restore": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "capture": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "prepare_history": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "action_scroll_end": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "jump_to_latest": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "prepare_history_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "history_geometry_targets": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "restore_history_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "finish_history_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "retire_presentation_wait": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "on_unmount": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "document_viewport": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "history_lock": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "histories": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "pending_tool_content": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "hydrate_visible_tools": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "follows_tail": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "anchor": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "release_anchor": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "_check_anchor": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "check_follow": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "preserve_history": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "before_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "geometry_targets": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "_offset": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        }
+      }
+    },
+    "after": {
+      "file": {
+        "long_boolean_chain": 1,
+        "boolean_chain_terms": 4,
+        "foreign_absence_probe": 3,
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "functions": {
+        "current": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "restore": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "_restore": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "capture": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "prepare_history": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "action_scroll_end": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "jump_to_latest": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "prepare_history_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "history_geometry_targets": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "restore_history_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "finish_history_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "retire_presentation_wait": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "on_unmount": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "document_viewport": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "history_lock": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "histories": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "pending_tool_content": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "hydrate_visible_tools": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "follows_tail": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "anchor": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "release_anchor": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "_check_anchor": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "watch_scroll_y": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "check_follow": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "preserve_history": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "before_layout": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "geometry_targets": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "_offset": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        }
+      }
+    }
+  },
+  "src/toad/transcript_publication.py": {
+    "before": {
+      "file": {
+        "long_boolean_chain": 5,
+        "boolean_chain_terms": 25,
+        "foreign_absence_probe": 20,
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "functions": {
+        "__init__": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "current": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "publish": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "view": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "invalidate": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "prepare_reader": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "reveal_retained": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "refresh_revealed": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "snapshot": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "painted": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "source_changed": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "changed": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "require_checkpoint": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "request": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "retry": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "close": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "suspend": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "covered": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "record": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        }
+      }
+    },
+    "after": {
+      "file": {
+        "long_boolean_chain": 5,
+        "boolean_chain_terms": 25,
+        "foreign_absence_probe": 20,
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "functions": {
+        "__init__": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "current": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "publish": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "view": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "invalidate": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "prepare_reader": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "reveal_retained": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "refresh_revealed": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "snapshot": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "painted": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "source_changed": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "changed": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "require_checkpoint": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "request": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "retry": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "close": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "suspend": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "covered": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        },
+        "record": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0
+        }
+      }
+    }
+  }
+}

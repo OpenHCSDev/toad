@@ -1,9 +1,9 @@
 # PR202 continuation: existing workspace presentation ownership
 
-This draft follows whole PR202 checkpoint406253bd, including main209cd791.
-PR202 merged into the snapshot-publication branch as1e2cb39, not main. Kepler208
-carries that entire checkpoint and the typed SDK union to main normally. Parent
-owns paired installation; global remainscd791 pending the affected paint fix.
+This draft follows whole PR202 checkpoint406253bd and now normally merges
+main43949eeccf5e92ed65920e0e9b85067c0aa96783 through2d204ae8. Kepler208 carried
+the entire checkpoint and typed SDK union to main. Parent activated main43949;
+PR213 reader changes remain a source candidate, not installed default.
 No selective reconstruction or new cache/renderer/model authority.
 
 ## Scope and ownership
@@ -43,9 +43,11 @@ Final406 adds receipts only.
 
 208 unioncd445 installed acceptance then exposed actual reader loss: correct
 first destination frames at y5, later y145 and response2 instead of response1.
-Identity reuse is insufficient. This concrete failure blocks208 activation,
-independently of final50ms performance. Heisenberg owns reader-policy correction;
-Kepler records anchor caller stacks in the same existing native journey.
+Identity reuse is insufficient. A later exact-production208 run passed; parent
+shipped that useful checkpoint with the intermittent reader risk disclosed.
+Heisenberg owns reader-policy correction; strict paint assertions remain intact.
+The actual positive-geometry source UI reproducer and current installed baseline
+counterevidence are in [reader-geometry](../../../evidence/reader-geometry/README.md).
 Schrodinger directly handed off SnapshotPublication.publish reader/anchor policy
 and TranscriptPresentation.refresh_revealed/painted reader-restoration portions;
 source operation/frontier/generation/coverage stay his. Do not weaken the paint
@@ -73,6 +75,12 @@ assertion or replay earlier inputs to disguise failure.
    cold profile pr15942MB ~67.5ms does not establish firstpaint latency.
 6. Assigned full channel status-row visible/activity assertion: verify baseline,
    then current installed whole journey. Do not label it existing without proof.
+7. Past-end blank void is Heisenberg213 scope, alongside reader jumps/follow.
+   Reproduce physical repeated PageDown and End, then repeated wheel at both
+   loaded-history and actual native-source bottom, reverse and resize. Derive
+   extent/admission from existing geometry and presentation/preparation owners;
+   no second maxScroll clamp or copied bottom state. Kepler214 owns measured
+   velocity/lookahead/End burst scheduling; coordinate the whole viewport owner.
 
 ## TC1 completion remains open
 
