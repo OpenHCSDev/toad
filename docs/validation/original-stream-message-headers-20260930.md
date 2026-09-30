@@ -1,6 +1,8 @@
 # One header for the original streamed message
 
-Owner: Schrodinger. PR229. **3 production lines deleted, 13 added.**
+Owner: Schrodinger. PR229. Header checkpoint matched installed acceptance;
+accepted-retirement cancellation extension passed the matched installed resource-custody gate.
+**4 production lines deleted, 39 added** against d56f8138.
 
 ## Cause and ownership
 
@@ -17,9 +19,9 @@ LiveOutput.retire_presentations. The existing serialized stream owner ends only
 associations whose actual blocks are being retired. Context publication and a
 checkpoint signal are not output boundaries. Existing turn/input/tool boundaries
 remain owned by their declared lifecycles. No text comparison, seen registry,
-header flag, Frame mirror or second stream store was added. This closes BOUND-2
-(owner bypass) and IDEN-5 (source signal confused with resource retirement), using
-the existing CommitClaim family rather than dispatching on publication kind.
+header flag, Frame mirror or second stream store was added. The existing CommitClaim family owns original source coverage. The shared
+publication parent removes the duplicated retirement procedure (IMPL-12),
+rather than dispatching on publication kind or adding another header authority.
 
 Arendt owns input/assistant/Frame identity; Heisenberg owns Window/mount lifetime.
 Both received this method claim and matched result. Accepted PR215 staging and
@@ -69,3 +71,38 @@ raw ACP evidence remain preserved. No matching fixture processes remain.
 Candidate stage is the owned persistent .artifacts/installed-core421-candidate;
 baseline stage is owned by the fork baseline WT. No public roots, user owners,
 uncertain inputs or paid providers were changed.
+
+## Accepted retirement cancellation review
+
+Parent review identified an additional gap after c9: accepted source publication
+awaited the LiveOutput lock before native AwaitRemove had started pruning. Caller
+cancellation at that new await could leave both accepted new and previous source
+resources registered. The original173 test covered cancellation after Prune had
+started, so it did not establish this boundary.
+
+b6fa2a72 extends the existing TranscriptPublication family with one owned
+accepted-retirement completion. It includes existing LiveOutput retirement and
+native removal; the publishing caller joins its terminal result before leaving
+the Window publication fence. Repeated cancellation is read from the original
+caller Task, not recorded in a new flag or status store. Stream completion errors
+still enter native removal through this resource owner's finally. The original
+cancellation is propagated after cleanup, with no orphan shielded job or per-site
+handlers. Snapshot and Checkpoint share this implementation.
+
+Normal installed b6/Core2519/Text650/e36 stage:
+.artifacts/installed-accepted-retirement. Packaged ratchet exit0/no debt delta.
+Heisenberg extends his existing actual App/Window custody pilot with the exact
+held-output-lock boundary, and an original-source-covered live stream case.
+The affected installed b6 custody gate passed. The matched c9 baseline exits1:
+Snapshot cancellation before Prune leaves both old and new histories registered;
+covered Checkpoint cancellation leaves the original response widget and stream
+association. b6 exits0 for both: the publishing caller remains pending while the
+output lock is held; after release, native removal completes, only the accepted
+history remains, the covered response association is gone, and cancellation
+propagates. All four actual application exits are normal. No ACP/provider/public
+root or physical capture was involved in this resource-specific gate. The c9
+39-chunk native continuous success is preserved without a repeated provider run.
+
+Four matched custody receipts are stored beside the native/header receipts.
+The same existing pilot is owned and published by Heisenberg in his workspace
+custody branch; no competing test implementation was added.
