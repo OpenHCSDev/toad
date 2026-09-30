@@ -1,0 +1,16 @@
+{
+  "base": "3d2c7fa7db5e705f29cd0b6e8132098724c27f2b",
+  "head": "253eeb101d9f6d28c8a3e0b608e509b6842b2ed5",
+  "paths": [
+    "src/toad/app.py",
+    "src/toad/frame_presentation.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/widgets/comms_fork_dialog.py"
+  ],
+  "positive_numeric_deltas": {},
+  "exit_code": 0,
+  "historical_rejected_head": "7c70ce6d63c56c946925d22d464a912134fffa55",
+  "historical_positive_deltas": {
+    "GodClassExcess:src/toad/widgets/transcript_history.py::TranscriptHistory": 5
+  }
+}

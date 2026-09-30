@@ -107,8 +107,7 @@ class PresentedFrame(FrameState):
     ready = True
 
     def restore(self, frame):
-        frame.state = self
-        frame.presented.set()
+        frame.present()
 
     def defer(self, frame, owner, callback):
         if frame.screen.app._atomic_mode_switch:
@@ -158,6 +157,10 @@ class FramePresentation:
     def written(self, receipt: WritingFrame) -> None:
         if receipt is not self.state:
             return
+        self.present()
+
+    def present(self) -> None:
+        """A written or restored scene releases its same deferred source work."""
         self.state = PresentedFrame()
         self.presented.set()
         callbacks = tuple(self.callbacks)

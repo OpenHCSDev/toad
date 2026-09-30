@@ -73,6 +73,7 @@ class SnapshotPublication(TranscriptPublication):
         super().__init__(owner, view, window, contents)
         self.page = page
         self.scroll_revision = window.scroll_revision
+        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
@@ -93,7 +94,7 @@ class SnapshotPublication(TranscriptPublication):
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
-            CommitEvidence, CommittedHistory, retirement_candidates,
+            CommitEvidence, retirement_candidates,
         )
         async with self.window.history_lock:
             if not self.current():
@@ -117,8 +118,6 @@ class SnapshotPublication(TranscriptPublication):
             history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                         fragments=fragments, committed=False)
             self.owner.prepare_reader(history)
-            captured = frozenset(child for child in self.contents.children
-                                 if isinstance(child, CommittedHistory))
             async with self.window.preserve_history(None):
                 accepted = False
                 try:
@@ -129,7 +128,7 @@ class SnapshotPublication(TranscriptPublication):
                     # history resources captured before its mount. Original
                     # live inputs still need native identity evidence.
                     evidence = CommitEvidence(
-                        captured, retained_history=history,
+                        self.captured, retained_history=history,
                         native_inputs=frozenset(native_id for event in self.page.events
                                                 for native_id in event.native_inputs),
                     )

@@ -1,0 +1,14 @@
+{
+  "stage": "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-current",
+  "toad": "8820ac8b930d2511be8ddf414148ddc7f9946a5b",
+  "core": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+  "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "installed_files": 303,
+  "mismatches": [],
+  "pip_check": "68 compatible packages",
+  "external_provider_calls": 0,
+  "default_changes": 0
+}

@@ -1,0 +1,20 @@
+{
+  "source_head": "3f3e089b4f87c27532bb06f72d6d6b26aa285b8b",
+  "native_dialog_ctrl_enter": true,
+  "original_task": "  First task instruction.\n\n    Preserve the second paragraph and its indentation.\n",
+  "child_task": "  First task instruction.\n\n    Preserve the second paragraph and its indentation.\n",
+  "parent_tags": [
+    "team"
+  ],
+  "child_tags": [
+    "team"
+  ],
+  "native_task_inputs": [
+    "a942a8ba499f8306ab330bcbc1f5bfd7"
+  ],
+  "native_child_answers": 1,
+  "source_file": "/home/ts/wt/cw228t06/application/pi/sessions/--home-ts-wt-cw228t06-application-project--/2026-09-30T10-45-15-227Z_01a0f1eb-275b-779c-a520-7c16b6a6d2aa.jsonl",
+  "provider_requests": 2,
+  "paid_calls": 0,
+  "roster_immediate_open_gate": "separate; no forced roster refresh"
+}

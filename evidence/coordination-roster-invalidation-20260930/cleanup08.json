@@ -1,0 +1,32 @@
+{
+  "private_root": "/home/ts/wt/cw233-observer08/private-root/wire",
+  "registry_owners": {
+    "beta": {
+      "pid": 3027989,
+      "process_alive": false
+    },
+    "user": {
+      "pid": 0,
+      "process_alive": false
+    },
+    "immediate-fork": {
+      "pid": 3028340,
+      "process_alive": false
+    }
+  },
+  "remaining_private_processes": [],
+  "input_rows": [
+    {
+      "id": "acp:05b710a828e745a3a301e99973216f3c",
+      "source_text": "FORK_PARENT_SEED",
+      "has_started": true,
+      "state": "StartedInput"
+    },
+    {
+      "id": "acp:072f289f0c234312b91f7b6165d23afa",
+      "source_text": "FIRST_FORK_NEW_INPUT",
+      "has_started": true,
+      "state": "StartedInput"
+    }
+  ]
+}

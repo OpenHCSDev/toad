@@ -1,0 +1,26 @@
+{
+  "root": "src/toad/",
+  "base_revision": "fda1b5d2dda13a55a6e3ae400af03a6e76e70ec1",
+  "head_revision": "b7f42d7ced00357aac27b71b08c4d1e85fdd24e3",
+  "paths": [
+    "src/toad/application_actions.py",
+    "src/toad/conversation_actions.py",
+    "src/toad/question_actions.py",
+    "src/toad/screens/permissions.py",
+    "src/toad/widget_actions.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/question.py"
+  ],
+  "exit_code": 0,
+  "positive_numeric_deltas": {},
+  "nonzero_deltas": {
+    "StringDispatch:src/toad/widgets/conversation.py": -1,
+    "StringDispatch:src/toad/widgets/question.py": -1,
+    "StringDispatchArms:src/toad/widgets/conversation.py": -5,
+    "StringDispatchArms:src/toad/widgets/question.py": -3,
+    "GodClassExcess:src/toad/widgets/conversation.py::Conversation": -60,
+    "ForeignAbsenceProbe:src/toad/screens/permissions.py": -1,
+    "ForeignAbsenceProbe:src/toad/widgets/question.py": -1
+  },
+  "full_report": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/ratchet-final.json"
+}
