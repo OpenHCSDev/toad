@@ -1,0 +1,48 @@
+{
+  "candidate": {
+    "imports": [
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "PACKAGE_ENV"
+      },
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "ROOT_ID_ENV"
+      },
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "PrivateNkLaunch"
+      }
+    ],
+    "missing_exports": []
+  },
+  "installed": {
+    "imports": [
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "PACKAGE_ENV"
+      },
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "ROOT_ID_ENV"
+      },
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "private_nk_launch"
+      }
+    ],
+    "missing_exports": [
+      {
+        "file": "acp/maintenance_ingress.py",
+        "line": 139,
+        "name": "private_nk_launch"
+      }
+    ]
+  }
+}
