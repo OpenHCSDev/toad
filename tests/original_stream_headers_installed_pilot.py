@@ -11,6 +11,8 @@ from l0a_native_installed_pilot import main, until, response_painted
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import MessageDivider
+from toad.widgets.coordination_context import CoordinationContext
+from toad.live_output import ResponseStream
 
 
 TEXT = ('An original answer retains its message identity across each provider chunk. '
@@ -51,17 +53,27 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await pilot.press('enter')
     observations = []
     began = time.monotonic()
+
+    def sample():
+        stream = view.output.streams.get(ResponseStream)
+        return {'elapsed': time.monotonic()-began, 'bodies': observe(app, view),
+                'active_response_resource': id(stream.block) if stream is not None and stream.block is not None else None,
+                'context_resources': [id(body) for body in view.contents.query(CoordinationContext)],
+                'source_covers_answer': any(isinstance(event, AgentTextTranscript)
+                                           for history in view.window.histories
+                                           for event in history.coverage_events)}
+
     try:
         async with asyncio.timeout(35):
             while not response_painted(app, view, 'STREAM_HEADER_END_PROOF'):
-                observations.append({'elapsed': time.monotonic()-began, 'bodies': observe(app, view)})
+                observations.append(sample())
                 await pilot.pause(.1)
     finally:
         (evidence/'stream-observations.json').write_text(json.dumps(observations, indent=2)+'\n')
         app.save_screenshot(str(evidence/'last-stream-frame.svg'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     await pilot.pause()
-    observations.append({'elapsed': time.monotonic()-began, 'bodies': observe(app, view)})
+    observations.append(sample())
     page = comms.transcripts.thread_transcript_page('beta')
     users = [event for event in page.events if isinstance(event, UserTranscript)
              and event.text == token]
@@ -78,6 +90,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert len(requests) == 1 and len(users) == 1
     assert receipt['canonical_answer_text'] == TEXT
     assert all(sum(body['header_count'] for body in row['bodies']) <= 1 for row in observations)
+    assert any(row['context_resources'] for row in observations)
+    # Original source context does not cover the assistant still being streamed.
+    # That publication may not replace its existing native resource association.
+    uncovered = {row['active_response_resource'] for row in observations
+                 if row['active_response_resource'] is not None and not row['source_covers_answer']}
+    assert len(uncovered) == 1, uncovered
     assert app._exception is None
 
 
