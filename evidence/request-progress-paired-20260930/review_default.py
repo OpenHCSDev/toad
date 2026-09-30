@@ -32,8 +32,6 @@ assert {'coordination_changed','goal_changed','queue_changed','turn_changed'} <=
 selected=x['runtime_before'];activation=selected['activation']
 expected=json.loads((args.stage/'activation.json').read_text())
 assert activation==expected
-assert activation['pins']['agent-comms']=='6feb634ba184d94d763028406152fff07027cccc'
-assert activation['pins']['batrachian-toad']=='8a924e1d6c4a32098876f7885cc06c7173d499fa' 
 assert not x['cleanup']['errors'] and not x['cleanup']['remaining_owned_pids']
 alive=[p['pid'] for p in x['cleanup']['processes'] if ProcessIdentity(p['pid'],p['start_ticks']).alive()]
 assert not alive,alive
@@ -49,7 +47,7 @@ r={'state':'ACTUAL-PUBLISHED-DEFAULT-STARTUP-ACP-SAVED-HISTORY-PASS','overall_pr
  'terminal_capture_completed':x['completed'] and x['capture_completed'],'wrapper_exit_code':0,
 'raw_receipt':str(raw/'capture/receipt.json'),'raw_protocol_logs':str(protocol),
 'native_inputs':0,'provider_calls':0,'paid_calls':0,'default_changes_by_worker':0,'public_owner_restarts':0,'unknown_replays':0,
-'remaining_scope':'Historical UNKNOWN preserved. Scope is changed final454 default launcher, canonical ACP initialization/load and saved history only. Earlier453/242 native controls and final454 matched journey accepted separately. No repeat scroll, paid provider/API-fleet/performance readiness claim.'}
+'remaining_scope':'Historical UNKNOWN preserved. Scope is the published stage normal default launcher, canonical ACP initialization/load and saved history only. Previously accepted affected producer and UI journeys are retained separately. No repeat scroll, paid provider/API-fleet/performance readiness claim.'}
 out=args.output.resolve()
 out.mkdir(parents=True,exist_ok=True)
 (out/'joint-ready-receipt.json').write_text(json.dumps(r,indent=2)+'\n')

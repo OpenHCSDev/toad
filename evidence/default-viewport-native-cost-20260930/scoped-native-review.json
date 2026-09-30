@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "journey": "default_startup",
+    "original_thread_selected": true,
+    "retained_history_page_present": true,
+    "physical_frame_and_canonical_ACP_review_required": true
+  },
+  "source_and_owner_unchanged": true,
+  "runtime_override": false,
+  "prompt_submissions": 0,
+  "physical_review": "Required before any default live PASS",
+  "scope": "default_startup"
+}
