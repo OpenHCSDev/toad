@@ -24,6 +24,7 @@ class CommitEvidence:
     captured: frozenset[Widget]
     sequences: frozenset[int] = frozenset()
     retained_history: Widget | None = None
+    native_inputs: frozenset[str] = frozenset()
 
 
 class CommitClaim(ABC):
@@ -55,6 +56,16 @@ class SequenceClaim(CommitClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.sequence is not None and self.sequence in evidence.sequences
+
+
+@dataclass(frozen=True)
+class NativeInputClaim(CommitClaim):
+    """An original started input retires only against its saved native identity."""
+
+    native_id: str | None
+
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return self.native_id in evidence.native_inputs
 
 
 class CommitParticipant:

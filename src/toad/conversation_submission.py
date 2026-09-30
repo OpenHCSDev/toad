@@ -11,7 +11,8 @@ from agent_comms.acp_extension import QueuePromptRequest, SteerPromptRequest
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc, messages
 from toad.acp.client_session import ClientSessionRequest
-from toad.widgets.user_input import UserInput
+from agent_comms.acp_extension import PendingQueueProjection
+from toad.widgets.prompt import Prompt
 
 
 @dataclass(frozen=True)
@@ -55,10 +56,8 @@ class QueueNowInputSubmission(InputSubmission):
             return False
         return event.immediate and view.queue_supported
     async def execute(self, owner):
-        projection = owner.view.queue_projection
+        projection = owner.queue_projection
         if projection.status == 'available' and projection.items:
-            owner.requested_queue = projection.items[0]
-            owner.publish_pending()
             owner.send_now()
 
 
@@ -89,7 +88,7 @@ class AgentInputSubmission(InputSubmission):
 
     async def feedback(self, execution):
         view = execution.owner.view
-        await view.post(UserInput(self.text))
+        await view.turns.binding.present_input(view, self.text)
         if execution.retired:
             return
         view.jump_to_latest()
@@ -97,7 +96,6 @@ class AgentInputSubmission(InputSubmission):
         if execution.retired:
             return
         waiting = 'Waiting for replies…' if self.text.startswith(('@', '#', '!relay ')) else 'Thinking…'
-        view.post_message(messages.SessionUpdate(state='busy', summary=waiting.rstrip('…')))
         view.turns.describe(waiting)
         await asyncio.sleep(0)
 
@@ -146,7 +144,8 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
     def request(self):
         return QueuePromptRequest(self.text, True)
     async def feedback(self, execution):
-        execution.owner.view.flash('Queue request sent; awaiting authoritative queue state')
+        # Native queue/start publications own confirmation and message display.
+        pass
 
 
 class ImmediateInputSubmission(OrdinaryInputSubmission):
@@ -218,7 +217,6 @@ class ConversationSubmissions:
     def __init__(self, view):
         self.view = view
         self.active: list[SubmissionExecution] = []
-        self.requested_queue = None
 
     def begin(self, submission):
         agent = self.view.agent
@@ -241,10 +239,19 @@ class ConversationSubmissions:
             return agent.queue_attachment.accepts_request(message.queue_scope)
         return True
 
+    @property
+    def queue_projection(self):
+        agent = self.view.agent
+        return agent.presentation.queue if agent is not None else PendingQueueProjection()
+
+    @property
+    def delivering(self):
+        return next((item.submission.pending_text for item in reversed(self.active)
+                     if item.current and item.submission.pending_text), '')
+
     def publish_pending(self):
-        self.view.delivering_prompt = next((item.submission.pending_text for item in reversed(self.active)
-                                           if item.current and item.submission.pending_text), '')
-        self.view.sending_queued_prompt = self.requested_queue.text if self.requested_queue else ''
+        if (prompt := self.view.query_one_optional(Prompt)) is not None:
+            prompt.sync_queue()
 
     def finish(self, execution):
         if execution in self.active:
@@ -254,13 +261,7 @@ class ConversationSubmissions:
 
     def reset(self):
         self.active.clear()
-        self.requested_queue = None
         self.publish_pending()
-
-    def started(self, item):
-        if self.requested_queue and item.input_id == self.requested_queue.input_id:
-            self.requested_queue = None
-            self.publish_pending()
 
     def restore_draft(self, text):
         current = self.view.prompt.text
@@ -281,5 +282,4 @@ class ConversationSubmissions:
             if self.view.agent is agent and agent.session_id == session:
                 self.view.flash(f'Send now failed: {error}', style='error')
         if self.view.agent is agent and agent.queue_attachment.accepts_request(scope):
-            self.requested_queue = None
             self.publish_pending()

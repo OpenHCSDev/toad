@@ -12,8 +12,6 @@ from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBin
 class AgentAttachmentView:
     cursor: CursorStatus | None
     cursor_sequence: int
-    queue: QueueProjection
-    queue_sequence: int
 
 
 class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
@@ -23,6 +21,11 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
         self.turns = self.TURN_BINDING(agent)
         self.auth_methods = []
         self.log_path: Path | None = None
+
+    @property
+    @abstractmethod
+    def queue(self):
+        """The actual source owns its input queue projection."""
 
     @property
     def prompt_in_flight(self):
@@ -46,8 +49,12 @@ class LocalAgentPresentation(AgentPresentation):
     TURN_BINDING = LocalTurnBinding
 
     @property
+    def queue(self):
+        return PendingQueueProjection()
+
+    @property
     def attachments(self):
-        return AgentAttachmentView(None, 0, PendingQueueProjection(), 0)
+        return AgentAttachmentView(None, 0)
 
     async def restore_saved_history(self, view):
         # The actual local presentation survives with its session-owned view.
@@ -55,8 +62,20 @@ class LocalAgentPresentation(AgentPresentation):
 
 
 class ACPAgentPresentation(AgentPresentation):
-    uses_managed_turns = True
-    TURN_BINDING = ManagedTurnBinding
+    TURN_BINDING = LocalTurnBinding
+
+    @property
+    def queue(self):
+        return self.agent.queue_attachment.projection
+
+    @property
+    def uses_managed_turns(self):
+        return self.turns.managed
+
+    def managed_turns(self):
+        if not self.turns.managed:
+            self.turns = ManagedTurnBinding(self.agent)
+        return self.turns
 
     @property
     def prompt_in_flight(self):
@@ -65,8 +84,7 @@ class ACPAgentPresentation(AgentPresentation):
     @property
     def attachments(self):
         agent = self.agent
-        return AgentAttachmentView(agent._private_cursor.status, agent._private_cursor_sequence,
-                                   agent.queue_attachment.projection, agent._queue_sequence)
+        return AgentAttachmentView(agent._private_cursor.status, agent._private_cursor_sequence)
 
     async def restore_saved_history(self, view):
         # ACP readiness does not imply agent-comms routing. A generic SDK peer
