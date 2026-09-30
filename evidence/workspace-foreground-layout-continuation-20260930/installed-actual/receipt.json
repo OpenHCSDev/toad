@@ -1,0 +1,387 @@
+{
+  "assessment": "PASS scoped native resource-cost checkpoint; whole CPU/first-paint/T9/TC1 remain open",
+  "source_head": "1de10e3f910a649b152120e866f30c832737a885",
+  "raw": "/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01/capture",
+  "production_changes": {
+    "src/toad/widgets/viewport_body.py": {
+      "added": 18,
+      "deleted": 3,
+      "sha256": "00c84494ca2292a813722797f306c4f61c78087f680278634bf842892ed4cbcb"
+    }
+  },
+  "runtime": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-native-budget-request-progress-20260930/bin/agent-comms-acp",
+        "sha256": "02cb89c9582d9829810b1b0a06243aed7841602d6084016b57024df21a39d868"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/bin/toad",
+        "sha256": "884caaf4290f01daf1c4b7365174352521caa953feea61e65c82ae478d9577a1"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/bin/agent-comms-acp",
+        "sha256": "947c18910c91492ce172ef7536ef99687061593fad4216fcb382ed9f93fdc66c"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/activation.json",
+    "activation_sha256": "988c0b1496f3f8a557673f8ba29e36d54d2d4f646b4241ab3ea50396100b6186",
+    "activation": {
+      "stage": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245",
+      "pins": {
+        "agent-comms": "6feb634ba184d94d763028406152fff07027cccc",
+        "batrachian-toad": "1de10e3f910a649b152120e866f30c832737a885",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "69ad57c29c0354251385fda9cf0b8fe7283877a366217b03860f3b009565136b"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/bin/python",
+      "prefix": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "9149de671bad461ef59b6ddedbbd3c7284a64f9a2a52ebbebb080fd3af47ba07",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "1de10e3f910a649b152120e866f30c832737a885",
+              "requested_revision": "1de10e3f910a649b152120e866f30c832737a885"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-workspace-foreground-layout-continuation-20260930/.artifacts/installed-body-cost-245/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "fa3db3a3e80d11bee64d74d5aa100e72298b464a09f750e515bdb0260415c812",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "6feb634ba184d94d763028406152fff07027cccc",
+              "requested_revision": "6feb634ba184d94d763028406152fff07027cccc"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "duration_seconds": 84.81061169301393,
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "originals_unchanged": true,
+  "sources_before": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "sources_after": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "active_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "driver_exit_code": 0,
+  "ffmpeg_stop_returncode": 255,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "sample_count": 1254,
+  "sampling_errors": 0,
+  "ui_phase_cpu": [
+    {
+      "label": "warm-start",
+      "cpu_seconds": 1.7399999999999993,
+      "average_cpu_percent": 29.644840024786546
+    },
+    {
+      "label": "draft",
+      "cpu_seconds": 0.6500000000000004,
+      "average_cpu_percent": 28.920273671460084
+    },
+    {
+      "label": "focused",
+      "cpu_seconds": 0.6799999999999997,
+      "average_cpu_percent": 28.1898322051481
+    },
+    {
+      "label": "up",
+      "cpu_seconds": 5.33,
+      "average_cpu_percent": 91.75212408892597
+    },
+    {
+      "label": "up-done",
+      "cpu_seconds": 1.4899999999999984,
+      "average_cpu_percent": 103.43170493292395
+    },
+    {
+      "label": "down",
+      "cpu_seconds": 6.090000000000003,
+      "average_cpu_percent": 104.9507085973046
+    },
+    {
+      "label": "down-done",
+      "cpu_seconds": 1.0899999999999999,
+      "average_cpu_percent": 79.9235127591166
+    },
+    {
+      "label": "reverse",
+      "cpu_seconds": 5.229999999999997,
+      "average_cpu_percent": 91.22788662360777
+    },
+    {
+      "label": "reverse-done",
+      "cpu_seconds": 1.3100000000000023,
+      "average_cpu_percent": 95.09521314295174
+    },
+    {
+      "label": "end",
+      "cpu_seconds": 2.599999999999998,
+      "average_cpu_percent": 98.19587702576513
+    },
+    {
+      "label": "idle",
+      "cpu_seconds": 4.43,
+      "average_cpu_percent": 26.823300016388373
+    },
+    {
+      "label": "idle-done",
+      "cpu_seconds": 0.35999999999999943,
+      "average_cpu_percent": 25.245566748257396
+    },
+    {
+      "label": "switch-b",
+      "cpu_seconds": 2.6600000000000037,
+      "average_cpu_percent": 51.58904066571044
+    },
+    {
+      "label": "b-open",
+      "cpu_seconds": 1.1099999999999994,
+      "average_cpu_percent": 96.51232045179728
+    },
+    {
+      "label": "return-a",
+      "cpu_seconds": 2.1999999999999957,
+      "average_cpu_percent": 47.88459984512092
+    },
+    {
+      "label": "a-return",
+      "cpu_seconds": 1.1900000000000048,
+      "average_cpu_percent": 26.153178310829993
+    }
+  ],
+  "physical_review": {
+    "completed_pngs_reviewed": [
+      "phase-up-done.png",
+      "phase-down-done.png",
+      "phase-reverse-done.png",
+      "phase-idle-done.png",
+      "phase-b-open.png",
+      "phase-a-return.png",
+      "phase-undo.png"
+    ],
+    "completed_history_readable": true,
+    "sampled_intervals": {
+      "down": {
+        "label": "down",
+        "start": 30.981139898009133,
+        "seconds": 3
+      },
+      "return_a": {
+        "label": "return-a",
+        "start": 72.15363089099992,
+        "seconds": 3
+      },
+      "cold_B": {
+        "label": "switch-b",
+        "start": 65.8473847900168,
+        "seconds": 3
+      }
+    },
+    "observations": [
+      "Held Down sheet progresses through saved history; no entire-body blank observed in these 24 frames at8fps",
+      "Warm A-return sheet shows retained destination without an intermediate entire-body loading screen in its24sampledframes",
+      "Cold B displays its loading presentation before the completed readable peer image",
+      "return-a marker PNG is BEFORE the physical tab click; a-return PNG is the completed native return",
+      "8fps sheets do not exclude33ms/60fps gaps; whole immediate first-paint and Strip reuse remain unproved"
+    ]
+  },
+  "limitations": [
+    "No overallCPU reduction established: idle26.82%, Down104.95% includes diagnostic export and profiling",
+    "Core/native/owner cohort differ from242; percentages are descriptive not a controlled causal CPU comparison",
+    "Profiler sampling origin has bounded uncertainty; terminal frame0 acquisition timestamp is not recorded, so exactclick\u2192paint bounds are not established",
+    "No provider prompt, replay, public restart, package mutation or deployment; draft andUndo local to isolated copiedUIstate",
+    "FullTC1/T9, coldpeer latency, terminalStrip firstpaint, foreground gaps and active/postcancelfocus remain assigned"
+  ],
+  "retained_raw": {
+    "receipt.json": {
+      "bytes": 405085,
+      "sha256": "5ded95aed9049f3ead0c0fe88f7e10fb73bc0195b49d24df70943f9ea6f325bd"
+    },
+    "warm-scroll-review.json": {
+      "bytes": 58596,
+      "sha256": "db0c57d5131ec75f69678de1f7131859ade589eca3af179a27fc321c9ba94344"
+    },
+    "profile-review.json": {
+      "bytes": 226047,
+      "sha256": "7b4673f61f36587613e523bd3165ac88e25bb0c493010c703b22ebe843b87bcd"
+    },
+    "review-receipt.json": {
+      "bytes": 2266,
+      "sha256": "47e85fed14a01b06364df5f825e592f0e452abf2d38a4d52fcd679629c1c09b0"
+    },
+    "cpu-profile.json": {
+      "bytes": 9775423,
+      "sha256": "988deb9f76867334f22949173458a64dda65cb83d8a1b1764d841fe5b1a02042"
+    },
+    "terminal.mp4": {
+      "bytes": 7060657,
+      "sha256": "4b3c4711c42150796ce89beb8e4b807c8c129860cdae6d01d67f794c743be5ff"
+    },
+    "profiler.log": {
+      "bytes": 352,
+      "sha256": "b8a36db8152d9f4b1e67f66287a8d3e2e4a8f9a01c40dbded86c566dd420268c"
+    },
+    "terminal.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "phase-up-done.png": {
+      "bytes": 123125,
+      "sha256": "b8242e5f17c66e24ae36a4f6779a3c04a7e9dbf9a75715b77cb3379752024e3a"
+    },
+    "phase-down-done.png": {
+      "bytes": 106856,
+      "sha256": "59f47c1375ec1c4fa5dab12516456d14746dbcc48b868b38f0d1e9441c4a0e46"
+    },
+    "phase-reverse-done.png": {
+      "bytes": 120388,
+      "sha256": "6e64a6cfaec8a5a59b4744c101ba6254660838611d5b3f9c004bf71d39b1bedd"
+    },
+    "phase-idle-done.png": {
+      "bytes": 110500,
+      "sha256": "a67f7f922c4c8df43274ab7687773befbaf78d44872c8d6f0f51db98989b06a3"
+    },
+    "phase-b-open.png": {
+      "bytes": 115270,
+      "sha256": "e296283d689059fc1f2e7e6fb0cf5c8b85fe5aebf31090e3ce9640dfbad20b77"
+    },
+    "phase-a-return.png": {
+      "bytes": 112550,
+      "sha256": "901343873793f94950496ec28cc88d11ac3093f4433644c6d52b591cf59bdc4b"
+    },
+    "phase-undo.png": {
+      "bytes": 111651,
+      "sha256": "94c2a18f177c73ec24bcfb79afa7df4b406c6cff741bd290db982089ab068cea"
+    },
+    "down-frames.png": {
+      "bytes": 1649448,
+      "sha256": "3dcf3d7c22e62a05f8235211fff89399913aa5d43b54635f4a41f3118c83ad02"
+    },
+    "return-a-frames.png": {
+      "bytes": 1241966,
+      "sha256": "bf6ca4c7e065f7ebe8eb375c71c9e910854afa2aa7446d7509cec9183cc6202c"
+    },
+    "switch-b-frames.png": {
+      "bytes": 810631,
+      "sha256": "a0b9dce0574a7e50e80de16ffd80265fb377f43818467ab5265622a5a55ab442"
+    }
+  }
+}

@@ -126,3 +126,17 @@ Controlled transport-delay and blocked-local-publication checks can first be
 distinguished within their own original clocks. Cross-clock native/provider/UI
 allocation remains unavailable until a measured original witness exists. The
 single actual selected Sol OFF fork, if needed, remains Arendt's sole custody.
+
+## Video-origin limit established on original242/02 artifacts
+
+The original recorder starts FFmpeg before sampling `capture_launch_monotonic`.
+It does not retain the timestamp of the first acquired video frame. The formula
+above therefore yields a nominal video estimate, not a certified first-frame
+clock binding. The profiler-origin bracket and sampling interval do not bound
+that additional acquisition offset. Do not use them for sub50ms key-to-paint,
+frame-gap or native/request causal allocation. Ordinary phase markers also
+include screenshot/export and driver work; B-ready is stamped after the visible
+history wait. Source-backed observer assessment is retained in
+`physical242-original-clock-assessment-20260930.{md,json}`. Native workflow
+checks and inspected phase endpoints remain valid independently of this missing
+fine timing witness. No later/replacement clock observation can repair it.

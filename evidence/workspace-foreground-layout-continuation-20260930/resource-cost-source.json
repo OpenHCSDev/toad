@@ -1,0 +1,22 @@
+{
+  "native_descendants": 555,
+  "body_roots": 24,
+  "profiled_selection_walks": 0,
+  "unprofiled_selection_ms": {
+    "expanded_native_tree": 0.5001594279892743,
+    "registered_body_boundaries": 0.006815507891587913
+  },
+  "profiled_admission_walks": 0,
+  "profiled_admission_ms": 0.05413130973465741,
+  "native_content_cost_invalidated": true,
+  "retired_cost_retained": true,
+  "restored_cost_current": true,
+  "native_reorder": true,
+  "removed_body_released": true,
+  "fast_reverse_end": true,
+  "resize": true,
+  "pending_native_mount": true,
+  "accepted_canonical_tree": true,
+  "pre_registration_frame_fenced": true,
+  "raw_custody_mismatch_reproduced": true
+}
