@@ -1,0 +1,468 @@
+{
+  "state": "SCOPED-DEFAULT-UI-CONTROLS-PASS-WITH-CURRENT-INBOX-FAILURES",
+  "overall_default_live_ready": false,
+  "wrapper_exit": 0,
+  "duration_seconds": 57.66416681397823,
+  "started_utc": "2026-09-30T14:16:37.321017+00:00",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "display": ":1831",
+  "runtime": {
+    "stage": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930",
+    "pins": {
+      "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+      "batrachian-toad": "13f9da11e559750d63f4dc703b612445aedd4907",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "0fdb4293c841eededbb140f4df9ff5810f9b2ce9065ee7fcde279d36beabb9e9"
+  },
+  "runtime_unchanged": true,
+  "native_original_before": {
+    "identity": {
+      "pid": 3341782,
+      "start_time": 25331669
+    },
+    "active_turn": null,
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "native_original_after": {
+    "identity": {
+      "pid": 3341782,
+      "start_time": 25331669
+    },
+    "active_turn": null,
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "test_prompt_submissions": 0,
+  "test_provider_calls": 0,
+  "automatic_retries": 0,
+  "scoped_checks": {
+    "typed": {
+      "text": "abcdef",
+      "selection": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    "edited": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    "home-backspace": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "draft-restored": {
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "draft_return": {
+    "edited": {
+      "text": "abcf",
+      "caret": 4,
+      "phase_seconds": 23.482
+    },
+    "original_returned": {
+      "text": "abcf",
+      "caret": 4,
+      "phase_seconds": 32.19
+    },
+    "home_backspace": {
+      "text": "abcf",
+      "caret": 0,
+      "phase_seconds": 35.24
+    },
+    "explicit_four_deletes_restored_baseline": {
+      "text": "",
+      "caret": 0,
+      "phase_seconds": 37.445
+    },
+    "reopened": {
+      "text": "",
+      "mode": "session-3"
+    }
+  },
+  "physical_scope": {
+    "startup_readable_original_history": true,
+    "native_message_area_focus_verified": true,
+    "actual_peer_open_and_original_tab_return": true,
+    "actual_middle_click_original_tab_close_and_roster_reopen": true,
+    "stationary_end_scroll_y": 50,
+    "stationary_end_maximum": 50,
+    "stationary_end_follows_tail": true,
+    "current_phase": "Needs attention / Inbox unavailable from captured stopped_drain diagnostic; native active_turn=None / activity idle",
+    "goal_at_start_return_reopen": null
+  },
+  "first_paint": {
+    "basis": "Existing recorded terminal.mp4 only, no additional application run or profiler",
+    "history_first_readable_video_seconds_bracket": [
+      6.5,
+      7.0
+    ],
+    "clock": "Video-relative, not exact application launch latency",
+    "method": "Half-second sampled native video frames after 4s; loading at6.5, readable history at7.0",
+    "no_warm_tab_speed_claim": true,
+    "no_cpu_or_owner_attribution": true
+  },
+  "open_failure": {
+    "names": [
+      "nra-architecture",
+      "nra-class-first-name-review",
+      "nra-domain-mapping",
+      "nra-ordered-branch-call-review",
+      "nra-roster-heuristic-map"
+    ],
+    "family": "stopped_drain",
+    "error_type": "NativePiUnavailable",
+    "reason": "Native Pi operation failed: PromptSendUnknown: Native prompt admission ended before writing any bytes",
+    "channel": "#nra",
+    "owner": "Arendt, assigned by parent; parent independently inspecting original diagnostics",
+    "disposition": "Original UNKNOWN retained; no retry/replay/backend changes"
+  },
+  "capture_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3345532,
+        "start_ticks": 25343651,
+        "returncode": 0
+      },
+      {
+        "pid": 3345534,
+        "start_ticks": 25343727,
+        "returncode": 0
+      },
+      {
+        "pid": 3345536,
+        "start_ticks": 25343736,
+        "returncode": 0
+      },
+      {
+        "pid": 3345537,
+        "start_ticks": 25343741,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3345543,
+        "start_ticks": 25343798,
+        "returncode": 0
+      },
+      {
+        "pid": 3345544,
+        "start_ticks": 25343809,
+        "returncode": 0
+      },
+      {
+        "pid": 3345545,
+        "start_ticks": 25343818,
+        "returncode": 0
+      },
+      {
+        "pid": 3345546,
+        "start_ticks": 25343829,
+        "returncode": 255
+      },
+      {
+        "pid": 3346024,
+        "start_ticks": 25345030,
+        "returncode": 0
+      },
+      {
+        "pid": 3346029,
+        "start_ticks": 25345058,
+        "returncode": 0
+      },
+      {
+        "pid": 3346034,
+        "start_ticks": 25345097,
+        "returncode": 0
+      },
+      {
+        "pid": 3346113,
+        "start_ticks": 25345234,
+        "returncode": 0
+      },
+      {
+        "pid": 3346120,
+        "start_ticks": 25345315,
+        "returncode": 0
+      },
+      {
+        "pid": 3346122,
+        "start_ticks": 25345376,
+        "returncode": 0
+      },
+      {
+        "pid": 3346136,
+        "start_ticks": 25345512,
+        "returncode": 0
+      },
+      {
+        "pid": 3346145,
+        "start_ticks": 25345592,
+        "returncode": 0
+      },
+      {
+        "pid": 3346158,
+        "start_ticks": 25345605,
+        "returncode": 0
+      },
+      {
+        "pid": 3346160,
+        "start_ticks": 25345666,
+        "returncode": 0
+      },
+      {
+        "pid": 3346232,
+        "start_ticks": 25345793,
+        "returncode": 0
+      },
+      {
+        "pid": 3346234,
+        "start_ticks": 25345854,
+        "returncode": 0
+      },
+      {
+        "pid": 3346305,
+        "start_ticks": 25345916,
+        "returncode": 0
+      },
+      {
+        "pid": 3346387,
+        "start_ticks": 25346054,
+        "returncode": 0
+      },
+      {
+        "pid": 3346388,
+        "start_ticks": 25346074,
+        "returncode": 0
+      },
+      {
+        "pid": 3346404,
+        "start_ticks": 25346136,
+        "returncode": 0
+      },
+      {
+        "pid": 3346426,
+        "start_ticks": 25346268,
+        "returncode": 0
+      },
+      {
+        "pid": 3346436,
+        "start_ticks": 25346356,
+        "returncode": 0
+      },
+      {
+        "pid": 3346470,
+        "start_ticks": 25346566,
+        "returncode": 0
+      },
+      {
+        "pid": 3346499,
+        "start_ticks": 25346715,
+        "returncode": 0
+      },
+      {
+        "pid": 3346513,
+        "start_ticks": 25346796,
+        "returncode": 0
+      },
+      {
+        "pid": 3346605,
+        "start_ticks": 25347007,
+        "returncode": 0
+      },
+      {
+        "pid": 3346712,
+        "start_ticks": 25347154,
+        "returncode": 0
+      },
+      {
+        "pid": 3346759,
+        "start_ticks": 25347231,
+        "returncode": 0
+      },
+      {
+        "pid": 3346760,
+        "start_ticks": 25347248,
+        "returncode": 0
+      },
+      {
+        "pid": 3346772,
+        "start_ticks": 25347311,
+        "returncode": 0
+      },
+      {
+        "pid": 3346797,
+        "start_ticks": 25347448,
+        "returncode": 0
+      },
+      {
+        "pid": 3346799,
+        "start_ticks": 25347464,
+        "returncode": 0
+      },
+      {
+        "pid": 3346853,
+        "start_ticks": 25347529,
+        "returncode": 0
+      },
+      {
+        "pid": 3347174,
+        "start_ticks": 25347659,
+        "returncode": 0
+      },
+      {
+        "pid": 3347256,
+        "start_ticks": 25347740,
+        "returncode": 0
+      },
+      {
+        "pid": 3347400,
+        "start_ticks": 25347802,
+        "returncode": 0
+      },
+      {
+        "pid": 3347623,
+        "start_ticks": 25347935,
+        "returncode": 0
+      },
+      {
+        "pid": 3347625,
+        "start_ticks": 25347946,
+        "returncode": 0
+      },
+      {
+        "pid": 3347752,
+        "start_ticks": 25348259,
+        "returncode": 0
+      },
+      {
+        "pid": 3347777,
+        "start_ticks": 25348397,
+        "returncode": 0
+      },
+      {
+        "pid": 3347782,
+        "start_ticks": 25348480,
+        "returncode": 0
+      },
+      {
+        "pid": 3347785,
+        "start_ticks": 25348504,
+        "returncode": 0
+      },
+      {
+        "pid": 3347802,
+        "start_ticks": 25348616,
+        "returncode": 0
+      },
+      {
+        "pid": 3347818,
+        "start_ticks": 25348753,
+        "returncode": 0
+      },
+      {
+        "pid": 3347831,
+        "start_ticks": 25348836,
+        "returncode": 0
+      },
+      {
+        "pid": 3348071,
+        "start_ticks": 25349150,
+        "returncode": 0
+      },
+      {
+        "pid": 3348169,
+        "start_ticks": 25349538,
+        "returncode": 0
+      },
+      {
+        "pid": 3348174,
+        "start_ticks": 25349566,
+        "returncode": 0
+      },
+      {
+        "pid": 3348191,
+        "start_ticks": 25349659,
+        "returncode": 0
+      },
+      {
+        "pid": 3348221,
+        "start_ticks": 25349746,
+        "returncode": 0
+      },
+      {
+        "pid": 3348445,
+        "start_ticks": 25350030,
+        "returncode": 0
+      }
+    ]
+  },
+  "raw_scratch": "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930",
+  "persistent_raw": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual",
+  "frame_paths": {
+    "startup": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-startup.png",
+    "history-focused": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-history-focused.png",
+    "edited": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-edited.png",
+    "original-returned": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-original-returned.png",
+    "home-backspace": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-home-backspace.png",
+    "draft-restored": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-draft-restored.png",
+    "end-stationary": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-end-stationary.png",
+    "reopened": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/phase-reopened.png"
+  },
+  "video": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/default-owner-cli-config-actual/capture/terminal.mp4",
+  "old_ctrl_a_failure_preserved": "Existing8ae91a92 receipt/raw driver/capture unchanged",
+  "provenance_extraction_correction": "First readonly extractor assumed ThreadView.name; AttributeError preserved in run history. Corrected to declaration-owned ThreadView.thread.name; no UI rerun."
+}

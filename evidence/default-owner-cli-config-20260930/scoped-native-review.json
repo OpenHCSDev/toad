@@ -1,0 +1,61 @@
+{
+  "checks": {
+    "typed": {
+      "text": "abcdef",
+      "selection": [
+        [
+          0,
+          6
+        ],
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    "edited": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    "home-backspace": {
+      "text": "abcf",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "draft-restored": {
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "source_and_owner_unchanged": true,
+  "runtime_override": false,
+  "prompt_submissions": 0,
+  "physical_review": "Required before any default live PASS",
+  "scope": "Saved original history, actual message focus, Home/Delete, A/B/A, End, close/reopen attachment"
+}

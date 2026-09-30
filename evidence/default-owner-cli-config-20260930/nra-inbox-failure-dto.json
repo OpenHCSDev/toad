@@ -1,0 +1,212 @@
+[
+  {
+    "thread": {
+      "name": "nra-architecture",
+      "process_identity": {
+        "pid": 3341782,
+        "start_time": 25331669
+      },
+      "active_turn": null
+    },
+    "activity": {
+      "thread": "nra-architecture",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790777722.703279,
+      "diagnostic": {
+        "kind": "stopped_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-architecture",
+            "created_at": 1790049182.3907015
+          },
+          "generation": 1062
+        },
+        "error_type": "NativePiUnavailable",
+        "reason": "Native Pi operation failed: PromptSendUnknown: Native prompt admission ended before writing any bytes"
+      }
+    },
+    "binding": {
+      "kind": "live",
+      "owner": {
+        "incarnation": {
+          "name": "nra-architecture",
+          "created_at": 1790049182.3907015
+        },
+        "generation": 1062
+      },
+      "process": {
+        "pid": 3341782,
+        "start_time": 25331669
+      }
+    }
+  },
+  {
+    "thread": {
+      "name": "nra-class-first-name-review",
+      "process_identity": {
+        "pid": 3341840,
+        "start_time": 25331812
+      },
+      "active_turn": null
+    },
+    "activity": {
+      "thread": "nra-class-first-name-review",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790777722.6411343,
+      "diagnostic": {
+        "kind": "stopped_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-class-first-name-review",
+            "created_at": 1790229371.6420214
+          },
+          "generation": 1063
+        },
+        "error_type": "NativePiUnavailable",
+        "reason": "Native Pi operation failed: PromptSendUnknown: Native prompt admission ended before writing any bytes"
+      }
+    },
+    "binding": {
+      "kind": "live",
+      "owner": {
+        "incarnation": {
+          "name": "nra-class-first-name-review",
+          "created_at": 1790229371.6420214
+        },
+        "generation": 1063
+      },
+      "process": {
+        "pid": 3341840,
+        "start_time": 25331812
+      }
+    }
+  },
+  {
+    "thread": {
+      "name": "nra-domain-mapping",
+      "process_identity": {
+        "pid": 3341913,
+        "start_time": 25331957
+      },
+      "active_turn": null
+    },
+    "activity": {
+      "thread": "nra-domain-mapping",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790777722.6747406,
+      "diagnostic": {
+        "kind": "stopped_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-domain-mapping",
+            "created_at": 1790116627.8997042
+          },
+          "generation": 1064
+        },
+        "error_type": "NativePiUnavailable",
+        "reason": "Native Pi operation failed: PromptSendUnknown: Native prompt admission ended before writing any bytes"
+      }
+    },
+    "binding": {
+      "kind": "live",
+      "owner": {
+        "incarnation": {
+          "name": "nra-domain-mapping",
+          "created_at": 1790116627.8997042
+        },
+        "generation": 1064
+      },
+      "process": {
+        "pid": 3341913,
+        "start_time": 25331957
+      }
+    }
+  },
+  {
+    "thread": {
+      "name": "nra-ordered-branch-call-review",
+      "process_identity": {
+        "pid": 3341992,
+        "start_time": 25332098
+      },
+      "active_turn": null
+    },
+    "activity": {
+      "thread": "nra-ordered-branch-call-review",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790777718.3276906,
+      "diagnostic": {
+        "kind": "stopped_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-ordered-branch-call-review",
+            "created_at": 1790232054.218321
+          },
+          "generation": 1065
+        },
+        "error_type": "NativePiUnavailable",
+        "reason": "Native Pi operation failed: PromptSendUnknown: Native prompt admission ended before writing any bytes"
+      }
+    },
+    "binding": {
+      "kind": "live",
+      "owner": {
+        "incarnation": {
+          "name": "nra-ordered-branch-call-review",
+          "created_at": 1790232054.218321
+        },
+        "generation": 1065
+      },
+      "process": {
+        "pid": 3341992,
+        "start_time": 25332098
+      }
+    }
+  },
+  {
+    "thread": {
+      "name": "nra-roster-heuristic-map",
+      "process_identity": {
+        "pid": 3342006,
+        "start_time": 25332238
+      },
+      "active_turn": null
+    },
+    "activity": {
+      "thread": "nra-roster-heuristic-map",
+      "state": "idle",
+      "detail": "",
+      "ts": 1790777718.3680868,
+      "diagnostic": {
+        "kind": "stopped_drain",
+        "owner": {
+          "incarnation": {
+            "name": "nra-roster-heuristic-map",
+            "created_at": 1790218471.1256046
+          },
+          "generation": 1066
+        },
+        "error_type": "NativePiUnavailable",
+        "reason": "Native Pi operation failed: PromptSendUnknown: Native prompt admission ended before writing any bytes"
+      }
+    },
+    "binding": {
+      "kind": "live",
+      "owner": {
+        "incarnation": {
+          "name": "nra-roster-heuristic-map",
+          "created_at": 1790218471.1256046
+        },
+        "generation": 1066
+      },
+      "process": {
+        "pid": 3342006,
+        "start_time": 25332238
+      }
+    }
+  }
+]

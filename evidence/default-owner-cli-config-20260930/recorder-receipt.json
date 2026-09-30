@@ -1,0 +1,2026 @@
+{
+  "owner": "Einstein-default-entrypoint",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "fps": 30,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "default_entrypoint",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3341782,
+      "start_time": 25331669
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture",
+    "--owner",
+    "Einstein-default-entrypoint",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "default_entrypoint",
+    "--capture-state",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/actions.xdo",
+    "--review-timing",
+    "deferred",
+    "--fps",
+    "30",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--fit-window",
+    "--startup-wait",
+    "12",
+    "--max-duration",
+    "90",
+    "--tail-seconds",
+    "2",
+    "--",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "recorder_source_sha256": "7d0d0324db2c120275e3637d66a9d8367c9b145735be9c06713207af6e2ab051",
+  "started_utc": "2026-09-30T14:16:37.321017+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": true,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/agent-comms-acp",
+        "sha256": "24d9a730702e07a1bacb7c47162b29bc3ab44139e6b9175b7f0d40c23e988730"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/toad",
+        "sha256": "24f0ab08188ad2021aee0aa6e6fe5c76d12e04171ae0f1e45d2694caee26e693"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/agent-comms-acp",
+        "sha256": "24d9a730702e07a1bacb7c47162b29bc3ab44139e6b9175b7f0d40c23e988730"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/activation.json",
+    "activation_sha256": "04de9701c8386ebb964705cd84145d88fc57fe456b6c69e756051614e590e0aa",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930",
+      "pins": {
+        "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+        "batrachian-toad": "13f9da11e559750d63f4dc703b612445aedd4907",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "0fdb4293c841eededbb140f4df9ff5810f9b2ce9065ee7fcde279d36beabb9e9"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "ecfbc64a10c4ea2734e3dd82009a60e95b370717f7e114bc195830b1104d08f0",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "13f9da11e559750d63f4dc703b612445aedd4907",
+              "requested_revision": "13f9da11e559750d63f4dc703b612445aedd4907"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "56a84c4af864b02cc337688b8c5a378a2fc931e7a080a785023e207858593d2c",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+              "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":1831",
+  "ui_identity": {
+    "pid": 3345537,
+    "start_ticks": 25343741
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 253438.308366748,
+  "terminal_pid": 3345536,
+  "state_captures": {
+    "before": {
+      "started_seconds": 12.274510319984984,
+      "manifest": {
+        "pid": 3345537,
+        "created": 1790777797.41,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 184340480,
+        "started_ns": 1790777811495644734,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/before-screen": "complete"
+        },
+        "finished_ns": 1790777811660590365
+      },
+      "finished_seconds": 12.645158111990895
+    },
+    "after": {
+      "started_seconds": 57.35315421997802,
+      "manifest": {
+        "pid": 3345537,
+        "created": 1790777797.41,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 228413440,
+        "started_ns": 1790777856546596383,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/after-screen": "complete"
+        },
+        "finished_ns": 1790777856679022756
+      },
+      "finished_seconds": 57.66415071400115
+    }
+  },
+  "terminal_processes": {
+    "3345536": {
+      "start_ticks": 25343736,
+      "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+    },
+    "3345537": {
+      "start_ticks": 25343741,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+    },
+    "3345621": {
+      "start_ticks": 25343898,
+      "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "3345740": {
+      "start_ticks": 25344083,
+      "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+    },
+    "3345772": {
+      "start_ticks": 25344344,
+      "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+    },
+    "3345777": {
+      "start_ticks": 25344498,
+      "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+    }
+  },
+  "driver_started_seconds": 12.667896389000816,
+  "driver_finished_seconds": 55.07306144598988,
+  "duration_seconds": 57.66416681397823,
+  "capture_returncode": 255,
+  "runtime_after": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/agent-comms-acp",
+        "sha256": "24d9a730702e07a1bacb7c47162b29bc3ab44139e6b9175b7f0d40c23e988730"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/toad",
+        "sha256": "24f0ab08188ad2021aee0aa6e6fe5c76d12e04171ae0f1e45d2694caee26e693"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/agent-comms-acp",
+        "sha256": "24d9a730702e07a1bacb7c47162b29bc3ab44139e6b9175b7f0d40c23e988730"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/activation.json",
+    "activation_sha256": "04de9701c8386ebb964705cd84145d88fc57fe456b6c69e756051614e590e0aa",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930",
+      "pins": {
+        "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+        "batrachian-toad": "13f9da11e559750d63f4dc703b612445aedd4907",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "0fdb4293c841eededbb140f4df9ff5810f9b2ce9065ee7fcde279d36beabb9e9"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "ecfbc64a10c4ea2734e3dd82009a60e95b370717f7e114bc195830b1104d08f0",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "13f9da11e559750d63f4dc703b612445aedd4907",
+              "requested_revision": "13f9da11e559750d63f4dc703b612445aedd4907"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "56a84c4af864b02cc337688b8c5a378a2fc931e7a080a785023e207858593d2c",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+              "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c020",
+        "width": 1280,
+        "height": 900,
+        "coded_width": 1280,
+        "coded_height": 900,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 32,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "30/1",
+        "avg_frame_rate": "30/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 891904,
+        "duration": "58.066667",
+        "bit_rate": "253571",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "1742",
+        "extradata_size": 38,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "58.066667",
+      "size": "1848352",
+      "bit_rate": "254652",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "events": [
+    {
+      "label": "startup",
+      "utc": "2026-09-30T14:16:52.224207+00:00",
+      "seconds_since_capture_launch": 13.092904474004172,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.1,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 7.36,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 0.99,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 0.66,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-startup.png",
+      "state_capture": {
+        "started_seconds": 13.377602719003335,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 186322944,
+          "started_ns": 1790777812571983270,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-startup-state": "complete"
+          },
+          "finished_ns": 1790777812704513231
+        },
+        "finished_seconds": 13.677278288989328
+      }
+    },
+    {
+      "label": "history-focused",
+      "utc": "2026-09-30T14:16:55.105182+00:00",
+      "seconds_since_capture_launch": 15.973876420001034,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.1,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 7.98,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 0.99,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 0.66,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-history-focused.png",
+      "state_capture": {
+        "started_seconds": 16.253591825981857,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 190955520,
+          "started_ns": 1790777815441327518,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-history-focused-state": "complete"
+          },
+          "finished_ns": 1790777815573696244
+        },
+        "finished_seconds": 16.539566919993376
+      }
+    },
+    {
+      "label": "editor-home",
+      "utc": "2026-09-30T14:16:57.923377+00:00",
+      "seconds_since_capture_launch": 18.792074923985638,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.12,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 8.64,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 0.99,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 0.66,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-editor-home.png",
+      "state_capture": {
+        "started_seconds": 19.04674951097695,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 195399680,
+          "started_ns": 1790777818232714759,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-editor-home-state": "complete"
+          },
+          "finished_ns": 1790777818365125635
+        },
+        "finished_seconds": 19.356827757001156
+      }
+    },
+    {
+      "label": "typed",
+      "utc": "2026-09-30T14:17:00.425047+00:00",
+      "seconds_since_capture_launch": 21.29375208399142,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.12,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 9.24,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 0.99,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 0.66,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-typed.png",
+      "state_capture": {
+        "started_seconds": 21.561719583987724,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 198680576,
+          "started_ns": 1790777820751134617,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-typed-state": "complete"
+          },
+          "finished_ns": 1790777820883792631
+        },
+        "finished_seconds": 21.857597467984306
+      }
+    },
+    {
+      "label": "edited",
+      "utc": "2026-09-30T14:17:02.613193+00:00",
+      "seconds_since_capture_launch": 23.481889418995706,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.12,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 9.73,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 0.99,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 0.66,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-edited.png",
+      "state_capture": {
+        "started_seconds": 23.754625141998986,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 201146368,
+          "started_ns": 1790777822967686572,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-edited-state": "complete"
+          },
+          "finished_ns": 1790777823132332294
+        },
+        "finished_seconds": 24.09780062898062
+      }
+    },
+    {
+      "label": "peer-opened",
+      "utc": "2026-09-30T14:17:06.915982+00:00",
+      "seconds_since_capture_launch": 27.784678731986787,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.13,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 10.93,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.44,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 0.99,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 0.66,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-peer-opened.png",
+      "state_capture": {
+        "started_seconds": 28.07316005398752,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 211513344,
+          "started_ns": 1790777827274405850,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-peer-opened-state": "complete"
+          },
+          "finished_ns": 1790777827507059058
+        },
+        "finished_seconds": 28.502980814984767
+      }
+    },
+    {
+      "label": "original-returned",
+      "utc": "2026-09-30T14:17:11.321377+00:00",
+      "seconds_since_capture_launch": 32.190082799002994,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.15,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 14.03,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-original-returned.png",
+      "state_capture": {
+        "started_seconds": 32.47085022699321,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 215642112,
+          "started_ns": 1790777831665999454,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-original-returned-state": "complete"
+          },
+          "finished_ns": 1790777831831147076
+        },
+        "finished_seconds": 32.84639771998627
+      }
+    },
+    {
+      "label": "home-backspace",
+      "utc": "2026-09-30T14:17:14.370872+00:00",
+      "seconds_since_capture_launch": 35.239576178981224,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.15,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 14.87,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-home-backspace.png",
+      "state_capture": {
+        "started_seconds": 35.51690471099573,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 216686592,
+          "started_ns": 1790777834711321520,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-home-backspace-state": "complete"
+          },
+          "finished_ns": 1790777834843913669
+        },
+        "finished_seconds": 35.83736112699262
+      }
+    },
+    {
+      "label": "draft-restored",
+      "utc": "2026-09-30T14:17:16.576046+00:00",
+      "seconds_since_capture_launch": 37.44474051397992,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.15,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 15.44,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-draft-restored.png",
+      "state_capture": {
+        "started_seconds": 37.71292164697661,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 216899584,
+          "started_ns": 1790777836908928940,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-draft-restored-state": "complete"
+          },
+          "finished_ns": 1790777837041429775
+        },
+        "finished_seconds": 38.00827179098269
+      }
+    },
+    {
+      "label": "end-focused",
+      "utc": "2026-09-30T14:17:19.266839+00:00",
+      "seconds_since_capture_launch": 40.13553196997964,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.15,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 16.21,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-end-focused.png",
+      "state_capture": {
+        "started_seconds": 40.3892684589955,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 217063424,
+          "started_ns": 1790777839580186881,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-end-focused-state": "complete"
+          },
+          "finished_ns": 1790777839712573309
+        },
+        "finished_seconds": 40.712032886978704
+      }
+    },
+    {
+      "label": "end-stationary",
+      "utc": "2026-09-30T14:17:23.845988+00:00",
+      "seconds_since_capture_launch": 44.71468263899442,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.16,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 17.32,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3345754": {
+          "start_ticks": 25344110,
+          "cpu_seconds": 2.33,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-end-stationary.png",
+      "state_capture": {
+        "started_seconds": 44.9905009699869,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 217354240,
+          "started_ns": 1790777844183087191,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-end-stationary-state": "complete"
+          },
+          "finished_ns": 1790777844347538454
+        },
+        "finished_seconds": 45.35441766900476
+      }
+    },
+    {
+      "label": "tab-closed",
+      "utc": "2026-09-30T14:17:27.439630+00:00",
+      "seconds_since_capture_launch": 48.30832676097634,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.17,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 19.13,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        }
+      },
+      "screenshot": "phase-tab-closed.png",
+      "state_capture": {
+        "started_seconds": 48.57008349397802,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 217849856,
+          "started_ns": 1790777847766697365,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-tab-closed-state": "complete"
+          },
+          "finished_ns": 1790777847898983523
+        },
+        "finished_seconds": 48.868872911989456
+      }
+    },
+    {
+      "label": "reopened",
+      "utc": "2026-09-30T14:17:32.836476+00:00",
+      "seconds_since_capture_launch": 53.70517324699904,
+      "cpu": {
+        "3345536": {
+          "start_ticks": 25343736,
+          "cpu_seconds": 0.19,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3345537": {
+          "start_ticks": 25343741,
+          "cpu_seconds": 21.51,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3346437": {
+          "start_ticks": 25346363,
+          "cpu_seconds": 2.51,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        },
+        "3345772": {
+          "start_ticks": 25344344,
+          "cpu_seconds": 1.0,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "3345740": {
+          "start_ticks": 25344083,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3345777": {
+          "start_ticks": 25344498,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3345621": {
+          "start_ticks": 25343898,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "3347832": {
+          "start_ticks": 25348844,
+          "cpu_seconds": 2.57,
+          "command": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-reopened.png",
+      "state_capture": {
+        "started_seconds": 53.98283160300343,
+        "manifest": {
+          "pid": 3345537,
+          "created": 1790777797.41,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 228257792,
+          "started_ns": 1790777853186135077,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-owner-cli-config-20260930/capture/phase-reopened-state": "complete"
+          },
+          "finished_ns": 1790777853619358743
+        },
+        "finished_seconds": 54.61071518997778
+      }
+    }
+  ],
+  "journey_review": null,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 1848352,
+      "sha256": "2d5bec827bc3e0d26f8314b75fc342f45e8c88240a1ec2bc905c8ebc0ea9f994"
+    },
+    "before.png": {
+      "bytes": 114347,
+      "sha256": "e3bef862cbe5c4626d5d9ac3f63a28b4377082057c55d8049ea178907a2ae0d4"
+    },
+    "after.png": {
+      "bytes": 115518,
+      "sha256": "fe99e2a3390d3f2f6b0980c6a04a61fe7b2a2796603e161559e090047ddb6338"
+    },
+    "before-state.json": {
+      "bytes": 792463,
+      "sha256": "31abe5e58b06f91641b9dadd82e334c2aaf39c87751ca03f69bced470ddb6c1a"
+    },
+    "before-state.pickle": {
+      "bytes": 312140,
+      "sha256": "aa18b4ec177e721a367e373498a742bf5070d8b3e431b321bfc953348cdac229"
+    },
+    "before-screen.svg": {
+      "bytes": 73935,
+      "sha256": "8b78f82d8c013c7ce3fd62c8a608ba506bd558523c047b6bbe05b6c46755cc2e"
+    },
+    "before-remote.py": {
+      "bytes": 794,
+      "sha256": "312948b58937464ea087a04008f85f51465eb262ea536ffb5d7e3a6f9c39508a"
+    },
+    "before-state-metadata.json": {
+      "bytes": 792436,
+      "sha256": "5db536c634bf8c82e1d2045d4dcb716c8cd706d1f9fb371071ec0fdd2f6d699a"
+    },
+    "before-manifest.json": {
+      "bytes": 553,
+      "sha256": "b68ddf9bef5d332e22d7d99bbbc95be34c64502da7f8e3dc75fafc0fc52666bb"
+    },
+    "before-screen.json": {
+      "bytes": 167,
+      "sha256": "3d622600b575c1b6962f7e615731c44b6a48496b30185548c6fba988bfc2e43e"
+    },
+    "before-capture.log": {
+      "bytes": 99,
+      "sha256": "8160163c949158388e661e72e13f290624a36f4580c67083f7dfb2a315361a55"
+    },
+    "after-screen.svg": {
+      "bytes": 75750,
+      "sha256": "c5449d62e6386132e86705100d38cadd5db1e0c5a322c07bbe79a187e64ae5ca"
+    },
+    "after-state-metadata.json": {
+      "bytes": 804522,
+      "sha256": "5ced4aabb84b08b503b75faf42758c66a20c665edc0f8ce751f05d16c393d05c"
+    },
+    "after-remote.py": {
+      "bytes": 792,
+      "sha256": "ea709f88ab4281e00444d071629f4add1249a74428298850c90fd7b73962e912"
+    },
+    "after-manifest.json": {
+      "bytes": 551,
+      "sha256": "d435e6c692d1a369e1880d4613c2340090e54e72184dd055d98f1871bad3e702"
+    },
+    "after-capture.log": {
+      "bytes": 98,
+      "sha256": "68268b528f7c1f7e8afbdabc166babc1b236700e0b7eab2ad3041d81b36765ef"
+    },
+    "after-state.json": {
+      "bytes": 804549,
+      "sha256": "f445d30804f27b4905aa87a36b37a78809d0097f7f174586d184f9a376631c94"
+    },
+    "after-state.pickle": {
+      "bytes": 328053,
+      "sha256": "3be0e1258e6975d01a837c71342999498c0fb8fbf50084c5fca961904aef4951"
+    },
+    "after-screen.json": {
+      "bytes": 166,
+      "sha256": "03076d4cd3aefcbd32e8e4cff5872a5ddbba3a687625768defedcf8c3037a8d3"
+    },
+    "phase-end-focused.png": {
+      "bytes": 117002,
+      "sha256": "1aaea3c4965edce6f03152e51680c6b4d8b7a2966f8c041e1207d3a2be2c03d4"
+    },
+    "phase-end-focused-manifest.json": {
+      "bytes": 453,
+      "sha256": "17c4ccf9a0f65aa03369a2bd6804e8f24b6a43483d35ba7211204e059dad30bd"
+    },
+    "phase-reopened.png": {
+      "bytes": 116968,
+      "sha256": "6de6ec9d0eb15a937c1fae54aa3fd8c49ff8676b81eb264eb3b2899e90930442"
+    },
+    "phase-typed-state.json": {
+      "bytes": 792463,
+      "sha256": "3c61b5fb5ea32d567f51b9cf9820b200e26e07ed4bb184ebd4dd8d1488f87803"
+    },
+    "phase-reopened-state.pickle": {
+      "bytes": 328271,
+      "sha256": "3ca58e3f5429c30bacc9dfe75be72f24f30a76f916b9410981f708ef26ff8d39"
+    },
+    "phase-edited-state.pickle": {
+      "bytes": 312142,
+      "sha256": "1aac011ba680f5a0f3f429a43447a111913e01ae9b7d5a5bff5460b9fd08f179"
+    },
+    "phase-peer-opened-capture.log": {
+      "bytes": 110,
+      "sha256": "63de9b7223c4fea9a6fb4716ce2136146d94c2ea1fd32205bff4184ef4937ca5"
+    },
+    "phase-edited-state.json": {
+      "bytes": 792463,
+      "sha256": "da1caac061b3eb6c8a111b0ef4cbaec583e3abcb15131e231e992c33dea9ee17"
+    },
+    "phase-original-returned.png": {
+      "bytes": 117529,
+      "sha256": "e32ee25a2a2296f1fb36ab116e835c0af9776544862045b529c724793af3f3d3"
+    },
+    "phase-original-returned-remote.py": {
+      "bytes": 433,
+      "sha256": "45ed180dfa79f889684721118fc6f4a1012cd69af0a588b4a50a4ee53c629dbc"
+    },
+    "phase-draft-restored.png": {
+      "bytes": 117021,
+      "sha256": "a34e800a23b86a52a2885129705c3626c4415e45b6a5cc65fe776d046909b062"
+    },
+    "phase-original-returned-manifest.json": {
+      "bytes": 459,
+      "sha256": "afad2070c4c942999b2a4391de2185c487e01e807597b008c95726b2b8a68c95"
+    },
+    "phase-tab-closed-capture.log": {
+      "bytes": 109,
+      "sha256": "882d3a402342e42532ea2a7dbb164b18177bc8cbef201c602f3bc23e1bb0b74e"
+    },
+    "phase-editor-home.png": {
+      "bytes": 114362,
+      "sha256": "6c0bd4de56de37348517d47fb93b4702f9989414615e2c840f4fbdd3e6b504f6"
+    },
+    "phase-editor-home-capture.log": {
+      "bytes": 110,
+      "sha256": "d07c4cbb63ed8c0b76fc9521aaa4df6bd02acfd771ce7ed3432c4ba81aeafb0a"
+    },
+    "phase-home-backspace-manifest.json": {
+      "bytes": 456,
+      "sha256": "5dd0617a7c66338b330d6109e8d69a628dcad0664eba0d441d1de4b97899f0e6"
+    },
+    "phase-home-backspace-remote.py": {
+      "bytes": 430,
+      "sha256": "15ad3aae569794542f0492cae764caaad04c3daaa29546c8723b3c1cfcbca798"
+    },
+    "phase-tab-closed.png": {
+      "bytes": 119010,
+      "sha256": "b97a501875d79707ecfa7ce48dbb8371100fa5e1f212873781448b12e7dd2f80"
+    },
+    "phase-startup.png": {
+      "bytes": 114347,
+      "sha256": "e3bef862cbe5c4626d5d9ac3f63a28b4377082057c55d8049ea178907a2ae0d4"
+    },
+    "phase-home-backspace.png": {
+      "bytes": 117468,
+      "sha256": "45cdc7609720acd318ebce2049b97d8199ed1bfc982954e9c7bef2210de98511"
+    },
+    "phase-history-focused-manifest.json": {
+      "bytes": 457,
+      "sha256": "4454bfe9bc17079e56ba6f293e8b86a638f96d120e319a057027304b2a2e4ae3"
+    },
+    "phase-peer-opened-state.json": {
+      "bytes": 838427,
+      "sha256": "01cddd3aae2dbff19b9a54dd642d2d5f188b318126bbf21804496107962d75ae"
+    },
+    "phase-history-focused-capture.log": {
+      "bytes": 114,
+      "sha256": "a7c04836808b048ea9792655952da18e4871590da1026a91089927713273ef4d"
+    },
+    "phase-peer-opened-state-metadata.json": {
+      "bytes": 838400,
+      "sha256": "e7633fb8b41f2e45a20339d8f661eed80c6fe3659b78e7e0dd4e769a51d14c22"
+    },
+    "phase-startup-capture.log": {
+      "bytes": 106,
+      "sha256": "abc8801ca6243ff2cdb5169b302e2d84bf02e7f454069112680dc322a24bdd33"
+    },
+    "phase-reopened-manifest.json": {
+      "bytes": 450,
+      "sha256": "c5a716e86c015c33bbe1c0d6f05369ac65c13cdb8a57458e7c9d0b2ee876d16c"
+    },
+    "phase-history-focused-state.pickle": {
+      "bytes": 311886,
+      "sha256": "ffdd3efd9aa907d04d95637e22e0540587cc19aaf406ae59edb7b7967334ef13"
+    },
+    "phase-typed.png": {
+      "bytes": 115084,
+      "sha256": "ee9dd5ae52311b933a0ac13589978a5f95346f8fc4b903dd00e861d9ae29ca0b"
+    },
+    "phase-typed-state-metadata.json": {
+      "bytes": 792436,
+      "sha256": "ff18c011e14a3378ce9aa0eb2d532ce16e4973d6eb8c7fe91b0bf84e1f5f4327"
+    },
+    "phase-end-focused-state-metadata.json": {
+      "bytes": 802482,
+      "sha256": "a12fbeb4291143548d165b1bbcbe3cf8d0f4cbc23b4184085c84b76ece9d2a35"
+    },
+    "phase-startup-state.json": {
+      "bytes": 792464,
+      "sha256": "61c41dcf4a6b150746d8c6a9310501f2c7c891e5c246fab88d59531a68574f25"
+    },
+    "phase-peer-opened-manifest.json": {
+      "bytes": 453,
+      "sha256": "397fec9587ae5c53727b955d8c4cf0e2ecffad85257b7eeba3fa29ac76115747"
+    },
+    "phase-original-returned-capture.log": {
+      "bytes": 116,
+      "sha256": "3c7fe454b798d18d4efa5ca685b37da534a4c24a73fa858bb47fc6741938c57d"
+    },
+    "phase-edited-state-metadata.json": {
+      "bytes": 792436,
+      "sha256": "e71561b5aa946fea44c18eabff7581259bbdd1a9941ec0b18f0dcea5bee69ef3"
+    },
+    "phase-draft-restored-state.pickle": {
+      "bytes": 327830,
+      "sha256": "b0564263ca9482c6959e415fed6960b069de055b0b6a938b5d57350f65f4419d"
+    },
+    "phase-draft-restored-manifest.json": {
+      "bytes": 456,
+      "sha256": "fc9c170f96fe72a30988e9a2043e22a4d6d86e56303b6477845521e3fe2fef35"
+    },
+    "phase-editor-home-state-metadata.json": {
+      "bytes": 792435,
+      "sha256": "b91ccd9c93b1f2a407e5b1b6ac48033a170711a268be44eca196e99fba82d137"
+    },
+    "phase-reopened-state.json": {
+      "bytes": 806310,
+      "sha256": "dd95d5b47537cff7522ae83b578da9e83fe7b7e376c479621ce0551ac8590d6e"
+    },
+    "phase-original-returned-state-metadata.json": {
+      "bytes": 803342,
+      "sha256": "1dcff00bf5f9a6277361a90a60f8e395b668fd566a09059e76b2dd6e58b59141"
+    },
+    "phase-home-backspace-state-metadata.json": {
+      "bytes": 803341,
+      "sha256": "ae9974be5443842c4aa2b75d1c4f8d197b43c9cd9979a4436e90c5108a03e445"
+    },
+    "phase-tab-closed-state.json": {
+      "bytes": 939554,
+      "sha256": "9dc7add30f7b2cab1c427441c322b2dcce26020d66657e914000d356c39205c6"
+    },
+    "phase-end-focused-remote.py": {
+      "bytes": 427,
+      "sha256": "19af2c5b047492453c9cb109bef35b94fc145b7995900e015d4808a2223b00f8"
+    },
+    "phase-draft-restored-capture.log": {
+      "bytes": 113,
+      "sha256": "2f3f1a5578903cdfd4fcb5d788a34f9b4fc0e0c1a546b29d55648e774b42b5ca"
+    },
+    "phase-home-backspace-state.json": {
+      "bytes": 803368,
+      "sha256": "6b45e5a4f9646f131e2646c1ca94c45f0db7f8b299dcf371646f18cb84050a99"
+    },
+    "phase-peer-opened-remote.py": {
+      "bytes": 427,
+      "sha256": "abceec8a3b79c06f1cf651641c2cecd1e0feecc603f684f1e01a4cac6244f4ca"
+    },
+    "phase-reopened-capture.log": {
+      "bytes": 107,
+      "sha256": "b8b78b9b5f6f8b1e716eab4b160128a50640f1aae792edc2a1028124f647f817"
+    },
+    "phase-editor-home-state.pickle": {
+      "bytes": 312140,
+      "sha256": "960a8bbce637598f491a1efd64415179edf8fcb6b65766eb3c283fd7ca81856f"
+    },
+    "phase-draft-restored-state.json": {
+      "bytes": 803368,
+      "sha256": "57a576abfbcc6be45df7f4c28afbd14fde708dde2fdd47cfa543fdca7f1abbdb"
+    },
+    "phase-original-returned-state.json": {
+      "bytes": 803369,
+      "sha256": "fcd2a43d04b216c9c14daee159e98da72edec26493daaf317aa0178054689762"
+    },
+    "phase-draft-restored-remote.py": {
+      "bytes": 430,
+      "sha256": "e3ee249d1c88ffabe2a4fa90acc8e0a5573eb270cf4b10df559ec10c01fde677"
+    },
+    "phase-end-focused-state.json": {
+      "bytes": 802509,
+      "sha256": "6673cda5cf3295a213ab812f7fa1ee4d428ebb5653bcb27425d26f64c1916637"
+    },
+    "phase-tab-closed-state-metadata.json": {
+      "bytes": 939527,
+      "sha256": "e57a9201518834473e8b19f5ab8632876e3aa0e1127e7077190dca0e39af57b2"
+    },
+    "phase-edited-manifest.json": {
+      "bytes": 448,
+      "sha256": "d92b725c3be1673cbd7fc5d51087349cbd2c005cad13f947f2f6b65ebcfe6014"
+    },
+    "phase-tab-closed-manifest.json": {
+      "bytes": 452,
+      "sha256": "6284460fb9ac9d428ee08ec4382988a3fcfad7611c6cba6a76170a94d9787026"
+    },
+    "phase-history-focused-state-metadata.json": {
+      "bytes": 791576,
+      "sha256": "6ed5da1fa82f841948f8696dd691d08f946bfa81312a8e15c7d7cae5a42d4bbb"
+    },
+    "phase-edited-capture.log": {
+      "bytes": 105,
+      "sha256": "53b2f8cbcc005bdbc3e40310e8a33c8ca050033adde83fcf3e32ae1c313ea5a5"
+    },
+    "phase-end-stationary.png": {
+      "bytes": 117021,
+      "sha256": "a34e800a23b86a52a2885129705c3626c4415e45b6a5cc65fe776d046909b062"
+    },
+    "phase-history-focused-remote.py": {
+      "bytes": 431,
+      "sha256": "a88032ebb715067267cd02512e21ab49ea3608dedfbdba4332d13dbaba339c36"
+    },
+    "phase-editor-home-remote.py": {
+      "bytes": 427,
+      "sha256": "4bf487c1f66142d2fe35f5bd96c8f4b58a8b48e1400ac038096a0306e99e0133"
+    },
+    "phase-typed-manifest.json": {
+      "bytes": 447,
+      "sha256": "2dc33b062db478459b9d6a1d6dc2260da375365a6c89491d2278a07d901e7059"
+    },
+    "phase-end-stationary-state.json": {
+      "bytes": 803761,
+      "sha256": "21f6ae6ba7ea05f5c6f710fbdd40f51854cb788ab197e5c58f88de5bee17f7f1"
+    },
+    "phase-end-focused-state.pickle": {
+      "bytes": 327594,
+      "sha256": "09a2ff8485ee9a182082857aef51e9f6564157d327e988bcf78f410a04b725f0"
+    },
+    "phase-edited-remote.py": {
+      "bytes": 422,
+      "sha256": "ca4d363258579ede52cda2de8a406fc588b41e5b903fda3b55d3f83684bea7e8"
+    },
+    "phase-end-focused-capture.log": {
+      "bytes": 110,
+      "sha256": "5320dd26a4f8499802fb5eb25660d8d7ba245cd1773162865ecd0868f934659a"
+    },
+    "phase-original-returned-state.pickle": {
+      "bytes": 327814,
+      "sha256": "2d900a3a00c6ac28f4ee242d43292fd7124ccb91c683efe8ce65540ea74bf3af"
+    },
+    "phase-peer-opened-state.pickle": {
+      "bytes": 331898,
+      "sha256": "dfae235604adac02dc2e56c900ecdbbcf7d119a9873fd2330988ad2e04eb85a3"
+    },
+    "phase-typed-state.pickle": {
+      "bytes": 312144,
+      "sha256": "b4a227a58b47041c8319c558447daa8a184e44eb232b90302c34b7794781aca0"
+    },
+    "phase-home-backspace-state.pickle": {
+      "bytes": 327832,
+      "sha256": "7e20946a76880181bb6b32e1422917a9b14663f5c5f8ff8799115ca262cb0ca3"
+    },
+    "phase-reopened-state-metadata.json": {
+      "bytes": 806283,
+      "sha256": "c04be26a57b68aad866a2d923250ee9c028a022c01ae954d03c81a4952f17056"
+    },
+    "phase-typed-capture.log": {
+      "bytes": 104,
+      "sha256": "42a03a57ed93bd0b15c044a4bead20c21339339a62f421e5bc708a353435078c"
+    },
+    "phase-tab-closed-state.pickle": {
+      "bytes": 327717,
+      "sha256": "dbce3b501e516fe21c30216f3fc9aae5ec491985f4d71853f8d7c20993c555ff"
+    },
+    "phase-end-stationary-manifest.json": {
+      "bytes": 456,
+      "sha256": "427b08985a9f4a20e6dbf4b636f582571994066687f54c8288dd0742bd7873b0"
+    },
+    "phase-startup-state-metadata.json": {
+      "bytes": 792437,
+      "sha256": "f44dbc17f965c925e0e01693647b9a9c3cd0c240234c61660433320271982990"
+    },
+    "phase-peer-opened.png": {
+      "bytes": 69452,
+      "sha256": "9dd34ec790b0b662bcaf7b2bd1582ac7ef9d2f7cec9d6709527505dfe93ea8fc"
+    },
+    "phase-editor-home-manifest.json": {
+      "bytes": 453,
+      "sha256": "7e4e6839197bb54891e187cd53c8f38437f22af038784ad697fd6b485de972b9"
+    },
+    "phase-editor-home-state.json": {
+      "bytes": 792462,
+      "sha256": "4683a554aba4d399c54446e94c41d33b90f227008d79945038600aacba08c9d6"
+    },
+    "phase-startup-manifest.json": {
+      "bytes": 449,
+      "sha256": "8393e7818c57e9ac615b43b965fc3a41f3c2a2a750d353bb050c6276d08e00c1"
+    },
+    "phase-tab-closed-remote.py": {
+      "bytes": 426,
+      "sha256": "f0d3f788bfb0bac8f2f47d2ab6f153629f066b634aa7ae77a6ff0ebd73478524"
+    },
+    "phase-reopened-remote.py": {
+      "bytes": 424,
+      "sha256": "71b24b737d33eefcecbee83a02baa451cf0db8beb267ac6e994473ac5909ddeb"
+    },
+    "phase-edited.png": {
+      "bytes": 114859,
+      "sha256": "91bd490ad79e7c718ed6dbc30bd1004d6e761f11e7e293bf7bf3bb144cfeeae3"
+    },
+    "phase-typed-remote.py": {
+      "bytes": 421,
+      "sha256": "e2c9c4059fd31cb623e03ee8e568a89a8a3d5f5ab9f2447a3711439d079b69d0"
+    },
+    "phase-end-stationary-state-metadata.json": {
+      "bytes": 803734,
+      "sha256": "0ecaf68a522741abc25cffd65b4dc3b6f035ed3593e6b503e88aa4ca3a8194be"
+    },
+    "phase-end-stationary-capture.log": {
+      "bytes": 113,
+      "sha256": "eb1560ef1be4220b769b1af20f1b04602374c47200c9e55a3860d285c910836e"
+    },
+    "phase-draft-restored-state-metadata.json": {
+      "bytes": 803341,
+      "sha256": "d25058c379e4701a7f1dc81dc7f20d5e327567d75aa61759b1db7a65d358f503"
+    },
+    "phase-home-backspace-capture.log": {
+      "bytes": 113,
+      "sha256": "accec242c348259d932d3776e03fe66cafff79c6556a442217d711f38273bcc2"
+    },
+    "phase-history-focused.png": {
+      "bytes": 114313,
+      "sha256": "50ce0004c6c6c732e04b81dc490bddc7cd8e0f0d9ea9997ff2e4864da96ccea3"
+    },
+    "phase-startup-remote.py": {
+      "bytes": 423,
+      "sha256": "33f9030fc684155e67b178b2642df3b8fc5cb05558078516fe1874677777d9e2"
+    },
+    "phase-end-stationary-state.pickle": {
+      "bytes": 327944,
+      "sha256": "5d5fc7d93c7dd7bcdb97b3f4d2942e88f67ea8f9011fca78595e873e53452d8a"
+    },
+    "phase-startup-state.pickle": {
+      "bytes": 312140,
+      "sha256": "1b2371b5c51bfeec6d551756675038dd6f2fe0d50373e3d3abd9316fa2e443b3"
+    },
+    "phase-end-stationary-remote.py": {
+      "bytes": 430,
+      "sha256": "ece1fef1a9cc49b7b75c7107a784942a9f618fc9c44f8835914806b9d32a00db"
+    },
+    "phase-history-focused-state.json": {
+      "bytes": 791603,
+      "sha256": "e1a09c49932e6cc446fa21cafe60be9a2c197d773a92f3b37d1624df8196fcc8"
+    },
+    "original_tab-click-target.json": {
+      "bytes": 496,
+      "sha256": "3e8ae3f959cb29d73ab9d81746e4e62a2f0dc3e1dc50581726596ea1b16e45e9"
+    },
+    "editor-click-target.json": {
+      "bytes": 488,
+      "sha256": "e41fb06b802ff805d9d7b05b0694e0b5ba462820fb3639fd378228f95bcf039a"
+    },
+    "history-click-target.json": {
+      "bytes": 508,
+      "sha256": "4f1dd37bf79c69430bb9b45a7e4abcaafd96bc2f7c14620482fa99298f320001"
+    },
+    "thread-click-target.json": {
+      "bytes": 489,
+      "sha256": "5641b838e5ff4448386ccc48077da2f5b703b2f7f8dafbbe627b2263bc30412a"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3345532,
+        "start_ticks": 25343651,
+        "returncode": 0
+      },
+      {
+        "pid": 3345534,
+        "start_ticks": 25343727,
+        "returncode": 0
+      },
+      {
+        "pid": 3345536,
+        "start_ticks": 25343736,
+        "returncode": 0
+      },
+      {
+        "pid": 3345537,
+        "start_ticks": 25343741,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3345543,
+        "start_ticks": 25343798,
+        "returncode": 0
+      },
+      {
+        "pid": 3345544,
+        "start_ticks": 25343809,
+        "returncode": 0
+      },
+      {
+        "pid": 3345545,
+        "start_ticks": 25343818,
+        "returncode": 0
+      },
+      {
+        "pid": 3345546,
+        "start_ticks": 25343829,
+        "returncode": 255
+      },
+      {
+        "pid": 3346024,
+        "start_ticks": 25345030,
+        "returncode": 0
+      },
+      {
+        "pid": 3346029,
+        "start_ticks": 25345058,
+        "returncode": 0
+      },
+      {
+        "pid": 3346034,
+        "start_ticks": 25345097,
+        "returncode": 0
+      },
+      {
+        "pid": 3346113,
+        "start_ticks": 25345234,
+        "returncode": 0
+      },
+      {
+        "pid": 3346120,
+        "start_ticks": 25345315,
+        "returncode": 0
+      },
+      {
+        "pid": 3346122,
+        "start_ticks": 25345376,
+        "returncode": 0
+      },
+      {
+        "pid": 3346136,
+        "start_ticks": 25345512,
+        "returncode": 0
+      },
+      {
+        "pid": 3346145,
+        "start_ticks": 25345592,
+        "returncode": 0
+      },
+      {
+        "pid": 3346158,
+        "start_ticks": 25345605,
+        "returncode": 0
+      },
+      {
+        "pid": 3346160,
+        "start_ticks": 25345666,
+        "returncode": 0
+      },
+      {
+        "pid": 3346232,
+        "start_ticks": 25345793,
+        "returncode": 0
+      },
+      {
+        "pid": 3346234,
+        "start_ticks": 25345854,
+        "returncode": 0
+      },
+      {
+        "pid": 3346305,
+        "start_ticks": 25345916,
+        "returncode": 0
+      },
+      {
+        "pid": 3346387,
+        "start_ticks": 25346054,
+        "returncode": 0
+      },
+      {
+        "pid": 3346388,
+        "start_ticks": 25346074,
+        "returncode": 0
+      },
+      {
+        "pid": 3346404,
+        "start_ticks": 25346136,
+        "returncode": 0
+      },
+      {
+        "pid": 3346426,
+        "start_ticks": 25346268,
+        "returncode": 0
+      },
+      {
+        "pid": 3346436,
+        "start_ticks": 25346356,
+        "returncode": 0
+      },
+      {
+        "pid": 3346470,
+        "start_ticks": 25346566,
+        "returncode": 0
+      },
+      {
+        "pid": 3346499,
+        "start_ticks": 25346715,
+        "returncode": 0
+      },
+      {
+        "pid": 3346513,
+        "start_ticks": 25346796,
+        "returncode": 0
+      },
+      {
+        "pid": 3346605,
+        "start_ticks": 25347007,
+        "returncode": 0
+      },
+      {
+        "pid": 3346712,
+        "start_ticks": 25347154,
+        "returncode": 0
+      },
+      {
+        "pid": 3346759,
+        "start_ticks": 25347231,
+        "returncode": 0
+      },
+      {
+        "pid": 3346760,
+        "start_ticks": 25347248,
+        "returncode": 0
+      },
+      {
+        "pid": 3346772,
+        "start_ticks": 25347311,
+        "returncode": 0
+      },
+      {
+        "pid": 3346797,
+        "start_ticks": 25347448,
+        "returncode": 0
+      },
+      {
+        "pid": 3346799,
+        "start_ticks": 25347464,
+        "returncode": 0
+      },
+      {
+        "pid": 3346853,
+        "start_ticks": 25347529,
+        "returncode": 0
+      },
+      {
+        "pid": 3347174,
+        "start_ticks": 25347659,
+        "returncode": 0
+      },
+      {
+        "pid": 3347256,
+        "start_ticks": 25347740,
+        "returncode": 0
+      },
+      {
+        "pid": 3347400,
+        "start_ticks": 25347802,
+        "returncode": 0
+      },
+      {
+        "pid": 3347623,
+        "start_ticks": 25347935,
+        "returncode": 0
+      },
+      {
+        "pid": 3347625,
+        "start_ticks": 25347946,
+        "returncode": 0
+      },
+      {
+        "pid": 3347752,
+        "start_ticks": 25348259,
+        "returncode": 0
+      },
+      {
+        "pid": 3347777,
+        "start_ticks": 25348397,
+        "returncode": 0
+      },
+      {
+        "pid": 3347782,
+        "start_ticks": 25348480,
+        "returncode": 0
+      },
+      {
+        "pid": 3347785,
+        "start_ticks": 25348504,
+        "returncode": 0
+      },
+      {
+        "pid": 3347802,
+        "start_ticks": 25348616,
+        "returncode": 0
+      },
+      {
+        "pid": 3347818,
+        "start_ticks": 25348753,
+        "returncode": 0
+      },
+      {
+        "pid": 3347831,
+        "start_ticks": 25348836,
+        "returncode": 0
+      },
+      {
+        "pid": 3348071,
+        "start_ticks": 25349150,
+        "returncode": 0
+      },
+      {
+        "pid": 3348169,
+        "start_ticks": 25349538,
+        "returncode": 0
+      },
+      {
+        "pid": 3348174,
+        "start_ticks": 25349566,
+        "returncode": 0
+      },
+      {
+        "pid": 3348191,
+        "start_ticks": 25349659,
+        "returncode": 0
+      },
+      {
+        "pid": 3348221,
+        "start_ticks": 25349746,
+        "returncode": 0
+      },
+      {
+        "pid": 3348445,
+        "start_ticks": 25350030,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3341782,
+      "start_time": 25331669
+    },
+    "original_owner_alive": true
+  }
+}
