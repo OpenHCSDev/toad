@@ -47,7 +47,8 @@ async def declaration_case():
                           XDG_DATA_HOME=str(root/'data'),AGENT_COMMS_ROOT=str(root/'wire'))
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(120,40)) as pilot:
-            await app.screen.wait_content_ready()
+            await app.screen.prepare_navigation()
+            await app.screen.layout_navigation()
             view=app.selected_session.conversation
             entered,release=asyncio.Event(),asyncio.Event()
             pending=asyncio.create_task(view.transcript.publish(DeclaredPublication,entered,release))
@@ -81,4 +82,5 @@ def test_declared_case():
 
 if __name__=='__main__':
     test_root_custody_deleted()
+    test_source_operation_flags_deleted()
     test_declared_case()

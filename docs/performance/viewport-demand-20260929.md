@@ -26,6 +26,6 @@ Continuous installed saved-native acceptance pending: isolated Xvfb/st held Page
 
 ## Pair and resources
 
-Own noneditable wheel uses Core426 ec63669bc1a1048c9958ac7d6faea41d0f3e963f, Textual412 and native7817 while the attachment owner normally integrates newer paired Core/native changes. Parent owns reviewed default activation. Normal #213 reader geometry checkpoint 65b5ee23 is integrated. Native fixtures are serial: urgent recovery/rename/deadline fixes precede this capture; source and provider-free UI work continue independently.
+Own noneditable wheel uses merged Core426 d306d0df04e82af1084aa0d25aaa1484b693b0f2, Textual412 and the parent-verified native4ab package. Current main #210 6e56770 is integrated with its original process load witness and FailedSessionLoadAdmission contract; no older load fallback. Parent owns reviewed default activation. Normal #213 reader geometry checkpoint 65b5ee23 is integrated. Native fixtures are serial: urgent recovery/rename/deadline fixes precede this capture; source and provider-free UI work continue independently.
 
 Persistent WT /home/ts/wt/toad-viewport-demand-20260929; owned disposable artifacts /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929. No global package, live user root or another worker's source was changed.

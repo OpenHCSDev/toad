@@ -12,7 +12,7 @@ from toad.agent import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
-from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, SessionLoadAdmission
+from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, FailedSessionLoadAdmission, SessionLoadAdmission
 
 PROTOCOL_VERSION = 1
 
@@ -108,7 +108,7 @@ class AgentSession:
         if coordination is None:
             return
         binding = presentation.binding
-        if not binding.replaces(coordination.thread, coordination.owner_pid):
+        if not self.load_admission.superseded_by(binding):
             return
         await self.reconnect(ExistingSessionLoadAdmission(binding))
 
@@ -260,7 +260,14 @@ class AgentSession:
         with self.agent.request():
             session_load_response = api.session_load(cwd, [], request_session_id,
                                                      admission.metadata())
-        response = await session_load_response.wait()
+        try:
+            response = await session_load_response.wait()
+        except jsonrpc.APIError as error:
+            authority.require()
+            if self.agent.queue_attachment.is_current_request(queue_token):
+                if failed_command := FailedSessionLoadAdmission.from_failure(error.data):
+                    self.load_admission = failed_command
+            raise
         authority.require()
         if (
             not self.agent._private_cursor.is_current_request(cursor_token)
@@ -325,6 +332,7 @@ class AgentSession:
 
 
     def publish_configuration(self, response):
+        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         if (modes := response.modes) is not None:
             self.agent.controller.publish_modes(modes.current_mode_id, {
                 mode.id: mode
