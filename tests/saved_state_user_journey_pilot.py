@@ -254,8 +254,8 @@ async def reveal_thread_row(app, pilot, name, channel_name="#team"):
     if group.expanded is False:
         assert await pilot.click(group.disclosure)
         await pilot.pause()
-    await until(pilot, lambda: any(row.target_name == name for row in group.member_rows))
-    row = next(row for row in group.member_rows if row.target_name == name)
+    await until(pilot, lambda: any(row.target_name == name for row in group.member_container.children))
+    row = next(row for row in group.member_container.children if row.target_name == name)
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert row.is_attached and group.expanded

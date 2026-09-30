@@ -52,8 +52,8 @@ async def acceptance(app,pilot,agent,comms,entered,release,hold_next,requests):
     # Physical disclosure and keyboard traversal preserve one hierarchy identity.
     if group.expanded is False:
         assert await pilot.click(group.disclosure)
-    await until(pilot,lambda:len(group.member_rows)>=2)
-    member=next(row for row in group.member_rows if row.target_name=='beta')
+    await until(pilot,lambda:len(group.member_container.children)>=2)
+    member=next(row for row in group.member_container.children if row.target_name=='beta')
     member.focus();await until(pilot,lambda:member.has_focus)
     await pilot.press('down','up')
     assert member.has_focus

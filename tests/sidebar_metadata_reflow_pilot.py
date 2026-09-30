@@ -54,7 +54,7 @@ async def main():
                 group.toggle_members()
                 await pilot.pause()
                 assert group.expanded is not before
-                assert bool(group.member_rows) == group.expanded
+                assert bool(group.member_container.children) == group.expanded
                 group.toggle_members()
                 await pilot.pause()
                 assert group.expanded is before
