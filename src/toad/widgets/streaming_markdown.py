@@ -72,7 +72,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                 # its admitted source range, never the retired pager widgets.
                 page = self._paged.pages[0]
                 self._dormant_page_range = page.start, page.stop
-                self._body_dormant = True
+                self.retire_measurement()
                 pager, self._paged = self._paged, None
                 await pager.remove()
                 self._prepared_fences.clear()

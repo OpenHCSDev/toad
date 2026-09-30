@@ -9,6 +9,7 @@ from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
 from time import monotonic
+from dataclasses import dataclass, replace
 import asyncio
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 
@@ -50,6 +51,19 @@ class ViewportBody:
     def measured_rows(self) -> int:
         raise NotImplementedError
 
+    @property
+    def retained_widget_count(self) -> int:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class BodyMeasurement:
+    """The native body's measured extent and last materialized resource cost."""
+
+    width: int
+    rows: int
+    widgets: int = 1
+
 
 class MeasuredViewportBody(ViewportBody):
     """Shared native extent and restoration state for body-owning widgets."""
@@ -75,16 +89,30 @@ class MeasuredViewportBody(ViewportBody):
 
     @property
     def measured_rows(self) -> int:
-        return self._body_measurement[1] if self._body_measurement is not None else 0
+        return self._body_measurement.rows if self._body_measurement is not None else 0
+
+    @property
+    def retained_widget_count(self) -> int:
+        if self._body_dormant:
+            return self._body_measurement.widgets
+        return 1 + len(self.walk_children())
+
+    def retire_measurement(self) -> None:
+        # This cost belongs to the reconstructible body, not a second viewport
+        # counter. Keep it with the extent when the measured native tree retires.
+        self._body_measurement = replace(
+            self._body_measurement, widgets=1 + len(self.walk_children()),
+        )
+        self._body_dormant = True
 
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         if self._body_dormant and self._body_measurement is not None:
-            if width != self._body_measurement[0]:
+            if width != self._body_measurement.width:
                 self._body_measurement_stale = True
-            return self._body_measurement[1]
+            return self._body_measurement.rows
         height = super().get_content_height(container, viewport, width)
-        self._body_measurement = width, height
+        self._body_measurement = BodyMeasurement(width, height)
         self._body_measurement_stale = False
         return height
 
@@ -205,23 +233,32 @@ class DocumentViewport:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
 
-    async def _trim_warm(self) -> None:
-        # No suspension or DOM mutation occurs in this pass. Measure each
-        # native tree once, then subtract its cost as the existing LRU retires
-        # it. Recounting every survivor after every eviction is quadratic.
-        costs = [(owner.retained_source_bytes, 1 + len(owner.walk_children()))
-                 if (owner := key()) is not None else (0, 0)
-                 for key in self._warm.values()]
-        source_bytes = sum(size for size, _ in costs)
-        widget_count = sum(count for _, count in costs)
-        for size, count in costs:
-            if (source_bytes <= self.window.app.preparation.max_bytes and
-                    widget_count <= self.budget.widget_limit(self.window.size.height)):
-                break
-            self._warm.popitem(last=False)
-            self.body_evictions += 1
-            source_bytes -= size
-            widget_count -= count
+    async def _trim_warm(self, *, required=(), ahead=()):
+        # Select the bounded materialized working set BEFORE restoring a body.
+        # A dormant body carries its last native cost with its measured extent.
+        # Restoring everything then evicting it causes its own layouts to repeat
+        # the same admission forever when the requested runway exceeds the bound.
+        candidates = dict.fromkeys((*required, *ahead, *(owner
+            for key in reversed(self._warm.values()) if (owner := key()) is not None)))
+        roots = tuple(owner for owner in candidates
+                      if not any(parent in self.owners for parent in owner.ancestors))
+        admitted = self.budget.admit(
+            roots, required, self.window.size.height, self.window.app.preparation.max_bytes,
+        )
+        for key in tuple(self._warm):
+            if key() not in admitted:
+                self._warm.pop(key)
+                self.body_evictions += 1
+        for owner in reversed(ahead):
+            if owner in admitted:
+                key = ref(owner)
+                self._warm[key] = key
+                self._warm.move_to_end(key)
+        for owner in required:
+            key = ref(owner)
+            self._warm[key] = key
+            self._warm.move_to_end(key)
+        return admitted
 
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
@@ -310,17 +347,13 @@ class DocumentViewport:
                 active = screen.is_current
                 visible = screen._compositor.visible_widgets if active else {}
                 protected = self.protected()
-                owners = tuple(owner for owner in self.owners if owner.is_attached)
-                for owner in owners:
-                    if owner in visible:
-                        key = ref(owner)
-                        self._warm[key] = key
-                        self._warm.move_to_end(key)
+                owners = tuple(owner for owner in self.owners if owner.is_attached
+                               and not any(parent in self.owners for parent in owner.ancestors))
+                required = tuple(owner for owner in owners if owner in visible or owner in protected)
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
-                sequence = ([node for node in self.window.walk_children()
-                             if node in self.owners
-                             and not any(parent in self.owners for parent in node.ancestors)]
+                outer = set(owners)
+                sequence = ([node for node in self.window.walk_children() if node in outer]
                             if active else [])
                 ahead_owners = []
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
@@ -337,21 +370,9 @@ class DocumentViewport:
                     predicted = self.lookahead.demand.neighbors(
                         sequence, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
-                    roots = dict.fromkeys((*runway, *predicted))
-                    ahead_owners = list(dict.fromkeys(
-                        node for root in roots for node in (root, *root.walk_children())
-                        if node in self.owners
-                    ))
-                for owner in reversed(ahead_owners):
-                    if owner.body_ready:
-                        key = ref(owner)
-                        self._warm[key] = key
-                        self._warm.move_to_end(key)
-                for owner in owners:
-                    if owner in visible:
-                        self._warm.move_to_end(ref(owner))
-                await self._trim_warm()
-                warm = {key() for key in self._warm.values()} if active else set()
+                    ahead_owners = list(dict.fromkeys((*runway, *predicted)))
+                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                warm = admitted if active else set()
                 retained = protected | warm | visible.keys()
                 # Restore visible source before retiring unrelated bodies.
                 ordered = sorted(owners, key=lambda owner: owner not in visible)
@@ -359,7 +380,7 @@ class DocumentViewport:
                     if not owner.is_attached or owner._closing:
                         continue
                     wanted = owner in retained
-                    if owner.body_dormant and wanted:
+                    if owner.body_dormant and wanted and owner in required:
                         anchor = next((item for item in owners if item in visible and item.is_attached), owner)
                         started = monotonic()
                         await self._restore_body(owner, anchor)
@@ -370,14 +391,14 @@ class DocumentViewport:
                         await owner.retire_body()
                 if active:
                     demand = self.lookahead.demand
-                    # Restore farthest first so the existing LRU gives the
-                    # nearest reversal runway priority when its hard bound wins.
-                    ahead_owners.reverse()
+                    # Do not materialize a runway body that cannot be retained.
+                    # Nearest bodies on both sides precede directional extras.
+                    ahead_owners = [owner for owner in ahead_owners if owner in admitted]
                     for first in range(0, len(ahead_owners), self.budget.admission_items):
                         if not self.lookahead.accepts(demand):
                             break
                         batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
-                                 if owner.is_attached and owner.body_dormant]
+                                 if owner in admitted and owner.is_attached and owner.body_dormant]
                         if not batch:
                             continue
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))
@@ -386,11 +407,9 @@ class DocumentViewport:
                                 break
                             anchor = next((item for item in owners if item in visible and item.is_attached), owner)
                             await self._restore_body(owner, anchor)
-                            # Retention remains the existing measured working set.
-                            key = ref(owner)
-                            self._warm[key] = key
-                            self._warm.move_to_end(key)
-                            await self._trim_warm()
+                        # Live content or a width change can change actual cost.
+                        # Re-admit the completed native batch before the next one.
+                        admitted = await self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 

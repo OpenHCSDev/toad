@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import pickle
+from agent_comms.transcripts import TranscriptCursor
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ class NativePhase:
     window: int
     focused_widget: int | None
     loaded_pages: int
+    oldest_admitted: TranscriptCursor | None
     scroll_y: float
     maximum: float
     follows_tail: bool
@@ -44,13 +46,23 @@ class NativePhase:
                                        body["visible"], body["measured_rows"])
                        for body in window["body_resources"]["owners"])
         focused = snapshot["metadata"]["screen"]["focused"]
+        pages = tuple(page for history in view["history_pages"]
+                      for page, _start, _stop in history["pages"])
         return cls(label, mode, draft["object_id"], "\n".join(draft["lines"]), draft["selection"],
                    window["object_id"], focused["object_id"] if focused is not None else None,
-                   len(view["history_pages"]), window["scroll_y"], window["maximum"],
+                   len(pages), pages[0].before if pages else None,
+                   window["scroll_y"], window["maximum"],
                    window["follows_tail"], bodies)
 
     def ready_body_ids(self):
         return {body.object_id for body in self.bodies if body.ready}
+
+    def admits_before(self, other: "NativePhase") -> bool:
+        """Compare original source cursors, never offsets in reflowed geometry."""
+        if self.oldest_admitted is None or other.oldest_admitted is None:
+            return False
+        return (self.oldest_admitted != other.oldest_admitted
+                and other.oldest_admitted.contains(self.oldest_admitted))
 
 
 def review_warm_return(output, receipt, *, suffix):
@@ -71,9 +83,9 @@ def review_warm_return(output, receipt, *, suffix):
         "history_scroll_extent": focused.maximum > 0,
         "scroll_keys_focus_history": all(phase.focused_widget == phase.window
                                           for phase in (focused, up, down, reversed_scroll)),
-        "held_page_up_moved": up.scroll_y < focused.scroll_y,
-        "held_page_down_moved": down.scroll_y > up.scroll_y,
-        "reverse_page_up_moved": reversed_scroll.scroll_y < down.scroll_y,
+        "held_page_up_admitted_older_source": up.admits_before(focused),
+        "held_page_down_admitted_newer_source": up.admits_before(down),
+        "reverse_page_up_admitted_older_source": reversed_scroll.admits_before(down),
         "draft_typed": drafted.text == initial.text + suffix,
         "peer_selected": peer.mode != initial.mode,
         "source_retained": all(phase.mode == initial.mode for phase in same),
@@ -89,6 +101,7 @@ def review_warm_return(output, receipt, *, suffix):
               "phases": {label: asdict(phase) for label, phase in phases.items()},
               "physical_assessment": "unreviewed; inspect terminal.mp4 and phase PNGs",
               "limits": ["Native resource identities do not certify a warm physical first paint",
+                         "Source admission direction does not certify visible motion; inspect the physical frames",
                          "A snapshot does not prove preparation or rasterization was skipped",
                          "Only actual Ctrl+Z output proves preserved Undo; no history-manager mirror is inspected"],
               "events": [{"label": event["label"], "video_seconds": event["seconds_since_capture_launch"],

@@ -80,7 +80,7 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         if not blocks:
             return False
         async with self.lock:
-            self._body_dormant = True
+            self.retire_measurement()
             await self.remove_children(blocks)
             self._prepared_fences.clear()
             self.refresh(layout=True)

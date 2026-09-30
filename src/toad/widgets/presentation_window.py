@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+from itertools import zip_longest
 from math import ceil
 from time import monotonic, get_clock_info
 
@@ -62,6 +63,21 @@ class PresentationBudget:
     def runway_rows(self, viewport_rows: int) -> int:
         return max(1, viewport_rows) * self.buffer_viewports
 
+    def admit(self, candidates, required, viewport_rows: int, max_bytes: int):
+        """Visible/protected native bodies first, then ordered bounded resources."""
+        admitted = set(required)
+        widgets = source_bytes = 0
+        for owner in candidates:
+            count, size = owner.retained_widget_count, owner.retained_source_bytes
+            if owner not in admitted:
+                if (widgets + count > self.widget_limit(viewport_rows)
+                        or source_bytes + size > max_bytes):
+                    continue
+                admitted.add(owner)
+            widgets += count
+            source_bytes += size
+        return admitted
+
     def runway(self, sequence, first: int, last: int, viewport_rows: int):
         """Native measured bodies on both sides, including stationary reversal."""
         before, after = [], []
@@ -73,7 +89,8 @@ class PresentationBudget:
                 rows += max(1, owner.measured_rows)
                 if rows >= self.runway_rows(viewport_rows):
                     break
-        return before + after
+        return [owner for pair in zip_longest(before, after)
+                for owner in pair if owner is not None]
 
 
 class PreparationDemand(ABC):
