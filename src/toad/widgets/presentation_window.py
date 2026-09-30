@@ -79,6 +79,12 @@ class StationaryPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return 0
 
+    def neighbors(self, sequence, first: int, last: int, count: int):
+        # A small idle reserve belongs to the same page/worker resource, not
+        # a second cache. Moving demand selects only its incoming direction.
+        return (tuple(reversed(sequence[max(0, first - count):first]))
+                + tuple(sequence[last:last + count]))
+
 
 @dataclass
 class MovingPreparation(PreparationDemand):
@@ -153,6 +159,14 @@ class DirectionalPreparation:
             self.sampled_at = now
             self.position = position
         return bool(travel)
+
+    def relocated(self, position: float) -> None:
+        """Rebase measured travel after layout preserves the same source reader.
+
+        Restoration is geometry compensation, not another input sample. Keep
+        the existing demand's velocity, direction and expiry unchanged.
+        """
+        self.position = position
 
     def settle(self) -> None:
         self.demand = StationaryPreparation()

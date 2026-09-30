@@ -1,0 +1,195 @@
+{
+  "tested_toad_commit": "88792e4143992ccafe277ce60745dac2cc360213",
+  "core_commit": "72062939239b0f07707406309305a056a23f925f",
+  "textual_commit": "412b5a2b5da8875dc2f3dc5be2365abddce0537b",
+  "sdk": "0.12.1",
+  "native": "4ab910061590d1e0",
+  "outcome": "FAIL: PageDown entirely blank; reverse recovers middle; End and idle15 entirely blank",
+  "extent": "Unknown: remote_exec PermissionError; later export missed target",
+  "profiler": "947 GIL samples, zero errors, 25Hz",
+  "runs": [
+    {
+      "ui_identity": {
+        "pid": 2197422,
+        "start_ticks": 21189254
+      },
+      "duration_seconds": 52.575779734004755,
+      "original_owner_before": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "mode": "existing_thread",
+        "name": "nra-architecture",
+        "identity": {
+          "pid": 2126072,
+          "start_time": 20963438
+        },
+        "original_owner_alive": true
+      },
+      "original_owner_after": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "mode": "existing_thread",
+        "name": "nra-architecture",
+        "identity": {
+          "pid": 2126072,
+          "start_time": 20963438
+        },
+        "original_owner_alive": true
+      },
+      "runtime_unchanged": true,
+      "completed": true,
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture",
+      "cleanup": {
+        "remaining_owned_pids": [],
+        "errors": []
+      },
+      "phase_ui_cpu": [
+        {
+          "phase": "up",
+          "video_start": 14.545860418991651,
+          "video_end": 19.342193607008085,
+          "wall_seconds": 4.796333188016433,
+          "ui_cpu_seconds": 4.590000000000002,
+          "ui_cpu_percent": 95.69810561676674
+        },
+        {
+          "phase": "down",
+          "video_start": 20.113721422996605,
+          "video_end": 24.9184459829994,
+          "wall_seconds": 4.804724560002796,
+          "ui_cpu_seconds": 4.18,
+          "ui_cpu_percent": 86.99770294423635
+        },
+        {
+          "phase": "reverse",
+          "video_start": 25.6664957269968,
+          "video_end": 30.452051411994034,
+          "wall_seconds": 4.7855556849972345,
+          "ui_cpu_seconds": 4.600000000000001,
+          "ui_cpu_percent": 96.12258853075407
+        },
+        {
+          "phase": "idle",
+          "video_start": 33.04504591500154,
+          "video_end": 48.8007593099901,
+          "wall_seconds": 15.755713394988561,
+          "ui_cpu_seconds": 9.320000000000004,
+          "ui_cpu_percent": 59.15314506142532
+        }
+      ]
+    },
+    {
+      "ui_identity": {
+        "pid": 2204336,
+        "start_ticks": 21213648
+      },
+      "duration_seconds": 52.490769604977686,
+      "original_owner_before": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "mode": "existing_thread",
+        "name": "nra-architecture",
+        "identity": {
+          "pid": 2126072,
+          "start_time": 20963438
+        },
+        "original_owner_alive": true
+      },
+      "original_owner_after": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "mode": "existing_thread",
+        "name": "nra-architecture",
+        "identity": {
+          "pid": 2126072,
+          "start_time": 20963438
+        },
+        "original_owner_alive": true
+      },
+      "runtime_unchanged": true,
+      "completed": true,
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/diagnostic",
+      "cleanup": {
+        "remaining_owned_pids": [],
+        "errors": []
+      },
+      "phase_ui_cpu": [
+        {
+          "phase": "up",
+          "video_start": 14.56525299398345,
+          "video_end": 19.37738385499688,
+          "wall_seconds": 4.812130861013429,
+          "ui_cpu_seconds": 4.66,
+          "ui_cpu_percent": 96.83859675874669
+        },
+        {
+          "phase": "down",
+          "video_start": 20.118784569989657,
+          "video_end": 24.87034552899422,
+          "wall_seconds": 4.751560959004564,
+          "ui_cpu_seconds": 4.710000000000001,
+          "ui_cpu_percent": 99.12531988196844
+        },
+        {
+          "phase": "reverse",
+          "video_start": 25.59564071299974,
+          "video_end": 30.396344328997657,
+          "wall_seconds": 4.800703615997918,
+          "ui_cpu_seconds": 4.66,
+          "ui_cpu_percent": 97.06910429694022
+        },
+        {
+          "phase": "idle",
+          "video_start": 32.96718724697712,
+          "video_end": 48.72325420897687,
+          "wall_seconds": 15.75606696199975,
+          "ui_cpu_seconds": 9.329999999999998,
+          "ui_cpu_percent": 59.215285277105984
+        }
+      ]
+    }
+  ],
+  "artifacts": {
+    "before.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/before.png",
+      "sha256": "ea2267d9c4f2bc746eb95b2d5b3aa69f1798f72dd11e512232ac3739628d82e3",
+      "bytes": 131550
+    },
+    "phase-down-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/phase-down-done.png",
+      "sha256": "070f2394a38f24db250271a32a527d1a0c6c8e4d26b51e56ec963eb660413e53",
+      "bytes": 69497
+    },
+    "phase-reverse-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/phase-reverse-done.png",
+      "sha256": "29503d296ebe0501266d429bd91556f931422ad132dfb0fa46310f1bfdbd20ae",
+      "bytes": 96308
+    },
+    "phase-idle-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/phase-idle-done.png",
+      "sha256": "06c3dc7153cf0dd3631e00f2810b758cf9ce0a408a6b8c79dcaedc70ba5038a9",
+      "bytes": 69698
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/terminal.mp4",
+      "sha256": "2c0ab2e149651eeeafbeb121f2bcc55caaedb9eab4dd32a832d543150e6ac720",
+      "bytes": 5353469
+    },
+    "cpu-profile.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/cpu-profile.json",
+      "sha256": "675e679b6a23ba0533fd55150226268b048c9e8f2ee41433d13e45579c3d453f",
+      "bytes": 7084680
+    },
+    "profile-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/profile-review.json",
+      "sha256": "e15afa0a364c0630197b363b64bf1bb605d7f6b77c353d5d52d864bc5a103645",
+      "bytes": 89257
+    },
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/receipt.json",
+      "sha256": "784f79d150f6b1bfa4726e2caa7068b302f8aa95750337c87413e439f8a729c8",
+      "bytes": 136707
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture/events.jsonl",
+      "sha256": "f2a8118062eb028f3acf06c7b9bbb6d3f02ce04268fe4df2ac56981236659011",
+      "bytes": 19735
+    }
+  }
+}

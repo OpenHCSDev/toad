@@ -1,0 +1,616 @@
+{
+  "assessment": "FAIL actual UI crash; scroll journey incomplete, no readiness or performance comparison",
+  "source_head": "f8bad541450aca0a3df763ed132e201aee5858d1",
+  "command": {
+    "argv": [
+      "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python",
+      "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tests/tools/record_installed_tui.py",
+      "--output",
+      "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture",
+      "--owner",
+      "Heisenberg-PR217-cursor-geometry",
+      "--capture-target",
+      "existing_thread",
+      "--actions",
+      "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/actions.xdo",
+      "--scroll-idle-seconds",
+      "15",
+      "--profile",
+      "--profile-threads",
+      "gil",
+      "--profile-rate",
+      "25",
+      "--capture-state",
+      "--review-timing",
+      "deferred",
+      "--width",
+      "1280",
+      "--height",
+      "900",
+      "--fit-window",
+      "--startup-wait",
+      "12",
+      "--max-duration",
+      "65",
+      "--tail-seconds",
+      "3",
+      "--review-phase",
+      "down",
+      "--review-phase",
+      "reverse",
+      "--review-phase",
+      "end",
+      "--review-phase",
+      "idle",
+      "--",
+      "toad-comms",
+      "nra-architecture"
+    ],
+    "runtime_root": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin",
+    "source_head": "f8bad541450aca0a3df763ed132e201aee5858d1",
+    "purpose": "Sole approved immutable original41MB held-key/profile comparison; no prompts/restarts/default changes",
+    "resource_check": "exit2 warning swap15.9 explicitly authorized; RAM16.1/home30.2GiB"
+  },
+  "capture_receipt": {
+    "owner": "Heisenberg-PR217-cursor-geometry",
+    "purpose": "installed TUI physical interaction video review",
+    "output": "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture",
+    "command": [
+      "toad-comms",
+      "nra-architecture"
+    ],
+    "terminal_command": [
+      "st",
+      "-e",
+      "toad-comms",
+      "nra-architecture"
+    ],
+    "fps": 60,
+    "screen": [
+      1280,
+      900
+    ],
+    "profiling_requested": true,
+    "state_capture_requested": true,
+    "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "capture_target": "existing_thread",
+    "physical_journey": "scroll",
+    "original_owner_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 2126072,
+        "start_time": 20963438
+      },
+      "original_owner_alive": true
+    },
+    "recorder_argv": [
+      "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tests/tools/record_installed_tui.py",
+      "--output",
+      "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture",
+      "--owner",
+      "Heisenberg-PR217-cursor-geometry",
+      "--capture-target",
+      "existing_thread",
+      "--actions",
+      "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/actions.xdo",
+      "--scroll-idle-seconds",
+      "15",
+      "--profile",
+      "--profile-threads",
+      "gil",
+      "--profile-rate",
+      "25",
+      "--capture-state",
+      "--review-timing",
+      "deferred",
+      "--width",
+      "1280",
+      "--height",
+      "900",
+      "--fit-window",
+      "--startup-wait",
+      "12",
+      "--max-duration",
+      "65",
+      "--tail-seconds",
+      "3",
+      "--review-phase",
+      "down",
+      "--review-phase",
+      "reverse",
+      "--review-phase",
+      "end",
+      "--review-phase",
+      "idle",
+      "--",
+      "toad-comms",
+      "nra-architecture"
+    ],
+    "recorder_source_sha256": "dd3662e0dc5ea03a707092c18cc5689dcec15c04682c35eebf778ad69102f88b",
+    "started_utc": "2026-09-30T05:04:20.371084+00:00",
+    "assessment": "unreviewed",
+    "capture_completed": false,
+    "completed": false,
+    "review_timing": "deferred",
+    "review": {
+      "start_seconds": 0,
+      "seconds": 3,
+      "fps": 8,
+      "frames_limit": 24,
+      "slowdown": 8,
+      "timestamp_basis": "source video seconds"
+    },
+    "runtime_before": {
+      "selection": "AGENT_COMMS_RUNTIME_ROOT",
+      "bin_directory": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin",
+      "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+      "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+      "launcher_links": {
+        "command": {
+          "selected_path": "/home/ts/bin/toad-comms",
+          "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+          "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+        },
+        "acp": {
+          "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+          "resolved_path": "/home/ts/.local/share/agent-comms/runtime-ordered-view-disposal-20260929/bin/agent-comms-acp",
+          "sha256": "e73c1e2e7e154e8cc14f1909b1da2160fba6794aee1671bd2b2cbfac0857d040"
+        }
+      },
+      "entrypoints": {
+        "toad": {
+          "path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/toad",
+          "sha256": "41b4e106dfb436ec34d07933e613baa22c7c3a0051f88e3ced8a594274e9e8bf"
+        },
+        "agent-comms-acp": {
+          "path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/agent-comms-acp",
+          "sha256": "2383174832fc3ad3b259153be4a3643d10844fa70187b73b78daaeaffecf7d33"
+        }
+      },
+      "activation_path": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/activation.json",
+      "activation_sha256": "6594de4399fe198ce13df7cbfda1e3d9f7194db8931cb8718d06c74ec253c2bd",
+      "activation": {
+        "state": "staged-reviewed-imports-native-trust-verified-not-activated",
+        "stage": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930",
+        "pins": {
+          "agent-comms": "72062939239b0f07707406309305a056a23f925f",
+          "batrachian-toad": "f8bad541450aca0a3df763ed132e201aee5858d1",
+          "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+        },
+        "sdk": "0.12.1",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent",
+        "default_launchers_unchanged": true,
+        "pending": "sole original-history physical profile/video comparison under Heisenberg",
+        "verification_correction": "initial operator guessed WorkspaceScreen module as session_view; authoritative owner is screens.workspace, corrected without package mutation"
+      },
+      "observed": {
+        "python": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python",
+        "prefix": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930",
+        "packages": {
+          "toad": {
+            "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/toad/__init__.py",
+            "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+            "source_tree_sha256": "597b4aec66f2675447868744b441ab73b4731cfc399587a2f9f3ac4212ec32cf",
+            "distribution": "batrachian-toad",
+            "version": "0.6.20",
+            "direct_url": {
+              "url": "https://github.com/OpenHCSDev/toad.git",
+              "vcs_info": {
+                "vcs": "git",
+                "commit_id": "f8bad541450aca0a3df763ed132e201aee5858d1",
+                "requested_revision": "f8bad541450aca0a3df763ed132e201aee5858d1"
+              }
+            }
+          },
+          "textual": {
+            "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/textual/__init__.py",
+            "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+            "source_tree_sha256": "dd18483216975c850f6f09dcbb455d67cc0d9124e0213840a9559e51d348e9a2",
+            "distribution": "textual",
+            "version": "8.2.8",
+            "direct_url": {
+              "url": "https://github.com/OpenHCSDev/textual.git",
+              "vcs_info": {
+                "vcs": "git",
+                "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+                "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+              }
+            }
+          },
+          "agent_comms": {
+            "origin": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+            "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+            "source_tree_sha256": "c00941441d844501e227f87db83b8e63e83cf76d0699c4a8bab547f7d666a569",
+            "distribution": "agent-comms",
+            "version": "0.1.0",
+            "direct_url": {
+              "url": "https://github.com/OpenHCSDev/agent-comms.git",
+              "vcs_info": {
+                "vcs": "git",
+                "commit_id": "72062939239b0f07707406309305a056a23f925f",
+                "requested_revision": "72062939239b0f07707406309305a056a23f925f"
+              }
+            }
+          }
+        },
+        "route": {
+          "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+          "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+          "native_package": "/home/ts/.local/share/agent-comms/native-current-4ab910061590d1e0/node_modules/@earendil-works/pi-coding-agent"
+        }
+      }
+    },
+    "display": ":406",
+    "profiler": {
+      "command": [
+        "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python",
+        "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tests/tools/record_installed_tui.py",
+        "--profile-launch",
+        "toad-comms",
+        "nra-architecture"
+      ],
+      "executable_sha256": "9b4d1f39b2a47ae44f4c6a46f615dcc0287d7755beba5065f32391951e07d594",
+      "launch_monotonic": 220300.341526679,
+      "launch": {
+        "terminal_pid": 2455251,
+        "terminal_start_ticks": 22030076,
+        "ui_pid": 2455252,
+        "ui_start_ticks": 22030082,
+        "profiler_command": [
+          "/home/ts/.local/bin/py-spy",
+          "record",
+          "--pid",
+          "2455252",
+          "--format",
+          "chrometrace",
+          "--subprocesses",
+          "--full-filenames",
+          "--gil",
+          "--rate",
+          "25",
+          "--duration",
+          "95",
+          "--output",
+          "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/cpu-profile.json"
+        ],
+        "sampling": "consistent",
+        "threads": "gil",
+        "profiler_exec_monotonic": 220301.333553114
+      },
+      "sampling_ready_observed_monotonic": 220301.406903293
+    },
+    "ui_identity": {
+      "pid": 2455252,
+      "start_ticks": 22030082
+    },
+    "window": "2097158",
+    "capture_launch_monotonic": 220301.706107346,
+    "terminal_pid": 2455251,
+    "state_captures": {
+      "before": {
+        "started_seconds": 12.28731178000453,
+        "manifest": {
+          "pid": 2455252,
+          "created": 1790744660.82,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 183332864,
+          "started_ns": 1790744674902527187,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/before-state": "complete",
+            "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/before-screen": "complete"
+          },
+          "finished_ns": 1790744675034992219
+        },
+        "finished_seconds": 12.639934892009478
+      }
+    },
+    "terminal_processes": {
+      "2455251": {
+        "start_ticks": 22030076,
+        "command": "st -e toad-comms nra-architecture "
+      },
+      "2455252": {
+        "start_ticks": 22030082,
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                        "
+      },
+      "2455289": {
+        "start_ticks": 22030190,
+        "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+      },
+      "2455314": {
+        "start_ticks": 22030343,
+        "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+      },
+      "2455417": {
+        "start_ticks": 22030613,
+        "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+      },
+      "2455492": {
+        "start_ticks": 22030743,
+        "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork "
+      }
+    },
+    "driver_started_seconds": 12.668362191994675,
+    "error": "CalledProcessError: Command '['xdotool', '-']' returned non-zero exit status 1.",
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2455234,
+          "start_ticks": 22029956,
+          "returncode": 0
+        },
+        {
+          "pid": 2455236,
+          "start_ticks": 22030023,
+          "returncode": 0
+        },
+        {
+          "pid": 2455249,
+          "start_ticks": 22030034,
+          "returncode": 0
+        },
+        {
+          "pid": 2455251,
+          "start_ticks": 22030076,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 2455252,
+          "start_ticks": 22030082,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 2455279,
+          "start_ticks": 22030140,
+          "returncode": 0
+        },
+        {
+          "pid": 2455280,
+          "start_ticks": 22030151,
+          "returncode": 0
+        },
+        {
+          "pid": 2455281,
+          "start_ticks": 22030160,
+          "returncode": 0
+        },
+        {
+          "pid": 2455283,
+          "start_ticks": 22030169,
+          "returncode": 255
+        },
+        {
+          "pid": 2455548,
+          "start_ticks": 22031370,
+          "returncode": 0
+        },
+        {
+          "pid": 2455562,
+          "start_ticks": 22031399,
+          "returncode": 0
+        },
+        {
+          "pid": 2455567,
+          "start_ticks": 22031437,
+          "returncode": 1
+        }
+      ]
+    },
+    "original_owner_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 2126072,
+        "start_time": 20963438
+      },
+      "original_owner_alive": true
+    }
+  },
+  "completed_input_events": [
+    {
+      "label": "focused",
+      "utc": "2026-09-30T05:04:35.700304+00:00",
+      "seconds_since_capture_launch": 13.171260266011814,
+      "cpu": {
+        "2455492": {
+          "start_ticks": 22030743,
+          "cpu_seconds": 0.58,
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork "
+        },
+        "2455314": {
+          "start_ticks": 22030343,
+          "cpu_seconds": 0.62,
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "2455251": {
+          "start_ticks": 22030076,
+          "cpu_seconds": 0.1,
+          "command": "st -e toad-comms nra-architecture "
+        },
+        "2455252": {
+          "start_ticks": 22030082,
+          "cpu_seconds": 8.57,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                        "
+        },
+        "2455289": {
+          "start_ticks": 22030190,
+          "cpu_seconds": 0.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "2455417": {
+          "start_ticks": 22030613,
+          "cpu_seconds": 0.95,
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=22) --multiprocessing-fork "
+        },
+        "2455326": {
+          "start_ticks": 22030369,
+          "cpu_seconds": 2.39,
+          "command": "/home/ts/.local/share/agent-comms/runtime-canonical-cursor-geometry-20260930/bin/python -m agent_comms.acp "
+        }
+      },
+      "screenshot": "phase-focused.png",
+      "state_capture": {
+        "started_seconds": 13.378651623002952,
+        "manifest": {
+          "pid": 2455252,
+          "created": 1790744660.82,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 187895808,
+          "started_ns": 1790744675974308447,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/phase-focused-state": "error"
+          },
+          "finished_ns": 1790744676207293274
+        },
+        "finished_seconds": 13.790946043009171
+      }
+    }
+  ],
+  "authoritative_cause": {
+    "file": "/home/ts/.local/state/toad/logs/Terminal_crash_2026-09-30T01_04_36_224766.txt",
+    "consumer": "ToolCall.watch_expanded, widgets/tool_call.py:311",
+    "callback": "conversation.cursor.update_follow",
+    "exception": "AttributeError: 'CursorContainer' object has no attribute 'update_follow'",
+    "visibility_map_hypothesis": "not established; no map patch"
+  },
+  "phase_evidence": {
+    "before": "actual glyphs, chrome and body visible; image inspected",
+    "focused": "physical focus marker recorded; PNG inspected: empty terminal with caret, not an accepted app body frame; state export failed during shutdown",
+    "later_generated_images": "excluded: UI identity exited before phases, no completed Up/Down/reverse/End/idle metadata"
+  },
+  "tools": {
+    "recorder_exit": 1,
+    "ffmpeg_exit": 255,
+    "ffmpeg_exit_meaning": "accepted normal SIGINT, distinct from UI crash",
+    "ui_terminal_numeric_exits": "not retained after ObservedProcess transfer; fatal independently proven by Terminal_crash",
+    "profile": "305 GIL samples, zero profiler errors, terminated on UI exit; not a completed scroll CPU comparison"
+  },
+  "original_owner": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  },
+  "process_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2455234,
+        "start_ticks": 22029956,
+        "returncode": 0
+      },
+      {
+        "pid": 2455236,
+        "start_ticks": 22030023,
+        "returncode": 0
+      },
+      {
+        "pid": 2455249,
+        "start_ticks": 22030034,
+        "returncode": 0
+      },
+      {
+        "pid": 2455251,
+        "start_ticks": 22030076,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2455252,
+        "start_ticks": 22030082,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2455279,
+        "start_ticks": 22030140,
+        "returncode": 0
+      },
+      {
+        "pid": 2455280,
+        "start_ticks": 22030151,
+        "returncode": 0
+      },
+      {
+        "pid": 2455281,
+        "start_ticks": 22030160,
+        "returncode": 0
+      },
+      {
+        "pid": 2455283,
+        "start_ticks": 22030169,
+        "returncode": 255
+      },
+      {
+        "pid": 2455548,
+        "start_ticks": 22031370,
+        "returncode": 0
+      },
+      {
+        "pid": 2455562,
+        "start_ticks": 22031399,
+        "returncode": 0
+      },
+      {
+        "pid": 2455567,
+        "start_ticks": 22031437,
+        "returncode": 1
+      }
+    ]
+  },
+  "artifacts": {
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/command.json": {
+      "bytes": 1444,
+      "sha256": "b60e2ceb745b5c809d7c55884366d4588ede70c30579bb3adc629e498c386892"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/receipt.json": {
+      "bytes": 13356,
+      "sha256": "d36194321a2cd5a1114ac6d4726448804e4e52e37c2dd524e9700e094d5c1200"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/events.jsonl": {
+      "bytes": 2479,
+      "sha256": "7fead085d315c471c2a8032a546de6b1dffafda260cbc3c26432a7e965512bde"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/terminal.mp4": {
+      "bytes": 891530,
+      "sha256": "0fd2d20837ee4e89e54ad23f1b21697a04d37036e25e168719d5bff1c4c41069"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/cpu-profile.json": {
+      "bytes": 2112949,
+      "sha256": "ca2122b72be2f16546fe1f874d2c5c4900d364eea944636743e27ca066967b4c"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/profiler.log": {
+      "bytes": 353,
+      "sha256": "5004eed933d5f272218f8863d67cb921b1f64b8435fc2354e2230b2f17377185"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/before.png": {
+      "bytes": 130804,
+      "sha256": "9ebc09c46f67264d1c75795c051e3c71ac2a58c4acb58acff1fcb6138e7a3f9f"
+    },
+    "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-geometry-20260930/capture/phase-focused.png": {
+      "bytes": 1238,
+      "sha256": "99310cdfd7e1b0f60f996692e237e597eff274e6e33167727156a71fc2dd57eb"
+    },
+    "/home/ts/.local/state/toad/logs/Terminal_crash_2026-09-30T01_04_36_224766.txt": {
+      "bytes": 1250,
+      "sha256": "9e392f81c91a1f58d153574e67c08c9afe2565aadf20c9e5131732c1d5a5f522"
+    }
+  },
+  "scratch_retention": "partial recording/profile/diagnostics retained for owner review; no prompts, owner restart or default mutation"
+}

@@ -29,7 +29,6 @@ from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
     Conversation,
-    Cursor,
     CursorContainer,
     Window,
 )
@@ -122,8 +121,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
-                with CursorContainer(id="cursor-container"):
-                    yield Cursor()
+                yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield ChannelActivityTray(id="comms-activity")
