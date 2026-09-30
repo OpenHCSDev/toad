@@ -1,0 +1,246 @@
+{
+  "facts": [
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "coordination_changed",
+        "thread": {
+          "name": "nra-architecture",
+          "created_at": 1790049182.3907015
+        },
+        "wire_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "owner_pid": 3487629,
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "off",
+        "title": "nra-architecture",
+        "context_usage": {
+          "used": 94579,
+          "size": 272000
+        }
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "goal_changed",
+        "goal": null,
+        "execution": null
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "queue_changed",
+        "scope": {
+          "session_id": "nra-architecture",
+          "admission": {
+            "incarnation": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "admission_generation": 1052
+          },
+          "owner_pid": 3487629
+        },
+        "revision": 2,
+        "projection": {
+          "kind": "available",
+          "items": [],
+          "restored": []
+        }
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "cursor_advanced",
+        "envelope": {
+          "scope": {
+            "session_id": "nra-architecture",
+            "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+            "admission": {
+              "incarnation": {
+                "name": "nra-architecture",
+                "created_at": 1790049182.3907015
+              },
+              "admission_generation": 1052
+            },
+            "owner_pid": 3487629
+          },
+          "revision": 3,
+          "observation": {
+            "kind": "empty"
+          }
+        },
+        "selected_status": null
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "turn_changed",
+        "state": {
+          "active": null,
+          "finished_turn_id": "6cfdff5d9a2bfb4226320d69d34a58fb"
+        }
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "input_delivery_changed",
+        "input_id": null
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_05_04_522452.txt",
+      "session_id": "nra-domain-mapping",
+      "fact": {
+        "kind": "coordination_changed",
+        "thread": {
+          "name": "nra-domain-mapping",
+          "created_at": 1790116627.8997042
+        },
+        "wire_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "owner_pid": 3487789,
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "model": "openai-codex/gpt-6-sol",
+        "thinking_level": "off",
+        "title": "nra-domain-mapping",
+        "context_usage": null
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_05_04_522452.txt",
+      "session_id": "nra-domain-mapping",
+      "fact": {
+        "kind": "goal_changed",
+        "goal": {
+          "text": "Refine the accepted NRA domain-mapping architecture to model NRA as an evidence-preserving lens: humans provide the program\u2019s intended domain rules and authoritative declarations, the LLM applies semantic-completeness theory to those supplied rules and structural evidence to identify underabstraction, and deterministic NRA authorities certify observations, provenance, uncertainty, and transformations without pretending structural analysis alone invents business meaning. @nra-architecture is coodrintor",
+          "id": "f24503310f684e5fa0280cb0d3463727",
+          "progress": "Verified and delivered the scoped domain-mapping refinement to coordinator: source-pinned PR #60 evidence-lens packet SHA ef6c3d6d4524b4d374d486f4cbd3541484322590b5ad794f4b58bb0ef20485ac and exact architecture/skill/protocol seams SHA 7a5b36947fb16e299879fcc561bce16ec1675e9ba19bc2a141533a691cf4e7d6. The model preserves human normative domain rules and authoritative declarations, LLM candidate tracing/semantic-completeness reasoning, and NRA deterministic source/provenance/OPEN/DSL checks; it identifies the omitted human input and rule/admission receipt in the maintained protocol and a two-world #60 counterexample. Scope complete as a read-only domain-mapping handoff; parent-owned skill/docs integration, merge, runtime parity and publication remain unclaimed.",
+          "revision": 13,
+          "reported_turn": "8b9a1b1029fb45199ba288de5b7f5bd6",
+          "mention_source": null,
+          "state": {
+            "kind": "completed"
+          }
+        },
+        "execution": {
+          "state": "completed",
+          "goal_id": "f24503310f684e5fa0280cb0d3463727",
+          "wait_for": [],
+          "inactive_wait_for": [],
+          "block_reason": null
+        }
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_05_04_522452.txt",
+      "session_id": "nra-domain-mapping",
+      "fact": {
+        "kind": "queue_changed",
+        "scope": {
+          "session_id": "nra-domain-mapping",
+          "admission": {
+            "incarnation": {
+              "name": "nra-domain-mapping",
+              "created_at": 1790116627.8997042
+            },
+            "admission_generation": 1054
+          },
+          "owner_pid": 3487789
+        },
+        "revision": 2,
+        "projection": {
+          "kind": "available",
+          "items": [],
+          "restored": []
+        }
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_05_04_522452.txt",
+      "session_id": "nra-domain-mapping",
+      "fact": {
+        "kind": "cursor_advanced",
+        "envelope": {
+          "scope": {
+            "session_id": "nra-domain-mapping",
+            "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+            "admission": {
+              "incarnation": {
+                "name": "nra-domain-mapping",
+                "created_at": 1790116627.8997042
+              },
+              "admission_generation": 1054
+            },
+            "owner_pid": 3487789
+          },
+          "revision": 4,
+          "observation": {
+            "kind": "empty"
+          }
+        },
+        "selected_status": null
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_05_04_522452.txt",
+      "session_id": "nra-domain-mapping",
+      "fact": {
+        "kind": "turn_changed",
+        "state": {
+          "active": null,
+          "finished_turn_id": "218961e609218ed089b8631e68ddcc5d"
+        }
+      }
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_05_04_522452.txt",
+      "session_id": "nra-domain-mapping",
+      "fact": {
+        "kind": "input_delivery_changed",
+        "input_id": null
+      }
+    }
+  ],
+  "counts": {
+    "coordination_changed": 2,
+    "goal_changed": 2,
+    "queue_changed": 2,
+    "cursor_advanced": 2,
+    "transcript_snapshot": 2,
+    "turn_changed": 2,
+    "input_delivery_changed": 2
+  },
+  "initialize_load_responses": [
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "request_id": 1,
+      "result_fields": [
+        "protocolVersion",
+        "agentCapabilities",
+        "authMethods",
+        "agentInfo"
+      ]
+    },
+    {
+      "log": "Agent_Comms_2026-09-30T12_04_51_538272.txt",
+      "request_id": 2,
+      "result_fields": [
+        "configOptions",
+        "_meta"
+      ]
+    }
+  ],
+  "scope": "Two actualclicked/attachedthreads only; no13protocolattachmentclaim",
+  "log_timing": "ACPrawlines have no arrivaltimestamp; phasecapture chronology retained, no inferred dwelltimes"
+}

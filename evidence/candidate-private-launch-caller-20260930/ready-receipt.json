@@ -1,0 +1,206 @@
+{
+  "state": "ACTUAL-NORMAL-CANDIDATE-LAUNCHER-ACP-SAVED-HISTORY-RETURN-SCOPED-PASS",
+  "overall_product_ready": false,
+  "startup_fix_ready_for_parent_ui_only_activation": true,
+  "normal_command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "runtime_candidate": "/home/ts/.local/share/agent-comms/runtime-private-launch-caller-20260930/bin",
+  "runtime_override": true,
+  "pins": {
+    "agent-comms": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+    "batrachian-toad": "b2006bfe50ae50a262b049074258f7f0281791ac",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-ceca2c05cf0ae07b/node_modules/@earendil-works/pi-coding-agent",
+  "duration_seconds": 28.788777768990258,
+  "ui_runs": 1,
+  "raw": "/home/ts/.cache/agent-scratch/comms-candidate-private-launch-caller-20260930",
+  "physical_review": {
+    "original_startup": "Readable original41MBNRA history, restoredOFF andReady; noFailedToStartAgent/ImportError",
+    "peer_click": "Actual nra-domain-mapping selected; AgentCommsconnected andcanonicalcompletedgoalrev13 painted. Peerhistorypageexists but chatbodyblankinthissample; no peerreadablebody/whole239claim",
+    "original_return": "Originalhistoryreadable, samehistorywindow/editor/draft; originalgoalNone restored insteadofpeercompletedgoal",
+    "historical_failure_text": "Original10:15PromptSendUnknown messages preserved inhistory; no newrequest/inputfailure facts duringread-onlycheck"
+  },
+  "native_checks": {
+    "checks": {
+      "journey": "default_history_return",
+      "actual_A_B_A": true,
+      "editor_and_history_window_reused": true,
+      "draft_unchanged": true,
+      "goal_start": null,
+      "goal_return": null,
+      "goal_read_pending": "Not exposed by existing recorder DTO; no pending-goal fault injection",
+      "physical_frames_require_review": true
+    },
+    "source_and_owner_unchanged": true,
+    "runtime_override": true,
+    "prompt_submissions": 0,
+    "physical_review": "Required before any default live PASS",
+    "scope": "default_history_return"
+  },
+  "canonical_acp_facts_file": "canonical-acp-facts.json",
+  "kernel_phase_counters": [
+    {
+      "phase": "startup",
+      "through": "peer-opened",
+      "wall_seconds": 4.318637760006823,
+      "ui_cpu_seconds": 1.9000000000000004,
+      "average_cpu_percent": 43.995354683255464,
+      "basis": "Actualkernelcountersincludesobserveroverhead, no speed/causeattribution"
+    },
+    {
+      "phase": "peer-opened",
+      "through": "original-returned",
+      "wall_seconds": 4.364319193002302,
+      "ui_cpu_seconds": 3.1099999999999994,
+      "average_cpu_percent": 71.25968249495904,
+      "basis": "Actualkernelcountersincludesobserveroverhead, no speed/causeattribution"
+    },
+    {
+      "phase": "original-returned",
+      "through": "return-stationary",
+      "wall_seconds": 3.464740144991083,
+      "ui_cpu_seconds": 0.9299999999999997,
+      "average_cpu_percent": 26.841839822951375,
+      "basis": "Actualkernelcountersincludesobserveroverhead, no speed/causeattribution"
+    }
+  ],
+  "source_and_owner_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3515261,
+        "start_ticks": 25992722,
+        "returncode": 0
+      },
+      {
+        "pid": 3515263,
+        "start_ticks": 25992794,
+        "returncode": 0
+      },
+      {
+        "pid": 3515265,
+        "start_ticks": 25992803,
+        "returncode": 0
+      },
+      {
+        "pid": 3515266,
+        "start_ticks": 25992808,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3515269,
+        "start_ticks": 25992860,
+        "returncode": 0
+      },
+      {
+        "pid": 3515270,
+        "start_ticks": 25992872,
+        "returncode": 0
+      },
+      {
+        "pid": 3515271,
+        "start_ticks": 25992881,
+        "returncode": 0
+      },
+      {
+        "pid": 3515272,
+        "start_ticks": 25992891,
+        "returncode": 255
+      },
+      {
+        "pid": 3515674,
+        "start_ticks": 25994092,
+        "returncode": 0
+      },
+      {
+        "pid": 3515690,
+        "start_ticks": 25994118,
+        "returncode": 0
+      },
+      {
+        "pid": 3515695,
+        "start_ticks": 25994158,
+        "returncode": 0
+      },
+      {
+        "pid": 3515709,
+        "start_ticks": 25994289,
+        "returncode": 0
+      },
+      {
+        "pid": 3515715,
+        "start_ticks": 25994371,
+        "returncode": 0
+      },
+      {
+        "pid": 3515723,
+        "start_ticks": 25994584,
+        "returncode": 0
+      },
+      {
+        "pid": 3515759,
+        "start_ticks": 25994722,
+        "returncode": 0
+      },
+      {
+        "pid": 3515765,
+        "start_ticks": 25994809,
+        "returncode": 0
+      },
+      {
+        "pid": 3515855,
+        "start_ticks": 25995023,
+        "returncode": 0
+      },
+      {
+        "pid": 3515979,
+        "start_ticks": 25995161,
+        "returncode": 0
+      },
+      {
+        "pid": 3515982,
+        "start_ticks": 25995373,
+        "returncode": 0
+      },
+      {
+        "pid": 3516047,
+        "start_ticks": 25995705,
+        "returncode": 0
+      },
+      {
+        "pid": 3516052,
+        "start_ticks": 25995734,
+        "returncode": 0
+      },
+      {
+        "pid": 3516058,
+        "start_ticks": 25995817,
+        "returncode": 0
+      },
+      {
+        "pid": 3516059,
+        "start_ticks": 25995890,
+        "returncode": 0
+      },
+      {
+        "pid": 3516237,
+        "start_ticks": 25996122,
+        "returncode": 0
+      }
+    ]
+  },
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "paid_calls": 0,
+  "original_unknown_replay": 0,
+  "public_default_changes": 0,
+  "owner_restarts": 0,
+  "acceptance_limit": "Corrected241launchboundarypositive closes actualpre-ACPimportfailure. Priorpaired2nativecontrolsseparate. Current453budgetgenerationnotcovered;239coldB/renderingremains. Candidateexplicitselectionisnotactualnewdefaultpublication."
+}
