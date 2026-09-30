@@ -32,3 +32,9 @@ These phases include diagnostic export/physical marker work and settle time. The
 ## Evidence
 
 Raw: `/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02`. Primary actual recording `capture/terminal.mp4`, original immutable capture receipt,16 native checks, phase state/physical frames, same-run profile and offline review receipt are linked with SHA256 in `all-merged-3625-actual-ui-20260930.json`. Preserve failed attempt01 and successful attempt02 raw through review; no second capture is needed for this result.
+
+## Foreground publication and physical-frame join
+
+`all-merged-3625-publication-stack-review-20260930.json` queries the complete same-run ProfileTrace for workspace/history/viewport/compositor/owner-preparation/codec sources in Down, idle and A-return. Down has124 observed changed thread-stack groups,101 containing selected owners: workspace timer41, compositor arrangement24, reflow17, render-update13 and viewport request11. These are changed-stack occurrence observations, not call counts or time attribution. The timestamped Down sheet shows content movement during that same interval.
+
+Idle has73 changed groups,48 matching selected sources; capture_state persistence/JSON export occurs alongside owner-preparation/history reads and codec work. A-return has42 groups,32 matching, also including capture persistence, preparation and layout. Kernel phase CPU includes those diagnostics; this recording cannot subtract observer CPU or certify an uninstrumented idle rate. The same original source and physical frames provide242 a concrete candidate comparison without a new monitor or competing state cache.
