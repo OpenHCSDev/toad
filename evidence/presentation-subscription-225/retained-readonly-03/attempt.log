@@ -1,0 +1,28 @@
+py-spy> Sampling process 25 times a second. Press Control-C to exit.
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-presentation-subscription-20260930/tests/original_turn_resource_real_installed_pilot.py", line 269, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-presentation-subscription-20260930/tests/original_turn_resource_real_installed_pilot.py", line 71, in main
+    ).read(os.environ['AC_REAL_SOURCE_OWNER'])
+      ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/comms-phased-owner-cutover-20260930/tools/cutover/original_owner_capture.py", line 46, in read
+    retained = RetainedOwnerLaunch.capture(source, snapshot,
+        interpreter=str(self.original_python))
+  File "/home/ts/.cache/agent-scratch/comms-presentation-subscription-20260930/installed/lib/python3.14/site-packages/agent_comms/owner_launch.py", line 105, in capture
+    raise RelationViolationError("Selected source owner interpreter changed")
+agent_comms.errors.RelationViolationError: Selected source owner interpreter changed
+
+py-spy> Stopped sampling because process exited
+py-spy> Wrote chrome trace to '/home/ts/wt/toad-presentation-subscription-20260930/evidence/presentation-subscription-225/retained-readonly-03/cpu-profile.json'. Samples: 54 Errors: 0
+py-spy> Visit chrome://tracing or https://ui.perfetto.dev/ to view
