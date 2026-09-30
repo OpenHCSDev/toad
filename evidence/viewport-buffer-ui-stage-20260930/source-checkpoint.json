@@ -1,0 +1,24 @@
+{
+  "pins": {
+    "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+    "batrachian-toad": "ddf180ddc40d681e2624a9c0570abcdb5052ed30",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "frozen_package_count": 68,
+  "only_changed_requirement": "batrachian-toad",
+  "parent_activation_required": true,
+  "defaults_changed": false,
+  "owners_restarted": false,
+  "stage": "/home/ts/.local/share/agent-comms/runtime-viewport-buffer-20260930",
+  "baseline": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+  "requirements_sha256": "0c1a9d2cf1c7a8eaf94c60e63a7c13c14c27ea54cc7fe95767f1e37c8cbd9656",
+  "source_delta": {
+    "production_added": 106,
+    "production_deleted": 29,
+    "paths": 6
+  },
+  "source_acceptance": "PR236 owner original41MB physical03 Up/reverse/End+A return accepted by parent; no cold-B or high-CPU completion claim;239 continues",
+  "build_state": "SOURCE-PUBLISHED-BEFORE-ONE-FROZEN68-BUILD"
+}

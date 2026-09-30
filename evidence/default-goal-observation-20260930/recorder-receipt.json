@@ -1,0 +1,1042 @@
+{
+  "owner": "Einstein-default-entrypoint",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "fps": 30,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "default_history_return",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3341782,
+      "start_time": 25331669
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture",
+    "--owner",
+    "Einstein-default-entrypoint",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "default_history_return",
+    "--capture-state",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/actions.xdo",
+    "--review-timing",
+    "deferred",
+    "--fps",
+    "30",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--fit-window",
+    "--startup-wait",
+    "12",
+    "--max-duration",
+    "50",
+    "--tail-seconds",
+    "2",
+    "--",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "recorder_source_sha256": "7d0d0324db2c120275e3637d66a9d8367c9b145735be9c06713207af6e2ab051",
+  "started_utc": "2026-09-30T14:49:23.758302+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": true,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/agent-comms-acp",
+        "sha256": "0e52e9210a337d3788827b312ae52ee2e3602cca03a5172e20081fc59d16d986"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/toad",
+        "sha256": "ed837243eaba946486fa10cd4da2958ef402215f4295a6908a3526cd5905dcf2"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/agent-comms-acp",
+        "sha256": "0e52e9210a337d3788827b312ae52ee2e3602cca03a5172e20081fc59d16d986"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/activation.json",
+    "activation_sha256": "9fe2d1cea49b870d6fc677a0eeeb449cf47fc01944cc4b98a0767c63f8552acc",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+      "pins": {
+        "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+        "batrachian-toad": "629cca65be1e342124df0bd6ff673e1d50dd8be3",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "5ce1ec831e3470463ae2bc90348926da18250fb268ae175731f5ad8388d732a5"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "dc5319d27948011075f3accd662c1028a56105456089d048d103617befe7b6e5",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "629cca65be1e342124df0bd6ff673e1d50dd8be3",
+              "requested_revision": "629cca65be1e342124df0bd6ff673e1d50dd8be3"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "56a84c4af864b02cc337688b8c5a378a2fc931e7a080a785023e207858593d2c",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+              "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":7612",
+  "ui_identity": {
+    "pid": 3396197,
+    "start_ticks": 25540394
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 255404.846599094,
+  "terminal_pid": 3396196,
+  "state_captures": {
+    "before": {
+      "started_seconds": 12.282306938024703,
+      "manifest": {
+        "pid": 3396197,
+        "created": 1790779763.94,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 178675712,
+        "started_ns": 1790779778050488437,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/before-screen": "complete"
+        },
+        "finished_ns": 1790779778215271683
+      },
+      "finished_seconds": 12.659865032008383
+    },
+    "after": {
+      "started_seconds": 28.561352315999102,
+      "manifest": {
+        "pid": 3396197,
+        "created": 1790779763.94,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 198729728,
+        "started_ns": 1790779794294866884,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/after-screen": "complete"
+        },
+        "finished_ns": 1790779794459366252
+      },
+      "finished_seconds": 28.931859673000872
+    }
+  },
+  "terminal_processes": {
+    "3396196": {
+      "start_ticks": 25540388,
+      "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+    },
+    "3396197": {
+      "start_ticks": 25540394,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+    },
+    "3396220": {
+      "start_ticks": 25540518,
+      "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "3396239": {
+      "start_ticks": 25540661,
+      "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+    },
+    "3396328": {
+      "start_ticks": 25540951,
+      "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork "
+    },
+    "3396432": {
+      "start_ticks": 25541109,
+      "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+    }
+  },
+  "driver_started_seconds": 12.684853870014194,
+  "driver_finished_seconds": 26.309516210021684,
+  "duration_seconds": 28.931864903017413,
+  "capture_returncode": 255,
+  "runtime_after": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/agent-comms-acp",
+        "sha256": "0e52e9210a337d3788827b312ae52ee2e3602cca03a5172e20081fc59d16d986"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/toad",
+        "sha256": "ed837243eaba946486fa10cd4da2958ef402215f4295a6908a3526cd5905dcf2"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/agent-comms-acp",
+        "sha256": "0e52e9210a337d3788827b312ae52ee2e3602cca03a5172e20081fc59d16d986"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/activation.json",
+    "activation_sha256": "9fe2d1cea49b870d6fc677a0eeeb449cf47fc01944cc4b98a0767c63f8552acc",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+      "pins": {
+        "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+        "batrachian-toad": "629cca65be1e342124df0bd6ff673e1d50dd8be3",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "5ce1ec831e3470463ae2bc90348926da18250fb268ae175731f5ad8388d732a5"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "dc5319d27948011075f3accd662c1028a56105456089d048d103617befe7b6e5",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "629cca65be1e342124df0bd6ff673e1d50dd8be3",
+              "requested_revision": "629cca65be1e342124df0bd6ff673e1d50dd8be3"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "56a84c4af864b02cc337688b8c5a378a2fc931e7a080a785023e207858593d2c",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+              "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c020",
+        "width": 1280,
+        "height": 900,
+        "coded_width": 1280,
+        "coded_height": 900,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 32,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "30/1",
+        "avg_frame_rate": "30/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 446464,
+        "duration": "29.066667",
+        "bit_rate": "249036",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "872",
+        "extradata_size": 38,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "29.066667",
+      "size": "909165",
+      "bit_rate": "250228",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "events": [
+    {
+      "label": "startup",
+      "utc": "2026-09-30T14:49:38.769568+00:00",
+      "seconds_since_capture_launch": 13.100031980022322,
+      "cpu": {
+        "3396196": {
+          "start_ticks": 25540388,
+          "cpu_seconds": 0.1,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3396197": {
+          "start_ticks": 25540394,
+          "cpu_seconds": 6.41,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3396328": {
+          "start_ticks": 25540951,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork "
+        },
+        "3396239": {
+          "start_ticks": 25540661,
+          "cpu_seconds": 0.62,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3396432": {
+          "start_ticks": 25541109,
+          "cpu_seconds": 0.76,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3396242": {
+          "start_ticks": 25540691,
+          "cpu_seconds": 2.56,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396220": {
+          "start_ticks": 25540518,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        }
+      },
+      "screenshot": "phase-startup.png",
+      "state_capture": {
+        "started_seconds": 13.357643144001486,
+        "manifest": {
+          "pid": 3396197,
+          "created": 1790779763.94,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 179245056,
+          "started_ns": 1790779779098313959,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/phase-startup-state": "complete"
+          },
+          "finished_ns": 1790779779230947312
+        },
+        "finished_seconds": 13.670609520020662
+      }
+    },
+    {
+      "label": "peer-opened",
+      "utc": "2026-09-30T14:49:43.131463+00:00",
+      "seconds_since_capture_launch": 17.46192882102332,
+      "cpu": {
+        "3396196": {
+          "start_ticks": 25540388,
+          "cpu_seconds": 0.11,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3396197": {
+          "start_ticks": 25540394,
+          "cpu_seconds": 8.03,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3396328": {
+          "start_ticks": 25540951,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork "
+        },
+        "3396239": {
+          "start_ticks": 25540661,
+          "cpu_seconds": 0.62,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3396432": {
+          "start_ticks": 25541109,
+          "cpu_seconds": 0.76,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3396242": {
+          "start_ticks": 25540691,
+          "cpu_seconds": 2.56,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396691": {
+          "start_ticks": 25541986,
+          "cpu_seconds": 2.4,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396220": {
+          "start_ticks": 25540518,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        }
+      },
+      "screenshot": "phase-peer-opened.png",
+      "state_capture": {
+        "started_seconds": 17.69059212700813,
+        "manifest": {
+          "pid": 3396197,
+          "created": 1790779763.94,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 180932608,
+          "started_ns": 1790779783431445558,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/phase-peer-opened-state": "complete"
+          },
+          "finished_ns": 1790779783596519254
+        },
+        "finished_seconds": 18.050449531001505
+      }
+    },
+    {
+      "label": "original-returned",
+      "utc": "2026-09-30T14:49:47.565159+00:00",
+      "seconds_since_capture_launch": 21.895621955016395,
+      "cpu": {
+        "3396196": {
+          "start_ticks": 25540388,
+          "cpu_seconds": 0.13,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3396197": {
+          "start_ticks": 25540394,
+          "cpu_seconds": 10.06,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3396328": {
+          "start_ticks": 25540951,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork "
+        },
+        "3396239": {
+          "start_ticks": 25540661,
+          "cpu_seconds": 0.62,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3396432": {
+          "start_ticks": 25541109,
+          "cpu_seconds": 1.19,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3396242": {
+          "start_ticks": 25540691,
+          "cpu_seconds": 2.56,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396691": {
+          "start_ticks": 25541986,
+          "cpu_seconds": 2.95,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396220": {
+          "start_ticks": 25540518,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        }
+      },
+      "screenshot": "phase-original-returned.png",
+      "state_capture": {
+        "started_seconds": 22.156911767000565,
+        "manifest": {
+          "pid": 3396197,
+          "created": 1790779763.94,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 190156800,
+          "started_ns": 1790779787898338434,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/phase-original-returned-state": "complete"
+          },
+          "finished_ns": 1790779788063002103
+        },
+        "finished_seconds": 22.508654978999402
+      }
+    },
+    {
+      "label": "return-stationary",
+      "utc": "2026-09-30T14:49:51.069281+00:00",
+      "seconds_since_capture_launch": 25.399743279005634,
+      "cpu": {
+        "3396196": {
+          "start_ticks": 25540388,
+          "cpu_seconds": 0.13,
+          "command": "st -e /home/ts/bin/toad-comms nra-architecture "
+        },
+        "3396197": {
+          "start_ticks": 25540394,
+          "cpu_seconds": 10.94,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                             "
+        },
+        "3396328": {
+          "start_ticks": 25540951,
+          "cpu_seconds": 1.02,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=21) --multiprocessing-fork "
+        },
+        "3396239": {
+          "start_ticks": 25540661,
+          "cpu_seconds": 0.62,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork "
+        },
+        "3396432": {
+          "start_ticks": 25541109,
+          "cpu_seconds": 1.19,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+        },
+        "3396242": {
+          "start_ticks": 25540691,
+          "cpu_seconds": 2.56,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396691": {
+          "start_ticks": 25541986,
+          "cpu_seconds": 2.95,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -m agent_comms.acp "
+        },
+        "3396220": {
+          "start_ticks": 25540518,
+          "cpu_seconds": 0.01,
+          "command": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        }
+      },
+      "screenshot": "phase-return-stationary.png",
+      "state_capture": {
+        "started_seconds": 25.68353830400156,
+        "manifest": {
+          "pid": 3396197,
+          "created": 1790779763.94,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 195293184,
+          "started_ns": 1790779791412319545,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/comms-default-goal-observation-20260930/capture/phase-return-stationary-state": "complete"
+          },
+          "finished_ns": 1790779791545140103
+        },
+        "finished_seconds": 26.001588850020198
+      }
+    }
+  ],
+  "journey_review": null,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 909165,
+      "sha256": "4c4fa24e2390aa0537a1421cd862b4535bf04e314f6a6b7a8cb152a63f807351"
+    },
+    "before.png": {
+      "bytes": 114347,
+      "sha256": "e3bef862cbe5c4626d5d9ac3f63a28b4377082057c55d8049ea178907a2ae0d4"
+    },
+    "after.png": {
+      "bytes": 117098,
+      "sha256": "819188322dcfebc46afc51baea04048ef73a34a50c7472b5ab59db0dad50affd"
+    },
+    "before-state.json": {
+      "bytes": 792464,
+      "sha256": "d6f0807b57f8bc07336aacb8fc3c789b89a937488571eb067d0c794f60cabcfc"
+    },
+    "before-state.pickle": {
+      "bytes": 309616,
+      "sha256": "96fe76b9e33785bdf789399fec21a9140de9c20ee67546cfa1ef7dd85631bf71"
+    },
+    "before-screen.svg": {
+      "bytes": 74427,
+      "sha256": "281d54ab0030929b78ef47a1a3c6b2db9a4a54377aa30e77ff5f2d488251aacf"
+    },
+    "before-remote.py": {
+      "bytes": 794,
+      "sha256": "74eca247b513ab6f7a63899fb03b14bc317d7048955a37571f4760bb01c08363"
+    },
+    "before-state-metadata.json": {
+      "bytes": 792437,
+      "sha256": "c4402d8ca176d8879ac4e56e1f047c2667812b5e8fdb0398206ed0a1ba14d709"
+    },
+    "before-manifest.json": {
+      "bytes": 553,
+      "sha256": "163c78cb601a76e33329d3a6b0bdc377b43d134982c0dcc640184ea17d016055"
+    },
+    "before-screen.json": {
+      "bytes": 167,
+      "sha256": "1a85260dac4e26794557d670864ba741662c64c841dbaf3dfec1ccc77b857ed1"
+    },
+    "before-capture.log": {
+      "bytes": 99,
+      "sha256": "5e0259633e722bdd1a628c1a901a61d00e555b2e85761a66ac76fffa88a9d38e"
+    },
+    "after-screen.svg": {
+      "bytes": 74614,
+      "sha256": "8103a095df71ac1c71f55ae0be87b687cb9321795af8272288f54dcb005a3a42"
+    },
+    "after-state-metadata.json": {
+      "bytes": 798208,
+      "sha256": "123bcccc25113ba4ec3464aef8753455b1b7e5c49c5f3ca730ab839810666bb7"
+    },
+    "after-remote.py": {
+      "bytes": 792,
+      "sha256": "0ba08a21ac6aa3d7b33d480027ea24a2312e77f05baf564ac9a62b254f7613f0"
+    },
+    "after-manifest.json": {
+      "bytes": 551,
+      "sha256": "dfd5ef5dad539052ce40fb944e2fe9bbefa485d3baf0714828e8cfbbb0f4250d"
+    },
+    "after-capture.log": {
+      "bytes": 98,
+      "sha256": "88c24f0964edc4ca9ca34a561b1ff023e4114520dfdadd81974541c844f4d5c6"
+    },
+    "after-state.json": {
+      "bytes": 798235,
+      "sha256": "b3f208d92fe22cc27a6200c83ce93c186430361fa75ec90cb63de9e23db2eeec"
+    },
+    "after-state.pickle": {
+      "bytes": 311079,
+      "sha256": "2a371b16d0ff58783a9053929fdcb097e46defc663b180390f1f3d2c646549ad"
+    },
+    "after-screen.json": {
+      "bytes": 166,
+      "sha256": "67489807c93460a107a44d4fd00915f1a94f1c64ffdcef78e1fd7b5dd0d0261a"
+    },
+    "phase-return-stationary-manifest.json": {
+      "bytes": 459,
+      "sha256": "062735c79c566981e779991dc8813c6879c15674d3116cd7dc1c81b8fb52638f"
+    },
+    "phase-peer-opened-capture.log": {
+      "bytes": 110,
+      "sha256": "a3430a708f4c844a8577da26e7cad3208c52b1b2f65db2d4dc8506956f0c9eb8"
+    },
+    "phase-original-returned.png": {
+      "bytes": 117081,
+      "sha256": "d776b39313c9f81b14272555adb80593e5c5407f5c7c8166963105a77f41744d"
+    },
+    "phase-original-returned-remote.py": {
+      "bytes": 433,
+      "sha256": "8426d666907e26c58e8a6bf2f7f2a108d23854f589b42b5404213206155ea30f"
+    },
+    "phase-original-returned-manifest.json": {
+      "bytes": 459,
+      "sha256": "1373b49560f13abfcdd6f45a3fb9b850bb7c459bc3be67ea6069fa6f0221137a"
+    },
+    "phase-startup.png": {
+      "bytes": 114347,
+      "sha256": "e3bef862cbe5c4626d5d9ac3f63a28b4377082057c55d8049ea178907a2ae0d4"
+    },
+    "phase-peer-opened-state.json": {
+      "bytes": 631328,
+      "sha256": "9092da8373650f57c852dc60c07be1b44466627904f4ce240ee03174ca25497a"
+    },
+    "phase-peer-opened-state-metadata.json": {
+      "bytes": 631301,
+      "sha256": "ed1c2c5c20364e07d5ba6d7bffff2e0a2f8dc3dc6db05fdd29d5579d598fe52f"
+    },
+    "phase-startup-capture.log": {
+      "bytes": 106,
+      "sha256": "4627549a28588c3ec14e98dc45a1297dd319bcad585180de1c30e3258dd531e7"
+    },
+    "phase-startup-state.json": {
+      "bytes": 792465,
+      "sha256": "31844559ec050690ae89e61133904422538df082a30743057c4a16e05b904701"
+    },
+    "phase-peer-opened-manifest.json": {
+      "bytes": 453,
+      "sha256": "3a170868da5358bac714ef05fcb8dd6276cb45873000811de0c409598e2194c7"
+    },
+    "phase-original-returned-capture.log": {
+      "bytes": 116,
+      "sha256": "48f30326951182e891c9b02d5908b8fa9bc144fc5b0113165802ec96bdc1bf83"
+    },
+    "phase-return-stationary-state.json": {
+      "bytes": 798235,
+      "sha256": "04e4271790f35fd747eb245b740ec02b6ca581308bd6a0006ad23e49941af5bd"
+    },
+    "phase-return-stationary.png": {
+      "bytes": 117098,
+      "sha256": "819188322dcfebc46afc51baea04048ef73a34a50c7472b5ab59db0dad50affd"
+    },
+    "phase-original-returned-state-metadata.json": {
+      "bytes": 1025293,
+      "sha256": "438847a4a42c3c663bc082f8385e87df97f4a32a861d6df760e2b408786549e7"
+    },
+    "phase-return-stationary-state.pickle": {
+      "bytes": 311079,
+      "sha256": "2fd5d79968bed91c624df408ffad069f34beaf892f834aea54efbfae24d40cfb"
+    },
+    "phase-peer-opened-remote.py": {
+      "bytes": 427,
+      "sha256": "0d9c2177b7ab84df71aa0fa2c4156878b8c37aa4f7f5f2debf4a1c67170f569d"
+    },
+    "phase-original-returned-state.json": {
+      "bytes": 1025320,
+      "sha256": "50e741d2ac60bdf552cc736c3b673ce39318c4f0ea2c73a0230e8883f14bca13"
+    },
+    "phase-original-returned-state.pickle": {
+      "bytes": 337123,
+      "sha256": "122236ed36293be75e3bfd7d0e31f35b15f240813172c3b32c27a67d190dd1dc"
+    },
+    "phase-peer-opened-state.pickle": {
+      "bytes": 294466,
+      "sha256": "ea888d2deaca0e349ab9b53338cd3b1e74ebde1a103829669a90c52f8ca02870"
+    },
+    "phase-return-stationary-state-metadata.json": {
+      "bytes": 798208,
+      "sha256": "589d5e1bf47d77dae1be57e1d29ca86e73be385be5b36ca30a68a74ab4ca9886"
+    },
+    "phase-startup-state-metadata.json": {
+      "bytes": 792438,
+      "sha256": "a745c71b36db8032b6bc7eb7d0972c9bce58484ba6032702d67544e2f596e08f"
+    },
+    "phase-peer-opened.png": {
+      "bytes": 69546,
+      "sha256": "5953f7ac5b47083ff2489e4fa75c5ea9cf888056f370ae0cf7cc23099fbcedb8"
+    },
+    "phase-startup-manifest.json": {
+      "bytes": 449,
+      "sha256": "4d5d93d8beb6d8e38821b5e8b289fe631f5e3b263e9d9f1195e1d6f1ddbd0586"
+    },
+    "phase-return-stationary-remote.py": {
+      "bytes": 433,
+      "sha256": "b820ef99d6b76518678bc7e0100a3f0a70995b6cf3de4bff3c6fb84d8e9272aa"
+    },
+    "phase-startup-remote.py": {
+      "bytes": 423,
+      "sha256": "6413f63fc725b46b93d5065a8ceacf0042ed4d36c0643b7f07b87711d7235a6c"
+    },
+    "phase-return-stationary-capture.log": {
+      "bytes": 116,
+      "sha256": "e073802f59eb5e8aaf36cf83f39294975a88ba8ec43601c1d53e9876258708c8"
+    },
+    "phase-startup-state.pickle": {
+      "bytes": 309616,
+      "sha256": "11daa20fe18a02147589bd06dddd88995612d7f2031138406aa0f45a0f00437f"
+    },
+    "original_tab-click-target.json": {
+      "bytes": 496,
+      "sha256": "5030199619d63e1edc82dda71ca65eb6013c05a7a173e4f20c75444722d54303"
+    },
+    "thread-click-target.json": {
+      "bytes": 489,
+      "sha256": "8e102018645f3b2e20143f5404148498aab01f0561aff1954a3485d98b8d7b62"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3396186,
+        "start_ticks": 25540295,
+        "returncode": 0
+      },
+      {
+        "pid": 3396194,
+        "start_ticks": 25540380,
+        "returncode": 0
+      },
+      {
+        "pid": 3396196,
+        "start_ticks": 25540388,
+        "returncode": 0
+      },
+      {
+        "pid": 3396197,
+        "start_ticks": 25540394,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3396202,
+        "start_ticks": 25540456,
+        "returncode": 0
+      },
+      {
+        "pid": 3396204,
+        "start_ticks": 25540464,
+        "returncode": 0
+      },
+      {
+        "pid": 3396205,
+        "start_ticks": 25540473,
+        "returncode": 0
+      },
+      {
+        "pid": 3396206,
+        "start_ticks": 25540483,
+        "returncode": 255
+      },
+      {
+        "pid": 3396580,
+        "start_ticks": 25541684,
+        "returncode": 0
+      },
+      {
+        "pid": 3396586,
+        "start_ticks": 25541712,
+        "returncode": 0
+      },
+      {
+        "pid": 3396591,
+        "start_ticks": 25541753,
+        "returncode": 0
+      },
+      {
+        "pid": 3396615,
+        "start_ticks": 25541882,
+        "returncode": 0
+      },
+      {
+        "pid": 3396690,
+        "start_ticks": 25541972,
+        "returncode": 0
+      },
+      {
+        "pid": 3396796,
+        "start_ticks": 25542184,
+        "returncode": 0
+      },
+      {
+        "pid": 3396838,
+        "start_ticks": 25542325,
+        "returncode": 0
+      },
+      {
+        "pid": 3396844,
+        "start_ticks": 25542417,
+        "returncode": 0
+      },
+      {
+        "pid": 3396867,
+        "start_ticks": 25542630,
+        "returncode": 0
+      },
+      {
+        "pid": 3396880,
+        "start_ticks": 25542767,
+        "returncode": 0
+      },
+      {
+        "pid": 3396951,
+        "start_ticks": 25542980,
+        "returncode": 0
+      },
+      {
+        "pid": 3397053,
+        "start_ticks": 25543315,
+        "returncode": 0
+      },
+      {
+        "pid": 3397059,
+        "start_ticks": 25543340,
+        "returncode": 0
+      },
+      {
+        "pid": 3397085,
+        "start_ticks": 25543410,
+        "returncode": 0
+      },
+      {
+        "pid": 3397087,
+        "start_ticks": 25543498,
+        "returncode": 0
+      },
+      {
+        "pid": 3397135,
+        "start_ticks": 25543755,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3341782,
+      "start_time": 25331669
+    },
+    "original_owner_alive": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "journey": "default_history_return",
+    "actual_A_B_A": true,
+    "editor_and_history_window_reused": true,
+    "draft_unchanged": true,
+    "goal_start": null,
+    "goal_return": null,
+    "goal_read_pending": "Not exposed by existing recorder DTO; no pending-goal fault injection",
+    "physical_frames_require_review": true
+  },
+  "source_and_owner_unchanged": true,
+  "runtime_override": false,
+  "prompt_submissions": 0,
+  "physical_review": "Required before any default live PASS",
+  "scope": "default_history_return"
+}
