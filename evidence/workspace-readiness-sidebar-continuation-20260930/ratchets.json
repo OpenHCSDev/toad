@@ -1,0 +1,93 @@
+{
+  "base": "a7e62ed283d70e56566a10e88c4e290bcea83714",
+  "files": [
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "ratchets": {
+        "string_dispatch": [
+          0,
+          0
+        ],
+        "string_dispatch_arms": [
+          0,
+          0
+        ],
+        "type_switch": [
+          0,
+          0
+        ],
+        "type_switch_arms": [
+          0,
+          0
+        ],
+        "codec_subclass": [
+          0,
+          0
+        ],
+        "foreign_absence_probe": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "ratchets": {
+        "string_dispatch": [
+          0,
+          0
+        ],
+        "string_dispatch_arms": [
+          0,
+          0
+        ],
+        "type_switch": [
+          0,
+          0
+        ],
+        "type_switch_arms": [
+          0,
+          0
+        ],
+        "codec_subclass": [
+          0,
+          0
+        ],
+        "foreign_absence_probe": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "ratchets": {
+        "string_dispatch": [
+          0,
+          0
+        ],
+        "string_dispatch_arms": [
+          0,
+          0
+        ],
+        "type_switch": [
+          0,
+          0
+        ],
+        "type_switch_arms": [
+          0,
+          0
+        ],
+        "codec_subclass": [
+          0,
+          0
+        ],
+        "foreign_absence_probe": [
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "parse_errors": []
+}
