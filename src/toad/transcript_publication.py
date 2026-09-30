@@ -372,6 +372,7 @@ class CheckpointPublication(TranscriptPublication):
             retired = retirement_candidates(contents.children, evidence)
             if (
                 not is_current()
+                or history is not next(iter(self.owner.histories), None)
                 or not plan.ready(prepared.history)
                 or not plan.permits(view, retired)
             ):
@@ -383,7 +384,7 @@ class CheckpointPublication(TranscriptPublication):
                     if prepared.history is None:
                         replacement = TranscriptHistory(
                             page,
-                            agent.get_transcript_page,
+                            self.agent.get_transcript_page,
                             fragments=prepared.fragments,
                             committed=False,
                         )
