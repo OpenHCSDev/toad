@@ -14,7 +14,7 @@ from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main as native_fixture
 from l0a_native_installed_pilot import until
 from native_session_retention_pilot import InstalledApp, conversation_paint
-from runtime_fixture import wait_channel_roster
+from runtime_fixture import wait_channel_roster, wait_fork_dialog
 from textual.widgets import Input
 from textual.widgets._markdown import MarkdownBlock
 from viewport_recent_tabs_pilot import settled
@@ -23,7 +23,6 @@ from toad.screens.comms import CommsScreen
 from toad.thread_actions import ForkAction
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
@@ -524,12 +523,13 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     fork = next(item for item in app.screen.query(ContextMenuItem)
                 if item.action == ForkAction.declared_name)
     assert await pilot.click(fork)
-    await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    entry = app.screen.query_one("#fork-name", Input)
+    dialog = await wait_fork_dialog(app, pilot)
+    entry = dialog.query_one("#fork-name", Input)
     assert await pilot.click(entry)
     entry.value = "journey-child"
     assert app.screen.query_one("#fork-tags", Input).value == "team"
-    app.screen.query_one("#fork-task", Input).value = "JOURNEY_FORK_INPUT"
+    from textual.widgets import TextArea
+    dialog.query_one("#fork-task", TextArea).text = "JOURNEY_FORK_INPUT"
     app.screen.query_one("#fork-tags", Input).value = "refactor"
     entered.clear()
     release.clear()
