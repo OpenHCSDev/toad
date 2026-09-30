@@ -32,6 +32,7 @@ from toad.widgets.outgoing_message import OutgoingMessage
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptHistory
 from canonical_wire_conversation_installed_pilot import WindowApp, originals, original_native_reply_proof
 from l0a_native_installed_pilot import until
 from runtime_fixture import stop_test_children
@@ -80,6 +81,7 @@ async def main():
             PATH=runtime_path + os.pathsep + environment.get('PATH', ''),
             VIRTUAL_ENV=str(Path(sys.executable).parent.parent),
             AGENT_COMMS_RUNTIME_ROOT=runtime_path,
+            AGENT_COMMS_DEBUG_LOG=str(stage / 'acp-debug'),
             XDG_CONFIG_HOME=str(stage / 'config'),
             XDG_STATE_HOME=str(stage / 'state'),
             XDG_DATA_HOME=str(stage / 'data'),
@@ -115,13 +117,14 @@ async def main():
                 for view, pilot in ((sender, sp), (receiver, rp)):
                     await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
                     assert view.agent.session.connected
+                    await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)), 30)
                 user = service.messaging.user_identity(str(project)).name
                 await channel_target('#team').open(NavigationContext(irc_app, irc_app.selected_mode, project, user))
                 await irc_app.selected_session.wait_content_ready()
                 irc = irc_app.selected_session.query_one(CommsChatView)
                 await until(ip, lambda: irc.message_history.initialized)
                 profile.enable()
-                original = await asyncio.to_thread(service.messaging.send, 'alpha', '#team',
+                original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
                     '@beta Bounded acceptance only. Do not resume prior work or use tools. '
                     'Reply exactly REAL_RETAINED_WIRE_REPLY to this channel message.')
                 await until(sp, lambda: len(originals(sender, original.reference, OutgoingMessage)) == 1, 40)
@@ -135,6 +138,9 @@ async def main():
                 await until(sp, lambda: len(originals(sender, reply.reference, IncomingMessage)) == 1, 30)
                 assert sum(body.source == reply.body for body in receiver.contents.query(AgentResponse)) == 1, \
                     'Original wire reply and native assistant were both published'
+                originals(receiver, reply.reference, OutgoingMessage)[0].scroll_visible(animate=False, immediate=True)
+                await rp.pause()
+                receiver_app.save_screenshot(str(evidence / 'original-reply.svg'))
                 receipt['original_native_reply'] = original_native_reply_proof(service, original, reply)
                 for view, pilot, kind in ((sender, sp, OutgoingMessage), (receiver, rp, IncomingMessage)):
                     await until(pilot, lambda: 'Responded' in str(originals(view, original.reference, kind)[0]
