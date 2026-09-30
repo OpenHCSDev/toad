@@ -118,10 +118,16 @@ The declared `--journey scroll` is the default. For an independent disposal
 check, choose `--journey saved_tab_close` both when generating the script with
 `--write-journey-script` and when recording. Verify the actual tab close control
 in the startup image; configure `--close-tab-x`/`--close-tab-y` if it differs
-from 294,40. This journey marks `close`, physically clicks that control, waits
-two seconds, and marks `close-done`. It sends no prompt and does not stop or
+from 294,40. The journey first opens an already registered peer from its verified
+roster coordinate (default180,240), returns to the original tab (225,40), then
+closes that tab and reopens the original agent from its roster coordinate
+(180,200). A second existing tab stays open to avoid creating a replacement new
+session when the last tab closes. All coordinates and the two-second navigation
+settle interval are explicit CLI options. Verify the roster identities and tab
+locations from the actual physical images; coordinates are not identity proof.
+The markers bracket opening, close and reopening. It sends no prompt and does not stop or
 restart the managed native owner. Before/after and optional marker DTOs must
-show the actual view removed; recorder teardown still quits the application
+show the actual view removed and reopened; recorder teardown still quits the application
 normally and verifies that the original managed process identity survived.
 This proves disposal only, independently of the known scroll blanking defect.
 

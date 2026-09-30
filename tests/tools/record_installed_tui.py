@@ -324,10 +324,16 @@ class ScrollJourney(PhysicalJourney):
 class SavedTabCloseJourney(PhysicalJourney):
     @classmethod
     def script(cls, args):
-        marker = f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
         return "\n".join([
+            marker + "open-existing", f"mousemove --sync {args.other_agent_x} {args.other_agent_y}",
+            "click 1", settle, marker + "existing-opened",
+            f"mousemove --sync {args.return_tab_x} {args.close_tab_y}", "click 1", settle,
             marker + "close", f"mousemove --sync {args.close_tab_x} {args.close_tab_y}",
-            "click 1", "sleep 2", marker + "close-done", "",
+            "click 1", settle, marker + "close-done",
+            marker + "reopen", f"mousemove --sync {args.reopen_agent_x} {args.reopen_agent_y}",
+            "click 1", settle, marker + "reopened", "",
         ])
 
 
@@ -1031,9 +1037,13 @@ def mark(label):
     print(json.dumps(event), flush=True)
 
 
-def scroll_script(*, idle_seconds: float = 4):
+def marker_command():
     # Literal quoted paths avoid native xdotool stdin variable-expansion defects.
-    marker = f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
+    return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
+
+
+def scroll_script(*, idle_seconds: float = 4):
+    marker = marker_command()
     return "\n".join([
         "mousemove --sync 700 260", "click 1", marker + "focused", "sleep 1",
         marker + "up", "keydown Prior", "sleep 4", "keyup Prior", marker + "up-done",
@@ -1066,6 +1076,13 @@ def main():
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
     parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")
+    parser.add_argument("--other-agent-x", type=int, default=180, help="Verified existing peer roster X coordinate")
+    parser.add_argument("--other-agent-y", type=int, default=240, help="Verified existing peer roster Y coordinate")
+    parser.add_argument("--return-tab-x", type=int, default=225, help="Verified original tab X coordinate")
+    parser.add_argument("--reopen-agent-x", type=int, default=180, help="Verified original agent roster X coordinate")
+    parser.add_argument("--reopen-agent-y", type=int, default=200, help="Verified original agent roster Y coordinate")
+    parser.add_argument("--navigation-settle-seconds", type=float, default=2,
+                        help="Physical navigation observation interval within the capture deadline")
     parser.add_argument("--scroll-idle-seconds", type=float, default=4,
                         help="Stationary observation in the shared scroll script; use15 for the original-history delayed-blank reproducer")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
@@ -1097,8 +1114,13 @@ def main():
     args = parser.parse_args()
     if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
         parser.error("Scroll idle observation must be positive and shorter than capture duration")
-    if not (0 <= args.close_tab_x < args.width and 0 <= args.close_tab_y < args.height):
-        parser.error("Tab-close coordinates must be within the isolated recording screen")
+    if not (all(0 <= value < args.width for value in
+                (args.close_tab_x, args.other_agent_x, args.return_tab_x, args.reopen_agent_x))
+            and all(0 <= value < args.height for value in
+                    (args.close_tab_y, args.other_agent_y, args.reopen_agent_y))):
+        parser.error("Navigation coordinates must be within the isolated recording screen")
+    if not math.isfinite(args.navigation_settle_seconds) or not 0 < args.navigation_settle_seconds < args.max_duration:
+        parser.error("Navigation observation must be positive and shorter than capture duration")
     if args.write_journey_script:
         destination = args.write_journey_script.expanduser().resolve()
         if not destination.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
