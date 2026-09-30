@@ -151,6 +151,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await until(pilot, lambda: pending.state in str(received.query_one(MessageNotifications).title))
             assert comms.registry.require('alpha').executing
             print('BOTH_NATIVE_TURNS_HELD_ORIGINAL_ROWS_AND_PROCESSING_HOT', pending.state, flush=True)
+            # Move the original outside the recent-five convenience window
+            # while it is still processing. These are real durable channel
+            # inputs; the controlled native provider declines their triage.
+            for index in range(5):
+                await asyncio.to_thread(comms.messaging.send, 'alpha', '#team',
+                                        f'AMBIENT_AFTER_ORIGINAL_{index}')
             sender_release.set()
             recipient_release.set()
             await until(sender_pilot, lambda: any(item.recipient == 'beta' and item.state == 'Responded'
@@ -215,4 +221,4 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 if __name__ == '__main__':
     asyncio.run(main(app_type=EvidenceApp, prepare_state=prepare, acceptance=acceptance, provider_reply=reply,
-                     provider_request_budget=8))
+                     provider_request_budget=12))
