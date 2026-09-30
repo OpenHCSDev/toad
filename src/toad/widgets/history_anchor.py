@@ -77,7 +77,7 @@ class OffsetReaderPosition(ReaderPosition):
 
 
 class HistoryWindow(VerticalScroll):
-    """Explicit follow intent survives zero-height scroll ranges during reflow."""
+    """Reader movement owns follow intent; layout only applies it."""
 
     CACHE_SUBTREE_GEOMETRY = True
     scroll_revision = 0
@@ -172,12 +172,17 @@ class HistoryWindow(VerticalScroll):
         super().release_anchor()
 
     def _check_anchor(self) -> None:
-        if (self.max_scroll_y > 0 and not self.history_lock.locked()
-                and self.history_anchor is None):
+        """Native geometry checks cannot turn an offset reader into a tail reader."""
+
+    def watch_scroll_y(self, old_value: float, new_value: float) -> None:
+        super().watch_scroll_y(old_value, new_value)
+        # Rejoin at the bottom after actual downward movement, including
+        # keyboard, wheel and scrollbar input. Compensation uses the existing
+        # restoration transaction and cannot choose a different reader policy.
+        if new_value > old_value and not self._restoring:
             super()._check_anchor()
 
     def check_follow(self) -> bool:
-        self._check_anchor()
         if self.history_anchor is not None or not self.follows_tail:
             return False
         previous = self.scroll_y

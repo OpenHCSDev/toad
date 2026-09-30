@@ -121,17 +121,15 @@ class OperationalSessionSources:
         if self.agent is not None:
             self.agent.detach_surface(conversation)
 
-    async def close(self, screen: "MainScreen") -> None:
+    async def close(self) -> None:
         if self.directory_watcher is not None:
             await self.directory_watcher.aclose()
             self.directory_watcher = None
         if self.agent is not None:
             await self.agent.stop()
             self.agent = None
-        conversation = screen.query_one_optional(Conversation)
-        shell = conversation._shell if conversation is not None else self.shell
-        if shell is not None:
-            await shell.close()
+        if self.shell is not None:
+            await self.shell.close()
         self.shell = None
 
 
@@ -161,7 +159,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     async def close(self, screen: "MainScreen") -> None:
         await screen.app.workspace_chrome.native.evict(screen, self)
-        await self.sources.close(screen)
+        await self.sources.close()
         self.state = None
 
 
