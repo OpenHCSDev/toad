@@ -17,4 +17,6 @@ Heisenberg #217 owns primary PageDown while lazy append/loading is pending, read
 
 Real installed native/ACP/UI journey plus physical st/Xvfb actions and same-run CPU/video assessment, using the existing controlled provider and process custody. No UI, source or protocol mocks. Preserve the original admission/load witnesses, all replaced consumer deletion and bounds owned by existing resource mechanisms. Report actual failed counterevidence and source deletion counts; passing captures alone are not frame assessment.
 
-Initial status: scoped draft; unprofiled comparison queued after Arendt433/219 native slot release. No production change yet. Current paired Core720629/Textual412/native4ab and #211-integrated Toad remain the accepted base.
+Initial status: scoped draft; unprofiled comparison queued after Arendt433/219 and the prepared usage-blocking Mendel422 selected-summary gate. Both owners received the direct release order; no performance reservation delays recovery work. No production change yet. Current paired Core720629/Textual412/native4ab and #211-integrated Toad remain the accepted base.
+
+PR214 is now merged in main cc68c51e from READY778db19f65409646c7d074ba2d6e61e8337a1f18. This follow-up is retargeted to main and normally integrated without conflicts; its initial diff is only this scope document. No new native fixture or production change yet.
