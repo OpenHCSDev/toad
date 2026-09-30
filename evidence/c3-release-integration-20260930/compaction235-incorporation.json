@@ -1,0 +1,20 @@
+{
+  "phase": "merged-current-main235-awaiting-final-Core442",
+  "merge_commit": "dd3cb97a7a98b02eef1ab19eb5e50f28ccf2e84f",
+  "merged_main": "04536c3c9cd1bdc938bb097791c9ae960291d42b",
+  "merged227": "ecbca1d94d7ec961ae885a276babc8102b861be0",
+  "reviewed235": "9738ae86c69353d079921f2ba97003c06ef127a1",
+  "production_added": 1,
+  "production_deleted": 7,
+  "ownership": "Remove local _compacting; compact admission derives existing original TurnOwner.can_compact",
+  "accepted_proof": "evidence/compaction-display-continuity/manual-candidate04/acceptance-complete.txt",
+  "scope": "Progress/tab/reconnect/second-Compact refusal; no cancellation fix claim",
+  "checks": [
+    "normal merge conflict-free",
+    "uv lock --check exit0",
+    "git diff --check exit0"
+  ],
+  "build_started": false,
+  "defaults_changed": false,
+  "public_owners_restarted": false
+}

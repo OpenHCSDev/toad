@@ -10,6 +10,10 @@ Reviewed Ready227 cb77ce9ad347c3b77a3e1abcb15a8a7ab05aeebb is now normally incor
 
 ---
 
+## Current-main235 source advance
+
+Normal main advance incorporates merged227 ecbca1d9 and235 04536c3c.235 deletes the local `_compacting` state mirror and derives admission from the original `TurnOwner.can_compact` (7 production lines deleted,1 added). Existing actual manual04 progress, tab return, reconnect and second-Compact refusal evidence is preserved; cancellation failure is preserved and not claimed fixed. No intermediate dependency pin/build or repeated installed gate. Final reviewed Core442 source pin still precedes the one paired build. See `evidence/c3-release-integration-20260930/compaction235-incorporation.json`.
+
 ## Historical accepted firstUI release
 
 # Inactive first UI End and keypad integration
