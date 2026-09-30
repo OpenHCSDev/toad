@@ -42,7 +42,7 @@ async def dialog_content_only():
         dialog.query_one('#fork-name', Input).value = 'fork-child'
         editor = dialog.query_one('#fork-task')
         assert await pilot.click(editor)
-        editor.post_message(events.Paste(task))
+        app.post_message(events.Paste(task))
         await pilot.pause()
         app.save_screenshot(str(evidence / 'pasted-task.svg'))
         assert await pilot.click('#fork-create')
@@ -149,6 +149,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 'screen_frame_state': type(parent_view.screen.frame_presentation.state).__name__,
                 'screen_is_current': parent_view.screen.is_current,
                 'sidebar_attached': sidebar.is_attached, 'sidebar_display': sidebar.display,
+                'observation_enabled': sidebar.observation.enabled,
+                'accepts_publication': sidebar.accepts_publication(),
+                'source_root': str(sidebar.observation.service.root),
                 'navigation_ready': sidebar.navigation.ready.is_set(),
                 'observation_pending': sidebar.observation.pending,
                 'observation_lock': sidebar.observation.lock.locked(),
