@@ -1,0 +1,86 @@
+{
+  "capture_receipt": "/home/ts/.cache/agent-scratch/toad-body-readiness-253-20260930-attempt01/capture/receipt.json",
+  "assessment": "unreviewed",
+  "completed": true,
+  "artifacts": {
+    "slow.mp4": {
+      "bytes": 84914,
+      "sha256": "9e5b7760207e734aa5e0274c5977a6520e915d6aa84fb0d0b72eff049ac64f17"
+    },
+    "frames.png": {
+      "bytes": 43717,
+      "sha256": "f834618c8ee322c2895c5e322ed12ca36640fa6701199b48d89b0af04bff7561"
+    },
+    "down-slow.mp4": {
+      "bytes": 1214270,
+      "sha256": "d3c3f08d72089acca33fb5c6d3936ea328aee6ac7f53be4ebf32a77206fc23e1"
+    },
+    "down-frames.png": {
+      "bytes": 1798115,
+      "sha256": "82e352e29fc0b2139d254b6d5dbc385d11b48664de3d5d4c55cbd1a3125baed8"
+    },
+    "return-a-slow.mp4": {
+      "bytes": 513120,
+      "sha256": "fb9466719010c21f91aae61915cdbff91be5af0be9577c1c358b12a7fe1ec02e"
+    },
+    "return-a-frames.png": {
+      "bytes": 1131025,
+      "sha256": "8b66dc38a9c387bd104ec9bc72a33efa016fb10c3c51a2a899e26d79114a3005"
+    },
+    "switch-b-slow.mp4": {
+      "bytes": 390086,
+      "sha256": "878cfa3cf866ccb8f0152dac4c9b3abcdddc63c275dc9c697aa4d8263373a450"
+    },
+    "switch-b-frames.png": {
+      "bytes": 827918,
+      "sha256": "b8f1499acc9a3c7a218c2daf272721af11623775e44179dafb1c5b1bd70788ab"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 4038890,
+        "start_ticks": 27941819,
+        "returncode": 0
+      },
+      {
+        "pid": 4039104,
+        "start_ticks": 27942528,
+        "returncode": 0
+      },
+      {
+        "pid": 4039110,
+        "start_ticks": 27942574,
+        "returncode": 0
+      },
+      {
+        "pid": 4039322,
+        "start_ticks": 27943340,
+        "returncode": 0
+      },
+      {
+        "pid": 4039329,
+        "start_ticks": 27943407,
+        "returncode": 0
+      },
+      {
+        "pid": 4039443,
+        "start_ticks": 27944122,
+        "returncode": 0
+      },
+      {
+        "pid": 4039519,
+        "start_ticks": 27944176,
+        "returncode": 0
+      },
+      {
+        "pid": 4039663,
+        "start_ticks": 27944903,
+        "returncode": 0
+      }
+    ]
+  }
+}

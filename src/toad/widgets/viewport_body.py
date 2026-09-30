@@ -91,7 +91,7 @@ class MeasuredViewportBody(ViewportBody):
 
     @property
     def body_ready(self) -> bool:
-        return not self._body_dormant and not self._body_restoring
+        return self.is_mounted and not self._body_dormant and not self._body_restoring
 
     @property
     def measured_rows(self) -> int:
@@ -377,10 +377,13 @@ class DocumentViewport:
 
     @property
     def visible_bodies_ready(self) -> bool:
-        if not self.owners:
-            return True
+        # Nested bodies own their readiness even when an outer fragment owns
+        # their retirement. Inspect native visible custody once, rather than
+        # expanding every fragment's entire materialization for every frame.
+        window = self.window
         visible = self.window.screen._compositor.visible_widgets
-        return all(widget.body_ready for widget in visible if widget in self.owners)
+        return all(widget.body_ready for widget in visible
+                   if isinstance(widget, ViewportBody) and window in widget.ancestors)
 
     async def _reconcile(self) -> None:
         try:

@@ -1,0 +1,1 @@
+{'widgets': 595, 'metadata_layouts': 0, 'disclosure_still_works': True, 'retired_navigation_rows': 0}
