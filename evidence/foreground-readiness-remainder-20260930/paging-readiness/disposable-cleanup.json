@@ -1,0 +1,17 @@
+{
+  "removed": [
+    {
+      "path": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/edge-readiness-native-baseline-src",
+      "file_bytes_removed": 7229457
+    },
+    {
+      "path": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/caption-layout/observer",
+      "file_bytes_removed": 3995028
+    },
+    {
+      "path": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/caption-layout/test-deps",
+      "file_bytes_removed": 9044750
+    }
+  ],
+  "scope": "Owned archived baseline source and tiny observer/test package targets; no active consumers. Original raw captures, native journals, source worktrees, receipts and installed prefixes preserved."
+}
