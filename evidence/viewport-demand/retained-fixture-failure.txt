@@ -1,0 +1,22 @@
+RAPID_WORKSPACE_READY
+RAPID_SOURCE_READY 835
+RAPID_NAVIGATION_ROUND 0
+RAPID_NAVIGATION_ROUND 1
+RAPID_NAVIGATION_ROUND 2
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-demand-20260929/tests/viewport_rapid_scroll_pilot.py", line 127, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-viewport-demand-20260929/tests/viewport_rapid_scroll_pilot.py", line 81, in main
+    assert end.body_dormant, (
+           ^^^^^^^^^^^^^^^^
+AssertionError: ('Fixture must exercise an unloaded source tail', 0, 835, 48, [], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47], (52, 12), False)
