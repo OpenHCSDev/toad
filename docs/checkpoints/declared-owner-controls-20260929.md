@@ -60,7 +60,7 @@ physical owner Stop and Start, and editor submission of a fresh native input.
 History remains the original byte prefix; the original UNKNOWN record is
 unchanged; restart creates no replay. All four localhost responses finish.
 
-Deleted the entire58-line FakeAgent goal_pause_pilot.py facade. Its pause/cancel
+Deleted the entire59-line FakeAgent goal_pause_pilot.py facade. Its pause/cancel
 claim is now covered by the actual held native journey; the Core declaration
 family retains the other state-transition controls. The existing deletion guard
 passes with zero retired string dispatch/catalog consumers. No application state,
@@ -96,3 +96,7 @@ operator is added here. The six-file/five-family C3 ledger remains in421;
 Arendt's shared backend/turn_inputs/OwnedSendAdmission custody capability row
 is still open. Frozen Core41/Toad e59/native06 handling idle/A-B/A remains
 unproven and untouched; this independent goal/control gate does not close it.
+
+Current required production ratchet versus main53154 has no positive delta;
+c3-current-required-ratchet.json records the exact candidate. Deleted lines use
+git numstat (the old file has an unterminated final line, so wc -l reports58).
