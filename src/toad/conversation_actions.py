@@ -46,7 +46,7 @@ class CancelAction(KeyboundAction, ConversationAction):
     show = True
 
     def available(self, conversation):
-        return True if conversation.agent and conversation.turns.owner.busy else None
+        return True if conversation.agent and conversation.turns.owner.can_cancel else None
 
     async def apply(self, conversation):
         conversation.cancel_turn()
