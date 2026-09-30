@@ -1,0 +1,17 @@
+{
+  "initial": {
+    "title": "Session details \u00b7 Saved history available",
+    "coverage": true
+  },
+  "parked": {
+    "title": "Session details \u00b7 Saved history not loaded",
+    "coverage": false
+  },
+  "validated": {
+    "title": "Session details \u00b7 Saved history not loaded",
+    "coverage": true,
+    "registered": true,
+    "pages_retained": true,
+    "native_tree_retained": true
+  }
+}

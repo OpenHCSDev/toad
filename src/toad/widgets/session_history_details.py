@@ -1,17 +1,23 @@
 """Saved transcript availability and bus-input proof have separate owners."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toad.transcript_publication import TranscriptPresentation
+    from toad.widgets.native_history import NativeHistory
 
 
 class SessionHistoryDetails:
-    def __init__(self, read_history, native):
-        self.read_history = read_history
+    def __init__(self, transcript: TranscriptPresentation | None, native: NativeHistory | None):
+        self.transcript = transcript
         self.native = native
 
     @property
     def summary(self):
         parts = []
-        if self.read_history is not None:
-            history = self.read_history()
-            parts.append("Saved history available" if history is not None and history.state.reports_coverage
+        if self.transcript is not None:
+            parts.append("Saved history available" if self.transcript.reports_coverage
                          else "Saved history not loaded")
         if self.attention:
             parts.append("Bus input verification unavailable")
