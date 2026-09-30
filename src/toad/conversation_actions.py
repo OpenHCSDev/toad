@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
 
 
-class ConversationAction(NativeAction["Conversation"], DeclaredFamily, affix="Action"):
+class ConversationAction(NativeAction, DeclaredFamily, affix="Action"):
     pass
 
 
@@ -20,10 +20,10 @@ class FocusTerminalAction(KeyboundAction, ConversationAction):
     priority = True
 
     def available(self, conversation):
-        return None if conversation._terminal is None else True
+        return conversation.terminal_action_state
 
     async def apply(self, conversation):
-        conversation._terminal.focus()
+        conversation.focus_terminal()
 
 
 class ModeSwitcherAction(KeyboundAction, ConversationAction):

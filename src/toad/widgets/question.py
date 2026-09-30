@@ -229,6 +229,10 @@ class Question(DeclaredWidgetActions, containers.VerticalGroup, can_focus=True):
                 if answer.kind is not None:
                     kinds.add(answer.kind)
 
+    @property
+    def accepts_selection(self) -> bool:
+        return not self.selected and 0 <= self.selection < len(self.options)
+
     def watch_selection(self, old_selection: int, new_selection: int) -> None:
         self.presentation.mount.select(new_selection)
 

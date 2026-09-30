@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from toad.widgets.question import Question
 
 
-class QuestionAction(NativeAction["Question"], DeclaredFamily, affix="Action"):
+class QuestionAction(NativeAction, DeclaredFamily, affix="Action"):
     @classmethod
     def bindings(cls):
         return ()
@@ -26,7 +26,7 @@ class SelectionAction(KeyboundAction, QuestionAction):
     show = True
 
     def available(self, question):
-        return not question.selected and bool(question.options)
+        return question.accepts_selection
 
 
 class SelectionUpAction(SelectionAction):
@@ -53,7 +53,7 @@ class SelectAction(KeyboundAction, QuestionAction):
     show = True
 
     def available(self, question):
-        return not question.selected and 0 <= question.selection < len(question.options)
+        return question.accepts_selection
 
     async def apply(self, question):
         question._reset_blink()
@@ -89,7 +89,7 @@ class SelectKindAction(QuestionAction):
         raise ValueError("select_kind requires one kind or tuple of kinds")
 
     def available(self, question):
-        return not question.selected and any(answer.kind in self.kinds for answer in question.options)
+        return question.accepts_selection and any(answer.kind in self.kinds for answer in question.options)
 
     async def apply(self, question):
         for kind in self.kinds:

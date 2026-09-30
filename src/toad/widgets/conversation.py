@@ -997,6 +997,14 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         """
         self.query_one(Flash).flash(content, duration=duration, style=style)
 
+    @property
+    def terminal_action_state(self) -> bool | None:
+        return None if self._terminal is None else True
+
+    def focus_terminal(self) -> None:
+        if (terminal := self._terminal) is not None:
+            terminal.focus()
+
     @cached_property
     def navigation(self) -> ContentNavigation:
         return ContentNavigation(self.contents)

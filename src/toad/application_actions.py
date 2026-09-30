@@ -67,7 +67,7 @@ class NativeAction(Command, Generic[Context]):
     async def apply(self, context: Context) -> None: ...
 
 
-class ApplicationAction(NativeAction["ToadApp"], DeclaredFamily, affix="Action"):
+class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
     """Application action membership is owned by its declarations."""
 
 
