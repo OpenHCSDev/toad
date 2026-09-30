@@ -45,8 +45,10 @@ class TranscriptPublication(ABC):
         """
         if self.native_current():
             return cursor
-        prefixes = tuple(history.committed_cursor for history in self.owner.histories
-                         if history in self.captured and history.state.reports_coverage)
+        prefixes = tuple(bound for history in self.owner.histories
+                         if history in self.captured and history.state.reports_coverage
+                         for bound in (history.committed_cursor,)
+                         if bound.receipts_within(cursor))
         prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
                      key=lambda bound: bound.offset,
                      default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
@@ -300,15 +302,33 @@ class CheckpointPublication(TranscriptPublication):
         return (super().current() and not view._pruning
                 and self.plan.current(self.window))
 
+    def admitted(self) -> bool:
+        from toad.acp.agent import Agent
+        from toad.widgets.committed_presentation import (
+            CheckpointBarrier, CommitParticipant, CommittedHistory,
+        )
+
+        view = self.owner.view
+        if not self.current() or not self.owner.dirty:
+            return False
+        if not isinstance(self.agent, Agent) or not view.agent_ready or not self.agent.transcript_ready:
+            return False
+        if any(isinstance(node, CheckpointBarrier) for node in self.contents.walk_children()):
+            return False
+        if not self.owner.checkpoint_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
+            return False
+        history = next((child for child in self.contents.children
+                        if isinstance(child, CommittedHistory)), None)
+        potential = tuple(child for child in self.contents.children
+                          if child is not history and isinstance(child, CommitParticipant))
+        return self.plan.ready(history) and self.plan.permits(view, potential)
+
     async def publish(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
         from agent_comms.coordination_errors import StaleRevision
 
-        from toad.acp.agent import Agent
         from toad.widgets.committed_presentation import (
-            CheckpointBarrier,
             CommitEvidence,
-            CommitParticipant,
             CommittedHistory,
             retirement_candidates,
         )
@@ -318,23 +338,9 @@ class CheckpointPublication(TranscriptPublication):
         if view is None:
             return
         window, contents = self.window, self.contents
-        if (
-            window is None
-            or contents is None
-            or not self.owner.dirty
-            or not isinstance(view.agent, Agent)
-            or not view.agent_ready
-            or not view.agent.transcript_ready
-            or any(
-                isinstance(node, CheckpointBarrier) for node in contents.walk_children()
-            )
-            or (
-                not self.owner.checkpoint_required
-                and len(contents.children) < view.MAX_LIVE_BLOCKS
-            )
-        ):
+        if not self.admitted():
             return
-        agent, plan = self.agent, self.plan
+        plan = self.plan
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
@@ -342,14 +348,6 @@ class CheckpointPublication(TranscriptPublication):
             (child for child in before_read if isinstance(child, CommittedHistory)),
             None,
         )
-        potential = tuple(
-            child
-            for child in before_read
-            if child is not history and isinstance(child, CommitParticipant)
-        )
-        if not self.current() or not plan.ready(history) or not plan.permits(view, potential):
-            return
-
         try:
             page = await self.read_source_page()
             is_current = partial(self.source_current, page.after)
@@ -588,8 +586,15 @@ class TranscriptPresentation:
                             group="transcript-handling", exclusive=True)
 
     def retry(self) -> None:
-        if self.dirty:
+        if not self.dirty or self.worker is not None and not self.worker.is_finished:
+            return
+        publication = self.capture(CheckpointPublication)
+        if publication is not None and publication.native_current() and publication.admitted():
             self.request()
+
+    def source_work_finished(self, history) -> None:
+        if history in self.histories:
+            self.retry()
 
     async def close(self) -> None:
         await self.suspend()

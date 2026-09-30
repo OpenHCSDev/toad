@@ -7,7 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from agent_comms.comms import Comms
 from agent_comms.threads import Thread
-from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpdate
+from toad.acp.messages import CommsUpdated
 from agent_comms.turn_lease import ActiveTurn,TurnState
 from agent_comms.turn_phase import PublishingPhase
 from toad.app import ToadApp
@@ -18,7 +19,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.outgoing_message import OutgoingMessage
-from toad.transcript_publication import CheckpointPublication, SnapshotPublication
+from toad.transcript_publication import CheckpointPublication, SnapshotPublication, ObservedSourcePublication
 
 async def main():
     folder=Path(os.environ['RESPONSE_CUSTODY_ARTIFACTS']).resolve()
@@ -53,6 +54,13 @@ async def main():
             await pilot.pause()
             sent=comms.messaging.send_message('source','peer','WIRE_SENT_DURING_ANONYMOUS_OUTPUT')
             incoming=comms.messaging.send_message('peer','source','WIRE_INCOMING_DURING_ANONYMOUS_OUTPUT')
+            observed=ObservedSourcePublication(view.transcript,view,view.window,view.contents,
+                                              await agent.get_thread_presentation())
+            observed_page=await observed.read_page()
+            observed_read={'native_prefix_retained':observed_page.after.offset==old_page.after.offset,
+                           'assigned_frontier_advanced':observed_page.after.wire_seq==incoming.seq}
+            assert all(observed_read.values()),observed_read
+            print(json.dumps({'observed_read':observed_read,'events':[type(e).__name__ for e in observed_page.events]}))
             view.window.anchor();view.prompt.focus()
             view.transcript.dirty=view.transcript.checkpoint_required=True
             task=asyncio.create_task(CheckpointPublication(view.transcript,view,view.window,view.contents).publish())
@@ -66,6 +74,14 @@ async def main():
                     task.cancel()
                     await asyncio.gather(task,return_exceptions=True)
             await pilot.pause()
+            # An observed source read may already have admitted the original
+            # coalesced checkpoint. A second operation can decline while that
+            # source worker still owns native mounting. Join its actual rows,
+            # not just completion of this caller's declined operation.
+            async with asyncio.timeout(8):
+                while not (any(w.message_reference.seq==sent.seq for w in view.contents.query(OutgoingMessage))
+                           and any(w.message_reference.seq==incoming.seq for w in view.contents.query(IncomingMessage))):
+                    await pilot.pause(.02)
             responses=[widget for widget in view.contents.query(AgentResponse) if 'SOURCE_RESPONSE_ONCE' in widget.source]
             receipt={'live_response_attached':block.is_attached,'response_resources':len(responses),'history_frontier_advanced':history.committed_cursor.offset>old_page.after.offset,'managed_phase':type(view.turns.owner.state.phase).__name__,'managed_busy':view.turns.owner.busy,'history_count':len(view.window.histories),'response_resource_ids':[id(widget) for widget in responses]}
             print(json.dumps(receipt))
@@ -77,11 +93,13 @@ async def main():
                   'native_frontier':history.committed_cursor.offset,
                   'live_response_attached':block.is_attached,
                   'native_transfer_pending':view.transcript.dirty}
+            print(json.dumps({'wire':wire,'pages':[{'before':p.page.before.offset,'after':p.page.after.offset,'wire_before':p.page.before.wire_seq,'wire_after':p.page.after.wire_seq,'events':[type(e).__name__ for e in p.page.events],'start':p.start,'stop':p.stop,'children':len(p.children)} for p in history.pages],'state':type(history.state).__name__}))
             assert wire['sent_resources']==wire['incoming_resources']==1,wire
             assert wire['wire_frontier']==incoming.seq and wire['native_transfer_pending'],wire
             print(json.dumps(wire))
             assert binding.receive(TurnState(finished_turn_id='source-turn'))
-            await view.output.settle()
+            await view.on_turn_changed(CommsUpdated(TurnChangedUpdate(binding.owner.state),
+                                       agent=agent,session_id=agent.session_id,sequence=binding.sequence))
             task=asyncio.create_task(CheckpointPublication(view.transcript,view,view.window,view.contents).publish())
             try:
                 async with asyncio.timeout(8):
@@ -93,6 +111,9 @@ async def main():
                     task.cancel()
                     await asyncio.gather(task,return_exceptions=True)
             await pilot.pause()
+            async with asyncio.timeout(8):
+                while block.is_attached:
+                    await pilot.pause(.02)
             responses=[widget for widget in view.contents.query(AgentResponse) if 'SOURCE_RESPONSE_ONCE' in widget.source]
             settled={'response_resources':len(responses),'live_response_attached':block.is_attached,'history_frontier_advanced':history.committed_cursor.offset>old_page.after.offset,'history_count':len(view.window.histories),'managed_busy':view.turns.owner.busy}
             print(json.dumps(settled))
@@ -123,7 +144,7 @@ async def main():
             active_saved={'history_count':len(view.window.histories),'old_history_attached':history.is_attached,'managed_busy':view.turns.owner.busy,'frontier_matches':next(iter(view.window.histories)).committed_cursor==page.after}
             assert active_saved['history_count']==1 and not history.is_attached and active_saved['frontier_matches'],active_saved
             print(json.dumps(active_saved))
-            (folder/'receipt-fixed.json').write_text(json.dumps({'publishing':receipt,'independent_wire':wire,'settled':settled,'active_saved_source':active_saved},indent=2)+'\n')
+            (folder/'receipt-fixed.json').write_text(json.dumps({'observed_read':observed_read,'publishing':receipt,'independent_wire':wire,'settled':settled,'active_saved_source':active_saved},indent=2)+'\n')
             assert agent.process.process is None and agent.process.runner is None
 if __name__ == '__main__':
     asyncio.run(main())
