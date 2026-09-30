@@ -176,6 +176,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert len(originals(sender, response.reference, IncomingMessage)) == 1
             assert original.reference != response.reference
             await until(pilot, lambda: not comms.registry.require('beta').executing)
+            # Additional real channel inputs may legitimately move this reply
+            # off the tail. Navigate its original body before requiring paint.
+            originals(recipient, response.reference, OutgoingMessage)[0].scroll_visible(
+                animate=False, immediate=True)
             try:
                 await until(pilot, lambda: response_painted(app, recipient, response.body))
             finally:
@@ -216,6 +220,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 'provider_requests': len(requests), 'original_inputs_retried': 0,
                 'all_views_open_before_send': True,
                 'original_target_handling': 'Responded',
+                'original_has_five_newer_channel_inputs': True,
             }, indent=2))
 
 

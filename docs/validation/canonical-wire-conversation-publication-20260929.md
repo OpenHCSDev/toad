@@ -61,3 +61,24 @@ physical-paint/once/return acceptance.
 
 Status: draft; useful hot publication is verified but the complete affected
 installed journey is still pending. Not merged, installed globally or live.
+
+## Native05: concrete remaining source defect
+
+The fresh native05 run retained the complete original coordinator and selected
+journals. Actual mounted resource evidence now proves two reply bodies: original
+`OutgoingMessage` and native `TranscriptFragmentView`, each with
+`RECIPIENT_RESPONSE_PROOF`. Mendel owns closing this original wire/native response
+provenance relation in Core #430; no text deduplication or frontend seen state.
+
+Five real ambient channel inputs were committed while the original was still
+processing. The original target's Responded state still updated hot in both DMs
+and IRC after it left the recent-five window. This run exited 1 on physical paint
+timeout: later messages moved the reply off the visible tail. The fixture now
+navigates the original reply body before asserting physical paint and once.
+
+The same real repeated-input journey also exposed later UNKNOWN native prompt
+admission failures before any bytes. Original diagnostic receipts and canonical
+state remain preserved; no automatic replay. Einstein was asked to own the
+native lifecycle/admission investigation, separate from Mendel's source join.
+All native05 processes were verified retired and the serial fixture slot released.
+The candidate remains draft until the full corrected installed journey passes.
