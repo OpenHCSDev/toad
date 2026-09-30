@@ -14,6 +14,7 @@ def run():
     parser.add_argument('--stage', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--tests', required=True, type=Path)
+    parser.add_argument('--attempt', default='Einstein-g454e-u01')
     args = parser.parse_args()
     sys.dont_write_bytecode = True
     stage = args.stage.resolve()
@@ -44,7 +45,7 @@ def run():
         TMPDIR=str(base), L0A_EVIDENCE=str(evidence),
         AC_NATIVE_COPIED_PACKAGE=activation['native_package'],
         PATH=str(stage / 'bin') + os.pathsep + os.environ['PATH'],
-        PYTHONPATH=str(tests), TOAD_TEST_ATTEMPT='Einstein-g454e-u01',
+        PYTHONPATH=str(tests), TOAD_TEST_ATTEMPT=args.attempt,
         TOAD_TEST_SOURCE_HEAD=activation['pins']['batrachian-toad'],
     )
     from first_fork_native_installed_pilot import main, InstalledApp, acceptance
