@@ -1,0 +1,17 @@
+{
+  "owner": "Einstein",
+  "existing_runner": "/home/ts/wt/g452e/run.py",
+  "prior_runner_preserved": "/home/ts/wt/g452e/run-450452-preserved.py",
+  "source_tests": "/home/ts/wt/comms-cleanup-live-integration-20260929/tests",
+  "tests": [
+    "test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+    "test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]"
+  ],
+  "execution": "Pending Sch immutable current pair receipt; one serial installed run, private localhost2+5POSTs",
+  "native_source": "Derive exact package from finalized activation.json; never publicroutececa",
+  "ui_continuation": "Existing installed tests/first_fork_native_installed_pilot.py actualsidebar fork/immediateopen/nativefirstinput/reply-once; ownpersistent shortroot with controlledlocalhost2POSTs",
+  "production_source_pythonpath": false,
+  "public_mutations": 0,
+  "provider_paid_calls": 0,
+  "started_native_processes": 0
+}
