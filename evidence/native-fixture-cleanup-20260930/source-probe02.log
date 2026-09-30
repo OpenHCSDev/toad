@@ -1,0 +1,1 @@
+{"scope": "fixture cleanup source and actual owned OS child only", "owner_wait_failure_preserved": true, "original_run_failure_preserved_in_chain": true, "actual_owned_child_pid": 98221, "actual_owned_child_exited": true, "final_original_cleanup_called": true, "ui_native_readiness_claim": false, "native_inputs": 0, "provider_calls": 0}

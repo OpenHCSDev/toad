@@ -1,0 +1,35 @@
+{
+  "scope": "original installed fixture cleanup only; no product/UI/native readiness claim",
+  "base": "ade14962",
+  "originals": "Core458 evidence/c1-terminal-data-20260930/installed29/m01 and u04 raw failure/custody",
+  "mechanism": "Python AsyncExitStack plus original asynchronous cleanup context retains exception chain while completing original owner/child/lock callbacks in original order",
+  "real_control": {
+    "scope": "fixture cleanup source and actual owned OS child only",
+    "owner_wait_failure_preserved": true,
+    "original_run_failure_preserved_in_chain": true,
+    "actual_owned_child_pid": 98221,
+    "actual_owned_child_exited": true,
+    "final_original_cleanup_called": true,
+    "ui_native_readiness_claim": false,
+    "native_inputs": 0,
+    "provider_calls": 0
+  },
+  "proof_boundary": "Application context and observed owner-wait failure injected solely for source cleanup exercise; actual owned OS child terminated by existing stop_test_children. No mocked UI/protocol used as installed acceptance. No additional GUI/native/provider run.",
+  "preserved_negative": "source-probe-failed01.log: direct async callback registration lost original error chain across to_thread; context-managed cleanup closes it",
+  "production_deleted_lines": 0,
+  "fixture_deleted_lines": 6,
+  "fixture_added_lines": 13,
+  "new_timing_policy": false,
+  "new_semantic_state_store": false,
+  "unknown_replay": false,
+  "public_effects": 0,
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "next": "Kepler normally integrates fixture contribution into sole existing driver; actual whole new paired run awaits Heisenberg source fixes and parent coherent freeze",
+  "sha256": {
+    "tests/runtime_fixture.py": "2fff9936553641ff47469e06b824bab4293eb6787573b998ba5cf5d3fff1470e",
+    "tests/runtime_fixture_cleanup_probe.py": "efdde0fe0aa5d9ab236fa00b74eadcc238b42c77d7f6d3ee49461224e7631566",
+    "evidence/native-fixture-cleanup-20260930/source-probe02.log": "4fd2aa2f7b27c7e6afe05a4152e7eda11af048d94871e79be74a57054629937d",
+    "evidence/native-fixture-cleanup-20260930/source-probe-failed01.log": "e5ad3f8b352bbfdce940d1eef0e34268e250188536df2595e77eac50f407b8ef"
+  }
+}
