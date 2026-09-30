@@ -1,0 +1,12 @@
+{
+  "stage": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+  "pins": {
+    "agent-comms": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+    "batrachian-toad": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "state": "verified-immutable-cohort",
+  "staging_receipt_sha256": "c6ab8fba871f14afcf073807939c0e3a6381595740222ca59ea9e19210b57794"
+}

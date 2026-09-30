@@ -1,0 +1,38 @@
+{
+  "private_root": "/home/ts/wt/cw231-final-native01/private-root/wire",
+  "owners": {
+    "beta": {
+      "pid": 3177552,
+      "process_alive": false,
+      "executing": false
+    },
+    "user": {
+      "pid": 0,
+      "process_alive": false,
+      "executing": false
+    },
+    "immediate-fork": {
+      "pid": 3177991,
+      "process_alive": false,
+      "executing": false
+    }
+  },
+  "remaining_attempt_pids": [],
+  "inputs": [
+    {
+      "key": "acp:1dfcd24cda404f7bbd92da065aadfc20",
+      "disposition": "StartedInput",
+      "native_id": "5bc729ed970b77872ee26051c3024a9b"
+    },
+    {
+      "key": "acp:7ba311fb3aef429aa7edf48a26dbd784",
+      "disposition": "StartedInput",
+      "native_id": "4719962cbae877693ccf33c8d5c562bc"
+    }
+  ],
+  "unknown_inputs": 0,
+  "provider": "controlled loopback only",
+  "public_inputs": 0,
+  "public_owner_restarts": 0,
+  "defaults_changed": false
+}

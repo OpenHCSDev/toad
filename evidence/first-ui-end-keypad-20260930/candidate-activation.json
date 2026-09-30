@@ -1,0 +1,12 @@
+{
+  "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+  "pins": {
+    "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+    "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+    "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "state": "verified-immutable-cohort",
+  "staging_receipt_sha256": "d28cba5aac4649a9dc711a3fc8b52fd6bab626926da328d1c6cb254fe2c2b139"
+}
