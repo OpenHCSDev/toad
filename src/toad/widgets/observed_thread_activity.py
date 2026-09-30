@@ -3,7 +3,6 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 
-from toad.constants import COMMS_REFRESH_INTERVAL
 from toad.screens.session_view import SessionView
 from agent_comms.thread_presentation import ThreadPresentation
 from textual.message import Message
@@ -39,7 +38,12 @@ class ObservedThreadActivity(Static):
         self._read_task: asyncio.Task[None] | None = None
 
     def on_mount(self) -> None:
-        self.set_interval(COMMS_REFRESH_INTERVAL, self.refresh_observation)
+        # The shared coordination observer already owns source revision and
+        # expiry. Rebuilding the same proof on a second cadence burns CPU and
+        # competes with the original receipt/read transactions.
+        self.app.coordination_observed.subscribe(self, self.refresh_observation)
+        self.app.session_selected_signal.subscribe(self, self.refresh_observation)
+        self.app.thread_actions_changed.subscribe(self, self.refresh_observation)
         self.refresh_observation()
 
     def bind(self, read: Callable[[], Awaitable[ThreadPresentation | None]]) -> None:
@@ -55,7 +59,7 @@ class ObservedThreadActivity(Static):
         if self._read_task is not None:
             self._read_task.cancel()
 
-    def refresh_observation(self) -> None:
+    def refresh_observation(self, _event=None) -> None:
         if (not self.is_attached or not self.query_ancestor(SessionView).is_current
                 or self._read_task is not None and not self._read_task.done()):
             return

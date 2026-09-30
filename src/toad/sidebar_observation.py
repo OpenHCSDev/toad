@@ -2,10 +2,8 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
-from pathlib import Path
 from agent_comms.comms import Comms, wire
 from agent_comms.presentation import WireRevision
-from toad.constants import COMMS_REFRESH_INTERVAL
 from toad.preferences import SidebarSettings
 from toad.settings import PreferenceChange
 from toad.session_tracker import SessionDetails
@@ -27,7 +25,6 @@ class SidebarObservation:
         self.task = None
         self.lock = asyncio.Lock()
         self.identity = None
-        self.route_stamp = None
         self.read_marker_notice = None
 
     @property
@@ -60,7 +57,7 @@ class SidebarObservation:
         app.session_selected_signal.subscribe(self.sidebar, self.sidebar.navigation.mode_changed)
         app.thread_actions_changed.subscribe(self.sidebar, self.actions_changed)
         app.settings_changed_signal.subscribe(self.sidebar, self.settings_changed)
-        self.sidebar.set_interval(COMMS_REFRESH_INTERVAL, self.refresh)
+        app.coordination_observed.subscribe(self.sidebar, self.coordination_updated)
         self.sidebar.navigation.prepare()
         from toad.screens.workspace import WorkspaceScreen
         if isinstance(screen, WorkspaceScreen):
@@ -98,7 +95,6 @@ class SidebarObservation:
             self.service = service
             self.sidebar.projection.snapshot = None
             self.identity = None
-            self.route_stamp = None
             self.sidebar.navigation.reset()
             self.sidebar.projection.paint = None
             for group in self.sidebar.query(ChannelGroup):
@@ -106,7 +102,7 @@ class SidebarObservation:
             self.sidebar.projection.sync_spinner()
 
     async def session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
-        if not self.sidebar.accepts_publication():
+        if not self.accepts_observation():
             return
         # Session routes/title changes are local projection facts. The wire's
         # own revision invalidates its snapshot; do not force a full history
@@ -126,7 +122,7 @@ class SidebarObservation:
                 await self.read(revision)
 
     async def actions_changed(self, _update: None) -> None:
-        if not self.sidebar.accepts_publication():
+        if not self.accepts_observation():
             self.identity = None
             return
         if self.sidebar.projection.has_snapshot() and self.sidebar.is_attached:
@@ -136,6 +132,8 @@ class SidebarObservation:
 
     async def present_cached(self) -> None:
         """Paint the last observed projection; refresh disk state after activation."""
+        if not self.accepts_observation():
+            return
         state = self.sidebar.app._sidebar_snapshot
         if state is not None and (
             state.show_stopped, state.show_archived
@@ -167,26 +165,23 @@ class SidebarObservation:
         except Exception:
             return []
 
-    def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
-        # Stat-only change tokens avoid taking the private bus store lock on
-        # Textual's event loop. A changed route or marker still requires the
-        # canonical core resolver in the off-loop worker before presentation.
-        from agent_comms.active_route import active_route_path
-
-        def stamp(path: Path) -> tuple[int, int, int, int] | None:
-            try:
-                info = path.stat(follow_symlinks=False)
-            except FileNotFoundError:
-                return None
-            return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size
-
-        return stamp(active_route_path()), stamp(self.service.root / "bus_meta.json")
-
     def route_changed(self) -> bool:
-        return self.route_stamp is None or self.current_route_stamp()[0] != self.route_stamp[0]
+        return self.sidebar.app.coordination_access.route_changed()
+
+    async def coordination_updated(self, _event=None) -> None:
+        service = self.sidebar.app.coordination_access.observed_service
+        if service is not None:
+            await self.bind(service)
+        self.refresh()
+
+    def accepts_observation(self) -> bool:
+        from toad.widgets.side_bar import SideBar
+
+        return (self.enabled and self.sidebar.accepts_publication()
+                and not self.sidebar.query_ancestor(SideBar).collapsed)
 
     def refresh(self) -> None:
-        if not self.enabled or not self.sidebar.accepts_publication():
+        if not self.accepts_observation():
             return
         if self.service is None:
             self.sidebar.display = False
@@ -194,7 +189,7 @@ class SidebarObservation:
         self.after_frame()
 
     def start_read(self) -> None:
-        if not self.enabled or not self.sidebar.accepts_publication():
+        if not self.accepts_observation():
             return
         try:
             # Retained inactive rosters reconcile on activation. Do not queue
@@ -202,30 +197,18 @@ class SidebarObservation:
             # ordinary shutdown and belongs inside this existing error boundary.
             if self.sidebar.screen is not self.sidebar.app.screen:
                 return
-            route_stamp = self.current_route_stamp()
-            if (
-                self.route_stamp is None
-                or route_stamp[0] != self.route_stamp[0]
-            ):
-                # Route publication can overtake a pending snapshot worker.
-                # Hide on route-file replacement before waiting for its bus
-                # lock. The private bus_meta stamp also changes on *ordinary*
-                # sends: it triggers validation below but must not blank a
-                # valid same-route sidebar on every message.
+            if self.route_changed():
                 self.sidebar.display = False
             if self.pending:
                 return
             revision = self.service.views.revision()
-            if (self.sidebar.display and self.read_identity(revision) == self.identity and route_stamp == self.route_stamp):
+            if self.sidebar.display and self.read_identity(revision) == self.identity:
                 return
-            self.task = asyncio.create_task(self.refresh_checked(revision, route_stamp))
+            self.task = asyncio.create_task(self.refresh_checked(revision))
         except Exception:
             self.sidebar.display = False
 
-    async def refresh_checked(
-        self, revision: WireRevision,
-        route_stamp: tuple[tuple[int, int, int, int] | None, ...],
-    ) -> None:
+    async def refresh_checked(self, revision: WireRevision) -> None:
         service = self.service
         try:
             from toad.comms_root import root_is_current
@@ -236,21 +219,16 @@ class SidebarObservation:
                 return
             if self.service is not service or not self.sidebar.accepts_publication():
                 return
-            self.sidebar.app.coordination_observed.publish(None)
             await self.poll(revision)
             if self.service is service and self.identity == self.read_identity(revision):
-                if self.current_route_stamp() != route_stamp:
-                    return
                 if not await asyncio.to_thread(root_is_current, service.root):
                     return
                 if self.service is not service:
                     return
-                self.route_stamp = route_stamp
                 self.sidebar.display = True
                 if not self.sidebar.navigation.ready.is_set():
                     self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
         except Exception:
-            # Route publication or writer recovery will be retried next tick.
             return
 
     async def poll(self, revision: WireRevision) -> None:
