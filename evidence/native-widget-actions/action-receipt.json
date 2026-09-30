@@ -1,0 +1,16 @@
+{
+  "provider": "localhost-only",
+  "native_requests": 2,
+  "paid_calls": 0,
+  "saved_native_reconnect_no_replay": true,
+  "block_space_expand_collapse": true,
+  "question_actual_pointer_keyboard_once": true,
+  "permission_modal_forwarding": true,
+  "declaration_only_new_case": true,
+  "draft_document_history_identity": true,
+  "actual_native_two_escape_cancel": true,
+  "permission_request_source": "controlled actual PermissionController API; not provider-issued permission",
+  "toad": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/installed/lib/python3.14/site-packages/toad/__init__.py",
+  "core": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/installed/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "textual": "/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/lib/python3.14/site-packages/textual/__init__.py"
+}

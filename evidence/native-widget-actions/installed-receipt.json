@@ -13,18 +13,59 @@
   "toad": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/installed/lib/python3.14/site-packages/toad/__init__.py",
   "core": "224bb8e305bdd47276c4a853749b35e6d7c41ae0",
   "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
-  "source": "5685d357",
-  "head": "5685d357",
+  "source": "b7f42d7ced00357aac27b71b08c4d1e85fdd24e3",
+  "integration_base": "fda1b5d2dda13a55a6e3ae400af03a6e76e70ec1",
+  "widget_action_production_checkpoint": "5685d357",
+  "core_direct_url": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "224bb8e305bdd47276c4a853749b35e6d7c41ae0",
+      "requested_revision": "224bb8e305bdd47276c4a853749b35e6d7c41ae0"
+    }
+  },
+  "core_python_files_match_accepted_225": 287,
   "sdk": "0.12.1",
+  "toad_direct_url": {
+    "url": "file:///home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/wheels/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "wheel_sha256": "abe21123230ddf48e644dd89d816b9fc6c204274e6a58dc32c126ea0a6dcfc09",
+  "installed_python_files_match_tested_toad": 272,
   "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
   "native_manifest": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "native_tree_digest": "5ea25e3f9e88d073e5506ce97ceeca4c763b6da19f986ab032880d45f020f35c",
   "gate_exit": 0,
-  "owned_process_leaks": [],
+  "gate_result": "PASS",
   "scratch": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930",
-  "retained_fixture": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/retained-native06",
-  "old_attempts": "native01/02 Core000 pairing failure, no provider requests; native03/04 fixture-target/path corrections; native05 reproduced fixed pre-mount modal query; all retained and cleaned",
+  "retained_fixture": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/retained-native07",
+  "original_wire_root": "/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/retained-native07/private-root/wire",
   "default_activation": false,
-  "global_C3_cutover": "OPEN Arendt442/parent; nested Thread schema transition not part of230",
-  "wheel_sha256": "0a33d53e56be64c5faef5d2644b292a72d52d3fbfcaef0acf2d5ba8aae9dc740",
-  "visual_review": "NOT_ACCEPTED: native06 default ansi-dark with HeadlessDriver has no negotiated palette; raw SVG/PNG black. Controls passed; subsequent fixture uses canonical built-in textual-dark preference for real readable export, no image modification."
+  "global_C3_cutover": "OPEN Arendt442/parent; initial and nested Thread schema transition outside230",
+  "owned_process_leaks": [],
+  "original_native_owner_alive": false,
+  "visual_review": {
+    "reviewed": true,
+    "scope": "original native07 exports, rsvg-convert only; canonical built-in textual-dark fixture preference",
+    "frames": {
+      "block-expanded": "actual context expanded, saved response and retained draft visible",
+      "question-options": "allow/reject choices, selection and native footer visible",
+      "permission-preview": "approval and original choice visible; diff pane not hydrated, no diff-content acceptance claim",
+      "cancel-first-escape": "waiting actual native turn and existing second-Escape confirmation visible"
+    },
+    "separate_defect": {
+      "owner": "Schrodinger229",
+      "description": "one original response appears twice after actual ACP saved-session reconnect; no second provider request for that answer",
+      "proof_preserved": true
+    }
+  },
+  "earlier_attempts": "native01/02 Core000 pairing failures before provider requests; native03/04 driver-target/path corrections; native05 reproduced fixed native pre-mount getter race; native06 controls passed but black ansi-dark raw export was not visual accepted; all original private proofs retained",
+  "acceptance_limits": [
+    "controlled existing client PermissionController request, not provider-issued permission",
+    "not full retained-history chronology acceptance",
+    "not warm performance acceptance",
+    "not live default activation"
+  ],
+  "driver": "tests/native_widget_actions_installed_pilot.py",
+  "command": "TMPDIR=/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930 L0A_EVIDENCE=/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/native07 ACTION_FIXTURE_STAGE=/home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/retained-native07 AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent TOAD_TEST_ATTEMPT=native-widget-actions-230-07 timeout 140 /home/ts/.cache/agent-scratch/toad-native-widget-actions-20260930/installed/bin/python tests/native_widget_actions_installed_pilot.py"
 }
