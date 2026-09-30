@@ -1,0 +1,3 @@
+CONTROLLED_JOURNEY_PHASE cold_source_before_scroll
+CONTROLLED_JOURNEY_PHASE cold_source_painted_once
+CONTROLLED_JOURNEY_PHASE readonly_cold_complete

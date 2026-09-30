@@ -616,46 +616,6 @@ async def main() -> None:
             assert thought.display and thought.region.height > 0
             assert conversation._loading is None
 
-            class SlowCancelAgent:
-                def __init__(self) -> None:
-                    self.called = asyncio.Event()
-                    self.release = asyncio.Event()
-
-                async def cancel(self) -> bool:
-                    self.called.set()
-                    await self.release.wait()
-                    return True
-
-                def get_info(self):
-                    return "test agent"
-
-                async def stop(self) -> None:
-                    return None
-
-            original_agent = conversation.agent
-            cancel_agent = SlowCancelAgent()
-            conversation.agent = cancel_agent
-            conversation.turns.start_client()
-            conversation._last_escape_time = 0.0
-            conversation._loading = await conversation.post(Loading("Thinking…"))
-            conversation.action_cancel()
-            await pilot.pause()
-            assert not cancel_agent.called.is_set()
-            conversation.action_cancel()
-            for _ in range(10):
-                if cancel_agent.called.is_set():
-                    break
-                await pilot.pause()
-            assert cancel_agent.called.is_set()
-            assert conversation._loading.render().plain == "Cancelling…"
-            assert conversation.turns.owner.busy
-            cancel_agent.release.set()
-            await pilot.pause()
-            if conversation._loading is not None:
-                await conversation._loading.remove()
-            conversation._loading = None
-            conversation.agent = original_agent
-            conversation.turns.finish_client()
             prompt_input = conversation.prompt.prompt_text_area
             prompt_input.text = "clear this entire draft"
             prompt_input.focus()

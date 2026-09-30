@@ -317,8 +317,9 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             self, lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_access = CoordinationAccess(self._coordination_changed)
         self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
+        self.coordination_access = CoordinationAccess(
+            self._coordination_changed, lambda: self.coordination_observed.publish(None))
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
@@ -329,6 +330,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
+        await self.coordination_access.close()
         await self.thread_navigation.close()
         await self.thread_actions.close()
         await super()._close_all()
@@ -585,8 +587,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         viewport = window.__dict__.get("document_viewport")
         if viewport is not None and not viewport.visible_bodies_ready:
             return
-        if any(history.is_attached and (history.has_newer or history._loading)
-               for history in window.histories):
+        if any(history.blocks_visible_read for history in window.histories):
             return
         try:
             comms = self.coordination_access.service
@@ -601,6 +602,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
 
     async def on_mount(self) -> None:
+        self.coordination_access.start(self)
         await self.application.start()
 
     @on(messages.WorkspaceSessionRequest)

@@ -609,3 +609,91 @@ Fresh `controlled215-hot04` uses this new pair and distinct localhost inputs.
 The driver additionally records actual widget/history/window resource IDs, so
 retired resources can be compared with current source membership without a
 semantic state mirror. Original06 and all prior controls remain immutable.
+
+## Snapshot admission and captured-resource replacement checkpoint
+
+**37 production lines deleted; 54 added** against `56a7a9ec`, all in
+`src/toad/transcript_publication.py`. Snapshot admission now belongs to the
+existing publication operation and original committed source frontier (IDEN-1,
+IMPL-12). The existing native window history lock owns the initial decision and
+its revalidation after asynchronous preparation. Two preparers cannot both
+authorize a full snapshot from the same earlier absence. No new seen registry,
+semantic cursor copy, message text filter or status store is introduced.
+
+Baseline hot04 provides concrete duplicate paint, not an offscreen-count
+inference. The canonical original event occurs once. Two attached, registered
+histories from the same native file retain overlapping intervals: offsets3302
+and2782, receipt sequences7 and1. The older resource's original OutgoingMessage
+is visible at y=23. Exact source, resource IDs, admitted ranges and SVG are in
+`evidence/canonical-wire-controlled215-hot04`. This control exits1.
+
+Candidate `173901b9329af36116158ec492db839af7d872c6` captures the old
+CommittedHistory resources into existing CommitEvidence instead of an empty
+captured set. It mounts a provisional resource, commits accepted source and
+retires the captured resources inside existing `window.preserve_history`.
+An unaccepted mount is removed in finally before native frame admission is
+released. Accepted source survives cancellation during old-resource retirement.
+Heisenberg owns the separate held-mount/cancellation resource acceptance; no
+competing changes to native layout or registration were made. Painted cursor
+acknowledgment remains distinct from retained source admission: retaining unread
+source does not falsely mark it read. Required production debt ratchet exits0
+with delta{} (`evidence/canonical-wire-source-admission09/ratchet-summary.json`).
+
+### Exact installed pair and actual continuous hot result
+
+Normal frozen68 install `.artifacts/installed-source-admission09`:
+
+- Core `000a31c562b6d048e26e288b24fcd3f1ac64f803`.
+- Toad `173901b9329af36116158ec492db839af7d872c6`.
+- Textual `65053c5a2df12249ef1c4193beeff7023c1f75d7`, ACP SDK0.12.1.
+- Native manifest `e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07`,
+  tree `5ea25e3f9e88d073e5506ce97ceeca4c763b6da19f986ab032880d45f020f35c`.
+
+Direct-url provenance, full native trust, imports and package compatibility
+passed. This is Text650 acceptance; the preserved Text412 composition02 control
+does not establish this result. No default packages or user owners changed.
+
+Fresh hot05 uses the actual three-window application, ACP, native owner,
+coordination, durable wire, original routing and rendering with only localhost
+provider responses controlled. Both DMs and IRC are already open before send.
+Original `e79a6bc24d3e`/seq1 and reply `0de4fdb52fd8`/seq7 appear once;
+original-target Processing to Responded updates in all three open views. Native
+input/assignment/execution/reply lineage is recorded, and the native reply paints
+with one body/header. All31 same-open observations retain one original/reply in
+each DM. Physical beta/alpha/beta returns accept three distinct inputs and answer
+in11.947/12.492/12.534seconds (read exact receipt for measured times). Original
+resources remain one after each return. These are reply latencies, not tab-paint
+latencies. Twelve localhost requests, zero provider errors; no paid input or
+failed original replay. See `evidence/canonical-wire-controlled215-hot05`.
+
+The continuous wrapper exits1 at the final immediate cold UserInput widget
+count. Cold original outgoing/reply/Responded had already passed; that assertion
+did not record its actual count, resident range or viewport, so it proves neither
+loss nor duplicate paint. Its original failure and all artifacts remain intact.
+
+### Bounded missing cold and shutdown check, without resending
+
+Cold02 continues the same original hot05 private fixture with the exact installed
+173 quartet and no provider server/input. The completed fixture's stopped alpha
+owner is started explicitly through canonical lifecycle. Cold01 correctly
+refused implicit start of that stopped registration; no product admission rule
+was weakened. The actual cold app reads the original UserTranscript once, native
+ID `8654b1c6d6e38830efeb6d2fd943cd9b`. The registered history retains the full
+source offset5245/receiptseq7 and admitted fragment range0..14. The user row is
+mounted once at the recorded pre-scroll checkpoint. Native Home and existing
+scroll-to-visible bring that exact native row into the viewport, where it paints
+once at y=6. No dropped/duplicated user source or final paint is reproduced.
+
+Cold02 exits0, application shutdown completes and owned fixture daemons retire.
+All original native journal SHA256 values and native input IDs remain identical;
+ACP client methods contain no prompt. Receipts and pre/post-scroll SVGs are in
+`evidence/canonical-wire-controlled215-hot05-cold02`. The reusable driver now
+records source/resource provenance and asserts exact original native identity
+after owned scrolling instead of requiring every lazy offscreen body to be
+mounted immediately. The accepted hot/31s/A-B/A journey was not repeated.
+
+This is a tested usage checkpoint, not a claim that the failed hot05 wrapper
+exited0 or that original real06 exit137 is diagnosed. Parent still owns merge,
+coherent activation and affected default entrypoint verification. Closed-bars
+subscription225/440 and native cancellation acceptance are separate owned gates;
+neither is silently mixed into this immutable pair.

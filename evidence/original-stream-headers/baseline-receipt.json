@@ -1,0 +1,1106 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "173901b9329af36116158ec492db839af7d872c6",
+        "requested_revision": "173901b9329af36116158ec492db839af7d872c6"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "observations": [
+    {
+      "elapsed": 0.005018031981308013,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.12118536498746835,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.2391835140006151,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.35537837899755687,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.4727674250025302,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.5898508020036388,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.7086256819893606,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.8257829899957869,
+      "bodies": []
+    },
+    {
+      "elapsed": 0.9489005539799109,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.0596558479883242,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.1690294749860186,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.281271754996851,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.398809682985302,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.5208362809789833,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.6386859189951792,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.7531711259798612,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.8671250070037786,
+      "bodies": []
+    },
+    {
+      "elapsed": 1.9800052749924362,
+      "bodies": []
+    },
+    {
+      "elapsed": 2.096522940992145,
+      "bodies": []
+    },
+    {
+      "elapsed": 2.2216505109972786,
+      "bodies": []
+    },
+    {
+      "elapsed": 2.3424806839902885,
+      "bodies": []
+    },
+    {
+      "elapsed": 2.4669748849992175,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=23, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 2.5951167329913005,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=20, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity ac",
+          "region": "Region(x=65, y=31, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 2.7155536209756974,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=20, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk.",
+          "region": "Region(x=65, y=31, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 2.8283351119898725,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=20, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acqu",
+          "region": "Region(x=65, y=31, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 2.944668969983468,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=19, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely b",
+          "region": "Region(x=65, y=30, width=88, height=4)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.0662639099755324,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=19, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pause",
+          "region": "Region(x=65, y=30, width=88, height=4)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.1825146909977775,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=17, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer re",
+          "region": "Region(x=65, y=28, width=88, height=6)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.2993694850010797,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=17, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identit",
+          "region": "Region(x=65, y=28, width=88, height=6)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.413327122980263,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=17, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider ch",
+          "region": "Region(x=65, y=28, width=88, height=6)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.529102693981258,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=16, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not ",
+          "region": "Region(x=65, y=27, width=88, height=7)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.644398766977247,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=16, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header mere",
+          "region": "Region(x=65, y=27, width=88, height=7)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.7692683289933484,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=16, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider p",
+          "region": "Region(x=65, y=27, width=88, height=7)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 3.889597862988012,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=14, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answe",
+          "region": "Region(x=65, y=25, width=88, height=9)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.010576145985397,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=14, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message ide",
+          "region": "Region(x=65, y=25, width=88, height=9)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.128528308996465,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=14, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provide",
+          "region": "Region(x=65, y=25, width=88, height=9)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.248622617975343,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=13, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must ",
+          "region": "Region(x=65, y=24, width=88, height=10)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.36711328997626,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=13, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header ",
+          "region": "Region(x=65, y=24, width=88, height=10)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.483261956978822,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=13, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provid",
+          "region": "Region(x=65, y=24, width=88, height=10)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.603157409990672,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=11, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original a",
+          "region": "Region(x=65, y=22, width=88, height=12)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.726931176992366,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=11, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message",
+          "region": "Region(x=65, y=22, width=88, height=12)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.847315774997696,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=11, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each pro",
+          "region": "Region(x=65, y=22, width=88, height=12)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 4.967084787989734,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=11, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence m",
+          "region": "Region(x=65, y=22, width=88, height=12)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.087077504984336,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=10, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new hea",
+          "region": "Region(x=65, y=21, width=88, height=13)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.203314699989278,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=10, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the pr",
+          "region": "Region(x=65, y=21, width=88, height=13)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.324224793992471,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=8, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn origin",
+          "region": "Region(x=65, y=19, width=88, height=15)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.445626077998895,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=8, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its mes",
+          "region": "Region(x=65, y=19, width=88, height=15)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.566094384994358,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=8, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each",
+          "region": "Region(x=65, y=19, width=88, height=15)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.685168953001266,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=8, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A senten",
+          "region": "Region(x=65, y=19, width=88, height=15)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.809505725977942,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=7, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new",
+          "region": "Region(x=65, y=18, width=88, height=16)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 5.9287800829915795,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=7, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because th",
+          "region": "Region(x=65, y=18, width=88, height=16)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.0449907169968355,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=5, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn or",
+          "region": "Region(x=65, y=16, width=88, height=18)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.169123714003945,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=5, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its",
+          "region": "Region(x=65, y=16, width=88, height=18)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.2863706719945185,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=5, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across ",
+          "region": "Region(x=65, y=16, width=88, height=18)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.4084492179972585,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=5, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A se",
+          "region": "Region(x=65, y=16, width=88, height=18)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.531337367981905,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=4, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a",
+          "region": "Region(x=65, y=15, width=88, height=19)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.6522258409822825,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=4, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely becaus",
+          "region": "Region(x=65, y=15, width=88, height=19)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 6.772686102980515,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=2, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nS",
+          "region": "Region(x=65, y=13, width=88, height=21)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    },
+    {
+      "elapsed": 7.600975551002193,
+      "bodies": [
+        {
+          "resource": 140647363500368,
+          "text": "An original answer retain",
+          "region": "Region(x=65, y=2, width=88, height=3)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        },
+        {
+          "resource": 140647631758480,
+          "text": "s its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nSTREAM_HEADER_END_PROOF",
+          "region": "Region(x=65, y=14, width=88, height=21)",
+          "painted": true,
+          "header_count": 1,
+          "history_resources": []
+        }
+      ]
+    }
+  ],
+  "provider_chunks": [
+    {
+      "request": 1,
+      "index": 0,
+      "at": 234028.547309316
+    },
+    {
+      "request": 1,
+      "index": 1,
+      "at": 234028.677095639
+    },
+    {
+      "request": 1,
+      "index": 2,
+      "at": 234028.800987699
+    },
+    {
+      "request": 1,
+      "index": 3,
+      "at": 234028.921118307
+    },
+    {
+      "request": 1,
+      "index": 4,
+      "at": 234029.041375635
+    },
+    {
+      "request": 1,
+      "index": 5,
+      "at": 234029.161537341
+    },
+    {
+      "request": 1,
+      "index": 6,
+      "at": 234029.281709858
+    },
+    {
+      "request": 1,
+      "index": 7,
+      "at": 234029.401899127
+    },
+    {
+      "request": 1,
+      "index": 8,
+      "at": 234029.52203795
+    },
+    {
+      "request": 1,
+      "index": 9,
+      "at": 234029.642224564
+    },
+    {
+      "request": 1,
+      "index": 10,
+      "at": 234029.762395558
+    },
+    {
+      "request": 1,
+      "index": 11,
+      "at": 234029.882552496
+    },
+    {
+      "request": 1,
+      "index": 12,
+      "at": 234030.002699735
+    },
+    {
+      "request": 1,
+      "index": 13,
+      "at": 234030.122851864
+    },
+    {
+      "request": 1,
+      "index": 14,
+      "at": 234030.243243987
+    },
+    {
+      "request": 1,
+      "index": 15,
+      "at": 234030.363408308
+    },
+    {
+      "request": 1,
+      "index": 16,
+      "at": 234030.483548074
+    },
+    {
+      "request": 1,
+      "index": 17,
+      "at": 234030.603691987
+    },
+    {
+      "request": 1,
+      "index": 18,
+      "at": 234030.723822915
+    },
+    {
+      "request": 1,
+      "index": 19,
+      "at": 234030.84437964
+    },
+    {
+      "request": 1,
+      "index": 20,
+      "at": 234030.964534062
+    },
+    {
+      "request": 1,
+      "index": 21,
+      "at": 234031.08468012
+    },
+    {
+      "request": 1,
+      "index": 22,
+      "at": 234031.205226274
+    },
+    {
+      "request": 1,
+      "index": 23,
+      "at": 234031.325375377
+    },
+    {
+      "request": 1,
+      "index": 24,
+      "at": 234031.445536012
+    },
+    {
+      "request": 1,
+      "index": 25,
+      "at": 234031.566267147
+    },
+    {
+      "request": 1,
+      "index": 26,
+      "at": 234031.686409517
+    },
+    {
+      "request": 1,
+      "index": 27,
+      "at": 234031.80655357
+    },
+    {
+      "request": 1,
+      "index": 28,
+      "at": 234031.926681683
+    },
+    {
+      "request": 1,
+      "index": 29,
+      "at": 234032.046920085
+    },
+    {
+      "request": 1,
+      "index": 30,
+      "at": 234032.16709146
+    },
+    {
+      "request": 1,
+      "index": 31,
+      "at": 234032.287259219
+    },
+    {
+      "request": 1,
+      "index": 32,
+      "at": 234032.407417198
+    },
+    {
+      "request": 1,
+      "index": 33,
+      "at": 234032.527580939
+    },
+    {
+      "request": 1,
+      "index": 34,
+      "at": 234032.647936002
+    },
+    {
+      "request": 1,
+      "index": 35,
+      "at": 234032.768100864
+    },
+    {
+      "request": 1,
+      "index": 36,
+      "at": 234032.888419108
+    },
+    {
+      "request": 1,
+      "index": 37,
+      "at": 234033.008582267
+    },
+    {
+      "request": 1,
+      "index": 38,
+      "at": 234033.128722704
+    }
+  ],
+  "provider_requests": 1,
+  "native_users": 1,
+  "canonical_answer_events": 1,
+  "canonical_answer_text": "An original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nAn original answer retains its message identity across each provider chunk. A sentence must not acquire a new header merely because the provider pauses.\n\nSTREAM_HEADER_END_PROOF",
+  "input_replays": 0
+}

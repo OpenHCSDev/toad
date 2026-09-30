@@ -1,11 +1,14 @@
 import asyncio
 import os
 import re
+from abc import abstractmethod
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from threading import local
 from urllib.parse import quote, unquote, urlsplit
 
+from agent_comms.declared_family import DeclaredFamily
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore, inline as inline_rule
 from markdown_it.token import Token
@@ -106,9 +109,144 @@ def _file_lookup_notice(name: str, root: Path, reason: str) -> str:
     return f"No project file named {name} found under {root}."
 
 
+@dataclass(slots=True)
+class _ProjectTokens:
+    root: Path
+    linked: int = 0
+
+
+class ProjectTokenRule(DeclaredFamily, affix="TokenRule"):
+    """Declare a markdown-it token rule with Token output for Textual."""
+
+    @classmethod
+    def register(cls, parser: MarkdownIt) -> None:
+        def native_rule(renderer, tokens, index, options, env):
+            return cls.resolve(renderer, tokens[index], env["project_tokens"])
+
+        parser.add_render_rule(cls.declared_name, native_rule, fmt=ProjectTokenRenderer.__output__)
+
+    @classmethod
+    @abstractmethod
+    def resolve(cls, renderer, token: Token, context: _ProjectTokens) -> list[Token]: ...
+
+
+class InlineTokenRule(ProjectTokenRule):
+    @classmethod
+    def resolve(cls, renderer, token, context):
+        if token.children is not None:
+            token.children = renderer.resolve(token.children, _ProjectTokens(context.root))
+        return [token]
+
+
+class LinkOpenTokenRule(ProjectTokenRule):
+    @classmethod
+    def resolve(cls, renderer, token, context):
+        href = str(token.attrGet("href") or "")
+        if path := _linked_file(context.root, href):
+            token.attrSet("href", f"toad-file:{quote(str(path))}")
+        elif name := _searchable_basename(href):
+            token.attrSet("href", f"toad-file-search:{quote(name)}")
+        context.linked += 1
+        return [token]
+
+
+class LinkCloseTokenRule(ProjectTokenRule):
+    @classmethod
+    def resolve(cls, renderer, token, context):
+        context.linked -= 1
+        return [token]
+
+
+class PathTokenRule(ProjectTokenRule):
+    @staticmethod
+    @abstractmethod
+    def matches(token: Token): ...
+
+    @staticmethod
+    @abstractmethod
+    def content(token: Token, match) -> Token: ...
+
+    @classmethod
+    def resolve(cls, renderer, token, context):
+        if context.linked:
+            return [token]
+        children: list[Token] = []
+        position = 0
+        for match in cls.matches(token):
+            path = _resolve_path(context.root, match.group("path"))
+            if path is None:
+                name = _searchable_basename(match.group("path"))
+                if name is None:
+                    continue
+                href = f"toad-file-search:{quote(name)}"
+            else:
+                href = f"toad-file:{quote(str(path))}"
+            if match.start() > position:
+                children.append(Token("text", "", 0, content=token.content[position:match.start()]))
+            children.extend((
+                Token("link_open", "a", 1, attrs={"href": href}),
+                cls.content(token, match),
+                Token("link_close", "a", -1),
+            ))
+            position = match.end()
+        if not position:
+            return [token]
+        if position < len(token.content):
+            children.append(Token("text", "", 0, content=token.content[position:]))
+        return children
+
+
+class TextTokenRule(PathTokenRule):
+    @staticmethod
+    def matches(token):
+        return _PATH_PATTERN.finditer(token.content)
+
+    @staticmethod
+    def content(token, match):
+        return Token("text", "", 0, content=match.group(0))
+
+
+class CodeInlineTokenRule(PathTokenRule):
+    @staticmethod
+    def matches(token):
+        return (
+            match for match in _PATH_PATTERN.finditer(token.content)
+            if match.start() == 0 and match.end() == len(token.content)
+        )
+
+    @staticmethod
+    def content(token, match):
+        return token
+
+
+class ProjectTokenRenderer:
+    """Native RendererProtocol output is Any; this renderer preserves Tokens.
+
+    rules is the registry populated by MarkdownIt.add_render_rule. HTML
+    renderer methods are not used: Textual consumes Tokens, not HTML strings.
+    """
+
+    __output__ = "textual-tokens"
+
+    def __init__(self, parser) -> None:
+        self.rules = {}
+
+    def render(self, tokens, options, env) -> list[Token]:
+        result: list[Token] = []
+        for index, token in enumerate(tokens):
+            rule = self.rules.get(token.type)
+            result.extend(rule(tokens, index, options, env) if rule else (token,))
+        return result
+
+    def resolve(self, tokens, context: _ProjectTokens) -> list[Token]:
+        return self.render(tokens, {}, {"project_tokens": context})
+
+
 class _MarkdownParserState(local):
     def __init__(self) -> None:
-        self.parser = MarkdownIt("gfm-like")
+        self.parser = MarkdownIt("gfm-like", renderer_cls=ProjectTokenRenderer)
+        for rule in ProjectTokenRule.members_with(ProjectTokenRule):
+            rule.register(self.parser)
         rules = tuple(self.parser.core.ruler.getRules(""))
         boundary = rules.index(inline_rule) + 1
         self.syntax_rules, self.presentation_rules = rules[:boundary], rules[boundary:]
@@ -135,67 +273,7 @@ class _ThreadLocalPathParser:
         return self.resolve_tokens(parse_markdown_syntax(source, env))
 
     def resolve_tokens(self, tokens: list[Token]) -> list[Token]:
-        for block in tokens:
-            if block.type != "inline" or block.children is None:
-                continue
-            linked = 0
-            children: list[Token] = []
-            for child in block.children:
-                if child.type == "link_open":
-                    href = str(child.attrs.get("href", ""))
-                    if path := _linked_file(self.root, href):
-                        child.attrs["href"] = f"toad-file:{quote(str(path))}"
-                    elif name := _searchable_basename(href):
-                        child.attrs["href"] = f"toad-file-search:{quote(name)}"
-                    linked += 1
-                    children.append(child)
-                    continue
-                if child.type == "link_close":
-                    linked -= 1
-                    children.append(child)
-                    continue
-                if linked or child.type not in {"text", "code_inline"}:
-                    children.append(child)
-                    continue
-                matches = list(_PATH_PATTERN.finditer(child.content))
-                if child.type == "code_inline":
-                    matches = [
-                        match
-                        for match in matches
-                        if match.start() == 0 and match.end() == len(child.content)
-                    ]
-                position = 0
-                for match in matches:
-                    path = _resolve_path(self.root, match.group("path"))
-                    if path is None:
-                        name = _searchable_basename(match.group("path"))
-                        if name is None:
-                            continue
-                        href = f"toad-file-search:{quote(name)}"
-                    else:
-                        href = f"toad-file:{quote(str(path))}"
-                    if match.start() > position:
-                        children.append(Token("text", "", 0, content=child.content[position:match.start()]))
-                    children.append(
-                        Token(
-                            "link_open",
-                            "a",
-                            1,
-                            attrs={"href": href},
-                        )
-                    )
-                    if child.type == "code_inline":
-                        children.append(child)
-                    else:
-                        children.append(Token("text", "", 0, content=match.group(0)))
-                    children.append(Token("link_close", "a", -1))
-                    position = match.end()
-                if position:
-                    if position < len(child.content):
-                        children.append(Token("text", "", 0, content=child.content[position:]))
-                else:
-                    children.append(child)
-            block.children = children
+        tokens = _parser_state.parser.renderer.resolve(tokens, _ProjectTokens(self.root))
 
         # Preserve the native ordering: project links run directly after
         # inline parsing, before the parser's derived linkify/text-join suffix.

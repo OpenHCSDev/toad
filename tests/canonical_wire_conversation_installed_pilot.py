@@ -16,12 +16,14 @@ import shlex
 import stat
 import sqlite3
 import time
+import sys
+import hashlib
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
 from agent_comms.native_runtime_input import NativeRuntimeInput
-from agent_comms.transcript_events import WireTextTranscript
+from agent_comms.transcript_events import WireTextTranscript, UserTranscript
 from agent_comms.coordination_tables.assignments import WakeAssignment
 from agent_comms.coordination_tables.responses import ResponseObligation
 from l0a_native_installed_pilot import main, until as native_until, response_painted
@@ -37,6 +39,7 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.agent_schema import AgentDefinition
 
 
 async def until(pilot, predicate, seconds=20):
@@ -213,6 +216,115 @@ def original_native_reply_proof(comms, original, response):
                 'execution_id': native.execution_id,
                 'native_entry_id': native.session_entry_id,
                 'native_session_file': native.session_file}
+
+
+async def cold_source_acceptance(app, pilot, comms, original, response, receipt, evidence):
+    """Inspect the original source, then bring its native user into the viewport."""
+    cold = app.selected_session.conversation
+    await until(pilot, lambda: cold.agent is not None and cold.agent_ready)
+    await until(pilot, cold.agent.session.settled.is_set)
+    assert cold.agent.session.connected
+    await until(pilot, lambda: len(originals(cold, original.reference, OutgoingMessage)) == 1)
+    await until(pilot, lambda: len(originals(cold, response.reference, IncomingMessage)) == 1)
+    await until(pilot, lambda: 'Responded' in str(
+        originals(cold, original.reference, OutgoingMessage)[0].query_one(MessageNotifications).title))
+    page = await cold.agent.get_transcript_page()
+    users = [event for event in page.events if isinstance(event, UserTranscript)
+             and event.text == 'HOT_ORIGINAL_TRIGGER']
+    assert len(users) == 1
+    native_id = users[0].native_id
+    assert native_id is not None
+
+    def user_bodies():
+        return [body for body in cold.contents.query(UserInput) if body.native_id == native_id]
+
+    with app._context():
+        receipt['cold_before_scroll'] = {
+            'canonical_user': FieldCodec.encode(users[0]),
+            'mounted_user_count': len(user_bodies()),
+            'original_resource': original_observation(cold, original.reference, OutgoingMessage),
+            'categories': [category.declared_name for category in cold.visible_categories],
+        }
+        app.save_screenshot(str(evidence / 'cold-before-scroll.svg'))
+    record_phase(receipt, evidence, 'cold_source_before_scroll')
+    with app._context():
+        cold.window.focus()
+        await pilot.press('home')
+    await until(pilot, lambda: len(user_bodies()) == 1)
+    with app._context():
+        user_bodies()[0].scroll_visible(animate=False, immediate=True)
+
+    def original_user_painted():
+        body = user_bodies()[0]
+        viewport = cold.window.region
+        frame = '\n'.join(strip.crop(viewport.x, viewport.right).text
+                          for strip in app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
+        return (body in app.screen._compositor.visible_widgets
+                and body.region.overlaps(viewport) and users[0].text in frame)
+
+    await until(pilot, original_user_painted)
+    with app._context():
+        body = user_bodies()[0]
+        receipt['cold_after_scroll'] = {
+            'native_id': body.native_id, 'mounted_user_count': len(user_bodies()),
+            'region': str(body.region), 'painted': original_user_painted(),
+            'original_resource': original_observation(cold, original.reference, OutgoingMessage),
+        }
+        app.save_screenshot(str(evidence / 'cold-sender.svg'))
+    record_phase(receipt, evidence, 'cold_source_painted_once')
+    assert app._exception is None
+
+
+async def readonly_cold_main():
+    """Continue only the missing cold/retirement check on an existing test root."""
+    from runtime_fixture import stop_test_owners, stop_test_children
+    stage = Path(os.environ['AC_CONTROLLED_READONLY_STAGE'])
+    assert stage.is_relative_to('/home/ts/wt')
+    comms = wire(os.environ['AGENT_COMMS_ROOT'])
+    assert comms.root == stage / 'private-root/wire'
+    assert all(not thread.process_alive and not thread.executing
+               for thread in comms.registry.all_threads().values())
+    messages = comms.bus.log.full_history()
+    original = next(message for message in messages if message.body == '@beta HOT_ORIGINAL_WIRE_BODY')
+    response = next(message for message in messages if message.body == 'RECIPIENT_RESPONSE_PROOF')
+    native_files = tuple((stage / 'application/pi').rglob('*.jsonl')) + tuple(
+        (comms.root / 'native-sessions').rglob('*.jsonl'))
+    before_native = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in native_files}
+    with sqlite3.connect((comms.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+        before_inputs = tuple(row[0] for row in db.execute('SELECT input_id FROM native_runtime_input ORDER BY input_id'))
+    definition = AgentDefinition.decode({
+        'name': 'Native fixture', 'identity': 'native-fixture', 'short_name': 'native',
+        'protocol': 'acp', 'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])},
+    })
+    app = WindowApp(agent_data=definition, project_dir=str(stage / 'application/project'), agent_session_id='alpha')
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    evidence.mkdir(parents=True, exist_ok=False)
+    receipt = {'original_inputs_retried': 0, 'inputs_sent': 0, 'native_input_ids_before': before_inputs}
+    try:
+        # The completed test deliberately stopped its owned daemon. Read-only
+        # continuation explicitly starts that fixture owner, never an input.
+        await asyncio.to_thread(comms.owners.start, 'alpha')
+        async with app.run_test(size=(160, 44)) as pilot:
+            await cold_source_acceptance(app, pilot, comms, original, response, receipt, evidence)
+        receipt['application_shutdown'] = True
+    except BaseException:
+        import traceback
+        (evidence / 'failure.txt').write_text(traceback.format_exc())
+        raise
+    finally:
+        await asyncio.to_thread(stop_test_owners, comms.root)
+        await stop_test_children(os.environ.get('TOAD_TEST_ATTEMPT'))
+    with sqlite3.connect((comms.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+        after_inputs = tuple(row[0] for row in db.execute('SELECT input_id FROM native_runtime_input ORDER BY input_id'))
+    receipt['native_input_ids_after'] = after_inputs
+    receipt['native_journals_unchanged'] = all(
+        hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest for path, digest in before_native.items())
+    assert after_inputs == before_inputs
+    assert receipt['native_journals_unchanged']
+    assert all(not thread.process_alive for thread in comms.registry.all_threads().values())
+    receipt['complete'] = True
+    record_phase(receipt, evidence, 'readonly_cold_complete')
+    (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2))
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
@@ -397,19 +509,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             cold_app = WindowApp(agent_data=app.agent_data, project_dir=str(app.project_dir),
                                  agent_session_id='alpha')
             async with cold_app.run_test(size=(160, 44)) as cold_pilot:
-                cold = cold_app.selected_session.conversation
-                await until(cold_pilot, lambda: cold.agent is not None and cold.agent_ready)
-                await until(cold_pilot, cold.agent.session.settled.is_set)
-                assert cold.agent.session.connected
-                await until(cold_pilot, lambda: len(originals(cold, original.reference, OutgoingMessage)) == 1)
-                await until(cold_pilot, lambda: len(originals(cold, response.reference, IncomingMessage)) == 1)
-                await until(cold_pilot, lambda: 'Responded' in str(
-                    originals(cold, original.reference, OutgoingMessage)[0].query_one(MessageNotifications).title))
-                assert sum(body.content == 'HOT_ORIGINAL_TRIGGER'
-                           for body in cold.contents.query(UserInput)) == 1
-                with cold_app._context():
-                    cold_app.save_screenshot(str(evidence / 'cold-sender.svg'))
-                assert cold_app._exception is None
+                await cold_source_acceptance(cold_app, cold_pilot, comms, original, response, receipt, evidence)
             print('COLD_SOURCE_ORIGINAL_IDENTITIES_AND_HANDLING_ONCE', flush=True)
             receipt.update({
                 'provider_requests': len(requests), 'original_inputs_retried': 0,
@@ -425,6 +525,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 
 if __name__ == '__main__':
-    asyncio.run(main(app_type=EvidenceApp, prepare_state=prepare, acceptance=acceptance, provider_reply=reply,
+    if os.environ.get('AC_CONTROLLED_READONLY_STAGE'):
+        asyncio.run(readonly_cold_main())
+    else:
+        asyncio.run(main(app_type=EvidenceApp, prepare_state=prepare, acceptance=acceptance, provider_reply=reply,
                      provider_request_budget=18,
                      fixture_stage=Path(os.environ['AC_CONTROLLED_FIXTURE_STAGE'])))

@@ -37,6 +37,33 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
+    async def retire_presentations(self, output, candidates) -> None:
+        """Accepted source retirement must finish before its window fence opens.
+
+        Caller cancellation can withdraw provisional work, but cannot abandon
+        the resources an accepted source already replaces. The original task
+        records cancellation; this operation owns and joins its exact teardown.
+        """
+        caller = asyncio.current_task()
+        retirement = asyncio.create_task(
+            self._retire_presentations(output, candidates), name="accepted source retirement",
+        )
+        while not retirement.done():
+            try:
+                await asyncio.shield(retirement)
+            except asyncio.CancelledError:
+                if retirement.cancelled():
+                    raise
+        retirement.result()
+        if caller.cancelling():
+            raise asyncio.CancelledError
+
+    async def _retire_presentations(self, output, candidates) -> None:
+        try:
+            await output.retire_presentations(candidates)
+        finally:
+            await self.contents.remove_children(candidates)
+
     @abstractmethod
     async def publish(self) -> None: ...
 
@@ -46,6 +73,7 @@ class SnapshotPublication(TranscriptPublication):
         super().__init__(owner, view, window, contents)
         self.page = page
         self.scroll_revision = window.scroll_revision
+        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
@@ -66,7 +94,7 @@ class SnapshotPublication(TranscriptPublication):
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
-            CommitEvidence, CommittedHistory, retirement_candidates,
+            CommitEvidence, retirement_candidates,
         )
         async with self.window.history_lock:
             if not self.current() or not self.admitted():
@@ -86,9 +114,6 @@ class SnapshotPublication(TranscriptPublication):
             history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                         fragments=fragments, committed=False)
             self.owner.prepare_reader(history)
-            view.output.boundary()
-            captured = frozenset(child for child in self.contents.children
-                                 if isinstance(child, CommittedHistory))
             async with self.window.preserve_history(None):
                 accepted = False
                 try:
@@ -99,13 +124,14 @@ class SnapshotPublication(TranscriptPublication):
                     # history resources captured before its mount. Original
                     # live inputs still need native identity evidence.
                     evidence = CommitEvidence(
-                        captured, retained_history=history,
+                        self.captured, retained_history=history,
                         native_inputs=frozenset(native_id for event in self.page.events
                                                 for native_id in event.native_inputs),
                     )
                     history.publish_committed()
                     accepted = True
-                    await self.contents.remove_children(retirement_candidates(self.contents.children, evidence))
+                    retired = retirement_candidates(self.contents.children, evidence)
+                    await self.retire_presentations(view.output, retired)
                 finally:
                     # A provisional mount owns no source coverage. Its cleanup
                     # must finish before native frame admission is released.
@@ -298,7 +324,6 @@ class CheckpointPublication(TranscriptPublication):
                 or not plan.permits(view, retired)
             ):
                 return
-            view.output.boundary()
             async with plan.publication(view, prepared):
                 replacement = None
                 accepted = False
@@ -324,7 +349,7 @@ class CheckpointPublication(TranscriptPublication):
                     # Once retiring live widgets begins, the accepted source must
                     # survive cancellation so their saved content stays reachable.
                     accepted = True
-                    await contents.remove_children(retired)
+                    await self.retire_presentations(view.output, retired)
                 finally:
                     if (
                         not accepted

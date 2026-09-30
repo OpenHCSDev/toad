@@ -1,0 +1,112 @@
+{
+  "provider": "localhost-only",
+  "paid_calls": 0,
+  "phases": [
+    {
+      "phase": "answer-1",
+      "canonical_assistants": 1,
+      "canonical_users": [
+        "5fe8415f39f6c1a65e1baf341bc04838"
+      ],
+      "source_file": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+      "source_offset": 2187,
+      "registered_response_resources": 1,
+      "resource_ids": [
+        139837330386288
+      ],
+      "painted_bodies": 1,
+      "painted_headers": 1,
+      "histories": [
+        {
+          "resource": 139837330382336,
+          "registered": true,
+          "source": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+          "offset": 2187
+        }
+      ],
+      "provider_requests": 1
+    },
+    {
+      "phase": "reconnect-1",
+      "canonical_assistants": 1,
+      "canonical_users": [
+        "5fe8415f39f6c1a65e1baf341bc04838"
+      ],
+      "source_file": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+      "source_offset": 2187,
+      "registered_response_resources": 1,
+      "resource_ids": [
+        139837330386288
+      ],
+      "painted_bodies": 1,
+      "painted_headers": 1,
+      "histories": [
+        {
+          "resource": 139837330382336,
+          "registered": true,
+          "source": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+          "offset": 2187
+        }
+      ],
+      "provider_requests": 1
+    },
+    {
+      "phase": "answer-2",
+      "canonical_assistants": 2,
+      "canonical_users": [
+        "5fe8415f39f6c1a65e1baf341bc04838",
+        "8ebd1936039c5743ed5665c74f58cf5f"
+      ],
+      "source_file": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+      "source_offset": 3934,
+      "registered_response_resources": 2,
+      "resource_ids": [
+        139837330386288,
+        139837320311040
+      ],
+      "painted_bodies": 2,
+      "painted_headers": 2,
+      "histories": [
+        {
+          "resource": 139837330382336,
+          "registered": true,
+          "source": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+          "offset": 3934
+        }
+      ],
+      "provider_requests": 2
+    },
+    {
+      "phase": "reconnect-2",
+      "canonical_assistants": 2,
+      "canonical_users": [
+        "5fe8415f39f6c1a65e1baf341bc04838",
+        "8ebd1936039c5743ed5665c74f58cf5f"
+      ],
+      "source_file": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+      "source_offset": 3934,
+      "registered_response_resources": 2,
+      "resource_ids": [
+        139837330386288,
+        139837319223616
+      ],
+      "painted_bodies": 2,
+      "painted_headers": 2,
+      "histories": [
+        {
+          "resource": 139837330382336,
+          "registered": true,
+          "source": "/home/ts/wt/cw232c03/application/pi/sessions/--home-ts-wt-cw232c03-application-project--/2026-09-30T10-33-52-582Z_01a0f1e0-bcc6-7064-9590-fb1e315fc769.jsonl",
+          "offset": 3934
+        }
+      ],
+      "provider_requests": 2
+    }
+  ],
+  "installed": {
+    "batrachian-toad": "{\"url\":\"https://github.com/OpenHCSDev/toad.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"e86e903d47c7719626e715082a1feaf2f50c8297\",\"requested_revision\":\"e86e903d\"}}",
+    "agent-comms": "{\"url\":\"https://github.com/OpenHCSDev/agent-comms.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817\",\"requested_revision\":\"095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817\"}}",
+    "textual": "{\"url\":\"https://github.com/OpenHCSDev/textual.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"65053c5a2df12249ef1c4193beeff7023c1f75d7\",\"requested_revision\":\"65053c5a2df12249ef1c4193beeff7023c1f75d7\"}}"
+  },
+  "complete": true
+}
