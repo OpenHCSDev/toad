@@ -1,0 +1,203 @@
+{
+  "source": "retained f92 cpu-profile.json decoded through Kepler221 ProfileTrace",
+  "ui_pid": 2524319,
+  "phase_video_seconds": [
+    36.467703373986296,
+    52.611368048994336
+  ],
+  "alignment_uncertainty_seconds": 0.05740264749969356,
+  "reported_gil_samples": 985,
+  "reported_errors": 0,
+  "kernel_ui_cpu_seconds": 9.29,
+  "kernel_ui_cpu_percent": 57.54579388892921,
+  "renderer_worker_max_cpu_seconds": 0.040000000000000036,
+  "ui_main_thread": "140303669385088",
+  "pool_observed_changed_stacks": 162,
+  "pool_read_thread_presentation_changed_stacks": 152,
+  "limits": [
+    "observed changed stacks, not samples/calls/duration/CPU attribution",
+    "thread count does not establish concurrent requests",
+    "no second capture or new source/backend operation",
+    "production read transaction remains backend/canonical observation owner; no proof/model cache proposed"
+  ],
+  "thread_owner_chains": {
+    "140302539019968": {
+      "observed_changed_stacks": 24,
+      "toad_owner_chains": [
+        {
+          "count": 22,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        },
+        {
+          "count": 1,
+          "chain": []
+        },
+        {
+          "count": 1,
+          "chain": [
+            "root_is_current@toad/comms_root.py:105",
+            "current_root@toad/comms_root.py:99"
+          ]
+        }
+      ]
+    },
+    "140303669385088": {
+      "observed_changed_stacks": 30,
+      "toad_owner_chains": [
+        {
+          "count": 8,
+          "chain": [
+            "acp@toad/cli.py:319",
+            "run_terminal@toad/cli.py:37"
+          ]
+        },
+        {
+          "count": 5,
+          "chain": [
+            "acp@toad/cli.py:319",
+            "run_terminal@toad/cli.py:37",
+            "refresh_checked@toad/sidebar_observation.py:240",
+            "poll@toad/sidebar_observation.py:273",
+            "read@toad/sidebar_observation.py:280",
+            "mark_visible_thread_read@toad/app.py:564"
+          ]
+        },
+        {
+          "count": 4,
+          "chain": [
+            "acp@toad/cli.py:319",
+            "run_terminal@toad/cli.py:37",
+            "refresh_checked@toad/sidebar_observation.py:240",
+            "poll@toad/sidebar_observation.py:273",
+            "read@toad/sidebar_observation.py:280",
+            "mark_visible_thread_read@toad/app.py:570",
+            "root_is_current@toad/comms_root.py:105",
+            "current_root@toad/comms_root.py:99"
+          ]
+        },
+        {
+          "count": 4,
+          "chain": [
+            "acp@toad/cli.py:319",
+            "run_terminal@toad/cli.py:37",
+            "_run@toad/session_observation.py:68",
+            "read@toad/session_observation.py:95",
+            "get_goal_snapshot@toad/acp/agent.py:325",
+            "request_owner@toad/acp/agent_controller.py:342"
+          ]
+        }
+      ]
+    },
+    "140303331743424": {
+      "observed_changed_stacks": 16,
+      "toad_owner_chains": [
+        {
+          "count": 16,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        }
+      ]
+    },
+    "140302932231872": {
+      "observed_changed_stacks": 21,
+      "toad_owner_chains": [
+        {
+          "count": 21,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        }
+      ]
+    },
+    "140303323350720": {
+      "observed_changed_stacks": 20,
+      "toad_owner_chains": [
+        {
+          "count": 18,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        },
+        {
+          "count": 2,
+          "chain": [
+            "root_is_current@toad/comms_root.py:105",
+            "current_root@toad/comms_root.py:99"
+          ]
+        }
+      ]
+    },
+    "140302922790592": {
+      "observed_changed_stacks": 15,
+      "toad_owner_chains": [
+        {
+          "count": 14,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        },
+        {
+          "count": 1,
+          "chain": [
+            "root_is_current@toad/comms_root.py:105",
+            "current_root@toad/comms_root.py:99"
+          ]
+        }
+      ]
+    },
+    "140302555805376": {
+      "observed_changed_stacks": 21,
+      "toad_owner_chains": [
+        {
+          "count": 21,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        }
+      ]
+    },
+    "140302940624576": {
+      "observed_changed_stacks": 13,
+      "toad_owner_chains": [
+        {
+          "count": 13,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        }
+      ]
+    },
+    "140303593895616": {
+      "observed_changed_stacks": 20,
+      "toad_owner_chains": [
+        {
+          "count": 15,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        },
+        {
+          "count": 5,
+          "chain": [
+            "root_is_current@toad/comms_root.py:105",
+            "current_root@toad/comms_root.py:99"
+          ]
+        }
+      ]
+    },
+    "140302547412672": {
+      "observed_changed_stacks": 12,
+      "toad_owner_chains": [
+        {
+          "count": 12,
+          "chain": [
+            "read_thread_presentation@toad/owner_preparation.py:23"
+          ]
+        }
+      ]
+    }
+  }
+}

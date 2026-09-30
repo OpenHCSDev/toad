@@ -1,0 +1,14 @@
+{
+  "source_capture": "/home/ts/.cache/agent-scratch/toad-reader-217-cursor-tool-20260930/capture",
+  "records": 28560,
+  "observed_transition_groups": 933,
+  "threads": 16,
+  "reported_profiler_samples": 985,
+  "sampling_errors": 0,
+  "phases": 9,
+  "kernel_cpu_lists_exactly_equal": true,
+  "recursive_frame_presence_bounded_by_thread_transitions": true,
+  "new_native_processes": 0,
+  "new_captures": 0,
+  "provider_calls": 0
+}

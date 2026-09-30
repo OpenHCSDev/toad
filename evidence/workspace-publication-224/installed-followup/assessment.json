@@ -1,0 +1,219 @@
+{
+  "assessment": "READY scoped installed Window mutation/End publication checkpoint. Physical prior-body retention until destination paint passes. NOT full performance, growing-end, focus, warm-resource or T9 Ready.",
+  "installed_toad": "e583dc79e5a03e30882687b88facee23623d4fbd",
+  "core": "72062939239b0f07707406309305a056a23f925f",
+  "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "sdk": "0.12.1",
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-workspace-publication-followup-20260930",
+  "retained_original_capture": "/home/ts/.cache/agent-scratch/toad-workspace-publication-224-followup-physical-20260930/capture",
+  "duration_seconds": 57.41829425902688,
+  "completed": true,
+  "recorder_returncode": 0,
+  "terminal_returncode": 0,
+  "ffmpeg_returncode": 255,
+  "ffmpeg_exit_meaning": "Accepted normal FFmpeg SIGINT255; ST/profiler terminal exits0, no UI fatal.",
+  "original_owner_and_journal_unchanged": true,
+  "original_before": {
+    "pid": 2126072,
+    "start_ticks": 20963438,
+    "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "inode": 2659658,
+    "bytes": 41270257,
+    "mtime_ns": 1790716487175340407
+  },
+  "original_after": {
+    "pid": 2126072,
+    "start_ticks": 20963438,
+    "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "inode": 2659658,
+    "bytes": 41270257,
+    "mtime_ns": 1790716487175340407
+  },
+  "runtime_before_after_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2756990,
+        "start_ticks": 23133004,
+        "returncode": 0
+      },
+      {
+        "pid": 2756991,
+        "start_ticks": 23133069,
+        "returncode": 0
+      },
+      {
+        "pid": 2756994,
+        "start_ticks": 23133079,
+        "returncode": 0
+      },
+      {
+        "pid": 2757006,
+        "start_ticks": 23133118,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2757007,
+        "start_ticks": 23133123,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2757031,
+        "start_ticks": 23133176,
+        "returncode": 0
+      },
+      {
+        "pid": 2757032,
+        "start_ticks": 23133185,
+        "returncode": 0
+      },
+      {
+        "pid": 2757033,
+        "start_ticks": 23133193,
+        "returncode": 0
+      },
+      {
+        "pid": 2757034,
+        "start_ticks": 23133202,
+        "returncode": 255
+      },
+      {
+        "pid": 2757374,
+        "start_ticks": 23134404,
+        "returncode": 0
+      },
+      {
+        "pid": 2757387,
+        "start_ticks": 23134431,
+        "returncode": 0
+      },
+      {
+        "pid": 2757392,
+        "start_ticks": 23134471,
+        "returncode": 0
+      },
+      {
+        "pid": 2758710,
+        "start_ticks": 23138885,
+        "returncode": 0
+      },
+      {
+        "pid": 2758716,
+        "start_ticks": 23138914,
+        "returncode": 0
+      },
+      {
+        "pid": 2758721,
+        "start_ticks": 23138971,
+        "returncode": 0
+      },
+      {
+        "pid": 2758724,
+        "start_ticks": 23139041,
+        "returncode": 0
+      },
+      {
+        "pid": 2758748,
+        "start_ticks": 23139249,
+        "returncode": 0
+      }
+    ]
+  },
+  "physical_review": {
+    "screen": {
+      "method": "same f92 complete-body screening: every recorded60fps frame, ROI512,80..1212,710, grayscale350x315 >65, threshold200 (screens Jump-to-latest control+mouse contamination; inspect minima regardless); physical individual frames must establish meaning",
+      "limits": "No proof of source identity/order, absence of partial unfilled regions, or timing attribution from pixel counts alone",
+      "recorded_frames": 3453,
+      "eligible_interval": [
+        13.18045158701716,
+        57.55
+      ],
+      "minimum_pixels": 983,
+      "minimum_frame": 1492,
+      "complete_body_blank_candidate_runs": [],
+      "profiler_overhead": "same25Hz GIL/synchronous diagnostic exporter as f92; no unprofiled comparison"
+    },
+    "individual_minima_reviewed": [
+      "down-minimum-1492.png",
+      "end-minimum-2122.png",
+      "idle-minimum-2204.png"
+    ],
+    "end_neighbor_review": "Every60fps neighbor35.3\u201336.3s reviewed. Prior body persists; destination body appears35.75s. No complete-body blank.",
+    "down_review": "Physical minimum1492 at24.8667s contains genuine saved tool/header rows. Sparse tool rows are not proof that all partial unfilled regions or scrolling geometry are fixed.",
+    "after": "End/idle final nativeWindow y88/max88/follow true;3 visible body resources, zero dormant resources.",
+    "limits": "All3453 frames screened, not every frame individually reviewed.60fps quantization; pixel counts do not prove source/order or no partial unfilled areas."
+  },
+  "profile_samples_reported": 991,
+  "profile_errors_reported": 0,
+  "cpu_phases": [
+    {
+      "label": "up",
+      "start_seconds": 15.345766195008764,
+      "end_seconds": 20.54573500502738,
+      "pid": "2757007",
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+      "cpu_seconds": 5.0600000000000005,
+      "average_cpu_percent": 97.30827596986845
+    },
+    {
+      "label": "down",
+      "start_seconds": 21.67887122600223,
+      "end_seconds": 26.90331520201289,
+      "pid": "2757007",
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+      "cpu_seconds": 4.93,
+      "average_cpu_percent": 94.36410884368414
+    },
+    {
+      "label": "reverse",
+      "start_seconds": 28.037363597017247,
+      "end_seconds": 33.34596829902148,
+      "pid": "2757007",
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+      "cpu_seconds": 5.09,
+      "average_cpu_percent": 95.88206856084615
+    },
+    {
+      "label": "idle",
+      "start_seconds": 36.72986378200585,
+      "end_seconds": 52.9064463370014,
+      "pid": "2757007",
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                       ",
+      "cpu_seconds": 9.57,
+      "average_cpu_percent": 59.15959052207016
+    }
+  ],
+  "video_profile_alignment_uncertainty_seconds": 0.06557855600025506,
+  "profile_limits": "B/E stack transitions are neither calls, duration, sample fractions nor CPU fractions. Kernel CPU measured separately. Profile/export overhead included; no unprofiled comparison. No meaningful CPU improvement claimed.",
+  "previous_failure": "../installed-physical/assessment.json retains6e frames2135\u20132145 complete-body blank183ms after End.",
+  "source_scope": "Three unfenced native history mutation callers inherit existing Window publication lock; no new state/cache/bitmap. Sch215 Snapshot admission/cancellation changes are NOT in this stage.",
+  "remaining": [
+    "CPU225/Core440 independent",
+    "Sch215 source admission/orphan resource custody including acceptance-retirement cancellation",
+    "Full TC1/T9, warm A/B/A resources/reader/draft/undo, editor focus/nonprintable keys, adaptive/growing-end partial gaps and bounded rendering"
+  ],
+  "video_sha256": "406184d62b0cd1b3da053224226d331fe92649d3010326a95cce66024fb8e4ea",
+  "artifact_sha256": {
+    "receipt.json": "a4d215f171627c940365a38457647fd036bd6c057fc242fc225b7ef60f036a14",
+    "profile-review.json": "5e13ca0034f551387ce8617bd646e1985d3086359183b8a13a2cd80dca2e74eb",
+    "profile-launch.json": "5c2e7549e4bbcf9f27b12637700f3bb028e8c89428130c312b6b1c7eb0bf7061",
+    "profile-terminal.json": "16f16087577797dd02a129ad5730607fe05a129c10f874876460525a0a3b1d57",
+    "events.jsonl": "09728024c8706e0f2abed00c3fbbdb664354ab7600f00a81c274b27e696e4f41",
+    "pixel-screen.json": "4bc56326c53309feb2497d3c38b39632681055293a1dada1bf89ec967d573a18",
+    "pixel-counts.json.gz": "421d7ae8e2c68c4f5ef399c7b4f9827b9fb98cbb21d71be262f481518c357ea4",
+    "phase-pixel-minima.json": "600dfd5925a8722dcd8139f5070da29c29457f14a767b24f6f603aec78af47e8",
+    "end-transition-profile.json": "0dad449e6528729ad31a623e2112bccfdfec423c09520885f012a2615f47a5b6",
+    "derived-review-cleanup.json": "9428ca9e599e2a73fadead3fa8274f52adaaa51182f7d9e5d63c2f6964a419b7",
+    "before.png": "6b84ad93fe667792d9df23664f1cb31d21ff3fb162d670b735354ab76b272d9e",
+    "phase-down-done.png": "42ad336ed2110a5c27ad42219abdfe9ce60b0c2488a7a456ee4abedb7cd7d08f",
+    "phase-idle-done.png": "a75d397a3de226705e4de843d115ffcdbc25a8e9c2ed48a1b5429d2db44f0cce",
+    "after.png": "321f091b6e9b4a563e2c5858d2f319b283886125048c31f00350178d3a48e18b",
+    "down-minimum-1492.png": "8839508e71aca9fa482e66ab7b4dfbb0fbdefe258d84383efaa144a07ace67dc",
+    "end-minimum-2122.png": "752b7ab73663e67bb69b7d94e0710168fe0dba6da5bfc14e5c7068b0672548f3",
+    "idle-minimum-2204.png": "be039b84d71c9d96c2987b4408723b8710bb36d755f2d2616df585d81063a1ec",
+    "end-transition-review-frames.png": "2d75deebf7f1e89feb4c9c16e0c8b85edf86dfa9a097c3a541a9c30caca12bfd"
+  }
+}

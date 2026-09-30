@@ -1,0 +1,289 @@
+{
+  "candidate": "4103c80b2121a1a1e35256ea9b5995faabd83037",
+  "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "source_capture": "/home/ts/.cache/agent-scratch/toad-reader-217-paint-admission-20260930/capture",
+  "assessment": "FAIL: chat body blank after End and idle; static chrome unchanged",
+  "pixel_regions": {
+    "tabs": [
+      0,
+      0,
+      1260,
+      70
+    ],
+    "roster": [
+      0,
+      70,
+      490,
+      900
+    ],
+    "details": [
+      507,
+      748,
+      1211,
+      788
+    ],
+    "body": [
+      507,
+      70,
+      1211,
+      746
+    ]
+  },
+  "phase_pixels": {
+    "before": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "354c0f7aafb71b9fe33203a22767501e96a5263a1fc3c410620fcad57894deba"
+    },
+    "phase-up-done": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "537352359fdb2c53aa77f181913a8ebafaff6fc2fef2c2272bf000bbc0a8d228"
+    },
+    "phase-down-done": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "c64554de1b9fda9384fd946f956e47e2a6f08ab67530446321e094aff22d8212"
+    },
+    "phase-reverse-done": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "23f2d1bde2d08abfc8f57f6f1e20b6d993fad3528c0db89653926f84c8188591"
+    },
+    "phase-end": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "23f2d1bde2d08abfc8f57f6f1e20b6d993fad3528c0db89653926f84c8188591"
+    },
+    "phase-idle-done": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "e1a0e6bc4037efc93ab9a61881b1426efffe8cc6266ad9e94a81810da83b55e2"
+    },
+    "after": {
+      "tabs": "80f89882bb4fcc276f8a29e07ef57939ff3b341964c03ba6a4d4fe9eddd31a57",
+      "roster": "65e8c9a60c5f8a29454f3e60fc0b1483587889927cbfb16ac109c317a597bd9d",
+      "details": "e6f797d8a05c8d3b8de8b9924874d96647a902688d686b3fb87861d82bc51eb6",
+      "body": "e1a0e6bc4037efc93ab9a61881b1426efffe8cc6266ad9e94a81810da83b55e2"
+    }
+  },
+  "observations": [
+    {
+      "phase": "before",
+      "screen": {
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "batch_count": 0,
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "window": {
+        "_reactive_scroll_y": 47,
+        "_reactive_scroll_x": 0.0,
+        "_is_anchored": null,
+        "_anchor_released": false,
+        "_reactive_virtual_size": [
+          102,
+          79
+        ],
+        "scroll_y": 47,
+        "maximum": 47,
+        "follows_tail": true,
+        "history_lock_held": false,
+        "restoring": false,
+        "anchor": null,
+        "layout_ready": null,
+        "paint_ready": null,
+        "body_resources": {
+          "registered": 8,
+          "dormant": 0,
+          "visible": 3,
+          "visible_dormant": 0,
+          "reconciling": false,
+          "suspended": false
+        }
+      },
+      "native_visible_map_contains_history": true,
+      "full_map_invalidated": true
+    },
+    {
+      "phase": "phase-down-done",
+      "screen": {
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "batch_count": 0,
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "window": {
+        "_reactive_scroll_y": 427,
+        "_reactive_scroll_x": 0.0,
+        "_is_anchored": null,
+        "_anchor_released": true,
+        "_reactive_virtual_size": [
+          102,
+          477
+        ],
+        "scroll_y": 427,
+        "maximum": 445,
+        "follows_tail": false,
+        "history_lock_held": false,
+        "restoring": false,
+        "anchor": null,
+        "layout_ready": null,
+        "paint_ready": null,
+        "body_resources": {
+          "registered": 26,
+          "dormant": 0,
+          "visible": 6,
+          "visible_dormant": 0,
+          "reconciling": false,
+          "suspended": false
+        }
+      },
+      "native_visible_map_contains_history": false,
+      "full_map_invalidated": true
+    },
+    {
+      "phase": "phase-end",
+      "screen": {
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "batch_count": 0,
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "window": {
+        "_reactive_scroll_y": 28,
+        "_reactive_scroll_x": 0.0,
+        "_is_anchored": null,
+        "_anchor_released": true,
+        "_reactive_virtual_size": [
+          102,
+          459
+        ],
+        "scroll_y": 28,
+        "maximum": 427,
+        "follows_tail": false,
+        "history_lock_held": false,
+        "restoring": false,
+        "anchor": null,
+        "layout_ready": null,
+        "paint_ready": null,
+        "body_resources": {
+          "registered": 26,
+          "dormant": 0,
+          "visible": 6,
+          "visible_dormant": 0,
+          "reconciling": false,
+          "suspended": false
+        }
+      },
+      "native_visible_map_contains_history": false,
+      "full_map_invalidated": true
+    },
+    {
+      "phase": "phase-idle-done",
+      "screen": {
+        "scroll_offset": [
+          0,
+          0
+        ],
+        "max_scroll": [
+          0,
+          0
+        ],
+        "batch_count": 0,
+        "layout_required": false,
+        "scroll_required": false,
+        "repaint_required": false,
+        "frame": {
+          "state": "PresentedFrame",
+          "ready": true,
+          "presented": true,
+          "deferred_callbacks": 0
+        }
+      },
+      "window": {
+        "_reactive_scroll_y": 351,
+        "_reactive_scroll_x": 0.0,
+        "_is_anchored": null,
+        "_anchor_released": false,
+        "_reactive_virtual_size": [
+          102,
+          383
+        ],
+        "scroll_y": 351,
+        "maximum": 351,
+        "follows_tail": true,
+        "history_lock_held": false,
+        "restoring": false,
+        "anchor": null,
+        "layout_ready": null,
+        "paint_ready": null,
+        "body_resources": {
+          "registered": 16,
+          "dormant": 0,
+          "visible": 0,
+          "visible_dormant": 0,
+          "reconciling": false,
+          "suspended": false
+        }
+      },
+      "native_visible_map_contains_history": false,
+      "full_map_invalidated": true
+    }
+  ],
+  "interpretation_correction": "The image viewer omitted unchanged pixels in repeated displays; visual claims that menu/roster/details vanished are withdrawn. Exact raw decoded PNG regions are identical across every phase. The chat-body failure remains.",
+  "limits": [
+    "Source Textual batch-admission regression remains independently proven; not the cause of this body failure",
+    "Invalidated full map is historical geometry, not current visible geometry",
+    "No raw terminal stream captured; no ANSI/cache corruption claim",
+    "No capture, native prompt, package change or provider call by reviewer"
+  ]
+}

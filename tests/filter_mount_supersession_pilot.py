@@ -22,6 +22,7 @@ from textual.containers import VerticalGroup
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
 from toad.transcript_preparation import TranscriptFilterWork
+from toad.widgets.session_tabs import SessionLabel
 
 
 
@@ -90,7 +91,7 @@ async def exercise(app, pilot, stage):
                 other_view.prompt.focus()
                 await pilot.press("y")
                 assert other_view.prompt.text == "y", "Another thread froze behind the old filter"
-                await app.switch_mode(owner_mode)
+                assert await pilot.click(app.screen.query_one(f"SessionLabel#{owner_mode}", SessionLabel))
                 await pilot.pause()
                 assert view.visible_categories == frozenset((ThinkingCategory,))
                 release.set()

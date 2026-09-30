@@ -1,7 +1,7 @@
 {
   "candidate": "88792e4143992ccafe277ce60745dac2cc360213",
   "pair": "Core720/Textual412/native4ab",
-  "assessment": "FAILED: global physical text blanking; not ready",
+  "assessment": "FAILED: physical chat body blanking; not ready",
   "source_capture": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture",
   "source_geometry": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/geometry",
   "capturer": "Heisenberg (PR217 integration owner)",
@@ -42,7 +42,7 @@
   "frame_review": {
     "down-done": "blank physical chat",
     "reverse-done": "temporary text recovery",
-    "idle-done": "global text missing; gutters/prompt/scrollbars remain"
+    "idle-done": "chat body missing; static tab/roster/details pixels unchanged"
   },
   "geometry": {
     "before": {
@@ -104,5 +104,6 @@
       "errors": []
     }
   },
-  "original_owner_unchanged": true
+  "original_owner_unchanged": true,
+  "interpretation_correction": "The image viewer omitted unchanged pixels in repeated displays; visual claims that menu/roster/details vanished are withdrawn. Exact raw decoded PNG regions are identical across every phase. The chat-body failure remains."
 }

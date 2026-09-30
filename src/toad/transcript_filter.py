@@ -303,7 +303,8 @@ class TranscriptFilter:
 
     async def retire(self, retired: FilterState) -> None:
         async with self.owner.window.history_lock:
-            await retired.remove(self.owner)
+            async with self.owner.window.preserve_history(None):
+                await retired.remove(self.owner)
         if self.owner.is_attached:
             self.owner._scroll_changed()
 

@@ -1,0 +1,1 @@
+filter mount supersession: typing and thread switches remain live; stale container/child mounts cannot publish or advance cursors

@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/history_frame_publication_pilot.py", line 149, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/history_frame_publication_pilot.py", line 101, in main
+    assert history.has_newer, "End must replace a non-tail saved page"
+           ^^^^^^^^^^^^^^^^^
+AssertionError: End must replace a non-tail saved page
