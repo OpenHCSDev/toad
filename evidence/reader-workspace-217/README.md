@@ -9,3 +9,7 @@ The primary recording includes 947 GIL samples, zero errors, and physical-input 
 Geometry is not certified: the first CPython remote_exec export was rejected with PermissionError. The unprofiled recorder does not publish the profile terminal lease; the subsequent export missed its target before close. No extent values are inferred from screenshots. Kepler owns adding export at the recorder boundary through the existing capture tool.
 
 Production bytes remain the staged887 version. Exact pins, phase CPU measurements and artifact hashes are in actual-original-candidate.json. Video/profile remain in owned persistent scratch for causal review. Before/PageDown/reverse/idle frames are retained here.
+
+## Central paint admission checkpoint
+
+Textual13 code65053c5a admits batching before preparation and compositor damage consumption. PR217 deletes its atomic-only compositor wrapper and viewport repaint write, inherits that publisher, and supplies only the preparation hook. The source actual-Toad queued reentry/growth/resize/reader/session-return journey exited0; [receipt](paint-admission-source-650.json) distinguishes source imports from installed acceptance. The actual original41MB held-key recording and same-run CPU comparison remain required; this checkpoint does not erase the blank failure above.

@@ -133,7 +133,6 @@ class ViewportPresentation:
                 continue
             if not window.document_viewport.visible_bodies_ready:
                 window.document_viewport.request()
-                screen._repaint_required = True
                 return False
         changed = False
         for window in self.windows:
