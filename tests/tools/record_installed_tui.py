@@ -291,9 +291,21 @@ class RuntimeSelection:
         if env.get("AGENT_COMMS_RUNTIME_ROOT"):
             env["AGENT_COMMS_RUNTIME_ROOT"] = str(self.bin_directory.resolve())
 
-    def receipt(self, owner, env):
+    def receipt(self, owner, env, command):
+        observed = self.from_environment(command, env)
+        if observed != self:
+            raise ValueError("Installed launcher selection changed during capture")
         result = {"selection": self.selection, "bin_directory": str(self.bin_directory.resolve()),
                   "launcher": str(self.launcher), "launcher_sha256": digest(self.launcher)}
+        paths = {
+            "command": shutil.which(command[0]) or command[0],
+            "acp": env.get("AGENT_COMMS_ACP_LAUNCHER") or shutil.which("agent-comms-acp")
+                   or str(Path.home() / ".local/bin/agent-comms-acp"),
+        }
+        result["launcher_links"] = {name: {"selected_path": str(Path(path).absolute()),
+                                          "resolved_path": str(Path(path).resolve()),
+                                          "sha256": digest(Path(path))}
+                                    for name, path in paths.items()}
         result["entrypoints"] = {name: {"path": str((self.bin_directory / name).resolve()),
                                        "sha256": digest(self.bin_directory / name)}
                                  for name in ("toad", "agent-comms-acp")}
@@ -783,7 +795,7 @@ def record(args):
     window = None
     try:
         with ExitStack() as stack:
-            receipt["runtime_before"] = selection.receipt(owner, env)
+            receipt["runtime_before"] = selection.receipt(owner, env, command)
             display_number = next((number for number in (secrets.randbelow(9000) + 100 for _ in range(100))
                                    if not Path(f"/tmp/.X{number}-lock").exists()
                                    and not Path(f"/tmp/.X11-unix/X{number}").exists()), None)
@@ -915,7 +927,7 @@ def record(args):
             if capture.process.returncode not in (0, 255):
                 raise RuntimeError(f"Video recorder exited {capture.process.returncode}")
             receipt["capture_completed"] = True
-            receipt["runtime_after"] = selection.receipt(owner, env)
+            receipt["runtime_after"] = selection.receipt(owner, env, command)
             receipt["runtime_unchanged"] = receipt["runtime_before"] == receipt["runtime_after"]
             # Quit through the installed application; persistent owners are excluded.
             owner.run(["xdotool", "key", "--window", window, "ctrl+q"], env, timeout=2)
