@@ -1,0 +1,17 @@
+{
+  "pins": {
+    "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+    "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+    "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_full_trust": "passed",
+  "native_manifest_sha256": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "frozen_package_count": 68,
+  "requirements_sha256": "aae8e9caf02200c657884eb5768272ef72b318123f5bdac5752ff9c99c654107",
+  "package_compatibility": "uv pip check passed all68",
+  "stage": "/home/ts/.local/share/agent-comms/runtime-first-ui-end-keypad-20260930",
+  "verification": "Exact accepted frozen68package set and immutableVCS metadata; no repeated fullsource/nativehashgate",
+  "accepted_staging_receipt_sha256": "d28cba5aac4649a9dc711a3fc8b52fd6bab626926da328d1c6cb254fe2c2b139"
+}

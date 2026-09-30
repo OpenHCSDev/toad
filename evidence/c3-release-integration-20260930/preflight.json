@@ -1,0 +1,120 @@
+{
+  "state": "passed",
+  "method": "RuntimeSelection.publish_verified_stage -> existing recorder runtime/native private-route metadata probe",
+  "preflight": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin",
+    "launcher": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/toad",
+    "launcher_sha256": "f19736f3f037aa6b846e986cc6ea73e9083c52ddde12a9b3923f434e702be0e3",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/toad",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/toad",
+        "sha256": "f19736f3f037aa6b846e986cc6ea73e9083c52ddde12a9b3923f434e702be0e3"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/agent-comms-acp",
+        "sha256": "28305445a9b041aa0d579060c7080b523bfde48258bab1d9a2fddfd188b11355"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/toad",
+        "sha256": "f19736f3f037aa6b846e986cc6ea73e9083c52ddde12a9b3923f434e702be0e3"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/agent-comms-acp",
+        "sha256": "28305445a9b041aa0d579060c7080b523bfde48258bab1d9a2fddfd188b11355"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/activation.json",
+    "activation_sha256": "794dfd3a6d0206f3e01b1b12879fa7aa3f56c685d9c6c21dbf62784763352055",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+      "pins": {
+        "agent-comms": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+        "batrachian-toad": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "c6ab8fba871f14afcf073807939c0e3a6381595740222ca59ea9e19210b57794"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "fdc7418e7cd75c93413424bc28e0883969b25913e86af9bfe5d3dd2d5f197a15",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "6ff0b13eed7b61e7152194b2ccada51cd23269a9",
+              "requested_revision": "6ff0b13eed7b61e7152194b2ccada51cd23269a9"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "4bc050832c95ba5d64c3011791b249f5e4cef7a16ac9bda0d5b3a1e225251483",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "ea1c275ae849c0bb7ac8b32f500096c820fc263a",
+              "requested_revision": "ea1c275ae849c0bb7ac8b32f500096c820fc263a"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/wt/cw233-observer08/private-root/wire",
+        "wire_root_id": "34941f5e49b84913986131c3894abf15",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "fixture_metadata_root": "/home/ts/wt/cw233-observer08/private-root/wire",
+  "scope": "Metadata read of accepted retired OWN233 fixture only; no thread attach/history input/native process restart",
+  "public_root_loaded": false,
+  "ui_launches": 0,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3172978,
+        "start_ticks": 24720063,
+        "returncode": 0
+      }
+    ]
+  }
+}
