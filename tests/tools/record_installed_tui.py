@@ -285,6 +285,12 @@ class RuntimeSelection:
         return cls(launcher, Path(acp).resolve().parent,
                    "AGENT_COMMS_ACP_LAUNCHER" if env.get("AGENT_COMMS_ACP_LAUNCHER") else "PATH agent-comms-acp")
 
+    def apply_environment(self, env):
+        # An explicit candidate is pinned. Default-entrypoint acceptance must
+        # follow the installed launcher itself, without injecting an override.
+        if env.get("AGENT_COMMS_RUNTIME_ROOT"):
+            env["AGENT_COMMS_RUNTIME_ROOT"] = str(self.bin_directory.resolve())
+
     def receipt(self, owner, env):
         result = {"selection": self.selection, "bin_directory": str(self.bin_directory.resolve()),
                   "launcher": str(self.launcher), "launcher_sha256": digest(self.launcher)}
@@ -742,8 +748,7 @@ def record(args):
     private_root = target.root
     selection = target.selection
     env["TOAD_VIDEO_CAPTURE_TARGET"] = target.declared_name
-    # Pin the selection before a concurrently changed launcher symlink can redirect it.
-    env["AGENT_COMMS_RUNTIME_ROOT"] = str(selection.bin_directory.resolve())
+    selection.apply_environment(env)
     if selection.bin_directory.parent.resolve() != Path(sys.prefix).resolve():
         raise ValueError("Run recorder with the selected installed runtime's Python")
     output.mkdir(parents=True, exist_ok=False)

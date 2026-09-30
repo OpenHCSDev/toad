@@ -196,7 +196,7 @@ Neither a profiler exit code nor a sparse profile establishes correctness.
 
 `AGENT_COMMS_RUNTIME_ROOT` selects a reviewed candidate **bin directory** holding
 `python` and `toad`. Otherwise selection follows `AGENT_COMMS_ACP_LAUNCHER`, then
-the installed ACP launcher on PATH. Selection is pinned for this run. The actual private route and native package
+the installed ACP launcher on PATH. An explicit runtime override is pinned for this run. When none is provided, the recorder leaves it absent and follows the actual default launcher; before/after receipts must confirm its links and package bytes stayed unchanged. The actual private route and native package
 are independently observed through Core authorities and matched to activation.
 No global packages or launcher links are changed.
 
