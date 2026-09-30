@@ -17,6 +17,7 @@ from runtime_fixture import ToadApp
 
 from toad import messages
 from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
@@ -56,11 +57,7 @@ async def main():
             )
             agent = Agent(
                 root,
-                {
-                    "name": "Observed fixture",
-                    "identity": "fixture",
-                    "run_command": {"*": "true"},
-                },
+                AgentDefinition("fixture", "Observed fixture", {"*": "true"}),
                 "fixture",
             )
             agent.attach_surface(native)
@@ -75,9 +72,6 @@ async def main():
                         observed.presentation is not None
                         and detail in observed.presentation.summary
                     )
-                )
-                native.post_message(
-                    messages.SessionUpdate(state="idle", summary="Ready")
                 )
                 await pilot.pause()
                 assert observed.display and observed.has_class("-working")
@@ -96,7 +90,6 @@ async def main():
             failure = UnavailableDrainDiagnostic(identity, "SchemaVersionError", "cohort schema missing")
             comms.agents.set_drain_diagnostic("peer", identity, failure)
             await until(lambda: observed.presentation is not None and observed.presentation.attention)
-            native.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
             await pilot.pause()
             assert tracker.state == "idle" and "Inbox unavailable" in tracker.summary
             assert observed.has_class("-unavailable") and not observed.has_class("-working")
