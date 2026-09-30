@@ -1,0 +1,108 @@
+{
+  "candidate": "88792e4143992ccafe277ce60745dac2cc360213",
+  "pair": "Core720/Textual412/native4ab",
+  "assessment": "FAILED: global physical text blanking; not ready",
+  "source_capture": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/capture",
+  "source_geometry": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/geometry",
+  "capturer": "Heisenberg (PR217 integration owner)",
+  "source_preserved": true,
+  "native_input_count": 0,
+  "profile_samples": 947,
+  "profile_errors": 0,
+  "phases": [
+    {
+      "label": "up",
+      "video_start_seconds": 14.545860418991651,
+      "video_end_seconds": 19.342193607008085,
+      "ui_cpu_seconds": 4.590000000000002,
+      "ui_cpu_percent": 95.69810561676674
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 20.113721422996605,
+      "video_end_seconds": 24.9184459829994,
+      "ui_cpu_seconds": 4.18,
+      "ui_cpu_percent": 86.99770294423634
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 25.6664957269968,
+      "video_end_seconds": 30.452051411994034,
+      "ui_cpu_seconds": 4.600000000000001,
+      "ui_cpu_percent": 96.12258853075407
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 33.04504591500154,
+      "video_end_seconds": 48.8007593099901,
+      "ui_cpu_seconds": 9.320000000000004,
+      "ui_cpu_percent": 59.15314506142531
+    }
+  ],
+  "frame_review": {
+    "down-done": "blank physical chat",
+    "reverse-done": "temporary text recovery",
+    "idle-done": "global text missing; gutters/prompt/scrollbars remain"
+  },
+  "geometry": {
+    "before": {
+      "_reactive_scroll_y": 47,
+      "_reactive_scroll_x": 0.0,
+      "_is_anchored": null,
+      "_anchor_released": false,
+      "_reactive_virtual_size": [
+        102,
+        79
+      ],
+      "scroll_y": 47,
+      "maximum": 47,
+      "follows_tail": true,
+      "body_resources": {
+        "registered": 8,
+        "dormant": 0,
+        "visible": 3,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    },
+    "after": {
+      "_reactive_scroll_y": 161,
+      "_reactive_scroll_x": 0.0,
+      "_is_anchored": null,
+      "_anchor_released": false,
+      "_reactive_virtual_size": [
+        102,
+        193
+      ],
+      "scroll_y": 161,
+      "maximum": 161,
+      "follows_tail": true,
+      "body_resources": {
+        "registered": 16,
+        "dormant": 0,
+        "visible": 0,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    }
+  },
+  "limits": [
+    "Physical PNGs are primary visual evidence; full SVG export consumes compositor dirty regions and can alter later rendering",
+    "Chrome recursive/stale spans are not per-function CPU attribution; kernel counters above give measured process CPU",
+    "No actual pending lazy-read acknowledgement captured yet; phase state export is the next owned diagnostic",
+    "No parallel capture was launched by reviewer"
+  ],
+  "cleanup": {
+    "capture": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "geometry": {
+      "remaining_owned_pids": [],
+      "errors": []
+    }
+  },
+  "original_owner_unchanged": true
+}

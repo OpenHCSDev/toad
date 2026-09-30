@@ -62,3 +62,48 @@ Parent selected Heisenberg217 productionhead88792e4143992ccafe277ce60745dac2cc36
 Offline review of the original failure master shows readable history at video20–25s, blank chat at26–28s during PageDown, temporary recovery during reverse at29–32s, then blank again at33–35s around End. The final original image stays blank after15seconds idle. Contact sheet and review limits are retained in evidence/viewport-demand/original-history-baseline; encoders cleanup is empty. The source master/profile remain parent-owned, unmodified. This is1Hz sampled footage, not exact onset or a pending-read acknowledgement.
 
 The shared recorder's --scroll-idle-seconds exposes the stationary observation policy; pass15 both when generating and validating the original-history script. The declared existing-thread mode still accepts only that exact scroll-only script. Profiling attests the real wrapper's exec into the selected Python UI before attaching to avoid sampling its temporary shell. Actual candidate visual/pending-lazy-read acceptance remains pending; no source-only READY claim.
+
+## Actual combined candidate failure and global rendering boundary
+
+Heisenberg's actual original-history capture of staged887 completed with the
+original native owner unchanged, zero native inputs, empty cleanup and947 GIL
+samples with zero reported errors. It still failed: PageDown blanked the chat,
+reverse temporarily restored text, and End plus15-second idle left text blank.
+Measured UI CPU was95.7% up,87.0% down,96.1% reverse and59.2% idle. This is
+counterevidence, not readiness. Review receipt is retained under
+evidence/viewport-demand/original-history-candidate-887; raw video/profile remain
+in Heisenberg's owned toad-reader-217-original-20260929 scratch.
+
+The serial unprofiled geometry diagnostic reproduced a broader physical failure:
+roster, menu, tab and session-details text disappeared together with chat text;
+gutters, prompt and scrollbars remained. After-state showed scroll161 equal to
+max161, virtual height193,16 registered bodies, zero dormant bodies and zero
+visible bodies. It was neither overscroll nor a final wait on dormant visible
+bodies. Before-state had scroll47/max47, virtual height79 and three visible
+bodies. These observations do not establish the cause. Heisenberg owns the
+global screen/compositor/render transaction investigation and integration.
+
+After-SVG retained menu/tab/roster text missing from the preceding physical PNG.
+Textual export_screenshot invokes a full compositor render, consuming its dirty
+regions, then the existing capture helper requests a refresh. Thus exported SVG
+is separate observer evidence and can alter subsequent terminal paint. The
+recorder's intermediate phase observations now export only existing DTO state,
+including the committed screen/compositor maps, crop/region/virtual geometry,
+frame publication and canonical history lock/anchor/source generation. It does
+not force geometry lookup/reflow or create another render authority. The native
+Down/reverse/End/idle markers preserve physical PNGs as visual proof.
+
+The declared saved_tab_close journey independently covers disposal and reopening
+through two existing saved tabs, followed by normal application shutdown. All
+physical coordinates and settle timing are parameters; screenshots and DTOs
+must verify the identities actually selected. Keeping the second existing tab
+open avoids the last-tab replacement-session creation observed in the earlier
+close probe. No prompt, replay, native restart or new fixture is part of this
+journey. Heisenberg is the sole capturer of the parent's separately staged222
+disposal candidate; neither these tool changes nor887's failed scroll capture
+prove222 live readiness.
+
+Remaining profile-review ownership: PR221 owns correcting recursive inclusive
+span overcount and retaining the limitations of stale Chrome stack spans. This
+does not delay the urgent physical disposal/global blanking workflow. Existing
+kernel CPU deltas remain the measured totals; no per-function CPU claim is made.
