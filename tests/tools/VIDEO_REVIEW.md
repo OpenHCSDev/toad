@@ -71,14 +71,18 @@ snapshot. Both use the committed native cell and the same st pixel conversion
 as the gutter/editor. No layout-specific navigation coordinate is guessed.
 
 After clicking the peer, the `b-open` marker awaits its **selected visible** saved
-history through one read-only attachment. The existing exporter observes native
+history through one read-only attachment. The marker passes the existing
+`--peer-thread` as `--wait-history-thread`; the exporter first requires the
+selected view's declared channel context to identify that peer and its native
+WorkspaceSource to be shown. A still-selected ready A cannot satisfy this wait.
+The existing exporter observes native
 page admission, visible ready bodies and FramePresentation, then observes the
 existing after-refresh terminal-writer receipt before exporting the DTO and taking
 the physical screenshot. It never accepts a later inactive peer projection.
 `--history-wait-seconds` (default10) and `--history-wait-interval` (default0.1)
 parameterize this diagnostic within the original capture deadline; they do not
 increase it. The private fixture wrapper forwards the same options. Timeout,
-source changes or missing native proof fail the checked marker and preserve raw
+an unmatched selected thread or missing native proof fail the checked marker and preserve raw
 evidence. No repeated attachment, full-state export loop, model read or prompt is
 performed while waiting. The phase records `history_wait` alongside its single
 state export; wait cost lies in the preceding physical switch interval.

@@ -1,6 +1,7 @@
 """Read-only DTO capture of an authorized live Toad; no owner RPCs or UI input."""
 
-def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1):
+def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1,
+            wait_history_thread=None):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -41,12 +42,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
         if wait_history_seconds:
             from toad.frame_presentation import FrameFlush
 
-            mode = app.selected_mode
+            if not wait_history_thread:
+                raise ValueError("Visible-history waiting requires the intended thread")
 
             def visible_history_ready():
-                if app.selected_mode != mode:
-                    raise RuntimeError("Selected source changed during visible-history observation")
-                view = app.workspace_sessions.views[mode]
+                view = app.selected_session
+                if view is None or view.channels_context()[0] != wait_history_thread:
+                    return False
+                if not app.workspace_sessions.source.shown(view):
+                    return False
                 window = view.query_one_optional(HistoryWindow)
                 if window is None or window.history_mutating() or window.history_lock.locked():
                     return False
@@ -74,7 +78,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                 await written
                                 if visible_history_ready():
                                     write_json(prefix + "-wait.json", {
-                                        "pid": expected_pid, "mode": mode,
+                                        "pid": expected_pid, "mode": app.selected_mode,
+                                        "thread": app.selected_session.channels_context()[0],
                                         "elapsed_ms": (time.monotonic_ns() - started) / 1e6,
                                         "visible_saved_history_written": True,
                                     })

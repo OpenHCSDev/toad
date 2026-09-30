@@ -397,7 +397,8 @@ class WarmScrollJourney(ScrollJourney):
             marker + "switch-b", native_click_command("phase-switch-b-state.pickle", target="thread",
                                                      name=args.peer_thread),
             marker + f"b-open --wait-history-seconds {args.history_wait_seconds:g} "
-                     f"--wait-history-interval {args.history_wait_interval:g}", marker + "return-a",
+                     f"--wait-history-interval {args.history_wait_interval:g} "
+                     f"--wait-history-thread {shlex.quote(args.peer_thread)}", marker + "return-a",
             native_click_command("phase-return-a-state.pickle", target="original_tab",
                                  original_state="phase-warm-start-state.pickle"), settle, marker + "a-return",
             native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
@@ -789,7 +790,7 @@ def review_recording(args):
 
 
 def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False,
-                         wait_history_seconds=0, wait_history_interval=.1):
+                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -802,6 +803,7 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
                        "--output-dir", str(output), "--name", name,
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
+                       *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
                        *(["--screen"] if screen else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
@@ -1096,7 +1098,7 @@ def record(args):
     return output
 
 
-def mark(label, *, wait_history_seconds=0, wait_history_interval=.1):
+def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
     """A native xdotool exec marker; timestamps bracket actual input injection."""
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,39}", label):
         raise ValueError("Invalid phase label")
@@ -1108,6 +1110,8 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1):
         raise ValueError("Marker needs an isolated display")
     if wait_history_seconds and os.environ.get("TOAD_VIDEO_MARK_SNAPSHOTS") != "1":
         raise ValueError("Visible history observation requires native marker snapshots")
+    if wait_history_seconds and not wait_history_thread:
+        raise ValueError("Visible history observation requires the intended thread")
     event = {"label": label, "utc": datetime.now(timezone.utc).isoformat(),
              "seconds_since_capture_launch": time.monotonic() - float(os.environ["TOAD_VIDEO_EPOCH"])}
     if os.environ.get("TOAD_VIDEO_TERMINAL"):
@@ -1125,7 +1129,7 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1):
                 event["state_capture"] = capture_loaded_state(
                     output, f"phase-{label}", identity, owner, os.environ.copy(), timeout=remaining,
                     wait_history_seconds=min(wait_history_seconds, remaining),
-                    wait_history_interval=wait_history_interval)
+                    wait_history_interval=wait_history_interval, wait_history_thread=wait_history_thread)
                 state = output / f"phase-{label}-state.json"
                 if not state.exists():
                     error_path = output / f"phase-{label}-state-error.json"
@@ -1200,12 +1204,14 @@ def main():
         marker.add_argument("label")
         marker.add_argument("--wait-history-seconds", type=float, default=0)
         marker.add_argument("--wait-history-interval", type=float, default=.1)
+        marker.add_argument("--wait-history-thread")
         options = marker.parse_args(sys.argv[2:])
         if (not math.isfinite(options.wait_history_seconds) or options.wait_history_seconds < 0
                 or not math.isfinite(options.wait_history_interval) or options.wait_history_interval <= 0):
             marker.error("History budget must be nonnegative and observation interval positive")
         mark(options.label, wait_history_seconds=options.wait_history_seconds,
-             wait_history_interval=options.wait_history_interval)
+             wait_history_interval=options.wait_history_interval,
+             wait_history_thread=options.wait_history_thread)
         return
     if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
         profile_launch(sys.argv[2:])
