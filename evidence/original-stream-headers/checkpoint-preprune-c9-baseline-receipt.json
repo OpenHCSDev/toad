@@ -1,0 +1,71 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "c9aa8302a27f42c261431d36f1b74f103c2180d9",
+        "requested_revision": "c9aa8302"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+        "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "limit": "Source/resource custody; no ACP, provider, original root or physical capture.",
+  "phases": {
+    "kind": "checkpoint",
+    "retirement_candidate_ids": [
+      139741206114256
+    ],
+    "old_native_history_covered": false,
+    "actual_stream_block_covered": true,
+    "accepted_before_cancel": [
+      {
+        "identity": 139741338234192,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/checkpoint-preprune-c9-baseline/snapshot-custody-8dnoer9n/replacement.jsonl"
+      }
+    ],
+    "cancelled_while_output_lock_held": [
+      {
+        "identity": 139741338234192,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/checkpoint-preprune-c9-baseline/snapshot-custody-8dnoer9n/replacement.jsonl"
+      }
+    ],
+    "publishing_waiter_done_while_locked": true,
+    "result": "CancelledError",
+    "after_output_lock_release": [
+      {
+        "identity": 139741338234192,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/checkpoint-preprune-c9-baseline/snapshot-custody-8dnoer9n/replacement.jsonl"
+      }
+    ],
+    "old_still_attached": false,
+    "old_still_registered": false,
+    "stream_block_still_attached": true,
+    "stream_association_remaining": true
+  },
+  "application_exit": "normal"
+}

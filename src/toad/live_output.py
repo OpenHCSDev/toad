@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import weakref
+from collections.abc import Collection
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -12,6 +13,7 @@ from toad.widgets.agent_thought import AgentThought
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
+    from textual.widget import Widget
 
 
 class OutputStream(ABC):
@@ -145,6 +147,13 @@ class LiveOutput:
     async def settle(self) -> None:
         for stream in tuple(self.streams.values()):
             await stream.settle()
+
+    async def retire_presentations(self, candidates: Collection[Widget]) -> None:
+        """A source commit retires only streams whose actual blocks it replaces."""
+        async with self.lock:
+            for kind, stream in tuple(self.streams.items()):
+                if stream.block in candidates:
+                    await self.finish(kind)
 
     def boundary(self) -> None:
         self.revision += 1
