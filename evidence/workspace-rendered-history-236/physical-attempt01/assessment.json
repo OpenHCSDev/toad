@@ -1,0 +1,23 @@
+{
+  "assessment": "DRIVER_TARGET_FAILURE_NOT_WARM_ACCEPTANCE",
+  "raw_capture": "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930/capture",
+  "source_head_installed": "8b5da8f625112563d9effbe0ab7229270d6731dc",
+  "current_source_head": "b158eae4266e86c324e5dc80de93a918e359dc64",
+  "installed_viewport_byte_identical": true,
+  "public_witness_released_before_capture": true,
+  "private_native_input_count_after": 0,
+  "private_children_retired": true,
+  "ui_profile_samples": 782,
+  "ui_profile_errors": 65,
+  "not_proved": [
+    "A/B/A",
+    "held history scrolling",
+    "first paint",
+    "Strip reuse",
+    "33ms gap closure"
+  ],
+  "inspected_images": {
+    "phase-warm-start.png": "5f3f76f7ff81a0cfc19ad5be7b846083a1160ba8615348e69ba7c3d2f5c89613",
+    "phase-idle-done.png": "ecae97080b39db1f5f09dfb3bc495b32b3e4ab5506492f030791e9a1a58c36c3"
+  }
+}

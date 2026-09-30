@@ -1,0 +1,65 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "original_bytes": 41270257,
+  "original_inputs_replayed": 0,
+  "completed_phases": [],
+  "core": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+  "toad": "8b5da8f625112563d9effbe0ab7229270d6731dc",
+  "physical_sources": [
+    {
+      "name": "resource436",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/project",
+      "parent": null,
+      "task": "Isolated bounded lifecycle acceptance only. Never resume inherited work. Use only explicitly requested acceptance tools and fixture goal. All paths and goals belong to this private fixture.",
+      "process_identity": null,
+      "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "off",
+      "goal": null,
+      "created_at": 1790772088.79215,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "title": null,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    {
+      "name": "resource236b",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/project",
+      "parent": null,
+      "task": "Read-only saved history capture. Never resume inherited work or send inputs.",
+      "process_identity": null,
+      "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-29-662Z_01a0f255-933f-7579-aef3-9e8194685cee.jsonl",
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "off",
+      "goal": null,
+      "created_at": 1790772090.836057,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "title": null,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    }
+  ],
+  "original_source_custody": {
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c",
+    "owner": {
+      "pid": 2823983,
+      "start_time": 23393932
+    },
+    "unchanged": true
+  },
+  "original_process_witness_released": true,
+  "inputs": [],
+  "elapsed_seconds": 2.634,
+  "children_retired": true
+}

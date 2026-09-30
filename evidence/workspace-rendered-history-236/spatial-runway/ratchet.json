@@ -1,0 +1,37 @@
+[
+  {
+    "path": "src/toad/preferences.py",
+    "delta": {
+      "code_lines": 8
+    }
+  },
+  {
+    "path": "src/toad/setting_effects.py",
+    "delta": {
+      "code_lines": 10
+    }
+  },
+  {
+    "path": "src/toad/transcript_source_preparation.py",
+    "delta": {}
+  },
+  {
+    "path": "src/toad/widgets/presentation_window.py",
+    "delta": {
+      "code_lines": 14
+    }
+  },
+  {
+    "path": "src/toad/widgets/transcript_history.py",
+    "delta": {
+      "code_lines": 9
+    }
+  },
+  {
+    "path": "src/toad/widgets/viewport_body.py",
+    "delta": {
+      "none_identity": 1,
+      "code_lines": 22
+    }
+  }
+]

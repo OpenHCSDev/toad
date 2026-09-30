@@ -40,6 +40,7 @@ from toad.settings import (
     TextSetting,
     PreferenceChange,
 )
+from toad.widgets.presentation_window import PresentationBudget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -59,6 +60,13 @@ class RendererSettings(SettingsGroup):
 
 
 class UiSettings(RendererSettings):
+    history_buffer_viewports = IntegerSetting(
+        title="History buffer in message-area heights",
+        default=PresentationBudget().buffer_viewports,
+        minimum=1,
+        help="Prepare and retain this distance on both sides of the reader. Memory and widget limits still apply.",
+        effect=effects.history_buffer_viewports,
+    )
     theme = ChoiceSetting(
         ThemeChoice,
         title="Theme",

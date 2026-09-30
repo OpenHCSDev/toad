@@ -1,0 +1,18 @@
+{
+  "source": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/src/toad/widgets/viewport_body.py",
+  "boundary": "actual headless native resource trim; not installed/physical paint",
+  "owner_count": 24,
+  "widgets_before": 552,
+  "retained_owners": 4,
+  "retained_widgets": 92,
+  "native_subtree_walks": 24,
+  "trim_cpu_seconds": 0.000984907999999951,
+  "trim_wall_seconds": 0.0009858270059339702,
+  "unprofiled_trim_cpu_seconds": 0.00027650899999986933,
+  "unprofiled_trim_wall_seconds": 0.00028083098004572093,
+  "lru_order_preserved": true,
+  "budget_satisfied": true,
+  "production_source_sha256": "4537faa5cecf9b0328912868a5f446224af2d8304d80d454799d629ccf36e5a0",
+  "raw_profile": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/warm-trim-candidate-unprofiled/trim.prof",
+  "exit_code": 0
+}

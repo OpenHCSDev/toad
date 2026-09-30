@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 145, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 127, in main
+    resource = args.target.locate(snapshot, args)
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 35, in locate
+    resource, = (window for window in view["history_windows"] if window["focus_target"] is not None)
+    ^^^^^^^^^
+ValueError: not enough values to unpack (expected 1, got 0)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 145, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 127, in main
+    resource = args.target.locate(snapshot, args)
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 52, in locate
+    return next(row for row in snapshot["metadata"]["navigation_targets"]["threads"] if row["name"] == args.name)
+StopIteration
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 145, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 127, in main
+    resource = args.target.locate(snapshot, args)
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 64, in locate
+    return next(tab for tab in snapshot["metadata"]["navigation_targets"]["tabs"] if tab["name"] == mode)
+StopIteration
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 145, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 127, in main
+    resource = args.target.locate(snapshot, args)
+  File "/home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py", line 43, in locate
+    resource, = (draft for draft in view["drafts"] if draft["focus_target"] is not None)
+    ^^^^^^^^^
+ValueError: not enough values to unpack (expected 1, got 0)

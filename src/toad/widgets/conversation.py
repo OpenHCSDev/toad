@@ -35,7 +35,6 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.backend import compaction_summary
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
@@ -570,7 +569,7 @@ class ConversationSessionBinding(containers.Vertical):
         agent = self.agent
         if agent is None or not agent.ready:
             return
-        await self.refresh_native_projection()
+        self.refresh_native_projection()
         page, _ = await asyncio.gather(
             agent.get_transcript_page(),
             self.delivery_observation.refresh(),
@@ -583,15 +582,15 @@ class ConversationSessionBinding(containers.Vertical):
         await self.query(ThreadLoading).remove()
         self.remove_class("-initial-loading")
 
-    async def refresh_native_projection(self) -> None:
-        """Invalidate the returning view from its original source owners."""
+    def refresh_native_projection(self) -> None:
+        """Publish bound owner facts and invalidate its existing read resource."""
         agent = self.agent
         if agent is None:
             return
         self.status = agent.context_measurement.status()
         self.turns.bound()
         self.submissions.publish_pending()
-        await self.goal_observation.refresh()
+        self.goal_observation.invalidate()
 
 
 
@@ -1779,19 +1778,14 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     @work(group="context-compaction")
     async def compact_context(self, instructions: str | None) -> None:
         """Keep processing owner notifications while compaction is in flight."""
-        from toad.widgets.agent_response import AgentResponse
-
         try:
             self.window.anchor()
             self.flash("Compaction requested")
             await self.agent.controller.compact_context(instructions)
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
-            await self.post(
-                AgentResponse(
-                    f"## Compaction failed\n\n{error}", category=OtherCategory
-                )
-            )
+            self.notify(str(error), title="Compaction request", severity="error")
+            self.transcript.require_checkpoint()
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""
@@ -2297,18 +2291,10 @@ class CompactionRenderer(MroDispatch):
 
     @handles(comms_events.CompactionEnd)
     async def end(self, event):
-        from toad.widgets.agent_response import AgentResponse
-
         view = self.conversation
         from toad.live_output import CompactionStream
         await view.output.finish(CompactionStream)
-        title = event.result_label
-        summary = compaction_summary(event.publication_summary)
-        detail = summary or (
-            "Compaction did not complete. Context usage will update after the next measurement."
-            if event.aborted
-            else "Context estimate unavailable until a new measurement arrives."
-        )
-        await view.post(
-            AgentResponse(f"## {title}\n\n{detail}", category=OtherCategory)
-        )
+        # The native entry or original journal outcome owns the retained notice.
+        # A terminal event invalidates that source; it does not create a second
+        # response with an unrelated native-output retirement claim.
+        view.transcript.require_checkpoint()

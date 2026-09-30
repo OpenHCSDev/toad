@@ -1,0 +1,10 @@
+{
+  "foreground_delivery_seconds": 0.5205714879848529,
+  "delivery_after_background_seconds": 0.5205714879848529,
+  "foreground_measured": true,
+  "background_preserved_horizon": true,
+  "boundary": "actual source UI/widget/worker journey; not installed physical capture",
+  "production_source_sha256": "5485cafc03fa3da09d2273197171d4bab3a2bd6e0f63327ff56b8278b1010cb6",
+  "runner_log": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/foreground-horizon-candidate-02.log",
+  "exit_code": 0
+}
