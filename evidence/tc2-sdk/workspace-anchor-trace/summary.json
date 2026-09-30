@@ -1,0 +1,14 @@
+{
+  "returns": 5,
+  "completed_frames": 15,
+  "prepared_misses": 0,
+  "same_history": true,
+  "same_pages": true,
+  "first_paint_ms": [
+    96.61008999682963,
+    97.63400099473074,
+    116.06735500390641,
+    138.56452101026662,
+    85.37218699348159
+  ]
+}

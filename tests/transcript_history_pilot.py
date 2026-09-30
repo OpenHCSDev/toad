@@ -50,12 +50,12 @@ async def main():
                 except TimeoutError:
                     raise AssertionError((
                         position, [(p.page.before.offset, p.start, p.stop) for p in history.pages],
-                        history._loading, history._check_pending, history.window.follows_tail,
+                        (not history.state.accepts_source_work), history._check_pending, history.window.follows_tail,
                         history.window.scroll_y, history.window.max_scroll_y,
                         history.region, history.window.content_region,
                     )) from None
                 await pilot.pause()
-                await until(lambda: not history._loading)
+                await until(lambda: history.state.accepts_source_work)
                 assert len(history.pages) <= history.fragment_limit
                 assert history.fragment_count <= history.fragment_limit
                 assert len(history.query("AgentResponse")) <= history.fragment_limit
@@ -64,7 +64,7 @@ async def main():
             # admitted page. Actual key delivery must work during an edge read.
             while history.pages[-1].stop < len(history.pages[-1].fragments):
                 history._request_page(False)
-                await until(lambda: not history._loading)
+                await until(lambda: history.state.accepts_source_work)
                 await pilot.pause()
             assert history.pages[-1].page.has_newer
             entered, release = asyncio.Event(), asyncio.Event()
@@ -81,7 +81,7 @@ async def main():
             conversation.window.focus()
             await pilot.press("end")
             release.set()
-            await until(lambda: not history._loading and not history.has_newer)
+            await until(lambda: history.state.accepts_source_work and not history.has_newer)
             await pilot.pause()
             assert conversation.window.follows_tail
             assert conversation.window.scroll_y == conversation.window.max_scroll_y

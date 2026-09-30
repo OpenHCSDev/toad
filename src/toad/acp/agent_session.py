@@ -12,6 +12,7 @@ from toad.agent import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
+from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, FailedSessionLoadAdmission, SessionLoadAdmission
 
 PROTOCOL_VERSION = 1
 
@@ -24,6 +25,7 @@ class AgentSession:
         self.pending_name = None
         self.connected = False
         self.reconnecting = False
+        self.load_admission: SessionLoadAdmission = EnsuringSessionLoadAdmission()
         self.settled = asyncio.Event()
         self.capabilities = schema.AgentCapabilities()
 
@@ -94,7 +96,23 @@ class AgentSession:
         self.agent.post_message(AgentReady(reconnected=self.reconnecting))
 
 
-    async def reconnect(self) -> None:
+    @property
+    def needs_reattachment(self) -> bool:
+        return not self.connected and self.settled.is_set() and not self.reconnecting
+
+    async def observe_owner(self, presentation) -> None:
+        """A new canonical owner may repair this failed read-only attachment."""
+        if not self.needs_reattachment or presentation is None:
+            return
+        coordination = self.agent.coordination
+        if coordination is None:
+            return
+        binding = presentation.binding
+        if not self.load_admission.superseded_by(binding):
+            return
+        await self.reconnect(ExistingSessionLoadAdmission(binding))
+
+    async def reconnect(self, admission: SessionLoadAdmission | None = None) -> None:
         """Reattach the existing view after login or an explicit owner start."""
         if self.agent.controller.session.bound and not self.supports_load:
             raise ValueError("This agent cannot resume its session.")
@@ -115,10 +133,11 @@ class AgentSession:
                 f"Reconnect not attempted: maintenance admission denied: {error}"
             ) from error
         target = self.agent.controller.surface.target
-        await self.agent.stop()
         self.reconnecting = True
-        self.settled.clear()
         try:
+            await self.agent.stop()
+            self.load_admission = admission or EnsuringSessionLoadAdmission()
+            self.settled.clear()
             await self.agent.start(target)
             await asyncio.wait_for(self.settled.wait(), timeout=30)
             if not self.connected:
@@ -237,9 +256,18 @@ class AgentSession:
                 if agent_data := session.meta_json.agent_data:
                     self.agent.definition = agent_data
 
+        admission, self.load_admission = self.load_admission, EnsuringSessionLoadAdmission()
         with self.agent.request():
-            session_load_response = api.session_load(cwd, [], request_session_id)
-        response = await session_load_response.wait()
+            session_load_response = api.session_load(cwd, [], request_session_id,
+                                                     admission.metadata())
+        try:
+            response = await session_load_response.wait()
+        except jsonrpc.APIError as error:
+            authority.require()
+            if self.agent.queue_attachment.is_current_request(queue_token):
+                if failed_command := FailedSessionLoadAdmission.from_failure(error.data):
+                    self.load_admission = failed_command
+            raise
         authority.require()
         if (
             not self.agent._private_cursor.is_current_request(cursor_token)
@@ -304,6 +332,7 @@ class AgentSession:
 
 
     def publish_configuration(self, response):
+        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         if (modes := response.modes) is not None:
             self.agent.controller.publish_modes(modes.current_mode_id, {
                 mode.id: mode
