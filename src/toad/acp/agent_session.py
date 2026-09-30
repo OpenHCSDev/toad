@@ -12,7 +12,8 @@ from toad.agent import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
-from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, SessionLoadAdmission
+from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, FailedSessionLoadAdmission, SessionLoadAdmission
+from agent_comms.field_codec import FieldCodec
 
 PROTOCOL_VERSION = 1
 
@@ -108,7 +109,9 @@ class AgentSession:
         if coordination is None:
             return
         binding = presentation.binding
-        if not binding.replaces(coordination.thread, coordination.owner_pid):
+        scope = self.agent.queue_attachment.scope
+        attached_owner = scope.owner if scope is not None else None
+        if not self.load_admission.superseded_by(binding, attached_owner):
             return
         await self.reconnect(ExistingSessionLoadAdmission(binding))
 
@@ -260,7 +263,15 @@ class AgentSession:
         with self.agent.request():
             session_load_response = api.session_load(cwd, [], request_session_id,
                                                      admission.metadata())
-        response = await session_load_response.wait()
+        try:
+            response = await session_load_response.wait()
+        except jsonrpc.APIError as error:
+            authority.require()
+            if (isinstance(error.data, dict) and "agentCommsLoadFailure" in error.data
+                    and self.agent.queue_attachment.is_current_request(queue_token)):
+                self.load_admission = FieldCodec.decode(
+                    FailedSessionLoadAdmission, error.data["agentCommsLoadFailure"])
+            raise
         authority.require()
         if (
             not self.agent._private_cursor.is_current_request(cursor_token)
