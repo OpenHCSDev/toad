@@ -70,6 +70,25 @@ comes from SessionLabel's mode matched to this run's initial selected-mode
 snapshot. Both use the committed native cell and the same st pixel conversion
 as the gutter/editor. No layout-specific navigation coordinate is guessed.
 
+After clicking the peer, the `b-open` marker awaits its **selected visible** saved
+history through one read-only attachment. The existing exporter observes native
+page admission, visible ready bodies and FramePresentation, then observes the
+existing after-refresh terminal-writer receipt before exporting the DTO and taking
+the physical screenshot. It never accepts a later inactive peer projection.
+`--history-wait-seconds` (default10) and `--history-wait-interval` (default0.1)
+parameterize this diagnostic within the original capture deadline; they do not
+increase it. The private fixture wrapper forwards the same options. Timeout,
+source changes or missing native proof fail the checked marker and preserve raw
+evidence. No repeated attachment, full-state export loop, model read or prompt is
+performed while waiting. The phase records `history_wait` alongside its single
+state export; wait cost lies in the preceding physical switch interval.
+
+Current239 resource DTOs include the original PresentationBudget, widget/source
+limits, eviction/pending state, outer materialized costs and each owner's existing
+BodyMeasurement and retained resource cost. These are diagnostic reads, not
+parallel counters. They require that reviewed owner contract: no fallback for an
+older measurement tuple and no production buffer override is installed by capture.
+
 `warm-scroll-review.json` reports source/editor/window identity, reader position,
 draft text, actual Undo result and ready body resources across return. Native
 checks and physical review remain separate: a retained window or body identity

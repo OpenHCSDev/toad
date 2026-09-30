@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import math
 from pathlib import Path
 import subprocess
 import time
@@ -21,11 +22,20 @@ def main():
     parser.add_argument("--gil", action="store_true")
     parser.add_argument("--native", action="store_true")
     parser.add_argument("--state", action="store_true", help="Export loaded DTOs using CPython 3.14 remote_exec")
+    parser.add_argument("--wait-history-seconds", type=float, default=0,
+                        help="Before state export, await selected visible saved history and native writer receipt")
+    parser.add_argument("--wait-history-interval", type=float, default=.1,
+                        help="Bounded native diagnostic observation interval; no repeated attach/export")
     parser.add_argument("--screen", action="store_true", help="Export through Textual's screenshot API")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.state or args.screen):
         parser.error("Choose --profile-seconds, --state, or --screen")
+    if (not math.isfinite(args.wait_history_seconds) or args.wait_history_seconds < 0
+            or not math.isfinite(args.wait_history_interval) or args.wait_history_interval <= 0):
+        parser.error("History wait budget must be nonnegative and observation interval positive")
+    if args.wait_history_seconds and not args.state:
+        parser.error("Visible history waiting requires --state")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
     args.output_dir = args.output_dir.expanduser().resolve()
@@ -55,7 +65,11 @@ def main():
             script = Path(str(prefix) + "-remote.py")
             lines = ["import importlib.util as _capture_import"]
             receipts = []
-            for enabled, module, suffix in ((args.state, "capture_state", "state"), (args.screen, "capture_screen", "screen")):
+            for enabled, module, suffix, options in (
+                (args.state, "capture_state", "state",
+                 f", wait_history_seconds={args.wait_history_seconds!r}, wait_interval={args.wait_history_interval!r}"),
+                (args.screen, "capture_screen", "screen", ""),
+            ):
                 if not enabled:
                     continue
                 output = str(prefix) + "-" + suffix
@@ -63,7 +77,7 @@ def main():
                     f"_spec = _capture_import.spec_from_file_location({module!r}, {str(tools / (module + '.py'))!r})",
                     "_module = _capture_import.module_from_spec(_spec)",
                     "_spec.loader.exec_module(_module)",
-                    f"_module.capture(expected_pid={args.pid}, output_prefix={output!r})",
+                    f"_module.capture(expected_pid={args.pid}, output_prefix={output!r}{options})",
                 ))
                 receipts.append(output)
             fd = os.open(script, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -71,7 +85,7 @@ def main():
                 output.write("\n".join(lines) + "\n")
             subprocess.run([*privilege, executable, "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = time.monotonic() + 20
+            deadline = time.monotonic() + args.wait_history_seconds + 20
             while time.monotonic() < deadline and not all(
                     Path(path + ".json").exists() or Path(path + "-error.json").exists() for path in receipts):
                 time.sleep(.1)

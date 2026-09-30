@@ -1,6 +1,6 @@
 """Read-only DTO capture of an authorized live Toad; no owner RPCs or UI input."""
 
-def capture(*, expected_pid, output_prefix):
+def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -38,6 +38,56 @@ def capture(*, expected_pid, output_prefix):
                     break
         if app is None:
             raise RuntimeError("No application context")
+        if wait_history_seconds:
+            from toad.frame_presentation import FrameFlush
+
+            mode = app.selected_mode
+
+            def visible_history_ready():
+                if app.selected_mode != mode:
+                    raise RuntimeError("Selected source changed during visible-history observation")
+                view = app.workspace_sessions.views[mode]
+                window = view.query_one_optional(HistoryWindow)
+                if window is None or window.history_mutating() or window.history_lock.locked():
+                    return False
+                screen = window.screen
+                visible = screen._compositor.visible_widgets
+                return (screen.is_current and window in visible
+                        and any(history in visible and history.pages for history in window.histories)
+                        and any(body in visible and body.body_ready for body in window.document_viewport.owners)
+                        and window.document_viewport.visible_bodies_ready
+                        and screen.frame_presentation.ready)
+
+            async def wait_and_capture():
+                try:
+                    async with asyncio.timeout(wait_history_seconds):
+                        while True:
+                            if visible_history_ready():
+                                written = asyncio.get_running_loop().create_future()
+
+                                def acknowledge():
+                                    if not written.done():
+                                        written.set_result(None)
+
+                                app.call_after_refresh(
+                                    lambda: FrameFlush.for_driver(app._driver).submit(acknowledge))
+                                await written
+                                if visible_history_ready():
+                                    write_json(prefix + "-wait.json", {
+                                        "pid": expected_pid, "mode": mode,
+                                        "elapsed_ms": (time.monotonic_ns() - started) / 1e6,
+                                        "visible_saved_history_written": True,
+                                    })
+                                    capture(expected_pid=expected_pid, output_prefix=output_prefix)
+                                    return
+                            # One bounded diagnostic task observes native owners;
+                            # no repeated attachment, exported snapshots or model reads.
+                            await asyncio.sleep(wait_interval)
+                except Exception:
+                    write_json(prefix + "-error.json", {"error": traceback.format_exc()})
+
+            asyncio.create_task(wait_and_capture(), name="toad-authorized-visible-history-wait")
+            return
         namespace = vars(app)
         stacks = tuple((name, (view,)) for name, view in app.workspace_sessions.views.items())
         payload = {"schema": 1, "views": [], "sidebar_snapshot": namespace.get("_sidebar_snapshot")}
@@ -245,7 +295,19 @@ def capture(*, expected_pid, output_prefix):
                         if manager is not None:
                             visible = visible_regions
                             owners = tuple(manager.owners)
+                            outer = tuple(body for body in owners
+                                          if not any(parent in manager.owners for parent in body.ancestors))
                             window["body_resources"] = {
+                                "budget": asdict(manager.budget),
+                                "widget_limit": manager.budget.widget_limit(node.size.height),
+                                "source_byte_limit": node.app.preparation.max_bytes,
+                                "body_evictions": manager.body_evictions,
+                                "pending": manager._pending,
+                                "outer_owner_count": len(outer),
+                                "outer_materialized_widgets": sum(1 + len(body.walk_children())
+                                                                   for body in outer if not body.body_dormant),
+                                "outer_materialized_source_bytes": sum(body.retained_source_bytes
+                                                                        for body in outer if not body.body_dormant),
                                 "registered": len(owners),
                                 "dormant": sum(body.body_dormant for body in owners),
                                 "visible": sum(body in visible for body in owners),
@@ -254,7 +316,12 @@ def capture(*, expected_pid, output_prefix):
                                 "suspended": manager._suspended,
                                 "owners": [{**node_identity(body), "ready": body.body_ready,
                                             "dormant": body.body_dormant, "visible": body in visible,
-                                            "measured_rows": body.measured_rows}
+                                            "measured_rows": body.measured_rows,
+                                            "retained_widget_count": body.retained_widget_count,
+                                            "native_widget_count": 1 + len(body.walk_children()),
+                                            "retained_source_bytes": body.retained_source_bytes,
+                                            "measurement": (asdict(body._body_measurement)
+                                                            if body._body_measurement is not None else None)}
                                            for body in owners],
                             }
                         view["history_windows"].append(window)
