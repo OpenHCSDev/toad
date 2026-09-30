@@ -154,3 +154,17 @@ The driver now uses the existing `send_message` boundary. That first attempt's
 FULL reservation, engaged wake and pending obligation remain preserved; it
 was not retried. The immediate-return check requires an AssistantTranscript,
 so a newly echoed user prompt cannot falsely satisfy the reply condition.
+
+The next paired checkpoint consumes #430's declaration-owned
+`TranscriptReadIdentity.content_identity` as the existing preparation work key.
+The full original read identity still carries annotations for notification and
+activity publication. No consumer reconstructs that key or stores another
+revision. The existing installed-reader journey checks a registry annotation,
+then requests the canonical page again without increasing the source read count.
+This extension is pending its paired installed run.
+
+Combined production delta against `7e4465c7` at the real02 checkpoint: 149 lines
+deleted, 351 added, including integrated peer #217 scope. The earlier 112/260
+count describes the pre-#217 checkpoint, not this full cohort. The full cohort
+ratchet identifies two added #217 foreign absence probes; Heisenberg owns their
+capability closure and neither is waived.

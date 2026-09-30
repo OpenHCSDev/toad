@@ -25,10 +25,10 @@ class NativeTranscriptReadWork(ScopedWork[TranscriptPage],
 
     @property
     def work_key(self) -> WorkKey:
-        # The canonical owner already supplies a frozen semantic identity.
-        # Pickle bytes include incidental object-sharing and transient fields;
-        # equal source snapshots must name the same preparation work.
-        return WorkKey(NativeTranscriptReadWork, self.read.identity)
+        # The source owner names page content independently of annotations.
+        # Notification/reader changes refresh their projections without causing
+        # another native history read or inventing a second source identity.
+        return WorkKey(NativeTranscriptReadWork, self.read.identity.content_identity)
 
     def prepare(self) -> TranscriptPage:
         return self.read.read()

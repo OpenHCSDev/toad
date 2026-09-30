@@ -135,8 +135,11 @@ async def main():
             # changing this original content. Its published page stays admitted.
             reader.registry.register(replace(reader.registry.require("fixture"), title="Annotation changed"))
             assert not read.current() and read.content_current()
+            annotation_read = reader.transcripts.capture_page_read("fixture")
+            assert NativeTranscriptReadWork(read).work_key == NativeTranscriptReadWork(annotation_read).work_key
             annotated = await attachments[0].controller.transcripts.publication(decoded)
             assert annotated.page == snapshot.page
+            assert await attachments[0].get_transcript_page() == snapshot.page
             assert reader.transcripts.page_reads == before, "Annotations reread original content"
             source.write_text(source.read_text() + record("three", "Changed after publication"))
             current = await attachments[0].controller.transcripts.publication(decoded)
