@@ -1,0 +1,46 @@
+{
+  "state": "STAGED_NOT_DEFAULT_NO_UI_STARTED",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "packages": {
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+        "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+      }
+    },
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "c468dd4c580afc2f39999a0d7bb0faef300fbad0",
+        "requested_revision": "c468dd4c580afc2f39999a0d7bb0faef300fbad0"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+        "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      }
+    }
+  },
+  "installed_distributions": 68,
+  "core": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+  "toad": "c468dd4c580afc2f39999a0d7bb0faef300fbad0",
+  "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+  "sdk": "0.12.1",
+  "python": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/python",
+  "source_sha256": {
+    "widgets/viewport_body.py": "8e8833c04e2054637d09b2177d11ddb5401b3631773de972a5dfb52e1f49e3af",
+    "widgets/presentation_window.py": "1dba4f0385594b01196f0d082ec6c0db00e735aa2bbd451335c730ed9f9ba470",
+    "widgets/transcript_history.py": "f1e0e67709f4be7ed51ea4848187ab5c205fe8e57eb9bcdc16f4a3e990904634",
+    "widgets/prepared_markdown.py": "0c81b418aca5a6ee3bf42eafc1d5c659acaa087e65b2fdabc837536120afb949",
+    "widgets/streaming_markdown.py": "e9a291b5e2f3154737fdf902735677ef8e3ac66a7f059aad222fc1cfcd2a2a98"
+  },
+  "private_root_current_codec_read": true,
+  "root_id": "a8721aff676b4f6880c82e79f4a5dc21",
+  "native_full_tree_verified": true
+}

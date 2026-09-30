@@ -1,0 +1,495 @@
+{
+  "scope": "Ready useful bounded-admission source checkpoint; not full warm/CPU/TC1/T9 or new default pair readiness",
+  "packaged_toad": "c468dd4c580afc2f39999a0d7bb0faef300fbad0",
+  "production_source": "fe8f4dc5",
+  "current_main_integrated": "308deb818152c104a77f5b0f0e2675a5c13955fa",
+  "all_production_bytes_identical_to_installed_candidate": true,
+  "installed_core": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+  "installed_textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+  "installed_sdk": "0.12.1",
+  "installed_native": "e36a1dde326b7017",
+  "inherited_main_core_pin": "a80c15025624eec3ed6bd93ef6173cfb66a193b6",
+  "new_pair_readiness": "Not tested; parent owns upcoming a80/Toadfinal/Text2e/SDK12.1/ceca global entrypoint gate",
+  "completed": true,
+  "duration_seconds": 84.90120834598201,
+  "driver_exit": 0,
+  "ffmpeg_returncode": 255,
+  "ffmpeg_255": "Normal SIGINT capture termination; not application failure",
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "selected_peer_written": {
+    "pid": 3493542,
+    "mode": "session-2",
+    "thread": "resource236b",
+    "elapsed_ms": 4740.166337,
+    "visible_saved_history_written": true
+  },
+  "native_inputs": 0,
+  "public_owner_restarts": 0,
+  "midcompaction": "Not exercised: no active compaction; no provider prompt sent",
+  "raw": "/home/ts/.cache/agent-scratch/toad-bounded-admission-239-20260930-attempt02/capture",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3493470,
+        "start_ticks": 25914163,
+        "returncode": 0
+      },
+      {
+        "pid": 3493479,
+        "start_ticks": 25914238,
+        "returncode": 0
+      },
+      {
+        "pid": 3493485,
+        "start_ticks": 25914247,
+        "returncode": 0
+      },
+      {
+        "pid": 3493538,
+        "start_ticks": 25914290,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3493542,
+        "start_ticks": 25914296,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3493547,
+        "start_ticks": 25914304,
+        "returncode": 0
+      },
+      {
+        "pid": 3493549,
+        "start_ticks": 25914315,
+        "returncode": 0
+      },
+      {
+        "pid": 3493558,
+        "start_ticks": 25914326,
+        "returncode": 0
+      },
+      {
+        "pid": 3493559,
+        "start_ticks": 25914337,
+        "returncode": 255
+      },
+      {
+        "pid": 3493946,
+        "start_ticks": 25915539,
+        "returncode": 0
+      },
+      {
+        "pid": 3493951,
+        "start_ticks": 25915561,
+        "returncode": 0
+      },
+      {
+        "pid": 3493957,
+        "start_ticks": 25915597,
+        "returncode": 0
+      },
+      {
+        "pid": 3493981,
+        "start_ticks": 25915725,
+        "returncode": 0
+      },
+      {
+        "pid": 3493987,
+        "start_ticks": 25915807,
+        "returncode": 0
+      },
+      {
+        "pid": 3494068,
+        "start_ticks": 25915959,
+        "returncode": 0
+      },
+      {
+        "pid": 3494207,
+        "start_ticks": 25916172,
+        "returncode": 0
+      },
+      {
+        "pid": 3494220,
+        "start_ticks": 25916294,
+        "returncode": 0
+      },
+      {
+        "pid": 3494226,
+        "start_ticks": 25916376,
+        "returncode": 0
+      },
+      {
+        "pid": 3494260,
+        "start_ticks": 25916500,
+        "returncode": 0
+      },
+      {
+        "pid": 3494274,
+        "start_ticks": 25916610,
+        "returncode": 0
+      },
+      {
+        "pid": 3494310,
+        "start_ticks": 25916745,
+        "returncode": 0
+      },
+      {
+        "pid": 3494311,
+        "start_ticks": 25916756,
+        "returncode": 0
+      },
+      {
+        "pid": 3494526,
+        "start_ticks": 25917170,
+        "returncode": 0
+      },
+      {
+        "pid": 3494527,
+        "start_ticks": 25917184,
+        "returncode": 0
+      },
+      {
+        "pid": 3494540,
+        "start_ticks": 25917322,
+        "returncode": 0
+      },
+      {
+        "pid": 3494586,
+        "start_ticks": 25917455,
+        "returncode": 0
+      },
+      {
+        "pid": 3494587,
+        "start_ticks": 25917466,
+        "returncode": 0
+      },
+      {
+        "pid": 3494618,
+        "start_ticks": 25917880,
+        "returncode": 0
+      },
+      {
+        "pid": 3494619,
+        "start_ticks": 25917890,
+        "returncode": 0
+      },
+      {
+        "pid": 3494733,
+        "start_ticks": 25918028,
+        "returncode": 0
+      },
+      {
+        "pid": 3494826,
+        "start_ticks": 25918151,
+        "returncode": 0
+      },
+      {
+        "pid": 3494827,
+        "start_ticks": 25918165,
+        "returncode": 0
+      },
+      {
+        "pid": 3494840,
+        "start_ticks": 25918578,
+        "returncode": 0
+      },
+      {
+        "pid": 3494841,
+        "start_ticks": 25918590,
+        "returncode": 0
+      },
+      {
+        "pid": 3494865,
+        "start_ticks": 25918723,
+        "returncode": 0
+      },
+      {
+        "pid": 3494878,
+        "start_ticks": 25918858,
+        "returncode": 0
+      },
+      {
+        "pid": 3494880,
+        "start_ticks": 25918872,
+        "returncode": 0
+      },
+      {
+        "pid": 3494950,
+        "start_ticks": 25918983,
+        "returncode": 0
+      },
+      {
+        "pid": 3495079,
+        "start_ticks": 25919105,
+        "returncode": 0
+      },
+      {
+        "pid": 3495297,
+        "start_ticks": 25920620,
+        "returncode": 0
+      },
+      {
+        "pid": 3495310,
+        "start_ticks": 25920745,
+        "returncode": 0
+      },
+      {
+        "pid": 3495338,
+        "start_ticks": 25920889,
+        "returncode": 0
+      },
+      {
+        "pid": 3495415,
+        "start_ticks": 25920976,
+        "returncode": 0
+      },
+      {
+        "pid": 3495528,
+        "start_ticks": 25921585,
+        "returncode": 0
+      },
+      {
+        "pid": 3495561,
+        "start_ticks": 25921718,
+        "returncode": 0
+      },
+      {
+        "pid": 3495567,
+        "start_ticks": 25921804,
+        "returncode": 0
+      },
+      {
+        "pid": 3495640,
+        "start_ticks": 25922016,
+        "returncode": 0
+      },
+      {
+        "pid": 3495733,
+        "start_ticks": 25922148,
+        "returncode": 0
+      },
+      {
+        "pid": 3495747,
+        "start_ticks": 25922230,
+        "returncode": 0
+      },
+      {
+        "pid": 3495749,
+        "start_ticks": 25922243,
+        "returncode": 0
+      },
+      {
+        "pid": 3495841,
+        "start_ticks": 25922453,
+        "returncode": 0
+      },
+      {
+        "pid": 3495891,
+        "start_ticks": 25922773,
+        "returncode": 0
+      },
+      {
+        "pid": 3495896,
+        "start_ticks": 25922793,
+        "returncode": 0
+      },
+      {
+        "pid": 3495902,
+        "start_ticks": 25922861,
+        "returncode": 0
+      },
+      {
+        "pid": 3495911,
+        "start_ticks": 25922938,
+        "returncode": 0
+      },
+      {
+        "pid": 3496080,
+        "start_ticks": 25923186,
+        "returncode": 0
+      }
+    ]
+  },
+  "physical_review": [
+    "Completed Up/Down/reverse/End/idle/B/A-return/Undo PNGs readable",
+    "A-return six-second physical contact sheet at 4fps: chat remained readable during tab switch",
+    "Kepler same-run 15fps physical cells: forward Down progression, no full-body blank in sampled cells; insufficient for 33ms gap exclusion"
+  ],
+  "residuals": [
+    "Global held/idle CPU approximately unchanged from matched23603",
+    "Cold B required 4740ms observer wait; not a first-paint speed claim",
+    "Session details says Saved history not loaded after A return despite retained readable history; canonical consumer followup required",
+    "Full60fps partial-gap/firstpaint/velocity/memory/editor/TC1/T9 acceptance remains open"
+  ],
+  "kernel_ui_cpu": [
+    {
+      "phase": "up",
+      "video_start_seconds": 23.129945544991642,
+      "video_end_seconds": 28.90280081599485,
+      "cpu": {
+        "pid": "3493542",
+        "cpu_seconds": 4.67,
+        "average_cpu_percent": 80.89584409741222
+      }
+    },
+    {
+      "phase": "down",
+      "video_start_seconds": 30.239251566992607,
+      "video_end_seconds": 35.985682343976805,
+      "cpu": {
+        "pid": "3493542",
+        "cpu_seconds": 4.6,
+        "average_cpu_percent": 80.04968959904777
+      }
+    },
+    {
+      "phase": "reverse",
+      "video_start_seconds": 37.31203221497708,
+      "video_end_seconds": 42.96969945100136,
+      "cpu": {
+        "pid": "3493542",
+        "cpu_seconds": 4.66,
+        "average_cpu_percent": 82.36610259310063
+      }
+    },
+    {
+      "phase": "idle",
+      "video_start_seconds": 46.87594534197706,
+      "video_end_seconds": 63.21163179399446,
+      "cpu": {
+        "pid": "3493542",
+        "cpu_seconds": 1.6099999999999994,
+        "average_cpu_percent": 9.855722958009947
+      }
+    },
+    {
+      "phase": "return-a",
+      "video_start_seconds": 72.88601789198583,
+      "video_end_seconds": 77.17189222498564,
+      "cpu": {
+        "pid": "3493542",
+        "cpu_seconds": 0.9600000000000009,
+        "average_cpu_percent": 22.39916351742559
+      }
+    }
+  ],
+  "native_resources": {
+    "up-done": {
+      "mode": "session-1",
+      "loaded_pages": 3,
+      "scroll_y": 108.15526510817625,
+      "maximum": 475,
+      "outer_materialized_widgets": 127,
+      "widget_limit": 310,
+      "body_evictions": 7,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "down-done": {
+      "mode": "session-1",
+      "loaded_pages": 3,
+      "scroll_y": 109,
+      "maximum": 170,
+      "outer_materialized_widgets": 175,
+      "widget_limit": 310,
+      "body_evictions": 7,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "reverse-done": {
+      "mode": "session-1",
+      "loaded_pages": 5,
+      "scroll_y": 111,
+      "maximum": 415,
+      "outer_materialized_widgets": 154,
+      "widget_limit": 310,
+      "body_evictions": 11,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "idle": {
+      "mode": "session-1",
+      "loaded_pages": 3,
+      "scroll_y": 108,
+      "maximum": 108,
+      "outer_materialized_widgets": 145,
+      "widget_limit": 310,
+      "body_evictions": 11,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "idle-done": {
+      "mode": "session-1",
+      "loaded_pages": 3,
+      "scroll_y": 108,
+      "maximum": 108,
+      "outer_materialized_widgets": 145,
+      "widget_limit": 310,
+      "body_evictions": 11,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "b-open": {
+      "mode": "session-2",
+      "loaded_pages": 1,
+      "scroll_y": 59,
+      "maximum": 59,
+      "outer_materialized_widgets": 96,
+      "widget_limit": 310,
+      "body_evictions": 0,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "a-return": {
+      "mode": "session-1",
+      "loaded_pages": 3,
+      "scroll_y": 108,
+      "maximum": 108,
+      "outer_materialized_widgets": 145,
+      "widget_limit": 310,
+      "body_evictions": 11,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    },
+    "undo": {
+      "mode": "session-1",
+      "loaded_pages": 3,
+      "scroll_y": 108,
+      "maximum": 108,
+      "outer_materialized_widgets": 145,
+      "widget_limit": 310,
+      "body_evictions": 11,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0
+    }
+  }
+}

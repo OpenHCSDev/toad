@@ -1,0 +1,10 @@
+{
+  "before_native_strips": 8,
+  "identical_return_strips": 8,
+  "same_conversation": true,
+  "same_native_children": true,
+  "draft": "warm",
+  "peer": "session-2",
+  "content_invalidates_original_paint": true,
+  "resize_invalidates_paint": true
+}

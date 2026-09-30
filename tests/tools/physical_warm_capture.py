@@ -16,6 +16,8 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--session", required=True)
     parser.add_argument("--peer-thread", required=True)
+    parser.add_argument("--history-wait-seconds", type=float, default=10)
+    parser.add_argument("--history-wait-interval", type=float, default=.1)
     args = parser.parse_args()
     base = args.output.resolve()
     if not base.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
@@ -29,6 +31,8 @@ def main():
     common = [str(runtime / "python"), str(recorder), "--journey", "warm_scroll",
               "--peer-thread", args.peer_thread, "--capture-state",
               "--scroll-hold-seconds", "4", "--scroll-idle-seconds", "15",
+              "--history-wait-seconds", str(args.history_wait_seconds),
+              "--history-wait-interval", str(args.history_wait_interval),
               "--max-duration", "100"]
     actions = base / "actions.xdo"
     command = [*common, "--private-root", environment["AGENT_COMMS_ROOT"],

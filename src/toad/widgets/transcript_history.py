@@ -207,7 +207,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     async def retire_body(self) -> bool:
         if not self.body_ready or self._body_measurement is None:
             return False
-        self._body_dormant = True
+        self.retire_measurement()
         await self.remove_children()
         self.refresh(layout=True)
         return True

@@ -1,0 +1,506 @@
+{
+  "runtime_to_admit": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin",
+    "launcher": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/toad",
+    "launcher_sha256": "4a593a06be5b183465aec870d11a01993451111bcaad2042fc5b6198f5adeb2b",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/toad",
+        "sha256": "4a593a06be5b183465aec870d11a01993451111bcaad2042fc5b6198f5adeb2b"
+      },
+      "acp": {
+        "selected_path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/agent-comms-acp",
+        "sha256": "1cc140b387d1815dea4816ee444d42c965b4da9e8e7d44eb8e623ea324dd99d2"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/toad",
+        "sha256": "4a593a06be5b183465aec870d11a01993451111bcaad2042fc5b6198f5adeb2b"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/agent-comms-acp",
+        "sha256": "1cc140b387d1815dea4816ee444d42c965b4da9e8e7d44eb8e623ea324dd99d2"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/activation.json",
+    "activation_sha256": "b471ea6ccdf8e0a9832ee482dbedab11e63033ab25800502d81b9b86f8dec4e0",
+    "activation": {
+      "state": "STAGED_NOT_DEFAULT_NO_UI_STARTED",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "packages": {
+        "agent-comms": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+            "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+          }
+        },
+        "batrachian-toad": {
+          "url": "https://github.com/OpenHCSDev/toad.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "c468dd4c580afc2f39999a0d7bb0faef300fbad0",
+            "requested_revision": "c468dd4c580afc2f39999a0d7bb0faef300fbad0"
+          }
+        },
+        "textual": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+            "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+          }
+        }
+      },
+      "installed_distributions": 68,
+      "core": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+      "toad": "c468dd4c580afc2f39999a0d7bb0faef300fbad0",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+      "sdk": "0.12.1",
+      "python": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/python",
+      "source_sha256": {
+        "widgets/viewport_body.py": "8e8833c04e2054637d09b2177d11ddb5401b3631773de972a5dfb52e1f49e3af",
+        "widgets/presentation_window.py": "1dba4f0385594b01196f0d082ec6c0db00e735aa2bbd451335c730ed9f9ba470",
+        "widgets/transcript_history.py": "f1e0e67709f4be7ed51ea4848187ab5c205fe8e57eb9bcdc16f4a3e990904634",
+        "widgets/prepared_markdown.py": "0c81b418aca5a6ee3bf42eafc1d5c659acaa087e65b2fdabc837536120afb949",
+        "widgets/streaming_markdown.py": "e9a291b5e2f3154737fdf902735677ef8e3ac66a7f059aad222fc1cfcd2a2a98"
+      },
+      "private_root_current_codec_read": true,
+      "root_id": "a8721aff676b4f6880c82e79f4a5dc21",
+      "native_full_tree_verified": true
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/bin/python",
+      "prefix": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "b93b342c29e9732daff12d9d04f6e6f6eb2724010a6dbda929a88c1e920c2a86",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "c468dd4c580afc2f39999a0d7bb0faef300fbad0",
+              "requested_revision": "c468dd4c580afc2f39999a0d7bb0faef300fbad0"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-workspace-warm-raster-followup-20260930/.artifacts/installed-bounded-admission-239/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "56a84c4af864b02cc337688b8c5a378a2fc931e7a080a785023e207858593d2c",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+              "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+        "wire_root_id": "a8721aff676b4f6880c82e79f4a5dc21",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "capture_completed": true,
+  "combined_completed": false,
+  "driver_exit": 1,
+  "capture_returncode": 255,
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": false,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3477876,
+        "start_ticks": 25850968,
+        "returncode": 0
+      },
+      {
+        "pid": 3477879,
+        "start_ticks": 25851046,
+        "returncode": 0
+      },
+      {
+        "pid": 3477923,
+        "start_ticks": 25851056,
+        "returncode": 0
+      },
+      {
+        "pid": 3477985,
+        "start_ticks": 25851100,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3477986,
+        "start_ticks": 25851107,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3477993,
+        "start_ticks": 25851113,
+        "returncode": 0
+      },
+      {
+        "pid": 3478000,
+        "start_ticks": 25851123,
+        "returncode": 0
+      },
+      {
+        "pid": 3478001,
+        "start_ticks": 25851133,
+        "returncode": 0
+      },
+      {
+        "pid": 3478003,
+        "start_ticks": 25851143,
+        "returncode": 255
+      },
+      {
+        "pid": 3478368,
+        "start_ticks": 25852345,
+        "returncode": 0
+      },
+      {
+        "pid": 3478374,
+        "start_ticks": 25852373,
+        "returncode": 0
+      },
+      {
+        "pid": 3478379,
+        "start_ticks": 25852418,
+        "returncode": 0
+      },
+      {
+        "pid": 3478392,
+        "start_ticks": 25852551,
+        "returncode": 0
+      },
+      {
+        "pid": 3478409,
+        "start_ticks": 25852634,
+        "returncode": 0
+      },
+      {
+        "pid": 3478412,
+        "start_ticks": 25852787,
+        "returncode": 0
+      },
+      {
+        "pid": 3478491,
+        "start_ticks": 25853000,
+        "returncode": 0
+      },
+      {
+        "pid": 3478583,
+        "start_ticks": 25853138,
+        "returncode": 0
+      },
+      {
+        "pid": 3478589,
+        "start_ticks": 25853215,
+        "returncode": 0
+      },
+      {
+        "pid": 3478602,
+        "start_ticks": 25853354,
+        "returncode": 0
+      },
+      {
+        "pid": 3478613,
+        "start_ticks": 25853467,
+        "returncode": 0
+      },
+      {
+        "pid": 3478627,
+        "start_ticks": 25853599,
+        "returncode": 0
+      },
+      {
+        "pid": 3478639,
+        "start_ticks": 25853610,
+        "returncode": 0
+      },
+      {
+        "pid": 3478806,
+        "start_ticks": 25854024,
+        "returncode": 0
+      },
+      {
+        "pid": 3478807,
+        "start_ticks": 25854038,
+        "returncode": 0
+      },
+      {
+        "pid": 3478899,
+        "start_ticks": 25854176,
+        "returncode": 0
+      },
+      {
+        "pid": 3478915,
+        "start_ticks": 25854313,
+        "returncode": 0
+      },
+      {
+        "pid": 3478916,
+        "start_ticks": 25854324,
+        "returncode": 0
+      },
+      {
+        "pid": 3478941,
+        "start_ticks": 25854737,
+        "returncode": 0
+      },
+      {
+        "pid": 3478942,
+        "start_ticks": 25854748,
+        "returncode": 0
+      },
+      {
+        "pid": 3478955,
+        "start_ticks": 25854886,
+        "returncode": 0
+      },
+      {
+        "pid": 3479072,
+        "start_ticks": 25855012,
+        "returncode": 0
+      },
+      {
+        "pid": 3479073,
+        "start_ticks": 25855023,
+        "returncode": 0
+      },
+      {
+        "pid": 3479160,
+        "start_ticks": 25855437,
+        "returncode": 0
+      },
+      {
+        "pid": 3479162,
+        "start_ticks": 25855451,
+        "returncode": 0
+      },
+      {
+        "pid": 3479183,
+        "start_ticks": 25855581,
+        "returncode": 0
+      },
+      {
+        "pid": 3479211,
+        "start_ticks": 25855707,
+        "returncode": 0
+      },
+      {
+        "pid": 3479212,
+        "start_ticks": 25855717,
+        "returncode": 0
+      },
+      {
+        "pid": 3479230,
+        "start_ticks": 25855830,
+        "returncode": 0
+      },
+      {
+        "pid": 3479317,
+        "start_ticks": 25855963,
+        "returncode": 0
+      },
+      {
+        "pid": 3479622,
+        "start_ticks": 25857476,
+        "returncode": 0
+      },
+      {
+        "pid": 3479657,
+        "start_ticks": 25857612,
+        "returncode": 0
+      },
+      {
+        "pid": 3479670,
+        "start_ticks": 25857753,
+        "returncode": 0
+      },
+      {
+        "pid": 3479676,
+        "start_ticks": 25857840,
+        "returncode": 0
+      },
+      {
+        "pid": 3479783,
+        "start_ticks": 25857984,
+        "returncode": 0
+      },
+      {
+        "pid": 3479888,
+        "start_ticks": 25858122,
+        "returncode": 0
+      },
+      {
+        "pid": 3479894,
+        "start_ticks": 25858206,
+        "returncode": 0
+      },
+      {
+        "pid": 3479898,
+        "start_ticks": 25858417,
+        "returncode": 0
+      },
+      {
+        "pid": 3479911,
+        "start_ticks": 25858562,
+        "returncode": 0
+      },
+      {
+        "pid": 3479936,
+        "start_ticks": 25858648,
+        "returncode": 0
+      },
+      {
+        "pid": 3479937,
+        "start_ticks": 25858660,
+        "returncode": 0
+      },
+      {
+        "pid": 3479940,
+        "start_ticks": 25858873,
+        "returncode": 0
+      },
+      {
+        "pid": 3480125,
+        "start_ticks": 25859201,
+        "returncode": 0
+      },
+      {
+        "pid": 3480131,
+        "start_ticks": 25859230,
+        "returncode": 0
+      },
+      {
+        "pid": 3480139,
+        "start_ticks": 25859317,
+        "returncode": 0
+      },
+      {
+        "pid": 3480141,
+        "start_ticks": 25859392,
+        "returncode": 0
+      },
+      {
+        "pid": 3480160,
+        "start_ticks": 25859661,
+        "returncode": 0
+      }
+    ]
+  },
+  "native_inputs": 0,
+  "public_owner_restarts": 0,
+  "midcompaction": "Not exercised: no active compaction and no provider inputs sent",
+  "raw": "/home/ts/.cache/agent-scratch/toad-bounded-admission-239-20260930-attempt01/capture",
+  "video_seconds": 81.16710265199072,
+  "physical_completed_frames": "Inspected Up: readable; down/reverse/End/Areturn assessment pending",
+  "baseline_cpu_comparison": "Held/idle UI CPU approximately unchanged; no global CPU improvement claim",
+  "kernel_ui_cpu": [
+    {
+      "phase": "up",
+      "video_start_seconds": 23.624309031001758,
+      "video_end_seconds": 29.37181832001079,
+      "cpu": {
+        "pid": "3477986",
+        "cpu_seconds": 4.76,
+        "average_cpu_percent": 82.81848294012423
+      }
+    },
+    {
+      "phase": "down",
+      "video_start_seconds": 30.723957779991906,
+      "video_end_seconds": 36.46874072001083,
+      "cpu": {
+        "pid": "3477986",
+        "cpu_seconds": 4.579999999999998,
+        "average_cpu_percent": 79.72450913845863
+      }
+    },
+    {
+      "phase": "reverse",
+      "video_start_seconds": 37.81827592299669,
+      "video_end_seconds": 43.48249602000578,
+      "cpu": {
+        "pid": "3477986",
+        "cpu_seconds": 4.609999999999999,
+        "average_cpu_percent": 81.38808028371358
+      }
+    },
+    {
+      "phase": "idle",
+      "video_start_seconds": 47.26609838500735,
+      "video_end_seconds": 63.75505407599849,
+      "cpu": {
+        "pid": "3477986",
+        "cpu_seconds": 1.6600000000000001,
+        "average_cpu_percent": 10.06734465850347
+      }
+    },
+    {
+      "phase": "return-a",
+      "video_start_seconds": 68.83457010501297,
+      "video_end_seconds": 73.16343474501627,
+      "cpu": {
+        "pid": "3477986",
+        "cpu_seconds": 0.9200000000000017,
+        "average_cpu_percent": 21.252685785049167
+      }
+    }
+  ],
+  "limits": [
+    "Cold-B observer certified still-A readiness before pending selection; peer_selected assertion remains FAIL",
+    "This receipt does not certify global warm first paint, transient gaps or CPU closure"
+  ]
+}
