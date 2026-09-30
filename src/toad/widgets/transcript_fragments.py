@@ -7,7 +7,7 @@ from threading import local
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
-    TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, LiveTextTranscript, ToolTranscript,
+    TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, MarkdownTranscript, ToolTranscript,
 )
 from markdown_it import MarkdownIt
 
@@ -157,7 +157,7 @@ class TranscriptFragmentConsumer(MroDispatch):
         # One lazy disclosure owns the full metadata source.
         self.fragments.append(TranscriptFragment((event,)))
 
-    @handles(UserTranscript, LiveTextTranscript)
+    @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript):
         starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
         self.fragments.extend(

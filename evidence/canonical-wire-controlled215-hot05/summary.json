@@ -1,0 +1,39 @@
+{
+  "phase": "physical_return_2_original_source",
+  "all_views_open_before_send": true,
+  "original": {
+    "seq": 1,
+    "message_id": "e79a6bc24d3e"
+  },
+  "reply": {
+    "seq": 7,
+    "message_id": "0de4fdb52fd8"
+  },
+  "original_target_handling": "Responded",
+  "same_open_observations": 31,
+  "same_open_all_original_counts_one": true,
+  "physical_returns": [
+    {
+      "thread": "beta",
+      "reply_seconds": 11.94696538799326,
+      "sender_count": 1,
+      "recipient_count": 1
+    },
+    {
+      "thread": "alpha",
+      "reply_seconds": 12.491733668022789,
+      "sender_count": 1,
+      "recipient_count": 1
+    },
+    {
+      "thread": "beta",
+      "reply_seconds": 12.53425949200755,
+      "sender_count": 1,
+      "recipient_count": 1
+    }
+  ],
+  "final_assertion": "cold initial UserInput immediately mounted; canonical original user later verified once",
+  "wrapper_exit": 1,
+  "input_replays": 0,
+  "full_journey_ready": false
+}

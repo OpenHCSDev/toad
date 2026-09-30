@@ -1,0 +1,37 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/tests/canonical_wire_retained_real_installed_pilot.py", line 235, in main
+    receiver_app.run_test(size=(160, 44)) as rp, \
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 221, in __aexit__
+    await anext(self.gen)
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/textual/app.py", line 2216, in run_test
+    await app._shutdown()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/textual/app.py", line 3746, in _shutdown
+    await self._close_all()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/app.py", line 334, in _close_all
+    await super()._close_all()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/workspace_sessions.py", line 176, in _close_all
+    await self.workspace_sessions.aclose()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/workspace_sessions.py", line 168, in aclose
+    await view.close_presentation()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/screens/main.py", line 285, in close_presentation
+    await self.presentation.close(self)
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/session_presentation.py", line 162, in close
+    await self.sources.close()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/session_presentation.py", line 129, in close
+    await self.agent.stop()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/acp/agent.py", line 224, in stop
+    await self.process.stop()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/acp/agent_process.py", line 146, in stop
+    await asyncio.gather(self.runner, return_exceptions=True)
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/acp/agent_process.py", line 152, in run
+    await self.communicate()
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/acp/agent_process.py", line 189, in communicate
+    process = self.process = await admitted_spawn(
+                             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/.artifacts/installed-native06/lib/python3.14/site-packages/toad/acp/maintenance_ingress.py", line 204, in admitted_spawn
+    raise asyncio.CancelledError
+asyncio.exceptions.CancelledError

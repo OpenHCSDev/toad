@@ -3,6 +3,8 @@
 The ordinary UI and core wire model are used with fixed saved-history responses.
 This isolates renderer/navigation cost from changing production owner schemas.
 """
+
+from agent_comms.message_reference import MessageReference
 from toad.acp.messages import CommsUpdated
 from runtime_fixture import coordination_update
 
@@ -29,6 +31,7 @@ from agent_comms.transcript_events import (
     ToolEndTranscript,
     ToolStartTranscript,
     UserTranscript,
+    IncomingTranscript,
 )
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from comms_boundary_fixture import coordination_fact
@@ -102,9 +105,9 @@ async def main():
                         AssistantTranscript(
                             f"AGENT_{index}: ordinary assistant text. " * 4
                         ),
-                        UserTranscript(body, routing=TurnRouting((incoming,), None)),
+                        IncomingTranscript(body, route=MessageRoute(incoming.sender, (incoming.target,)), source=incoming.reference),
                         SentTranscript(
-                            f"OUTBOUND_{index}: routed answer. " * 4,
+                            f"OUTBOUND_{index}: routed answer. " * 4, source=MessageReference(index + 1, f"navigation-outbound-{index}"),
                             routing=TurnRouting(
                                 (), MessageRoute("fixture-owner", ("fixture-00",))
                             ),

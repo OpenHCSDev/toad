@@ -1,4 +1,8 @@
 """Compact message geometry and an independent, lazy right-hand thread sidebar."""
+
+from agent_comms.transcript_events import IncomingTranscript
+
+from agent_comms.message_reference import MessageReference
 import asyncio
 import os
 import tempfile
@@ -65,7 +69,7 @@ async def main():
             assert tool.region.y - paragraphs[-1].region.bottom == 1
             assert thought.max_scroll_y == 0
             await view.contents.remove_children()
-            incoming = await view.post(IncomingMessage("peer", "Identical body", "#comms"))
+            incoming = await view.post(IncomingMessage(IncomingTranscript("Identical body", route=MessageRoute("peer", ("#comms",)), source=MessageReference(1, "layout-inbound"))))
             outgoing = await view.post(AgentResponse("Identical body", delivery=ResponseDelivery.from_route(MessageRoute("me", ("#comms",)))))
             await pilot.pause()
             first, second = (incoming.query_one(RouteHeader), outgoing.query_one(RouteHeader))

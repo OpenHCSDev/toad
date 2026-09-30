@@ -1,0 +1,338 @@
+{
+  "original_inputs_retried": 0,
+  "inputs_sent": 0,
+  "native_input_ids_before": [
+    "08906b9a896e4199525293ad3f85efd3",
+    "5ce93ec7e1f8b5b04efd9744156dedba",
+    "7369be8556d0fa876ef6347d0f20c911",
+    "ae772d0dc666e0bc1e3800ea6dadd60c",
+    "c8a68d4c0dbc9fa1df7918c358a05cf4",
+    "d654f320b5d7e472c3527141188651ea",
+    "d877bc2c76368cab9b2d55680a6f25ca"
+  ],
+  "cold_before_scroll": {
+    "canonical_user": {
+      "kind": "user",
+      "routing": null,
+      "source": null,
+      "timestamp": 1790756003.086,
+      "text": "HOT_ORIGINAL_TRIGGER",
+      "native_id": "8654b1c6d6e38830efeb6d2fd943cd9b"
+    },
+    "mounted_user_count": 1,
+    "original_resource": {
+      "view_attached": true,
+      "view_is_selected": true,
+      "mounted_count": 1,
+      "mounted_rows": [
+        {
+          "resource_id": 140137957584528,
+          "ancestors": [
+            {
+              "kind": "TranscriptFragmentView",
+              "resource_id": 140137958468944
+            },
+            {
+              "kind": "TranscriptPageView",
+              "resource_id": 140137958036880
+            },
+            {
+              "kind": "TranscriptHistory",
+              "resource_id": 140137958037200
+            },
+            {
+              "kind": "Contents",
+              "resource_id": 140138389752400
+            },
+            {
+              "kind": "ContentsGrid",
+              "resource_id": 140138389758800
+            },
+            {
+              "kind": "Window",
+              "resource_id": 140138389756880
+            },
+            {
+              "kind": "Conversation",
+              "resource_id": 140138391171024
+            },
+            {
+              "kind": "Vertical",
+              "resource_id": 140138389756560
+            },
+            {
+              "kind": "Center",
+              "resource_id": 140138389743200
+            },
+            {
+              "kind": "MainScreen",
+              "resource_id": 140138391167504
+            },
+            {
+              "kind": "Container",
+              "resource_id": 140138389736816
+            },
+            {
+              "kind": "Horizontal",
+              "resource_id": 140138389736480
+            },
+            {
+              "kind": "WorkspaceScreen",
+              "resource_id": 140138392284736
+            },
+            {
+              "kind": "WindowApp",
+              "resource_id": 140138411144064
+            }
+          ],
+          "history_resources": [
+            {
+              "resource_id": 140137958037200,
+              "registered_here": true,
+              "window_resource_id": 140138389756880,
+              "current_window_resource_id": 140138389756880,
+              "cursor": {
+                "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+                "offset": 5245,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h05/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790755979.197944
+                  },
+                  "sequence": 7
+                }
+              }
+            }
+          ],
+          "region": "Region(x=65, y=-35, width=88, height=7)",
+          "painted": false,
+          "in_viewport": false
+        }
+      ],
+      "source_events": [
+        {
+          "history": "TranscriptHistory",
+          "resource_id": 140137958037200,
+          "cursor": {
+            "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+            "offset": 5245,
+            "receipts": {
+              "root": "/home/ts/wt/cw215h05/private-root/wire",
+              "recipient": {
+                "name": "alpha",
+                "created_at": 1790755979.197944
+              },
+              "sequence": 7
+            }
+          },
+          "resident_pages": [
+            {
+              "before": {
+                "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h05/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790755979.197944
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+                "offset": 5245,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h05/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790755979.197944
+                  },
+                  "sequence": 7
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 14,
+              "fragment_count": 14
+            }
+          ],
+          "matching_events": [
+            "SentTranscript"
+          ]
+        }
+      ]
+    },
+    "categories": [
+      "agent",
+      "thinking",
+      "other",
+      "user",
+      "inbound",
+      "tool",
+      "outbound"
+    ]
+  },
+  "phase": "readonly_cold_complete",
+  "cold_after_scroll": {
+    "native_id": "8654b1c6d6e38830efeb6d2fd943cd9b",
+    "mounted_user_count": 1,
+    "region": "Region(x=65, y=6, width=88, height=3)",
+    "painted": true,
+    "original_resource": {
+      "view_attached": true,
+      "view_is_selected": true,
+      "mounted_count": 1,
+      "mounted_rows": [
+        {
+          "resource_id": 140137957584528,
+          "ancestors": [
+            {
+              "kind": "TranscriptFragmentView",
+              "resource_id": 140137958468944
+            },
+            {
+              "kind": "TranscriptPageView",
+              "resource_id": 140137958036880
+            },
+            {
+              "kind": "TranscriptHistory",
+              "resource_id": 140137958037200
+            },
+            {
+              "kind": "Contents",
+              "resource_id": 140138389752400
+            },
+            {
+              "kind": "ContentsGrid",
+              "resource_id": 140138389758800
+            },
+            {
+              "kind": "Window",
+              "resource_id": 140138389756880
+            },
+            {
+              "kind": "Conversation",
+              "resource_id": 140138391171024
+            },
+            {
+              "kind": "Vertical",
+              "resource_id": 140138389756560
+            },
+            {
+              "kind": "Center",
+              "resource_id": 140138389743200
+            },
+            {
+              "kind": "MainScreen",
+              "resource_id": 140138391167504
+            },
+            {
+              "kind": "Container",
+              "resource_id": 140138389736816
+            },
+            {
+              "kind": "Horizontal",
+              "resource_id": 140138389736480
+            },
+            {
+              "kind": "WorkspaceScreen",
+              "resource_id": 140138392284736
+            },
+            {
+              "kind": "WindowApp",
+              "resource_id": 140138411144064
+            }
+          ],
+          "history_resources": [
+            {
+              "resource_id": 140137958037200,
+              "registered_here": true,
+              "window_resource_id": 140138389756880,
+              "current_window_resource_id": 140138389756880,
+              "cursor": {
+                "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+                "offset": 5245,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h05/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790755979.197944
+                  },
+                  "sequence": 7
+                }
+              }
+            }
+          ],
+          "region": "Region(x=65, y=14, width=88, height=7)",
+          "painted": true,
+          "in_viewport": true
+        }
+      ],
+      "source_events": [
+        {
+          "history": "TranscriptHistory",
+          "resource_id": 140137958037200,
+          "cursor": {
+            "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+            "offset": 5245,
+            "receipts": {
+              "root": "/home/ts/wt/cw215h05/private-root/wire",
+              "recipient": {
+                "name": "alpha",
+                "created_at": 1790755979.197944
+              },
+              "sequence": 7
+            }
+          },
+          "resident_pages": [
+            {
+              "before": {
+                "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+                "offset": 0,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h05/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790755979.197944
+                  },
+                  "sequence": 0
+                }
+              },
+              "after": {
+                "session_file": "/home/ts/wt/cw215h05/application/pi/sessions/--home-ts-wt-cw215h05-application-project--/2026-09-30T08-13-21-723Z_01a0f160-17ba-7795-aec3-e42d8cab11dc.jsonl",
+                "offset": 5245,
+                "receipts": {
+                  "root": "/home/ts/wt/cw215h05/private-root/wire",
+                  "recipient": {
+                    "name": "alpha",
+                    "created_at": 1790755979.197944
+                  },
+                  "sequence": 7
+                }
+              },
+              "first_fragment": 0,
+              "last_fragment": 14,
+              "fragment_count": 14
+            }
+          ],
+          "matching_events": [
+            "SentTranscript"
+          ]
+        }
+      ]
+    }
+  },
+  "application_shutdown": true,
+  "native_input_ids_after": [
+    "08906b9a896e4199525293ad3f85efd3",
+    "5ce93ec7e1f8b5b04efd9744156dedba",
+    "7369be8556d0fa876ef6347d0f20c911",
+    "ae772d0dc666e0bc1e3800ea6dadd60c",
+    "c8a68d4c0dbc9fa1df7918c358a05cf4",
+    "d654f320b5d7e472c3527141188651ea",
+    "d877bc2c76368cab9b2d55680a6f25ca"
+  ],
+  "native_journals_unchanged": true,
+  "complete": true
+}

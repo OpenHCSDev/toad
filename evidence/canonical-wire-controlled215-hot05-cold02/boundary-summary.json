@@ -1,0 +1,17 @@
+{
+  "wrapper_exit": 0,
+  "ui_source": "installed-source-admission09",
+  "toad_commit": "173901b9329af36116158ec492db839af7d872c6",
+  "core_commit": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+  "textual_commit": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "native_manifest": "e36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07",
+  "native_tree": "5ea25e3f9e88d073e5506ce97ceeca4c763b6da19f986ab032880d45f020f35c",
+  "cold_acp_log": "/home/ts/wt/cw215h05/application/state/toad/logs/Native_fixture_2026-09-30T04_26_30_814367.txt",
+  "client_methods": [
+    "initialize",
+    "session/load"
+  ],
+  "prompt_requests": 0,
+  "initial_hot05_failure": "immediate UserInput count; no count/resource provenance recorded",
+  "bounded_cold_result": "one original user in canonical source and mounted+painted after Home; no loss reproduced; original hot05 failure retained"
+}
