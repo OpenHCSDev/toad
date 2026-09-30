@@ -106,3 +106,16 @@ root or physical capture was involved in this resource-specific gate. The c9
 Four matched custody receipts are stored beside the native/header receipts.
 The same existing pilot is owned and published by Heisenberg in his workspace
 custody branch; no competing test implementation was added.
+
+
+Final ready production bytes match tested installed b6 exactly, as recorded in
+final-source-byte-identity.json. Heisenberg's original pilot and five normal-exit
+receipts are published in scoped commit
+4fb54a3aa1e1caf7ff0c71b17f78033d1d174eeb:
+[existing custody pilot](https://github.com/OpenHCSDev/toad/blob/4fb54a3aa1e1caf7ff0c71b17f78033d1d174eeb/tests/snapshot_cancellation_custody_pilot.py).
+It also reruns the original provisional mount and already-started prune cases
+against b6. Original cancellation errors, journals and failed baseline receipts
+remain available. Parent reviewed the shared joined-retirement mechanism and
+matched custody results; readiness here is for this exact tested checkpoint,
+not global activation. Current ResponseStream capture continues to derive from
+ConversationTurn.captured_snapshot; no new capture authority was introduced.
