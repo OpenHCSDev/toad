@@ -19,3 +19,15 @@ Patterns: BOUND-2(bypassed existing observation owner), IMPL-13(one read mechani
 ## Acceptance
 
 Actual bounded installed original-history idle comparison, without provider inputs, native restart or live-store mutations; preserve original/raw proof and cleanup. Confirm changes to original recipient handling, registry owner/process, route, clock expiry, view activation and sidebar visibility invalidate through the same owner. Source checks prepare this acceptance; they are not live readiness. No claim that33ms PageDown gap or full performance target is resolved.
+
+## Source checkpoint
+
+Toad225 removes the independent observer timer and subscribes to the existing app coordination publication, session activation and actions. Workspace channels observation remains enabled for coordinated views even with the visual sidebar collapsed; non-coordinated views have no original thread presentation to read. Current task/source retirement and unavailable feedback remain on the existing observer.
+
+Core440 adds original coordinator database/WAL paths, declared on NotificationAssignment, to the existing HistoryViews revision. Existing registry/activity/runtime/read/source tokens and the owner expiry clock remain unchanged. Recipient-only original assignment transition changes this canonical revision without changing wire message bytes.
+
+Noneditable candidate wheel source3f4955 + Cored01c781c: current native/DM actual registry/activity/SessionDetails lifecycle pilot passes. Its old dict AgentDefinition, SessionUpdate.state and SessionTracker.state fixture calls referenced APIs already deleted on main; those test mirrors are removed instead of recreated. Thirteen installed Core original source/window/receipt tests pass in3.77seconds. Test code points to installed packages rather than src. These checks are not actual large-history latency readiness.
+
+Heisenberg224 exact actual new capture57.197seconds at `/home/ts/.cache/agent-scratch/toad-workspace-publication-224-physical-20260930/capture`: idle9.91CPU/16.1557seconds(61.34%), render workers<=0.03CPU. It does not improve f92 idle. Actual minimum body frame35.5833seconds near End is blank: owned by Heisenberg224, not fixed by this subscription change.
+
+Next: existing retained actual SDK/ACP/UI read-only custody driver with original41MB and zero native inputs, private roots only. Record direct source/runtime/custody and CPU comparison boundaries. No provider call, native restart or default mutation.
