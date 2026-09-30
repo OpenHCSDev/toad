@@ -638,13 +638,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     or generation != self._generation or self.pages[0] is not view
                     or (is_current is not None and not is_current())):
                 return
-            self._saturated_widget_limit = 0
-            await self.filter.remove()
-            view.page = page
-            # Read current follow intent after preprocessing, never restore an
-            # intent captured before the user could scroll during the await.
-            await view.update_fragments(fragments, window.follows_tail)
-            self._update_edges()
+            async with window.preserve_history(None):
+                self._saturated_widget_limit = 0
+                await self.filter.remove()
+                view.page = page
+                # Read current follow intent after preprocessing, never restore an
+                # intent captured before the user could scroll during the await.
+                await view.update_fragments(fragments, window.follows_tail)
+                self._update_edges()
 
     def on_resize(self) -> None:
         if self.is_mounted:
@@ -726,18 +727,19 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             if (not self.is_attached or self.window is not window or self.loader is not loader
                     or generation != self._generation or window.scroll_revision != scroll_revision):
                 return
-            self._saturated_widget_limit = 0
-            await self.remove_children(list(self.pages))
-            view = TranscriptPageView(
-                page, fragments=fragments,
-                batch_size=destination_admission,
-            )
-            view.visible_categories = self.selected_categories
+            async with window.preserve_history(None):
+                self._saturated_widget_limit = 0
+                await self.remove_children(list(self.pages))
+                view = TranscriptPageView(
+                    page, fragments=fragments,
+                    batch_size=destination_admission,
+                )
+                view.visible_categories = self.selected_categories
 
-            self.pages = deque([view])
-            await self.mount(view, before=self.newer)
-            self._update_edges()
-            self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
+                self.pages = deque([view])
+                await self.mount(view, before=self.newer)
+                self._update_edges()
+                self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
 
     def _anchor_latest(self, generation: int, scroll_revision: int) -> None:
         if (self.is_attached and generation == self._generation

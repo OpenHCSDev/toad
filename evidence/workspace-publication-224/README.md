@@ -59,9 +59,62 @@ and can affect render caches, so it is not physical visual acceptance or a CPU
 benchmark. Different run frame totals do not establish a speedup. The saved reader
 is real but the surrounding app is a private source preview, not live ACP attach.
 
-The remaining installed comparison is the original held Up/Down/reverse/End/15idle
-journey with frame1574/1575 and kernel CPU as baseline. No new full capture occurred
-in this checkpoint. High CPU, physical body-gap closure, growing-end/adaptive bounds,
-warm strips/A/B/A/draft/undo, focus and full workspace/T9 acceptance remain assigned
-to224.217 evidence/source remain frozen and default entrypoint verification belongs
-to Einstein/parent.
+## Installed original-history result, September 30
+
+The sole installed comparison completed57.197s through the original registered
+nra-architecture owner and41,270,257-byte native journal, with held Up4s/Down4s/
+reverse4s/End/15idle. Exact stageToad6e3110ab is source-identical to4871e517;
+Core720629/Textual65053c/SDK0.12.1/native4ab. Original owner and journal identities
+are unchanged, recorder0, terminal0, accepted FFmpeg SIGINT255, cleanup empty.
+The first pre-UI attempt failed because the stage manifest was absent; parent
+supplied the exact manifest without weakening the recorder guard. Both receipts
+are retained in [installed-physical](installed-physical/assessment.json).
+
+**Actual physical FAIL:** frames2135–2145,35.583–35.767s after End, show a blank
+chat body for183ms. Menu, roster, session details and prompt remain visible.
+Individual minimum-2135.png and its neighboring frames were inspected. Completed
+Down, idle and after are readable. All3454 frames were screened, but the original
+100-pixel threshold missed this gap because Jump-to-latest and the mouse supplied
+112 bright pixels. Physical review overrides that screen. Pixel counts do not
+prove correct source/order or absence of partial unfilled areas.
+
+Kernel UI CPU Up98.38%, Down97.33%, reverse96.64%, idle61.34% (9.91CPU seconds
+over16.156s) does not improve frozenf92's95.86/95.45/94.45/57.55%. Profiler reports
+1076 GIL samples and0 errors. Chrome stack transitions are not sample counts,
+calls, duration or CPU fractions; approximate video alignment uncertainty60ms.
+Profiling/state-export overhead is included, with no unprofiled comparison.
+Existing phase FramePresentation writer-flush receipts and committed native maps
+are retained; actual terminal sync capability/PTY bytes were not exported.
+
+## Destination and live mutation caller closure
+
+The full serialized mutation census found `_jump_latest` removing every old page
+and mounting the destination outside the window publication owner. Source lock
+serialization alone cannot fence a frame. `update_live` and filter `retire` had
+the same crossing; Schrodinger explicitly handed off their mutation-only regions.
+All three now use existing `window.preserve_history(None)`. Source preparation,
+destination admission policy, receipt/frontier semantics and generation checks
+remain with their owners. No new flag, mirror, retry or rendering store.
+
+The actual saved-reader source reproducer widens the native remove/mount await.
+Installed6e baseline fails with590 observed frames/one blank; current source
+passes604 frames/zero blanks, partial admissions or unmounted visible fragments.
+The source preview retained its tail after reverse, so it explicitly admits the
+public pager destination operation before the final Pilot End. This tests the
+publication crossing, not physical End success. The initial unsuccessful test
+assumption and failing baseline are preserved. The existing held-filter typing/
+other-tab/return/retirement journey passes after the closure.
+
+The T4 guard now rejects native tree mutations under a source history lock without
+the window publication contract. It detects installed6e's unfenced `update_live`
+and passes current source. Per-file dispatch/probe/chain ratchets for the two
+newly touched production files are unchanged. This is bounded ownership evidence,
+not whole-codebase completion.
+
+**No Ready/default activation claim.** Changed caller closure still needs an
+installed physical comparison. Einstein owns CPU/presentation-read closure;
+Schrodinger215 owns source identity/coverage and the hot03 wire-only to native
+history transition.224 owns that transition's mounted resource lifetime and
+registry/layout integration, without a count-based deduplication patch. Growing
+end/adaptive bounds, warm strips/A/B/A/draft/undo, focus and full workspace/T9
+acceptance remain open.217 evidence/source remain frozen.

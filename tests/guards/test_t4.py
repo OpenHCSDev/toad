@@ -132,3 +132,32 @@ def test_channel_history_has_one_publication_owner():
             assert node.attr not in retired, (node.lineno, node.attr)
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             assert node.name not in retired, (node.lineno, node.name)
+
+
+def test_serialized_history_tree_mutations_use_native_publication():
+    """A source lock cannot substitute for the window's native frame fence."""
+    mutations = {'mount', 'remove_children', 'remove', 'extend', 'trim',
+                 'update_fragments', 'insert_page', '_extend_and_trim'}
+
+    def visit(node, path, source_locked=False, publication=False):
+        if isinstance(node, ast.AsyncWith):
+            contexts = {item.context_expr.func.attr
+                        if isinstance(item.context_expr, ast.Call)
+                        and isinstance(item.context_expr.func, ast.Attribute)
+                        else item.context_expr.attr
+                        for item in node.items
+                        if isinstance(item.context_expr, ast.Attribute)
+                        or isinstance(item.context_expr, ast.Call)
+                        and isinstance(item.context_expr.func, ast.Attribute)}
+            source_locked |= 'history_lock' in contexts
+            publication |= 'preserve_history' in contexts
+        if source_locked and isinstance(node, ast.Await) and isinstance(node.value, ast.Call):
+            call = node.value.func
+            if isinstance(call, ast.Attribute) and call.attr in mutations:
+                assert publication, (path, node.lineno, call.attr)
+        for child in ast.iter_child_nodes(node):
+            visit(child, path, source_locked, publication)
+
+    for relative in ('widgets/transcript_history.py', 'transcript_filter.py',
+                     'mounted_message_history.py', 'widgets/viewport_body.py'):
+        visit(ast.parse((ROOT / relative).read_text()), relative)

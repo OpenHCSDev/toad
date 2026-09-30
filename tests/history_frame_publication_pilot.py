@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import monotonic
+from unittest.mock import patch
 import psutil
 
 from agent_comms.comms import Comms
@@ -17,6 +18,7 @@ from agent_comms.threads import Thread
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptFragmentView
 from textual.widget import Widget
+from textual.await_complete import AwaitComplete
 
 
 class PublicationApp(ToadApp):
@@ -96,8 +98,35 @@ async def main():
                 for key, count in (("pageup", 12), ("pagedown", 18), ("pageup", 6)):
                     await pilot.press(*([key] * count))
                 await pilot.pause(.3)
-                await pilot.press("end")
+                # Widen the actual remove/mount await at the physical End gap,
+                # without replacing the app, native source, widgets or input.
+                remove_children = history.remove_children
+                entered, release = asyncio.Event(), asyncio.Event()
+
+                def delayed_removal(*args, **kwargs):
+                    removed = remove_children(*args, **kwargs)
+
+                    async def wait():
+                        await removed
+                        entered.set()
+                        await release.wait()
+
+                    return AwaitComplete(wait())
+
+                with patch.object(history, "remove_children", delayed_removal):
+                    try:
+                        # This source preview may retain the tail after reverse.
+                        # Admit the pager's destination operation explicitly;
+                        # the real End binding is covered by physical capture.
+                        history.request_latest()
+                        await asyncio.wait_for(entered.wait(), 5)
+                        held_frames = len(app.frames)
+                        await pilot.pause(.25)
+                        assert len(app.frames) == held_frames, "End published its removed destination tree"
+                    finally:
+                        release.set()
                 await pilot.pause(.5)
+                await pilot.press("end")
                 assert app._exception is None
                 print(json.dumps(dict(frames=len(app.frames),
                                       incomplete=sum(bool(frame["incomplete"]) for frame in app.frames),
