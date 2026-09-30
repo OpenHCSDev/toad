@@ -86,7 +86,6 @@ class SnapshotPublication(TranscriptPublication):
             history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                         fragments=fragments, committed=False)
             self.owner.prepare_reader(history)
-            view.output.boundary()
             captured = frozenset(child for child in self.contents.children
                                  if isinstance(child, CommittedHistory))
             async with self.window.preserve_history(None):
@@ -105,7 +104,9 @@ class SnapshotPublication(TranscriptPublication):
                     )
                     history.publish_committed()
                     accepted = True
-                    await self.contents.remove_children(retirement_candidates(self.contents.children, evidence))
+                    retired = retirement_candidates(self.contents.children, evidence)
+                    await view.output.retire_presentations(retired)
+                    await self.contents.remove_children(retired)
                 finally:
                     # A provisional mount owns no source coverage. Its cleanup
                     # must finish before native frame admission is released.
@@ -298,7 +299,6 @@ class CheckpointPublication(TranscriptPublication):
                 or not plan.permits(view, retired)
             ):
                 return
-            view.output.boundary()
             async with plan.publication(view, prepared):
                 replacement = None
                 accepted = False
@@ -324,6 +324,7 @@ class CheckpointPublication(TranscriptPublication):
                     # Once retiring live widgets begins, the accepted source must
                     # survive cancellation so their saved content stays reachable.
                     accepted = True
+                    await view.output.retire_presentations(retired)
                     await contents.remove_children(retired)
                 finally:
                     if (
