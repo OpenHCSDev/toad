@@ -275,7 +275,6 @@ class AgentSession:
         ):
             return
         assert response is not None
-        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         self.agent._receive_comms_metadata(response.field_meta, cursor_token, queue_token)
 
         self.publish_configuration(response)
@@ -333,6 +332,7 @@ class AgentSession:
 
 
     def publish_configuration(self, response):
+        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         if (modes := response.modes) is not None:
             self.agent.controller.publish_modes(modes.current_mode_id, {
                 mode.id: mode
