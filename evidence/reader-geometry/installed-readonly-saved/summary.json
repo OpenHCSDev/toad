@@ -1,0 +1,44 @@
+{
+  "reader-input": {
+    "frames": 14,
+    "lazy_loading": 0,
+    "has_newer": 0,
+    "blank": 0,
+    "outside": 0
+  },
+  "physical-A": {
+    "frames": 5,
+    "lazy_loading": 0,
+    "has_newer": 0,
+    "blank": 0,
+    "outside": 0
+  },
+  "physical-B-return": {
+    "frames": 3,
+    "lazy_loading": 0,
+    "has_newer": 0,
+    "blank": 0,
+    "outside": 0
+  },
+  "repeated-pagedown-lazy-bottom": {
+    "frames": 174,
+    "lazy_loading": 36,
+    "has_newer": 87,
+    "blank": 0,
+    "outside": 0
+  },
+  "reverse": {
+    "frames": 146,
+    "lazy_loading": 15,
+    "has_newer": 41,
+    "blank": 0,
+    "outside": 0
+  },
+  "separate-End": {
+    "frames": 9,
+    "lazy_loading": 7,
+    "has_newer": 3,
+    "blank": 0,
+    "outside": 0
+  }
+}
