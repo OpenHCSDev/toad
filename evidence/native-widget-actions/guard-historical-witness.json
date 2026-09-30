@@ -1,0 +1,10 @@
+{
+  "base": "645d63d1c885ef26f056e34a7c61530c90ce331b",
+  "original_check_action_conditional_sites": {
+    "src/toad/widgets/conversation.py": 7,
+    "src/toad/widgets/question.py": 4,
+    "src/toad/screens/permissions.py": 3
+  },
+  "candidate": 0,
+  "guard_functions_passed": 3
+}
