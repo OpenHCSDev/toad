@@ -121,17 +121,15 @@ class OperationalSessionSources:
         if self.agent is not None:
             self.agent.detach_surface(conversation)
 
-    async def close(self, screen: "MainScreen") -> None:
+    async def close(self) -> None:
         if self.directory_watcher is not None:
             await self.directory_watcher.aclose()
             self.directory_watcher = None
         if self.agent is not None:
             await self.agent.stop()
             self.agent = None
-        conversation = screen.query_one_optional(Conversation)
-        shell = conversation._shell if conversation is not None else self.shell
-        if shell is not None:
-            await shell.close()
+        if self.shell is not None:
+            await self.shell.close()
         self.shell = None
 
 
@@ -161,7 +159,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     async def close(self, screen: "MainScreen") -> None:
         await screen.app.workspace_chrome.native.evict(screen, self)
-        await self.sources.close(screen)
+        await self.sources.close()
         self.state = None
 
 
@@ -229,9 +227,7 @@ class NativeSessionSurface:
             if retained_history is not None:
                 agent = conversation.agent
                 await conversation.transcript.reveal_retained(retained_history)
-                conversation.status = agent.context_measurement.status()
-                conversation.turns.bind(agent)
-                await conversation.goal_observation.refresh()
+                await conversation.refresh_native_projection()
             elif conversation.agent is not None and conversation.agent.ready:
                 await conversation.agent.presentation.restore_saved_history(conversation)
             conversation.display = True

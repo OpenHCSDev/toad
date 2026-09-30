@@ -49,7 +49,7 @@ async def main():
                     at_older_edge = (history.has_older and
                                      history.region.y >= history.window.content_region.y - 2)
                     stable_ticks = (stable_ticks + 1 if count == previous_count and
-                                    not history._loading and not at_older_edge else 0)
+                                    history.state.accepts_source_work and not at_older_edge else 0)
                     previous_count = count
             count = len(calls)
             await pilot.pause(1)

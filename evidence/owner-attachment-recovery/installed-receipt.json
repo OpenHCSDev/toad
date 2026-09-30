@@ -1,0 +1,34 @@
+{
+  "accepted_original_registry_witness": true,
+  "same_open_view_recovered": true,
+  "recovery_seconds": 4.792756456008647,
+  "healthy_window_physical_beta_click": true,
+  "same_agent_editor_document_undo": true,
+  "existing_history_retained": 0,
+  "requests_during_recovery": 0,
+  "explicit_new_input_replied": true,
+  "strict_stopped_owner_load_refused": "Invalid params (-32602); data={'reason': \"Session load not admitted for 'beta': live owner is stopped or unavailable\"}",
+  "original_inputs_retried": 0,
+  "binding": {
+    "kind": "live",
+    "owner": {
+      "incarnation": {
+        "name": "beta",
+        "created_at": 1790729239.926476
+      },
+      "generation": 9
+    },
+    "process": {
+      "pid": 1984959,
+      "start_time": 20490386
+    }
+  },
+  "installed_core_source": "3e4e0c88114d7eb6fb92e9ede75a21d90ba0f214",
+  "installed_toad_source": "93dbb8a884e0bace634e841a9be5ef5e750ab7bb",
+  "fixture_source": "5d40d302de66373f499ce486ae1749cd478c500a",
+  "native": "4ab910061590d1e0",
+  "textual": "412b5a2b5da8875dc2f3dc5be2365abddce0537b",
+  "process_exit": 0,
+  "failure_disposition_original_binding_asserted": true,
+  "queue_admission_counter_used_for_replacement": false
+}

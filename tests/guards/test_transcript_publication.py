@@ -13,6 +13,15 @@ def test_root_custody_deleted():
                 or isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)) and node.name in removed]
 
 
+def test_source_operation_flags_deleted():
+    root = Path(__file__).parents[2] / 'src/toad'
+    for relative in ('widgets/transcript_history.py', 'transcript_source_preparation.py',
+                     'transcript_state.py'):
+        tree = ast.parse((root / relative).read_text())
+        assert not [node for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+                    and node.attr in {'_loading', '_advancing'}], relative
+
+
 async def declaration_case():
     import asyncio
     import os
@@ -38,7 +47,8 @@ async def declaration_case():
                           XDG_DATA_HOME=str(root/'data'),AGENT_COMMS_ROOT=str(root/'wire'))
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(120,40)) as pilot:
-            await app.screen.wait_content_ready()
+            await app.screen.prepare_navigation()
+            await app.screen.layout_navigation()
             view=app.selected_session.conversation
             entered,release=asyncio.Event(),asyncio.Event()
             pending=asyncio.create_task(view.transcript.publish(DeclaredPublication,entered,release))
@@ -72,4 +82,5 @@ def test_declared_case():
 
 if __name__=='__main__':
     test_root_custody_deleted()
+    test_source_operation_flags_deleted()
     test_declared_case()

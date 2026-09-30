@@ -51,6 +51,7 @@ class SnapshotPublication(TranscriptPublication):
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.session_details import SessionDetails
+        from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         fragments = await self.owner.view.app.preparation.submit(
             RenderPreparation(TranscriptRenderTask(self.page.events))
         )
@@ -58,13 +59,20 @@ class SnapshotPublication(TranscriptPublication):
             return
         view = self.owner.view
         history = TranscriptHistory(self.page, self.agent.get_transcript_page, fragments=fragments)
-        restoring_reader = self.owner.prepare_reader(history)
+        self.owner.prepare_reader(history)
         view.output.boundary()
-        if not restoring_reader:
-            if self.window.scroll_revision == self.scroll_revision:
-                self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
+            if self.current():
+                # Initial/rebound saved source owns the same retirement relation
+                # as later checkpoints. Captured anonymous live output has no
+                # proof here; original native input IDs do.
+                evidence = CommitEvidence(
+                    frozenset(), retained_history=history,
+                    native_inputs=frozenset(native_id for event in self.page.events
+                                            for native_id in event.native_inputs),
+                )
+                await self.contents.remove_children(retirement_candidates(self.contents.children, evidence))
         if not self.current():
             if history.is_attached:
                 await history.remove()
@@ -193,7 +201,8 @@ class CheckpointPublication(TranscriptPublication):
         if prepared is None or not is_current():
             return
         evidence = CommitEvidence(
-            frozenset(before_read), prepared.sequences, prepared.history
+            frozenset(before_read), prepared.sequences, prepared.history,
+            frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
         async with window.history_lock:
             retired = retirement_candidates(contents.children, evidence)
@@ -267,13 +276,11 @@ class TranscriptPresentation:
     def invalidate(self) -> None:
         self.generation += 1
 
-    def prepare_reader(self, history: TranscriptHistory) -> bool:
+    def prepare_reader(self, history: TranscriptHistory) -> None:
         """Apply this source's owned reader intent before mounting its history."""
         position = self.reader_position
-        if position is None:
-            return False
-        position.prepare_history(history)
-        return True
+        if position is not None:
+            position.prepare_history(history)
 
     async def reveal_retained(self, history: TranscriptHistory) -> None:
         """Display the mounted reader while its native source remains fenced."""
@@ -455,6 +462,7 @@ class TranscriptPresentation:
                                   if isinstance(child, CommitParticipant)
                                   for sequence in child.commit_claim.required_sequences)),
                     message.history,
+                    message.native_inputs,
                 ),
             )
             protected = protected_blocks(view, candidates)
