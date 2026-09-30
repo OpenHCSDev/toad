@@ -1,0 +1,2 @@
+{"closed_bars_idle_wall_seconds": 5.000267883006018, "closed_bars_idle_cpu_seconds": 0.9381868020000002, "closed_bars_idle_percent_one_core": 18.762730796654623}
+PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, actual SessionDetails and idle recovery and original receipt-only change with both bars closed; no provider/process launch

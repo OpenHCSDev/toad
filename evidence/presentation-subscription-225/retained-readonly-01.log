@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-presentation-subscription-20260930/tests/presentation_read_retained_installed_pilot.py", line 18, in <module>
+    import canonical_wire_retained_real_installed_pilot as retained
+  File "/home/ts/wt/toad-canonical-wire-transcript-20260929/tests/canonical_wire_retained_real_installed_pilot.py", line 34, in <module>
+    from toad.widgets.outgoing_message import OutgoingMessage
+ModuleNotFoundError: No module named 'toad.widgets.outgoing_message'
