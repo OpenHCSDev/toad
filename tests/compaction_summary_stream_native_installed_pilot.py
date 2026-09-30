@@ -1,6 +1,7 @@
 """Real large saved history, native Codex/ACP, and every painted summary frame."""
 
 import asyncio
+import hashlib
 import json
 import os
 import sys
@@ -11,7 +12,7 @@ sys.path.insert(0, os.environ["CORE_FIXTURE_TESTS"])
 from codex_loopback_provider import CodexLoopbackProvider, local_codex_key
 from context_native_installed_pilot import InstalledApp
 from l0a_native_installed_pilot import main, until
-from saved_state_user_journey_pilot import submit_editor
+from saved_state_user_journey_pilot import submit_editor, click_tab
 
 PARTIAL = "PROGRESSIVE_COMPACTION_SUMMARY"
 SUMMARY = PARTIAL + ": retained decisions and evidence; final continuation context."
@@ -103,13 +104,69 @@ async def acceptance(app, pilot, agent, comms, *_args):
     saved_bytes = Path(session).stat().st_size
     journal = CompactionJournal(comms.root / "compaction-commits.sqlite3")
     goal = "--goal" in sys.argv
+    cancel = "--cancel" in sys.argv
+    source_session = app.selected_session
+    source_digest = hashlib.sha256(Path(session).read_bytes()).hexdigest()
+
+    async def tab_return():
+        from toad.navigation_target import NavigationContext, channel_target
+        project = agent.project_root_path
+        user = comms.messaging.user_identity(str(project)).name
+        await channel_target("#team").open(NavigationContext(app, app.selected_mode, project, user))
+        await app.selected_session.wait_content_ready()
+        await click_tab(app, pilot, source_session.id)
+        assert app.selected_session is source_session
+        assert app.selected_session.conversation is view
+
     await submit_editor(pilot, view.prompt.prompt_text_area,
                         "/goal One isolated summary continuation" if goal else "/compact")
     try:
         await until(pilot, partial_entered.is_set, 35)
         await until(pilot, lambda: any(f["partial"] and f["draft"] for f in frames), 25)
+        await tab_return()
+        await until(pilot, lambda: frames[-1]["partial"] and frames[-1]["draft"], 15)
         summaries = journal.summaries.history(session)
         assert len(summaries) == 1 and summaries[0].state.declared_name == "reserved"
+        from agent_comms.turn_phase import CompactionPhase
+        phase = comms.registry.require("beta").turn_state.phase
+        assert isinstance(phase, CompactionPhase) and phase.source is not None
+        assert not view.turns.owner.can_compact
+        await submit_editor(pilot, view.prompt.prompt_text_area, "/compact")
+        assert len(journal.summaries.history(session)) == 1
+        await until(pilot, lambda: phase.source.label in "\n".join(
+            strip.text for strip in app.screen._compositor.render_strips()), 10)
+        progress = {"operation_id": phase.operation_id,
+                    "source_bytes_done": phase.source.source_bytes_done,
+                    "source_bytes_total": phase.source.source_bytes_total,
+                    "label": phase.source.label, "elapsed_ms": phase.source.elapsed_ms}
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        (evidence / "provisional-progress.json").write_text(json.dumps(progress, indent=2))
+        (evidence / "provisional.svg").write_text(app.export_screenshot())
+        if cancel:
+            await pilot.press("escape", "escape")
+            await until(pilot, lambda: not comms.registry.require("beta").executing, 30)
+            partial_release.set()
+            (evidence / "cancelled-before-end.svg").write_text(app.export_screenshot())
+            view.window.scroll_end(animate=False, immediate=True)
+            await until(pilot, lambda: "Compaction aborted" in "\n".join(
+                strip.text for strip in app.screen._compositor.render_strips()), 15)
+            assert hashlib.sha256(Path(session).read_bytes()).hexdigest() == source_digest
+            summaries = journal.summaries.history(session)
+            assert len(summaries) == 1 and not isinstance(summaries[0].state,
+                                                       (LinkedSummary, ManualCommittedSummary))
+            originals = [row for row in InputDispositions(comms.root / InputDispositions.filename)
+                         .read().rows.values() if row.key.startswith("turn:")]
+            assert not originals and not goal_calls
+            assert not any(frame["committed"] for frame in frames)
+            receipt = {"mode": "cancel", "source_unchanged": True,
+                       "partial_before_cancel": True, "canonical_progress_painted": True,
+                       "summary_state": summaries[0].state.declared_name,
+                       "originals": len(originals), "paid_requests": 0,
+                       "provider_posts": len(provider.requests)}
+            (evidence / "summary-receipt.json").write_text(json.dumps(receipt, indent=2))
+            (evidence / "cancelled.svg").write_text(app.export_screenshot())
+            (evidence / "semantic-frames.json").write_text(json.dumps(frames))
+            return
         partial_release.set()
         if goal:
             await until(pilot, answer_entered.is_set, 35)
@@ -120,6 +177,53 @@ async def acceptance(app, pilot, agent, comms, *_args):
             await until(pilot, lambda: any(f["answer"] for f in frames), 25)
         await until(pilot, lambda: not comms.registry.require("beta").executing, 30)
         await until(pilot, lambda: any(f["partial"] and f["committed"] and not f["draft"] for f in frames), 25)
+        from toad.widgets.agent_response import AgentResponse
+        from agent_comms.transcript_events import NoticeTranscript
+        page = await agent.get_transcript_page()
+        canonical = [event for event in page.events if isinstance(event, NoticeTranscript)
+                     and event.text.startswith("## Context compacted")]
+        assert len(canonical) == 1, "Compaction did not produce one original native summary"
+        await until(pilot, lambda: any(history.committed_cursor.contains(page.after)
+                    for history in view.window.histories if history.state.reports_coverage), 25)
+        await until(pilot, lambda: not view.window.history_lock.locked(), 10)
+        await pilot.pause(0.5)
+        view.window.scroll_end(animate=False, immediate=True)
+        await pilot.pause()
+        summaries_visible = [block for block in view.query(AgentResponse)
+                             if block.source.startswith("## Context compacted")]
+        census = {"canonical_summaries": len(canonical),
+                  "registered_committed_headers": len(summaries_visible),
+                  "provisional_streams": sum(block.source.startswith("## Compaction summary · draft")
+                                             for block in view.query(AgentResponse)),
+                  "histories": [{"state": type(history.state).__name__,
+                                 "offset": history.committed_cursor.offset,
+                                 "wire_seq": history.committed_cursor.wire_seq}
+                                for history in view.window.histories],
+                  "native_saved_bytes": Path(session).stat().st_size,
+                  "backend_busy": comms.registry.require("beta").executing}
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        (evidence / "committed-census.json").write_text(json.dumps(census, indent=2))
+        (evidence / "committed.svg").write_text(app.export_screenshot())
+        assert len(summaries_visible) == 1, census
+        assert census["provisional_streams"] == 0, census
+        provider_posts = len(provider.requests)
+        await tab_return()
+        view.window.scroll_end(animate=False, immediate=True)
+        await until(pilot, lambda: frames[-1]["partial"] and frames[-1]["committed"]
+                    and not frames[-1]["draft"], 15)
+        await agent.session.reconnect()
+        await until(pilot, agent.session.settled.is_set, 30)
+        assert agent.session.connected
+        await until(pilot, lambda: any(history.committed_cursor.contains(page.after)
+                    for history in view.window.histories if history.state.reports_coverage), 25)
+        await until(pilot, lambda: not view.window.history_lock.locked(), 10)
+        view.window.scroll_end(animate=False, immediate=True)
+        await until(pilot, lambda: frames[-1]["partial"] and frames[-1]["committed"]
+                    and not frames[-1]["draft"], 15)
+        restored = [block for block in view.query(AgentResponse)
+                    if block.source.startswith("## Context compacted")]
+        assert len(restored) == 1, "Reconnect duplicated the committed summary"
+        assert len(provider.requests) == provider_posts, "Display return requested provider input"
         rows = InputDispositions(comms.root / InputDispositions.filename).read().rows.values()
         originals = [row for row in rows if row.key.startswith("turn:")]
         assert len(originals) == (1 if goal else 0)
@@ -130,11 +234,15 @@ async def acceptance(app, pilot, agent, comms, *_args):
         receipt = {"mode": "goal" if goal else "manual", "saved_bytes": saved_bytes,
                    "provider_posts": len(provider.requests), "partial_before_commit": True,
                    "immediate_committed_summary": True, "followup_inputs": 0,
+                   "partial_tab_return": True, "committed_tab_return": True,
+                   "committed_reconnect_once": True,
+                   "canonical_progress_painted": True,
                    "goal_originals": len(originals), "visible_frames": len(frames)}
         Path(os.environ["L0A_EVIDENCE"], "summary-receipt.json").write_text(json.dumps(receipt, indent=2))
         Path(os.environ["L0A_EVIDENCE"], "semantic-frames.json").write_text(json.dumps(frames))
         print(json.dumps(receipt), flush=True)
     finally:
+        Path(os.environ["L0A_EVIDENCE"], "semantic-frames.json").write_text(json.dumps(frames))
         partial_release.set()
         answer_release.set()
 
@@ -142,5 +250,7 @@ async def acceptance(app, pilot, agent, comms, *_args):
 if __name__ == "__main__":
     with CodexLoopbackProvider(response_factory=response, after_chunk=hold) as provider:
         asyncio.run(main(app_type=StreamApp, acceptance=acceptance, prepare_state=prepare,
+                        fixture_stage=Path(os.environ["COMPACTION_FIXTURE_STAGE"])
+                            if "COMPACTION_FIXTURE_STAGE" in os.environ else None,
                         native_settings={"transport": "sse", "retry": {"enabled": False},
                             "compaction": {"enabled": True, "reserveTokens": 16384, "keepRecentTokens": 20000}}))
