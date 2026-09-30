@@ -127,3 +127,25 @@ Original kernelUI CPU remains92.7/90.3/84.9% scroll and21.7% idle including
 export/profiler overhead; no revised performance claim. Continue whole foreground
 layout/preparation/body custody investigation and one meaningful exact-installed
 saved-state journey after a coherent checkpoint, separate from critical252 gate.
+
+### Original saved-source paging counterexample
+
+The strengthened same actual Window journey now loads one page from a private
+Comms native journal with an actual older source boundary and original reader.
+Its setup source mutation holds paging until a mounted visible nested body is
+restoring. Completing that original mutation admits the edge callback. Main
+ade149 immediately starts another source operation while the body is unready;
+the new source leaves paging eligible without starting work until visible body
+restoration completes. Exact saved-source-baseline.log failure and corrected
+exit0/receipt are retained. No fake Agent/viewport, provider, native process,
+public root or replay. Controlled parsing holds the original native body only.
+
+This establishes the stronger paging/paint readiness relation, beyond removal
+of the redundant walk. The earlier tiny100-query profile remains a separate
+original resource measurement; the saved-source journey may legitimately begin
+its real older-page read after restoration and is not the same timing fixture.
+Do not claim a foreground CPU reduction from either source proof. The first
+strengthened driver tried to reserve source work while its prior original pager
+already owned that resource; its failure remains under the protected owned
+.artifacts/edge-readiness-native-candidate.log. Corrected driver leaves custody
+with the admitted pager. The production bytes are unchanged from f4f0ac62.
