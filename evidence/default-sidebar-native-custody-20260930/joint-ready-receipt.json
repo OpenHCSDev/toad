@@ -1,0 +1,133 @@
+{
+  "state": "ACTUAL-PUBLISHED-DEFAULT-STARTUP-ACP-SAVED-HISTORY-PASS",
+  "overall_product_ready": false,
+  "scope": "One normal startup-only check of published default launcher links; no A/B/A, scroll, auth or provider repeat",
+  "normal_command": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "default_selection": "PATH agent-comms-acp",
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/bin",
+  "runtime_override": false,
+  "pins": {
+    "agent-comms": "6feb634ba184d94d763028406152fff07027cccc",
+    "batrachian-toad": "98bab35f834abb0793d0e066489b751a59393011",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "duration_seconds": 16.67832007299876,
+  "ui_runs": 1,
+  "physical_frame": {
+    "path": "phase-startup.png",
+    "personally_viewed": true,
+    "saved_history_readable": true,
+    "selected_thread": "nra-architecture",
+    "observed_phase": "Ready",
+    "historical_unknown_cards_preserved": true
+  },
+  "initialize_reply": true,
+  "session_load_reply": true,
+  "fresh_protocol_errors": 0,
+  "canonical_acp_facts": [
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "coordination_changed",
+        "thread": {
+          "name": "nra-architecture",
+          "created_at": 1790049182.3907015
+        },
+        "wire_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "owner_pid": 3697925,
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "off",
+        "title": "nra-architecture",
+        "context_usage": {
+          "used": 94579,
+          "size": 272000
+        }
+      }
+    },
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "goal_changed",
+        "goal": null,
+        "execution": null
+      }
+    },
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "queue_changed",
+        "scope": {
+          "session_id": "nra-architecture",
+          "admission": {
+            "incarnation": {
+              "name": "nra-architecture",
+              "created_at": 1790049182.3907015
+            },
+            "admission_generation": 1078
+          },
+          "owner_pid": 3697925
+        },
+        "revision": 14,
+        "projection": {
+          "kind": "available",
+          "items": [],
+          "restored": []
+        }
+      }
+    },
+    {
+      "session_id": "nra-architecture",
+      "fact": {
+        "kind": "turn_changed",
+        "state": {
+          "active": null,
+          "finished_turn_id": "6cfdff5d9a2bfb4226320d69d34a58fb"
+        }
+      }
+    }
+  ],
+  "original_before": {
+    "identity": {
+      "pid": 3697925,
+      "start_time": 26677204
+    },
+    "active_turn": null,
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "original_after": {
+    "identity": {
+      "pid": 3697925,
+      "start_time": 26677204
+    },
+    "active_turn": null,
+    "source_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "source_and_owner_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "all_tracked_owned_identities_absent": true
+  },
+  "terminal_capture_completed": true,
+  "wrapper_exit_code": 0,
+  "raw_receipt": "/home/ts/.cache/agent-scratch/comms-default-sidebar-native-custody-20260930/capture/receipt.json",
+  "raw_protocol_logs": "/home/ts/.cache/agent-scratch/comms-default-sidebar-native-custody-20260930/state/toad/logs/Agent_Comms_2026-09-30T16_04_47_410700.txt",
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "paid_calls": 0,
+  "default_changes_by_worker": 0,
+  "public_owner_restarts": 0,
+  "unknown_replays": 0,
+  "remaining_scope": "Historical UNKNOWN preserved. Scope is the published stage normal default launcher, canonical ACP initialization/load and saved history only. Previously accepted affected producer and UI journeys are retained separately. No repeat scroll, paid provider/API-fleet/performance readiness claim.",
+  "accepted_unchanged_proof": "Parent reviewed24989.744-second16-check affected workflow; no repeat. This gate verifies the ordinary published default launcher only."
+}
