@@ -62,7 +62,8 @@ class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
 
 
-async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+async def open_fork_dialog(app, pilot, comms, release, hold_next):
+    """The existing parent response and actual sidebar/context-menu entry."""
     parent_view = app.selected_session.conversation
     release.set()
     hold_next.clear()
@@ -86,7 +87,56 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                      if item.action == ForkAction.declared_name)
     assert await pilot.click(menu_item)
     await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    entry = app.screen.query_one("#fork-name", Input)
+    return parent_view, app.screen
+
+
+async def task_admission(app, pilot, agent, comms, entered, release, hold_next, requests):
+    """Optional text reaches the original native input; roster is a separate gate."""
+    from textual import events
+    from textual.widgets import Input, TextArea
+    from agent_comms.transcript_events import UserTranscript, AssistantTranscript
+    parent_view, dialog = await open_fork_dialog(app, pilot, comms, release, hold_next)
+    task = '  First task instruction.\n\n    Preserve the second paragraph and its indentation.\n'
+    name = 'multiline-task-fork'
+    inherited = comms.registry.require('beta').tags
+    assert dialog.query_one('#fork-tags', Input).value == ', '.join(sorted(inherited))
+    dialog.query_one('#fork-name', Input).value = name
+    editor = dialog.query_one('#fork-task', TextArea)
+    assert await pilot.click(editor)
+    app.post_message(events.Paste(task))
+    await pilot.pause()
+    assert editor.text == task
+    evidence = Path(os.environ['L0A_EVIDENCE'])
+    app.save_screenshot(str(evidence / 'multiline-native-task.svg'))
+    await pilot.press('ctrl+enter')
+    await until(pilot, lambda: name in comms.registry.all_threads())
+    await until(pilot, lambda: len(requests) == 2, 30)
+    await until(pilot, lambda: not comms.registry.require(name).executing, 30)
+    child = comms.registry.require(name)
+    page = comms.transcripts.thread_transcript_page(name)
+    users = [event for event in page.events if isinstance(event, UserTranscript) and event.text == task]
+    answers = [event for event in page.events if isinstance(event, AssistantTranscript)
+               and event.text == 'NATIVE_RESPONSE_2']
+    receipt = {'source_head': os.environ.get('TOAD_TEST_SOURCE_HEAD'),
+               'native_dialog_ctrl_enter': True, 'original_task': task, 'child_task': child.task,
+               'parent_tags': sorted(comms.registry.require('beta').tags), 'child_tags': sorted(child.tags),
+               'native_task_inputs': [event.native_id for event in users],
+               'native_child_answers': len(answers), 'source_file': page.after.session_file,
+               'provider_requests': len(requests), 'paid_calls': 0,
+               'roster_immediate_open_gate': 'separate; no forced roster refresh'}
+    (evidence / 'native-task-admission.json').write_text(json.dumps(receipt, indent=2)+'\n')
+    assert child.task == task and child.tags == inherited
+    assert comms.registry.require('beta').tags == inherited
+    assert len(users) == 1 and users[0].native_id is not None and len(answers) == 1, receipt
+    assert len(requests) == 2 and app._exception is None
+
+
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    from textual.widgets import Input
+    from runtime_fixture import wait_channel_roster
+    from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, CommsSidebar
+    parent_view, dialog = await open_fork_dialog(app, pilot, comms, release, hold_next)
+    entry = dialog.query_one("#fork-name", Input)
     assert await pilot.click(entry)
     entry.value = "immediate-fork"
     inherited_tags = comms.registry.require('beta').tags
@@ -258,5 +308,7 @@ if __name__ == '__main__':
     if os.environ.get('FORK_DIALOG_EVIDENCE'):
         asyncio.run(dialog_content_only())
     else:
-        asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_request_budget=2,
+        asyncio.run(main(app_type=InstalledApp,
+                         acceptance=task_admission if os.environ.get('FORK_NATIVE_TASK') else acceptance,
+                         provider_request_budget=2,
                          fixture_stage=Path(os.environ['FORK_FIXTURE_STAGE'])))
