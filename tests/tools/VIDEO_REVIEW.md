@@ -70,6 +70,29 @@ comes from SessionLabel's mode matched to this run's initial selected-mode
 snapshot. Both use the committed native cell and the same st pixel conversion
 as the gutter/editor. No layout-specific navigation coordinate is guessed.
 
+After clicking the peer, the `b-open` marker awaits its **selected visible** saved
+history through one read-only attachment. The marker passes the existing
+`--peer-thread` as `--wait-history-thread`; the exporter first requires the
+selected view's declared channel context to identify that peer and its native
+WorkspaceSource to be shown. A still-selected ready A cannot satisfy this wait.
+The existing exporter observes native
+page admission, visible ready bodies and FramePresentation, then observes the
+existing after-refresh terminal-writer receipt before exporting the DTO and taking
+the physical screenshot. It never accepts a later inactive peer projection.
+`--history-wait-seconds` (default10) and `--history-wait-interval` (default0.1)
+parameterize this diagnostic within the original capture deadline; they do not
+increase it. The private fixture wrapper forwards the same options. Timeout,
+an unmatched selected thread or missing native proof fail the checked marker and preserve raw
+evidence. No repeated attachment, full-state export loop, model read or prompt is
+performed while waiting. The phase records `history_wait` alongside its single
+state export; wait cost lies in the preceding physical switch interval.
+
+Current239 resource DTOs include the original PresentationBudget, widget/source
+limits, eviction/pending state, outer materialized costs and each owner's existing
+BodyMeasurement and retained resource cost. These are diagnostic reads, not
+parallel counters. They require that reviewed owner contract: no fallback for an
+older measurement tuple and no production buffer override is installed by capture.
+
 `warm-scroll-review.json` reports source/editor/window identity, reader position,
 draft text, actual Undo result and ready body resources across return. Native
 checks and physical review remain separate: a retained window or body identity
@@ -108,7 +131,12 @@ establish that scrolling or tab navigation happened.
 
 Warm-scroll acceptance requires both saved histories loaded, a scrollable original
 history, native Window focus during the held-key phases, and actual Up/Down/reverse
-movement. Retaining an error body or an empty view is insufficient. Failed native
+source admission. The observer uses the existing TranscriptCursor comparison;
+absolute scroll-offset signs change when lazy pages prepend or trim. Source
+admission alone does not establish visible direction: inspect the corresponding
+physical frames. A cold peer still loading at its sampled phase remains a failed
+peer-history check, even if it later loads in the background. Retaining an error
+body or an empty view is insufficient. Failed native
 checks leave video/profile/phase artifacts intact but fail the recorder exit.
 Passing them still requires physical footage review before claiming UI readiness.
 
@@ -373,6 +401,30 @@ matching `profile-review.json` phase and supporting sampled stacks in the local
 must decide whether sampled work is redundant and implement its fix.
 
 ## Separate capture and review lifetimes
+
+### Query complete stacks from a retained recording
+
+The recorder's top-frame preview is bounded; it can omit structural callers.
+Reuse its decoded trace and existing phase/kernel-CPU evidence without starting
+another application, profiler or native owner:
+
+```sh
+"$candidate_python" tests/tools/profile_trace.py \
+  /home/ts/.cache/agent-scratch/YOUR-RUN/capture \
+  --phase down --phase return-a \
+  --function _reconcile --function _refresh_layout --function execute_render_task \
+  --examples 3 --output /home/ts/.cache/agent-scratch/YOUR-REVIEW/stacks.json
+```
+
+Use repeatable `--source` filters to select source-path substrings instead, or
+combine source and function filters. Selection is an explicit query, not a
+maintained catalog of owners. Output contains all matching frame identities and
+bounded complete-stack examples, linked to the existing physical phase files and
+kernel CPU counters. It refuses unknown phases and refuses to overwrite output.
+The source recording is untouched. Counts are changed-stack observations, never
+function CPU, sample durations or call counts. No match cannot prove work absent;
+an awaited coroutine parent can disappear from an asynchronously sampled stack.
+Review the matched source lifecycle before claiming an optimization target.
 
 For native acceptance journeys, add `--review-timing deferred`. Capture still records the exact installed runtime, all physical actions, raw terminal video, screenshots, profile correlation and process cleanup. Its receipt records the selected timing and `assessment: unreviewed`; the slow clips and contact sheets are absent until the independent review operation completes. The fixture can then verify its original owner still accepts a prompt and retire its native processes.
 

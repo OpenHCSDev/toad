@@ -1,0 +1,2511 @@
+{
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": false,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "native_checks_passed": false,
+  "retained_ready_body_ids": [
+    139947553276624,
+    139947553277584,
+    139947553289744,
+    139947591246352,
+    139947591246672,
+    139947591250192,
+    139947591251792,
+    139947954258960,
+    139947954259920,
+    139947954263120,
+    139947954265040,
+    139947954266320,
+    139947954267600,
+    139947954268880,
+    139947954271120,
+    139947954273360,
+    139947955129232,
+    139947955137232,
+    139947955137552,
+    139947955137872,
+    139948015873360,
+    139948015876880,
+    139948231069520,
+    139948231075920,
+    139948231077520,
+    139948231078800,
+    139948231080400,
+    139948231080720
+  ],
+  "phases": {
+    "warm-start": {
+      "label": "warm-start",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948261766032,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41088858,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 108,
+      "maximum": 108,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 139947955132432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137552,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947955141712,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947956009104,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953721488,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947591241872,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953725648,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947955138832,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 139947590229264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590228304,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956009424,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590226384,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947953726928,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947956008464,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591241232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947956002384,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947590229584,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948259973776,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591244432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947956567760,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947591243472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590227664,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590229904,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956008784,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947590223824,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947955139472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947953724368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "draft": {
+      "label": "draft",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948261766032,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41088858,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 108,
+      "maximum": 108,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 139947955132432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137552,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947955141712,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947956009104,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953721488,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947591241872,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953725648,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947955138832,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 139947590229264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590228304,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956009424,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590226384,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947953726928,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947956008464,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591241232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947956002384,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947590229584,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948259973776,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591244432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947956567760,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947591243472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590227664,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590229904,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956008784,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947590223824,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947955139472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947953724368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "focused": {
+      "label": "focused",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948019178448,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41088858,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 108,
+      "maximum": 108,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 139947955132432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137552,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947955141712,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947956009104,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953721488,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947591241872,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953725648,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947955138832,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 139947590229264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590228304,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956009424,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590226384,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947953726928,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947956008464,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591241232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947956002384,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947590229584,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948259973776,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591244432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947956567760,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947591243472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590227664,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590229904,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956008784,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947590223824,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947955139472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947953724368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "up-done": {
+      "label": "up-done",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948019178448,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 40819442,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 163,
+      "maximum": 542,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 139947576399888,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954264080,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139947576771600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139947591252112,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 73
+        },
+        {
+          "object_id": 139947954266000,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954265360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139947576400208,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954259920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 139947576404368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139947577358800,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139947956004304,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 139947588843024,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947591251472,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 139947577351760,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139947576404688,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947576781520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947576785680,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947577348880,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947577354000,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947576407888,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947956008784,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947577347920,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947576783760,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 139947577351120,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "down-done": {
+      "label": "down-done",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948019178448,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41091275,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 109,
+      "maximum": 170,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 139947590227984,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 139947576773520,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590237264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947591253072,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947590230224,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947575685392,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590234384,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947953729808,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953723728,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947588840784,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947575674192,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139948222988688,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947576775120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590230544,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953725968,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947577347600,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947588498000,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 26
+        },
+        {
+          "object_id": 139947575685712,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947588841424,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953728208,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947588493200,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 18
+        },
+        {
+          "object_id": 139947588490000,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 139947955141392,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590225744,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947588498320,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 47
+        },
+        {
+          "object_id": 139947576777680,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "reverse-done": {
+      "label": "reverse-done",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948019178448,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 40701070,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 100,
+      "maximum": 240,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 139947954258960,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947552525200,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947552527440,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947590226064,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 18
+        },
+        {
+          "object_id": 139947552524560,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947552523600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953728848,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 17
+        },
+        {
+          "object_id": 139947954271120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 139947588495760,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 18
+        },
+        {
+          "object_id": 139947953733008,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 139947953726928,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954267600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 5
+        },
+        {
+          "object_id": 139947552531920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 5
+        },
+        {
+          "object_id": 139947588837904,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953720208,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947953724048,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 139948231077520,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553288144,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 19
+        },
+        {
+          "object_id": 139947956562640,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 11
+        },
+        {
+          "object_id": 139947552528080,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 18
+        },
+        {
+          "object_id": 139947590236944,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 11
+        },
+        {
+          "object_id": 139948231080720,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 17
+        },
+        {
+          "object_id": 139947953725328,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954265040,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "idle-done": {
+      "label": "idle-done",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948261766032,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41088858,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 108,
+      "maximum": 108,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 139947954258960,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137552,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954273360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954263120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954266320,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591250192,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137872,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948015873360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954271120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947954259920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231080400,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947954267600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947591246352,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553289744,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947553277584,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 139948231077520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553276624,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954268880,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947955137232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231080720,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139948015876880,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947591246672,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947591251792,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231078800,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139948231069520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947955129232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954265040,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        }
+      ]
+    },
+    "b-open": {
+      "label": "b-open",
+      "mode": "session-2",
+      "editor": 139947577356560,
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "window": 139947575674192,
+      "focused_widget": 139947577356560,
+      "loaded_pages": 0,
+      "oldest_admitted": null,
+      "scroll_y": 0,
+      "maximum": 0,
+      "follows_tail": true,
+      "bodies": []
+    },
+    "a-return": {
+      "label": "a-return",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948261766032,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41088858,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 108,
+      "maximum": 108,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 139947954258960,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137552,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954273360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954263120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954266320,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591250192,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137872,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948015873360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954271120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947954259920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231080400,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947954267600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947591246352,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553289744,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947553277584,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 139948231077520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553276624,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954268880,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947955137232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231080720,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139948015876880,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947591246672,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947591251792,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231078800,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139948231069520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947955129232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954265040,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        }
+      ]
+    },
+    "undo": {
+      "label": "undo",
+      "mode": "session-1",
+      "editor": 139948261766032,
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "window": 139948019178448,
+      "focused_widget": 139948261766032,
+      "loaded_pages": 3,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+        "offset": 41088858,
+        "receipts": {
+          "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+          "recipient": {
+            "name": "resource436",
+            "created_at": 1790772088.79215
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 108,
+      "maximum": 108,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 139947954258960,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137552,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231075920,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954273360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954263120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954266320,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947591250192,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947955137872,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948015873360,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947954271120,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947954259920,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231080400,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947954267600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947591246352,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553289744,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947553277584,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 139948231077520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139947553276624,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954268880,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947955137232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231080720,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139948015876880,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947591246672,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 7
+        },
+        {
+          "object_id": 139947591251792,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139948231078800,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 139948231069520,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 13
+        },
+        {
+          "object_id": 139947955129232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 139947954265040,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        }
+      ]
+    }
+  },
+  "physical_assessment": "unreviewed; inspect terminal.mp4 and phase PNGs",
+  "limits": [
+    "Native resource identities do not certify a warm physical first paint",
+    "Source admission direction does not certify visible motion; inspect the physical frames",
+    "A snapshot does not prove preparation or rasterization was skipped",
+    "Only actual Ctrl+Z output proves preserved Undo; no history-manager mirror is inspected"
+  ],
+  "events": [
+    {
+      "label": "warm-start",
+      "video_seconds": 13.055205120996106,
+      "screenshot": "phase-warm-start.png",
+      "state_capture": {
+        "started_seconds": 13.337620990001597,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 164089856,
+          "started_ns": 1790777863286094637,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-warm-start-state": "complete"
+          },
+          "finished_ns": 1790777863350631087
+        },
+        "finished_seconds": 13.607806879997952
+      }
+    },
+    {
+      "label": "draft",
+      "video_seconds": 18.861635479988763,
+      "screenshot": "phase-draft.png",
+      "state_capture": {
+        "started_seconds": 19.1356184539909,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 164524032,
+          "started_ns": 1790777869084265519,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-draft-state": "complete"
+          },
+          "finished_ns": 1790777869216858337
+        },
+        "finished_seconds": 19.44979981999495
+      }
+    },
+    {
+      "label": "focused",
+      "video_seconds": 21.02239401699626,
+      "screenshot": "phase-focused.png",
+      "state_capture": {
+        "started_seconds": 21.301126937993104,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 164868096,
+          "started_ns": 1790777871249648055,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-focused-state": "complete"
+          },
+          "finished_ns": 1790777871382088845
+        },
+        "finished_seconds": 21.604946223989828
+      }
+    },
+    {
+      "label": "up",
+      "video_seconds": 23.491300388006493,
+      "screenshot": "phase-up.png",
+      "state_capture": {
+        "started_seconds": 23.760077087994432,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 165064704,
+          "started_ns": 1790777873702815209,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-up-state": "complete"
+          },
+          "finished_ns": 1790777873767291926
+        },
+        "finished_seconds": 24.03094042101293
+      }
+    },
+    {
+      "label": "up-done",
+      "video_seconds": 29.169285233016126,
+      "screenshot": "phase-up-done.png",
+      "state_capture": {
+        "started_seconds": 29.444888135010842,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 180523008,
+          "started_ns": 1790777879390836517,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-up-done-state": "complete"
+          },
+          "finished_ns": 1790777879556074410
+        },
+        "finished_seconds": 29.8024469059892
+      }
+    },
+    {
+      "label": "down",
+      "video_seconds": 30.55319693099591,
+      "screenshot": "phase-down.png",
+      "state_capture": {
+        "started_seconds": 30.82076512099593,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 181112832,
+          "started_ns": 1790777880758827394,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-down-state": "complete"
+          },
+          "finished_ns": 1790777880891219131
+        },
+        "finished_seconds": 31.119534338999074
+      }
+    },
+    {
+      "label": "down-done",
+      "video_seconds": 36.29888769300305,
+      "screenshot": "phase-down-done.png",
+      "state_capture": {
+        "started_seconds": 36.576799517992185,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 185081856,
+          "started_ns": 1790777886529034891,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-down-done-state": "complete"
+          },
+          "finished_ns": 1790777886661693543
+        },
+        "finished_seconds": 36.89892459200928
+      }
+    },
+    {
+      "label": "reverse",
+      "video_seconds": 37.68012922999333,
+      "screenshot": "phase-reverse.png",
+      "state_capture": {
+        "started_seconds": 37.958593151008245,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 185581568,
+          "started_ns": 1790777887896562338,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-reverse-state": "complete"
+          },
+          "finished_ns": 1790777888028988199
+        },
+        "finished_seconds": 38.267924718995346
+      }
+    },
+    {
+      "label": "reverse-done",
+      "video_seconds": 43.3327528850059,
+      "screenshot": "phase-reverse-done.png",
+      "state_capture": {
+        "started_seconds": 43.60149912600173,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 186523648,
+          "started_ns": 1790777893554452168,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-reverse-done-state": "complete"
+          },
+          "finished_ns": 1790777893686865746
+        },
+        "finished_seconds": 43.91550376600935
+      }
+    },
+    {
+      "label": "end",
+      "video_seconds": 44.70006374901277,
+      "screenshot": "phase-end.png",
+      "state_capture": {
+        "started_seconds": 44.97556860401528,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 188084224,
+          "started_ns": 1790777894914967218,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-end-state": "complete"
+          },
+          "finished_ns": 1790777895079705474
+        },
+        "finished_seconds": 45.34524852700997
+      }
+    },
+    {
+      "label": "idle",
+      "video_seconds": 47.3760462400096,
+      "screenshot": "phase-idle.png",
+      "state_capture": {
+        "started_seconds": 47.64467149201664,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 188743680,
+          "started_ns": 1790777897582255959,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-idle-state": "complete"
+          },
+          "finished_ns": 1790777897714604775
+        },
+        "finished_seconds": 47.960019004996866
+      }
+    },
+    {
+      "label": "idle-done",
+      "video_seconds": 63.88076331501361,
+      "screenshot": "phase-idle-done.png",
+      "state_capture": {
+        "started_seconds": 64.14320921900799,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 189341696,
+          "started_ns": 1790777914091841215,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-idle-done-state": "complete"
+          },
+          "finished_ns": 1790777914156458127
+        },
+        "finished_seconds": 64.39888242300367
+      }
+    },
+    {
+      "label": "switch-b",
+      "video_seconds": 65.13192694200552,
+      "screenshot": "phase-switch-b.png",
+      "state_capture": {
+        "started_seconds": 65.40449820799404,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 189390848,
+          "started_ns": 1790777915353979222,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-switch-b-state": "complete"
+          },
+          "finished_ns": 1790777915486434409
+        },
+        "finished_seconds": 65.71045413901447
+      }
+    },
+    {
+      "label": "b-open",
+      "video_seconds": 69.39548763999483,
+      "screenshot": "phase-b-open.png",
+      "state_capture": {
+        "started_seconds": 69.65837056201417,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 192577536,
+          "started_ns": 1790777919604645673,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-b-open-state": "complete"
+          },
+          "finished_ns": 1790777919669062636
+        },
+        "finished_seconds": 69.93621681100922
+      }
+    },
+    {
+      "label": "return-a",
+      "video_seconds": 70.77067690299009,
+      "screenshot": "phase-return-a.png",
+      "state_capture": {
+        "started_seconds": 70.99131622700952,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 192630784,
+          "started_ns": 1790777920939177704,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-return-a-state": "complete"
+          },
+          "finished_ns": 1790777921103591794
+        },
+        "finished_seconds": 71.35707983901375
+      }
+    },
+    {
+      "label": "a-return",
+      "video_seconds": 75.06908394000493,
+      "screenshot": "phase-a-return.png",
+      "state_capture": {
+        "started_seconds": 75.3403620760073,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 198168576,
+          "started_ns": 1790777925283000137,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-a-return-state": "complete"
+          },
+          "finished_ns": 1790777925415473518
+        },
+        "finished_seconds": 75.65320796900778
+      }
+    },
+    {
+      "label": "undo",
+      "video_seconds": 79.52167072601151,
+      "screenshot": "phase-undo.png",
+      "state_capture": {
+        "started_seconds": 79.78894131901325,
+        "manifest": {
+          "pid": 3347835,
+          "created": 1790777848.63,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 199180288,
+          "started_ns": 1790777929728348840,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-undo-state": "complete"
+          },
+          "finished_ns": 1790777929861175911
+        },
+        "finished_seconds": 80.0771649669914
+      }
+    }
+  ]
+}

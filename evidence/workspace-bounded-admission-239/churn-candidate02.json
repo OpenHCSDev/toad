@@ -1,0 +1,11 @@
+{
+  "stationary_calls": {},
+  "stationary_evictions": 0,
+  "reconciling": false,
+  "pending": false,
+  "visible_ready": true,
+  "warm_widgets": 56,
+  "widget_limit": 60,
+  "content_cost_invalidated": true,
+  "resize_preserves_visible_source": true
+}

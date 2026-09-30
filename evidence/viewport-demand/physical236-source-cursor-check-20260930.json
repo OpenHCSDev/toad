@@ -1,0 +1,95 @@
+[
+  {
+    "raw": "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt02/capture",
+    "original_receipt_unchanged": true,
+    "checks": {
+      "original_saved_history_loaded": false,
+      "peer_saved_history_loaded": false,
+      "history_scroll_extent": false,
+      "scroll_keys_focus_history": true,
+      "held_page_up_admitted_older_source": false,
+      "held_page_down_admitted_newer_source": false,
+      "reverse_page_up_admitted_older_source": false,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true
+    },
+    "failed": [
+      "original_saved_history_loaded",
+      "peer_saved_history_loaded",
+      "history_scroll_extent",
+      "held_page_up_admitted_older_source",
+      "held_page_down_admitted_newer_source",
+      "reverse_page_up_admitted_older_source"
+    ],
+    "rejected": true,
+    "source_cursors": [
+      {
+        "phase": "focused",
+        "offset": null
+      },
+      {
+        "phase": "up-done",
+        "offset": null
+      },
+      {
+        "phase": "down-done",
+        "offset": null
+      },
+      {
+        "phase": "reverse-done",
+        "offset": null
+      }
+    ]
+  },
+  {
+    "raw": "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture",
+    "original_receipt_unchanged": true,
+    "checks": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": false,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_admitted_older_source": true,
+      "held_page_down_admitted_newer_source": true,
+      "reverse_page_up_admitted_older_source": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true
+    },
+    "failed": [
+      "peer_saved_history_loaded"
+    ],
+    "rejected": true,
+    "source_cursors": [
+      {
+        "phase": "focused",
+        "offset": 41088858
+      },
+      {
+        "phase": "up-done",
+        "offset": 40819442
+      },
+      {
+        "phase": "down-done",
+        "offset": 41091275
+      },
+      {
+        "phase": "reverse-done",
+        "offset": 40701070
+      }
+    ]
+  }
+]

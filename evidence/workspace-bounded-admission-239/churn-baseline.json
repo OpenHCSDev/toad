@@ -1,0 +1,13 @@
+{
+  "stationary_calls": {
+    "_reconcile": 62,
+    "restore_body": 53,
+    "retire_body": 112
+  },
+  "stationary_evictions": 55,
+  "reconciling": true,
+  "pending": true,
+  "visible_ready": true,
+  "warm_widgets": 56,
+  "widget_limit": 60
+}
