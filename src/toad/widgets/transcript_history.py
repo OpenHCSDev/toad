@@ -195,17 +195,16 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             self._body_viewport.discard(self)
 
     @property
-    def body_ready(self) -> bool:
-        return super().body_ready and all(
-            child.body_ready for child in self.walk_children() if isinstance(child, ViewportBody)
-        )
-
-    @property
     def retained_source_bytes(self) -> int:
         return self._retained_bytes
 
     async def retire_body(self) -> bool:
         if not self.body_ready or self._body_measurement is None:
+            return False
+        # Pruning replaces the whole materialization, including hidden bodies.
+        # Join their original readiness here, not on every viewport frame.
+        if any(not child.body_ready for child in self.walk_children()
+               if isinstance(child, ViewportBody)):
             return False
         self.retire_measurement()
         await self.remove_children()

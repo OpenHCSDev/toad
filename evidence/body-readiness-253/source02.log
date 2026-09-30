@@ -1,0 +1,90 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/app.py", line 2212, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/tests/viewport_body_order_pilot.py", line 365, in readiness_journey
+    await pilot.pause(.02)
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/pilot.py", line 524, in _wait_for_screen
+    raise WaitForScreenTimeout(
+        "Timed out while waiting for widgets to process pending messages."
+    )
+textual.pilot.WaitForScreenTimeout: Timed out while waiting for widgets to process pending messages.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/tests/viewport_body_order_pilot.py", line 334, in readiness_journey
+    async with app.run_test(size=(110, 35)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/app.py", line 2216, in run_test
+    await app._shutdown()
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/app.py", line 3746, in _shutdown
+    await self._close_all()
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/app.py", line 336, in _close_all
+    await super()._close_all()
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/workspace_sessions.py", line 176, in _close_all
+    await self.workspace_sessions.aclose()
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/workspace_sessions.py", line 166, in aclose
+    await self.app.workspace_chrome.native.close()
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/session_presentation.py", line 287, in close
+    await self._remove(owner)
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/session_presentation.py", line 267, in _remove
+    await conversation.release_native_session()
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/widgets/conversation.py", line 545, in release_native_session
+    await self.contents.remove_children()
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/await_remove.py", line 102, in await_prune
+    await asyncio.shield(completion)
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/tests/viewport_body_order_pilot.py", line 414, in <module>
+    asyncio.run(readiness_journey() if '--readiness' in sys.argv else main())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 132, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+Exception in thread Thread-2:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1385, in run
+    self.function(*self.args, **self.kwargs)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/directory_watcher.py", line 88, in _flush
+    watcher.on_any_event(event)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/directory_watcher.py", line 277, in on_any_event
+    self.notify_if_visible()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/directory_watcher.py", line 299, in notify_if_visible
+    self._widget.post_message(DirectoryChanged())
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/widget.py", line 4704, in post_message
+    return super().post_message(message)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-sidebar-native-custody-20260930/lib/python3.14/site-packages/textual/message_pump.py", line 932, in post_message
+    loop.call_soon_threadsafe(self._message_queue.put_nowait, message)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 872, in call_soon_threadsafe
+    self._check_closed()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 550, in _check_closed
+    raise RuntimeError('Event loop is closed')
+RuntimeError: Event loop is closed
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-ba78lwqf', '/mp-0_s030_y', '/mp-ht5x03i1', '/mp-ft683g2_', '/mp-wwrcnl4f'}
+  warnings.warn(
