@@ -46,6 +46,7 @@ def capture(*, expected_pid, output_prefix):
                     "source_modules": {name: getattr(sys.modules.get(name), "__file__", None)
                                        for name in ("toad", "textual", "agent_comms")},
                     "registry_size": len(app._registry), "views": [], "truncated": False,
+                    "history_buffer_viewports": app.settings.ui.history_buffer_viewports,
                     "capture_scope": "view state, loaded pages/live block sources, cached sidebar DTO; not process memory"}
 
         def node_identity(node):
@@ -246,6 +247,10 @@ def capture(*, expected_pid, output_prefix):
                             visible = visible_regions
                             owners = tuple(manager.owners)
                             window["body_resources"] = {
+                                "budget": asdict(manager.budget),
+                                "warm": len(manager._warm),
+                                "body_evictions": manager.body_evictions,
+                                "demand": type(manager.lookahead.demand).__name__,
                                 "registered": len(owners),
                                 "dormant": sum(body.body_dormant for body in owners),
                                 "visible": sum(body in visible for body in owners),

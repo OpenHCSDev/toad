@@ -118,6 +118,41 @@ def main():
                     "goal_read_pending": "Not exposed by existing recorder DTO; no pending-goal fault injection",
                     "physical_frames_require_review": True}
 
+    class DefaultBufferScrollJourney(DefaultEntrypointJourney):
+        """One affected236 default scroll; no provider or keyboard-editor journey."""
+
+        scope = "Actual default retained history buffer, focused PageUp/down/reverse/End/idle"
+        duration_seconds = 65
+
+        @classmethod
+        def script(cls, options):
+            return (recorder.marker_command() + "startup\n"
+                    + recorder.scroll_script(idle_seconds=5, hold_seconds=3,
+                                             state="phase-startup-state.pickle"))
+
+        @classmethod
+        def verify(cls, base):
+            def phase(label):
+                return pickle.loads((base / f"capture/phase-{label}-state.pickle").read_bytes())
+
+            focused = phase("focused")
+            window, = selected_view(focused)["history_windows"]
+            assert focused["metadata"]["screen"]["focused"]["object_id"] == window["object_id"]
+            observations = []
+            for label in ("startup", "focused", "up-done", "down-done", "reverse-done", "idle", "idle-done"):
+                state = phase(label)
+                view = selected_view(state)
+                current, = view["history_windows"]
+                assert state["metadata"]["history_buffer_viewports"] == 3
+                assert current["body_resources"]["budget"]["buffer_viewports"] == 3
+                assert view["identity"]["_comms_thread"] == args.thread
+                observations.append({"phase": label, "window": current,
+                                     "pages": view["history_pages"]})
+            return {"journey": cls.declared_name, "actual_history_focus": True,
+                    "actual_setting_and_viewport_budget": 3,
+                    "observations": observations, "physical_frames_require_review": True,
+                    "no_full239_readiness_claim": True}
+
     command = ["/home/ts/bin/toad-comms", args.thread]
     journey = recorder.PhysicalJourney.decode(args.journey)
     actions = journey.script(None)
