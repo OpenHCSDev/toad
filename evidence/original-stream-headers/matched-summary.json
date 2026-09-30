@@ -1,0 +1,95 @@
+{
+  "matched-baseline": {
+    "exit_code": 1,
+    "pins": {
+      "batrachian-toad": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "068ac516d1a8e8b211fe0bb2da6ba73186e2d403",
+          "requested_revision": "068ac516"
+        }
+      },
+      "agent-comms": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+          "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+        }
+      },
+      "textual": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+          "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+        }
+      }
+    },
+    "samples": 62,
+    "provider_requests": 1,
+    "provider_chunks": 39,
+    "native_users": 1,
+    "canonical_assistants": 1,
+    "answer_characters": 947,
+    "max_headers": 2,
+    "two_header_samples": 37,
+    "context_publication_samples": 37,
+    "uncovered_live_resource_ids": [
+      140111143469136
+    ]
+  },
+  "matched-candidate": {
+    "exit_code": 0,
+    "pins": {
+      "batrachian-toad": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "c9aa8302a27f42c261431d36f1b74f103c2180d9",
+          "requested_revision": "c9aa8302"
+        }
+      },
+      "agent-comms": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+          "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+        }
+      },
+      "textual": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+          "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+        }
+      }
+    },
+    "samples": 60,
+    "provider_requests": 1,
+    "provider_chunks": 39,
+    "native_users": 1,
+    "canonical_assistants": 1,
+    "answer_characters": 947,
+    "max_headers": 1,
+    "two_header_samples": 0,
+    "context_publication_samples": 37,
+    "uncovered_live_resource_ids": [
+      140592000020112
+    ]
+  },
+  "custody": {
+    "fixture_roots_preserved": [
+      "/home/ts/wt/cw229b03",
+      "/home/ts/wt/cw229c04"
+    ],
+    "native_journals_preserved": true,
+    "remaining_process_references": [],
+    "public_changes": 0,
+    "paid_calls": 0,
+    "original_failed_inputs_replayed": 0
+  }
+}

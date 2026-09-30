@@ -1,0 +1,48 @@
+{
+  "tested_installed_source": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+  "receipt_only_head": "68401e0b8fdec23c69b8ced2675480e1f0b29bb9",
+  "production_diff_exit_code": 0,
+  "packages": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+        "requested_revision": "b6fa2a72"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+        "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "files": {
+    "src/toad/live_output.py": {
+      "sha256": "e7cf22d8e6cd4821fdf165e922f922b0f98b9528543cf229bf06bd054b266679",
+      "installed_sha256": "e7cf22d8e6cd4821fdf165e922f922b0f98b9528543cf229bf06bd054b266679",
+      "equal": true,
+      "installed_path": "/home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-accepted-retirement/lib/python3.14/site-packages/toad/live_output.py"
+    },
+    "src/toad/transcript_publication.py": {
+      "sha256": "3599c8a875f9ac9e9f0a02894ff566bb0c79a81199b7712a6ee6134471eeea47",
+      "installed_sha256": "3599c8a875f9ac9e9f0a02894ff566bb0c79a81199b7712a6ee6134471eeea47",
+      "equal": true,
+      "installed_path": "/home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-accepted-retirement/lib/python3.14/site-packages/toad/transcript_publication.py"
+    }
+  },
+  "custody_pilot_commit": "4fb54a3aa1e1caf7ff0c71b17f78033d1d174eeb",
+  "native_header_gate": "c9aa8302a27f42c261431d36f1b74f103c2180d9;39 chunks; 1 request/assistant/header",
+  "resource_gate": "b6: preprune Snapshot, covered Checkpoint, original mount/prune; normal application exits; no ACP/provider"
+}
