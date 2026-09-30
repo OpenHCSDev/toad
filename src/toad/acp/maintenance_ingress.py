@@ -137,7 +137,7 @@ async def admitted_spawn(
                 root, ingress_root=ingress_root, cwd=child_cwd
             ):
                 from agent_comms.private_nk_entrypoint import (
-                    PACKAGE_ENV, ROOT_ID_ENV, private_nk_launch,
+                    PACKAGE_ENV, ROOT_ID_ENV, PrivateNkLaunch,
                 )
 
                 # Publish the captured root only after locked admission; this
@@ -161,7 +161,10 @@ async def admitted_spawn(
                     # An explicit child root is independent of the default
                     # route, but inherited private-owner flags must genuinely
                     # belong to that explicit root before launching anything.
-                    private_nk_launch(ingress_root, child_env)
+                    launch = PrivateNkLaunch.from_environment(ingress_root, child_env)
+                    if launch is None:
+                        raise ValueError("ACP private launch selection is absent")
+                    launch.validate()
                 future = asyncio.run_coroutine_threadsafe(
                     AttachedChild.start(
                         ShellCommand.current().argv(command), env=child_env,
