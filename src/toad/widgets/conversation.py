@@ -569,7 +569,7 @@ class ConversationSessionBinding(containers.Vertical):
         agent = self.agent
         if agent is None or not agent.ready:
             return
-        await self.refresh_native_projection()
+        self.refresh_native_projection()
         page, _ = await asyncio.gather(
             agent.get_transcript_page(),
             self.delivery_observation.refresh(),
@@ -582,15 +582,15 @@ class ConversationSessionBinding(containers.Vertical):
         await self.query(ThreadLoading).remove()
         self.remove_class("-initial-loading")
 
-    async def refresh_native_projection(self) -> None:
-        """Invalidate the returning view from its original source owners."""
+    def refresh_native_projection(self) -> None:
+        """Publish bound owner facts and invalidate its existing read resource."""
         agent = self.agent
         if agent is None:
             return
         self.status = agent.context_measurement.status()
         self.turns.bound()
         self.submissions.publish_pending()
-        await self.goal_observation.refresh()
+        self.goal_observation.invalidate()
 
 
 
