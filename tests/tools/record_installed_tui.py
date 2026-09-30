@@ -291,6 +291,26 @@ class RuntimeSelection:
         if env.get("AGENT_COMMS_RUNTIME_ROOT"):
             env["AGENT_COMMS_RUNTIME_ROOT"] = str(self.bin_directory.resolve())
 
+    def publish_verified_stage(self, staging_receipt, owner, env, command):
+        """Publish a verified cohort and require the existing recorder preflight.
+
+        This artifact records immutable package identity. Live activation belongs
+        to the canonical route and launcher, never to this metadata's state.
+        """
+        verified = json.loads(Path(staging_receipt).read_text())
+        stage = self.bin_directory.parent.resolve()
+        if Path(verified["stage"]).resolve() != stage:
+            raise ValueError("Verified staging receipt belongs to another candidate")
+        activation = {
+            key: verified[key] for key in ("stage", "pins", "sdk", "native_package")
+        }
+        activation["state"] = "verified-immutable-cohort"
+        activation["staging_receipt_sha256"] = digest(Path(staging_receipt))
+        pending = stage / ".activation.json.pending"
+        pending.write_text(json.dumps(activation, indent=2) + "\n")
+        pending.replace(stage / "activation.json")
+        return self.receipt(owner, env, command)
+
     def receipt(self, owner, env, command):
         observed = self.from_environment(command, env)
         if (observed.launcher != self.launcher
