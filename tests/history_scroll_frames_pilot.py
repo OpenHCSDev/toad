@@ -46,14 +46,14 @@ async def main():
             await pilot.pause()
             window = conversation.window
             for cycle in range(3):
-                history._loading = True
+                positioning = history.reserve_source_work()
                 window.scroll_to(y=1, animate=False, immediate=True)
                 await pilot.pause()
                 marker = history.pages[0].children[0]
                 expected = marker.region.y - window.content_region.y
                 frames = []
                 app.observed = marker, window, frames
-                history._loading = False
+                history.finish_source_work(positioning)
                 entered, release = asyncio.Event(), asyncio.Event()
                 original = TranscriptPageView.extend
 
@@ -74,7 +74,7 @@ async def main():
                             expected += 1
                             frames.clear()
                         release.set()
-                        while history._loading:
+                        while (not history.state.accepts_source_work):
                             await pilot.pause(.02)
                 await pilot.pause()
                 app.observed = None

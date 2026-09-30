@@ -164,7 +164,7 @@ async def mounted_checks():
                 calls = len(reads)
                 view.window.release_anchor()
                 pager._request_page(True)
-                await until(lambda: not pager._loading)
+                await until(lambda: pager.state.accepts_source_work)
                 await pilot.pause()
                 assert pager.pages[0].page.before == cursor(890)
                 assert (cursor(900), None) in reads and reads.count((cursor(900), None)) == 1
@@ -185,7 +185,7 @@ async def mounted_checks():
                 await asyncio.sleep(0)
                 await app.session_navigation.new(app.session_navigation.default_source)
                 release.set()
-                await until(lambda: not late._loading)
+                await until(lambda: late.state.accepts_source_work)
                 assert len(late.pages) == 1, "Late foreground result mounted into a hidden tab"
                 assert late.window.history_anchor is None and not late.window.history_lock.locked()
         await asyncio.get_running_loop().shutdown_default_executor()

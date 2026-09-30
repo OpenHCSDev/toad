@@ -32,11 +32,11 @@ async def main():
                 view.window.scroll_home(animate=False, immediate=True)
                 try:
                     async with asyncio.timeout(5):
-                        while history.pages[0].start >= before or history._loading:
+                        while history.pages[0].start >= before or (not history.state.accepts_source_work):
                             await pilot.pause(.02)
                 except TimeoutError:
                     raise AssertionError((before, [(p.start, p.stop) for p in history.pages],
-                        history._loading, history.widget_count, history.widget_limit,
+                        (not history.state.accepts_source_work), history.widget_count, history.widget_limit,
                         history.window.scroll_y, history.window.max_scroll_y,
                         history.window.follows_tail, history.region)) from None
                 peak = max(peak, history.widget_count)

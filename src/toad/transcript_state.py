@@ -12,6 +12,19 @@ from textual.widget import Widget
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     accepts_publication: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
+    accepts_source_work: ClassVar[bool] = False
+
+    async def execute(self, owner, work):
+        raise RuntimeError("The transcript source has no admitted operation")
+
+    def reserve(self) -> "WorkingTranscript":
+        raise RuntimeError("The transcript source cannot admit another operation")
+
+    def request_latest(self, owner) -> None:
+        """Inactive source cases cannot admit a destination request."""
+
+    def retirement_source(self) -> "TranscriptState":
+        return self
 
     def observed(self, widget: Widget) -> "TranscriptState":
         # Textual sets these before dispatching Prune/Unmount, including when
@@ -48,6 +61,13 @@ class ProvisionalTranscript(TranscriptState):
 class LiveTranscript(TranscriptState):
     accepts_publication = True
     reports_coverage = True
+    accepts_source_work = True
+
+    def reserve(self) -> "WorkingTranscript":
+        return WorkingTranscript(self)
+
+    def request_latest(self, owner) -> None:
+        owner.reserve_source_work().schedule(owner, owner._jump_latest)
 
     @classmethod
     def successors(cls):
@@ -72,6 +92,63 @@ class SuspendedTranscript(TranscriptState):
     @classmethod
     @abstractmethod
     def successors(cls): ...
+
+
+class ViewportRequest(DeclaredFamily, affix="ViewportRequest"):
+    """One bounded destination intent belonging to an admitted operation."""
+
+    @abstractmethod
+    def apply(self, owner) -> None: ...
+
+
+class IdleViewportRequest(ViewportRequest):
+    def apply(self, owner) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class LatestViewportRequest(ViewportRequest):
+    revision: int
+
+    def apply(self, owner) -> None:
+        if owner.window.scroll_revision == self.revision:
+            owner.request_latest()
+
+
+class WorkingTranscript(SuspendedTranscript):
+    """One admitted source mutation; its identity owns completion custody."""
+
+    def __init__(self, source: TranscriptState):
+        super().__init__(source)
+        # The inherited source snapshot stays immutable. Only this operation's
+        # bounded pending resource changes, never a second history-level flag.
+        self.pending_request: ViewportRequest = IdleViewportRequest()
+
+    def request_latest(self, owner) -> None:
+        self.pending_request = LatestViewportRequest(owner.window.scroll_revision)
+
+    def retirement_source(self) -> TranscriptState:
+        # Cancellation ends this operation; a parked pager resumes its source,
+        # not an operation whose worker has already been retired.
+        return self.source.retirement_source()
+
+    @property
+    def accepts_publication(self) -> bool:
+        return self.source.accepts_publication
+
+    @classmethod
+    def successors(cls):
+        return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript,
+                PruningTranscript, ClosingTranscript, DetachedTranscript)
+
+    async def execute(self, owner, work):
+        try:
+            return await work()
+        finally:
+            owner.finish_source_work(self)
+
+    def schedule(self, owner, work):
+        return owner.run_worker(self.execute(owner, work))
 
 
 class DetachedTranscript(SuspendedTranscript):

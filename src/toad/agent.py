@@ -91,6 +91,9 @@ class AgentBase(ABC):
         """Agents without a coordination identity have no observed thread status."""
         return None
 
+    async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None:
+        """Consume a published canonical change; unmanaged agents need no binding."""
+
     @abstractmethod
     async def send_prompt(self, prompt: str) -> type[StopReason] | None:
         """Send a prompt; return its stop reason."""

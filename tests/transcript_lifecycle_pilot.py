@@ -42,6 +42,29 @@ async def main():
             assert isinstance(history.state, LiveTranscript)
             assert history.state.accepts_publication
             assert history.state.reports_coverage
+            assert history.checkpoint_available
+            entered = asyncio.Event()
+            release = asyncio.Event()
+
+            async def pending_source_read():
+                entered.set()
+                await release.wait()
+                return page
+
+            operation = history.reserve_source_work()
+            operation.schedule(history, pending_source_read)
+            await entered.wait()
+            assert history.state.accepts_publication
+            assert history.state.reports_coverage
+            assert not history.state.accepts_source_work
+            assert not history.checkpoint_available
+            # The actual framework worker is cancelled during source retirement.
+            # Its completion cannot restore the prior live source incarnation.
+            await history.retire_source()
+            await pilot.pause()
+            assert not history.state.accepts_publication
+            assert not history.state.reports_coverage
+            assert not history.state.accepts_source_work
             # remove() marks the real framework node before its Prune message
             # is processed. Publication must be denied during that interval.
             removal = history.remove()
@@ -55,7 +78,7 @@ async def main():
     for node in ast.walk(ast.parse(path.read_text())):
         if isinstance(node, ast.Attribute):
             assert node.attr not in {"_committed", "_closing", "_pruning"}
-    print("transcript lifecycle: real source, provisional mount, commit, synchronous prune admission and removal pass")
+    print("transcript lifecycle: real source, provisional mount, commit, admitted worker retirement, prune and removal pass")
 
 
 if __name__ == "__main__":

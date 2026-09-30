@@ -107,7 +107,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     except TimeoutError:
         print('FILTER_RETURN_CROPPED_PAINT', repr(conversation_paint(app.screen)), flush=True)
         print('FILTER_RETURN_STATE', type(canonical.filter.state).__name__,
-            canonical.filter.scanning, canonical.has_older, canonical._loading,
+            canonical.filter.scanning, canonical.has_older, (not canonical.state.accepts_source_work),
             canonical._check_pending, canonical.state.declared_name,
             canonical.selected_categories, canonical.region, view.window.scroll_y,
             view.window.max_scroll_y, flush=True)
@@ -166,7 +166,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     except TimeoutError:
         print('FILTER_RETURN_CROPPED_PAINT', repr(conversation_paint(app.screen)), flush=True)
         print('FILTER_RETURN_STATE', type(canonical.filter.state).__name__,
-            canonical.filter.scanning, canonical.has_older, canonical._loading,
+            canonical.filter.scanning, canonical.has_older, (not canonical.state.accepts_source_work),
             canonical._check_pending, canonical.state.declared_name,
             canonical.selected_categories, canonical.region, view.window.scroll_y,
             view.window.max_scroll_y, flush=True)

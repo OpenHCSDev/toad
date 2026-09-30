@@ -78,8 +78,7 @@ async def exercise(app, pilot, count, *, matches=True):
         while overlay.has_newer:
             view.window.scroll_to(y=view.window.max_scroll_y, animate=False, immediate=True)
             await pilot.pause(0)
-            overlay._loading = True
-            await overlay._load_page(False)
+            await overlay.reserve_source_work().execute(overlay, lambda: overlay._load_page(False))
             names = [child.fragment.events[0].text for child in overlay.fragment_views]
             assert len(names) == len(set(names)), "Revisiting duplicated projected records"
             returned.update(names)
@@ -93,8 +92,7 @@ async def exercise(app, pilot, count, *, matches=True):
             for _ in range(4):
                 view.window.scroll_to(y=0, animate=False, immediate=True)
                 await pilot.pause(0)
-                overlay._loading = True
-                await overlay._load_page(True)
+                await overlay.reserve_source_work().execute(overlay, lambda: overlay._load_page(True))
             assert selected.is_attached and selected_text in app.screen.get_selected_text()
             app.screen.clear_selection()
 

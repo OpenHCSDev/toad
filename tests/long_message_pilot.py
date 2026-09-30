@@ -37,10 +37,10 @@ async def main():
                 conversation.window.scroll_home(animate=False, immediate=True)
                 try:
                     async with asyncio.timeout(10):
-                        while history.pages[0].start >= previous or history._loading:
+                        while history.pages[0].start >= previous or (not history.state.accepts_source_work):
                             await asyncio.sleep(.02)
                 except TimeoutError:
-                    print(previous, history.pages[0].start, history._loading,
+                    print(previous, history.pages[0].start, (not history.state.accepts_source_work),
                           history.window.scroll_y, history.window.max_scroll_y,
                           history.region, history.window.content_region)
                     raise
