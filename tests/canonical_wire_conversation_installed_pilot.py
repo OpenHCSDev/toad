@@ -36,6 +36,7 @@ from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.user_input import UserInput
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import MessageDivider
+from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def until(pilot, predicate, seconds=20):
@@ -156,13 +157,22 @@ def original_observation(view, reference, kind):
     return {'view_attached': view.is_attached,
             'view_is_selected': view.app.selected_session.conversation is view,
             'mounted_count': len(originals(view, reference, kind)),
-            'mounted_rows': [{'ancestors': [type(parent).__name__ for parent in body.ancestors],
+            'mounted_rows': [{'resource_id': id(body),
+                              'ancestors': [{'kind': type(parent).__name__, 'resource_id': id(parent)}
+                                            for parent in body.ancestors],
+                              'history_resources': [
+                                  {'resource_id': id(parent), 'registered_here': parent in histories,
+                                   'window_resource_id': id(parent.window),
+                                   'current_window_resource_id': id(view.window),
+                                   'cursor': FieldCodec.encode(parent.committed_cursor)}
+                                  for parent in body.ancestors if isinstance(parent, TranscriptHistory)],
                               'region': str(body.region),
                               'painted': body in view.screen._compositor.visible_widgets,
                               'in_viewport': body.region.overlaps(view.window.region)}
                              for body in originals(view, reference, kind)],
             'source_events': [
                 {'history': type(history).__name__,
+                 'resource_id': id(history),
                  'cursor': FieldCodec.encode(history.committed_cursor),
                  'resident_pages': [
                      {'before': FieldCodec.encode(page.page.before),

@@ -580,3 +580,32 @@ Mendel's existing installed pilot now retains explicitly named private roots and
 application directories through its reviewed `fixture_stage` capability. Only
 bounded receipts are committed; original journals/config remain in owned private
 scratch. The completed controls are preserved before any new source cohort.
+
+
+## Canonical source versus resident resources; merged routing candidate
+
+`controlled215-hot03` records the missing distinction. The original source event
+is present once in canonical alpha and beta pages. After the third beta input,
+two original Incoming containers are attached at y=-88 and y=-34; neither is
+painted or intersects the viewport. The current window's registered histories
+contain only the new native-file history, with one original event. The prior
+wire-only source had an empty native filename. This is a source/resource lifetime
+crossing, not proven delivery loss or duplicate paint. The driver retains exact
+page cursors and admitted fragment intervals. Heisenberg owns mount/registration
+closure; Schrodinger owns source/ACP publication. No old41 production patch or
+count/body deduplication was added. The control failed its once assertion before
+cold reopen, so the full journey is not Ready.
+
+The requested next candidate changes ONLY declared Core to merged
+`000a31c562b6d048e26e288b24fcd3f1ac64f803`, with normal generated uv.lock. The
+Toad source is unchanged from e59, Textual remains650 and native remainse36.
+The normal68 standalone install at `.artifacts/installed-original-routing07`
+passed exact direct-url provenance, imports, SDK0.12.1, package compatibility and
+whole native trust. Default roots/packages/owners remain unchanged. It contains
+the merged original-reference routing changes; it does not merge future C3
+consumer216 or the removed initial-admission field format.
+
+Fresh `controlled215-hot04` uses this new pair and distinct localhost inputs.
+The driver additionally records actual widget/history/window resource IDs, so
+retired resources can be compared with current source membership without a
+semantic state mirror. Original06 and all prior controls remain immutable.
