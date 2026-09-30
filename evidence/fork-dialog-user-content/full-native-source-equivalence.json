@@ -1,10 +1,15 @@
 {
   "tested_head": "253eeb101d9f6d28c8a3e0b608e509b6842b2ed5",
-  "integrated_head": "5b3d6e495bfda0a788263056c26387e9f16b9937",
+  "integrated_head": "104d31dea4f1749ec80ff9f896790bddf0d79717",
   "production_and_declared_pins_equal": true,
   "actual_gate_owner": "Einstein233",
   "receipt": "full-native-fork/fresh-fork.json",
   "native_task_gate": "native-task-admission.json",
   "external_provider_calls": 0,
-  "default_install_changed": false
+  "default_install_changed": false,
+  "installed_stage": "/home/ts/wt/toad-coordination-roster-invalidation-20260930/.artifacts/installed-observer233-final",
+  "installed_python_files_checked": 272,
+  "mismatches": [],
+  "source_admission_receipt": "../coordination-roster-invalidation-20260930/ready-receipt.json",
+  "full_fork_custody_receipt": "../coordination-roster-invalidation-20260930/cleanup08.json"
 }
