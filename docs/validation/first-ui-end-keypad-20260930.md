@@ -1,5 +1,9 @@
 # C3 release integration — current assignment
 
+**Current phase: READY paired installed/native checkpoint.** One immutable runtime at `/home/ts/.local/share/agent-comms/runtime-c3-reviewed-pair-20260930` contains reviewed Coreea1c, To6ff0b13e, Text2e49, SDK0.12.1 and nativee36. The unchanged existing233 native08 journey passes on this exact pair: fork/inherited-edited tags, roster/disclosure/immediate open, cold attach beyond5seconds, inherited history, first child Enter, one committed/painted answer and settled native source. Two controlled loopback requests, zero external paid calls or replay. All owned fixture children retired; durable private native source/inputs/raw logs remain protected.
+
+`evidence/c3-release-integration-20260930/ready-receipt.json` is the final candidate receipt; staged source To6ff is immutable. This receipt commit adds documentation/evidence only, with no source difference from the tested artifact. Public installation/activation is not claimed: parent alone acts after excluding old CLIENT writers.236 physical/adaptive/raster work remains separate; no cancellation or first-paint/Strip speed claim. The dated source checkpoints below explain how this candidate was prepared.
+
 PR231 now advances normally to current Toad main after merged233/228. This section supersedes the original firstUI-only composition restrictions below. The accepted9354 source, installed runtime and receipts remain immutable historical evidence.
 
 Normal merge a18c3fd6 includes current main94cfc1d2 (225CPU,230controls,232reconnect,233fork/observer and incorporated228). The dependency conflict is resolved to current main Core095; **that is a temporary source checkpoint, not the final build pin**. Textual uses merged14main2e49cb838af44d69aa5a6d76b2a1d74cfbe67347. Lock resolution and check pass. No production implementation was edited; zero own production lines deleted.
@@ -24,7 +28,7 @@ One normal frozen68 hardlinked install is complete at `/home/ts/.local/share/age
 
 The existing mechanical stage publisher derives activation metadata from the same verified staging receipt and passes installed runtime/private-route preflight. This preflight reads only the already completed OWN233 fixture's durable private metadata marker; it launches no UI, attaches no threads, submits no input and leaves zero owned probe processes. Failed setup reads are preserved separately; no public old-root load/default mutation/owner restart.
 
-Parent requested one continuous affected installed acceptance using the existing233 native08 caller, changed only through runtime selection: production fork, roster publication, immediate cold child open, inherited history, first new child input and one reply/status/history. This new paired gate is pending in persistent private fixture `/home/ts/wt/cw231-final-native01`; controlled loopback provider only. Prior component gates are not repeated. Parent alone owns public activation after excluding old CLIENT writers.
+Parent requested one continuous affected installed acceptance using the existing233 native08 caller, changed only through runtime selection: production fork, roster publication, immediate cold child open, inherited history, first new child input and one reply/status/history. This new paired gate passed in persistent private fixture `/home/ts/wt/cw231-final-native01`; controlled loopback provider only. Prior component gates are not repeated. Parent alone owns public activation after excluding old CLIENT writers.
 
 ## Historical accepted firstUI release
 
