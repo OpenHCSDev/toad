@@ -82,7 +82,7 @@ class TranscriptBlockConsumer(MroDispatch):
             from toad.widgets.incoming_message import IncomingMessage
             for message in event.routing.requests:
                 self.blocks.append(IncomingMessage(
-                    message.sender, message.body, message.target, show_header=self.show_divider,
+                    message.sender, event.text, message.target, show_header=self.show_divider,
                     source=message.reference, clock=MessageClock.recorded(message.timestamp),
                 ))
         else:

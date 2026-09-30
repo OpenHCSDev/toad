@@ -6,12 +6,16 @@ from agent_comms.message_reference import MessageReference
 
 
 class WireMessageHandling(ABC):
+    show_header: bool
+
     @property
     @abstractmethod
     def message_reference(self) -> MessageReference | None: ...
 
     @property
     def handling_references(self) -> tuple[MessageReference, ...]:
+        if not self.show_header:
+            return ()
         reference = self.message_reference
         return (reference,) if reference is not None else ()
 

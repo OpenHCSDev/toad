@@ -126,7 +126,7 @@ class CheckpointPublication(TranscriptPublication):
     def current(self) -> bool:
         view = self.owner.view
         return (super().current() and not view._pruning
-                and view.turns.managed_id is None and self.plan.current(self.window))
+                and self.plan.current(self.window))
 
     async def publish(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
@@ -152,7 +152,6 @@ class CheckpointPublication(TranscriptPublication):
             or not isinstance(view.agent, Agent)
             or not view.agent_ready
             or not view.agent.transcript_ready
-            or view.turns.managed_id is not None
             or any(
                 isinstance(node, CheckpointBarrier) for node in contents.walk_children()
             )
@@ -196,7 +195,7 @@ class CheckpointPublication(TranscriptPublication):
         if prepared is None or not is_current():
             return
         evidence = CommitEvidence(
-            frozenset(before_read), prepared.sequences, prepared.history,
+            view.turns.owner.captured_snapshot(before_read), prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
         async with window.history_lock:
