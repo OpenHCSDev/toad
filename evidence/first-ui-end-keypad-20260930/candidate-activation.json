@@ -1,0 +1,36 @@
+{
+  "state": "staged-exact-package-trusted-not-activated",
+  "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+  "pins": {
+    "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+    "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+    "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "all_68_requirements_checked": true,
+  "default_launchers_unchanged": true,
+  "entrypoints": {
+    "toad": {
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/toad",
+      "sha256": "2df62365ce2d01d142564d58c980a0dae26e1345a0ec221f81f18b63648f966d"
+    },
+    "agent-comms": {
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms",
+      "sha256": "e4bf7585a5ebbbed09ae7dbedf14cc467d5463001960511dbac04150bd3bc934"
+    },
+    "agent-comms-acp": {
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-acp",
+      "sha256": "0e1b1436bed477b08300a2be269bbca7736cf56303e62a9617db2a4d708ab99c"
+    },
+    "agent-comms-agent": {
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-agent",
+      "sha256": "c26865c228abc9e30e1acfa4f03f063453ae54b3e6d70d870f5af21c065cdb81"
+    },
+    "pi-comms-native": {
+      "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/pi-comms-native",
+      "sha256": "626c554d7a5cde66fa07eea21f2033541b04a76547cf8a03c5bb9e573c0e1182"
+    }
+  },
+  "pending": "Kepler sole physical editor focus gate; parent activation only"
+}

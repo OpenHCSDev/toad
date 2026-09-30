@@ -30,3 +30,7 @@ Protected runtime: /home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/inst
 Exact immutable git tree byte proof:288Core/269Toad/249TextPython files, zero mismatches. Native e36 standalone full trust passed; installed manifest SHAe36a1dde326b70179fa1c854a73fcad61948c90f5a93465a55ddd07d72936f07. Stage imported packages resolve only within candidate; no editable source/dependency fallback. See staging-receipt.json, requirements.txt and raw staging log. No provider calls or defaults/public owner changes.
 
 Kepler was given these immutable full pins for the sole45s affected physical editor/focus journey. Ready for that gate, not activation or product success. Do not rewrite the candidate during capture; parent owns final installation/cutover. Current C3/CPU225 live activation remains442;227 warmth/adaptive/CPU work is outside this source composition.
+
+## Recorder pre-UI manifest correction
+
+Kepler candidate01 stopped before st/native/input because the candidate activation.json was absent. The recorder correctly refused to accept an unbound native package. The stage now publishes the existing activation metadata contract derived from the verified staging receipt: exact pins, SDK, native package and measured entrypoint hashes. No route/source/default override, new metadata mechanism or guard bypass. Frozen package files are unchanged. Parent/Kepler preserve the first pre-UI attempt; only the corrected physical journey proceeds. Evidence candidate-activation.json matches the runtime activation file exactly.
