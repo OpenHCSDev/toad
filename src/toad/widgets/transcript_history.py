@@ -692,7 +692,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                    or self._saturated_widget_limit == self.widget_limit
               ))):
             self._request_page(True)
-        elif self.has_newer and region.bottom <= viewport.bottom + 2:
+        elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
             self._request_page(False)
 
     @on(JumpToLatest.Requested)
@@ -755,7 +755,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _load_page(self, older: bool) -> None:
         window, loader = self.window, self.loader
         generation = self._generation
-        scroll_intent = (window.scroll_revision, window.follows_tail, window.scroll_y)
         edge = self.pages[0] if older else self.pages[-1]
         edge_range = (edge.start, edge.stop)
         try:
@@ -775,9 +774,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                         or not self.screen.is_current
                         or generation != self._generation
                         or (self.pages[0] if older else self.pages[-1]) is not edge
-                        or edge_range != (edge.start, edge.stop)
-                        or scroll_intent != (window.scroll_revision, window.follows_tail, window.scroll_y)):
+                        or edge_range != (edge.start, edge.stop)):
                     return
+                # Source admission survives reader movement. Choose the current
+                # visible record after preparation, including a reversed reader.
                 visible = self.screen._compositor.visible_widgets
                 viewport = self.window.content_region
                 retained = [fragment for page in self.pages for fragment in page.children

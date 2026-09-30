@@ -33,16 +33,15 @@ def capture(*, expected_pid, output_prefix):
         if app is None:
             raise RuntimeError("No application context")
         namespace = vars(app)
-        stacks = tuple((name, tuple(stack)) for name, stack in app._screen_stacks.items())
+        stacks = tuple((name, (view,)) for name, view in app.workspace_sessions.views.items())
         payload = {"schema": 1, "views": [], "sidebar_snapshot": namespace.get("_sidebar_snapshot")}
         metadata = {"schema": 1, "pid": os.getpid(), "captured_ns": time.time_ns(), "python": sys.version,
-                    "current_mode": app.current_mode, "open_tab_order": list(app._open_tab_order),
+                    "current_mode": app.selected_mode, "open_tab_order": list(app.tab_order.names),
                     "source_modules": {name: getattr(sys.modules.get(name), "__file__", None)
                                        for name in ("toad", "textual", "agent_comms")},
                     "registry_size": len(app._registry), "views": [], "truncated": False,
                     "capture_scope": "view state, loaded pages/live block sources, cached sidebar DTO; not process memory"}
-        tracker = namespace.get("_session_tracker")
-        payload["session_details"] = {mode: asdict(details) for mode, details in tracker.sessions.items()} if tracker is not None else {}
+        payload["session_details"] = {mode: asdict(details) for mode, details in app.session_tracker.sessions.items()}
         for name in ("sidebar_state", "sidebar_layout"):
             model = namespace.get(name)
             if model is not None:
@@ -120,6 +119,21 @@ def capture(*, expected_pid, output_prefix):
                             "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}
                         virtual_size = data.get("_reactive_virtual_size")
                         window["_reactive_virtual_size"] = tuple(virtual_size) if virtual_size is not None else None
+                        window["scroll_y"] = node.scroll_y
+                        window["maximum"] = node.max_scroll_y
+                        window["follows_tail"] = node.follows_tail
+                        manager = data.get("document_viewport")
+                        if manager is not None:
+                            visible = node.screen._compositor.visible_widgets
+                            owners = tuple(manager.owners)
+                            window["body_resources"] = {
+                                "registered": len(owners),
+                                "dormant": sum(body.body_dormant for body in owners),
+                                "visible": sum(body in visible for body in owners),
+                                "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
+                                "reconciling": manager._running,
+                                "suspended": manager._suspended,
+                            }
                         view["history_windows"].append(window)
                     if data.get("_id") in {"channels-sidebar", "thread-sidebar"}:
                         view["bars"].append({"id": data["_id"], "collapsed": data.get("_reactive_collapsed"),
@@ -139,6 +153,7 @@ def capture(*, expected_pid, output_prefix):
                                           "identity": view["identity"], "history_pagers": len(view["history_pages"]),
                                           "loaded_pages": sum(len(history["pages"]) for history in view["history_pages"]),
                                           "live_blocks": len(view["live_blocks"]), "drafts": len(view["drafts"]),
+                                          "history_windows": view["history_windows"],
                                           "contents_kinds": dict(Counter(record["kind"] for record in view["contents"])),
                                           "visible_categories": view.get("visible_categories")})
         metadata["widget_classes"] = widget_classes.most_common()

@@ -10,7 +10,7 @@ from e2e_pty import PtyLaunch, ToadSession
 from first_frame_installed_terminal_journey import until
 
 
-async def main(saved_history=False):
+async def main(saved_history=False, close_tabs=False):
     evidence = Path(os.environ["EDITOR_KEY_EVIDENCE"])
     evidence.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix="editor-terminal-", dir=os.environ["TMPDIR"]) as directory:
@@ -62,6 +62,27 @@ async def main(saved_history=False):
         try:
             await session.start()
             await until(lambda: (evidence / "ready").exists(), session)
+            if close_tabs:
+                original = state()["source"]
+                x, y, _, _ = state()["editor_region"]
+                await session.click(x + 2, y + 1)
+                await session.type_text("actual editor before disposal")
+                await expect("live-editor-before-close", "actual editor before disposal", 29)
+                target = next(tab for tab in state()["close_tabs"] if tab["source"] == original)
+                x, y, _, _ = target["region"]
+                await session.click(x + 1, y + 1)
+                await until(lambda: len(state()["tabs"]) == 1 and state()["source"] != original,
+                            session, 8)
+                phases.append({"phase": "actual-tab-close-before-prune", **state()})
+                await session.send(b"\x11")
+                def exited():
+                    session._screen()
+                    return session.proc.returncode is not None
+                await until(exited, session, 6)
+                assert session.proc.returncode == 0, session._screen()
+                assert "NoMatches" not in session.buffer.decode(errors="replace")
+                print("REAL_LINUXDRIVER_SAVED_TAB_CLOSE_AND_APP_SHUTDOWN_PASS")
+                return
             await edits("clicked")
             await session.send(b"\x1b\t\x1b[Z")
             await edits("traversal")
@@ -134,4 +155,5 @@ async def main(saved_history=False):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(saved_history=sys.argv[1:] == ["--saved-history"]))
+    asyncio.run(main(saved_history=sys.argv[1:] in (["--saved-history"], ["--close-tabs"]),
+                     close_tabs=sys.argv[1:] == ["--close-tabs"]))

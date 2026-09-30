@@ -13,7 +13,7 @@ from textual import events
 from textual._context import active_message_pump, message_hook
 from textual.widget import Widget
 from toad.app import ToadApp
-from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.session_tabs import SessionLabel, SessionTabClose
 
 
 class KeyWorkflowApp(ToadApp):
@@ -146,6 +146,8 @@ class KeyWorkflowApp(ToadApp):
             "window_region": list(source.conversation.window.region),
             "tabs": [{"source": tab.id, "region": list(tab.region)}
                      for tab in self.screen.query(SessionLabel)],
+            "close_tabs": [{"source": tab.mode_name, "region": list(tab.region)}
+                           for tab in self.screen.query(SessionTabClose)],
             "bindings": [{"namespace": type(owner).__name__,
                           "keys": sorted(bindings.key_to_bindings)}
                          for owner, bindings in self.screen._binding_chain],

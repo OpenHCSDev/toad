@@ -158,7 +158,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.sources.present(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.evict(screen, self)
+        await screen.app.workspace_chrome.native.dispose(screen, self)
         await self.sources.close()
         self.state = None
 
@@ -259,17 +259,24 @@ class NativeSessionSurface:
         if (conversation := owner.widget) is None:
             return
         owner.state = SessionViewState.capture(conversation)
+        await self._remove(owner)
+
+    async def _remove(self, owner: OperationalSessionPresentation) -> None:
+        if (conversation := owner.widget) is None:
+            return
         await conversation.release_native_session()
         await conversation.window.document_viewport.close()
         await conversation.remove()
         owner.widget = None
 
-    async def evict(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+    async def dispose(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+        """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             if self.owner is owner:
                 await owner.release_binding(owner.widget, screen)
                 self.owner = self.view = None
-            await self._evict(screen, owner)
+            await self._remove(owner)
+            owner.state = None
 
     async def close(self) -> None:
         async with self._lock:
@@ -277,4 +284,5 @@ class NativeSessionSurface:
                 await self.owner.release_binding(self.widget, self.view)
             self.owner = self.view = None
             for screen, owner in self._presentations():
-                await self._evict(screen, owner)
+                await self._remove(owner)
+                owner.state = None

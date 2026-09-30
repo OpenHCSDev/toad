@@ -158,6 +158,7 @@ class WorkspaceSessions:
         if view := self.views.pop(identity, None):
             if self.source.matches(view):
                 self.source = DetachedWorkspaceSource()
+            await view.close_presentation()
             await view.remove()
 
     async def aclose(self) -> None:
