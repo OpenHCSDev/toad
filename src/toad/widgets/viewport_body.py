@@ -233,6 +233,21 @@ class DocumentViewport:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
 
+    def body_roots(self):
+        """Native document order, stopping at each registered body boundary.
+
+        Descendants belong to that body's materialization, not to another
+        viewport admission. Walk the original tree without expanding those
+        descendants or keeping an independent order alongside native custody.
+        """
+        pending = list(reversed(self.window.children))
+        while pending:
+            node = pending.pop()
+            if node in self.owners:
+                yield node
+            else:
+                pending.extend(reversed(node.children))
+
     async def _trim_warm(self, *, required=(), ahead=()):
         # Select the bounded materialized working set BEFORE restoring a body.
         # A dormant body carries its last native cost with its measured extent.
@@ -347,14 +362,11 @@ class DocumentViewport:
                 active = screen.is_current
                 visible = screen._compositor.visible_widgets if active else {}
                 protected = self.protected()
-                owners = tuple(owner for owner in self.owners if owner.is_attached
-                               and not any(parent in self.owners for parent in owner.ancestors))
+                owners = tuple(self.body_roots())
                 required = tuple(owner for owner in owners if owner in visible or owner in protected)
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
-                outer = set(owners)
-                sequence = ([node for node in self.window.walk_children() if node in outer]
-                            if active else [])
+                sequence = owners if active else ()
                 ahead_owners = []
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:

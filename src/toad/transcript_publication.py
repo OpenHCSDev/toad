@@ -77,7 +77,7 @@ class SnapshotPublication(TranscriptPublication):
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
-        frontiers = (history.committed_cursor for history in self.window.histories
+        frontiers = (history.committed_cursor for history in self.owner.histories
                      if history.is_attached and history.state.reports_coverage)
         frontier = max((cursor for cursor in frontiers
                         if cursor.session_file == self.page.after.session_file),
@@ -92,14 +92,13 @@ class SnapshotPublication(TranscriptPublication):
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
-        from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
             CommitEvidence, retirement_candidates,
         )
         async with self.window.history_lock:
             if not self.current():
                 return
-            for history in self.contents.query(TranscriptHistory):
+            for history in self.owner.histories:
                 history.state.validate_snapshot(history, self.page)
             if not self.admitted():
                 return
@@ -142,7 +141,6 @@ class SnapshotPublication(TranscriptPublication):
                     # Accepted source survives cancellation while old rows retire.
                     if not accepted and history.is_attached:
                         await history.remove()
-        view.query_one(SessionDetails)._refresh_summary()
         self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
 
 
@@ -386,6 +384,24 @@ class TranscriptPresentation:
     def view(self) -> Conversation | None:
         return self._view()
 
+    @property
+    def histories(self) -> tuple[TranscriptHistory, ...]:
+        """Canonical saved sources are direct children of this transcript.
+
+        A body may own pagers for its Markdown or filtered projection. Those
+        rendering resources cannot certify this conversation's saved source.
+        Native child custody, rather than another retained pointer, owns this
+        relation through provisional mount, replacement, park and disposal.
+        """
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        view = self.view
+        return tuple(view.contents.query_children(TranscriptHistory)) if view is not None else ()
+
+    @property
+    def reports_coverage(self) -> bool:
+        return any(history.state.reports_coverage for history in self.histories)
+
     def invalidate(self) -> None:
         self.generation += 1
 
@@ -398,11 +414,9 @@ class TranscriptPresentation:
     async def restore_native(self, agent) -> None:
         """The live calling actor owns retained reveal and source validation."""
         from toad.screens.session_view import SessionView
-        from toad.widgets.transcript_history import TranscriptHistory
 
         view = self.view
-        history = next((child for child in view.contents.children
-                        if isinstance(child, TranscriptHistory)), None)
+        history = next(iter(self.histories), None)
         if history is None:
             await view.present_retained_native_session()
             return
@@ -546,6 +560,7 @@ class TranscriptPresentation:
 
     async def covered(self, message) -> None:
         from toad.widgets.conversation import Contents
+        from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
             CommitEvidence,
             CommitParticipant,
@@ -579,3 +594,7 @@ class TranscriptPresentation:
             await contents.remove_children(
                 [child for child in candidates if child not in protected]
             )
+            # The accepted frontier also invalidates its existing status view.
+            # A retained resume can reject an identical snapshot without any
+            # widget replacement; it still publishes canonical coverage here.
+            view.query_one(SessionDetails)._refresh_summary()
