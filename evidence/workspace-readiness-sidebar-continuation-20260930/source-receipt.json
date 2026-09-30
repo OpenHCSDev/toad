@@ -16,5 +16,13 @@
   "ratchets": "ratchets.json",
   "installed_entrypoint": "pending",
   "overall_cpu": "not established",
-  "remaining_full_scope": "README.md"
+  "remaining_full_scope": "README.md",
+  "source_commit": "ea3cbaeee5ee6b7d5af4c34fb9f5971806c14b0a",
+  "evidence_files": [
+    "source-pilot.txt",
+    "guards.txt",
+    "baseline-stored-rows.txt",
+    "ratchets.json"
+  ],
+  "guard_runner": "direct execution of existing four assertions; immutable68 runtime has no pytest installed"
 }
