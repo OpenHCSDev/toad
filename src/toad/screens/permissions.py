@@ -67,7 +67,6 @@ class PermissionsScreen(Screen[Answer]):
 
     tool_container = getters.query_one("#tool-container", containers.VerticalScroll)
     navigator = getters.query_one("#navigator", OptionList)
-    question = getters.query_one(PermissionsQuestion)
     index: var[int] = var(0)
 
     def __init__(
@@ -90,7 +89,7 @@ class PermissionsScreen(Screen[Answer]):
             classe: Textual classes.
         """
         super().__init__(name=name, id=id, classes=classes)
-        self.options = options
+        self.question = PermissionsQuestion("", options=options)
         self.diffs = diffs
         self.agent_name = agent_name
 
@@ -119,7 +118,7 @@ class PermissionsScreen(Screen[Answer]):
                 id="instructions",
             )
             with containers.Vertical(id="nav-container"):
-                yield PermissionsQuestion("", options=self.options)
+                yield self.question
                 yield ChangesOptionList(id="navigator")
             yield ToolScroll(id="tool-container")
 

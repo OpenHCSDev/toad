@@ -93,7 +93,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         sessionId=agent.session_id,
         options=[schema.PermissionOption(option_id='modal-allow',name='Allow actual preview',kind='allow_once')],
         toolCall=schema.ToolCallUpdate(tool_call_id='action-preview',kind='edit',title='Actual preview',
-            content=[schema.FileEditToolCallContent(type='diff',path=str(view.working_directory/'action.txt'),old_text='before',new_text='after')])))
+            content=[schema.FileEditToolCallContent(type='diff',path=str(Path(view.working_directory)/'action.txt'),old_text='before',new_text='after')])))
     try:
         await until(pilot,lambda:isinstance(app.screen,PermissionsScreen))
         screen=app.screen
