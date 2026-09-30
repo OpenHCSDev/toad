@@ -11,8 +11,11 @@ pages; it loaded two pages only later while inactive. Those later pages cannot
 certify the user actually saw B's history. The fixed journey marks B open only
 after the selected peer's native resource publication is observed.
 
-The existing state exporter owns one attached diagnostic task, bound to the
-selected mode. It observes the existing HistoryWindow, committed visible-widget
+The existing state exporter owns one attached diagnostic task. The marker passes
+the intended peer from its existing journey argument; the task observes that
+peer through the selected view's declared channel context and requires the native
+WorkspaceSource to be shown before considering history. It observes the existing
+HistoryWindow, committed visible-widget
 map, original admitted pages, ready visible body resources and FramePresentation.
 Then it awaits the existing native after-refresh/FrameFlush writer acknowledgement
 and rechecks the selected source before its single DTO export. Source changes,
@@ -45,6 +48,24 @@ temporary generated scripts were removed. No fake UI/protocol/state or provider
 was used. Live verification belongs to Heisenberg's already planned single
 meaningfully changed candidate run, using these exact tools before acceptance.
 
-Remaining uncertainty: actual native cold-peer publication and terminal-writer
-completion must succeed in that physical run. This receipt does not replace it,
-reinterpret the earlier failed run as passing, or authorize another capture.
+Actual239 attempt01 preserved at
+`/home/ts/.cache/agent-scratch/toad-bounded-admission-239-20260930-attempt01/capture`
+failed `peer_selected`: the prior observer bound still-selected A (`session-1`)
+before the physical click completed B's selection and certified A after28.738ms.
+Its wait receipt and native metadata demonstrate the identity error; the driver
+exit1 is correct and is not weakened. Later B pages do not repair this failure.
+
+The correction removes that early selected-mode binding. The same single bounded
+task waits for the intended peer and shown native source, then history and writer
+completion, and rechecks the native selected owner after acknowledgement. It adds
+no projection, registry, compatibility reader or production state. IDEN-6 is the
+concrete defect: an observation of the previous selected identity answered the
+question about the intended destination. The owner relation now carries that
+destination from the original physical journey argument.
+
+Compilation/diff checks and actual candidate CLI script generation passed with
+explicit9second/0.2second options and intended `resource236b` before return-a.
+No UI, native process or provider was launched by this source check; its owned
+temporary directory was removed. Heisenberg remains the sole actual capture
+owner. Native cold-peer publication and terminal-writer completion remain to be
+verified in the next affected actual journey, alongside A/B/A, scrolling and idle.
