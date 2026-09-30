@@ -1026,7 +1026,7 @@ def main():
             parser.error("Scroll script must be under persistent agent scratch")
         destination.parent.mkdir(parents=True, exist_ok=True)
         with destination.open("x") as target:
-            target.write(scroll_script())
+            target.write(scroll_script(idle_seconds=args.scroll_idle_seconds))
         print(destination)
         return
     if len(args.review_phase) > 8 or len(set(args.review_phase)) != len(args.review_phase):
