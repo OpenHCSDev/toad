@@ -7,6 +7,7 @@ constructing a service. Write admission remains separately guarded at its sink.
 from __future__ import annotations
 
 import os
+import asyncio
 from dataclasses import dataclass
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager, nullcontext
@@ -59,9 +60,13 @@ class ObservedCommsService:
 class CoordinationAccess:
     """A validated core route owns cached access and guarded UI write admission."""
 
-    def __init__(self, changed: Callable[[], None]) -> None:
+    def __init__(self, changed: Callable[[], None], observed: Callable[[], None]) -> None:
         self.observation: ObservedCommsService | None = None
         self.changed = changed
+        self.observed = observed
+        self.revision = None
+        self.route_stamp = None
+        self.task = None
 
     @property
     def observed_service(self) -> Comms | None:
@@ -83,8 +88,63 @@ class CoordinationAccess:
         if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
             raise ValueError("Comms route changed while opening the service")
         self.observation = ObservedCommsService(selected, service)
+        self.revision = None
+        self.route_stamp = None
         self.changed()
         return service
+
+    def start(self, app) -> None:
+        """One application revision observer serves visible views and roster paint."""
+        from toad.constants import COMMS_REFRESH_INTERVAL
+
+        app.set_interval(COMMS_REFRESH_INTERVAL, self.refresh)
+        self.refresh()
+
+    async def close(self) -> None:
+        if self.task is not None:
+            self.task.cancel()
+            await asyncio.gather(self.task, return_exceptions=True)
+
+    def current_route_stamp(self):
+        from agent_comms.active_route import active_route_path
+        from agent_comms.store_files import file_revision
+
+        service = self.observed_service
+        return (file_revision(active_route_path()),
+                file_revision(service.root / "bus_meta.json") if service else None)
+
+    def route_changed(self) -> bool:
+        return self.route_stamp is None or self.current_route_stamp()[0] != self.route_stamp[0]
+
+    def refresh(self) -> None:
+        if self.task is not None and not self.task.done():
+            return
+        try:
+            service = self.observed_service
+            route_stamp = self.current_route_stamp()
+            revision = service.views.revision() if service else None
+            if (service is not None and revision == self.revision
+                    and route_stamp == self.route_stamp):
+                return
+            self.task = asyncio.create_task(self.observe())
+        except (OSError, ValueError, RuntimeError):
+            # A route publication may be replacing its marker. Its next revision
+            # retries validation; no sidebar visibility can disable observation.
+            return
+
+    async def observe(self) -> None:
+        try:
+            service = await asyncio.to_thread(lambda: self.service)
+            route_stamp = self.current_route_stamp()
+            revision = service.views.revision()
+            if not await asyncio.to_thread(root_is_current, service.root):
+                return
+            if service is not self.observed_service or self.current_route_stamp() != route_stamp:
+                return
+            self.revision, self.route_stamp = revision, route_stamp
+            self.observed()
+        except (OSError, ValueError, RuntimeError):
+            return
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. The existing

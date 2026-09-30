@@ -22,7 +22,7 @@ Actual bounded installed original-history idle comparison, without provider inpu
 
 ## Source checkpoint
 
-Toad225 removes the independent observer timer and subscribes to the existing app coordination publication, session activation and actions. Workspace channels observation remains enabled for coordinated views even with the visual sidebar collapsed; non-coordinated views have no original thread presentation to read. Current task/source retirement and unavailable feedback remain on the existing observer.
+Toad225 removes the independent observer timer and subscribes to the existing app coordination publication, session activation and actions. Review found that workspace view visibility could disable the roster publisher. This earlier subscription-only checkpoint was incomplete and was not accepted as live readiness. Current task/source retirement and unavailable feedback remain on the existing observer.
 
 Core440 adds original coordinator database/WAL paths, declared on NotificationAssignment, to the existing HistoryViews revision. Existing registry/activity/runtime/read/source tokens and the owner expiry clock remain unchanged. Recipient-only original assignment transition changes this canonical revision without changing wire message bytes.
 
@@ -31,3 +31,11 @@ Noneditable candidate wheel source3f4955 + Cored01c781c: current native/DM actua
 Heisenberg224 exact actual new capture57.197seconds at `/home/ts/.cache/agent-scratch/toad-workspace-publication-224-physical-20260930/capture`: idle9.91CPU/16.1557seconds(61.34%), render workers<=0.03CPU. It does not improve f92 idle. Actual minimum body frame35.5833seconds near End is blank: owned by Heisenberg224, not fixed by this subscription change.
 
 Next: existing retained actual SDK/ACP/UI read-only custody driver with original41MB and zero native inputs, private roots only. Record direct source/runtime/custody and CPU comparison boundaries. No provider call, native restart or default mutation.
+
+## Visibility crossing closure
+
+CoordinationAccess now owns the existing revision/route polling interval for the application lifetime. The former SidebarObservation interval, route-token encoding and cross-consumer publication are deleted. SidebarObservation subscribes to the app publication and retains only its projection read identity/paint; its enabled and collapsed flags gate roster work. A current conversation continues observing the canonical route with both sidebars closed. App shutdown cancels the one observation task. No new state authority, cache, receipt mechanism or independent activity timer is introduced.
+
+The noneditable installed pilot now runs native feedback and DM activity with both bars closed, then disables roster observation and changes one original channel assignment from Pending to Checked through the real coordinator SQLite lifecycle. The wire bytes remain unchanged. The mounted DM updates without a session/action signal or native input. Its bounded five-second idle observation used0.8993CPU seconds over5.0021seconds(17.98% of one core). This small-history headless UI measurement is not a comparable physical41MB speed claim.
+
+Attempt01 preserved a fixture setup error: a direct FULL assignment cannot transition to Ignored. Attempt02 uses the canonical channel TRIAGE assignment and passes the same product assertions without weakening the lifecycle. Installed retained SDK/ACP/UI acceptance remains pending source review. Shared source request/paint/ACK and frame mechanics remain with Sch215 and Heisenberg224.

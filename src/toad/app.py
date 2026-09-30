@@ -317,8 +317,9 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             self, lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_access = CoordinationAccess(self._coordination_changed)
         self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
+        self.coordination_access = CoordinationAccess(
+            self._coordination_changed, lambda: self.coordination_observed.publish(None))
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
@@ -334,6 +335,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         await super()._close_all()
 
     async def on_unmount(self) -> None:
+        await self.coordination_access.close()
         self.terminal_attention.close()
         await self.thread_navigation.close()
         await self.navigation_reader.aclose()
@@ -601,6 +603,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
 
     async def on_mount(self) -> None:
+        self.coordination_access.start(self)
         await self.application.start()
 
     @on(messages.WorkspaceSessionRequest)

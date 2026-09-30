@@ -488,6 +488,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     def sidebar_visibility_changed(self) -> None:
         self.projection.sync_spinner()
+        self.observation.refresh()
 
     def _ordered_rows(self):
         return self.projection.rows
