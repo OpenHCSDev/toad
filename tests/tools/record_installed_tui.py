@@ -367,7 +367,7 @@ class WarmScrollJourney(ScrollJourney):
         settle = f"sleep {args.navigation_settle_seconds:g}"
         return "\n".join([
             marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
-            "key ctrl+End", f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
+            f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
             scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
                           state="phase-draft-state.pickle"),
             marker + "switch-b", native_click_command("phase-switch-b-state.pickle", target="thread",
@@ -944,12 +944,16 @@ def record(args):
                 script = args.actions.read_text()
                 (output / "actions.xdo").write_text(script)
                 receipt["driver_started_seconds"] = time.monotonic() - started
-                # '-' is xdotool's native stdin script mode; no shell evaluation.
-                with (output / "actions.xdo").open() as source:
-                    owner.run(["xdotool", "-"], env, stdin=source,
-                              stdout=stack.enter_context((output / "driver.log").open("w")),
-                              stderr=subprocess.STDOUT,
-                              timeout=max(.1, remaining() - args.tail_seconds - 1))
+                # Installed xdotool stdin mode continued after failed execs in
+                # the real236 run. Each line is a checked native CLI invocation;
+                # held keys remain in the owned X server between invocations.
+                with (output / "driver.log").open("w") as log:
+                    for line in script.splitlines():
+                        action_argv = shlex.split(line, comments=True)
+                        if action_argv:
+                            owner.run(["xdotool", *action_argv], env, stdout=log,
+                                      stderr=subprocess.STDOUT,
+                                      timeout=max(.1, remaining() - args.tail_seconds - 1))
                 receipt["driver_finished_seconds"] = time.monotonic() - started
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
@@ -1095,7 +1099,7 @@ def mark(label):
 
 
 def marker_command():
-    # Literal quoted paths avoid native xdotool stdin variable-expansion defects.
+    # Each native invocation receives literal paths, without shell evaluation.
     return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
 
 
@@ -1146,7 +1150,8 @@ def main():
     parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
     parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
-    parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
+    parser.add_argument("--actions", type=Path,
+                        help="One checked xdotool argv line per action; no shell or shared window stack")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")

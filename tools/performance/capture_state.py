@@ -92,6 +92,9 @@ def capture(*, expected_pid, output_prefix):
             "maps": {},
         }
         metadata["navigation_targets"] = {"threads": [], "tabs": []}
+        # The public owner handles full-layout and partial-layout publication.
+        # _visible_map alone is only the optional partial-layout representation.
+        visible_regions = compositor.visible_widgets
 
         def navigation_target(node, region, name):
             cell = Offset(*(int(value) for value in region.center))
@@ -100,17 +103,16 @@ def capture(*, expected_pid, output_prefix):
             return {**node_identity(node), "name": name, "region": tuple(region),
                     "focus_target": {"widget": node_identity(node), "cell": tuple(cell)}}
 
-        if compositor._visible_map is not None:
-            for node, geometry in compositor._visible_map.items():
-                region = geometry.region.intersection(geometry.clip)
-                if not region:
-                    continue
-                if isinstance(node, ThreadRow):
-                    if target := navigation_target(node, region, node.target_name):
-                        metadata["navigation_targets"]["threads"].append(target)
-                if isinstance(node, SessionLabel):
-                    if target := navigation_target(node, region, node.id):
-                        metadata["navigation_targets"]["tabs"].append(target)
+        for node, (native_region, native_clip) in visible_regions.items():
+            region = native_region.intersection(native_clip)
+            if not region:
+                continue
+            if isinstance(node, ThreadRow):
+                if target := navigation_target(node, region, node.target_name):
+                    metadata["navigation_targets"]["threads"].append(target)
+            if isinstance(node, SessionLabel):
+                if target := navigation_target(node, region, node.id):
+                    metadata["navigation_targets"]["tabs"].append(target)
         for name, mapping in (("full", compositor._full_map), ("visible", compositor._visible_map)):
             metadata["compositor"]["maps"][name] = None if mapping is None else {
                 "count": len(mapping), "truncated": len(mapping) > 50000,
@@ -171,10 +173,11 @@ def capture(*, expected_pid, output_prefix):
                         view["goal"] = data.get("_reactive_goal")
                         view["goal_execution"] = data.get("_reactive_goal_execution")
                     if isinstance(node, PromptTextArea):
-                        geometry = compositor._visible_map.get(node) if compositor._visible_map is not None else None
+                        geometry = visible_regions.get(node)
                         focus_target = None
                         if geometry is not None:
-                            region = geometry.region.intersection(geometry.clip)
+                            native_region, native_clip = geometry
+                            region = native_region.intersection(native_clip)
                             if region:
                                 cell = Offset(*(int(value) for value in region.center))
                                 if node.screen.get_focusable_widget_at(*cell) is node:
@@ -182,7 +185,7 @@ def capture(*, expected_pid, output_prefix):
                         view["drafts"].append({"object_id": id(node), "lines": tuple(node.text.split("\n")),
                                                "selection": tuple(tuple(point) for point in node.selection),
                                                "focus_target": focus_target,
-                                               "region": tuple(geometry.region) if geometry is not None else None})
+                                               "region": tuple(geometry[0]) if geometry is not None else None})
                     if kind == "Contents" and type(node).__module__ == "toad.widgets.conversation":
                         for child in tuple(children._nodes) if children is not None else ():
                             child_data = vars(child)
@@ -210,14 +213,14 @@ def capture(*, expected_pid, output_prefix):
                     if isinstance(node, HistoryWindow):
                         window = {**node_identity(node), **{key: data.get(key) for key in (
                             "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}}
-                        geometry = compositor._visible_map.get(node) if compositor._visible_map is not None else None
-                        window["region"] = tuple(geometry.region) if geometry is not None else None
+                        geometry = visible_regions.get(node)
+                        window["region"] = tuple(geometry[0]) if geometry is not None else None
                         window["focus_target"] = None
                         cursor = next(iter(node.query(CursorContainer)), None)
-                        cursor_geometry = (compositor._visible_map.get(cursor)
-                                           if compositor._visible_map is not None else None)
+                        cursor_geometry = visible_regions.get(cursor)
                         if geometry is not None and cursor_geometry is not None:
-                            region = cursor_geometry.region.intersection(cursor_geometry.clip).intersection(geometry.region)
+                            cursor_region, cursor_clip = cursor_geometry
+                            region = cursor_region.intersection(cursor_clip).intersection(geometry[0])
                             if region:
                                 cell = Offset(*(int(value) for value in region.center))
                                 native_screen = node.screen
@@ -240,7 +243,7 @@ def capture(*, expected_pid, output_prefix):
                                                  if node.history_paint_ready is not None else None)
                         manager = data.get("document_viewport")
                         if manager is not None:
-                            visible = node.screen._compositor.visible_widgets
+                            visible = visible_regions
                             owners = tuple(manager.owners)
                             window["body_resources"] = {
                                 "registered": len(owners),

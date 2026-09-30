@@ -88,49 +88,34 @@ scrollbar stability. A successful native reply does not prove these.
 
 ## Record startup and physical tab return
 
-Locate controls in `before.png` or an existing capture of the same geometry.
-Use `--fit-window` for a 1260×780 terminal on the default 1280×800 screen.
-A native stdin script opens saved sources and physically clicks A/B/A:
+Use `--journey warm_scroll --capture-state --peer-thread ACTUAL-REGISTERED-PEER`
+with the prepared private fixture. The generated journey physically clicks the
+editor, types an unsent draft, focuses the message-area gutter, holds PageUp,
+PageDown, reverse PageUp, then End and idle. It clicks the declared peer and
+returns through the original native tab, then checks draft undo. Each target
+comes from the application's committed geometry and native widget identity,
+not a guessed coordinate. Use `--fit-window` for a 1260×780 terminal on the
+default 1280×800 screen.
 
-```text
-mousemove --sync 130 240
-click 1
-sleep 4
-exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark opened-a
-mousemove --sync 130 200
-click 1
-sleep 4
-exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark opened-b
-exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-a
-mousemove --sync 220 40
-click 1
-sleep 1
-exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-b
-mousemove --sync 350 40
-click 1
-sleep 1
-exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-return
-mousemove --sync 220 40
-click 1
-sleep 1
-```
-
-Replace coordinates with actual tab/sidebar locations. In the inspected two-tab
-installation these tab centers were 220,40 and 350,40; 520,40 hit empty tab-bar
-space. Sidebar order can change after opening a source. Marks **before** a click
-include its first destination frames in that review interval. Marks timestamp
-command boundaries, not application paint acknowledgements. Replace `/ABS/PATH`
-with this checkout's absolute path, and `/ABS/RUNTIME/bin/python` with the selected installed interpreter. The generated script writes literal quoted
-Python/tool paths. Native xdotool stdin environment expansion can swallow
-following arguments when expanding paths, so avoid it here. No shell evaluates
-the script.
+The recorder executes each nonempty action line as a separately checked native
+`xdotool` argv. A failed click or marker stops the journey and produces a failed
+receipt/nonzero exit. Held keys belong to the isolated X server across commands.
+There is no shell evaluation, environment expansion, or shared xdotool window
+stack. Generated commands contain literal quoted paths. Marks bracket actual
+input injection, not application paint acknowledgements. Review actual native
+focus and selected mode alongside the frames; process completion alone does not
+establish that scrolling or tab navigation happened.
 
 ```sh
 "$candidate_python" tests/tools/record_installed_tui.py \
-  --private-root "$fixture_root" --owner YOUR-NAME --fit-window --startup-wait 15 --max-duration 70 \
+  --journey warm_scroll --capture-state --peer-thread ACTUAL-REGISTERED-PEER \
+  --write-journey-script /home/ts/.cache/agent-scratch/YOUR-RUN/journey.xdo
+"$candidate_python" tests/tools/record_installed_tui.py \
+  --journey warm_scroll --capture-state --peer-thread ACTUAL-REGISTERED-PEER \
+  --private-root "$fixture_root" --owner YOUR-NAME --fit-window --startup-wait 15 --max-duration 100 \
   --actions /home/ts/.cache/agent-scratch/YOUR-RUN/journey.xdo \
   --review-start 0 --review-seconds 3 \
-  --review-phase warm-a --review-phase warm-b --review-phase warm-return \
+  --review-phase down --review-phase a-return \
   --output /home/ts/.cache/agent-scratch/YOUR-RUN/recording \
   -- "$candidate_toad" acp "$candidate_python -m agent_comms.acp" \
   "$fixture_project" --session beta
