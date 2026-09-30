@@ -141,11 +141,11 @@ class InlineTokenRule(ProjectTokenRule):
 class LinkOpenTokenRule(ProjectTokenRule):
     @classmethod
     def resolve(cls, renderer, token, context):
-        href = str(token.attrs.get("href", ""))
+        href = str(token.attrGet("href") or "")
         if path := _linked_file(context.root, href):
-            token.attrs["href"] = f"toad-file:{quote(str(path))}"
+            token.attrSet("href", f"toad-file:{quote(str(path))}")
         elif name := _searchable_basename(href):
-            token.attrs["href"] = f"toad-file-search:{quote(name)}"
+            token.attrSet("href", f"toad-file-search:{quote(name)}")
         context.linked += 1
         return [token]
 
