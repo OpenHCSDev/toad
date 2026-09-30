@@ -1,0 +1,20 @@
+{
+  "baseline_main": "19970f56899674932584138ff5e6fbe533c4af8f",
+  "scope": "native sidebar row custody and forced selection traversal",
+  "production_added": 10,
+  "production_deleted": 7,
+  "actual_application_source_pilot": {
+    "widgets": 595,
+    "metadata_layouts": 0,
+    "physical_disclosure": true,
+    "held_native_remove_completed": true,
+    "retired_navigation_rows": 0,
+    "forced_selection_subtree_queries": 0
+  },
+  "baseline": "stored tuple retains detached rows; existing navigation validity filter excludes them",
+  "guards_passed": 4,
+  "ratchets": "ratchets.json",
+  "installed_entrypoint": "pending",
+  "overall_cpu": "not established",
+  "remaining_full_scope": "README.md"
+}

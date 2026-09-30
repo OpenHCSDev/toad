@@ -1,5 +1,30 @@
 # Full foreground, readiness and workspace continuation
 
+## Native sidebar custody checkpoint
+
+Delete ChannelGroup.member_rows and its post-await writer. The original native
+member_container.children owns order; SidebarProjection navigation/spinner rows,
+session rows and forced selected-mode painting derive that same membership.
+The keyed _members map retains widget reuse. RelationshipRows keeps its local
+awaited reconcile result for native scroll compensation; it never stored this
+second ordered tuple.
+
+The existing actual-app metadata/disclosure pilot holds native row removal after
+completion but before reconciliation returns. At main19970f56 the stored tuple
+still retains removed rows; the existing navigation validity filter excludes
+them. This proves redundant custody, not a demonstrated user ghost-navigation
+failure. The candidate has no stored tuple, navigation/session membership comes
+from the native container, physical collapse/expand passes, metadata-only updates
+cause zero layouts, and forced mode painting performs no sidebar subtree query.
+All four saved/native/channel pilot caller files inherit native membership.
+
+595-widget source gate passes. Four existing sidebar ownership guards pass,
+including the added deleted-family guard; all six measured dispatch/codec/probe
+ratchets remain zero across the three production files. No installed249 user
+entrypoint or whole CPU improvement is claimed by these source results. Source
+and baseline logs are retained here; initial baseline execution that referenced
+the new derived property is preserved under .artifacts but is not red evidence.
+
 Main base19970f56, including merged248. Heisenberg remains integration owner;
 Kepler provides read-only source/profile/video help. Sch owns backend S14 and
 canonical T5 contracts; frontend publication/streaming/archive/resource crossings
