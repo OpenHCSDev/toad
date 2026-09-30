@@ -131,16 +131,8 @@ Conversation {
         width: 1;                    
         color: $foreground 7%;            
                 
-        &> Cursor {
-            height: 0;            
-            width: 1;     
-                                 
-            border-left: outer $text-accent;
-            visibility: visible;
-            &.-blink {
-                border-left: outer $text-accent 20%;
-            } 
-        }
+        .cursor--selected { color: $text-accent; }
+        .cursor--selected-blink { color: $text-accent 20%; }
     }        
 
 

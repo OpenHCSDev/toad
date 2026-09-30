@@ -1,9 +1,10 @@
 """Shared budgets for a source-backed window of native widget presentation."""
 
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from math import ceil, exp
-from time import monotonic
+from math import ceil
+from time import monotonic, get_clock_info
 
 from textual.widget import Widget
 
@@ -33,9 +34,11 @@ class PresentationBudget:
 
     max_items: int = 24
     admission_items: int = 4
-    reserve_batches: int = 2
+    reserve_batches: int = 4
     minimum_widgets: int = 300
     widgets_per_row: int = 10
+    lookahead_seconds: float = 0.3
+    scroll_idle_seconds: float = 0.2
 
     def __post_init__(self) -> None:
         for name in ("max_items", "admission_items", "minimum_widgets"):
@@ -46,6 +49,8 @@ class PresentationBudget:
             value = getattr(self, name)
             if type(value) is not int or value < 0:
                 raise ValueError(f"{name} must be a non-negative integer")
+        if self.lookahead_seconds <= 0 or self.scroll_idle_seconds <= 0:
+            raise ValueError("Preparation timing must be positive")
 
     def item_limit(self, protected_items: int) -> int:
         return max(self.max_items, protected_items + self.reserve_batches * self.admission_items)
@@ -54,54 +59,144 @@ class PresentationBudget:
         return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
 
 
+class PreparationDemand(ABC):
+    """One scroll intent; its cases own prediction and incoming travel."""
+
+    @abstractmethod
+    def rows(self, horizon: float) -> float: ...
+
+    def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
+        return MovingPreparation(travel / elapsed)
+
+    def edges(self, before, after):
+        return before, after
+
+    def neighbors(self, sequence, first: int, last: int, count: int):
+        return ()
+
+
+class StationaryPreparation(PreparationDemand):
+    def rows(self, horizon: float) -> float:
+        return 0
+
+    def neighbors(self, sequence, first: int, last: int, count: int):
+        # A small idle reserve belongs to the same page/worker resource, not
+        # a second cache. Moving demand selects only its incoming direction.
+        return (tuple(reversed(sequence[max(0, first - count):first]))
+                + tuple(sequence[last:last + count]))
+
+
+@dataclass
+class MovingPreparation(PreparationDemand):
+    velocity: float
+
+    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
+        velocity = travel / elapsed
+        if self.velocity * velocity > 0:
+            # This is still the same direction's owned demand. Refresh its
+            # measured speed without revoking every admitted batch on each
+            # held-key sample. Reversal creates a new demand and revokes it.
+            self.velocity = velocity
+            return self
+        return super().moved(travel, elapsed)
+
+    def rows(self, horizon: float) -> float:
+        return self.velocity * horizon
+
+    def edges(self, before, after):
+        return (before, None) if self.velocity < 0 else (None, after)
+
+    def neighbors(self, sequence, first: int, last: int, count: int):
+        return (tuple(reversed(sequence[max(0, first - count):first]))
+                if self.velocity < 0 else tuple(sequence[last:last + count]))
+
+
+@dataclass(frozen=True)
+class DestinationPreparation(PreparationDemand):
+    viewport_rows: int
+
+    def rows(self, horizon: float) -> float:
+        return self.viewport_rows
+
+    def moved(self, travel: float, elapsed: float) -> PreparationDemand:
+        # End's own destination layout is not an intermediate scroll demand.
+        # An explicit reversal immediately replaces the burst.
+        return super().moved(travel, elapsed) if travel < 0 else self
+
+    def edges(self, before, after):
+        # The existing latest-page operation owns a jump, never edge traversal.
+        return None, None
+
+
 class DirectionalPreparation:
     """Measured travel during preparation, owned by the existing viewport.
 
-    Decay is evaluated on demand: a stationary reader schedules no sampling
-    worker. A destination jump supplies a viewport of urgency independently
-    of the preceding scroll samples.
+    Idle expiry measures input cadence, not a renderer's frame rate. Measured
+    foreground body delivery supplies the prediction horizon, including worker
+    waits and native widget construction. Speculative worker batches do not
+    overwrite that distinct measurement. The existing
+    presentation budget bounds how much of that prediction can be admitted.
     """
 
-    def __init__(self):
+    def __init__(self, viewport):
+        self.viewport = viewport
         self.position = 0.0
         self.sampled_at = monotonic()
-        self.velocity = 0.0
-        self.render_seconds = 1 / 60
-        self.destination_rows = 0
+        self.delivery_seconds = 0.0
+        self.demand: PreparationDemand = StationaryPreparation()
+
+    @property
+    def budget(self) -> PresentationBudget:
+        return self.viewport.budget
 
     def observe(self, position: float) -> bool:
         now = monotonic()
         elapsed = now - self.sampled_at
         travel = position - self.position
         if travel:
-            self.velocity = travel / max(elapsed, self.render_seconds)
-            self.destination_rows = 0
+            elapsed = min(self.idle_seconds, max(elapsed, get_clock_info("monotonic").resolution))
+            self.demand = self.demand.moved(travel, elapsed)
             self.sampled_at = now
             self.position = position
         return bool(travel)
 
+    def relocated(self, position: float) -> None:
+        """Rebase measured travel after layout preserves the same source reader.
+
+        Restoration is geometry compensation, not another input sample. Keep
+        the existing demand's velocity, direction and expiry unchanged.
+        """
+        self.position = position
+
     def settle(self) -> None:
-        self.velocity = 0.0
-        self.destination_rows = 0
+        self.demand = StationaryPreparation()
 
     def destination(self, rows: int) -> None:
-        self.destination_rows = rows
+        self.demand = DestinationPreparation(rows)
         self.sampled_at = monotonic()
-        self.velocity = 0.0
 
-    def prepared(self, seconds: float) -> None:
-        self.render_seconds = (self.render_seconds + seconds) / 2
+    def delivered(self, seconds: float) -> None:
+        self.delivery_seconds = seconds
+
+    @property
+    def idle_seconds(self) -> float:
+        return max(self.budget.scroll_idle_seconds, self.delivery_seconds)
 
     @property
     def travel_rows(self) -> float:
         elapsed = monotonic() - self.sampled_at
-        decay = exp(-elapsed / max(self.render_seconds * 2, 1 / 60))
-        return (self.velocity * self.render_seconds + self.destination_rows) * decay
+        if elapsed >= self.idle_seconds:
+            return 0
+        return self.demand.rows(max(self.budget.lookahead_seconds, self.delivery_seconds))
 
     def ahead_rows(self, viewport_rows: int) -> int:
         # Resource admission still belongs to PresentationBudget / the viewport
         # working set; lookahead cannot ask for an entire skipped transcript.
-        return ceil(min(viewport_rows, abs(self.travel_rows)))
+        return ceil(min(viewport_rows * self.budget.reserve_batches, abs(self.travel_rows)))
 
     def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
         return min(budget.item_limit(0), budget.admission_items + self.ahead_rows(viewport_rows))
+
+    def accepts(self, demand: PreparationDemand) -> bool:
+        """A queued batch belongs to this still-moving or destination intent."""
+        return demand is self.demand and self.travel_rows != 0

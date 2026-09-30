@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcript_events import TranscriptEvent, LiveTextTranscript
+from agent_comms.mro_dispatch import MroDispatch, handles
 from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
@@ -116,6 +118,11 @@ class MarkdownSyntaxRenderTask(ReusableRenderTask[list[Token]]):
         from toad.conversation_markdown import parse_markdown_syntax
         return parse_markdown_syntax(self.source)
 
+    async def prepare_body(self, renderer, ansi: bool, dark: bool) -> None:
+        """Warm the same grammar and highlighted rows used by native delivery."""
+        tokens = await renderer.submit(self)
+        await renderer.submit(TokenRenderTask(tuple(tokens), ansi, dark))
+
     def accept_result(self, result: object) -> list[Token]:
         if not isinstance(result, list) or not all(isinstance(token, Token) for token in result):
             raise TypeError("Markdown syntax renderer returned invalid tokens")
@@ -135,6 +142,38 @@ class TokenRenderTask(ReusableRenderTask[PreparedMarkdown]):
         if not isinstance(result, PreparedMarkdown):
             raise TypeError("Token renderer returned an invalid result")
         return result
+
+
+class TranscriptBodyPreparation(MroDispatch):
+    """Pure body work for declared transcript cases, without native widgets."""
+
+    def __init__(self, renderer, ansi: bool, dark: bool):
+        self.renderer, self.ansi, self.dark = renderer, ansi, dark
+
+    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:
+        """Warm a bounded source range in shared workers, without native mounts.
+
+        Reversal/retirement stops the next batch. Already admitted render work
+        keeps its existing runtime custody and resource limits.
+        """
+        for first in range(0, len(fragments), batch_size):
+            if not keep_going():
+                return
+            await asyncio.gather(*(self.dispatch(event)
+                                   for fragment in fragments[first:first + batch_size]
+                                   for event in fragment.events))
+
+    @handles(TranscriptEvent)
+    async def undisclosed(self, event: TranscriptEvent) -> None:
+        # Metadata and tool disclosure contents retain their existing lazy
+        # owners. A viewport prediction does not open those disclosures.
+        pass
+
+    @handles(LiveTextTranscript)
+    async def markdown(self, event: LiveTextTranscript) -> None:
+        await MarkdownSyntaxRenderTask(event.text).prepare_body(
+            self.renderer, self.ansi, self.dark,
+        )
 
 
 @dataclass(frozen=True)

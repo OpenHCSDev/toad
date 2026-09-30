@@ -1,0 +1,187 @@
+{
+  "owner": "toad-viewport-demand-214",
+  "command": [
+    "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp",
+    "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/l0a-native-35yqq751/project",
+    "--session",
+    "beta"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    800
+  ],
+  "started_utc": "2026-09-30T01:11:08.917051+00:00",
+  "capture_completed": true,
+  "completed": false,
+  "error": "InterruptedError: Recorder interrupted by signal 15",
+  "duration_seconds": 40.93172994800261,
+  "runtime_unchanged": true,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 5.0
+    },
+    {
+      "label": "up",
+      "start": 14.628856932016788,
+      "seconds": 4.82862594499602
+    },
+    {
+      "label": "down",
+      "start": 20.286981169017963,
+      "seconds": 4.7845269499812275
+    },
+    {
+      "label": "reverse",
+      "start": 25.857760009996127,
+      "seconds": 4.859575009002583
+    },
+    {
+      "label": "end",
+      "start": 31.54108354699565,
+      "seconds": 1.7905558530183043
+    },
+    {
+      "label": "idle",
+      "start": 33.331639400013955,
+      "seconds": 4.81215551297646
+    }
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2024152,
+        "start_ticks": 20630810,
+        "returncode": 0
+      },
+      {
+        "pid": 2024178,
+        "start_ticks": 20630896,
+        "returncode": 0
+      },
+      {
+        "pid": 2024180,
+        "start_ticks": 20630907,
+        "returncode": 0
+      },
+      {
+        "pid": 2024182,
+        "start_ticks": 20630947,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2024183,
+        "start_ticks": 20630953,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2024188,
+        "start_ticks": 20630958,
+        "returncode": 0
+      },
+      {
+        "pid": 2024189,
+        "start_ticks": 20630968,
+        "returncode": 0
+      },
+      {
+        "pid": 2024190,
+        "start_ticks": 20630976,
+        "returncode": 0
+      },
+      {
+        "pid": 2024191,
+        "start_ticks": 20630988,
+        "returncode": 255
+      },
+      {
+        "pid": 2024515,
+        "start_ticks": 20632191,
+        "returncode": 0
+      },
+      {
+        "pid": 2024519,
+        "start_ticks": 20632217,
+        "returncode": 0
+      },
+      {
+        "pid": 2025361,
+        "start_ticks": 20635060,
+        "returncode": 0
+      },
+      {
+        "pid": 2025377,
+        "start_ticks": 20635116,
+        "returncode": 0
+      },
+      {
+        "pid": 2025378,
+        "start_ticks": 20635201,
+        "returncode": 0
+      },
+      {
+        "pid": 2025384,
+        "start_ticks": 20635428,
+        "returncode": 0
+      },
+      {
+        "pid": 2025385,
+        "start_ticks": 20635455,
+        "returncode": 0
+      },
+      {
+        "pid": 2025883,
+        "start_ticks": 20636613,
+        "returncode": 0
+      },
+      {
+        "pid": 2025904,
+        "start_ticks": 20636675,
+        "returncode": 0
+      },
+      {
+        "pid": 2026146,
+        "start_ticks": 20637851,
+        "returncode": 0
+      },
+      {
+        "pid": 2026153,
+        "start_ticks": 20637929,
+        "returncode": 0
+      },
+      {
+        "pid": 2026418,
+        "start_ticks": 20639119,
+        "returncode": 0
+      },
+      {
+        "pid": 2026433,
+        "start_ticks": 20639198,
+        "returncode": 0
+      },
+      {
+        "pid": 2026646,
+        "start_ticks": 20640408,
+        "returncode": 0
+      },
+      {
+        "pid": 2026652,
+        "start_ticks": 20640472,
+        "returncode": 255
+      }
+    ]
+  },
+  "raw_evidence": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3",
+  "verified_source": "cd3b57dd925aa7b20b584c7ce029e02bec35639a",
+  "native_requests": 1,
+  "post_recording_prompt_sent": false,
+  "visual_review": "Physical focus hit the message area. The 40-frame PageDown sheet moves through saved blocks 0 to 31; reverse returns to the beginning; idle-done after End paints SOURCE END. No blank extent seen in these frames. Pending lazy-read geometry was not measured; no primary lazy-end closure claimed.",
+  "whole_journey": "FAIL: controller100s expired while encoding slow clips after capture. This does not establish post-recording original-owner input acceptance."
+}

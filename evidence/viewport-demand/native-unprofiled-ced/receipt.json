@@ -1,0 +1,371 @@
+{
+  "owner": "toad-viewport-demand-214",
+  "command": [
+    "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp",
+    "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/l0a-native-6e2d9z5a/project",
+    "--session",
+    "beta"
+  ],
+  "profiling_requested": false,
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "review_timing": "deferred",
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 5.0
+    },
+    {
+      "label": "up",
+      "start": 14.546526628022548,
+      "seconds": 4.789054017979652
+    },
+    {
+      "label": "down",
+      "start": 20.18451387900859,
+      "seconds": 4.927240534016164
+    },
+    {
+      "label": "reverse",
+      "start": 25.890555977006443,
+      "seconds": 4.759982482995838
+    },
+    {
+      "label": "end",
+      "start": 31.38134919802542,
+      "seconds": 1.7739836190012284
+    },
+    {
+      "label": "idle",
+      "start": 33.15533281702665,
+      "seconds": 4.756821354996646
+    }
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2112599,
+        "start_ticks": 20914677,
+        "returncode": 0
+      },
+      {
+        "pid": 2112616,
+        "start_ticks": 20914754,
+        "returncode": 0
+      },
+      {
+        "pid": 2112618,
+        "start_ticks": 20914762,
+        "returncode": 0
+      },
+      {
+        "pid": 2112619,
+        "start_ticks": 20914768,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2112620,
+        "start_ticks": 20914769,
+        "returncode": 0
+      },
+      {
+        "pid": 2112621,
+        "start_ticks": 20914779,
+        "returncode": 0
+      },
+      {
+        "pid": 2112622,
+        "start_ticks": 20914788,
+        "returncode": 0
+      },
+      {
+        "pid": 2112623,
+        "start_ticks": 20914797,
+        "returncode": 255
+      },
+      {
+        "pid": 2113012,
+        "start_ticks": 20915998,
+        "returncode": 0
+      },
+      {
+        "pid": 2113045,
+        "start_ticks": 20916021,
+        "returncode": 0
+      },
+      {
+        "pid": 2113997,
+        "start_ticks": 20918841,
+        "returncode": 0
+      },
+      {
+        "pid": 2114002,
+        "start_ticks": 20918926,
+        "returncode": 0
+      },
+      {
+        "pid": 2114012,
+        "start_ticks": 20918997,
+        "returncode": 0
+      },
+      {
+        "pid": 2114030,
+        "start_ticks": 20919162,
+        "returncode": 0
+      }
+    ]
+  },
+  "source": "ced1810e / main7e4465c7 normally integrated",
+  "raw_evidence": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced",
+  "native_requests": 2,
+  "comparison_limit": "Viewport/preparation source and Core720/Textual412/native4ab unchanged; urgent220 route-admission source is additionally integrated. Scheduler/workload variability remains; no causal profiler-overhead or final latency claim.",
+  "phase_cpu": [
+    {
+      "phase": "up",
+      "wall_seconds": 4.789054017979652,
+      "processes": [
+        {
+          "pid": "2112619",
+          "command": "toad                                                                                                                                                                                                                                                                                                                               ",
+          "cpu_seconds": 3.13,
+          "average_cpu_percent": 65.35737513607012
+        },
+        {
+          "pid": "2112618",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/l0a-native-6e2d9z5a/project --session beta ",
+          "cpu_seconds": 0.08,
+          "average_cpu_percent": 1.6704760418164888
+        },
+        {
+          "pid": "2112812",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.20880950522706127
+        },
+        {
+          "pid": "2112819",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.20880950522706127
+        },
+        {
+          "pid": "2112756",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112630",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112671",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "phase": "down",
+      "wall_seconds": 4.927240534016164,
+      "processes": [
+        {
+          "pid": "2112619",
+          "command": "toad                                                                                                                                                                                                                                                                                                                               ",
+          "cpu_seconds": 2.8200000000000003,
+          "average_cpu_percent": 57.23284626621293
+        },
+        {
+          "pid": "2112618",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/l0a-native-6e2d9z5a/project --session beta ",
+          "cpu_seconds": 0.08000000000000002,
+          "average_cpu_percent": 1.623626844431573
+        },
+        {
+          "pid": "2112812",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112819",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112756",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112630",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112671",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "phase": "reverse",
+      "wall_seconds": 4.759982482995838,
+      "processes": [
+        {
+          "pid": "2112619",
+          "command": "toad                                                                                                                                                                                                                                                                                                                               ",
+          "cpu_seconds": 2.799999999999999,
+          "average_cpu_percent": 58.823745885672565
+        },
+        {
+          "pid": "2112618",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/l0a-native-6e2d9z5a/project --session beta ",
+          "cpu_seconds": 0.07999999999999996,
+          "average_cpu_percent": 1.6806784538763588
+        },
+        {
+          "pid": "2112812",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112819",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112756",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112630",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112671",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "phase": "end",
+      "wall_seconds": 1.7739836190012284,
+      "processes": [
+        {
+          "pid": "2112619",
+          "command": "toad                                                                                                                                                                                                                                                                                                                               ",
+          "cpu_seconds": 0.8800000000000008,
+          "average_cpu_percent": 49.60586955675781
+        },
+        {
+          "pid": "2112618",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/l0a-native-6e2d9z5a/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112812",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112819",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112756",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112630",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112671",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "phase": "idle",
+      "wall_seconds": 4.756821354996646,
+      "processes": [
+        {
+          "pid": "2112619",
+          "command": "toad                                                                                                                                                                                                                                                                                                                               ",
+          "cpu_seconds": 0.9299999999999997,
+          "average_cpu_percent": 19.550870856714262
+        },
+        {
+          "pid": "2112618",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/l0a-native-6e2d9z5a/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112812",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112819",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=28) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112756",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112630",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2112671",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "owner": "TC2 PR221",
+  "removed": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/end-slow.mp4",
+      "bytes": 128476,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/down-slow.mp4",
+      "bytes": 521050,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/slow.mp4",
+      "bytes": 194924,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/idle-slow.mp4",
+      "bytes": 306610,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/reverse-slow.mp4",
+      "bytes": 512788,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/up-slow.mp4",
+      "bytes": 508008,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/profiled/end-slow.mp4",
+      "bytes": 133820,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/profiled/down-slow.mp4",
+      "bytes": 459855,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/profiled/slow.mp4",
+      "bytes": 195258,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/profiled/idle-slow.mp4",
+      "bytes": 295369,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/profiled/reverse-slow.mp4",
+      "bytes": 531688,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/profiled/up-slow.mp4",
+      "bytes": 529837,
+      "purpose": "Reproducible slow-motion derivative; original terminal.mp4, phase frame sheets, CPU trace and review receipts retained"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/wheels/batrachian_toad-0.6.20-py3-none-any.whl",
+      "bytes": 2192878,
+      "purpose": "Owned obsolete build wheel; installed packages and committed source retained; no installed path points inside wheel archive"
+    }
+  ],
+  "removed_bytes": 6510561,
+  "preserved": [
+    "Original terminal.mp4 captures",
+    "cpu-profile.json traces and profile/cleanup/acceptance receipts",
+    "Native journals and failed-attempt diagnostics",
+    "Reviewed contact sheets and phase PNGs",
+    "Owned .venv and shared dependency env; no source/worktree removed"
+  ],
+  "default_live_owner_report": "Toad540bc85c/Core720629/Textual412/native4ab; parent actual default launcher gate PASS"
+}

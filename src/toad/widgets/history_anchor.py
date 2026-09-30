@@ -31,6 +31,7 @@ class WindowRestoration(ABC):
         window._restoring = True
         try:
             self._restore(window)
+            window.document_viewport.lookahead.relocated(window.scroll_y)
         finally:
             window._restoring = False
 
@@ -179,7 +180,11 @@ class HistoryWindow(VerticalScroll):
         # Rejoin at the bottom after actual downward movement, including
         # keyboard, wheel and scrollbar input. Compensation uses the existing
         # restoration transaction and cannot choose a different reader policy.
-        if new_value > old_value and not self._restoring:
+        if (new_value > old_value and not self._restoring
+                and all(not history.has_newer for history in self.histories)):
+            # A lazy pager's mounted edge is not the source tail. Explicit End
+            # still chooses follow through jump_to_latest; ordinary travel only
+            # rejoins it once the current source has no unpublished newer rows.
             super()._check_anchor()
 
     def check_follow(self) -> bool:

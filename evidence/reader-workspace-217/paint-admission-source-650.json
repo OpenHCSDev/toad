@@ -1,0 +1,33 @@
+{
+  "result": "PASS source actual Toad UI; not installed candidate readiness",
+  "exit_code": 0,
+  "command": "PYTHONPATH=<PR217>/src:<Textual13>/src PYTHONDONTWRITEBYTECODE=1 /home/ts/.local/share/agent-comms/runtime-ordered-view-disposal-20260929/bin/python tests/viewport_layout_reentry_pilot.py",
+  "textual_code_commit": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+  "core_commit": "72062939239b0f07707406309305a056a23f925f",
+  "native_package": "4ab910061590d1e0; unused by provider-free editor/viewport journey",
+  "environment": "Private test root and XDG paths; inherited managed/thread/Pi prompt and NO_COLOR removed; no global package mutation",
+  "coverage": [
+    "queued native follow and compositor preparation without synchronous layout reentry",
+    "growth and 70/139-column viewport resizing retain tail intent",
+    "new output retains offset reader position",
+    "cropped actual compositor output includes expected appended text",
+    "actual logical session switch and return; no application exception"
+  ],
+  "ownership": {
+    "Screen": "batch admission, damage retention, callback completion and pending repaint",
+    "ViewportPresentation": "visible body readiness and existing reader/follow policy",
+    "WorkspaceScreen": "inherited Screen publisher with _prepare_compositor_refresh hook"
+  },
+  "deletion": "15 production lines deleted, 2 added across workspace.py and viewport_body.py; dependency pin adds/deletes one line",
+  "scope_limit": "Existing test banner says installed, but Toad and Textual were source imports. Actual immutable pair held-key original41MB recording/profile remains required. Existing blank baseline and candidate887 evidence preserved.",
+  "patterns": [
+    "IDEN-3: one paint admission owner, no copied pending boolean",
+    "TIME-3: old compositor wrapper deleted, no compatibility hook fallback"
+  ],
+  "new_case_edit_count": "A viewport preparation implementation changes its existing hook; no batch/damage policy or publication consumer changes.",
+  "changed_source_sha256": {
+    "src/toad/screens/workspace.py": "09471ba72ddbd3b8e0aaf6bec84c2b6d6df6360785e89d4df152b603e5a1ac8f",
+    "src/toad/widgets/viewport_body.py": "008639a0cb31b48275c25370e9b0c229c54f12491c65c6aafda1d8243cd9d2a7",
+    "pyproject.toml": "4e36db0a3fc93c0aeb0b1c422a09b7df1a8e3cca63e5859e9c9ace6fe951b043"
+  }
+}

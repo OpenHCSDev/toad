@@ -1,0 +1,16 @@
+{
+  "thread": "nominal-refactor-advisor-3",
+  "created_at": 1790737422.8598893,
+  "identity": {
+    "pid": 2230410,
+    "start_time": 21306473
+  },
+  "turn_generation": 0,
+  "session_file": null,
+  "active_turn": null,
+  "phase": "IdlePhase",
+  "activity": "idle",
+  "route_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "authorization": "Parent explicitly authorizes stopping only test-created idle owner; preserve registration and history",
+  "result": "test-created owner stopped; registration preserved; no journal existed; originalowner unchanged alive"
+}

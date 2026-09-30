@@ -1,19 +1,14 @@
 """Lookahead is worker-owned data: bounded, shared, cancellable, never mounted."""
 
 import asyncio
-import os
-from pathlib import Path
-import tempfile
 import threading
-from unittest.mock import patch
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript, ToolStartTranscript
 
-from runtime_fixture import ToadApp
 from toad.transcript_preparation import PageRequest, TranscriptPageBuffer
-from toad.widgets.transcript_history import TranscriptHistory
 from toad.work_preparation import PreparationRuntime
+import transcript_history_pilot
 
 
 def cursor(offset):
@@ -39,12 +34,6 @@ class Renderer:
         pass
 
 
-async def until(predicate):
-    async with asyncio.timeout(10):
-        while not predicate():
-            await asyncio.sleep(.01)
-
-
 async def model_checks():
     reads = []
     renderer = Renderer()
@@ -55,12 +44,14 @@ async def model_checks():
         return page(before.offset - 10, before.offset) if before else page(after.offset, after.offset + 10)
 
     buffer = TranscriptPageBuffer(load, cursor(1000), runtime)
-    await buffer.prefetch(cursor(500), cursor(510), lambda: True)
+    async for _ in buffer.prefetch(cursor(500), cursor(510), lambda: True, rounds=8):
+        pass
     assert len(reads) == 16 and len(runtime._ready) == 16
     assert all(identity != threading.get_ident() for identity in renderer.threads)
     expected = await buffer.get(PageRequest(before=cursor(500)))
     assert expected.page.before == cursor(490) and len(reads) == 16
-    await buffer.prefetch(cursor(400), cursor(610), lambda: True)
+    async for _ in buffer.prefetch(cursor(400), cursor(610), lambda: True, rounds=8):
+        pass
     assert len(runtime._ready) <= runtime.max_entries and runtime.retained_bytes <= runtime.max_bytes
 
     # Two consumers share a blocked read. Cancellation keeps the underlying
@@ -125,7 +116,8 @@ async def model_checks():
 
     broken = TranscriptPageBuffer(duplicate, cursor(1000), runtime)
     for _ in range(5):
-        await broken.prefetch(cursor(110), None, lambda: True)
+        async for _ in broken.prefetch(cursor(110), None, lambda: True):
+            pass
     assert failures == 1, "Speculative no-progress reads must not loop"
     try:
         await broken.get(request)
@@ -137,63 +129,9 @@ async def model_checks():
     await runtime.aclose()
 
 
-async def mounted_checks():
-    with tempfile.TemporaryDirectory(prefix="toad-prefetch-") as directory:
-        root = Path(directory)
-        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
-                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        app = ToadApp(project_dir=str(root))
-        reads = []
-
-        async def load(*, before=None, after=None, through=None):
-            reads.append((before, after))
-            return page(before.offset - 10, before.offset)
-
-        async with app.run_test(size=(110, 35)) as pilot:
-            await pilot.pause()
-            view = app.selected_session.conversation
-            initial = page(900, 1000)
-            pager = TranscriptHistory(initial, load)
-            with patch.object(TranscriptHistory, "_check_edges", lambda self: None):
-                await view.contents.mount(pager)
-                await until(lambda: pager._prefetched_edges is not None)
-                await pilot.pause()
-                assert len(reads) == 8 and len(pager.pages) == 1
-                assert len(pager.pages[0].children) == len(pager.pages[0].fragments), "Warm pages mounted hidden widgets"
-                assert view.transcript.displayed_cursor is None, "Lookahead advanced painted history"
-                calls = len(reads)
-                view.window.release_anchor()
-                pager._request_page(True)
-                await until(lambda: pager.state.accepts_source_work)
-                await pilot.pause()
-                assert pager.pages[0].page.before == cursor(890)
-                assert (cursor(900), None) in reads and reads.count((cursor(900), None)) == 1
-                assert len(reads) <= calls + 1, "Consuming a warm page replayed its source read"
-                assert app._exception is None
-
-                entered, release = asyncio.Event(), asyncio.Event()
-
-                async def delayed(**kwargs):
-                    entered.set()
-                    await release.wait()
-                    return page(800, 900)
-
-                late = TranscriptHistory(initial, delayed)
-                await view.contents.mount(late)
-                await entered.wait()
-                late._request_page(True)
-                await asyncio.sleep(0)
-                await app.session_navigation.new(app.session_navigation.default_source)
-                release.set()
-                await until(lambda: late.state.accepts_source_work)
-                assert len(late.pages) == 1, "Late foreground result mounted into a hidden tab"
-                assert late.window.history_anchor is None and not late.window.history_lock.locked()
-        await asyncio.get_running_loop().shutdown_default_executor()
-
-
 async def main():
     await model_checks()
-    await mounted_checks()
+    await transcript_history_pilot.main()
     print("transcript lookahead: worker preparation, 16-page/byte bounds, shared reads, cancellation, stale retirement, no-progress and data-only warming OK")
 
 

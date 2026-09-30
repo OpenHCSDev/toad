@@ -220,6 +220,14 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             finally:
                 self._body_restoring = False
 
+    async def prepare_body(self) -> None:
+        from toad.render_tasks import TranscriptBodyPreparation
+        preparation = TranscriptBodyPreparation(
+            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+        )
+        for event in self.fragment.events:
+            await preparation.dispatch(event)
+
     @property
     def message_category(self) -> type[MessageCategory]:
         return self._message_category
@@ -321,6 +329,11 @@ class TranscriptPageView(VerticalGroup):
         self.visible_categories = selected
         for child in self.children:
             child.set_categories(selected)
+
+    async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:
+        """Warm unmounted source leaves beside this page's actual admission."""
+        fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
+        await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
 
     async def extend(self, older: bool) -> None:
         start = max(0, self.start - self.batch_size) if older else self.stop
@@ -433,7 +446,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._source_state = self._source_state.publish()
         self.post_message(self.Covered(tuple(self.coverage_events), self))
         self._scroll_changed()
-        self._warm_pages()
+        self.prepare_scroll()
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
@@ -497,7 +510,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
         self._scroll_changed()
-        self._warm_pages()
+        self.prepare_scroll()
 
     def on_unmount(self) -> None:
         self._generation += 1
@@ -514,7 +527,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         # positions. Recheck against the committed layout too, even if neither
         # the scroll value nor this history's size changes again.
         self._scroll_changed()
-        self._warm_pages()
+        self.prepare_scroll()
 
     def _update_edges(self) -> None:
         if not self.selected_categories:
@@ -675,7 +688,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                    or self._saturated_widget_limit == self.widget_limit
               ))):
             self._request_page(True)
-        elif self.has_newer and region.bottom <= viewport.bottom + 2:
+        elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
             self._request_page(False)
 
     @on(JumpToLatest.Requested)
@@ -697,7 +710,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._prefetch_worker.cancel()
         self._prefetch_intent = None
         self.state.request_latest(self)
-
 
     async def _jump_latest(self) -> None:
         self._generation += 1
@@ -724,7 +736,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
             self.pages = deque([view])
             await self.mount(view, before=self.newer)
-            await view.admit_retained()
             self._update_edges()
             self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
 
@@ -740,7 +751,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _load_page(self, older: bool) -> None:
         window, loader = self.window, self.loader
         generation = self._generation
-        scroll_intent = (window.scroll_revision, window.follows_tail, window.scroll_y)
         edge = self.pages[0] if older else self.pages[-1]
         edge_range = (edge.start, edge.stop)
         try:
@@ -760,9 +770,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                         or not self.screen.is_current
                         or generation != self._generation
                         or (self.pages[0] if older else self.pages[-1]) is not edge
-                        or edge_range != (edge.start, edge.stop)
-                        or scroll_intent != (window.scroll_revision, window.follows_tail, window.scroll_y)):
+                        or edge_range != (edge.start, edge.stop)):
                     return
+                # Source admission survives reader movement. Choose the current
+                # visible record after preparation, including a reversed reader.
                 visible = self.screen._compositor.visible_widgets
                 viewport = self.window.content_region
                 retained = [fragment for page in self.pages for fragment in page.children

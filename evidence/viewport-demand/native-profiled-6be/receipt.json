@@ -1,0 +1,142 @@
+{
+  "owner": "toad-viewport-demand-214",
+  "command": [
+    "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp",
+    "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project",
+    "--session",
+    "beta"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    800
+  ],
+  "started_utc": "2026-09-30T01:39:11.155418+00:00",
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 40.289911506988574,
+  "runtime_unchanged": true,
+  "review_timing": "deferred",
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 5.0
+    },
+    {
+      "label": "up",
+      "start": 14.526002827013144,
+      "seconds": 4.754703747981694
+    },
+    {
+      "label": "down",
+      "start": 20.00144483600161,
+      "seconds": 4.745230291009648
+    },
+    {
+      "label": "reverse",
+      "start": 25.48126663599396,
+      "seconds": 4.78032556801918
+    },
+    {
+      "label": "end",
+      "start": 31.095493236003676,
+      "seconds": 1.7593336580030154
+    },
+    {
+      "label": "idle",
+      "start": 32.85482689400669,
+      "seconds": 4.754027733986732
+    }
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2076461,
+        "start_ticks": 20799034,
+        "returncode": 0
+      },
+      {
+        "pid": 2076475,
+        "start_ticks": 20799105,
+        "returncode": 0
+      },
+      {
+        "pid": 2076478,
+        "start_ticks": 20799117,
+        "returncode": 0
+      },
+      {
+        "pid": 2076482,
+        "start_ticks": 20799159,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2076485,
+        "start_ticks": 20799165,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2076491,
+        "start_ticks": 20799173,
+        "returncode": 0
+      },
+      {
+        "pid": 2076496,
+        "start_ticks": 20799187,
+        "returncode": 0
+      },
+      {
+        "pid": 2076498,
+        "start_ticks": 20799200,
+        "returncode": 0
+      },
+      {
+        "pid": 2076499,
+        "start_ticks": 20799210,
+        "returncode": 255
+      },
+      {
+        "pid": 2076807,
+        "start_ticks": 20800412,
+        "returncode": 0
+      },
+      {
+        "pid": 2076812,
+        "start_ticks": 20800434,
+        "returncode": 0
+      },
+      {
+        "pid": 2077682,
+        "start_ticks": 20803221,
+        "returncode": 0
+      },
+      {
+        "pid": 2077686,
+        "start_ticks": 20803282,
+        "returncode": 0
+      },
+      {
+        "pid": 2077688,
+        "start_ticks": 20803355,
+        "returncode": 0
+      },
+      {
+        "pid": 2077769,
+        "start_ticks": 20803537,
+        "returncode": 0
+      }
+    ]
+  },
+  "raw_evidence": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be",
+  "verified_source": "6beacbe0",
+  "native_requests": 2,
+  "original_owner_post_prompt": "actual UI click/Enter, real ACP and native processing, second controlled answer painted",
+  "visual_assessment": "Reviewed physical focus, 40-frame PageDown sheet and idle-done tail: chat focus correct, source advances through blocks 0\u201331; End paints SOURCE END, no blank extent observed in reviewed frames. No measured pending-lazy-read witness or final latency claim.",
+  "pending_lazy_read_witness": "not measured: #217 retains primary growing-end gate"
+}

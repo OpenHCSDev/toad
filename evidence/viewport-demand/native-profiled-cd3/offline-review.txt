@@ -1,0 +1,7 @@
+Preparing review main at 0.000s for 5.000s
+Preparing review up at 14.629s for 4.829s
+Preparing review down at 20.287s for 4.785s
+Preparing review reverse at 25.858s for 4.860s
+Preparing review end at 31.541s for 1.791s
+Preparing review idle at 33.332s for 4.812s
+/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled

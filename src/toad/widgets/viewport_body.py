@@ -9,6 +9,7 @@ from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
 from time import monotonic
+import asyncio
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 
 from textual.widget import Widget
@@ -37,6 +38,9 @@ class ViewportBody:
 
     async def restore_body(self) -> None:
         raise NotImplementedError
+
+    async def prepare_body(self) -> None:
+        """Warm pure work in the shared renderer without mounting widgets."""
 
     @property
     def retained_source_bytes(self) -> int:
@@ -129,7 +133,6 @@ class ViewportPresentation:
                 continue
             if not window.document_viewport.visible_bodies_ready:
                 window.document_viewport.request()
-                screen._repaint_required = True
                 return False
         changed = False
         for window in self.windows:
@@ -158,9 +161,9 @@ class WindowMembership:
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
-    def __init__(self, window):
-        self.lookahead = DirectionalPreparation()
-        self.budget = PresentationBudget()
+    def __init__(self, window, *, budget: PresentationBudget = PresentationBudget()):
+        self.budget = budget
+        self.lookahead = DirectionalPreparation(self)
         self._settle_timer = None
         self._window = ref(window)
         self.owners = WeakSet()
@@ -206,8 +209,10 @@ class DocumentViewport:
         if self._suspended or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
-        if self.lookahead.observe(self.window.scroll_y):
+        if not self.window._restoring and self.lookahead.observe(self.window.scroll_y):
             self._schedule_settle()
+            for history in tuple(self.window.histories):
+                history.prepare_scroll()
         if not self._running:
             self._running = True
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
@@ -221,11 +226,13 @@ class DocumentViewport:
     def _schedule_settle(self) -> None:
         if self._settle_timer is not None:
             self._settle_timer.stop()
-        self._settle_timer = self.window.set_timer(self.lookahead.render_seconds * 2, self._settle)
+        self._settle_timer = self.window.set_timer(self.lookahead.idle_seconds, self._settle)
 
     def _settle(self) -> None:
         self._settle_timer = None
         self.lookahead.settle()
+        for history in tuple(self.window.histories):
+            history.prepare_scroll()
         self.request()
 
     async def suspend_source(self) -> None:
@@ -296,8 +303,9 @@ class DocumentViewport:
                 retained = protected | warm | visible.keys()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
-                sequence = [node for node in self.window.walk_children()
-                            if node in self.owners]
+                sequence = ([node for node in self.window.walk_children() if node in self.owners]
+                            if active and self.lookahead.travel_rows else [])
+                ahead_owners = []
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:
                     ahead = self.lookahead.ahead_rows(self.window.size.height)
@@ -305,12 +313,9 @@ class DocumentViewport:
                                if sequence[index].measured_rows]
                     extent = max(1, sum(heights) / len(heights)) if heights else self.window.size.height
                     count = min(self.budget.item_limit(0), int(ahead / max(1, extent)) + bool(ahead))
-                    if self.lookahead.travel_rows < 0:
-                        first = min(visible_indexes)
-                        retained.update(sequence[max(0, first - count):first])
-                    else:
-                        last = max(visible_indexes) + 1
-                        retained.update(sequence[last:last + count])
+                    ahead_owners = self.lookahead.demand.neighbors(
+                        sequence, min(visible_indexes), max(visible_indexes) + 1, count,
+                    )
                 # Restore visible source before retiring unrelated bodies.
                 ordered = sorted(owners, key=lambda owner: owner not in visible)
                 for owner in ordered:
@@ -318,22 +323,42 @@ class DocumentViewport:
                         continue
                     wanted = owner in retained
                     if owner.body_dormant and wanted:
-                        preparation_started = monotonic()
-                        async with self.window.history_lock:
-                            if not self.window.is_attached or not owner.is_attached:
-                                continue
-                            if screen.is_current:
-                                if not owner.body_measurement_stale:
-                                    await owner.restore_body()
-                                else:
-                                    anchor = next((item for item in owners if item in visible and item.is_attached), owner)
-                                    async with self.window.preserve_history(anchor):
-                                        await owner.restore_body()
-                            else:
-                                continue
-                        self.lookahead.prepared(monotonic() - preparation_started)
+                        anchor = next((item for item in owners if item in visible and item.is_attached), owner)
+                        await self._restore_body(owner, anchor)
                     if (not wanted and not owner.body_dormant and owner not in self.protected()
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
+                if active:
+                    demand = self.lookahead.demand
+                    for first in range(0, len(ahead_owners), self.budget.admission_items):
+                        if not self.lookahead.accepts(demand):
+                            break
+                        batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
+                                 if owner.is_attached and owner.body_dormant]
+                        if not batch:
+                            continue
+                        await asyncio.gather(*(owner.prepare_body() for owner in batch))
+                        for owner in batch:
+                            if not self.lookahead.accepts(demand):
+                                break
+                            anchor = next((item for item in owners if item in visible and item.is_attached), owner)
+                            await self._restore_body(owner, anchor)
+                            # Retention remains the existing measured working set.
+                            key = ref(owner)
+                            self._warm[key] = key
+                            self._warm.move_to_end(key)
+                            await self._trim_warm()
         finally:
             self._running = False
+
+    async def _restore_body(self, owner: ViewportBody, anchor: Widget) -> None:
+        started = monotonic()
+        async with self.window.history_lock:
+            if not self.window.is_attached or not owner.is_attached or not self.window.screen.is_current:
+                return
+            if owner.body_measurement_stale:
+                async with self.window.preserve_history(anchor):
+                    await owner.restore_body()
+            else:
+                await owner.restore_body()
+        self.lookahead.delivered(monotonic() - started)

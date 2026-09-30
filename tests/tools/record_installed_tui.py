@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from abc import abstractmethod
 from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -25,8 +26,70 @@ import sys
 import time
 from typing import TYPE_CHECKING
 
+from agent_comms.declared_family import DeclaredFamily
+
+
+class ProfileSampling(DeclaredFamily, affix="Sampling"):
+    """The profiler owns consistency; capture must record its actual policy."""
+
+    arguments = ()
+    limitation = "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead"
+
+
+class ConsistentSampling(ProfileSampling):
+    pass
+
+
+class NonblockingSampling(ProfileSampling):
+    arguments = ("--nonblocking",)
+    limitation = "Nonblocking reads can observe inconsistent Python stacks; inspect sampling errors before attribution"
+
+
+class ThreadSampling(DeclaredFamily, affix="ThreadSampling"):
+    """Declare which sampled threads answer the intended profiling question."""
+
+    arguments = ()
+    limitation = "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution"
+
+
+class AllThreadSampling(ThreadSampling):
+    pass
+
+
+class GilThreadSampling(ThreadSampling):
+    arguments = ("--gil",)
+    limitation = "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters"
+
+
+class ReviewTiming(DeclaredFamily, affix="ReviewTiming"):
+    """Clip encoding is an independent resource lifetime, never native work."""
+
+    @classmethod
+    @abstractmethod
+    def generate(cls, output, args, env, owner, intervals): ...
+
+
+class InlineReviewTiming(ReviewTiming):
+    @classmethod
+    def generate(cls, output, args, env, owner, intervals):
+        names = []
+        for interval in intervals:
+            label = interval["label"]
+            label = None if label == "main" else label
+            print(f"Preparing review {label or 'main'} at {interval['start']:.3f}s for {interval['seconds']:.3f}s", flush=True)
+            artifacts(output, args, env, owner, start=interval["start"], seconds=interval["seconds"], label=label)
+            names.extend([f"{label}-slow.mp4", f"{label}-frames.png"] if label else ["slow.mp4", "frames.png"])
+        return names
+
+
+class DeferredReviewTiming(ReviewTiming):
+    @classmethod
+    def generate(cls, output, args, env, owner, intervals):
+        return []
+
 if TYPE_CHECKING:
-    from agent_comms.child_process import ParentedProcess, ObservedProcess
+    from agent_comms.child_process import ParentedProcess, ObservedProcess, ProcessIdentity
+    from agent_comms.active_route import ActiveRoute
     from agent_comms.registration import Registration
 
 
@@ -175,11 +238,8 @@ def digest(path):
 def runtime_probe():
     """Executed by the selected runtime interpreter, without loading the app."""
     result = {"python": sys.executable, "prefix": sys.prefix, "packages": {}}
-    if os.environ.get("TOAD_VIDEO_PRIVATE_ROUTE_REQUIRED") == "1":
-        from agent_comms.active_route import ActiveRoute
-        route = ActiveRoute(Path(os.environ["AGENT_COMMS_ROOT"]),
-                            os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
-                            Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]))
+    if target := os.environ.get("TOAD_VIDEO_CAPTURE_TARGET"):
+        route = CaptureTarget.decode(target).read_route(os.environ)
         root = route.observe_root()
         result["route"] = {"root": str(root), "wire_root_id": route.wire_root_id,
                            "native_package": str(route.native_package.resolve())}
@@ -217,8 +277,6 @@ class RuntimeSelection:
     @classmethod
     def from_environment(cls, command, env):
         launcher = Path(shutil.which(command[0]) or command[0]).resolve()
-        if Path(command[0]).name != "toad":
-            raise ValueError("Use installed toad acp with an explicitly matched private fixture; toad-comms clears private pins")
         runtime = env.get("AGENT_COMMS_RUNTIME_ROOT")
         if runtime:
             return cls(launcher, Path(runtime).expanduser().absolute(), "AGENT_COMMS_RUNTIME_ROOT")
@@ -227,9 +285,28 @@ class RuntimeSelection:
         return cls(launcher, Path(acp).resolve().parent,
                    "AGENT_COMMS_ACP_LAUNCHER" if env.get("AGENT_COMMS_ACP_LAUNCHER") else "PATH agent-comms-acp")
 
-    def receipt(self, owner, env):
+    def apply_environment(self, env):
+        # An explicit candidate is pinned. Default-entrypoint acceptance must
+        # follow the installed launcher itself, without injecting an override.
+        if env.get("AGENT_COMMS_RUNTIME_ROOT"):
+            env["AGENT_COMMS_RUNTIME_ROOT"] = str(self.bin_directory.resolve())
+
+    def receipt(self, owner, env, command):
+        observed = self.from_environment(command, env)
+        if (observed.launcher != self.launcher
+                or observed.bin_directory.resolve() != self.bin_directory.resolve()):
+            raise ValueError("Installed launcher selection changed during capture")
         result = {"selection": self.selection, "bin_directory": str(self.bin_directory.resolve()),
                   "launcher": str(self.launcher), "launcher_sha256": digest(self.launcher)}
+        paths = {
+            "command": shutil.which(command[0]) or command[0],
+            "acp": env.get("AGENT_COMMS_ACP_LAUNCHER") or shutil.which("agent-comms-acp")
+                   or str(Path.home() / ".local/bin/agent-comms-acp"),
+        }
+        result["launcher_links"] = {name: {"selected_path": str(Path(path).absolute()),
+                                          "resolved_path": str(Path(path).resolve()),
+                                          "sha256": digest(Path(path))}
+                                    for name, path in paths.items()}
         result["entrypoints"] = {name: {"path": str((self.bin_directory / name).resolve()),
                                        "sha256": digest(self.bin_directory / name)}
                                  for name in ("toad", "agent-comms-acp")}
@@ -247,6 +324,143 @@ class RuntimeSelection:
             if not native or Path(native).resolve() != Path(route["native_package"]):
                 raise ValueError("Candidate activation and private route native packages must match")
         return result
+
+
+class PhysicalJourney(DeclaredFamily, affix="Journey"):
+    """Declare the bounded, input-free physical journeys permitted on a live owner."""
+
+    @classmethod
+    @abstractmethod
+    def script(cls, args): ...
+
+
+class ScrollJourney(PhysicalJourney):
+    @classmethod
+    def script(cls, args):
+        return scroll_script(idle_seconds=args.scroll_idle_seconds)
+
+
+class SavedTabCloseJourney(PhysicalJourney):
+    @classmethod
+    def script(cls, args):
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        return "\n".join([
+            marker + "open-existing", f"mousemove --sync {args.other_agent_x} {args.other_agent_y}",
+            "click 1", settle, marker + "existing-opened",
+            f"mousemove --sync {args.return_tab_x} {args.close_tab_y}", "click 1", settle,
+            marker + "close", f"mousemove --sync {args.close_tab_x} {args.close_tab_y}",
+            "click 1", settle, marker + "close-done",
+            marker + "reopen", f"mousemove --sync {args.reopen_agent_x} {args.reopen_agent_y}",
+            "click 1", settle, marker + "reopened", "",
+        ])
+
+
+class CaptureTarget(DeclaredFamily, affix="Capture"):
+    """Own launch authorization and original native-owner preservation proof."""
+
+    @classmethod
+    @abstractmethod
+    def admit(cls, args, command, env): ...
+
+    @classmethod
+    @abstractmethod
+    def read_route(cls, env): ...
+
+    @abstractmethod
+    def observe(self): ...
+
+
+@dataclass(frozen=True)
+class PrivateCapture(CaptureTarget):
+    root: Path
+    selection: RuntimeSelection
+
+    @classmethod
+    def read_route(cls, env):
+        from agent_comms.active_route import ActiveRoute
+        return ActiveRoute(Path(env["AGENT_COMMS_ROOT"]), env["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
+                           Path(env["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]))
+
+    @classmethod
+    def admit(cls, args, command, env):
+        from agent_comms.active_route import read_active_route
+        if args.private_root is None:
+            raise ValueError("Private capture requires an existing matched --private-root")
+        root = args.private_root.expanduser().resolve()
+        if not root.is_dir() or root == (Path.home() / ".agent-comms").resolve():
+            raise ValueError("Private fixture root must already exist")
+        if Path(env.get("AGENT_COMMS_ROOT", "")).resolve() != root:
+            raise ValueError("Private fixture root must match explicit AGENT_COMMS_ROOT")
+        active = read_active_route()
+        if active is not None and root == active.root.resolve():
+            raise ValueError("Private capture refuses the owner's active bus")
+        if Path(command[0]).name != "toad":
+            raise ValueError("Private capture requires installed toad acp; toad-comms clears private pins")
+        selection = RuntimeSelection.from_environment(command, env)
+        expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
+        if (len(command) < 4 or command[1:3] != ["acp", expected_acp]
+                or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve()):
+            raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
+        return cls(root, selection)
+
+    def observe(self):
+        return {"root": str(self.root), "mode": self.declared_name}
+
+
+@dataclass(frozen=True)
+class ExistingThreadCapture(CaptureTarget):
+    """Explicit authorized read-only attachment, never a fixture/native owner."""
+
+    route: ActiveRoute
+    name: str
+    identity: ProcessIdentity
+    selection: RuntimeSelection
+
+    @property
+    def root(self):
+        return self.route.root
+
+    @classmethod
+    def read_route(cls, env):
+        from agent_comms.active_route import read_active_route
+        route = read_active_route()
+        if route is None:
+            raise ValueError("Existing-thread capture requires the installed active route")
+        return route
+
+    @classmethod
+    def admit(cls, args, command, env):
+        from agent_comms.registration import Registration
+        if args.private_root is not None:
+            raise ValueError("Existing-thread capture derives its root from the canonical active route")
+        if len(command) != 2 or Path(command[0]).name != "toad-comms":
+            raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
+        if args.actions is not None and args.actions.read_text() != args.journey.script(args):
+            raise ValueError("Existing-thread capture requires the selected canonical input-free physical journey")
+        # Match the real default launcher's environment, not a copied private
+        # route or thread identity that would redirect its retained history.
+        for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
+                    "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
+            env.pop(key, None)
+        route = cls.read_route(env)
+        route.observe_root()
+        thread = Registration(route.root / "registry.json").require(command[1])
+        identity = thread.process_identity
+        if identity is None or not identity.alive():
+            raise ValueError("Existing-thread capture requires an already running owner; it must not start one")
+        return cls(route, thread.name, identity, RuntimeSelection.from_environment(command, env))
+
+    def observe(self):
+        from agent_comms.registration import Registration
+        from agent_comms.field_codec import FieldCodec
+        if self.read_route(os.environ) != self.route:
+            raise ValueError("Existing-thread capture's canonical route changed")
+        thread = Registration(self.root / "registry.json").require(self.name)
+        if thread.process_identity != self.identity or not self.identity.alive():
+            raise ValueError("Existing-thread capture's original native owner changed or exited")
+        return {"root": str(self.root), "mode": self.declared_name, "name": self.name,
+                "identity": FieldCodec.encode(self.identity), "original_owner_alive": True}
 
 
 def cpu_snapshot(root_pid):
@@ -316,7 +530,8 @@ def profile_launch(command):
     """Launch plain st, then exec py-spy as an ancestor of the verified UI PID."""
     from agent_comms.registration import Registration
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
-    owner = ProcessOwner(Registration(Path(os.environ["AGENT_COMMS_ROOT"]) / "registry.json"))
+    route = CaptureTarget.decode(os.environ["TOAD_VIDEO_CAPTURE_TARGET"]).read_route(os.environ)
+    owner = ProcessOwner(Registration(route.root / "registry.json"))
     def interrupted(signum, frame):
         raise InterruptedError(f"Profiler launch interrupted by signal {signum}")
     for sig in (signal.SIGTERM, signal.SIGHUP):
@@ -334,14 +549,26 @@ def profile_launch(command):
         deadline = time.monotonic() + 10
         program = terminal_program(owner, terminal.child.identity, deadline, transfer_program)
         ui_pid = program.child.identity.pid
+        # The real default wrapper first resolves its registered worktree in
+        # a child Python process, then execs the UI in this same identity. A
+        # profiler must attach after that exec, not to the temporary shell.
+        expected_python = Path(sys.executable).resolve()
+        while Path(f"/proc/{ui_pid}/exe").resolve() != expected_python:
+            if not program.child.identity.alive() or time.monotonic() >= deadline:
+                raise RuntimeError("Installed terminal did not exec the selected Python UI before profiling")
+            time.sleep(.02)
+        sampling = ProfileSampling.decode(os.environ["TOAD_VIDEO_PROFILE_SAMPLING"])
+        threads = ThreadSampling.decode(os.environ["TOAD_VIDEO_PROFILE_THREADS"])
         argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
-                "--subprocesses", "--nonblocking", "--full-filenames",
+                "--subprocesses", "--full-filenames", *sampling.arguments, *threads.arguments,
                 "--rate", os.environ["TOAD_VIDEO_PROFILE_RATE"],
                 "--duration", os.environ["TOAD_VIDEO_PROFILE_DURATION"],
                 "--output", str(output / "cpu-profile.json")]
         (output / "profile-launch.json").write_text(json.dumps({
             "terminal_pid": terminal.process.pid, "terminal_start_ticks": terminal.child.identity.start_time,
             "ui_pid": ui_pid, "ui_start_ticks": program.child.identity.start_time, "profiler_command": argv,
+            "sampling": sampling.declared_name,
+            "threads": threads.declared_name,
             "profiler_exec_monotonic": time.monotonic()}) + "\n")
         # exec preserves the ancestor identity that Linux ptrace admission requires.
         os.execv(argv[0], argv)
@@ -381,7 +608,10 @@ def profile_review(output, receipt, rate):
     upper = receipt["profiler"]["sampling_ready_observed_monotonic"]
     origin = (lower + upper) / 2
     offset = origin - receipt["capture_launch_monotonic"]
-    result = {"profiler": "py-spy", "rate_hz": rate, "nonblocking": True,
+    sampling = ProfileSampling.decode(launch["sampling"])
+    threads = ThreadSampling.decode(launch["threads"])
+    result = {"profiler": "py-spy", "rate_hz": rate, "sampling": sampling.declared_name,
+        "threads": threads.declared_name,
         "trace": "cpu-profile.json", "trace_origin_monotonic_estimate": origin,
         "trace_to_video_offset_seconds": offset,
         "ui_pid": launch["ui_pid"],
@@ -389,6 +619,8 @@ def profile_review(output, receipt, rate):
         "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
         "alignment_nominal_uncertainty_seconds": (upper - lower) / 2 + 1 / rate,
         "limits": ["Scheduler delays and sampling errors can increase clock uncertainty",
+            sampling.limitation,
+            threads.limitation,
                    "Stack spans are sampled wall activity, not exact call counts or CPU time",
                    "Kernel counter deltas give per-process CPU time at action boundaries",
                    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
@@ -458,6 +690,58 @@ def artifacts(output, args, env, owner, *, start, seconds, label=None):
                                   "-update", "1", str(sheet)], env, timeout=60)
 
 
+def review_recording(args):
+    """Encode retained capture intervals after its native journey retires."""
+    output = args.review_recording.expanduser().resolve()
+    if not output.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
+        raise ValueError("Review requires an owned persistent scratch recording")
+    capture = json.loads((output / "receipt.json").read_text())
+    if not capture["capture_completed"]:
+        raise ValueError("The source capture did not complete")
+    owner = ProcessOwner()
+    receipt = {"capture_receipt": str(output / "receipt.json"), "assessment": "unreviewed",
+               "completed": False}
+    try:
+        names = InlineReviewTiming.generate(output, args, os.environ.copy(), owner, capture["review_intervals"])
+        receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
+                                      "sha256": digest(output / name)} for name in names}
+        if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
+            raise RuntimeError("Empty review artifact")
+        receipt["completed"] = True
+    except BaseException as error:
+        receipt["error"] = f"{type(error).__name__}: {error}"
+        raise
+    finally:
+        receipt["cleanup"] = owner.cleanup()
+        if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
+            receipt["completed"] = False
+        (output / "review-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    if not receipt["completed"]:
+        raise RuntimeError("Review cleanup incomplete; inspect review-receipt.json")
+    return output
+
+
+def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False):
+    """Use the existing live exporter for the exact owned UI launch identity."""
+    if not identity.alive():
+        raise RuntimeError("UI identity exited before state capture")
+    helper = Path(__file__).resolve().parents[2] / "tools/performance/capture_live.py"
+    epoch = float(env["TOAD_VIDEO_EPOCH"])
+    observation = {"started_seconds": time.monotonic() - epoch}
+    try:
+        with (output / f"{name}-capture.log").open("w") as log:
+            owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
+                       "--output-dir", str(output), "--name", name,
+                       "--state", "--sudo", *(["--screen"] if screen else [])], env,
+                      stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
+        observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
+    except (OSError, subprocess.SubprocessError, ValueError) as error:
+        # Retain the actual video even when diagnostic attachment fails.
+        observation["error"] = f"{type(error).__name__}: {error}"
+    observation["finished_seconds"] = time.monotonic() - epoch
+    return observation
+
+
 def record(args):
     output = args.output.expanduser().resolve()
     scratch = (Path.home() / ".cache/agent-scratch").resolve()
@@ -473,37 +757,29 @@ def record(args):
     env.pop("DISPLAY", None)
     env.pop("NO_COLOR", None)
     env.pop("PYTHONPATH", None)  # The installed toad-comms launcher also clears it.
-    if args.private_root is None:
-        raise ValueError("Recording requires --private-root from an existing matched fixture; active owner routes are refused")
-    private_root = args.private_root.expanduser().resolve()
-    if not private_root.is_dir() or private_root == (Path.home() / ".agent-comms").resolve():
-        raise ValueError("Private fixture root must already exist")
-    if Path(env.get("AGENT_COMMS_ROOT", "")).resolve() != private_root:
-        raise ValueError("Private fixture root must match explicit AGENT_COMMS_ROOT")
-    from agent_comms.active_route import read_active_route
-    active = read_active_route()
-    if active is not None and private_root == active.root.resolve():
-        raise ValueError("Refusing the owner's active bus")
-    env["TOAD_VIDEO_PRIVATE_ROUTE_REQUIRED"] = "1"
-    selection = RuntimeSelection.from_environment(command, env)
-    # Pin the selection before a concurrently changed launcher symlink can redirect it.
-    env["AGENT_COMMS_RUNTIME_ROOT"] = str(selection.bin_directory.resolve())
+    target = args.capture_target.admit(args, command, env)
+    private_root = target.root
+    selection = target.selection
+    env["TOAD_VIDEO_CAPTURE_TARGET"] = target.declared_name
+    selection.apply_environment(env)
     if selection.bin_directory.parent.resolve() != Path(sys.prefix).resolve():
         raise ValueError("Run recorder with the selected installed runtime's Python")
-    expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
-    if len(command) < 4 or command[1:3] != ["acp", expected_acp] or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve():
-        raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
     output.mkdir(parents=True, exist_ok=False)
     receipt = {
         "owner": args.owner, "purpose": "installed TUI physical interaction video review",
         "output": str(output), "command": command, "terminal_command": ["st", "-e", *command],
         "fps": args.fps, "screen": [args.width, args.height],
         "profiling_requested": args.profile,
+        "state_capture_requested": args.capture_state,
         "private_root": str(private_root),
+        "capture_target": target.declared_name,
+        "physical_journey": args.journey.declared_name,
+        "original_owner_before": target.observe(),
         "recorder_argv": sys.argv,
         "recorder_source_sha256": digest(Path(__file__)),
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "assessment": "unreviewed", "capture_completed": False, "completed": False,
+        "review_timing": args.review_timing.declared_name,
         "review": {"start_seconds": args.review_start, "seconds": args.review_seconds,
                    "fps": args.review_fps, "frames_limit": args.review_frames,
                    "slowdown": args.slowdown, "timestamp_basis": "source video seconds"},
@@ -520,7 +796,7 @@ def record(args):
     window = None
     try:
         with ExitStack() as stack:
-            receipt["runtime_before"] = selection.receipt(owner, env)
+            receipt["runtime_before"] = selection.receipt(owner, env, command)
             display_number = next((number for number in (secrets.randbelow(9000) + 100 for _ in range(100))
                                    if not Path(f"/tmp/.X{number}-lock").exists()
                                    and not Path(f"/tmp/.X11-unix/X{number}").exists()), None)
@@ -547,6 +823,8 @@ def record(args):
                 if profiler is None:
                     raise RuntimeError("Optional profiling needs the existing py-spy installation")
                 env["TOAD_VIDEO_PROFILE_RATE"] = str(args.profile_rate)
+                env["TOAD_VIDEO_PROFILE_SAMPLING"] = args.profile_sampling.declared_name
+                env["TOAD_VIDEO_PROFILE_THREADS"] = args.profile_threads.declared_name
                 env["TOAD_VIDEO_PROFILE_DURATION"] = str(math.ceil(args.max_duration + 30))
                 argv = [sys.executable, str(Path(__file__).resolve()), "--profile-launch", *command]
                 receipt["profiler"] = {"command": argv, "executable_sha256": digest(Path(profiler)),
@@ -579,6 +857,9 @@ def record(args):
                 transferred_program = terminal_program(owner, terminal.child.identity, time.monotonic() + 10)
             receipt["ui_identity"] = {"pid": transferred_program.child.identity.pid,
                                       "start_ticks": transferred_program.child.identity.start_time}
+            if args.capture_state:
+                from agent_comms.field_codec import FieldCodec
+                env["TOAD_VIDEO_UI_IDENTITY"] = json.dumps(FieldCodec.encode(transferred_program.child.identity))
             env["TOAD_VIDEO_TERMINAL"] = str(terminal_pid)
             window = owner.run(["xdotool", "search", "--sync", "--pid", str(terminal_pid)], env,
                                stdout=subprocess.PIPE, timeout=10, text=True).stdout.splitlines()[0]
@@ -595,6 +876,7 @@ def record(args):
             started = time.monotonic()
             deadline = started + args.max_duration
             env["TOAD_VIDEO_EPOCH"] = str(started)
+            env["TOAD_VIDEO_DEADLINE"] = str(deadline)
             receipt["capture_launch_monotonic"] = started
             receipt["terminal_pid"] = terminal_pid
             print(f"Recording isolated display {env['DISPLAY']}: {output}", flush=True)
@@ -609,8 +891,15 @@ def record(args):
                 owner.run(["import", "-display", env["DISPLAY"], "-window", "root", str(output / name)],
                           env, timeout=min(10, remaining()))
 
+            def capture_state(name):
+                if not args.capture_state:
+                    return
+                receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True)
+
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
+            capture_state("before")
             receipt["terminal_processes"] = {str(identity.pid): {"start_ticks": identity.start_time,
                 "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
                 for group in (transferred_terminal or terminal, transferred_program)
@@ -632,13 +921,14 @@ def record(args):
             if terminal.process.poll() is not None or not transferred_program.child.identity.alive():
                 raise RuntimeError(f"Installed terminal exited during recording: {terminal.process.returncode}")
             screenshot("after.png")
+            capture_state("after")
             receipt["duration_seconds"] = time.monotonic() - started
             capture.stop(signal.SIGINT)
             receipt["capture_returncode"] = capture.process.returncode
             if capture.process.returncode not in (0, 255):
                 raise RuntimeError(f"Video recorder exited {capture.process.returncode}")
             receipt["capture_completed"] = True
-            receipt["runtime_after"] = selection.receipt(owner, env)
+            receipt["runtime_after"] = selection.receipt(owner, env, command)
             receipt["runtime_unchanged"] = receipt["runtime_before"] == receipt["runtime_after"]
             # Quit through the installed application; persistent owners are excluded.
             owner.run(["xdotool", "key", "--window", window, "ctrl+q"], env, timeout=2)
@@ -682,12 +972,12 @@ def record(args):
             receipt["review_intervals"] = [{"label": label or "main", "start": start, "seconds": seconds}
                                            for label, start, seconds in intervals]
             names = ["terminal.mp4", "before.png", "after.png"]
+            if args.capture_state:
+                names.extend(path.name for name in ("before", "after", "phase")
+                             for path in output.glob(f"{name}-*") if path.is_file() and path.stat().st_size)
             if args.profile:
                 names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
-            for label, start, seconds in intervals:
-                print(f"Preparing review {label or 'main'} at {start:.3f}s for {seconds:.3f}s", flush=True)
-                artifacts(output, args, env, owner, start=start, seconds=seconds, label=label)
-                names.extend([f"{label}-slow.mp4", f"{label}-frames.png"] if label else ["slow.mp4", "frames.png"])
+            names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
             receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
                                          "sha256": digest(output / name)} for name in names}
             if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
@@ -715,6 +1005,11 @@ def record(args):
             except (OSError, subprocess.SubprocessError) as error:
                 receipt["capture_cleanup_error"] = str(error)
         receipt["cleanup"] = owner.cleanup()
+        try:
+            receipt["original_owner_after"] = target.observe()
+        except (OSError, ValueError) as error:
+            receipt["original_owner_error"] = str(error)
+            receipt["completed"] = False
         if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
             receipt["completed"] = False
         (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
@@ -744,6 +1039,15 @@ def mark(label):
             owner.run(["import", "-display", display, "-window", "root", str(output / name)],
                       os.environ.copy(), timeout=5)
             event["screenshot"] = name
+            if os.environ.get("TOAD_VIDEO_UI_IDENTITY"):
+                from agent_comms.child_process import ProcessIdentity
+                from agent_comms.field_codec import FieldCodec
+                identity = FieldCodec.decode(ProcessIdentity, json.loads(os.environ["TOAD_VIDEO_UI_IDENTITY"]))
+                remaining = float(os.environ["TOAD_VIDEO_DEADLINE"]) - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("Recording diagnostic budget exhausted")
+                event["state_capture"] = capture_loaded_state(
+                    output, f"phase-{label}", identity, owner, os.environ.copy(), timeout=remaining)
         finally:
             owner.cleanup()
     with (output / "events.jsonl").open("a") as target:
@@ -751,15 +1055,19 @@ def mark(label):
     print(json.dumps(event), flush=True)
 
 
-def scroll_script():
+def marker_command():
     # Literal quoted paths avoid native xdotool stdin variable-expansion defects.
-    marker = f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
+    return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
+
+
+def scroll_script(*, idle_seconds: float = 4):
+    marker = marker_command()
     return "\n".join([
         "mousemove --sync 700 260", "click 1", marker + "focused", "sleep 1",
         marker + "up", "keydown Prior", "sleep 4", "keyup Prior", marker + "up-done",
         marker + "down", "keydown Next", "sleep 4", "keyup Next", marker + "down-done",
         marker + "reverse", "keydown Prior", "sleep 4", "keyup Prior", marker + "reverse-done",
-        marker + "end", "key End", "sleep 1", marker + "idle", "sleep 4", marker + "idle-done", "",
+        marker + "end", "key End", "sleep 1", marker + "idle", f"sleep {idle_seconds:g}", marker + "idle-done", "",
     ])
 
 
@@ -778,11 +1086,35 @@ def main():
     parser.add_argument("--output", type=Path, default=Path.home() / ".cache/agent-scratch/toad-video" / stamp)
     parser.add_argument("--owner", default="installed-tui-video-tools", help="Owner retaining/cleaning this evidence")
     parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
+    parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
+                        help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
-    parser.add_argument("--write-scroll-script", type=Path, help="Write an editable native held-key script, then exit")
+    parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
+                        help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
+    parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
+    parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
+    parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")
+    parser.add_argument("--other-agent-x", type=int, default=180, help="Verified existing peer roster X coordinate")
+    parser.add_argument("--other-agent-y", type=int, default=240, help="Verified existing peer roster Y coordinate")
+    parser.add_argument("--return-tab-x", type=int, default=225, help="Verified original tab X coordinate")
+    parser.add_argument("--reopen-agent-x", type=int, default=180, help="Verified original agent roster X coordinate")
+    parser.add_argument("--reopen-agent-y", type=int, default=200, help="Verified original agent roster Y coordinate")
+    parser.add_argument("--navigation-settle-seconds", type=float, default=2,
+                        help="Physical navigation observation interval within the capture deadline")
+    parser.add_argument("--scroll-idle-seconds", type=float, default=4,
+                        help="Stationary observation in the shared scroll script; use15 for the original-history delayed-blank reproducer")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
+    parser.add_argument("--review-recording", type=Path, help="Encode a retained capture; no UI, ACP or native process launches")
+    parser.add_argument("--review-timing", type=ReviewTiming.decode, default=InlineReviewTiming,
+                        help="Clip encoding lifetime: " + ", ".join(ReviewTiming.names()))
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
-    parser.add_argument("--profile-rate", type=int, default=25, help="Bounded nonblocking sampling rate (10-49 Hz)")
+    parser.add_argument("--capture-state", action="store_true",
+                        help="Export loaded DTOs/SVG at before/after and physical phase markers using capture_live --sudo")
+    parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
+    parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
+                        help="Stack read policy: " + ", ".join(ProfileSampling.names()))
+    parser.add_argument("--profile-threads", type=ThreadSampling.decode, default=AllThreadSampling,
+                        help="Thread selection: " + ", ".join(ThreadSampling.names()))
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=800)
@@ -798,13 +1130,22 @@ def main():
     parser.add_argument("--sheet-columns", type=int, default=4)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
-    if args.write_scroll_script:
-        destination = args.write_scroll_script.expanduser().resolve()
+    if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
+        parser.error("Scroll idle observation must be positive and shorter than capture duration")
+    if not (all(0 <= value < args.width for value in
+                (args.close_tab_x, args.other_agent_x, args.return_tab_x, args.reopen_agent_x))
+            and all(0 <= value < args.height for value in
+                    (args.close_tab_y, args.other_agent_y, args.reopen_agent_y))):
+        parser.error("Navigation coordinates must be within the isolated recording screen")
+    if not math.isfinite(args.navigation_settle_seconds) or not 0 < args.navigation_settle_seconds < args.max_duration:
+        parser.error("Navigation observation must be positive and shorter than capture duration")
+    if args.write_journey_script:
+        destination = args.write_journey_script.expanduser().resolve()
         if not destination.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
             parser.error("Scroll script must be under persistent agent scratch")
         destination.parent.mkdir(parents=True, exist_ok=True)
         with destination.open("x") as target:
-            target.write(scroll_script())
+            target.write(args.journey.script(args))
         print(destination)
         return
     if len(args.review_phase) > 8 or len(set(args.review_phase)) != len(args.review_phase):
@@ -833,7 +1174,7 @@ def main():
     pixels = 640 * args.sheet_columns * (640 * args.height / args.width) * math.ceil(frames / args.sheet_columns)
     if pixels > 24_000_000:
         parser.error("Contact sheet exceeds 24 million pixels; reduce review frames")
-    print(record(args))
+    print(review_recording(args) if args.review_recording else record(args))
 
 
 if __name__ == "__main__":

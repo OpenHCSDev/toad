@@ -1,0 +1,46 @@
+{
+  "before": {
+    "scroll": 58.09863201465487,
+    "maximum": 108,
+    "cursor_height": "97",
+    "cursor_offset": [
+      0,
+      0
+    ],
+    "cursor_visible": true,
+    "followed": "TranscriptHistory"
+  },
+  "after": {
+    "scroll": 83,
+    "maximum": 83,
+    "cursor_height": "97",
+    "cursor_offset": [
+      0,
+      0
+    ],
+    "cursor_visible": false,
+    "followed_attached": true,
+    "history_visible": false,
+    "visible_bodies": 0,
+    "extent": 97
+  }
+}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tests/cursor_extent_pilot.py", line 80, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/tests/cursor_extent_pilot.py", line 75, in main
+    assert view.window.max_scroll_y == 0, after
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'scroll': 83, 'maximum': 83, 'cursor_height': '97', 'cursor_offset': [0, 0], 'cursor_visible': False, 'followed_attached': True, 'history_visible': False, 'visible_bodies': 0, 'extent': 97}
+
+EXIT 1

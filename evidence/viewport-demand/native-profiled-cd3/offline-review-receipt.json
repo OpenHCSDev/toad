@@ -1,0 +1,122 @@
+{
+  "capture_receipt": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-cd3/profiled/receipt.json",
+  "assessment": "unreviewed",
+  "completed": true,
+  "artifacts": {
+    "slow.mp4": {
+      "bytes": 194924,
+      "sha256": "2522e29c5db62542963a97948be870eb6153273efb40a68d04fae9e58693d346"
+    },
+    "frames.png": {
+      "bytes": 264313,
+      "sha256": "88a948242d3d0386983367e1f2e37c80ccd2fc8c8496b79c01ae75d880472c0c"
+    },
+    "up-slow.mp4": {
+      "bytes": 508008,
+      "sha256": "0a0569359e17fd9258648073e75cd2232dfcc2c453ae97b064381be9d4b647e2"
+    },
+    "up-frames.png": {
+      "bytes": 773161,
+      "sha256": "f1407f64675058aa387605d7566068295c73a6de4443e12080752865d49fc803"
+    },
+    "down-slow.mp4": {
+      "bytes": 521050,
+      "sha256": "f3acd22b29eb2f090596d048ff19e14eca9957e9a3e863a5e73d19d5ed46c2b4"
+    },
+    "down-frames.png": {
+      "bytes": 757596,
+      "sha256": "809ba53b3faa65e807c004d0bb0dd2018bf6ec31e27dc123d357520fa651ece4"
+    },
+    "reverse-slow.mp4": {
+      "bytes": 512788,
+      "sha256": "8eacd7d51f3e487444e03850babb320123f7a5e3d108121d1e87fa2b0368867c"
+    },
+    "reverse-frames.png": {
+      "bytes": 771225,
+      "sha256": "b58ddbce6e0eb6c6659729bab876372e0672381819a9c9eb60dee5c9b0fd252c"
+    },
+    "end-slow.mp4": {
+      "bytes": 128476,
+      "sha256": "0d05a5f90306513cbb7854d9d507bddaa1776e65a7df900f96c052a9eb607700"
+    },
+    "end-frames.png": {
+      "bytes": 228841,
+      "sha256": "bf24af49ead752505ea67ed8479facafea67478e61d4b3e50c22965c783be4e6"
+    },
+    "idle-slow.mp4": {
+      "bytes": 306610,
+      "sha256": "fe45eaebb55233d2d8b7d6a675b339806e0b550fccca5324b3b0b47fc35d3b8a"
+    },
+    "idle-frames.png": {
+      "bytes": 526300,
+      "sha256": "3a5b6e6473d56e9ba076b6d1d1675c007bf91f3a8a177c200d1ec48910d22f37"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2051076,
+        "start_ticks": 20717409,
+        "returncode": 0
+      },
+      {
+        "pid": 2051639,
+        "start_ticks": 20718624,
+        "returncode": 0
+      },
+      {
+        "pid": 2051645,
+        "start_ticks": 20718686,
+        "returncode": 0
+      },
+      {
+        "pid": 2052000,
+        "start_ticks": 20719965,
+        "returncode": 0
+      },
+      {
+        "pid": 2052013,
+        "start_ticks": 20720037,
+        "returncode": 0
+      },
+      {
+        "pid": 2052275,
+        "start_ticks": 20721301,
+        "returncode": 0
+      },
+      {
+        "pid": 2052282,
+        "start_ticks": 20721383,
+        "returncode": 0
+      },
+      {
+        "pid": 2052670,
+        "start_ticks": 20722668,
+        "returncode": 0
+      },
+      {
+        "pid": 2052677,
+        "start_ticks": 20722730,
+        "returncode": 0
+      },
+      {
+        "pid": 2052725,
+        "start_ticks": 20723156,
+        "returncode": 0
+      },
+      {
+        "pid": 2052731,
+        "start_ticks": 20723204,
+        "returncode": 0
+      },
+      {
+        "pid": 2052992,
+        "start_ticks": 20724313,
+        "returncode": 0
+      }
+    ]
+  }
+}
