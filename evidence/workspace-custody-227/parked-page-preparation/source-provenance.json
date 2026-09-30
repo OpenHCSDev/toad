@@ -1,0 +1,10 @@
+{
+  "source_overlay": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/src",
+  "dependency_environment": "/home/ts/wt/toad-original-stream-message-headers-20260930/.artifacts/installed-accepted-retirement",
+  "files": {
+    "src/toad/transcript_state.py": "c8bfeb519ec59609535079c7f34ccd04a9921f615ca1bfa9eb8c9c8dcb1fd29d",
+    "src/toad/transcript_source_preparation.py": "a66b2dff8d92a24defbda0cd0a2dcbdc7bc6369a2efc19f26f3678b251269f10",
+    "tests/retained_page_scope_pilot.py": "a6b5ba29ee44df31b69c26c0f391690f79348a7853809b99c07180eeab70ca62"
+  },
+  "installed_boundary": "Baseline uses noneditable installed b6; positives use this checkout source with installed dependency environment. They are not immutable installed candidate acceptance."
+}

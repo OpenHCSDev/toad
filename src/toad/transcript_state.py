@@ -2,11 +2,14 @@
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
+
+if TYPE_CHECKING:
+    from toad.transcript_preparation import PreparedPageSource
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -25,6 +28,14 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 
     def retirement_source(self) -> "TranscriptState":
         return self
+
+    def retire_preparation(self, preparation: "PreparedPageSource | None") -> None:
+        """Final source retirement releases its bounded prepared-page scope."""
+        if preparation is not None:
+            preparation.close()
+
+    def resume(self) -> "TranscriptState":
+        raise RuntimeError("Only a parked transcript can resume publication")
 
     def resume_if_parked(self, owner) -> None:
         """Resource reveal cannot admit work from an inactive source."""
@@ -210,6 +221,17 @@ class ParkedSourceTranscript(SuspendedTranscript):
 
     def publish(self) -> TranscriptState:
         raise RuntimeError("A parked source pager cannot publish before validation")
+
+    def retirement_source(self) -> TranscriptState:
+        return self.source.retirement_source()
+
+    def retire_preparation(self, preparation: "PreparedPageSource | None") -> None:
+        """Parking retains data-only work under the shared runtime's budget.
+
+        Publication and speculative workers are revoked by the pager lifetime;
+        the same source revision can reuse its prepared pages after validation.
+        Replacement and final disposal still close the original scope.
+        """
 
     def resume(self) -> TranscriptState:
         return self.source
