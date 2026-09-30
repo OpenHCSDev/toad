@@ -37,7 +37,7 @@ Run with the default installed runtime Python, and preserve original history.
 
 ```sh
 /ABS/DEFAULT-RUNTIME/bin/python tests/tools/record_installed_tui.py \
-  --write-scroll-script /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
+  --write-journey-script /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
 /ABS/DEFAULT-RUNTIME/bin/python tests/tools/record_installed_tui.py \
   --capture-target existing_thread --owner YOUR-OWNER \
   --actions /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo \
@@ -114,10 +114,21 @@ capture, artifacts and cleanup completed. `assessment` always starts
 
 ## Held scrolling, reversal, End and idle
 
+The declared `--journey scroll` is the default. For an independent disposal
+check, choose `--journey saved_tab_close` both when generating the script with
+`--write-journey-script` and when recording. Verify the actual tab close control
+in the startup image; configure `--close-tab-x`/`--close-tab-y` if it differs
+from 294,40. This journey marks `close`, physically clicks that control, waits
+two seconds, and marks `close-done`. It sends no prompt and does not stop or
+restart the managed native owner. Before/after and optional marker DTOs must
+show the actual view removed; recorder teardown still quits the application
+normally and verifies that the original managed process identity survived.
+This proves disposal only, independently of the known scroll blanking defect.
+
 Generate an editable native script, then append it to the opening/tab script:
 
 ```sh
-"$candidate_python" tests/tools/record_installed_tui.py --write-scroll-script \
+"$candidate_python" tests/tools/record_installed_tui.py --write-journey-script \
   /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
 ```
 

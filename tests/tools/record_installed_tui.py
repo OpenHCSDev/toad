@@ -307,6 +307,30 @@ class RuntimeSelection:
         return result
 
 
+class PhysicalJourney(DeclaredFamily, affix="Journey"):
+    """Declare the bounded, input-free physical journeys permitted on a live owner."""
+
+    @classmethod
+    @abstractmethod
+    def script(cls, args): ...
+
+
+class ScrollJourney(PhysicalJourney):
+    @classmethod
+    def script(cls, args):
+        return scroll_script(idle_seconds=args.scroll_idle_seconds)
+
+
+class SavedTabCloseJourney(PhysicalJourney):
+    @classmethod
+    def script(cls, args):
+        marker = f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
+        return "\n".join([
+            marker + "close", f"mousemove --sync {args.close_tab_x} {args.close_tab_y}",
+            "click 1", "sleep 2", marker + "close-done", "",
+        ])
+
+
 class CaptureTarget(DeclaredFamily, affix="Capture"):
     """Own launch authorization and original native-owner preservation proof."""
 
@@ -387,8 +411,8 @@ class ExistingThreadCapture(CaptureTarget):
             raise ValueError("Existing-thread capture derives its root from the canonical active route")
         if len(command) != 2 or Path(command[0]).name != "toad-comms":
             raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
-        if args.actions is not None and args.actions.read_text() != scroll_script(idle_seconds=args.scroll_idle_seconds):
-            raise ValueError("Existing-thread capture permits only the shared physical scroll-only script")
+        if args.actions is not None and args.actions.read_text() != args.journey.script(args):
+            raise ValueError("Existing-thread capture requires the selected canonical input-free physical journey")
         # Match the real default launcher's environment, not a copied private
         # route or thread identity that would redirect its retained history.
         for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
@@ -725,6 +749,7 @@ def record(args):
         "state_capture_requested": args.capture_state,
         "private_root": str(private_root),
         "capture_target": target.declared_name,
+        "physical_journey": args.journey.declared_name,
         "original_owner_before": target.observe(),
         "recorder_argv": sys.argv,
         "recorder_source_sha256": digest(Path(__file__)),
@@ -1036,7 +1061,11 @@ def main():
     parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
-    parser.add_argument("--write-scroll-script", type=Path, help="Write an editable native held-key script, then exit")
+    parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
+                        help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
+    parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
+    parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
+    parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")
     parser.add_argument("--scroll-idle-seconds", type=float, default=4,
                         help="Stationary observation in the shared scroll script; use15 for the original-history delayed-blank reproducer")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
@@ -1068,13 +1097,15 @@ def main():
     args = parser.parse_args()
     if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
         parser.error("Scroll idle observation must be positive and shorter than capture duration")
-    if args.write_scroll_script:
-        destination = args.write_scroll_script.expanduser().resolve()
+    if not (0 <= args.close_tab_x < args.width and 0 <= args.close_tab_y < args.height):
+        parser.error("Tab-close coordinates must be within the isolated recording screen")
+    if args.write_journey_script:
+        destination = args.write_journey_script.expanduser().resolve()
         if not destination.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
             parser.error("Scroll script must be under persistent agent scratch")
         destination.parent.mkdir(parents=True, exist_ok=True)
         with destination.open("x") as target:
-            target.write(scroll_script(idle_seconds=args.scroll_idle_seconds))
+            target.write(args.journey.script(args))
         print(destination)
         return
     if len(args.review_phase) > 8 or len(set(args.review_phase)) != len(args.review_phase):
