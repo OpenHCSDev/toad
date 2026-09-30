@@ -1,0 +1,46 @@
+{
+  "review-receipt.json": {
+    "bytes": 2270,
+    "sha256": "06082d073498caa41e571259a6fdf7f760e3091438f839afa0415df597e46b2b"
+  },
+  "phase-down-done.png": {
+    "bytes": 105841,
+    "sha256": "d260cba1721026901b5c45ddb2765acd8935c0fa919637b61795c233556c3ea4"
+  },
+  "down-frames.png": {
+    "bytes": 1798115,
+    "sha256": "82e352e29fc0b2139d254b6d5dbc385d11b48664de3d5d4c55cbd1a3125baed8"
+  },
+  "phase-idle-done.png": {
+    "bytes": 110446,
+    "sha256": "bebfbb5ace29a3edcf8dde2cc33eae47a11fd6b6d136d0dc8bffcdee9dd9bdd2"
+  },
+  "receipt.json": {
+    "bytes": 404989,
+    "sha256": "2f47b50b359d8c6f83f2a1281ee4c69db08b4753850d4247a90734bba829e7a6"
+  },
+  "custody.json": {
+    "bytes": 3994,
+    "sha256": "549ea3a2b2aaae117600e6ff54c9e88d090c4b551cfc62228580442f0982bccc"
+  },
+  "installed-verification.json": {
+    "bytes": 7931,
+    "sha256": "a94ec14c41d7ee8444c1de925da00f9c00ece8ce462c92a3933785803cbcb996"
+  },
+  "return-a-frames.png": {
+    "bytes": 1131025,
+    "sha256": "8b66dc38a9c387bd104ec9bc72a33efa016fb10c3c51a2a899e26d79114a3005"
+  },
+  "phase-a-return.png": {
+    "bytes": 112503,
+    "sha256": "146f323f6f6c2a2fd877cb8540dbbe7cdb65c77d9717b7ed471d0a432ef54743"
+  },
+  "switch-b-frames.png": {
+    "bytes": 827918,
+    "sha256": "b8f1499acc9a3c7a218c2daf272721af11623775e44179dafb1c5b1bd70788ab"
+  },
+  "assessment.json": {
+    "bytes": 2757,
+    "sha256": "16d6e133ba5096d09211221f8ecacf43252de54685db33629a158ca3a14e5c00"
+  }
+}

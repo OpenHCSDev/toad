@@ -1,0 +1,125 @@
+{
+  "owner": "Heisenberg253",
+  "purpose": "one approved meaningful candidate workflow",
+  "stage": "/home/ts/wt/toad-foreground-readiness-sidebar-followup-20260930/.artifacts/installed-body-readiness-253/bin",
+  "sources_before": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "canonical_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "active_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "argv": [
+    "/home/ts/wt/toad-foreground-readiness-sidebar-followup-20260930/.artifacts/installed-body-readiness-253/bin/python",
+    "/home/ts/wt/toad-foreground-readiness-sidebar-followup-20260930/tests/tools/record_installed_tui.py",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "warm_scroll",
+    "--peer-thread",
+    "nra-domain-mapping",
+    "--capture-state",
+    "--scroll-hold-seconds",
+    "4",
+    "--scroll-idle-seconds",
+    "15",
+    "--max-duration",
+    "100",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/toad-body-readiness-253-20260930-attempt01/actions.xdo",
+    "--output",
+    "/home/ts/.cache/agent-scratch/toad-body-readiness-253-20260930-attempt01/capture",
+    "--owner",
+    "Heisenberg253-current-route",
+    "--fit-window",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--startup-wait",
+    "12",
+    "--tail-seconds",
+    "2",
+    "--profile",
+    "--profile-threads",
+    "gil",
+    "--profile-rate",
+    "25",
+    "--review-timing",
+    "deferred",
+    "--review-phase",
+    "down",
+    "--review-phase",
+    "return-a",
+    "--review-phase",
+    "switch-b",
+    "--",
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "source": "2f3181994c54ad8afc02600b6bf9bf3909630ef0",
+  "scope": "read-only native source; local draft/Undo only; no provider or public lifecycle",
+  "driver_exit_code": 0,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3994549,
+        "start_ticks": 27773869,
+        "returncode": 0
+      },
+      {
+        "pid": 3994550,
+        "start_ticks": 27773925,
+        "returncode": 0
+      }
+    ]
+  },
+  "sources_after": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "originals_unchanged": true
+}

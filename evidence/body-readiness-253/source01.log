@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/tests/viewport_body_order_pilot.py", line 402, in <module>
+    asyncio.run(readiness_journey() if '--readiness' in sys.argv else main())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/tests/viewport_body_order_pilot.py", line 338, in readiness_journey
+    mounting = asyncio.ensure_future(view.contents.mount(fragment))
+                                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/widgets/conversation.py", line 253, in mount
+    for widget in admitted_blocks(widgets):
+                  ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/wt/toad-body-readiness-253-contribution-20260930/src/toad/block_navigation.py", line 153, in admitted_blocks
+    raise TypeError("Conversation contents require nominal blocks")
+TypeError: Conversation contents require nominal blocks
