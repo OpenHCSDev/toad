@@ -1,0 +1,22 @@
+{
+  "scope": "actual xdotool failure propagation on an owned isolated X server; no application, keys, native inputs or providers",
+  "actual_native_exit": 1,
+  "checked_owner_raised": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3281496,
+        "start_ticks": 25105208,
+        "returncode": 0
+      },
+      {
+        "pid": 3281498,
+        "start_ticks": 25105218,
+        "returncode": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "state": "STAGED_NOT_DEFAULT_NO_UI_STARTED",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "packages": {
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+        "requested_revision": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817"
+      }
+    },
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "8b5da8f625112563d9effbe0ab7229270d6731dc",
+        "requested_revision": "8b5da8f625112563d9effbe0ab7229270d6731dc"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "installed_distributions": 68,
+  "python": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python",
+  "viewport_source_sha256": "5485cafc03fa3da09d2273197171d4bab3a2bd6e0f63327ff56b8278b1010cb6",
+  "core": "095fc9c92b6adc8d1cd2ef3ca62a5d567baf8817",
+  "toad": "8b5da8f625112563d9effbe0ab7229270d6731dc",
+  "textual": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+}

@@ -1,0 +1,667 @@
+[
+  {
+    "phase": "after-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "before-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 137,
+      "visible": null
+    },
+    "full_map_invalidated": true,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 0,
+            "maximum": 0,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-a-return-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-b-open-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-down-done-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": true,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-down-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-draft-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 311,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-end-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-focused-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-idle-done-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-idle-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-return-a-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-reverse-done-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-reverse-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-switch-b-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-undo-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-up-done-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": true,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-up-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 310,
+      "visible": null
+    },
+    "full_map_invalidated": false,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 0,
+      "tabs": 0
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 254,
+            "maximum": 254,
+            "focus_target": false,
+            "visible": 6,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "phase": "phase-warm-start-state-metadata.json",
+    "mode": "session-1",
+    "maps": {
+      "full": 237,
+      "visible": 111
+    },
+    "full_map_invalidated": true,
+    "frame": {
+      "state": "PresentedFrame",
+      "ready": true,
+      "presented": true,
+      "deferred_callbacks": 0
+    },
+    "focused": "PromptTextArea",
+    "navigation_targets": {
+      "threads": 2,
+      "tabs": 1
+    },
+    "views": [
+      {
+        "mode": "session-1",
+        "thread": "resource436",
+        "windows": [
+          {
+            "scroll": 0,
+            "maximum": 0,
+            "focus_target": true,
+            "visible": 4,
+            "visible_dormant": 0
+          }
+        ]
+      }
+    ]
+  }
+]

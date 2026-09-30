@@ -1,0 +1,43 @@
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark warm-start
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py --target editor --state phase-warm-start-state.pickle
+key ctrl+End
+type --clearmodifiers --delay 80 warm-scroll-draft
+sleep 2
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark draft
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py --target history --state phase-draft-state.pickle
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark focused
+sleep 1
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark up
+keydown Prior
+sleep 4
+keyup Prior
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark up-done
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark down
+keydown Next
+sleep 4
+keyup Next
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark down-done
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark reverse
+keydown Prior
+sleep 4
+keyup Prior
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark reverse-done
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark end
+key End
+sleep 1
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark idle
+sleep 15
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark idle-done
+
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark switch-b
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py --target thread --state phase-switch-b-state.pickle --name resource236b
+sleep 2
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark b-open
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark return-a
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py --target original_tab --state phase-return-a-state.pickle --original-state phase-warm-start-state.pickle
+sleep 2
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark a-return
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tools/performance/click_history.py --target editor --state phase-a-return-state.pickle
+key ctrl+z
+sleep 2
+exec --sync /home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-workspace-prediction-236/bin/python /home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py --mark undo

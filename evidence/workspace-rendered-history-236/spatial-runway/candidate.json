@@ -1,0 +1,16 @@
+{
+  "boundary": "actual source ToadApp/native widget journey, not physical capture",
+  "viewport_rows": 24,
+  "configured_viewports": 3,
+  "baseline_rows": 72,
+  "ready_runway_rows": {
+    "before": 338,
+    "after": 169
+  },
+  "travel_rows_at_idle": 0,
+  "warm_widgets": 294,
+  "widget_limit": 300,
+  "prepared_bytes": 92294,
+  "byte_limit": 67108864,
+  "configuration_reversible": true
+}

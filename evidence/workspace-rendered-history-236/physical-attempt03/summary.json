@@ -1,0 +1,3235 @@
+{
+  "completed": false,
+  "assessment": "unreviewed",
+  "duration_seconds": 83.02319884000462,
+  "capture_returncode": 255,
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin",
+    "launcher": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+    "launcher_sha256": "90b9d0d2798c56bd576a7538b968e41db8e777e4e2668c0fe62c85ef46f51ce0",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+        "sha256": "90b9d0d2798c56bd576a7538b968e41db8e777e4e2668c0fe62c85ef46f51ce0"
+      },
+      "acp": {
+        "selected_path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/agent-comms-acp",
+        "sha256": "18e89cd8ac55998a888976a568eebdcedc09db161f144d9d742c4d59633711b5"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/toad",
+        "sha256": "90b9d0d2798c56bd576a7538b968e41db8e777e4e2668c0fe62c85ef46f51ce0"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/agent-comms-acp",
+        "sha256": "18e89cd8ac55998a888976a568eebdcedc09db161f144d9d742c4d59633711b5"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/activation.json",
+    "activation_sha256": "407f7d8806cd78cc7a68cda2f9af79a5d3d394f7ce64f5143f5acc1a52af62aa",
+    "activation": {
+      "state": "STAGED_NOT_DEFAULT_NO_UI_STARTED",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "packages": {
+        "agent-comms": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+            "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+          }
+        },
+        "batrachian-toad": {
+          "url": "https://github.com/OpenHCSDev/toad.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "479e8783f34382839718df1a7681169b16bd8375",
+            "requested_revision": "479e8783f34382839718df1a7681169b16bd8375"
+          }
+        },
+        "textual": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+            "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+          }
+        }
+      },
+      "installed_distributions": 68,
+      "core": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+      "toad": "479e8783f34382839718df1a7681169b16bd8375",
+      "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+      "sdk": "0.12.1",
+      "python": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/python",
+      "source_sha256": {
+        "preferences.py": "be58e92720fe50684eb4dc25655e391397c861f0598c5146b9ae0d5fcb0afc0f",
+        "setting_effects.py": "10da6b7d3f2a5764d9d16e74ddb74e25d05f5e5fefdae3ac5df4d5aaea9be90a",
+        "transcript_source_preparation.py": "ffdc32570e91dd37cc2ec7f42c4f1ee9117ab2234c10c87a0ac6e7df13fd418b",
+        "widgets/presentation_window.py": "74142a1b66fe67d87db83b1e0f11476d568ac6c1acc71a876a814c7a9c952f77",
+        "widgets/transcript_history.py": "da2a8702a2703a76f96597e94dc1b510540d4a1166a3adc60812a34f712095c8",
+        "widgets/viewport_body.py": "dd2899b17c1d7034a82991cd9073053c67e0cded91c0e94fdc2e15704391357e"
+      },
+      "private_root_current_codec_read": true,
+      "root_id": "a8721aff676b4f6880c82e79f4a5dc21",
+      "native_full_tree_verified": true
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/bin/python",
+      "prefix": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "0a4600ba02666fa179eb004d6b31f9a719a1b7ac710427c59f02282478555b61",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "479e8783f34382839718df1a7681169b16bd8375",
+              "requested_revision": "479e8783f34382839718df1a7681169b16bd8375"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-spatial-runway-236/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "56a84c4af864b02cc337688b8c5a378a2fc931e7a080a785023e207858593d2c",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+              "requested_revision": "4295d680a5e63885a3f338a299afc07dbb34bd85"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/wire",
+        "wire_root_id": "a8721aff676b4f6880c82e79f4a5dc21",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "journey_review": {
+    "checks": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": false,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_moved": false,
+      "held_page_down_moved": false,
+      "reverse_page_up_moved": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true
+    },
+    "native_checks_passed": false,
+    "retained_ready_body_ids": [
+      139947553276624,
+      139947553277584,
+      139947553289744,
+      139947591246352,
+      139947591246672,
+      139947591250192,
+      139947591251792,
+      139947954258960,
+      139947954259920,
+      139947954263120,
+      139947954265040,
+      139947954266320,
+      139947954267600,
+      139947954268880,
+      139947954271120,
+      139947954273360,
+      139947955129232,
+      139947955137232,
+      139947955137552,
+      139947955137872,
+      139948015873360,
+      139948015876880,
+      139948231069520,
+      139948231075920,
+      139948231077520,
+      139948231078800,
+      139948231080400,
+      139948231080720
+    ],
+    "phases": {
+      "warm-start": {
+        "label": "warm-start",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "",
+        "selection": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948261766032,
+        "loaded_pages": 1,
+        "scroll_y": 108,
+        "maximum": 108,
+        "follows_tail": true,
+        "bodies": [
+          {
+            "object_id": 139947955132432,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137552,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947955141712,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947956009104,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953721488,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947591241872,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953725648,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947955138832,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 6
+          },
+          {
+            "object_id": 139947590229264,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590228304,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956009424,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590226384,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947953726928,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947956008464,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591241232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947956002384,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947590229584,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948259973776,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591244432,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947956567760,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947591243472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590227664,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590229904,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956008784,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947590223824,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947955139472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947953724368,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          }
+        ]
+      },
+      "draft": {
+        "label": "draft",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948261766032,
+        "loaded_pages": 1,
+        "scroll_y": 108,
+        "maximum": 108,
+        "follows_tail": true,
+        "bodies": [
+          {
+            "object_id": 139947955132432,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137552,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947955141712,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947956009104,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953721488,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947591241872,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953725648,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947955138832,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 6
+          },
+          {
+            "object_id": 139947590229264,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590228304,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956009424,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590226384,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947953726928,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947956008464,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591241232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947956002384,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947590229584,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948259973776,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591244432,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947956567760,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947591243472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590227664,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590229904,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956008784,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947590223824,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947955139472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947953724368,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          }
+        ]
+      },
+      "focused": {
+        "label": "focused",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948019178448,
+        "loaded_pages": 1,
+        "scroll_y": 108,
+        "maximum": 108,
+        "follows_tail": true,
+        "bodies": [
+          {
+            "object_id": 139947955132432,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137552,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947955141712,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947956009104,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953721488,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947591241872,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953725648,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947955138832,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 6
+          },
+          {
+            "object_id": 139947590229264,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590228304,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956009424,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590226384,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947953726928,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947956008464,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591241232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947956002384,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947590229584,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948259973776,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591244432,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947956567760,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947591243472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590227664,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590229904,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956008784,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947590223824,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947955139472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947953724368,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          }
+        ]
+      },
+      "up-done": {
+        "label": "up-done",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948019178448,
+        "loaded_pages": 1,
+        "scroll_y": 163,
+        "maximum": 542,
+        "follows_tail": false,
+        "bodies": [
+          {
+            "object_id": 139947576399888,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954264080,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139947576771600,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139947591252112,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 73
+          },
+          {
+            "object_id": 139947954266000,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954265360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139947576400208,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954259920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 3
+          },
+          {
+            "object_id": 139947576404368,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139947577358800,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139947956004304,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 3
+          },
+          {
+            "object_id": 139947588843024,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947591251472,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 3
+          },
+          {
+            "object_id": 139947577351760,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139947576404688,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947576781520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947576785680,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947577348880,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947577354000,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947576407888,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947956008784,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947577347920,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947576783760,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 3
+          },
+          {
+            "object_id": 139947577351120,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          }
+        ]
+      },
+      "down-done": {
+        "label": "down-done",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948019178448,
+        "loaded_pages": 1,
+        "scroll_y": 109,
+        "maximum": 170,
+        "follows_tail": false,
+        "bodies": [
+          {
+            "object_id": 139947590227984,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 15
+          },
+          {
+            "object_id": 139947576773520,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590237264,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947591253072,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947590230224,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947575685392,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590234384,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947953729808,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953723728,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947588840784,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947575674192,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139948222988688,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947576775120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590230544,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953725968,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947577347600,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947588498000,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 26
+          },
+          {
+            "object_id": 139947575685712,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947588841424,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953728208,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947588493200,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 18
+          },
+          {
+            "object_id": 139947588490000,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 15
+          },
+          {
+            "object_id": 139947955141392,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590225744,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947588498320,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 47
+          },
+          {
+            "object_id": 139947576777680,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          }
+        ]
+      },
+      "reverse-done": {
+        "label": "reverse-done",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948019178448,
+        "loaded_pages": 1,
+        "scroll_y": 100,
+        "maximum": 240,
+        "follows_tail": false,
+        "bodies": [
+          {
+            "object_id": 139947954258960,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947552525200,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947552527440,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947590226064,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 18
+          },
+          {
+            "object_id": 139947552524560,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947552523600,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953728848,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 17
+          },
+          {
+            "object_id": 139947954271120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 16
+          },
+          {
+            "object_id": 139947588495760,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 18
+          },
+          {
+            "object_id": 139947953733008,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 16
+          },
+          {
+            "object_id": 139947953726928,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954267600,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 5
+          },
+          {
+            "object_id": 139947552531920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 5
+          },
+          {
+            "object_id": 139947588837904,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953720208,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947953724048,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 74
+          },
+          {
+            "object_id": 139948231077520,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553288144,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 19
+          },
+          {
+            "object_id": 139947956562640,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 11
+          },
+          {
+            "object_id": 139947552528080,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 18
+          },
+          {
+            "object_id": 139947590236944,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 11
+          },
+          {
+            "object_id": 139948231080720,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 17
+          },
+          {
+            "object_id": 139947953725328,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954265040,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          }
+        ]
+      },
+      "idle-done": {
+        "label": "idle-done",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948261766032,
+        "loaded_pages": 1,
+        "scroll_y": 108,
+        "maximum": 108,
+        "follows_tail": true,
+        "bodies": [
+          {
+            "object_id": 139947954258960,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137552,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954273360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954263120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954266320,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591250192,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137872,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948015873360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954271120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947954259920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231080400,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947954267600,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947591246352,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553289744,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947553277584,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 6
+          },
+          {
+            "object_id": 139948231077520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553276624,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954268880,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947955137232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231080720,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139948015876880,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947591246672,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947591251792,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231078800,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139948231069520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947955129232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954265040,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          }
+        ]
+      },
+      "b-open": {
+        "label": "b-open",
+        "mode": "session-2",
+        "editor": 139947577356560,
+        "text": "",
+        "selection": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "window": 139947575674192,
+        "focused_widget": 139947577356560,
+        "loaded_pages": 0,
+        "scroll_y": 0,
+        "maximum": 0,
+        "follows_tail": true,
+        "bodies": []
+      },
+      "a-return": {
+        "label": "a-return",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "warm-scroll-draft",
+        "selection": [
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            17
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948261766032,
+        "loaded_pages": 1,
+        "scroll_y": 108,
+        "maximum": 108,
+        "follows_tail": true,
+        "bodies": [
+          {
+            "object_id": 139947954258960,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137552,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954273360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954263120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954266320,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591250192,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137872,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948015873360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954271120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947954259920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231080400,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947954267600,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947591246352,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553289744,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947553277584,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 6
+          },
+          {
+            "object_id": 139948231077520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553276624,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954268880,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947955137232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231080720,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139948015876880,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947591246672,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947591251792,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231078800,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139948231069520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947955129232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954265040,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          }
+        ]
+      },
+      "undo": {
+        "label": "undo",
+        "mode": "session-1",
+        "editor": 139948261766032,
+        "text": "",
+        "selection": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "window": 139948019178448,
+        "focused_widget": 139948261766032,
+        "loaded_pages": 1,
+        "scroll_y": 108,
+        "maximum": 108,
+        "follows_tail": true,
+        "bodies": [
+          {
+            "object_id": 139947954258960,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137552,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231075920,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954273360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954263120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954266320,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947591250192,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947955137872,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948015873360,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947954271120,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947954259920,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231080400,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947954267600,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947591246352,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553289744,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947553277584,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 6
+          },
+          {
+            "object_id": 139948231077520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139947553276624,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954268880,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947955137232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231080720,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139948015876880,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947591246672,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 7
+          },
+          {
+            "object_id": 139947591251792,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139948231078800,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 2
+          },
+          {
+            "object_id": 139948231069520,
+            "ready": true,
+            "dormant": false,
+            "visible": true,
+            "measured_rows": 13
+          },
+          {
+            "object_id": 139947955129232,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          },
+          {
+            "object_id": 139947954265040,
+            "ready": true,
+            "dormant": false,
+            "visible": false,
+            "measured_rows": 4
+          }
+        ]
+      }
+    },
+    "physical_assessment": "unreviewed; inspect terminal.mp4 and phase PNGs",
+    "limits": [
+      "Native resource identities do not certify a warm physical first paint",
+      "A snapshot does not prove preparation or rasterization was skipped",
+      "Only actual Ctrl+Z output proves preserved Undo; no history-manager mirror is inspected"
+    ],
+    "events": [
+      {
+        "label": "warm-start",
+        "video_seconds": 13.055205120996106,
+        "screenshot": "phase-warm-start.png",
+        "state_capture": {
+          "started_seconds": 13.337620990001597,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 164089856,
+            "started_ns": 1790777863286094637,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-warm-start-state": "complete"
+            },
+            "finished_ns": 1790777863350631087
+          },
+          "finished_seconds": 13.607806879997952
+        }
+      },
+      {
+        "label": "draft",
+        "video_seconds": 18.861635479988763,
+        "screenshot": "phase-draft.png",
+        "state_capture": {
+          "started_seconds": 19.1356184539909,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 164524032,
+            "started_ns": 1790777869084265519,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-draft-state": "complete"
+            },
+            "finished_ns": 1790777869216858337
+          },
+          "finished_seconds": 19.44979981999495
+        }
+      },
+      {
+        "label": "focused",
+        "video_seconds": 21.02239401699626,
+        "screenshot": "phase-focused.png",
+        "state_capture": {
+          "started_seconds": 21.301126937993104,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 164868096,
+            "started_ns": 1790777871249648055,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-focused-state": "complete"
+            },
+            "finished_ns": 1790777871382088845
+          },
+          "finished_seconds": 21.604946223989828
+        }
+      },
+      {
+        "label": "up",
+        "video_seconds": 23.491300388006493,
+        "screenshot": "phase-up.png",
+        "state_capture": {
+          "started_seconds": 23.760077087994432,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 165064704,
+            "started_ns": 1790777873702815209,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-up-state": "complete"
+            },
+            "finished_ns": 1790777873767291926
+          },
+          "finished_seconds": 24.03094042101293
+        }
+      },
+      {
+        "label": "up-done",
+        "video_seconds": 29.169285233016126,
+        "screenshot": "phase-up-done.png",
+        "state_capture": {
+          "started_seconds": 29.444888135010842,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 180523008,
+            "started_ns": 1790777879390836517,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-up-done-state": "complete"
+            },
+            "finished_ns": 1790777879556074410
+          },
+          "finished_seconds": 29.8024469059892
+        }
+      },
+      {
+        "label": "down",
+        "video_seconds": 30.55319693099591,
+        "screenshot": "phase-down.png",
+        "state_capture": {
+          "started_seconds": 30.82076512099593,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 181112832,
+            "started_ns": 1790777880758827394,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-down-state": "complete"
+            },
+            "finished_ns": 1790777880891219131
+          },
+          "finished_seconds": 31.119534338999074
+        }
+      },
+      {
+        "label": "down-done",
+        "video_seconds": 36.29888769300305,
+        "screenshot": "phase-down-done.png",
+        "state_capture": {
+          "started_seconds": 36.576799517992185,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 185081856,
+            "started_ns": 1790777886529034891,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-down-done-state": "complete"
+            },
+            "finished_ns": 1790777886661693543
+          },
+          "finished_seconds": 36.89892459200928
+        }
+      },
+      {
+        "label": "reverse",
+        "video_seconds": 37.68012922999333,
+        "screenshot": "phase-reverse.png",
+        "state_capture": {
+          "started_seconds": 37.958593151008245,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 185581568,
+            "started_ns": 1790777887896562338,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-reverse-state": "complete"
+            },
+            "finished_ns": 1790777888028988199
+          },
+          "finished_seconds": 38.267924718995346
+        }
+      },
+      {
+        "label": "reverse-done",
+        "video_seconds": 43.3327528850059,
+        "screenshot": "phase-reverse-done.png",
+        "state_capture": {
+          "started_seconds": 43.60149912600173,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 186523648,
+            "started_ns": 1790777893554452168,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-reverse-done-state": "complete"
+            },
+            "finished_ns": 1790777893686865746
+          },
+          "finished_seconds": 43.91550376600935
+        }
+      },
+      {
+        "label": "end",
+        "video_seconds": 44.70006374901277,
+        "screenshot": "phase-end.png",
+        "state_capture": {
+          "started_seconds": 44.97556860401528,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 188084224,
+            "started_ns": 1790777894914967218,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-end-state": "complete"
+            },
+            "finished_ns": 1790777895079705474
+          },
+          "finished_seconds": 45.34524852700997
+        }
+      },
+      {
+        "label": "idle",
+        "video_seconds": 47.3760462400096,
+        "screenshot": "phase-idle.png",
+        "state_capture": {
+          "started_seconds": 47.64467149201664,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 188743680,
+            "started_ns": 1790777897582255959,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-idle-state": "complete"
+            },
+            "finished_ns": 1790777897714604775
+          },
+          "finished_seconds": 47.960019004996866
+        }
+      },
+      {
+        "label": "idle-done",
+        "video_seconds": 63.88076331501361,
+        "screenshot": "phase-idle-done.png",
+        "state_capture": {
+          "started_seconds": 64.14320921900799,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 189341696,
+            "started_ns": 1790777914091841215,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-idle-done-state": "complete"
+            },
+            "finished_ns": 1790777914156458127
+          },
+          "finished_seconds": 64.39888242300367
+        }
+      },
+      {
+        "label": "switch-b",
+        "video_seconds": 65.13192694200552,
+        "screenshot": "phase-switch-b.png",
+        "state_capture": {
+          "started_seconds": 65.40449820799404,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 189390848,
+            "started_ns": 1790777915353979222,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-switch-b-state": "complete"
+            },
+            "finished_ns": 1790777915486434409
+          },
+          "finished_seconds": 65.71045413901447
+        }
+      },
+      {
+        "label": "b-open",
+        "video_seconds": 69.39548763999483,
+        "screenshot": "phase-b-open.png",
+        "state_capture": {
+          "started_seconds": 69.65837056201417,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 192577536,
+            "started_ns": 1790777919604645673,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-b-open-state": "complete"
+            },
+            "finished_ns": 1790777919669062636
+          },
+          "finished_seconds": 69.93621681100922
+        }
+      },
+      {
+        "label": "return-a",
+        "video_seconds": 70.77067690299009,
+        "screenshot": "phase-return-a.png",
+        "state_capture": {
+          "started_seconds": 70.99131622700952,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 192630784,
+            "started_ns": 1790777920939177704,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-return-a-state": "complete"
+            },
+            "finished_ns": 1790777921103591794
+          },
+          "finished_seconds": 71.35707983901375
+        }
+      },
+      {
+        "label": "a-return",
+        "video_seconds": 75.06908394000493,
+        "screenshot": "phase-a-return.png",
+        "state_capture": {
+          "started_seconds": 75.3403620760073,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 198168576,
+            "started_ns": 1790777925283000137,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-a-return-state": "complete"
+            },
+            "finished_ns": 1790777925415473518
+          },
+          "finished_seconds": 75.65320796900778
+        }
+      },
+      {
+        "label": "undo",
+        "video_seconds": 79.52167072601151,
+        "screenshot": "phase-undo.png",
+        "state_capture": {
+          "started_seconds": 79.78894131901325,
+          "manifest": {
+            "pid": 3347835,
+            "created": 1790777848.63,
+            "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+            "rss_before": 199180288,
+            "started_ns": 1790777929728348840,
+            "profile_seconds": 0,
+            "gil_only": false,
+            "native": false,
+            "receipts": {
+              "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture/phase-undo-state": "complete"
+            },
+            "finished_ns": 1790777929861175911
+          },
+          "finished_seconds": 80.0771649669914
+        }
+      }
+    ]
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "raw_capture": "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt03/capture",
+  "raw_receipt_sha256": "64ce88f614995a9f3f440fe34428286068a3709db3aa5dc7e2812d5f95831861",
+  "native_input_count_after": 0,
+  "native_dispositions_after": {},
+  "test_created_owners_retired": true,
+  "profiler": {
+    "sample_count": 879,
+    "sampling_errors": 1,
+    "alignment_nominal_uncertainty_seconds": 0.07401532000862063,
+    "sampling_quality": "partial; inspect errors and missing thread intervals"
+  },
+  "phase_cpu": [
+    {
+      "label": "warm-start",
+      "video_start_seconds": 13.055205120996106,
+      "video_end_seconds": 18.861635479988763,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.7200000000000006,
+          "average_cpu_percent": 12.400045389072947
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17222285262601314
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.009999999999999995,
+          "average_cpu_percent": 0.1722228526260129
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.1722228526260093
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "draft",
+      "video_start_seconds": 18.861635479988763,
+      "video_end_seconds": 21.02239401699626,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.2599999999999998,
+          "average_cpu_percent": 12.032811420015593
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.009999999999999898,
+          "average_cpu_percent": 0.4628004392313646
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "focused",
+      "video_start_seconds": 21.02239401699626,
+      "video_end_seconds": 23.491300388006493,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.3000000000000007,
+          "average_cpu_percent": 12.151129079765216
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.405037635992173
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 23.491300388006493,
+      "video_end_seconds": 29.169285233016126,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 4.65,
+          "average_cpu_percent": 81.8952520468045
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.1200000000000001,
+          "average_cpu_percent": 2.113425859272376
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.08000000000000002,
+          "average_cpu_percent": 1.4089505728482496
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.06000000000000005,
+          "average_cpu_percent": 1.056712929636188
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.35223764321206263
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.17611882160603526
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "up-done",
+      "video_start_seconds": 29.169285233016126,
+      "video_end_seconds": 30.55319693099591,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.6099999999999994,
+          "average_cpu_percent": 44.07795677213146
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.05999999999999983,
+          "average_cpu_percent": 4.335536731685053
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.030000000000000027,
+          "average_cpu_percent": 2.1677683658425346
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 30.55319693099591,
+      "video_end_seconds": 36.29888769300305,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 4.5699999999999985,
+          "average_cpu_percent": 79.53786914914926
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.10999999999999999,
+          "average_cpu_percent": 1.9144782508547966
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3480869547008725
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3480869547008725
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17404347735043624
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "down-done",
+      "video_start_seconds": 36.29888769300305,
+      "video_end_seconds": 37.68012922999333,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.6600000000000001,
+          "average_cpu_percent": 47.78309820005418
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.7239863363644577
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0.009999999999999995,
+          "average_cpu_percent": 0.7239863363644566
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 37.68012922999333,
+      "video_end_seconds": 43.3327528850059,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 4.720000000000002,
+          "average_cpu_percent": 83.50104815158619
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.08999999999999997,
+          "average_cpu_percent": 1.5921810028904133
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17690900032115725
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17690900032115725
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17690900032115725
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.17690900032115334
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "reverse-done",
+      "video_start_seconds": 43.3327528850059,
+      "video_end_seconds": 44.70006374901277,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.9100000000000001,
+          "average_cpu_percent": 66.55399470265816
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.06000000000000005,
+          "average_cpu_percent": 4.388175474900541
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 2.9254503166003607
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.7313625791500902
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 44.70006374901277,
+      "video_end_seconds": 47.3760462400096,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 1.0799999999999983,
+          "average_cpu_percent": 40.35900846263338
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.37369452280216187
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.37369452280216187
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 47.3760462400096,
+      "video_end_seconds": 63.88076331501361,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 1.6499999999999986,
+          "average_cpu_percent": 9.997141983723449
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.24235495718117495
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12117747859058747
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.019999999999999796,
+          "average_cpu_percent": 0.12117747859058613
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.060588739295293736
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.060588739295293736
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "idle-done",
+      "video_start_seconds": 63.88076331501361,
+      "video_end_seconds": 65.13192694200552,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.120000000000001,
+          "average_cpu_percent": 9.591071656111758
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "switch-b",
+      "video_start_seconds": 65.13192694200552,
+      "video_end_seconds": 69.39548763999483,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 2.289999999999999,
+          "average_cpu_percent": 53.710974516674824
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.4690914804949773
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.23454574024749383
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.23454574024748864
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0.009999999999999995,
+          "average_cpu_percent": 0.23454574024748828
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "b-open",
+      "video_start_seconds": 69.39548763999483,
+      "video_end_seconds": 70.77067690299009,
+      "cpu": [
+        {
+          "pid": "3349963",
+          "cpu_seconds": 1.3499999999999999,
+          "average_cpu_percent": 98.16830572539523
+        },
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.14000000000000057,
+          "average_cpu_percent": 10.18041689004103
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.7271726350029284
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.009999999999999898,
+          "average_cpu_percent": 0.7271726350029204
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.7271726350029122
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "return-a",
+      "video_start_seconds": 70.77067690299009,
+      "video_end_seconds": 75.06908394000493,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 1.5999999999999979,
+          "average_cpu_percent": 37.223091862216165
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0.3600000000000001,
+          "average_cpu_percent": 8.37519566899865
+        },
+        {
+          "pid": "3349963",
+          "cpu_seconds": 0.10000000000000009,
+          "average_cpu_percent": 2.326443241388515
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.23264432413885153
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.23264432413885153
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "a-return",
+      "video_start_seconds": 75.06908394000493,
+      "video_end_seconds": 79.52167072601151,
+      "cpu": [
+        {
+          "pid": "3347835",
+          "cpu_seconds": 0.5900000000000034,
+          "average_cpu_percent": 13.250724317249318
+        },
+        {
+          "pid": "3348165",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.22458854774999232
+        },
+        {
+          "pid": "3348126",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.22458854774998735
+        },
+        {
+          "pid": "3347834",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.22458854774998735
+        },
+        {
+          "pid": "3348224",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3348203",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3349963",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "3347934",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    }
+  ]
+}

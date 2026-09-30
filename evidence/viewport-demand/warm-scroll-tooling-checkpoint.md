@@ -53,3 +53,16 @@ document/selection probes and obsolete timing/repetition instructions.
 Owned disposable source-generation output:
 /home/ts/.cache/agent-scratch/kepler-warm-scroll-source-20260930/actions.xdo;
 remove after this checkpoint. Original videos/native journals remain protected.
+
+## Fresh private A/B callback navigation
+
+The pre-App236 fixture callback will launch only one actual installed Toad.
+Its A/B controls are not inherited from the public screenshot. WarmScroll now
+requires `--peer-thread`, selects the captured native ThreadRow declaration,
+and returns through SessionLabel's native mode matched to this run's initial
+snapshot. The existing native cell/st-pixel locator owns all clicks. Actual CLI
+generation produced42 commands, no guessed mousemove coordinates, and zero
+submission keys; Python3.14 compilation/diff checks passed. This extension is
+85 added/20 deleted across four files, pending the single physical candidate
+journey. The fixture owner supplies the complete private environment and fresh
+original proof; no toad-comms wrapper, retired fixture or public probe is used.
