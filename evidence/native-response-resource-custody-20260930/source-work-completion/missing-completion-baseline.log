@@ -1,0 +1,35 @@
+{"observed_read": {"native_prefix_retained": true, "assigned_frontier_advanced": true}, "events": ["SentTranscript", "IncomingTranscript", "AssistantTranscript"]}
+{"live_response_attached": true, "response_resources": 1, "history_frontier_advanced": false, "managed_phase": "PublishingPhase", "managed_busy": true, "history_count": 1, "response_resource_ids": [139973464581584]}
+{"wire": {"sent_resources": 1, "incoming_resources": 1, "wire_frontier": 2, "native_frontier": 90, "live_response_attached": true, "native_transfer_pending": true}, "pages": [{"before": 0, "after": 90, "wire_before": 0, "wire_after": 0, "events": ["AssistantTranscript"], "start": 0, "stop": 1, "children": 1}], "state": "WorkingTranscript"}
+{"sent_resources": 1, "incoming_resources": 1, "wire_frontier": 2, "native_frontier": 90, "live_response_attached": true, "native_transfer_pending": true}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 116, in main
+    await pilot.pause(.02)
+  File "/home/ts/wt/toad-foreground-readiness-sidebar-followup-20260930/.artifacts/installed-body-readiness-253/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 150, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 114, in main
+    async with asyncio.timeout(8):
+               ~~~~~~~~~~~~~~~^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
