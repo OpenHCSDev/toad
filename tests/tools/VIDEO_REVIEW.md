@@ -58,15 +58,17 @@ Supply the same parameters when generating and running a journey script.
 
 ## One warm-return scroll journey
 
-Use `--journey warm_scroll --capture-state --profile` in the **existing matched
+Use `--journey warm_scroll --peer-thread PRIVATE-B --capture-state --profile` in the **existing matched
 private-original fixture**, with its copied `XDG_STATE_HOME` under agent scratch.
 Generate the script with that same journey and options. Its native editor click
 adds an unsent draft suffix, then the shared native gutter click focuses chat
 for held PageUp, PageDown, reverse PageUp, End and stationary observation. Actual
-peer-roster and original-tab clicks perform A/B/A, then a native editor click and
+native peer-roster and original-tab clicks perform A/B/A, then a native editor click and
 Ctrl+Z exercise retained Undo. It sends no prompt and changes no native journal.
-Set `--other-agent-x/y`, `--return-tab-x` and `--close-tab-y` to controls verified
-in that candidate's actual frame; do not reuse coordinates from another layout.
+The peer comes from the captured ThreadRow's declared name; the original tab
+comes from SessionLabel's mode matched to this run's initial selected-mode
+snapshot. Both use the committed native cell and the same st pixel conversion
+as the gutter/editor. No layout-specific navigation coordinate is guessed.
 
 `warm-scroll-review.json` reports source/editor/window identity, reader position,
 draft text, actual Undo result and ready body resources across return. Native

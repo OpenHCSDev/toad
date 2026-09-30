@@ -16,6 +16,8 @@ def capture(*, expected_pid, output_prefix):
     from toad.widgets.conversation import CursorContainer
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.prompt import PromptTextArea
+    from toad.widgets.comms_sidebar import ThreadRow
+    from toad.widgets.session_tabs import SessionLabel
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -89,6 +91,26 @@ def capture(*, expected_pid, output_prefix):
             "cuts_cached": compositor._cuts is not None,
             "maps": {},
         }
+        metadata["navigation_targets"] = {"threads": [], "tabs": []}
+
+        def navigation_target(node, region, name):
+            cell = Offset(*(int(value) for value in region.center))
+            if screen.get_widget_at(*cell)[0] is not node:
+                return None
+            return {**node_identity(node), "name": name, "region": tuple(region),
+                    "focus_target": {"widget": node_identity(node), "cell": tuple(cell)}}
+
+        if compositor._visible_map is not None:
+            for node, geometry in compositor._visible_map.items():
+                region = geometry.region.intersection(geometry.clip)
+                if not region:
+                    continue
+                if isinstance(node, ThreadRow):
+                    if target := navigation_target(node, region, node.target_name):
+                        metadata["navigation_targets"]["threads"].append(target)
+                if isinstance(node, SessionLabel):
+                    if target := navigation_target(node, region, node.id):
+                        metadata["navigation_targets"]["tabs"].append(target)
         for name, mapping in (("full", compositor._full_map), ("visible", compositor._visible_map)):
             metadata["compositor"]["maps"][name] = None if mapping is None else {
                 "count": len(mapping), "truncated": len(mapping) > 50000,

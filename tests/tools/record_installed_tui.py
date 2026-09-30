@@ -358,6 +358,8 @@ class WarmScrollJourney(ScrollJourney):
     def script(cls, args):
         if not args.capture_state:
             raise ValueError("Warm scrolling requires --capture-state")
+        if not args.peer_thread:
+            raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
         state_home = Path(os.environ["XDG_STATE_HOME"]).resolve()
         if not state_home.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
             raise ValueError("Warm draft editing requires a copied private UI state under agent scratch")
@@ -368,9 +370,11 @@ class WarmScrollJourney(ScrollJourney):
             "key ctrl+End", f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
             scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
                           state="phase-draft-state.pickle"),
-            marker + "switch-b", f"mousemove --sync {args.other_agent_x} {args.other_agent_y}", "click 1",
+            marker + "switch-b", native_click_command("phase-switch-b-state.pickle", target="thread",
+                                                     name=args.peer_thread),
             settle, marker + "b-open", marker + "return-a",
-            f"mousemove --sync {args.return_tab_x} {args.close_tab_y}", "click 1", settle, marker + "a-return",
+            native_click_command("phase-return-a-state.pickle", target="original_tab",
+                                 original_state="phase-warm-start-state.pickle"), settle, marker + "a-return",
             native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
             marker + "undo", "",
         ])
@@ -1095,10 +1099,14 @@ def marker_command():
     return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
 
 
-def native_click_command(state, *, target="history"):
+def native_click_command(state, *, target="history", name=None, original_state=None):
     helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
-    return (f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(helper))}"
-            f" --target {shlex.quote(target)} --state {shlex.quote(state)}")
+    argv = [sys.executable, str(helper), "--target", target, "--state", state]
+    if name is not None:
+        argv.extend(("--name", name))
+    if original_state is not None:
+        argv.extend(("--original-state", original_state))
+    return "exec --sync " + shlex.join(argv)
 
 
 def phase_evidence(output, event):
@@ -1141,6 +1149,7 @@ def main():
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
+    parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
     parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")
