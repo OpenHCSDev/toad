@@ -1,6 +1,6 @@
 # T5 source-operation lifetime and same-open attachment recovery
 
-Production lines deleted relative to current main: 107. Core #426 deletes nine.
+Production lines deleted relative to current main: 107. Core #426 deletes ten.
 This removes the pager `_loading`, `_advancing`, pending `_latest_revision`
 encodings and the Conversation notification forwarding method with all callers.
 The existing TranscriptState family owns one admitted operation, completion,
@@ -69,3 +69,21 @@ absent proof negatives pass; source ratchets have zero positive measures.
 Exact affected installed accepted-record assertions remain to run when the
 active #425 native fixture retires. Previous receipt proves the failed path,
 not this new accepted-path closure. Parent owns final paired activation.
+
+
+## Final corrected installed pair: READY
+
+The affected journey passed again with ORIGINAL accepted registry/process proof
+assertions: Core 3e4e0c88 + Toad 93dbb8a8, fixture 5d40d302, native 4ab/Textual412.
+Exit 0. Same open failed view recovers in 4.793 seconds, preserved original
+Agent/editor/Document/undo, zero provider calls during repair, explicit new reply
+painted and stopped-owner load refused without starting it. No input replay.
+The accepted original load record exactly matches RegistrySnapshot owner and
+process; its unchanged binding does not invalidate. No queue admission counter
+is read by replacement. The committed receipt replaces the earlier pair's
+receipt; complete raw ACP/UI logs remain under owned persistent scratch
+`owner-recovery-original-accepted-final`.
+
+This closes the named accepted-path review blocker. No broader suite or CI hold.
+Parent owns final paired merge/install and verification of the selected default
+entrypoint. #215 remains the separately scoped full sender/source presentation.
