@@ -335,6 +335,13 @@ async def reconnect_cancelled_source():
     )
     for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
         os.environ.pop(key, None)
+    comms.owners.pin_private_nk_launch(
+        comms.root, os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
+        Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+    )
+    # The previous runner explicitly stopped its owned worker at teardown.
+    # Start that private worker through its normal lifecycle; never send input.
+    await asyncio.to_thread(comms.owners.start, "beta")
     app = InstalledApp(agent_data=AgentDefinition.decode({
         "name": "Cancelled source reconnect", "identity": "cancelled-source",
         "short_name": "native", "protocol": "acp",
