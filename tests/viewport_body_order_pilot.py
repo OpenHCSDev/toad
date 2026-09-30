@@ -412,6 +412,16 @@ async def readiness_journey():
                             if name == 'walk_children')
                 profile.dump_stats(str(evidence / 'readiness.prof'))
                 assert walks == 0
+                edge_profile = cProfile.Profile()
+                edge_profile.enable()
+                for _ in range(100):
+                    history._check_edges()
+                edge_profile.disable()
+                edge_walks = sum(row[1] for (_, _, name), row in pstats.Stats(edge_profile).stats.items()
+                                 if name == 'walk_children')
+                edge_profile.dump_stats(str(evidence / 'edge-readiness.prof'))
+                print(json.dumps({'profiled_edge_subtree_walks': edge_walks}), flush=True)
+                assert edge_walks == 0, 'Paging readiness expanded hidden native body descendants'
 
                 assert await fragment.retire_body()
                 assert not fragment.body_ready and not fragment.children
@@ -432,7 +442,7 @@ async def readiness_journey():
                 receipt = dict(initial_native_mount_joined=True, later_pending_mount_not_yet_visible=True,
                                visible_nested_restore_blocks_frame=True,
                                retirement_preserves_pending_nested_mount=True, restored_native_body_painted=True,
-                               profiled_frame_subtree_walks=walks, provider_calls=0,
+                               profiled_frame_subtree_walks=walks, profiled_edge_subtree_walks=edge_walks, provider_calls=0,
                                boundary='Actual Toad native widgets/Pilot; source scope, not installed physical CPU acceptance')
                 (evidence / 'readiness-receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
                 assert app._exception is None

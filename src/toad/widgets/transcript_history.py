@@ -679,10 +679,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         viewport = self.window.content_region
         if not region.overlaps(viewport):
             return
-        # Markdown parsing mounts its children asynchronously. Until that first
-        # mount finishes, a page can look empty and trigger unnecessary reads
-        # of many older pages. The committed child layout will recheck edges.
-        if any(not child.is_mounted for child in self.walk_children()):
+        # Paging and paint share the original exposed-body readiness owner.
+        # A mounted body may still be restoring; hidden descendants do not
+        # belong to this viewport's foreground admission.
+        if not self.window.document_viewport.visible_bodies_ready:
             return
         if self._follow_source_tail and self.has_newer:
             self._request_page(False)

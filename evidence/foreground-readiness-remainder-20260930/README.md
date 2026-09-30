@@ -93,3 +93,37 @@ installed queued-before-delivery→once-chat acceptance remains pending.
 
 Full CPU, physical warm first paint/Strip, focus/caret/Undo, adaptive resource
 and TC1/T9 scope remains open here. Textual15 source tests do not close it.
+
+## Paging consumes the existing exposed-body readiness contract
+
+Textual15 is merged6b5895fa0a72aeec2aeaef7206d5debfa0c1803c; no isolated
+caption repeats. Einstein/Sch own its next coherent installed queue/input gate.
+
+254 now owns TranscriptHistory._check_edges's resource readiness consumer. It
+previously expanded every descendant and tested is_mounted. That differs from
+original MeasuredViewportBody.body_ready: a mounted nested body can still be
+restoring, and hidden native descendants do not own exposed-frame readiness.
+The pager now consumes DocumentViewport.visible_bodies_ready, as the original
+paint gate already does. No new readiness flags, body registries or state copies.
+Four production lines deleted/four added; existing child-mount guard removed
+in place. Source/preparation completion and publisher methods remain252-owned.
+
+Actual Toad/Window mount→late nested mount→retirement→visible nested restore
+journey passes; initial/native source custody assertions remain unchanged. The
+original baseline performs100 subtree walks for100 edge checks and fails the
+new traversal assertion; corrected source performs0. Pending visible nested
+restoration still blocks frame admission and the restored body paints. All proof
+is in paging-readiness/. No ACP/native/provider process or public-root input.
+
+This small source fixture is a contract proof, NOT a CPU improvement: total
+profiled100-check cost is16.794ms baseline vs18.923ms candidate. It has few
+descendants; native visibility/body checks carry their own cost. No overall
+latency, firstpaint, raster-reuse or installed readiness claim follows.
+
+The original253 phase join confirms source layout/materialization during held
+Up/Down/reverse, worker rendering in separate PIDs, and sidebar publication
+during stationary time. Changed-stack counts are NOT samples/CPU durations.
+Original kernelUI CPU remains92.7/90.3/84.9% scroll and21.7% idle including
+export/profiler overhead; no revised performance claim. Continue whole foreground
+layout/preparation/body custody investigation and one meaningful exact-installed
+saved-state journey after a coherent checkpoint, separate from critical252 gate.
