@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import pickle
+import shlex
 import sqlite3
 import sys
 
@@ -44,10 +45,14 @@ def main():
             marker = recorder.marker_command()
             prompt = f"mousemove --sync {args.prompt_x} {args.prompt_y}"
             edit = ["key Left Left BackSpace Delete Right"]
+            history_helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
+            history_state = base / "capture/phase-edited-state.pickle"
+            history_click = (f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(history_helper))}"
+                             f" --state {shlex.quote(str(history_state))}")
             return "\n".join([
                 prompt, "click 1", "type --clearmodifiers --delay 80 abcdef", "sleep 1",
                 marker + "typed", *edit, "sleep 1", marker + "edited",
-                "mousemove --sync 750 350", "click 1", "key Prior", "sleep 1",
+                history_click, "sleep .2", marker + "history-focused", "key Prior", "sleep 1",
                 "type --clearmodifiers --delay 80 abcdef", *edit, "sleep 1",
                 marker + "history-edit",
                 f"mousemove --sync {args.peer_x} {args.peer_y}", "click 1", "sleep 5",
@@ -104,7 +109,7 @@ def main():
         recorder.main()
         events = [json.loads(line) for line in (base / "capture/events.jsonl").read_text().splitlines()]
         assert [event["label"] for event in events] == [
-            "typed", "edited", "history-edit", "child-open", "parent-return-edit",
+            "typed", "edited", "history-focused", "history-edit", "child-open", "parent-return-edit",
             "channel-edit", "channel-return-edit",
         ], "The physical editing journey did not complete"
     finally:
@@ -140,7 +145,13 @@ def main():
         "originals_unchanged": (base / "originals-before.json").read_bytes()
                                == (base / "originals-after.json").read_bytes(),
     }
+    target = json.loads((base / "capture/history-click-target.json").read_text())
+    history = pickle.loads((base / "capture/phase-history-focused-state.pickle").read_bytes())
+    result["history_window_focused"] = history["metadata"]["screen"]["focused"]["object_id"] == target["history_window"]
+    result["history_source_retained"] = history["metadata"]["current_mode"] == target["mode"]
     (base / "editing-acceptance.json").write_text(json.dumps(result, indent=2))
+    assert result["history_window_focused"], "Physical history click did not focus its native window"
+    assert result["history_source_retained"], "Physical history click changed the selected source"
     assert all(phase["edit_passed"] for phase in observations.values()), "Physical editor keys failed; see editing-acceptance.json"
     assert result["parent_editor_retained"], "Returning to the parent replaced its native editor"
     assert result["originals_unchanged"], "The readonly editing journey changed an original native thread"

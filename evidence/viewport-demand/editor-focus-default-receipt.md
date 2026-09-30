@@ -86,3 +86,25 @@ receipts, and Toad9354-to-bf561/718030 production source equivalence. Those
 later Toad publication commits change evidence only. Candidate01's missing
 activation metadata failure occurred before UI launch and is protected;
 the builder corrected metadata without changing packages, source or route.
+
+## History-target tool checkpoint
+
+The current helper deletes the fixed (750,350) click. The native exporter
+recognizes the existing `HistoryWindow` family by type, records its committed
+visible region and instance identity, and chooses the existing
+`CursorContainer` gutter only when native hit testing finds that cursor and
+native focus dispatch identifies its owning history window. It observes
+resources; it does not set focus or maintain a focus model.
+
+`click_history.py` consumes that snapshot and the recorder's typed UI process
+identity. Actual TIOCGWINSZ text pixels plus native X11 client geometry map
+the selected cell to st pixels; no fixed font size, scene coordinate, widget
+name alias or new dependency is used. The physical driver then adds a
+`history-focused` native capture and checks both the original window identity
+and selected source before PageUp and printable-key autofocus.
+
+The retained real candidate compositor has cursor region (71,3,1,32), window
+identity 140425312875088 and cursor identity 140425312875728. The selected
+native cell is (71,19). Source geometry conversion and parsing were checked;
+no focus readiness claim or repeat of the unchanged full journey is made.
+Heisenberg227 remains the production focus/workspace integration owner.

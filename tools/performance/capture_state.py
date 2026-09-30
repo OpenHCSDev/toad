@@ -12,6 +12,9 @@ def capture(*, expected_pid, output_prefix):
     import time
     import traceback
     from textual._context import active_app
+    from textual.geometry import Offset
+    from toad.widgets.conversation import CursorContainer
+    from toad.widgets.history_anchor import HistoryWindow
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -98,6 +101,13 @@ def capture(*, expected_pid, output_prefix):
             if model is not None:
                 payload[name] = dict(model.placements) if name == "sidebar_layout" else asdict(model)
         metadata["theme"] = namespace.get("_reactive_theme")
+        metadata["terminal_geometry"] = None
+        if os.isatty(sys.__stdin__.fileno()):
+            import fcntl
+            import struct
+            import termios
+            metadata["terminal_geometry"] = struct.unpack(
+                "HHHH", fcntl.ioctl(sys.__stdin__.fileno(), termios.TIOCGWINSZ, bytes(8)))
         try:
             metadata["size"] = tuple(app.size)
         except Exception:
@@ -167,9 +177,23 @@ def capture(*, expected_pid, output_prefix):
                             "generation": node._generation,
                             "source_state": type(node._source_state).__name__,
                         })
-                    if kind in {"Window", "HistoryWindow"}:
-                        window = {key: data.get(key) for key in (
-                            "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}
+                    if isinstance(node, HistoryWindow):
+                        window = {**node_identity(node), **{key: data.get(key) for key in (
+                            "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}}
+                        geometry = compositor._visible_map.get(node) if compositor._visible_map is not None else None
+                        window["region"] = tuple(geometry.region) if geometry is not None else None
+                        window["focus_target"] = None
+                        cursor = next(iter(node.query(CursorContainer)), None)
+                        cursor_geometry = (compositor._visible_map.get(cursor)
+                                           if compositor._visible_map is not None else None)
+                        if geometry is not None and cursor_geometry is not None:
+                            region = cursor_geometry.region.intersection(cursor_geometry.clip).intersection(geometry.region)
+                            if region:
+                                cell = Offset(*(int(value) for value in region.center))
+                                hit, _ = screen.get_widget_at(*cell)
+                                focusable = screen.get_focusable_widget_at(*cell)
+                                if hit is cursor and focusable is node:
+                                    window["focus_target"] = {"widget": node_identity(cursor), "cell": tuple(cell)}
                         virtual_size = data.get("_reactive_virtual_size")
                         window["_reactive_virtual_size"] = tuple(virtual_size) if virtual_size is not None else None
                         window["scroll_y"] = node.scroll_y
