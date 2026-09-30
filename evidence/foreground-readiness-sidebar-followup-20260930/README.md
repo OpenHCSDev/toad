@@ -53,3 +53,33 @@ Heisenberg retains DocumentViewport budget/LRU/_reconcile/cost and all history
 checkpoint/publication/Conversation/LiveOutput methods. Broader consumer changes
 require direct method handoff. Heisenberg remains the single253 integration owner;
 this contribution proceeds independently of252 response-custody repair.
+
+## Scoped installed body-readiness checkpoint
+
+Production source2f318199 normally integrates Einstein's original readiness
+family contribution: 10 lines deleted /12 added across viewport_body.py and
+transcript_history.py. Native mount completion alone does not certify nested
+body readiness. The visible native body owns readiness; the fragment no longer
+walks its entire descendants each frame. Retirement still checks descendants
+when pruning actual resources. No copied ready flag or registry is introduced.
+
+ONE noneditable actual original-history journey completed83.714745s,16 checks
+PASS. Installed Coreba93838e/Toad2f318199/Text2e49cb83/SDK0.12.1/native593b;
+68 frozen dependencies,273 source bytes verified, full native trust/pip check.
+Actual physical A/B/A, held Up/Down/reverse, End/15s idle, draft and Undo retain
+original history/window/editor and20 ready body resources. Original41MB/13MB
+journals and both PID/start identities unchanged; recorder/ST exits0, FFmpeg255
+is its normal SIGINT disposition, cleanup[]errors[]. No prompt or owner restart.
+
+Personally reviewed down/End-idle/Areturn PNGs and24-frame8fps Down/Areturn/coldB
+contact sheets. Down and return bodies remain readable at those sampled frames.
+ColdB visibly loads; no instant warm firstpaint/Strip reuse claim. Sub125ms gaps
+are not excluded. CPU Up92.69%,Down90.29%,reverse84.88%,idle21.72%,return43.96%
+includes profiler/export overhead;1115 GIL samples/0errors. No overallCPU claim
+or comparison from a changed Core cohort. All residual scopes above stay open.
+
+Reviewed receipt/pins/custody/images/profile clock limits: installed-body-readiness/.
+Raw video/profile/state retained at
+/home/ts/.cache/agent-scratch/toad-body-readiness-253-20260930-attempt01/capture.
+Owned noneditable60MiB prefix remains .artifacts/installed-body-readiness-253;
+protect it and raw proof through paired acceptance. No unchanged capture repeat.
