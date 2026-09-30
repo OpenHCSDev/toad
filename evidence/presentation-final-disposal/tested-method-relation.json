@@ -1,0 +1,19 @@
+{
+  "base": "7e4465c7a67c6a44e2da4a2a6bce325582f6900c",
+  "installed_toad": "88792e4143992ccafe277ce60745dac2cc360213",
+  "methods": {
+    "src/toad/session_presentation.py": {
+      "OperationalSessionPresentation.close": "identical AST to installed887",
+      "NativeSessionSurface._evict": "identical AST to installed887",
+      "NativeSessionSurface.dispose": "identical AST to installed887",
+      "NativeSessionSurface.close": "identical AST to installed887",
+      "NativeSessionSurface._remove": "identical AST to installed887"
+    },
+    "src/toad/workspace_sessions.py": {
+      "WorkspaceSessions.aclose": "identical AST to installed887",
+      "WorkspaceSessions.close": "identical AST to installed887"
+    },
+    "src/toad/screens/session_view.py": {}
+  },
+  "scope": "disposal implementation; actual physical installed tab-close gate pending"
+}

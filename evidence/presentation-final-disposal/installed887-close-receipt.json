@@ -1,0 +1,128 @@
+{
+  "scope": "Final native presentation disposal, not scrolling",
+  "tested_toad_commit": "88792e4143992ccafe277ce60745dac2cc360213",
+  "disposal_source_commit": "6660cb6854bda7af056865326e1bb494f4690faf",
+  "core": "72062939239b0f07707406309305a056a23f925f",
+  "textual": "412b5a2b5da8875dc2f3dc5be2365abddce0537b",
+  "native": "4ab910061590d1e0",
+  "sdk": "0.12.1",
+  "runtime": "/home/ts/.local/share/agent-comms/runtime-reader-preparation-candidate-20260929",
+  "command": [
+    "/home/ts/wt/toad-viewport-demand-20260929/tests/tools/record_installed_tui.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close",
+    "--owner",
+    "Heisenberg-PR222-disposal",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "saved_tab_close",
+    "--capture-state",
+    "--actions",
+    "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close.xdo",
+    "--review-timing",
+    "deferred",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--fit-window",
+    "--startup-wait",
+    "12",
+    "--max-duration",
+    "60",
+    "--tail-seconds",
+    "3",
+    "--",
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "output": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close",
+  "duration_seconds": 20.86118567700032,
+  "physical_action": "click saved nra-architecture tab close at294,40; application ctrl+q shutdown",
+  "before_tab_order": [
+    "session-1"
+  ],
+  "after_tab_order": [
+    "session-2"
+  ],
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2126072,
+      "start_time": 20963438
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "terminal_log": "erresc: unknown csi ESC[>25u\nerresc: unknown csi ESC[?2026$p\nerresc: unknown csi ESC[?2048$p\nerresc: unknown str ESC]22\nerresc: unknown str ESC]22\nerresc: unknown str ESC]22\nerresc: unknown csi ESC[<u\n",
+  "side_effect": "Closing the final tab automatically opened nominal-refactor-advisor-3; registered test-created owner2230410/start21306473, turn_generation0/active_turnNone/sessionNone. No prompt action. Preserve registration/history. Cleanup separately authorized by parent after actual idle verification.",
+  "result": "PASS physical saved-tab close and application shutdown. Source disposal methods AST identical to exact staged222. Parent explicitly accepts this for merge; ONE exact222/default two-existing-tab close/open/shutdown verification remains pending activation.",
+  "artifacts": {
+    "before.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/before.png",
+      "sha256": "3f1059cbb67e4335c1348782e537399c48038c124d4c1e63ac7c0e78feed0350",
+      "bytes": 130230
+    },
+    "after.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/after.png",
+      "sha256": "5ccb71e4669a5fe896af80066fd86ebe57a2f90e2551aea638d6618d46559e81",
+      "bytes": 68186
+    },
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/receipt.json",
+      "sha256": "e14dc132bcff14cf28cfe8672b639e106de62611ae84e048e887406ba0f54220",
+      "bytes": 30366
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/events.jsonl",
+      "sha256": "cc7ff07dec65c737846c960cf62967d7b35a1580112c09ee91b6ef58150806e0",
+      "bytes": 5211
+    },
+    "before-state.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/before-state.json",
+      "sha256": "057754364a16cd3bd9a6b90a3a6172c6de6a9e1968cd89c193b794babf8dca2e",
+      "bytes": 5503
+    },
+    "after-state.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/after-state.json",
+      "sha256": "4c34b8a3cc3d003d8bedace75d48d0925362e869616fc02d3e070670716d8ca0",
+      "bytes": 5064
+    },
+    "before-screen.svg": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/before-screen.svg",
+      "sha256": "9a95c5d46921c1668996770b2c430befdb0400bb7752db81e79a87cb4c872cd9",
+      "bytes": 76167
+    },
+    "after-screen.svg": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/after-screen.svg",
+      "sha256": "a5326b7479ec615df25c1c561eab3e1c66285e8e784950ef2a8cbbee11948a8d",
+      "bytes": 54077
+    },
+    "terminal.log": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/terminal.log",
+      "sha256": "30b7767bd5541d26cb034edba1ddd9e3e9fd5929e914f1673f5df25a7cf6322d",
+      "bytes": 201
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad-reader-217-original-20260929/close/terminal.mp4",
+      "sha256": "09f4af8b1bd92b0da9ac4c2fe8735fd5a6f30af61eb0a86d8d8e86e9178830b0",
+      "bytes": 826272
+    }
+  }
+}
