@@ -40,3 +40,37 @@ parent owns the remaining read-only private-Xvfb/st original #openhcs → failed
 → return capture on final normal69 prefix runtime-openhcs-channel-delivery-476-
 20261001-04 (functionalCore0a76958a/packagedToad50f965e6). No source/native gate
 rerun, original prompt, restart or uncertain input replay. Live readiness is pending.
+
+
+## Receiving scope: actual external DM readiness closure
+
+Parent's original-root st/private-Xvfb capture completed32.728s with preserved
+originals and no remaining owned processes. Channel266 correctly paints Waiting
+for recovery for all3failedrecipients. A newly opened PR159 DM incorrectly paints
+Ready/Saved history not loaded while the sidebar already paints Inbox unavailable.
+Its original ACP log contains accepted coordination, saved transcript snapshot and
+successful load. This is a new-DM publication/invalidation gap, not a missing
+original failure record or authorization to retry that input.
+
+267 now owns the three producer/consumer files: Conversation's original AgentReady
+and declared CoordinationChangedUpdate consumer; ObservedThreadActivity's acquired
+read lifetime; SessionDetails' inappropriate session_state→Ready inference.
+Mendel268 owns ProjectPathOwner/SessionView/markdown/archive, Heis269 owns pages/
+preparation/budgets, and neither scope is edited here.
+
+Binding and ready publication now invalidate the SAME original activity reader.
+Its existing task accepts one bounded coalesced original read request while a read
+joins, instead of dropping that source invalidation. A bind retires old queued
+work; the existing read identity/current-view fence still rejects retired results.
+The one-slot queue is disposable rendering work, not a state/identity/status cache.
+Delete SessionDetails' inference that loaded native configuration implies Ready;
+only canonical presentation supplies that status. Rename the existing open-tabs
+subscriber (previously misleadingly called _coordination_changed) and close its
+single caller; no alias remains and its original goal/command behavior is preserved.
+
+Source import/parse/check controls pass. This production checkpoint is Draft;
+parent's next actual external original-root DM/readiness/history paint gate is
+mandatory before Ready/live claims. Preserve original262UNKNOWN/266frozen input,
+diagnostics, native journals/proofs and current owners. No public write/restart,
+provider call or replay accompanies this source checkpoint. Native admission476's
+completed acceptance remains separate and is not repeated.
