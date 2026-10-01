@@ -108,18 +108,22 @@ the affected installed user entrypoint or prove whole CPU/readiness.
 ## First code-bearing continuation checkpoint
 
 [Textual draft18](https://github.com/OpenHCSDev/textual/pull/18), head
-`68d73399bc2e55dc3b434ef0f7dacbc7f45cbfa9`, changes only the original
-`Compositor.discard_widgets` production method: one broad cache-clear line
-deleted, five selective resource-eviction lines added. Existing cached roots,
-rendered maps and native/hidden membership determine retirement. Unrelated
-entries survive; all affected resources are evicted through the same owner.
-No extra cache, state store, timer or caller implementation.
+`ba65da3dfe04fd93a486156684584e8bb60d2dc9`, replaces the unnamed cache entry
+with one frozen `SubtreeGeometry` resource. Matching, restoration and retirement
+belong to that record; creation and all consumers migrate together. The original
+dict key owns root identity; no duplicate owner field or derived membership is
+stored. Original geometry key dimensions, capacity and full Screen clearing
+remain. Existing cached roots, rendered maps and native/hidden membership
+determine retirement. Unrelated entries survive; all affected resources are
+evicted through the same owner. Production versus main: nine lines deleted,
+thirty-four added in one file. No extra cache, state store, timer or caller copy.
 
 Original `Screen._forget_pruned_widgets` is the only retirement consumer.
 Actual native App mount/remove/reflow control is RED on installed4e9016:
 unrelated entry lost before/after reflow despite correct paint. Candidate source
-passes unchanged identity/custody/frame assertions in0.4s. The changed file and
-original function pass dispatch/arms/probes/chains ratchets. This is source
+passes identity/custody/frame assertions plus restored/updated scene equality,
+content invalidation and capacity-zero retirement. The changed file and seven
+qualified functions pass dispatch/arms/probes/chains ratchets. This is source
 verification, not installed Toad/CPU/firstpaint readiness; parent receiving
 S2/274/271 prefix remains frozen and excludes this new checkpoint. Physical
 acceptance follows one meaningful coherent installed package, not an old rerun.
