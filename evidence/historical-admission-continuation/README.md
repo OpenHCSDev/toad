@@ -85,8 +85,12 @@ and candidate; preserved, not loosened or counted as a pass.
 
 Immutable UI-only stage uses69 original normal Git distributions, Coree191,
 Text6b, SDK12/native593. Full source equality/imports/nativeTrust/pipcheck pass.
-Kepler owns the sole affected real original41MB installed physical capture;
-readiness remains pending its result. No default/native/public changes.
+The sole affected real original41MB physical capture passes16 checks in
+91.074157s; its committed evidence is resource-admission-installed.md.
+Main268 is normally integrated; the four affected admission methods remain
+identical to installedf39. No default/native/public changes.
+Scoped useful checkpoint READY: [receipt](READY-SCOPED.md).
+Whole remaining scope transfers to main-based DRAFT271 before long work.
 
 Detailed source and package receipts: [resource-admission](resource-admission/README.md).
 All original full scope above remains active, including CPU/firstpaint/Strip,
