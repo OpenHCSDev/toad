@@ -1,0 +1,369 @@
+{
+  "scope": "Recorder sampling resource export before UI retirement, including interrupted captures; no product/CPU/readiness claim",
+  "source_sha256": "92cda1459e1448ff75dc6d3f265b32f101da9aadaa1f8088cd8a3e781858707f",
+  "original_negative": "/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-archive01/saved01",
+  "negative": {
+    "completed": false,
+    "capture_completed": false,
+    "error": "TimeoutExpired: Command '('/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001/bin/python', '-c', \"import os,sys\\nfd=int(sys.argv[1]); error_fd=int(sys.argv[2]); go=os.read(fd,1); os.close(fd)\\nif go != b'G': sys.exit(126)\\nos.set_inheritable(error_fd, False)\\ntry: os.execvpe(sys.argv[3], sys.argv[3:], os.environ)\\nexcept OSError as error:\\n    os.write(error_fd, str(error.errno).encode()); os._exit(126)\\n\", '10', '13', 'xdotool', 'exec', '--sync', '/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001/bin/python', '/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/tests/tools/record_installed_tui.py', '--mark', 'idle-done')' timed out after 2.7314273419906385 seconds",
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1177436,
+          "start_ticks": 32658600,
+          "returncode": 0
+        },
+        {
+          "pid": 1177446,
+          "start_ticks": 32658684,
+          "returncode": 0
+        },
+        {
+          "pid": 1177470,
+          "start_ticks": 32658696,
+          "returncode": -15
+        },
+        {
+          "pid": 1177518,
+          "start_ticks": 32658738,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 1177519,
+          "start_ticks": 32658743,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 1177524,
+          "start_ticks": 32658753,
+          "returncode": 0
+        },
+        {
+          "pid": 1177525,
+          "start_ticks": 32658761,
+          "returncode": 0
+        },
+        {
+          "pid": 1177526,
+          "start_ticks": 32658769,
+          "returncode": 0
+        },
+        {
+          "pid": 1177527,
+          "start_ticks": 32658778,
+          "returncode": 255
+        },
+        {
+          "pid": 1177755,
+          "start_ticks": 32659780,
+          "returncode": 0
+        },
+        {
+          "pid": 1177760,
+          "start_ticks": 32659804,
+          "returncode": 0
+        },
+        {
+          "pid": 1177774,
+          "start_ticks": 32659844,
+          "returncode": 0
+        },
+        {
+          "pid": 1177775,
+          "start_ticks": 32659856,
+          "returncode": 0
+        },
+        {
+          "pid": 1177783,
+          "start_ticks": 32660069,
+          "returncode": 0
+        },
+        {
+          "pid": 1177807,
+          "start_ticks": 32660204,
+          "returncode": 0
+        },
+        {
+          "pid": 1177843,
+          "start_ticks": 32660289,
+          "returncode": 0
+        },
+        {
+          "pid": 1177888,
+          "start_ticks": 32660402,
+          "returncode": 0
+        },
+        {
+          "pid": 1177969,
+          "start_ticks": 32660549,
+          "returncode": 0
+        },
+        {
+          "pid": 1177986,
+          "start_ticks": 32660636,
+          "returncode": 0
+        },
+        {
+          "pid": 1178056,
+          "start_ticks": 32660748,
+          "returncode": 0
+        },
+        {
+          "pid": 1178065,
+          "start_ticks": 32660851,
+          "returncode": 0
+        },
+        {
+          "pid": 1178066,
+          "start_ticks": 32660863,
+          "returncode": 0
+        },
+        {
+          "pid": 1178068,
+          "start_ticks": 32660875,
+          "returncode": 0
+        },
+        {
+          "pid": 1178069,
+          "start_ticks": 32660887,
+          "returncode": 0
+        },
+        {
+          "pid": 1178079,
+          "start_ticks": 32660900,
+          "returncode": 0
+        },
+        {
+          "pid": 1178102,
+          "start_ticks": 32661213,
+          "returncode": 0
+        },
+        {
+          "pid": 1178118,
+          "start_ticks": 32661360,
+          "returncode": 0
+        },
+        {
+          "pid": 1178137,
+          "start_ticks": 32661449,
+          "returncode": 0
+        },
+        {
+          "pid": 1178139,
+          "start_ticks": 32661482,
+          "returncode": 0
+        },
+        {
+          "pid": 1178255,
+          "start_ticks": 32661619,
+          "returncode": 0
+        },
+        {
+          "pid": 1178336,
+          "start_ticks": 32661766,
+          "returncode": 0
+        },
+        {
+          "pid": 1178337,
+          "start_ticks": 32661778,
+          "returncode": 0
+        },
+        {
+          "pid": 1178369,
+          "start_ticks": 32662191,
+          "returncode": 0
+        },
+        {
+          "pid": 1178371,
+          "start_ticks": 32662204,
+          "returncode": 0
+        },
+        {
+          "pid": 1178384,
+          "start_ticks": 32662345,
+          "returncode": 0
+        },
+        {
+          "pid": 1178411,
+          "start_ticks": 32662488,
+          "returncode": 0
+        },
+        {
+          "pid": 1178412,
+          "start_ticks": 32662498,
+          "returncode": 0
+        },
+        {
+          "pid": 1178601,
+          "start_ticks": 32662910,
+          "returncode": 0
+        },
+        {
+          "pid": 1178602,
+          "start_ticks": 32662923,
+          "returncode": 0
+        },
+        {
+          "pid": 1178623,
+          "start_ticks": 32663067,
+          "returncode": 0
+        },
+        {
+          "pid": 1178648,
+          "start_ticks": 32663207,
+          "returncode": 0
+        },
+        {
+          "pid": 1178650,
+          "start_ticks": 32663218,
+          "returncode": 0
+        },
+        {
+          "pid": 1178776,
+          "start_ticks": 32663631,
+          "returncode": 0
+        },
+        {
+          "pid": 1178777,
+          "start_ticks": 32663642,
+          "returncode": 0
+        },
+        {
+          "pid": 1178858,
+          "start_ticks": 32663785,
+          "returncode": 0
+        },
+        {
+          "pid": 1178899,
+          "start_ticks": 32663928,
+          "returncode": 0
+        },
+        {
+          "pid": 1178901,
+          "start_ticks": 32663942,
+          "returncode": 0
+        },
+        {
+          "pid": 1178912,
+          "start_ticks": 32664053,
+          "returncode": 0
+        },
+        {
+          "pid": 1178962,
+          "start_ticks": 32664194,
+          "returncode": 0
+        },
+        {
+          "pid": 1179326,
+          "start_ticks": 32665707,
+          "returncode": -15
+        }
+      ]
+    }
+  },
+  "negative_profiler_duration": [
+    "/home/ts/.local/bin/py-spy",
+    "record",
+    "--pid",
+    "1177519",
+    "--format",
+    "chrometrace",
+    "--subprocesses",
+    "--full-filenames",
+    "--rate",
+    "25",
+    "--duration",
+    "105",
+    "--output",
+    "/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-archive01/saved01/cpu-profile.json"
+  ],
+  "preserved_native_hash": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c",
+  "actual_process_control": {
+    "scope": "Actual sampling-process lifetime; no UI, ACP, inputs or provider",
+    "interruption": "Representative interrupted capture",
+    "profile_export": {
+      "started_monotonic": 327981.292487232,
+      "finished_monotonic": 327981.457932722,
+      "returncode": 0,
+      "remaining_owned_pids": [],
+      "bytes": 265
+    },
+    "target_alive_after_export": true,
+    "trace_events": 2,
+    "result": "PASS",
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1213362,
+          "start_ticks": 32798032,
+          "returncode": 0
+        },
+        {
+          "pid": 1213364,
+          "start_ticks": 32798074,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        }
+      ]
+    }
+  },
+  "sleep_only_control": "First resource pilot exported [] successfully but had no busy execution samples; unchanged nonempty-trace assertion failed and raw retained in .artifacts/profiler-export-271-01",
+  "ratchet": {
+    "before": {
+      "type_identity_check": 0,
+      "long_boolean_chain": 1,
+      "boolean_chain_terms": 4,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 11,
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "string_key_subscript": 180,
+      "literal_key_get": 19,
+      "string_equality": 8,
+      "none_identity": 32,
+      "isinstance_call": 0,
+      "attribute_by_name": 0,
+      "getattr_default": 0,
+      "broad_except": 3,
+      "json_loads": 15,
+      "long_function": 2,
+      "class_definition": 25,
+      "abstract_base": 0,
+      "enum_class": 0,
+      "code_lines": 1276
+    },
+    "after": {
+      "type_identity_check": 0,
+      "long_boolean_chain": 1,
+      "boolean_chain_terms": 4,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 11,
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "string_key_subscript": 188,
+      "literal_key_get": 19,
+      "string_equality": 8,
+      "none_identity": 31,
+      "isinstance_call": 0,
+      "attribute_by_name": 0,
+      "getattr_default": 0,
+      "broad_except": 3,
+      "json_loads": 15,
+      "long_function": 2,
+      "class_definition": 26,
+      "abstract_base": 0,
+      "enum_class": 0,
+      "code_lines": 1301
+    }
+  },
+  "next_acceptance": "One actual saved A/B/A native UI + held scrolling + End/idle capture; original u05 still unclassified because failing scene census absent"
+}

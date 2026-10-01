@@ -132,9 +132,9 @@ class OwnedProcess:
             except ProcessLookupError:
                 pass
 
-    def stop(self, sig=signal.SIGTERM):
+    def stop(self, sig=signal.SIGTERM, *, grace_seconds=3):
         self.send_signal(sig)
-        deadline = time.monotonic() + 3
+        deadline = time.monotonic() + grace_seconds
         while self.members() and time.monotonic() < deadline:
             self.process.poll()
             time.sleep(.05)
@@ -171,6 +171,27 @@ class TransferredGroup(OwnedProcess):
                 "custody": "verified launch identity transferred to installed ObservedProcess"}
 
 
+class ProfileProcess(OwnedProcess):
+    """Finish the owned sampling process before retiring its UI target."""
+
+    export_seconds = 8
+
+    def stop(self, sig=signal.SIGINT):
+        return super().stop(sig, grace_seconds=self.export_seconds)
+
+    def export(self, output, receipt):
+        started = time.monotonic()
+        remaining = self.stop()
+        path = output / "cpu-profile.json"
+        receipt["profile_export"] = {
+            "started_monotonic": started, "finished_monotonic": time.monotonic(),
+            "returncode": self.process.returncode, "remaining_owned_pids": remaining,
+            "bytes": path.stat().st_size if path.exists() else 0,
+        }
+        if remaining or self.process.returncode != 0 or not receipt["profile_export"]["bytes"]:
+            raise RuntimeError("Owned profiler failed to export; inspect profile_export and profiler.log")
+
+
 class ProcessOwner:
     """One launcher/timeout/cleanup mechanism for all recorder subprocesses."""
 
@@ -178,7 +199,7 @@ class ProcessOwner:
         self.children = []
         self.registration = registration
 
-    def start(self, argv, *, before_start=None, **kwargs):
+    def start(self, argv, *, before_start=None, process_type=OwnedProcess, **kwargs):
         from agent_comms.child_process import Platform
         text = kwargs.pop("text", False)
         with Platform.current().launch(tuple(argv), tuple(kwargs.pop("pass_fds", ()))) as launch:
@@ -194,7 +215,7 @@ class ProcessOwner:
                 child.close_streams()
                 raise
         # Popen communicates bytes; text conversion belongs to this boundary.
-        owned = OwnedProcess(child, self.registration)
+        owned = process_type(child, self.registration)
         owned.text = text
         self.children.append(owned)
         return owned
@@ -1006,11 +1027,11 @@ def record(args):
                 env["TOAD_VIDEO_PROFILE_RATE"] = str(args.profile_rate)
                 env["TOAD_VIDEO_PROFILE_SAMPLING"] = args.profile_sampling.declared_name
                 env["TOAD_VIDEO_PROFILE_THREADS"] = args.profile_threads.declared_name
-                env["TOAD_VIDEO_PROFILE_DURATION"] = str(math.ceil(args.max_duration + 30))
+                env["TOAD_VIDEO_PROFILE_DURATION"] = str(math.ceil(args.max_duration))
                 argv = [sys.executable, str(Path(__file__).resolve()), "--profile-launch", *command]
                 receipt["profiler"] = {"command": argv, "executable_sha256": digest(Path(profiler)),
                                       "launch_monotonic": time.monotonic()}
-                terminal = owner.start(argv, env=env,
+                terminal = owner.start(argv, env=env, process_type=ProfileProcess,
                     stdout=stack.enter_context((output / "profiler.log").open("w")),
                     stderr=stack.enter_context((output / "terminal.log").open("w")))
                 deadline = time.monotonic() + 10
@@ -1055,10 +1076,14 @@ def record(args):
                 "-crf", "26", "-threads", "1", "-r", str(args.fps), "-fps_mode", "cfr", "-pix_fmt", "yuv420p", str(output / "terminal.mp4"),
             ], stderr=stack.enter_context((output / "capture.log").open("w")))
             started = time.monotonic()
-            deadline = started + args.max_duration
+            finish_deadline = started + args.max_duration
+            deadline = finish_deadline - args.finalize_seconds
             env["TOAD_VIDEO_EPOCH"] = str(started)
             env["TOAD_VIDEO_DEADLINE"] = str(deadline)
             receipt["capture_launch_monotonic"] = started
+            receipt["interaction_deadline_monotonic"] = deadline
+            receipt["finish_deadline_monotonic"] = finish_deadline
+            receipt["finalize_seconds"] = args.finalize_seconds
             receipt["terminal_pid"] = terminal_pid
             print(f"Recording isolated display {env['DISPLAY']}: {output}", flush=True)
 
@@ -1102,11 +1127,13 @@ def record(args):
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
                 time.sleep(max(0, remaining() - 1))
-            if terminal.process.poll() is not None or not transferred_program.child.identity.alive():
+            if not transferred_program.child.identity.alive():
                 raise RuntimeError(f"Installed terminal exited during recording: {terminal.process.returncode}")
             screenshot("after.png")
             capture_state("after")
             receipt["duration_seconds"] = time.monotonic() - started
+            if args.profile:
+                terminal.export(output, receipt)
             capture.stop(signal.SIGINT)
             receipt["capture_returncode"] = capture.process.returncode
             if capture.process.returncode not in (0, 255):
@@ -1120,12 +1147,6 @@ def record(args):
                 terminal.process.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 pass
-            if args.profile and terminal.process.poll() is None:
-                terminal.send_signal(signal.SIGINT)
-                try:
-                    terminal.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    pass
             transferred_program.stop()
             if transferred_terminal is not None:
                 transferred_terminal.stop()
@@ -1175,6 +1196,14 @@ def record(args):
         receipt["error"] = f"{type(error).__name__}: {error}"
         raise
     finally:
+        # Failure must preserve raw samples too. Export while the verified UI
+        # target is still alive, before reverse-order process-group cleanup.
+        if args.profile and terminal is not None and "profile_export" not in receipt:
+            try:
+                terminal.export(output, receipt)
+            except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+                receipt["profile_export_error"] = str(error)
+                receipt["completed"] = False
         transfer = output / "profile-terminal.json"
         if args.profile and transfer.exists():
             try:
@@ -1385,6 +1414,8 @@ def main():
     parser.add_argument("--fit-window", action="store_true")
     parser.add_argument("--startup-wait", type=float, default=8)
     parser.add_argument("--max-duration", type=float, default=45)
+    parser.add_argument("--finalize-seconds", type=float, default=16,
+                        help="Reserved within duration for profiler export and owned UI teardown")
     parser.add_argument("--tail-seconds", type=float, default=2)
     parser.add_argument("--slowdown", type=float, default=8)
     parser.add_argument("--review-start", type=float, default=0)
@@ -1429,15 +1460,16 @@ def main():
     bounds = {"profile_rate": (10, 49), "fps": (1, 120), "width": (320, 1920), "height": (240, 1200),
               "max_duration": (1, 120), "slowdown": (1, 16), "review_seconds": (.01, 15),
               "review_fps": (.1, 60), "review_frames": (1, 96), "sheet_columns": (1, 8),
-              "startup_wait": (0, 119), "tail_seconds": (0, 119), "review_start": (0, 119)}
+              "startup_wait": (0, 119), "tail_seconds": (0, 119), "review_start": (0, 119),
+              "finalize_seconds": (ProfileProcess.export_seconds + 6, 30)}
     for name, (low, high) in bounds.items():
         value = getattr(args, name)
         if not math.isfinite(value) or not low <= value <= high:
             parser.error(f"{name} must be finite and between {low} and {high}")
     if args.width % 2 or args.height % 2:
         parser.error("Capture dimensions must be even for yuv420p")
-    if args.startup_wait + args.tail_seconds + 1 >= args.max_duration:
-        parser.error("Duration must leave time for interaction and a final screenshot")
+    if args.startup_wait + args.tail_seconds + args.finalize_seconds + 1 >= args.max_duration:
+        parser.error("Duration must leave time for interaction, final screenshot and owned export/teardown")
     if args.review_start >= args.max_duration or args.review_fps > args.fps:
         parser.error("Review must start within capture and sample no faster than capture FPS")
     frames = min(args.review_frames, max(1, math.ceil(args.review_seconds * args.review_fps)))
