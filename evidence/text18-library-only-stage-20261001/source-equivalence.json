@@ -1,0 +1,15 @@
+{
+  "base_application": "a87de510fa1b4fd67113446a9ef698fc0865141d",
+  "receiving_head": "f8e1cedebdc1fb1c43a23475ecdbe69c8f218400",
+  "base_src_tree": "a202bca391d3c50daffc0e4f86126b300bd316ba",
+  "receiving_src_tree": "a202bca391d3c50daffc0e4f86126b300bd316ba",
+  "production_byte_equal": true,
+  "changed_files": [
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "production_lines_added": 0,
+  "production_lines_deleted": 0,
+  "receiving_metadata_added": 3,
+  "receiving_metadata_deleted": 3
+}
