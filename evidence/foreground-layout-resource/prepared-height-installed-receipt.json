@@ -1,0 +1,253 @@
+{
+  "owner": "Kepler affected installed journey, Heisenberg PR264 integration",
+  "scope": "one actual existing saved41MB16check warm_scroll candidate; no default publication test",
+  "command": [
+    "$HOME/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "physical_journey": "warm_scroll",
+  "capture_target": "existing_thread",
+  "started_utc": "2026-10-01T05:27:25.999491+00:00",
+  "duration_seconds": 90.65654389298288,
+  "completed": true,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "runtime_selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "runtime_bin": "$HOME/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001/bin",
+  "activation_sha256": "159684c8948b10a2d8c39b7bf761a3f0c39fccf23c207a6c98ba8720b734da55",
+  "pins": {
+    "agent-comms": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+    "batrachian-toad": "b524171ec004d0d05aa6dada247141a04af20865",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+  },
+  "sdk": "0.12.1",
+  "native_package": "$HOME/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "package_origins": {
+    "toad": {
+      "origin": "$HOME/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001/lib/python3.14/site-packages/toad/__init__.py",
+      "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+      "source_tree_sha256": "de62bcba7b459dee07e0eb53889348e8e712e2f3d47e0d6127705fc0ad39e586",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "b524171ec004d0d05aa6dada247141a04af20865",
+          "requested_revision": "b524171ec004d0d05aa6dada247141a04af20865"
+        }
+      }
+    },
+    "textual": {
+      "origin": "$HOME/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001/lib/python3.14/site-packages/textual/__init__.py",
+      "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+      "source_tree_sha256": "74d7ca0a6760e18c8de6733f6264af85ece6c496680bd6fffe51d3da4ce65dd8",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+          "requested_revision": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+        }
+      }
+    },
+    "agent_comms": {
+      "origin": "$HOME/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+      "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+      "source_tree_sha256": "f0fb2f3cafc9512094d1076eb058b32c4e88831428bbfafe10511d0ef2a5f79b",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+          "requested_revision": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b"
+        }
+      }
+    }
+  },
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "physically_reviewed_frames": [
+    "phase-focused.png",
+    "phase-down-done.png",
+    "phase-reverse-done.png",
+    "phase-idle-done.png",
+    "phase-a-return.png"
+  ],
+  "physical_review": "Savedhistory and draft visible; Down/reverse readable;15secondidle and Areturn readable chat+chrome. No claim about every moving frame.",
+  "original_preservation": {
+    "same_threads": true,
+    "same_inputs": true,
+    "same_wire_metadata": true,
+    "original": {
+      "root": "${PUBLIC_ROOT}",
+      "threads": {
+        "nra-architecture": {
+          "identity": {
+            "pid": 465576,
+            "start_time": 30187842
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+            "bytes": 41270257,
+            "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl.input-proof",
+            "bytes": 7024640,
+            "sha256": "ddd0cb7073678e4814e13d36311e1e2e4c76d5485c3a9dad893afaf0e2d3e59f"
+          }
+        },
+        "openhcs-architecture-memory": {
+          "identity": {
+            "pid": 465783,
+            "start_time": 30188696
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl",
+            "bytes": 41424974,
+            "sha256": "8f7f425b747f1cdf17091d9b3b69745c80131ba206ed77a7ea54e35bcc3a8ee1"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl.input-proof",
+            "bytes": 180224,
+            "sha256": "194f0d2e923f9323e37159b4d9bf627d051c0ccf950f07f726e6a5e9826258d2"
+          }
+        }
+      },
+      "wire_metadata": {
+        "path": "${PUBLIC_ROOT}/bus_meta.json",
+        "bytes": 828,
+        "sha256": "31095d68a8e2c92c417c419bc3678108c59b965b098d0007b32580ccd1a80211"
+      },
+      "inputs": {
+        "path": "${PUBLIC_ROOT}/input_dispositions.json",
+        "bytes": 1152447,
+        "sha256": "7c6fd248957ec02848fa5b5170e81d4695dcbef371f0d8de207a37fdc6a2b128"
+      }
+    }
+  },
+  "recorder_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "caller_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 656445,
+        "start_ticks": 30808469,
+        "returncode": 0
+      }
+    ]
+  },
+  "encoder_returncode": 255,
+  "video": {
+    "codec_name": "h264",
+    "width": 1280,
+    "height": 900,
+    "avg_frame_rate": "60/1",
+    "nb_frames": "5463"
+  },
+  "video_duration": "91.050000",
+  "video_bytes": "8299592",
+  "profile": {
+    "gil_samples": 1213,
+    "sampling_errors": 0,
+    "clock_alignment_nominal_uncertainty_seconds": 0.0822003194980789,
+    "phase_kernel_cpu": [
+      {
+        "phase": "up",
+        "video_start_seconds": 29.64052727696253,
+        "video_end_seconds": 35.366412867966574,
+        "candidate_cpu_seconds": 5.330000000000002,
+        "candidate_average_cpu_percent": 93.08603735243996,
+        "prior_cpu_seconds": 5.32,
+        "prior_average_cpu_percent": 92.86120223460064
+      },
+      {
+        "phase": "down",
+        "video_start_seconds": 36.745436489989515,
+        "video_end_seconds": 42.43682558397995,
+        "candidate_cpu_seconds": 5.060000000000002,
+        "candidate_average_cpu_percent": 88.90623917002755,
+        "prior_cpu_seconds": 4.990000000000002,
+        "prior_average_cpu_percent": 87.2725802900472
+      },
+      {
+        "phase": "reverse",
+        "video_start_seconds": 43.91522517695557,
+        "video_end_seconds": 49.59015817096224,
+        "candidate_cpu_seconds": 4.82,
+        "candidate_average_cpu_percent": 84.93492355047069,
+        "prior_cpu_seconds": 5.039999999999999,
+        "prior_average_cpu_percent": 86.26244053956185
+      },
+      {
+        "phase": "end",
+        "video_start_seconds": 50.98269898298895,
+        "video_end_seconds": 53.56475162395509,
+        "candidate_cpu_seconds": 2.1300000000000026,
+        "candidate_average_cpu_percent": 82.49250871984583,
+        "prior_cpu_seconds": 1.8000000000000007,
+        "prior_average_cpu_percent": 70.06548293677623
+      },
+      {
+        "phase": "idle",
+        "video_start_seconds": 53.56475162395509,
+        "video_end_seconds": 70.11632048297906,
+        "candidate_cpu_seconds": 3.739999999999995,
+        "candidate_average_cpu_percent": 22.596045316640385,
+        "prior_cpu_seconds": 3.559999999999995,
+        "prior_average_cpu_percent": 21.564673431563403
+      },
+      {
+        "phase": "a-return",
+        "video_start_seconds": 82.52819973998703,
+        "video_end_seconds": 87.02034453494707,
+        "candidate_cpu_seconds": 1.3300000000000054,
+        "candidate_average_cpu_percent": 29.60723798333923,
+        "prior_cpu_seconds": 1.269999999999996,
+        "prior_average_cpu_percent": 28.40746300203692
+      }
+    ],
+    "interpretation": "No overallCPU improvement established from singlepair; kernel counters are CPUauthority, compressed Chrome transitions are not sampleweights/calls/durations."
+  },
+  "raw_directory": "$HOME/.cache/agent-scratch/viewport-preparation-264-20261001-installed01",
+  "raw_hashes": {
+    "capture/receipt.json": "edbb375de78f65a0aa067f03dccbffac807c6c35ecaca11239717f0f069a4ef8",
+    "public-original-preservation.json": "e3cad604d63f19c34c9431118e218b345f9f8a3284f848912bdfa081b531faaa",
+    "capture/terminal.mp4": "9fea28bac8c5091347131e57df05e2793ef31ad6edaf87c696e4df625a883722",
+    "capture/cpu-profile.json": "03104790ef44838f4396ed7b2e8c49d52120486dfe076396cb13ae530fa4413c",
+    "capture/profiler.log": "bc17651a5fac848187286de843797ee98013cab0903e71af354cb40635165051",
+    "capture/foreground-cost-stacks.json": "acb34174e9b82e4688fc784982a54fe38a6a760520828bfb8478f5467d9b1985",
+    "capture/phase-focused.png": "5fb069effe56dd0ecfd093e4c17a5acf5e2e07007ba258831ba9e8f8836593d8",
+    "capture/phase-down-done.png": "85082e6ac147d1b45e138e2702a5c5c85258bd40f017298d8165642539f0e120",
+    "capture/phase-reverse-done.png": "3d1e0df33c982680e507976cfee7d8468adb98bfe5f808a291901e419bab80ea",
+    "capture/phase-idle-done.png": "075987798c5a105cb4fb7355b2d9d9363d04c496edd4b090056a8324acd4e1fa",
+    "capture/phase-a-return.png": "12310e5b24cdcbf4251dca6f6e1812b673bbc76d57f8a128df3f1cb299efae68"
+  },
+  "limits": [
+    "Retained UNKNOWN/backenddiagnostics remain; no delivery/compaction/providerhealth acceptance.",
+    "No provider request,inputEnter,originalowner restart or signal during gate.",
+    "Paired immutable candidate only; default link activation belongs to parent.",
+    "Native sourcecounter24\u21921geometry evidence distinct from foregroundCPU/full50ms target."
+  ]
+}
