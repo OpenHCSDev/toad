@@ -36,6 +36,9 @@ class ObservedThreadActivity(Static):
         self.presentation: ThreadPresentation | None = None
         self.unavailable = False
         self._read_task: asyncio.Task[None] | None = None
+        self._pending_reads: asyncio.Queue[
+            Callable[[], Awaitable[ThreadPresentation | None]]
+        ] = asyncio.Queue(maxsize=1)
 
     def on_mount(self) -> None:
         # The shared coordination observer already owns source revision and
@@ -51,6 +54,8 @@ class ObservedThreadActivity(Static):
         if self._read_task is not None:
             self._read_task.cancel()
         self._read_task = None
+        if not self._pending_reads.empty():
+            self._pending_reads.get_nowait()
         self.read = read
         self._publish(None, False)
         self.refresh_observation()
@@ -60,21 +65,27 @@ class ObservedThreadActivity(Static):
             self._read_task.cancel()
 
     def refresh_observation(self, _event=None) -> None:
-        if (not self.is_attached or not self.query_ancestor(SessionView).is_current
-                or self._read_task is not None and not self._read_task.done()):
+        if not self.is_attached or not self.query_ancestor(SessionView).is_current:
             return
-        self._read_task = asyncio.create_task(self._observe())
+        # Keep the latest original read request while the acquired read joins.
+        # This is a one-slot rendering resource, never a readiness/owner cache.
+        if self._pending_reads.full():
+            self._pending_reads.get_nowait()
+        self._pending_reads.put_nowait(self.read)
+        if self._read_task is None or self._read_task.done():
+            self._read_task = asyncio.create_task(self._observe())
 
     async def _observe(self) -> None:
-        read = self.read
-        try:
-            presentation, unavailable = await read(), False
-        except Exception:
-            presentation, unavailable = None, True
-        if (read is not self.read or not self.is_attached
-                or not self.query_ancestor(SessionView).is_current):
-            return
-        self._publish(presentation, unavailable)
+        while not self._pending_reads.empty():
+            read = self._pending_reads.get_nowait()
+            try:
+                presentation, unavailable = await read(), False
+            except Exception:
+                presentation, unavailable = None, True
+            if (read is not self.read or not self.is_attached
+                    or not self.query_ancestor(SessionView).is_current):
+                return
+            self._publish(presentation, unavailable)
 
     def _publish(self, presentation, unavailable) -> None:
         if (presentation, unavailable) == (self.presentation, self.unavailable):
