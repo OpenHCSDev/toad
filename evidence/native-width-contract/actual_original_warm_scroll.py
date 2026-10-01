@@ -4,6 +4,7 @@ No original attachment, input, provider request or public owner operation. This
 uses the production CommsAgent directly: the existing test convenience factory
 imports unrelated pytest/model fixtures, absent from the immutable runtime.
 """
+import argparse
 import asyncio
 import hashlib
 import json
@@ -33,14 +34,13 @@ def fingerprint(path):
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
-async def run(root):
+async def run(root, stage_proof):
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     runtime = Path(sys.executable).parent
     stage = runtime.parent
-    native = Path("/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent")
     public = Path("/var/tmp/agent-comms-live-20260927-wzjtqhza")
     original_python = Path("/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python")
-    receipt = {"state": "PREPARING", "owner": "Heisenberg271", "fixture": str(root),
+    receipt = {"state": "PREPARING", "owner": "Heisenberg275", "fixture": str(root),
                "inputs": 0, "provider_requests": 0, "public_owner_operations": 0,
                "python": sys.executable, "runtime": str(stage)}
     started = time.monotonic()
@@ -48,13 +48,20 @@ async def run(root):
     processes = None
     captured = None
     try:
-        verified = json.loads((WT / ".artifacts/staging-native-width-271-20261001/verified.json").read_text())
-        assert verified["native_full_tree_trust"] == "PASS"
-        assert verified["distribution_count"] == 69
-        assert verified["imports"] == "PASS"
-        assert all(item.get("byte_equal", item.get("certified_donor_all_files_equal", False))
-                   for item in verified["sources"])
-        receipt["pins"] = verified["pins"]
+        verified = json.loads(stage_proof.read_text())
+        activation = json.loads((stage / "activation.json").read_text())
+        assert Path(verified["prefix"]).resolve() == Path(sys.prefix).resolve()
+        assert Path(activation["stage"]).resolve() == Path(sys.prefix).resolve()
+        assert verified["native_full_trust"] is True
+        assert verified["package_count"] == 69
+        assert all(item["byte_equal"] is True for item in verified["sources"])
+        pins = {item["module"]: item["head"] for item in verified["sources"]}
+        assert all(pins[module] == head for module, head in activation["pins"].items())
+        native = Path(verified["native_package"])
+        assert native == Path(activation["native_package"])
+        receipt["pins"] = pins
+        receipt["stage_proof"] = str(stage_proof)
+        receipt["stage_proof_sha256"] = fingerprint(stage_proof)["sha256"]
         verify_native_package(native)
         captured = CurrentTypedCapture(public, original_python).read("nra-architecture")
         source = captured.require_current()
@@ -115,7 +122,7 @@ async def run(root):
         captured.require_current()
         processes = ProcessOwner(Registration(service.root / "registry.json"))
         argv = [str(runtime / "python"), str(WT / "tests/tools/record_installed_tui.py"),
-            "--owner", "Heisenberg271", "--journey", "warm_scroll", "--peer-thread", "warm-b",
+            "--owner", "Heisenberg275", "--journey", "warm_scroll", "--peer-thread", "warm-b",
             "--capture-state", "--profile", "--private-root", str(service.root),
             "--output", str(root / "physical01"), "--fit-window", "--width", "1280", "--height", "900",
             "--startup-wait", "10", "--max-duration", "120", "--finalize-seconds", "16",
@@ -156,4 +163,8 @@ async def run(root):
 
 
 if __name__ == "__main__":
-    asyncio.run(run(Path(sys.argv[1])))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("root", type=Path)
+    parser.add_argument("--stage-proof", required=True, type=Path)
+    args = parser.parse_args()
+    asyncio.run(run(args.root, args.stage_proof))
