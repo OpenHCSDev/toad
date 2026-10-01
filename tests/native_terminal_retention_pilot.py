@@ -55,21 +55,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         assert "error" not in response, response
         return response["result"]
 
-    async def command_identity(terminal_id, marker):
-        execution = terminals.require(terminal_id)
-        await until(pilot, lambda: any(
-            line.content.plain.startswith(marker)
-            for line in execution.state.buffer.lines
-        ))
-        output = await rpc("terminal/output", terminalId=terminal_id)
-        line = next(line for line in output["output"].splitlines()
-                    if line.startswith(marker))
-        return ProcessIdentity.capture(int(line.partition("=")[2]))
-
     first = (await rpc("terminal/create", command="sh", args=[
         "-c", "sleep 1; printf 'ACTIVE_THEN_DETACHED\\n'"]))["terminalId"]
     execution = terminals.require(first)
     original_state = execution.state
+    original_custody = await execution.custody()
     await app.session_navigation.new(app.session_navigation.default_source)
     assert agent.controller.surface.target is None
     second = (await rpc("terminal/create", command="sh", args=[
@@ -79,6 +69,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert "ACTIVE_THEN_DETACHED" in (await rpc("terminal/output", terminalId=first))["output"]
     assert "CREATED_WHILE_DETACHED" in (await rpc("terminal/output", terminalId=second))["output"]
     assert execution.outcome.finished and execution.outcome.successful
+    assert original_custody.process.returncode == 0 and original_custody.master.closed
     assert agent.process.process is process and process.returncode is None
     assert agent.process.runner is runner and not runner.done()
     assert comms.registry.require("beta").process_identity == owner
@@ -87,16 +78,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: len(app.screen.query(TerminalTool)) == 2)
     assert agent.controller.surface.target is app.selected_session.conversation
     assert app.screen.query_one(f"#{first}", TerminalTool).state is original_state
+    assert await execution.custody() is original_custody
     await until(pilot, lambda: "CREATED_WHILE_DETACHED" in conversation_paint(app.screen))
     app.save_screenshot("terminal-reattached.svg", path=str(evidence))
     assert pty_masters() == initial_pty_masters
 
     # A cancelled wait is an observer cancellation, not a second process owner.
-    doomed = (await rpc("terminal/create", command="sh", args=[
-        "-c", "printf 'TERMINAL_CHILD_PID=%s\\n' \"$$\"; exec sleep 30"
-    ]))["terminalId"]
+    doomed = (await rpc("terminal/create", command="sleep", args=["30"]))["terminalId"]
     running = terminals.require(doomed)
-    child = await command_identity(doomed, "TERMINAL_CHILD_PID=")
+    running_custody = await running.custody()
+    child = ProcessIdentity.capture(running_custody.process.pid)
     assert child.alive() and not running.outcome.finished
     waiter = asyncio.create_task(rpc("terminal/wait_for_exit", terminalId=doomed))
     try:
@@ -106,6 +97,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         cancellation, = await asyncio.gather(waiter, return_exceptions=True)
         assert isinstance(cancellation, asyncio.CancelledError)
         assert child.alive() and not running.outcome.finished
+        assert await running.custody() is running_custody
     finally:
         if not waiter.done():
             waiter.cancel()
@@ -115,7 +107,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert killed["signal"] == signal.Signals(signal.SIGKILL).name
     assert (await rpc("terminal/output", terminalId=doomed))["exitStatus"] == killed
     assert running.outcome.finished and not running.outcome.successful
-    assert not child.alive()
+    assert not child.alive() and running_custody.master.closed
+    assert running_custody.process.returncode == -signal.SIGKILL
 
     # A byte bound may cut through a UTF-8 scalar, including its entire tail.
     bounded = (await rpc("terminal/create", command=sys.executable, args=[
@@ -144,13 +137,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert second not in terminals.executions
     assert "error" in await request("terminal/output", terminalId=second)
 
-    released = (await rpc("terminal/create", command="sh", args=[
-        "-c", "printf 'RELEASE_CHILD_PID=%s\\n' \"$$\"; exec sleep 30"
-    ]))["terminalId"]
-    released_child = await command_identity(released, "RELEASE_CHILD_PID=")
+    released = (await rpc("terminal/create", command="sleep", args=["30"]))["terminalId"]
+    released_custody = await terminals.require(released).custody()
+    released_child = ProcessIdentity.capture(released_custody.process.pid)
     assert released_child.alive()
     await rpc("terminal/release", terminalId=released)
     assert released not in terminals.executions and not released_child.alive()
+    assert released_custody.master.closed
     assert "error" in await request("terminal/output", terminalId=released)
 
     await terminals.close()
@@ -163,7 +156,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         "cancelled_wait_preserves_original_process": True,
         "bounded_utf8": bounded_output,
         "failed_startup": failure,
-        "released_child": {"pid": released_child.pid, "alive": released_child.alive()},
+        "released_child": {"pid": released_child.pid, "alive": released_child.alive(),
+                           "pty_closed": released_custody.master.closed},
         "controller_addresses_after_close": len(terminals.executions),
         "pty_masters_before": sorted(initial_pty_masters),
         "pty_masters_after": sorted(pty_masters()),
