@@ -13,6 +13,7 @@ from rich.style import Style as RichStyle
 
 from textual.content import Content
 from textual.app import ComposeResult
+from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.css.styles import RulesMap
 from textual.geometry import Offset, Size
 from textual.selection import Selection
@@ -235,6 +236,7 @@ class PreparedCodeLabel(Label):
         self._code_has_tabs = "\t" in content.plain
         self.update(content, layout=layout)
 
+    @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         if (width > 0 and self._render() is self._code_content and not self._code_has_tabs
                 and self._code_content.get_optimal_width(self.styles.get_rules(), width) <= width):

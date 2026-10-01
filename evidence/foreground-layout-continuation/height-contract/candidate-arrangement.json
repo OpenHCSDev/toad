@@ -1,0 +1,74 @@
+{
+  "dependencies": [
+    {
+      "kind": "TranscriptFragmentView",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 1,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "VerticalLayout",
+      "measurement": "BodyMeasurement(width=65, rows=15, widgets=4, nodes_revision=4)"
+    },
+    {
+      "kind": "AgentResponse",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 1,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "StreamLayout",
+      "measurement": "BodyMeasurement(width=64, rows=14, widgets=3, nodes_revision=3)"
+    },
+    {
+      "kind": "PreparedCodeFence",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 1,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "VerticalLayout",
+      "measurement": "leaf"
+    },
+    {
+      "kind": "PreparedCodeLabel",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 0,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "VerticalLayout",
+      "measurement": "leaf"
+    }
+  ],
+  "box_calls": 1,
+  "available_heights": [
+    80
+  ],
+  "elapsed_seconds": 0.00034877099096775055,
+  "all_boxes_equal": true,
+  "arrangement_calls": 1,
+  "arrangement_heights": [
+    80
+  ],
+  "all_arrangements_equal": true,
+  "label_rows": 12,
+  "actual_height": "2",
+  "body_ready": true,
+  "native_widgets": 3,
+  "agent_bound": false,
+  "provider_calls": 0,
+  "boundary": "actual Toad/Markdown/native mounted body/box resolver; source diagnostic, not physical CPU acceptance"
+}
