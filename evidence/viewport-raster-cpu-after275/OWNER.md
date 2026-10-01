@@ -1,0 +1,21 @@
+# Whole viewport paint and animation continuation
+
+Heisenberg sole284/19 integration owner. Normal main283 c4ce7df6 merged in place. Original275/277/18 source and proofs frozen. No backend lifecycle, compaction or field-codec changes; Arendt/Sch remain their owners.
+
+## Existing source ownership
+
+SidebarProjection.rows remains the complete navigation roster. Its original native attachment walk ran for every row at every spinner tick before selecting busy rows. Parent283 sampled input-idle main stacks include is_navigation_row/is_attached and animate; those Chrome transition groups do not assign a CPU fraction. Animation now selects existing native compositor.visible_widgets, filters the original CommsRow busy class, and verifies its existing row-owned sidebar/custody. CommsRow.sidebar_owner is the existing ancestor lookup exposed to that consumer; all7 member/caller names migrated, old private row helper deleted. NewSessionButton's distinct private lookup is a different owner and remains. No second busy list, timer, status, row registry or native scene.
+
+RecordAnchor._restore previously routed layout compensation through immediate scroll_to(animate=False). Native scroll_to/_scroll_to force-stop both axes, apply end values and callbacks, and reset target. release_anchor reset its destination too. TailAnchor and check_follow shared this cancellation seam. Existing WindowRestoration.geometry now projects the original running animation and native destination by the actual outer compensation once; nested transactions cannot double-project. Its local destination is the original synchronous transaction input, never stored as a competing reader authority. Existing reactive scroll_y/max_scroll_y/UpdateScroll, original directional travel and frame/readiness fences remain owners. Explicit End and ReaderPosition navigation remain deliberate native destination choices.
+
+Textual19 extends the existing Animation ABC and its only SimpleAnimation/ScalarAnimation members. The original Animator running registry projects their own interpolation operands, preserving identity/start/duration/easing/completion. Native scroll producers create running numeric animations immediately, without scheduling delay. No new animation class, flag, clock or registry. The existing diagnostic observer records native stop/projection/operand identities for final installed validation; it never replaces product methods or mirrors product authority.
+
+Single-declaration and all-caller searches: SidebarProjection, CommsRow.sidebar_owner and painted_busy_rows each have one declaration. Six inherited/member calls plus the paint consumer use sidebar_owner. Animation has one ABC, two existing source/test subclasses, and each owns transform_values; Animator has one transform_running_animation producer, consumed only by WindowRestoration and its diagnostic observer. Source search and old-consumer deletion occurred before final tests.
+
+## Evidence boundary
+
+Parent283 final10-second initial-mid idle: zero requests/admissions/extensions/scroll changes;10 sidebar publications. Post-reversal: same zero demand with2 zero translations. End-idle: same zero demand with34 zero translations. Exact trace origin/formula and raw hashes are in reader283-stationary-review.json. No restore/retire hook was recorded, so these are not those invocation counts. UI CPU87.6%up/83%down/31.2%End remains the baseline, not improvement from these new drafts.
+
+Textual19's existing native scene control passes15 comparisons and5 same-resource placement transitions withzero body layout executions. Old byte-identical Text18 baseline loses that resource on prepend. Focused native compositor batch16PASS and animation batch21PASS are sanity only. Current mainCore1f8/native53b8 +284/19 normal69 prefix and ONE actual affected input-focused warmA/B/A/held/reverse/mid-idle/End+sidebar physical/profile gate are the next readiness step. No new baseline capture or optional broad tests.
+
+Whole CPU/raster/Rendered-state/coldPR159/sidebar reader/growing-end/focus/TC1/T9 scope remains in284.277 pairing and280 measured cost contribution are superseded by accepted275/18+receiving283; preserve their branches, proofs and tooling history. Closing them does not erase pending284 requirements.

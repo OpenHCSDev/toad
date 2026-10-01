@@ -37,12 +37,19 @@ class WindowRestoration(ABC):
         """Own native reflow and its compensation as one reader restoration."""
         restoring = window._restoring
         previous = window.scroll_y
+        destination = window.scroll_target_y
         window._restoring = True
         try:
             yield
         finally:
             if not restoring:
-                window.document_viewport.lookahead.relocated(window.scroll_y - previous)
+                compensation = window.scroll_y - previous
+                if compensation:
+                    window.app.animator.transform_running_animation(
+                        window, "scroll_y", lambda value: value + compensation,
+                    )
+                    window.scroll_target_y = destination + compensation
+                window.document_viewport.lookahead.relocated(compensation)
             window._restoring = restoring
 
     @abstractmethod
@@ -211,7 +218,7 @@ class HistoryWindow(VerticalScroll):
             return False
         previous = self.scroll_y
         with WindowRestoration.geometry(self):
-            self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
+            self.scroll_y = self.max_scroll_y
         return previous != self.scroll_y
 
     def history_mutating(self) -> bool:
@@ -322,7 +329,7 @@ class TailAnchor(HistoryAnchor):
     follow_tail: ClassVar[bool] = True
 
     def _restore(self, window: HistoryWindow) -> None:
-        window.anchor()
+        window.scroll_y = window.max_scroll_y
 
 
 @dataclass(frozen=True)
@@ -334,8 +341,7 @@ class RecordAnchor(HistoryAnchor):
 
     def _restore(self, window: HistoryWindow) -> None:
         if self.widget.is_attached:
-            window.release_anchor()
-            window.scroll_to(
-                y=self.scroll_y + self._offset(self.widget, window) - self.virtual_y,
-                animate=False, immediate=True,
-            )
+            # This is document placement compensation, not a new user scroll.
+            # scroll_to finishes the current animation even when the delta is
+            # zero. The enclosing restoration translates its original curve.
+            window.scroll_y = self.scroll_y + self._offset(self.widget, window) - self.virtual_y
