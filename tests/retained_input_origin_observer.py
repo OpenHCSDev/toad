@@ -99,7 +99,8 @@ class ActualS2Ingress:
         if while_running is not None:
             await while_running(self, inputs.read().lookup(key))
         await until(self.pilot, lambda: not self.comms.registry.require(self.subject.name).executing, 30)
-        terminal = InputDispositions(inputs.path).read().lookup(key)
+        document = InputDispositions(inputs.path).read()
+        terminal = document.lookup(key)
         assert terminal.origin == origin
         assert isinstance(terminal.origin.retained_fact(terminal), HumanInputTaskFact)
         source = Path(self.comms.registry.require(self.subject.name).require_saved_session())
@@ -108,12 +109,15 @@ class ActualS2Ingress:
         user, = [entry for entry in entries if entry.input_id == terminal.native_id]
         assert user.message.user
         replies = []
+        original_turn_inputs = tuple(row for row in document.rows.values()
+            if row.has_started and row.turn_id == terminal.turn_id)
         for entry in entries[entries.index(user) + 1:]:
-            if entry.input_boundary:
+            if entry.input_boundary and not any(
+                    row.native_id == entry.input_id for row in original_turn_inputs):
                 break
             if entry.final_reply:
                 replies.append(entry)
-        assert replies, 'Original tracked native input has no successful terminal reply'
+        assert replies, 'Original native turn has no successful terminal reply'
         reply = replies[-1]
         body = reply.message.authoritative_text
         assert body, 'This controlled journey requires a nonempty original reply'
@@ -129,6 +133,7 @@ class ActualS2Ingress:
         receipt.update({
             'terminal': FieldCodec.encode(terminal), 'native_user_entry': user.id,
             'native_reply_entry': reply.id, 'native_header': FieldCodec.encode(header),
+            'original_turn_input_bindings': [FieldCodec.encode(row) for row in original_turn_inputs],
             'actual_frame_body_occurrences': visible_occurrences,
             'frame_identity_limit': 'Equal bodies are not message identity; original native IDs are recorded separately.',
             'retained_fact': FieldCodec.encode(terminal.origin.retained_fact(terminal)),
