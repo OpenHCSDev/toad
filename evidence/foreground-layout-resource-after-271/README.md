@@ -104,3 +104,25 @@ foreground gaps and resource final disposition. No provider calls are needed
 for saved-history work. Preserve original owners/journals and all uncertain
 inputs. Source tests and resource counts prepare this gate; they do not replace
 the affected installed user entrypoint or prove whole CPU/readiness.
+
+## First code-bearing continuation checkpoint
+
+[Textual draft18](https://github.com/OpenHCSDev/textual/pull/18), head
+`68d73399bc2e55dc3b434ef0f7dacbc7f45cbfa9`, changes only the original
+`Compositor.discard_widgets` production method: one broad cache-clear line
+deleted, five selective resource-eviction lines added. Existing cached roots,
+rendered maps and native/hidden membership determine retirement. Unrelated
+entries survive; all affected resources are evicted through the same owner.
+No extra cache, state store, timer or caller implementation.
+
+Original `Screen._forget_pruned_widgets` is the only retirement consumer.
+Actual native App mount/remove/reflow control is RED on installed4e9016:
+unrelated entry lost before/after reflow despite correct paint. Candidate source
+passes unchanged identity/custody/frame assertions in0.4s. The changed file and
+original function pass dispatch/arms/probes/chains ratchets. This is source
+verification, not installed Toad/CPU/firstpaint readiness; parent receiving
+S2/274/271 prefix remains frozen and excludes this new checkpoint. Physical
+acceptance follows one meaningful coherent installed package, not an old rerun.
+
+Source/proofs remain persistent at
+`/home/ts/wt/textual-native-subtree-retirement-20261001/evidence/native-subtree-retirement`.
