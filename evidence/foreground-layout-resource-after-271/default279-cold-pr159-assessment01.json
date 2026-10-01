@@ -1,0 +1,221 @@
+{
+  "scope": "Actual ordinary default279 cold PR159 history/scroll; no candidate route or pre254 speed acceptance",
+  "capture": "/home/ts/.cache/agent-scratch/perf275-default279-cold-pr159-20261001-01",
+  "visible_history_wait_ms": 30846.256935,
+  "before_first_writer": "before-state has zero loaded pages, ThreadLoading only",
+  "capture_seconds": 76.50819588900777,
+  "capture_completed": true,
+  "source_pins": {
+    "toad": "a9fc52e5f23dae4933bf7268f6cc174ac1d63b45",
+    "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+    "agent_comms": "1304d0657975020c148a83f40d3b1550d6e70355"
+  },
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-pr159-viewer-bind-owner",
+    "identity": {
+      "pid": 1983949,
+      "start_time": 35523518
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-pr159-viewer-bind-owner",
+    "identity": {
+      "pid": 1983949,
+      "start_time": 35523518
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "profile": {
+    "sample_count": 1361,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.07360597850405612
+  },
+  "kernel_cpu_phases": [
+    {
+      "label": "input-held-up",
+      "video_start_seconds": 35.805986218038015,
+      "video_end_seconds": 41.737172685039695,
+      "cpu": [
+        {
+          "pid": "2005475",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+          "cpu_seconds": 3.9400000000000013,
+          "average_cpu_percent": 66.4285303104244
+        },
+        {
+          "pid": "2006522",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork ",
+          "cpu_seconds": 0.08999999999999997,
+          "average_cpu_percent": 1.5174029766340589
+        },
+        {
+          "pid": "2006006",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork ",
+          "cpu_seconds": 0.040000000000000036,
+          "average_cpu_percent": 0.6744013229484714
+        },
+        {
+          "pid": "2005474",
+          "command": "st -e /home/ts/bin/toad-comms openhcs-pr159-viewer-bind-owner ",
+          "cpu_seconds": 0.01999999999999999,
+          "average_cpu_percent": 0.3372006614742352
+        },
+        {
+          "pid": "2005781",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.1686003307371216
+        },
+        {
+          "pid": "2005656",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.16860033073711786
+        },
+        {
+          "pid": "2005573",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.16860033073711775
+        }
+      ]
+    },
+    {
+      "label": "history-held-up",
+      "video_start_seconds": 45.95854817802319,
+      "video_end_seconds": 51.955490401014686,
+      "cpu": [
+        {
+          "pid": "2005475",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+          "cpu_seconds": 4.77,
+          "average_cpu_percent": 79.54053620380806
+        },
+        {
+          "pid": "2005474",
+          "command": "st -e /home/ts/bin/toad-comms openhcs-pr159-viewer-bind-owner ",
+          "cpu_seconds": 0.05000000000000002,
+          "average_cpu_percent": 0.8337582411300637
+        },
+        {
+          "pid": "2005656",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3335032964520257
+        },
+        {
+          "pid": "2006006",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.16675164822601285
+        },
+        {
+          "pid": "2006522",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.16675164822601285
+        },
+        {
+          "pid": "2005781",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.16675164822600913
+        },
+        {
+          "pid": "2005573",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ]
+    },
+    {
+      "label": "history-held-up-done",
+      "video_start_seconds": 51.955490401014686,
+      "video_end_seconds": 68.70807283802424,
+      "cpu": [
+        {
+          "pid": "2005475",
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+          "cpu_seconds": 10.61,
+          "average_cpu_percent": 63.333519115002524
+        },
+        {
+          "pid": "2005474",
+          "command": "st -e /home/ts/bin/toad-comms openhcs-pr159-viewer-bind-owner ",
+          "cpu_seconds": 0.04999999999999999,
+          "average_cpu_percent": 0.298461447290304
+        },
+        {
+          "pid": "2005656",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork ",
+          "cpu_seconds": 0.030000000000000027,
+          "average_cpu_percent": 0.1790768683741826
+        },
+        {
+          "pid": "2005781",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.11938457891612175
+        },
+        {
+          "pid": "2006006",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.11938457891612175
+        },
+        {
+          "pid": "2006522",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.059692289458060876
+        },
+        {
+          "pid": "2005573",
+          "command": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.059692289458060835
+        }
+      ]
+    }
+  ],
+  "findings": [
+    "Cold visible-history acknowledgement took30.846s after the wait began, not model response latency.",
+    "Input82 editor PageUp actions/no Window actions or chat movement. Route888d absent from currentdefault.",
+    "Chat92 Window PageUp actions/396 rows observed/396 nonrestoring scroll rows; #254 near-zero discriminator NOTconfirmed.",
+    "Startup changed-stack groups include repeated read_thread_presentation/history_views/FieldCodec/registry locking across seven UI worker threads, plus native package validation in actualACP. These are not sample/CPU duration weights or a complete causal split."
+  ],
+  "next": "Classify source-ready versus first-body frame from original source/preparation/publication owners. Coordinate source reads with Sch/Arendt; Einstein cost and Kepler admission grants remain disjoint. No speculative geometry edit.",
+  "raw": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default279-cold-pr159-20261001-01/receipt.json",
+      "sha256": "c322853468349704412860ff1dbe976e710192b782ee75cf311e13ba4cb91737"
+    },
+    "profile-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default279-cold-pr159-20261001-01/profile-review.json",
+      "sha256": "ae4f1229e77fb458d2ab765b1e23f104446144cf4aa06efdd7ca6d195279dfd7"
+    },
+    "scroll-travel.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default279-cold-pr159-20261001-01/scroll-travel.jsonl",
+      "sha256": "9ea74947191d2d10a780b21b3cd59602c91e74c8b9a715c75f1a207cedb2b4ad"
+    },
+    "startup-owner-stacks.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default279-cold-pr159-20261001-01/startup-owner-stacks.json",
+      "sha256": "7147be2ef4517056709c6eb095c94e5b90cab17d8f6997d8ca26880b753e23fd"
+    },
+    "phase-travel-start-state-wait.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default279-cold-pr159-20261001-01/phase-travel-start-state-wait.json",
+      "sha256": "1092113c35fc74b43224102c4d35179aee93ae1cfe44e56c81e71f174290c775"
+    }
+  }
+}
