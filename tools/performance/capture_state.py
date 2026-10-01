@@ -323,6 +323,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                 "runway": {
                                     "requested_rows": manager.lookahead.ahead_rows(node.size.height),
                                     "baseline_rows": manager.budget.runway_rows(node.size.height),
+                                    "measured_body_rows": manager.visible_body_rows,
+                                    "admitted_items": manager.lookahead.admission(manager.budget, node.size.height),
                                     "ready_rows": ready_runway,
                                     "demand": type(manager.lookahead.demand).__name__,
                                     "travel_rows": manager.lookahead.travel_rows,
