@@ -1,0 +1,51 @@
+{
+  "owner": "Kepler readonly existing recorder/child contract review",
+  "ffmpeg_version": "n9.0.2",
+  "stop_source": "tests/tools/record_installed_tui.py:1067 capture.stop(signal.SIGINT); OwnedProcess.stop verifies process identities",
+  "upstream_source": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/n9.0.2/fftools/ffmpeg.c",
+  "upstream_contract": "Lines855\u2013859 stop scheduler and write trailer; line967 returns255 when received_nb_signals is nonzero. SIGINT registered at222. INFO exit reporting is below recorder warning-only level.",
+  "diagnosis_strength": "Code-based inference consistent with intentional SIGINT and exact255 status; warning log does not independently record the received signal. Encoder status alone is not proof of video damage.",
+  "decode_boundary": "ffprobe metadata from original recorder receipts; parent owns separate full-file decode. This contribution does not claim or repeat that decode.",
+  "videos": [
+    {
+      "raw_directory": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-installed01",
+      "completed": true,
+      "capture_completed": true,
+      "encoder_returncode": 255,
+      "metadata": {
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 900,
+        "pix_fmt": "yuv420p",
+        "avg_frame_rate": "60/1",
+        "nb_frames": "5463"
+      },
+      "duration_seconds": "91.050000",
+      "bytes": "8242553",
+      "video_sha256": "36d8ad8d0f086dd2071e68e2bce546b1f8fd0315e06651285e2166cffefdbf0c",
+      "encoder_log": "[in#0/x11grab @ 0x55604cc87040] Stream #0: not enough frames to estimate rate; consider increasing probesize\n",
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "raw_directory": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-default01",
+      "completed": true,
+      "capture_completed": true,
+      "encoder_returncode": 255,
+      "metadata": {
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 900,
+        "pix_fmt": "yuv420p",
+        "avg_frame_rate": "60/1",
+        "nb_frames": "1320"
+      },
+      "duration_seconds": "22.000000",
+      "bytes": "837374",
+      "video_sha256": "eda45442b5453cd8c82e6ab08eaaeb537b6c19277a60e9d96509bf32d7305aa8",
+      "encoder_log": "[in#0/x11grab @ 0x55ca171dd040] Stream #0: not enough frames to estimate rate; consider increasing probesize\n",
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    }
+  ]
+}
