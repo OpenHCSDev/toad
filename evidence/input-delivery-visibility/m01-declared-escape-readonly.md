@@ -42,3 +42,29 @@ Heisenberg owns the product modal/focus diagnosis and any proved correction;
 Kepler owns this readonly original-artifact trace. The negative stays tracked
 separately from the queue/fork-submit journey. Original teardown also failed
 waiting for its worker; Einstein preserves that separate failure and cleanup.
+
+## Related original modal failure: g458h/u01
+
+The next original capture is preserved at `/home/ts/wt/g458h/u01/proof`.
+Its pre-teardown JSON records current ContextMenu, no child DOM, no focused
+widget and zero provider requests after the original 20-second item wait.
+The receipt identifies Core970, Toad85d45b51, Text6b and driver214aaacb;
+this is a different product candidate from m01, not an unchanged reproduction.
+
+The native route registers the screen and starts its message pump before
+publishing it on the screen stack. MessagePump._pre_process dispatches Compose
+then Mount before processing keys. App._check_bindings uses the original
+Screen._modal_binding_chain; even with no focused widget this includes the
+modal itself. Input.check_consume_key only consumes printable characters.
+Thus lack of focus alone does not explain Escape ignoring the declared cancel
+binding. The retained evidence has no modal message-pump stack or key dispatch
+record, so it cannot identify the stalled native lifecycle operation.
+
+There is also a definite independent harness defect: wrapper.log lines 295–331
+and 712–748 show multiprocessing.spawn importing the original preflight script
+as __mp_main__, executing its unguarded asyncio.run(main(...)) at line 56 and
+failing to recreate the existing fixture directory. Einstein owns correction of
+his original entrypoint main guard. That failure is proved; its causal relation
+to the empty modal is not. Heisenberg owns the concrete modal lifecycle trace.
+No production bindings, focus state, timeout, oracle or installed source were
+changed for this review. The original Escape failure remains open separately.

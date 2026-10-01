@@ -1,5 +1,5 @@
 {
-  "source_parent": "8a2ac3deeff438f6e6d1b338b466102fb31f1c07",
+  "source_parent": "9b9479dda662dda35082b546e55228d2a577b1dc",
   "core": "970bc527f4ddd9b3bde5522dc671aea11fd27ece",
   "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
   "sdk": "0.12.1",
@@ -9,10 +9,14 @@
     "pyproject.toml": "523880cec4faac2d03cac31e461c1b3cc8c709ce5407c69e9fa063674f6b5725",
     "uv.lock": "0359ad530930134b918ff4b6d60c0bfebf9931f24d73a3998c5b39b9fca57b07"
   },
-  "next_prefix": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930",
-  "source_union": "253/main +251214 input/mounted modal control +2526d58 source pivot and shared member custody +25562d6 joined fixture cleanup",
-  "previous_rejected_prefix": "/home/ts/.local/share/agent-comms/runtime-native-source-queue-cohort-20260930",
+  "next_prefix": "/home/ts/.local/share/agent-comms/runtime-atomic-page-handoff-20261001",
+  "source_union": "253/main +251214 input/mounted modal control +2529b9479 joined original page/live custody and source frame proof +25562d6 joined fixture cleanup",
+  "previous_rejected_prefix": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930",
   "public_install_unchanged": true,
   "state": "SOURCE-FROZEN-AWAITING-NORMAL-INSTALL-AND-SAME-COHORT-ACTUAL-GATES",
-  "scope": "Critical source corrections only; original254 full performance remains separate. Package count must be read after normal install. No overrides, prefix mutation or readiness from source controls."
+  "scope": "Critical source corrections only; original254 full performance remains separate. Package count must be read after normal install. No overrides, prefix mutation or readiness from source controls.",
+  "backend_merged_main": "9370a6010c80fba75feaad9e2076f1844d2b44ea",
+  "backend_source_equal_to_frozen_core": true,
+  "source_parent_review": "Parent reviewed all changed publication/page/claim/coverage consumers; remaining queued restoration/invalidation producers retain their distinct original role, no speculative resume conversion. 45 deleted/58 added production lines in four files.",
+  "source_counter": "Same Core970/Textual6b actual source app:19 admitted frames,0duplicates; original held wire/native, first-file pivot and joined cancellation controls retained. Not installed readiness."
 }
