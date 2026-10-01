@@ -1,0 +1,86 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2f3181994c54ad8afc02600b6bf9bf3909630ef0",
+        "requested_revision": "2f3181994c54ad8afc02600b6bf9bf3909630ef0"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "ba93838e88200de9f3e200a1fcd97b71e9e93a45",
+        "requested_revision": "ba93838e88200de9f3e200a1fcd97b71e9e93a45"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+        "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      }
+    }
+  },
+  "limit": "Source/resource custody; no ACP, provider, original root or physical capture.",
+  "phases": {
+    "kind": "checkpoint",
+    "retirement_candidate_ids": [
+      140024672983376,
+      140024694989968
+    ],
+    "old_native_history_covered": false,
+    "actual_stream_block_covered": true,
+    "accepted_before_cancel": [
+      {
+        "identity": 140024672983056,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/atomic-retirement-covered/snapshot-custody-_9xiw2th/replacement.jsonl"
+      },
+      {
+        "identity": 140024672983376,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/atomic-retirement-covered/snapshot-custody-_9xiw2th/replacement.jsonl"
+      }
+    ],
+    "cancelled_while_output_lock_held": [
+      {
+        "identity": 140024672983056,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/atomic-retirement-covered/snapshot-custody-_9xiw2th/replacement.jsonl"
+      },
+      {
+        "identity": 140024672983376,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/atomic-retirement-covered/snapshot-custody-_9xiw2th/replacement.jsonl"
+      }
+    ],
+    "publishing_waiter_done_while_locked": false,
+    "result": "CancelledError",
+    "after_output_lock_release": [
+      {
+        "identity": 140024672983056,
+        "attached": true,
+        "state": "LiveTranscript",
+        "coverage": true,
+        "source": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/atomic-retirement-covered/snapshot-custody-_9xiw2th/replacement.jsonl"
+      }
+    ],
+    "old_still_attached": false,
+    "old_still_registered": false,
+    "stream_block_still_attached": false,
+    "stream_association_remaining": false
+  },
+  "application_exit": "normal"
+}

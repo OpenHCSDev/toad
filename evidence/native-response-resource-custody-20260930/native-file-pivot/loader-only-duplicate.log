@@ -1,0 +1,18 @@
+{"old_native_file": "", "new_native_file": "/home/ts/wt/toad-native-response-resource-custody-20260930/.artifacts/checkpoint-pivot-candidate/tmpkk8sa6te/first-native.jsonl", "registered_histories": 2, "direct_histories": 2, "old_attached": false, "live_attached": false, "response_resources": 2, "frontier_matches": true, "loader_captured_agent": true, "wire_notice_covered": true, "native_input_ids": [], "response_painted": true, "native_process_started": false, "native_runner_started": false}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/checkpoint_source_pivot_pilot.py", line 122, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/checkpoint_source_pivot_pilot.py", line 112, in main
+    assert receipt["registered_histories"] == receipt["direct_histories"] == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

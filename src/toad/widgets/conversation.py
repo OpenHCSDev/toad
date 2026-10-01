@@ -1462,6 +1462,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         await self.output.settle()
+        self.transcript.retry()
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
         if (
@@ -1521,10 +1522,14 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     async def on_transcript_coverage(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
-        observed = self.query_one_optional(ObservedThreadActivity)
-        if observed is not None and observed.presentation is not None:
-            from toad.transcript_publication import HandlingPublication
-            await self.transcript.publish(HandlingPublication)
+
+    def on_transcript_source_work_finished(self, message) -> None:
+        message.stop()
+        self.transcript.source_work_finished(message.history)
+
+    def on_worker_state_changed(self, message) -> None:
+        if message.worker is self.transcript.worker and message.worker.is_finished:
+            self.transcript.retry()
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):

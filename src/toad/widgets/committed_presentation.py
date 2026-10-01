@@ -48,6 +48,12 @@ class TranscriptCoverage(Message):
 
 
 class CommitClaim(ABC):
+    def capture(self, settled: bool) -> bool:
+        return True
+
+    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+        return True
+
     @property
     def required_sequences(self) -> frozenset[int]:
         return frozenset()
@@ -63,8 +69,24 @@ class CommitClaim(ABC):
 class CapturedClaim(CommitClaim):
     """A settled source-owned block captured before the snapshot read."""
 
+    def capture(self, settled: bool) -> bool:
+        return settled
+
+    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+        return widget in captured
+
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return widget in evidence.captured and widget is not evidence.retained_history
+
+
+class RetainedSourceClaim(CapturedClaim):
+    """An original saved source is transferable independently of live output."""
+
+    def capture(self, settled: bool) -> bool:
+        return True
+
+    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+        return True
 
 
 @dataclass(frozen=True)
@@ -134,10 +156,15 @@ class CheckpointBarrier:
 
 
 CAPTURED_CLAIM = CapturedClaim()
+RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
 
 class CommittedHistory(SnapshotPresentation):
     """A presentation that retains access to an authoritative source frontier."""
+
+    @property
+    def commit_claim(self) -> CommitClaim:
+        return RETAINED_SOURCE_CLAIM
 
     @property
     def committed_cursor(self) -> TranscriptCursor:
@@ -209,7 +236,7 @@ class CheckpointPlan(ABC):
 
     @abstractmethod
     async def prepare(self, view: Conversation, history: CommittedHistory | None,
-                      page: TranscriptPage, captured: tuple[Widget, ...],
+                      page: TranscriptPage, captured: frozenset[Widget],
                       is_current: Callable[[], bool]) -> PreparedCommit | None:
         pass
 
@@ -237,7 +264,13 @@ class FollowTailCheckpoint(CheckpointPlan):
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
 
-        if history is not None and history.accepts_commit(page.after):
+        # An in-place advance admits bounded pages before its final paint.
+        # Anonymous captured output needs the complete source transaction,
+        # not an eager mount followed by retirement after that paint.
+        transfers = retirement_candidates(
+            captured, CommitEvidence(frozenset(captured), retained_history=history),
+        )
+        if history is not None and history.accepts_commit(page.after) and not transfers:
             if not await history.advance_committed(page.after, is_current):
                 return None
             return PreparedCommit(history, None, incoming_sequences(page.events)
