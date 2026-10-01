@@ -26,6 +26,8 @@ class ScrollTravelObservation:
             HistoryWindow.watch_scroll_y.__code__: self.scroll,
             TextArea.action_cursor_page_up.__code__: self.editor_page_up,
             HistoryWindow.action_page_up.__code__: self.history_page_up,
+            TextArea.action_cursor_page_down.__code__: self.editor_page_down,
+            HistoryWindow.action_page_down.__code__: self.history_page_down,
             DirectionalPreparation.relocated.__code__: self.relocating,
         }
         self.returns = {
@@ -56,6 +58,12 @@ class ScrollTravelObservation:
 
     def history_page_up(self, native):
         self.emit("history_page_up", window=id(native["self"]))
+
+    def editor_page_down(self, native):
+        self.emit("editor_page_down", editor=id(native["self"]))
+
+    def history_page_down(self, native):
+        self.emit("history_page_down", window=id(native["self"]))
 
     def observed(self, native):
         lookahead = native["self"]

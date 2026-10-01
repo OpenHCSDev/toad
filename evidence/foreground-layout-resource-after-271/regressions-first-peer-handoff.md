@@ -54,3 +54,32 @@ this session, so this published handoff requires parent relay to the two
 existing contexts. Do not delay urgent parent485/487/488/278 paired release279
 for this performance control or route validation. The normal immutable
 builder remains Mendel; no duplicate builder or capture is launched here.
+
+## Fresh route/control boundary and one next installed gate
+
+Re-reading the raw capture02 clock interval confirms 91 editor PageUp actions
+and **zero original Window PageUp actions**, not merely zero resulting travel.
+Chat-focused interval has 92 original Window PageUp actions and478 observed
+rows. This distinguishes absent focus routing from compensation.
+
+The existing recorder now declares `input_paging_acceptance`: held input-focused
+PageUp **and PageDown**, original editor/caret/draft/window retention, continued
+history-focused held scroll, mid-history15s idle and separateEnd. Its checks
+require both original Window action delivery during each focused input interval
+and native reader/source movement. Background source progress alone cannot
+satisfy the gate. Video/profile review remains required; native assertions
+never supply smooth-scroll/zero-frozen-frame acceptance.
+
+Builder dependency: the current immutable277 prefix iscf7 and lacks888d's
+canonical route. Mendel needs ONE normal immutable restage of current275 head,
+paired with the declared current receiving Core/Text/native cohort after279;
+no guessing old public source decoders. Include production route888d and the
+latest recorder/monitor; invoke existing_thread / input_paging_acceptance with
+--capture-state --scroll-travel --profile on a busy original approved source,
+isolatedst/Xvfb. Busy-channel entry/coverage must be included through the real
+channel-bar owner before claiming channel acceptance; no quiet/provider-only
+replacement. Do not change/freeze/retest urgent279 on this dependency.
+
+Einstein regression2 and Kepler regression3 retain the disjoint grants above.
+#254 production geometry remains unchanged pending the compatible8ea96a37
+installed control. No speculative geometry edit or second builder/capture.

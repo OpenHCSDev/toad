@@ -518,6 +518,13 @@ class ScrollTravelRegressionJourney(ScrollJourney):
     """Discriminate focused key delivery and native travel on one saved source."""
 
     @classmethod
+    def input_commands(cls, args):
+        marker = marker_command()
+        return [marker + "input-held-up", "keydown Prior",
+                f"sleep {args.scroll_hold_seconds:g}", "keyup Prior",
+                marker + "input-held-up-done"]
+
+    @classmethod
     def script(cls, args):
         if not args.capture_state or not args.scroll_travel:
             raise ValueError("Travel regression requires native state and travel observation")
@@ -529,13 +536,64 @@ class ScrollTravelRegressionJourney(ScrollJourney):
         idle = f"sleep {args.scroll_idle_seconds:g}"
         return "\n".join([
             ready + " --require-editor-focus",
-            marker + "input-held-up", "keydown Prior", hold, "keyup Prior",
-            marker + "input-held-up-done",
-            native_click_command("phase-input-held-up-done-state.pickle"),
+            *cls.input_commands(args), marker + "before-history-focus",
+            native_click_command("phase-before-history-focus-state.pickle"),
             marker + "history-held-up", "keydown Prior", hold, "keyup Prior",
             marker + "history-held-up-done", idle, marker + "mid-history-idle-done",
             "key End", "sleep 2", marker + "end-done", "",
         ])
+
+
+class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
+    """Reject absent canonical routing while observing the actual busy source."""
+
+    review_artifacts = ("input-paging-review.json",)
+
+    @classmethod
+    def input_commands(cls, args):
+        marker = marker_command()
+        return [*super().input_commands(args), marker + "input-held-down",
+                "keydown Next", f"sleep {args.scroll_hold_seconds:g}", "keyup Next",
+                marker + "input-held-down-done"]
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import NativePhase
+        initial, up, down = (NativePhase.read(output, name) for name in
+                            ("travel-start", "input-held-up-done", "input-held-down-done"))
+        phases = {event["label"]: event["seconds_since_capture_launch"] for event in receipt["events"]}
+        trace = [json.loads(line) for line in (output / "scroll-travel.jsonl").read_text().splitlines()]
+
+        def routed(action, begin, end):
+            start = receipt["capture_launch_monotonic"]
+            return any(event["event"] == action and event["window"] == initial.window
+                       and start + phases[begin] <= event["monotonic_ns"] / 1e9 < start + phases[end]
+                       for event in trace)
+
+        checks = {
+            "input_remains_focused": all(phase.focused_widget == phase.editor
+                                         for phase in (initial, up, down)),
+            "original_editor_window_and_mode": all(
+                (phase.editor, phase.window, phase.mode) == (initial.editor, initial.window, initial.mode)
+                for phase in (up, down)),
+            "draft_and_caret_preserved": all((phase.text, phase.selection) == (initial.text, initial.selection)
+                                            for phase in (up, down)),
+            "input_pageup_moves_history": up.scroll_y < initial.scroll_y or up.admits_before(initial),
+            "input_pagedown_moves_history": down.scroll_y > up.scroll_y or up.admits_before(down),
+            "input_pageup_reaches_original_window": routed("history_page_up", "input-held-up", "input-held-up-done"),
+            "input_pagedown_reaches_original_window": routed("history_page_down", "input-held-down", "input-held-down-done"),
+        }
+        result = {"checks": checks, "native_checks_passed": all(checks.values()),
+                  "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+                  "physical_assessment": "unreviewed; inspect the busy video and correlated profile"}
+        (output / "input-paging-review.json").write_text(json.dumps(result, indent=2) + "\n")
+        return result
+
+    @classmethod
+    def validate_review(cls, review):
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Installed input-focused history paging failed: " + ", ".join(failed))
 
 
 class StationaryInputScrollJourney(ScrollJourney):
