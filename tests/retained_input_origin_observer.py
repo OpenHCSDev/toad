@@ -129,7 +129,6 @@ class ActualS2Ingress:
 
         await until(self.pilot, lambda: body in frame())
         visible_occurrences = frame().count(body)
-        self.app.export_screenshot(filename=str(self.output / f'original-reply-{len(self.receipts)}.svg'))
         receipt.update({
             'terminal': FieldCodec.encode(terminal), 'native_user_entry': user.id,
             'native_reply_entry': reply.id, 'native_header': FieldCodec.encode(header),
@@ -139,6 +138,8 @@ class ActualS2Ingress:
             'retained_fact': FieldCodec.encode(terminal.origin.retained_fact(terminal)),
         })
         self.persist('original_native_ids_terminal_reply_and_actual_frame')
+        screenshot = self.output / f'original-reply-{len(self.receipts)}.svg'
+        screenshot.write_text(self.app.export_screenshot())
         return terminal
 
 
