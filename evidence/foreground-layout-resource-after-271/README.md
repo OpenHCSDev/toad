@@ -303,3 +303,19 @@ the physical two-second cold blank. Einstein owns queue-label classification.
 Cold first paint, original A/B/A, held/reverse/End/idle and honest same-run CPU
 remain in the sole installed gate. No heavy build/capture was started while
 Mendel reclaims disk; the new source counters completed in bounded private roots.
+
+## Receiving physical gate preparation
+
+Mendel is now assigned the sole cf7/Text18efe immutable pair; 484 activation is
+not a prerequisite. [The exact capture recipe](perf275-cf7-capture-recipe.md)
+uses the committed recorder and both actual original histories. The factory's
+new `--peer-source openhcs-pr159-viewer-bind-owner` selects PR159 for the private
+cold B fork instead of duplicating A. Original CurrentTypedCapture owns both
+source/process witnesses, and both journals receive before/after fingerprints.
+The physical journey/profile and predicates are unchanged. Production `src/`
+is byte-identical to cf7; the installed builder pin remains cf7.
+
+No capture has started before the exact normal prefix/stage-proof handoff.
+Native peer controls remain absent here; direct Mendel DM cannot be sent through
+this recovered session. The recipe and command are available to the builder
+through this existing worktree without another framework or build lane.
