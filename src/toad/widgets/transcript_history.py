@@ -174,8 +174,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     # retained bodies still own the same native scene. Textual bounds and
     # invalidates this geometry on content/style/size/pruning changes.
     CACHE_SUBTREE_GEOMETRY = True
-    CACHE_HEIGHT_INDEPENDENT_BOX = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()

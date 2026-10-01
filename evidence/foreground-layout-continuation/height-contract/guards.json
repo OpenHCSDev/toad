@@ -1,0 +1,15 @@
+{
+  "suite": "tests/guards/test_t4.py",
+  "passed": [
+    "test_deleted_cursor_family_has_no_callers",
+    "test_t4_ownership_and_deletion",
+    "test_nominal_block_interaction_caller_closure",
+    "test_markdown_tokens_use_native_rule_registry",
+    "test_acp_process_retirement_single_owner",
+    "test_startup_failure_declaration_caller_closure",
+    "test_channel_history_has_one_publication_owner",
+    "test_serialized_history_tree_mutations_use_native_publication",
+    "test_widget_action_availability_has_no_case_catalog"
+  ],
+  "boundary": "source caller closure, not physical acceptance"
+}

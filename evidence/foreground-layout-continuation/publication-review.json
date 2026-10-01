@@ -1,0 +1,52 @@
+{
+  "state": "REVIEW-PREPARED-NOT-PUBLISHED",
+  "candidate_prefix": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001",
+  "candidate_manifest": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/activation.json",
+  "candidate_manifest_sha256": "60958f5eb895486560d0b2cc41bbd8d4b12f95f9024e699af35a088272b96d16",
+  "tested_toad": "187f380ee1fa6358f16020ace38fa42e11f01670",
+  "reviewed_head": "91a4a71e3fb5354b9ad3e4008b4a8cfbfc4c342a",
+  "merged_main": "a5f372edc782ece8f8446ba21346525162142cbf",
+  "product_bytes_equal": true,
+  "pins": {
+    "agent-comms": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+    "batrachian-toad": "187f380ee1fa6358f16020ace38fa42e11f01670",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+  },
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "default_links": [
+    {
+      "path": "/home/ts/.local/bin/agent-comms",
+      "observed_target": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/agent-comms",
+      "candidate_target": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/agent-comms",
+      "candidate_sha256": "cac8ba8e8129e7a4bd1f2698e341220849683a570a75dc531bcfba02d352c4b1"
+    },
+    {
+      "path": "/home/ts/.local/bin/agent-comms-acp",
+      "observed_target": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/agent-comms-acp",
+      "candidate_target": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/agent-comms-acp",
+      "candidate_sha256": "c5a3588096556da680d9112091f09cf47fc3b844a4e4c7668778e67fce2ffef2"
+    },
+    {
+      "path": "/home/ts/.local/bin/agent-comms-agent",
+      "observed_target": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/agent-comms-agent",
+      "candidate_target": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/agent-comms-agent",
+      "candidate_sha256": "c850c3f26106aff444147be83189335ce11a2d67ddfca0e15b62694ee2911869"
+    },
+    {
+      "path": "/home/ts/.local/bin/agent-comms-nk-foreground",
+      "observed_target": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/agent-comms-nk-foreground",
+      "candidate_target": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/agent-comms-nk-foreground",
+      "candidate_sha256": "db728e9ac545f3c4b4e1112fb6aab01b99f525d7d37d8ec64f89c773ee4f64fb"
+    },
+    {
+      "path": "/home/ts/.local/bin/toad",
+      "observed_target": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/toad",
+      "candidate_target": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/toad",
+      "candidate_sha256": "a24e67d8679aaf27a50417533ce9e169385bbd7e920dc614bb8d6e0768c6d5cf"
+    }
+  ],
+  "wrapper": "/home/ts/bin/toad-comms derives runtime from selected ACP launcher, clears source/root overrides",
+  "publication_owner": "parent; no link/runtime/root/owner changes made by this preparation",
+  "protected_runtime_dependency": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001",
+  "installed_proof": "evidence/retained-history-buffer/installed-warm-receipt.json"
+}

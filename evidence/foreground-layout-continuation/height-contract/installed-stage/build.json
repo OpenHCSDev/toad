@@ -1,0 +1,24 @@
+{
+  "source": "b524171ec004d0d05aa6dada247141a04af20865",
+  "stage": "/home/ts/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001",
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--python",
+      "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/python",
+      "/home/ts/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001/bin/python",
+      "--requirement",
+      "/home/ts/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/staging-height-contract-264-20261001/requirements.txt"
+    ]
+  ],
+  "donor": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001",
+  "public_effects": 0
+}

@@ -1,0 +1,179 @@
+{
+  "scope": "ordinary default saved-history startup; observe only; not a repeated warm-scroll suite",
+  "owner": "Kepler contribution to Heisenberg PR264",
+  "started_utc": "2026-10-01T04:55:07.052895+00:00",
+  "duration_seconds": 21.711523608013522,
+  "command": [
+    "$HOME/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "runtime_overrides_removed": [
+    "AGENT_COMMS_RUNTIME_ROOT",
+    "AGENT_COMMS_ACP_LAUNCHER"
+  ],
+  "capture_target": "existing_thread",
+  "physical_journey": "observe",
+  "runtime_selection": "PATH agent-comms-acp",
+  "runtime_bin": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin",
+  "launcher_links": {
+    "command": {
+      "selected_path": "$HOME/bin/toad-comms",
+      "resolved_path": "$HOME/.agent-comms/stack/bin/toad-comms",
+      "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+    },
+    "acp": {
+      "selected_path": "$HOME/.local/bin/agent-comms-acp",
+      "resolved_path": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/agent-comms-acp",
+      "sha256": "c5a3588096556da680d9112091f09cf47fc3b844a4e4c7668778e67fce2ffef2"
+    }
+  },
+  "activation_sha256": "60958f5eb895486560d0b2cc41bbd8d4b12f95f9024e699af35a088272b96d16",
+  "pins": {
+    "agent-comms": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+    "batrachian-toad": "187f380ee1fa6358f16020ace38fa42e11f01670",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+  },
+  "sdk": "0.12.1",
+  "native_package": "$HOME/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "package_origins": {
+    "toad": {
+      "origin": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/toad/__init__.py",
+      "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+      "source_tree_sha256": "2c8e7d8c76ac0ea99e0c745ab3080255525f25a6bc2fdb0aaa9d2ab820873a9d",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "187f380ee1fa6358f16020ace38fa42e11f01670",
+          "requested_revision": "187f380ee1fa6358f16020ace38fa42e11f01670"
+        }
+      }
+    },
+    "textual": {
+      "origin": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/__init__.py",
+      "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+      "source_tree_sha256": "74d7ca0a6760e18c8de6733f6264af85ece6c496680bd6fffe51d3da4ce65dd8",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+          "requested_revision": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+        }
+      }
+    },
+    "agent_comms": {
+      "origin": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+      "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+      "source_tree_sha256": "f0fb2f3cafc9512094d1076eb058b32c4e88831428bbfafe10511d0ef2a5f79b",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+          "requested_revision": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b"
+        }
+      }
+    }
+  },
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "encoder_returncode": 255,
+  "acp_startup_replies": [
+    {
+      "id": 1,
+      "has_result": true,
+      "has_error": false
+    },
+    {
+      "id": 2,
+      "has_result": true,
+      "has_error": false
+    }
+  ],
+  "original_preservation": {
+    "same_threads": true,
+    "same_inputs": true,
+    "same_wire_metadata": true,
+    "original": {
+      "root": "${PUBLIC_ROOT}",
+      "threads": {
+        "nra-architecture": {
+          "identity": {
+            "pid": 465576,
+            "start_time": 30187842
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+            "bytes": 41270257,
+            "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl.input-proof",
+            "bytes": 7024640,
+            "sha256": "ddd0cb7073678e4814e13d36311e1e2e4c76d5485c3a9dad893afaf0e2d3e59f"
+          }
+        },
+        "openhcs-architecture-memory": {
+          "identity": {
+            "pid": 465783,
+            "start_time": 30188696
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl",
+            "bytes": 41424974,
+            "sha256": "8f7f425b747f1cdf17091d9b3b69745c80131ba206ed77a7ea54e35bcc3a8ee1"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl.input-proof",
+            "bytes": 180224,
+            "sha256": "194f0d2e923f9323e37159b4d9bf627d051c0ccf950f07f726e6a5e9826258d2"
+          }
+        }
+      },
+      "wire_metadata": {
+        "path": "${PUBLIC_ROOT}/bus_meta.json",
+        "bytes": 828,
+        "sha256": "31095d68a8e2c92c417c419bc3678108c59b965b098d0007b32580ccd1a80211"
+      },
+      "inputs": {
+        "path": "${PUBLIC_ROOT}/input_dispositions.json",
+        "bytes": 1152447,
+        "sha256": "7c6fd248957ec02848fa5b5170e81d4695dcbef371f0d8de207a37fdc6a2b128"
+      }
+    }
+  },
+  "recorder_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "caller_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 602580,
+        "start_ticks": 30614574,
+        "returncode": 0
+      }
+    ]
+  },
+  "raw_directory": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-default01",
+  "raw_hashes": {
+    "capture/receipt.json": "afdf1040bc7597f1b9d9212012c72b79520b08fbb9ae22c817f9b5f2b1b96e91",
+    "capture/after.png": "4538649f765bbcffad973d79dbbd7384a1bed513da3fc35c33b611beb56022ca",
+    "capture/terminal.mp4": "eda45442b5453cd8c82e6ab08eaaeb537b6c19277a60e9d96509bf32d7305aa8",
+    "public-original-preservation.json": "e3cad604d63f19c34c9431118e218b345f9f8a3284f848912bdfa081b531faaa",
+    "state/toad/logs/Agent_Comms_2026-10-01T00_55_10_479719.txt": "defeecc7fcaf85c77da5aaf8487417cef4ca48c221d57cc020cb0547096bbf61"
+  },
+  "physical_review": "after.png personally reviewed: original saved-history text, roster, tab, prompt and Ready readable",
+  "remaining_limits": [
+    "No prompt/provider call/input replay/owner restart during gate.",
+    "No new A/B/A or full scrolling/focus claims from this observe-only run.",
+    "Original NativePiUnavailable/PromptSendUnknown diagnostics remain visible; backend health not established.",
+    "No moving-frame smoothness or final latency claim."
+  ]
+}
