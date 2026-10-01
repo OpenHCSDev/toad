@@ -1,0 +1,517 @@
+{
+  "source_head": "e3609a303e0a991c372982e4d7e51c614c09c615",
+  "source_sha256": {
+    "src/toad/widgets/viewport_body.py": "f81cddf2e8f0a999570b2122c1f507421bb62e7b0c44b1aefa9b0fd443dd6d39",
+    "src/toad/widgets/history_anchor.py": "4341d45e97db4399b426d44662d210eed0d1ada9395167ee9f91d2c7ea2a17e1",
+    "src/toad/screens/session_view.py": "4fd37b3e45211b6b169396b5e991e1ab8fc82deb3fa0f216f27bdb8976884db7",
+    "src/toad/widgets/conversation.py": "dca88c0e392980182b3baf3ed5f4ec6d656247f5dcda3bb541bc20ec20938ab8",
+    "src/toad/session_presentation.py": "a757416383171a229b2db9802b09d7f887a7fb5ad1b6defc3ac875d9db954a0b",
+    "tests/history_frame_publication_pilot.py": "2249c95fe90a4a1830288f61107e8fde364bc6eae66365c3d36ac40ba53ae262",
+    "tests/tools/record_installed_tui.py": "90761c8dab57d1b802b03ca069e228357854a0719341a12a526b6c9dc0b94242",
+    "tools/performance/capture_state.py": "10e113185d0f502d0f7ef19159c3e71ceeb1c242969db71ad96fea7918e985c3"
+  },
+  "boundary": "Physical Source Toad/native journal/private-root journey; no ACP actor or provider inputs, not installed product acceptance",
+  "raw": "/home/ts/.cache/agent-scratch/viewport-preparation-263-20261001-warm01",
+  "duration_seconds": 87.82586172298761,
+  "completed": true,
+  "capture_completed": true,
+  "encoder_returncode": 255,
+  "runtime_unchanged": true,
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin",
+    "launcher": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+    "launcher_sha256": "99f55c5b2b4dc4879ce8109aa2c9c1749e4f99c4f191792ca6ffd13ef12627b7",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python",
+        "resolved_path": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "sha256": "99f55c5b2b4dc4879ce8109aa2c9c1749e4f99c4f191792ca6ffd13ef12627b7"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/agent-comms-acp",
+        "sha256": "5a280bfe933e4d8aecc9c345f85e2f31cb20897410528799d12fc6945b0fe1c7"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/toad",
+        "sha256": "9368cb27c0f530c9dda1b0a35f6a4cdd229a3d8768e008ab735b04c14344a46d"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/agent-comms-acp",
+        "sha256": "5a280bfe933e4d8aecc9c345f85e2f31cb20897410528799d12fc6945b0fe1c7"
+      }
+    },
+    "activation_path": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/activation.json",
+    "activation_sha256": "f03e2370464094408d2a8cd3eb90966d55f8dcb6c75829e90cd86ab34ecfb043",
+    "activation": {
+      "stage": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001",
+      "pins": {
+        "agent-comms": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+        "batrachian-toad": "1edd96c0cfa011a69782cdeb67138ceea98e227b",
+        "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "5a6a82b04d68ab1436a323eb7678c010d28925b22433a63402bff70330d94b82"
+    },
+    "observed": {
+      "python": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python",
+      "prefix": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "ce3c6185fbc4431b8d553c87ef584c64fed88232548ec589d513e658f4af3dc3",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "1edd96c0cfa011a69782cdeb67138ceea98e227b",
+              "requested_revision": "1edd96c0cfa011a69782cdeb67138ceea98e227b"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "74d7ca0a6760e18c8de6733f6264af85ece6c496680bd6fffe51d3da4ce65dd8",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+              "requested_revision": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "f0fb2f3cafc9512094d1076eb058b32c4e88831428bbfafe10511d0ef2a5f79b",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+              "requested_revision": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/.cache/agent-scratch/viewport-preparation-263-20261001-warm01/application/wire",
+        "wire_root_id": "e4f8b561026a4dd7bd9e7bcfdd2cb1a7",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "native_checks_passed": true,
+  "protected_source": {
+    "before": {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+      "bytes": 41270331,
+      "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+    },
+    "after": {
+      "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+      "bytes": 41270331,
+      "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+    },
+    "unchanged": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "profiler": {
+    "samples": 744,
+    "reported_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.06898176049347968,
+    "trace": "cpu-profile.json",
+    "boundary": "Kernel counters are CPU authority; compressed GIL transitions are not sample weights or CPU spans"
+  },
+  "resources": {
+    "focused": {
+      "mode": "session-1",
+      "editor": 140534927983952,
+      "window": 140534929618128,
+      "scroll_y": 107,
+      "max_scroll_y": 107,
+      "follows_tail": true,
+      "source_states": [
+        "LiveTranscript"
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "runway": {
+          "requested_rows": 96,
+          "baseline_rows": 96,
+          "measured_body_rows": 6.5,
+          "admitted_items": 15,
+          "ready_rows": {
+            "before": 99,
+            "after": 0
+          },
+          "demand": "StationaryPreparation",
+          "travel_rows": 0,
+          "foreground_delivery_seconds": 0.0
+        },
+        "widget_limit": 320,
+        "source_byte_limit": 67108864,
+        "body_evictions": 0,
+        "pending": false,
+        "outer_owner_count": 28,
+        "outer_materialized_widgets": 145,
+        "outer_materialized_source_bytes": 111466,
+        "registered": 28,
+        "dormant": 0,
+        "visible": 6,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    },
+    "up-done": {
+      "mode": "session-1",
+      "editor": 140534927983952,
+      "window": 140534929618128,
+      "scroll_y": 160,
+      "max_scroll_y": 400,
+      "follows_tail": false,
+      "source_states": [
+        "LiveTranscript"
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "runway": {
+          "requested_rows": 96,
+          "baseline_rows": 96,
+          "measured_body_rows": 31.6,
+          "admitted_items": 4,
+          "ready_rows": {
+            "before": 93,
+            "after": 179
+          },
+          "demand": "StationaryPreparation",
+          "travel_rows": 0,
+          "foreground_delivery_seconds": 0.07115076301852241
+        },
+        "widget_limit": 320,
+        "source_byte_limit": 67108864,
+        "body_evictions": 10,
+        "pending": false,
+        "outer_owner_count": 25,
+        "outer_materialized_widgets": 230,
+        "outer_materialized_source_bytes": 90375,
+        "registered": 25,
+        "dormant": 0,
+        "visible": 5,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    },
+    "down-done": {
+      "mode": "session-1",
+      "editor": 140534927983952,
+      "window": 140534929618128,
+      "scroll_y": 306,
+      "max_scroll_y": 476,
+      "follows_tail": false,
+      "source_states": [
+        "LiveTranscript"
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "runway": {
+          "requested_rows": 96,
+          "baseline_rows": 96,
+          "measured_body_rows": 79.0,
+          "admitted_items": 4,
+          "ready_rows": {
+            "before": 268,
+            "after": 159
+          },
+          "demand": "StationaryPreparation",
+          "travel_rows": 0,
+          "foreground_delivery_seconds": 0.07115076301852241
+        },
+        "widget_limit": 320,
+        "source_byte_limit": 67108864,
+        "body_evictions": 10,
+        "pending": false,
+        "outer_owner_count": 28,
+        "outer_materialized_widgets": 311,
+        "outer_materialized_source_bytes": 130251,
+        "registered": 28,
+        "dormant": 0,
+        "visible": 1,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    },
+    "reverse-done": {
+      "mode": "session-1",
+      "editor": 140534927983952,
+      "window": 140534929618128,
+      "scroll_y": 130.22125637339616,
+      "max_scroll_y": 238,
+      "follows_tail": false,
+      "source_states": [
+        "LiveTranscript"
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "runway": {
+          "requested_rows": 96,
+          "baseline_rows": 96,
+          "measured_body_rows": 5.333333333333333,
+          "admitted_items": 18,
+          "ready_rows": {
+            "before": 129,
+            "after": 107
+          },
+          "demand": "StationaryPreparation",
+          "travel_rows": 0,
+          "foreground_delivery_seconds": 0.07115076301852241
+        },
+        "widget_limit": 320,
+        "source_byte_limit": 67108864,
+        "body_evictions": 17,
+        "pending": false,
+        "outer_owner_count": 38,
+        "outer_materialized_widgets": 292,
+        "outer_materialized_source_bytes": 58077,
+        "registered": 38,
+        "dormant": 0,
+        "visible": 6,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    },
+    "idle-done": {
+      "mode": "session-1",
+      "editor": 140534927983952,
+      "window": 140534929618128,
+      "scroll_y": 107,
+      "max_scroll_y": 107,
+      "follows_tail": true,
+      "source_states": [
+        "LiveTranscript"
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "runway": {
+          "requested_rows": 96,
+          "baseline_rows": 96,
+          "measured_body_rows": 6.5,
+          "admitted_items": 15,
+          "ready_rows": {
+            "before": 99,
+            "after": 0
+          },
+          "demand": "StationaryPreparation",
+          "travel_rows": 0,
+          "foreground_delivery_seconds": 0.07115076301852241
+        },
+        "widget_limit": 320,
+        "source_byte_limit": 67108864,
+        "body_evictions": 17,
+        "pending": false,
+        "outer_owner_count": 28,
+        "outer_materialized_widgets": 145,
+        "outer_materialized_source_bytes": 111165,
+        "registered": 28,
+        "dormant": 0,
+        "visible": 6,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    },
+    "a-return": {
+      "mode": "session-1",
+      "editor": 140534927983952,
+      "window": 140534929618128,
+      "scroll_y": 107,
+      "max_scroll_y": 107,
+      "follows_tail": true,
+      "source_states": [
+        "LiveTranscript"
+      ],
+      "body_resources": {
+        "budget": {
+          "max_items": 24,
+          "admission_items": 4,
+          "reserve_batches": 4,
+          "minimum_widgets": 300,
+          "widgets_per_row": 10,
+          "buffer_viewports": 3,
+          "lookahead_seconds": 0.3,
+          "scroll_idle_seconds": 0.2
+        },
+        "runway": {
+          "requested_rows": 96,
+          "baseline_rows": 96,
+          "measured_body_rows": 6.5,
+          "admitted_items": 15,
+          "ready_rows": {
+            "before": 99,
+            "after": 0
+          },
+          "demand": "StationaryPreparation",
+          "travel_rows": 0,
+          "foreground_delivery_seconds": 0.07115076301852241
+        },
+        "widget_limit": 320,
+        "source_byte_limit": 67108864,
+        "body_evictions": 17,
+        "pending": false,
+        "outer_owner_count": 28,
+        "outer_materialized_widgets": 145,
+        "outer_materialized_source_bytes": 111165,
+        "registered": 28,
+        "dormant": 0,
+        "visible": 6,
+        "visible_dormant": 0,
+        "reconciling": false,
+        "suspended": false
+      }
+    }
+  },
+  "ui_cpu_phases": [
+    {
+      "phase": "up",
+      "video_start_seconds": 29.460822369961534,
+      "video_end_seconds": 35.22615511895856,
+      "cpu_seconds": 4.48,
+      "elapsed_seconds": 5.765332748997025,
+      "average_cpu_percent": 77.70583581284828
+    },
+    {
+      "phase": "down",
+      "video_start_seconds": 36.513149390986655,
+      "video_end_seconds": 42.34298338199733,
+      "cpu_seconds": 4.42,
+      "elapsed_seconds": 5.829833991010673,
+      "average_cpu_percent": 75.81691016957652
+    },
+    {
+      "phase": "reverse",
+      "video_start_seconds": 43.69366866996279,
+      "video_end_seconds": 49.4683461249806,
+      "cpu_seconds": 4.440000000000001,
+      "elapsed_seconds": 5.774677455017809,
+      "average_cpu_percent": 76.88741119457569
+    },
+    {
+      "phase": "end",
+      "video_start_seconds": 50.94866664498113,
+      "video_end_seconds": 53.61826337495586,
+      "cpu_seconds": 1.0199999999999996,
+      "elapsed_seconds": 2.669596729974728,
+      "average_cpu_percent": 38.20801803310778
+    },
+    {
+      "phase": "idle",
+      "video_start_seconds": 53.61826337495586,
+      "video_end_seconds": 70.16758581495378,
+      "cpu_seconds": 1.0399999999999991,
+      "elapsed_seconds": 16.549322439997923,
+      "average_cpu_percent": 6.284245193546001
+    }
+  ],
+  "visual_review": {
+    "reviewed": [
+      "phase-focused.png",
+      "phase-down-done.png",
+      "phase-reverse-done.png",
+      "phase-idle-done.png",
+      "phase-a-return.png",
+      "review-down-frames.png",
+      "review-return-a-frames.png"
+    ],
+    "observation": "Chat and chrome readable at reviewed phases; original draft present on A return; 3fps montage preserves coarse moving snapshots and does not certify every 60fps frame or smoothness"
+  },
+  "open": [
+    "Native/ACP installed acceptance remains integration-owned",
+    "No sub-50ms or continuous smoothness claim",
+    "Layout/render CPU during scrolling remains substantial",
+    "Coarse reviewed frames cannot exclude 33ms blanks"
+  ]
+}
