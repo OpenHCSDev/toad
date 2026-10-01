@@ -204,7 +204,14 @@ class IsolatedS2Ingress:
     loop: object
 
     async def run(self, operation):
-        return await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(operation, self.loop))
+        async def invoke():
+            # Thread-safe scheduling inherits the caller's Context, not the
+            # actual application's. Use Textual's existing context owner for
+            # every UI operation; never recreate its ContextVar state here.
+            with self.observer.app._context():
+                return await operation
+
+        return await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(invoke(), self.loop))
 
     async def queue_followup(self, text):
         return await self.run(self.observer.queue_followup(text))
