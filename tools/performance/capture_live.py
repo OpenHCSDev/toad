@@ -26,9 +26,7 @@ def main():
                         help="Before state export, await selected visible saved history and native writer receipt")
     parser.add_argument("--wait-history-interval", type=float, default=.1,
                         help="Bounded native diagnostic observation interval; no repeated attach/export")
-    identity = parser.add_mutually_exclusive_group()
-    identity.add_argument("--wait-history-thread", help="Intended selected thread for visible history observation")
-    identity.add_argument("--wait-history-mode", help="Original native workspace mode for source history observation")
+    parser.add_argument("--wait-history-thread", help="Intended selected thread for visible history observation")
     parser.add_argument("--screen", action="store_true", help="Export through Textual's screenshot API")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
@@ -39,8 +37,8 @@ def main():
         parser.error("History wait budget must be nonnegative and observation interval positive")
     if args.wait_history_seconds and not args.state:
         parser.error("Visible history waiting requires --state")
-    if args.wait_history_seconds and not (args.wait_history_thread or args.wait_history_mode):
-        parser.error("Visible history waiting requires an original thread or native workspace mode")
+    if args.wait_history_seconds and not args.wait_history_thread:
+        parser.error("Visible history waiting requires --wait-history-thread")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
     args.output_dir = args.output_dir.expanduser().resolve()
@@ -73,7 +71,7 @@ def main():
             for enabled, module, suffix, options in (
                 (args.state, "capture_state", "state",
                  f", wait_history_seconds={args.wait_history_seconds!r}, wait_interval={args.wait_history_interval!r}"
-                 f", wait_history_thread={args.wait_history_thread!r}, wait_history_mode={args.wait_history_mode!r}"),
+                 f", wait_history_thread={args.wait_history_thread!r}"),
                 (args.screen, "capture_screen", "screen", ""),
             ):
                 if not enabled:

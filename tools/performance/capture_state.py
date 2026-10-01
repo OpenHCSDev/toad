@@ -1,7 +1,7 @@
 """Read-only DTO capture of an authorized live Toad; no owner RPCs or UI input."""
 
 def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1,
-            wait_history_thread=None, wait_history_mode=None):
+            wait_history_thread=None):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -43,16 +43,12 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
         if wait_history_seconds:
             from toad.frame_presentation import FrameFlush
 
-            if bool(wait_history_thread) + bool(wait_history_mode) != 1:
-                raise ValueError("Visible-history waiting requires one native source identity")
+            if not wait_history_thread:
+                raise ValueError("Visible-history waiting requires the intended thread")
 
             def visible_history_ready():
                 view = app.selected_session
-                if view is None:
-                    return False
-                if wait_history_mode is not None and app.selected_mode != wait_history_mode:
-                    return False
-                if wait_history_thread is not None and view.channels_context()[0] != wait_history_thread:
+                if view is None or view.channels_context()[0] != wait_history_thread:
                     return False
                 if not app.workspace_sessions.source.shown(view):
                     return False
