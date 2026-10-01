@@ -123,3 +123,38 @@ StreamingChildStdio(limit=10MiB) passed through original route/maintenance custo
 The installed receiving journey still must launch ACP through this same seam;
 no installed or live claim is inferred from the source control. Current original
 session controls also pass4/4 in0.76s after the AttachedChild migration.
+
+## Ready: one actual installed receiving journey
+
+Source freeze4552528d/Coref8ae4f52 is unchanged after the staged receiving run.
+Mendel's69-package source/assets/direct_url/native-full-trust proof is committed
+at `evidence/terminal-custody-480-274-stage-20261001/source-proof.json`, SHA
+`fbff9d82bbc0283f0cead0b8c5a27d4db12caf6505bfbc5032fd0206366776b6`.
+No source overlay, dependency bypass or native build;4163old-prefix files unchanged.
+
+Kepler's ONE actual installed LinuxDriver/App/normalACP/native593/realPTY journey
+passed in22.609s. Canonical sanitized receipt:
+`evidence/terminal-execution/installed-custody-20261001.json`, SHA
+`a326895c340773086de905a33d093ee5396ca234d7e972357213d5f5b71cae21`.
+Raw proof remains under
+`/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01`;
+private native journals/proofs remain `/home/ts/wt/ac480-terminal-installed01`.
+
+Normal exit, SIGKILL wire, cancelled wait, release with TWO delivered caller
+cancellations, startup pre-acquisition refusal, missing cwd, bounded UTF8 and
+exited leader with a living descendant all passed. Original child/master/address
+custody joined; finalPTY masters[]→[]/addresses0. Real tab-click return restored
+the SAME ANSI/custody resource. Offline replay recorded234original terminal frames
+with both distinct output BODY rows, not command titles. Arendt personally viewed
+the original compositor frame with both outputs, betaReady and saved history.
+Both private native owners were confirmed dead with original groups empty after
+EXIT0. Zero provider POST/paid/public/default changes or input replay.
+
+Exact limit: startup cancellation exercised PRE-acquisition refusal; this run
+does not claim acquired-startup cancellation. Physical proof is original emitted
+ANSI plus compositor SVG, not X11 video or CPU performance. This checkpoint is
+not public/default activation or global comms readiness. Parent owns installation;
+frozen479 remains separate. Ready at the above actual installed strength; no
+additional trial/build is requested. Source265deleted463added; fixture19deleted/
+203added. Subsequent commits are receipts/documentation only, with zero source/pin
+delta versus the tested freeze.
