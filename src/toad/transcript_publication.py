@@ -98,6 +98,16 @@ class TranscriptPublication(ABC):
             # messages whose resource custody the source needs to capture.
             self.owner.source_requests.submit(self)
             return
+        if await self.application_current():
+            self.captured = view.turns.owner.captured_snapshot(tuple(self.contents.children))
+            await self.publish_applied()
+
+    async def application_current(self) -> bool:
+        """The original native pump attests applied effects at this source cut."""
+        if not self.current():
+            return False
+        view = self.owner.view
+        pump = view.task
         applied = asyncio.get_running_loop().create_future()
 
         def complete() -> None:
@@ -105,13 +115,10 @@ class TranscriptPublication(ABC):
                 applied.set_result(None)
 
         if not view.call_later(complete):
-            return
+            return False
         try:
             await asyncio.wait((applied, pump), return_when=asyncio.FIRST_COMPLETED)
-            if not applied.done() or not self.current():
-                return
-            self.captured = view.turns.owner.captured_snapshot(tuple(self.contents.children))
-            await self.publish_applied()
+            return applied.done() and self.current()
         finally:
             applied.cancel()
 
@@ -362,6 +369,13 @@ class CheckpointPublication(TranscriptPublication):
         )
         try:
             page = await self.read_source_page()
+            # Reading can yield to later original notifications. Their UI
+            # effects must apply before this page's native-claim admission,
+            # including plans that admit pages during preparation. Keep the
+            # original captured cohort: late anonymous output cannot be
+            # transferred by an earlier operation's source evidence.
+            if not await self.application_current():
+                return
             is_current = partial(self.source_current, page.after)
             if not page.events or not is_current():
                 return
