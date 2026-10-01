@@ -45,8 +45,7 @@ async def exercise(app, pilot, count, *, matches=True):
     history = TranscriptHistory(canonical, load, budget=budget)
     seen, returned = set(), set()
     peak_fragments = peak_pages = peak_widgets = 0
-    with (patch.object(TranscriptHistory, "_check_edges"),
-          patch.object(TranscriptHistory, "_warm_pages")):
+    with patch.object(TranscriptHistory, "_check_edges"):
         await view.contents.mount(history)
         await pilot.pause()
         start = history.pages[0].start

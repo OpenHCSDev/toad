@@ -1,0 +1,8 @@
+{
+  "peak_widgets": 289,
+  "original_widget_bound": 300,
+  "all_recorded_states_within_bound": true,
+  "native_body_evictions": 18,
+  "exception": "None",
+  "fragment_index_limit": "Equality-based index collapses equal list fragments across distinct source records. Do not use rich per-source uniqueness/reconstruction counters from this receipt. Native widget costs remain independently measured. Original80-paragraph baseline/candidate texts are unique."
+}

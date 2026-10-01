@@ -56,7 +56,7 @@ from toad.widgets.transcript_fragments import (
 )
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Window
+    from toad.widgets.history_anchor import HistoryWindow
 
 
 
@@ -406,7 +406,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._saturated_widget_limit = 0
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
-        self.window: Window
+        self.window: HistoryWindow
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
@@ -521,8 +521,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         yield self.newer
 
     async def on_mount(self) -> None:
-        from toad.widgets.conversation import Window
-        self.window = self.query_ancestor(Window)
+        from toad.widgets.history_anchor import HistoryWindow
+        self.window = self.query_ancestor(HistoryWindow)
         await self._finish_mount()
 
     async def _finish_mount(self) -> None:
@@ -866,6 +866,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(set(self.fragment_views) & protected)),
                 self._visible_fragment_budget(),
+                self._resource_fragment_budget(protected),
             )
             excess = self.fragment_count - limit
             trim_older = self._follow_source_tail or not older
@@ -918,6 +919,16 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     excess -= remove_count
             await self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
+
+    def _resource_fragment_budget(self, protected: set[Widget]) -> int:
+        """Native fragments retain the same window-wide working-set lease."""
+        viewport = self.window.document_viewport
+        visible = self.screen._compositor.visible_widgets
+        endpoints = viewport.protected()
+        required = tuple(owner for owner in viewport.body_roots()
+                         if owner in visible or owner in protected or owner in endpoints)
+        admitted = viewport.admission(required=required)
+        return len(set(self.fragment_views) & admitted)
 
 
 class ProjectedTranscriptHistory(TranscriptHistory):

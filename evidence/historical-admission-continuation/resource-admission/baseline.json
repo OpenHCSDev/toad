@@ -1,0 +1,977 @@
+{
+  "boundary": "actual native Toad/Pilot source-admission diagnostic; no Agent/provider or public root; not saved41MB physical acceptance",
+  "agent_bound": false,
+  "constructor_calls": 275,
+  "distinct_source_fragments": 80,
+  "reconstructed_source_fragments": {
+    "76": 6,
+    "77": 7,
+    "78": 6,
+    "79": 7,
+    "72": 4,
+    "73": 5,
+    "74": 6,
+    "75": 5,
+    "68": 4,
+    "69": 4,
+    "70": 3,
+    "71": 3,
+    "64": 5,
+    "65": 4,
+    "66": 4,
+    "67": 4,
+    "60": 5,
+    "61": 6,
+    "62": 7,
+    "63": 5,
+    "56": 5,
+    "57": 3,
+    "58": 3,
+    "59": 5,
+    "52": 4,
+    "53": 5,
+    "54": 5,
+    "55": 6,
+    "48": 2,
+    "49": 3,
+    "50": 3,
+    "51": 3,
+    "44": 2,
+    "45": 2,
+    "46": 2,
+    "47": 2,
+    "40": 2,
+    "41": 2,
+    "42": 2,
+    "43": 2,
+    "36": 2,
+    "37": 2,
+    "38": 2,
+    "39": 2,
+    "30": 4,
+    "27": 5,
+    "28": 4,
+    "29": 3,
+    "23": 4,
+    "24": 5,
+    "25": 4,
+    "26": 3,
+    "21": 2,
+    "22": 3,
+    "17": 3,
+    "18": 2,
+    "19": 2,
+    "20": 2,
+    "13": 5,
+    "14": 3,
+    "15": 3,
+    "16": 2,
+    "10": 5,
+    "11": 4,
+    "12": 4,
+    "7": 3,
+    "8": 2,
+    "9": 2,
+    "3": 3,
+    "4": 4,
+    "5": 4,
+    "6": 3,
+    "0": 2,
+    "1": 2,
+    "2": 2
+  },
+  "native_body_evictions": 0,
+  "source_fragments": 80,
+  "states": [
+    {
+      "phase": "up",
+      "step": 0,
+      "range": [
+        [
+          48,
+          80
+        ]
+      ],
+      "fragment_count": 32,
+      "widgets": 131,
+      "widget_bound": 300,
+      "y": 81.66194795785538,
+      "maximum": 102,
+      "native_body_evictions": 0,
+      "constructs": 32
+    },
+    {
+      "phase": "up",
+      "step": 1,
+      "range": [
+        [
+          44,
+          80
+        ]
+      ],
+      "fragment_count": 36,
+      "widgets": 147,
+      "widget_bound": 300,
+      "y": 88.63391290980573,
+      "maximum": 118,
+      "native_body_evictions": 0,
+      "constructs": 36
+    },
+    {
+      "phase": "up",
+      "step": 2,
+      "range": [
+        [
+          40,
+          80
+        ]
+      ],
+      "fragment_count": 40,
+      "widgets": 163,
+      "widget_bound": 300,
+      "y": 92.22743050919377,
+      "maximum": 134,
+      "native_body_evictions": 0,
+      "constructs": 40
+    },
+    {
+      "phase": "up",
+      "step": 3,
+      "range": [
+        [
+          38,
+          80
+        ]
+      ],
+      "fragment_count": 42,
+      "widgets": 171,
+      "widget_bound": 300,
+      "y": 85.45749791627577,
+      "maximum": 142,
+      "native_body_evictions": 0,
+      "constructs": 47
+    },
+    {
+      "phase": "up",
+      "step": 4,
+      "range": [
+        [
+          34,
+          80
+        ]
+      ],
+      "fragment_count": 46,
+      "widgets": 187,
+      "widget_bound": 300,
+      "y": 91.65142047871291,
+      "maximum": 158,
+      "native_body_evictions": 0,
+      "constructs": 51
+    },
+    {
+      "phase": "up",
+      "step": 5,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 87.15746760639419,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 58
+    },
+    {
+      "phase": "up",
+      "step": 6,
+      "range": [
+        [
+          27,
+          79
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 92.14143435453198,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 62
+    },
+    {
+      "phase": "up",
+      "step": 7,
+      "range": [
+        [
+          25,
+          76
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 84.58116244010353,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 70
+    },
+    {
+      "phase": "up",
+      "step": 8,
+      "range": [
+        [
+          21,
+          73
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 88.04093745568656,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 74
+    },
+    {
+      "phase": "up",
+      "step": 9,
+      "range": [
+        [
+          17,
+          69
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 92.6185288223084,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 78
+    },
+    {
+      "phase": "up",
+      "step": 10,
+      "range": [
+        [
+          14,
+          66
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 88.24403446759621,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 86
+    },
+    {
+      "phase": "up",
+      "step": 11,
+      "range": [
+        [
+          11,
+          63
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.36554699787177,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 94
+    },
+    {
+      "phase": "up",
+      "step": 12,
+      "range": [
+        [
+          7,
+          59
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 88.65348841756412,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 98
+    },
+    {
+      "phase": "up",
+      "step": 13,
+      "range": [
+        [
+          4,
+          56
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.21032841754888,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 106
+    },
+    {
+      "phase": "up",
+      "step": 14,
+      "range": [
+        [
+          1,
+          53
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.46752678253227,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 114
+    },
+    {
+      "phase": "down",
+      "step": 0,
+      "range": [
+        [
+          4,
+          55
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 93.34455220117945,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 122
+    },
+    {
+      "phase": "down",
+      "step": 1,
+      "range": [
+        [
+          7,
+          59
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.30115806109393,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 126
+    },
+    {
+      "phase": "down",
+      "step": 2,
+      "range": [
+        [
+          10,
+          61
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 93.80258480621006,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 134
+    },
+    {
+      "phase": "down",
+      "step": 3,
+      "range": [
+        [
+          12,
+          63
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 94.08797028161399,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 142
+    },
+    {
+      "phase": "down",
+      "step": 4,
+      "range": [
+        [
+          15,
+          67
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.03059203537495,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 146
+    },
+    {
+      "phase": "down",
+      "step": 5,
+      "range": [
+        [
+          19,
+          71
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 90.5062899382358,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 150
+    },
+    {
+      "phase": "down",
+      "step": 6,
+      "range": [
+        [
+          22,
+          74
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 94.57783524614666,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 158
+    },
+    {
+      "phase": "down",
+      "step": 7,
+      "range": [
+        [
+          25,
+          76
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 94.08529181720749,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 166
+    },
+    {
+      "phase": "down",
+      "step": 8,
+      "range": [
+        [
+          27,
+          79
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 95.9639688848493,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 174
+    },
+    {
+      "phase": "down",
+      "step": 9,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 89.64023411033162,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "down",
+      "step": 10,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 117,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "down",
+      "step": 11,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 144,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "down",
+      "step": 12,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "down",
+      "step": 13,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "down",
+      "step": 14,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "reverse",
+      "step": 0,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 143,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "reverse",
+      "step": 1,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 116,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "reverse",
+      "step": 2,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 89,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 175
+    },
+    {
+      "phase": "reverse",
+      "step": 3,
+      "range": [
+        [
+          28,
+          80
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.232098641564,
+      "maximum": 182,
+      "native_body_evictions": 0,
+      "constructs": 183
+    },
+    {
+      "phase": "reverse",
+      "step": 4,
+      "range": [
+        [
+          25,
+          77
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.17819004446096,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 191
+    },
+    {
+      "phase": "reverse",
+      "step": 5,
+      "range": [
+        [
+          21,
+          73
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 92.38608514723086,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 195
+    },
+    {
+      "phase": "reverse",
+      "step": 6,
+      "range": [
+        [
+          18,
+          70
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.48985698659106,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 203
+    },
+    {
+      "phase": "reverse",
+      "step": 7,
+      "range": [
+        [
+          14,
+          66
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 89.07942000666756,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 207
+    },
+    {
+      "phase": "reverse",
+      "step": 8,
+      "range": [
+        [
+          12,
+          63
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 85.60388775721256,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 215
+    },
+    {
+      "phase": "reverse",
+      "step": 9,
+      "range": [
+        [
+          8,
+          60
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.63225994267907,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 219
+    },
+    {
+      "phase": "reverse",
+      "step": 10,
+      "range": [
+        [
+          6,
+          57
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 85.87354058844448,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 227
+    },
+    {
+      "phase": "reverse",
+      "step": 11,
+      "range": [
+        [
+          2,
+          54
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.59444273463899,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 231
+    },
+    {
+      "phase": "reverse",
+      "step": 12,
+      "range": [
+        [
+          0,
+          49
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 86.2680431594776,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 233
+    },
+    {
+      "phase": "reverse",
+      "step": 13,
+      "range": [
+        [
+          0,
+          49
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 59,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 233
+    },
+    {
+      "phase": "reverse",
+      "step": 14,
+      "range": [
+        [
+          0,
+          49
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 32,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 233
+    },
+    {
+      "phase": "end",
+      "step": 0,
+      "range": [
+        [
+          38,
+          80
+        ]
+      ],
+      "fragment_count": 42,
+      "widgets": 171,
+      "widget_bound": 300,
+      "y": 142,
+      "maximum": 142,
+      "native_body_evictions": 0,
+      "constructs": 275
+    }
+  ],
+  "end_before": {
+    "constructs": 233,
+    "pages": [
+      140095127383696
+    ],
+    "bodies": [
+      140095123926992,
+      140094991536592,
+      140094989459024,
+      140095002180688,
+      140095126779088,
+      140094449422800,
+      140094993150864,
+      140094993138704,
+      140094989457424,
+      140094991533392,
+      140094993147664,
+      140094449423120,
+      140095123576528,
+      140094449427600,
+      140095127378896,
+      140094450657680,
+      140094450649040,
+      140094449433360,
+      140095123927312,
+      140095152758032,
+      140094449430480,
+      140094449430160,
+      140094990439504,
+      140095123585168,
+      140094449677840,
+      140094450662160,
+      140094450654480,
+      140094450650640,
+      140094450661840,
+      140094450650320,
+      140094450652880,
+      140095127383056,
+      140095002643664,
+      140095123578448,
+      140095123921232,
+      140094990446544,
+      140095123577488,
+      140095123572048,
+      140094990434384,
+      140094990934224,
+      140094990445904,
+      140094990439824,
+      140094990448784,
+      140094990931344,
+      140094990436944,
+      140094990442064,
+      140094990443664,
+      140094990446224,
+      140095123578768
+    ]
+  },
+  "end_after": {
+    "constructs": 275,
+    "pages": [
+      140095127383696
+    ],
+    "bodies": [
+      140094449677840,
+      140094990931344,
+      140094990934224,
+      140094990446224,
+      140094450654480,
+      140095127383056,
+      140095126779088,
+      140095123921232,
+      140094449427600,
+      140094991933648,
+      140094448849360,
+      140094448852240,
+      140094448853520,
+      140095002641424,
+      140095002646544,
+      140094993153744,
+      140094450969616,
+      140094447600976,
+      140094447603856,
+      140094447606736,
+      140094448855760,
+      140094448612240,
+      140094448609360,
+      140094448603600,
+      140095123920272,
+      140095002176848,
+      140095002177808,
+      140094449673360,
+      140094449679440,
+      140094449674960,
+      140094989451344,
+      140094989454224,
+      140094990941904,
+      140094990929744,
+      140094990936144,
+      140094990925904,
+      140095127381776,
+      140095155735120,
+      140094990448144,
+      140094990450064,
+      140094990450384,
+      140094990449744
+    ]
+  },
+  "exception": "None"
+}

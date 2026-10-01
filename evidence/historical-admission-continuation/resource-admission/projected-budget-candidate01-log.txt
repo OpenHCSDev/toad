@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=9, pipe_handle=15)
+                                                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                                  run_name="__mp_main__")
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 254, in _get_code_from_file
+FileNotFoundError: [Errno 2] No such file or directory: '/home/ts/wt/toad-historical-admission-resource-followup-20261001/<stdin>'
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "<stdin>", line 14, in main
+  File "/home/ts/wt/toad-historical-admission-resource-followup-20261001/tests/projected_history_budget_pilot.py", line 49, in exercise
+    patch.object(TranscriptHistory, "_warm_pages")):
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/mock.py", line 1503, in __enter__
+    original, local = self.get_original()
+                      ~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/mock.py", line 1473, in get_original
+    raise AttributeError(
+        "%s does not have the attribute %r" % (target, name)
+    )
+AttributeError: <class 'toad.widgets.transcript_history.TranscriptHistory'> does not have the attribute '_warm_pages'

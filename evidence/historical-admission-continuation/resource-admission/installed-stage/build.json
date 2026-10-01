@@ -1,0 +1,35 @@
+{
+  "source": "f39a38b4d71caa8e97d022e2ebb71378627fb92e",
+  "stage": "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001",
+  "donor": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001",
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--python",
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/bin/python",
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/bin/python",
+      "--requirement",
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/staging-resource-admission-269-20261001/requirements.txt"
+    ],
+    [
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/bin/python",
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/staging-resource-admission-269-20261001/verify.py"
+    ],
+    [
+      "uv",
+      "pip",
+      "check",
+      "--python",
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/bin/python"
+    ]
+  ],
+  "public_effects": 0
+}

@@ -19,3 +19,20 @@ acceptance remain unfinished. This branch is not a public activation claim.
 The urgent channel and archive releases remain independently scoped. Integrate
 their accepted main normally before this pair is published; keep the declared
 S5 reverse-merge ancestry closure when Core477 lands.
+
+## Receiving original-input-origin cohort
+
+Normal merge of Toad272 `7f32d8ec6802051d09d375dad7e3c563924affd5`
+keeps its production source identical to reviewed `6f84eecd`. Core is pinned
+to `3f0af4940bfd9f3ade523f230e4240e3acd8ab2a`, including the shared
+S2/S5 native assembly. Its reviewed native manifest is
+`f1178500e5154c38152aeb5d1133ab9fbd84774e2a8bc6b6233ba9b490b4eb4c`
+and full-tree commitment is
+`53c34d888755517eceb50bb46a667b48add88e916c802dc0ea096bd390c58bd4`.
+
+The new prefix is `.artifacts/runtime-s2-s5-origin-context-20261001`.
+The earlier 270/451 prefix stays immutable. Mendel owns only this receiving
+metadata and normal 69-package stage; Schrodinger and Einstein own the
+continuous Core nested-tool/native/context/Toad journey. Installed-source and
+full-trust checks prepare that journey and do not establish its acceptance.
+No public route, root, native package, default link or owner is changed.

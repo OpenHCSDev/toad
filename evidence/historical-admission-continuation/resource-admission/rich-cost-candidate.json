@@ -1,0 +1,233 @@
+{
+  "boundary": "actual native Toad/Pilot source-admission diagnostic; no Agent/provider or public root; not saved41MB physical acceptance",
+  "agent_bound": false,
+  "constructor_calls": 18,
+  "distinct_source_fragments": 9,
+  "reconstructed_source_fragments": {
+    "1": 9,
+    "58": 2
+  },
+  "native_body_evictions": 18,
+  "source_fragments": 60,
+  "states": [
+    {
+      "phase": "up",
+      "step": 0,
+      "range": [
+        [
+          48,
+          60
+        ]
+      ],
+      "fragment_count": 12,
+      "widgets": 279,
+      "widget_bound": 300,
+      "y": 97,
+      "maximum": 124,
+      "native_body_evictions": 4,
+      "constructs": 12
+    },
+    {
+      "phase": "up",
+      "step": 1,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 121.28801803895067,
+      "maximum": 174,
+      "native_body_evictions": 8,
+      "constructs": 18
+    },
+    {
+      "phase": "up",
+      "step": 2,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 94,
+      "maximum": 174,
+      "native_body_evictions": 9,
+      "constructs": 18
+    },
+    {
+      "phase": "down",
+      "step": 0,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 121,
+      "maximum": 174,
+      "native_body_evictions": 11,
+      "constructs": 18
+    },
+    {
+      "phase": "down",
+      "step": 1,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 148,
+      "maximum": 174,
+      "native_body_evictions": 12,
+      "constructs": 18
+    },
+    {
+      "phase": "down",
+      "step": 2,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 174,
+      "maximum": 174,
+      "native_body_evictions": 12,
+      "constructs": 18
+    },
+    {
+      "phase": "reverse",
+      "step": 0,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 147,
+      "maximum": 174,
+      "native_body_evictions": 13,
+      "constructs": 18
+    },
+    {
+      "phase": "reverse",
+      "step": 1,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 120,
+      "maximum": 174,
+      "native_body_evictions": 14,
+      "constructs": 18
+    },
+    {
+      "phase": "reverse",
+      "step": 2,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 93,
+      "maximum": 174,
+      "native_body_evictions": 15,
+      "constructs": 18
+    },
+    {
+      "phase": "end",
+      "step": 0,
+      "range": [
+        [
+          44,
+          60
+        ]
+      ],
+      "fragment_count": 16,
+      "widgets": 289,
+      "widget_bound": 300,
+      "y": 174,
+      "maximum": 174,
+      "native_body_evictions": 18,
+      "constructs": 18
+    }
+  ],
+  "end_before": {
+    "constructs": 18,
+    "pages": [
+      140543168230928
+    ],
+    "bodies": [
+      140542903109264,
+      140542903108944,
+      140542903118544,
+      140542903118864,
+      140542905714640,
+      140542905718160,
+      140542905716560,
+      140542903629648,
+      140543148049424,
+      140543148054544,
+      140543183894992,
+      140543167572048,
+      140543183894672,
+      140543147721424,
+      140542905725200,
+      140543142378896
+    ]
+  },
+  "end_after": {
+    "constructs": 18,
+    "pages": [
+      140543168230928
+    ],
+    "bodies": [
+      140542903109264,
+      140542903108944,
+      140542903118544,
+      140542903118864,
+      140542905714640,
+      140542905718160,
+      140542905716560,
+      140542903629648,
+      140543148049424,
+      140543148054544,
+      140543183894992,
+      140543167572048,
+      140543183894672,
+      140543147721424,
+      140542905725200,
+      140543142378896
+    ]
+  },
+  "exception": "None"
+}
