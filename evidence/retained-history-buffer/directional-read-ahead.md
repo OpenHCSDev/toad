@@ -83,3 +83,36 @@ These endpoint images do not exclude transient blanks, discontinuities or
 insufficient incoming runway during movement. Original video and phase/profile
 receipts remain protected. Do not claim full CPU, focus, warm-tab or buffer
 acceptance from these observations.
+
+## Integration-owner changed restoration comparison
+
+Heisenberg ran one changed-source physical comparison at
+`/home/ts/.cache/agent-scratch/history-reflow-254-20261001-candidate01`;
+source `a054c59a` includes the existing restoration-scope correction and the
+whole directional hook. Kepler made no second capture. Offline exact phase,
+source, resource and profile joins are in
+[restoration-physical-comparison.json](restoration-physical-comparison.json).
+
+The changed recorder completed in65.2812s,714 GIL samples/zero errors, same
+protected journal hash, unchanged dependency runtime and clean process closure.
+The original encoder code255 remains recorded. End's marker is emitted before
+`key End`, so its immediate PNG is not a destination assertion. After15s idle,
+actual native y107=max107, follows_tail true, stationary demand and no pending
+work coincide with personally reviewed original-tail content and readable chrome.
+This is a useful saved-source End/idle result, not the complete native ACP gate.
+
+Held Up/Down/reverse kernel UI CPU is74.1/75.9/77.9%, versus80.6/76.4/80.1%
+in the retained directional run. Idle is5.7% versus5.6%. Loaded page ranges
+differ, so this is not an isolated performance effect. Chrome sampled stack
+transitions still repeatedly include workspace/native layout and widget extent
+work. Complete stacks and original phase/video links are retained in each
+run's `capture/foreground-cost-stacks.json`; they do not yield CPU attribution.
+
+Mixed measured signs remain in the observer: Up116 changes (66 negative,
+44 positive), Down159 (17 negative,137 positive), reverse200 (114 negative,
+85 positive). The observer records current demand/travel, not the original
+restoration scope or sampled user position; these observations cannot prove
+the changed restoration transaction failed. Its separate local RED/GREEN
+counter remains valid. Smooth reader motion and the origin of the remaining
+large travel values are still open; do not promote sign counts to user-action
+counts, discard the counterevidence, or claim full scrolling acceptance.
