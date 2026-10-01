@@ -43,3 +43,26 @@ public cutover. This performance checkpoint does not hold the critical477 cohort
 All original CPU/Strip/warm/coldB/focus/growingEnd/TC1/T9/T4/tracing200 receiving
 scope remains active in the parent README. Source/layout work continues at the
 same native owners rather than a second cache or speculative local timer guard.
+
+
+## Current declared immutable build and installed native control
+
+Normal main2677572 is integrated in ba4d12c5. Own immutable prefix uses Core
+cac7bdf337d9e4dba888ce7c2093ddcc55802bc3, Textual6b, SDK0.12.1/native593,
+Toadba4d12c5 and native diff aa4a78e. All69 normal distributions checked;
+67 donor distributions identical. Exact Git To ad305/native diff3 source files
+and certified donor Core308/Textual266 files match. Native full-tree trust,
+imports, pipcheck and activation600 pass. Parent prefix remains untouched.
+
+The same actual four-consumer control passes through this noneditable installed
+pair with PYTHONPATH removed. Auto/prepared True/False/True, fixed/paddedFalse,
+no application exception or Agent/provider/public operations. Mount-induced
+arrangements0, total27 in this run. Do not compare total27 to source24 as a
+performance result; timer/pipeline/pair differences remain. Its original receipt
+is installed-native-control.json. This is installed basic native consumer proof,
+NOT original41MB physical acceptance or full readiness.
+
+Public root remains before477's one-time data carry. Never bind this new reader
+to old public manifests or introduce legacy reader/provenance defaults. Original
+physical41MB gate remains pending a current valid route/fixture. No second
+unnecessary native/control matrix or source unchanged capture is requested.
