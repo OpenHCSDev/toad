@@ -1,0 +1,557 @@
+{
+  "fixture": "/home/ts/wt/g460b/u09",
+  "original_raw_proof": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof",
+  "files": [
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/Native_fixture_2026-09-30T23_18_18_239545.txt",
+      "bytes": 56606,
+      "sha256": "d56f7839853cb83eb9820a58fc5e3f2eb96264ddc9255f76494656ed8dd76239"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/Native_fixture_2026-09-30T23_18_25_000464.txt",
+      "bytes": 70869,
+      "sha256": "4c982dcca75aa502f0377064c2ab88eff00f7586c36e3ff267893676d8b9387f"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/Native_fixture_2026-09-30T23_19_37_029096.txt",
+      "bytes": 35628,
+      "sha256": "4510f18193a3c2827cee0e3ea061c54c404bfb63ec96d1d0e142e5db83fa48e7"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/Native_fixture_2026-09-30T23_20_13_989184.txt",
+      "bytes": 13750,
+      "sha256": "65187e30c75a96d66bed65a91b844b3018e2c4559a0bca447346d5aa89935a71"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/acceptance-complete.txt",
+      "bytes": 5,
+      "sha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/acp-debug",
+      "bytes": 69993,
+      "sha256": "93546fd31c708e3e3856150dea5647a431d63965f7f153959f153320bf45da30"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/acp-debug.log",
+      "bytes": 1152,
+      "sha256": "dc337bd265dd1bd7cb3f47ded202b235a617915e7b560edc7c41c0388e731123"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/admitted-frame-review.json",
+      "bytes": 388,
+      "sha256": "b3b79557cd21a64af3b9a7c1de513e32731d3ff213f42a3c7ca21bf9f494eb8c"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/admitted-frames.jsonl",
+      "bytes": 52796303,
+      "sha256": "d0977d3eb8274d49fb6db360c17f7cc960d7f6c7d936ad3588b6f25b4577c76a"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.activity.jsonl.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.activity_latest.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.bus.jsonl.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.bus_meta.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.catalog.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.compaction-publication-handoff.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.goal_waits.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.input_dispositions.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.native_prompt_bindings.sqlite3.snapshot-lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.owner_release_receipts.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.read_ledger.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.registry-owner-guard",
+      "bytes": 188,
+      "sha256": "68468da28701c33de113a677ff822547b1311b99b73d101a6667b04de80e4154"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.registry.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.runtime_info.json.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.transcript_routes.sqlite3.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/.wire.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/activity.jsonl",
+      "bytes": 838,
+      "sha256": "3ffc858a407432c9fc16b98c95871be8264c4d39be4bc730102cf4c196393322"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/activity_latest.json",
+      "bytes": 357,
+      "sha256": "c3e90be99770f124dae3af82e1e20e3b866f3b7697b04d56f83350ebd0ae8e8b"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/bus.jsonl",
+      "bytes": 8581,
+      "sha256": "a5e883b714a56f5fd3787733af5ce4942546c0e5295f9a4f50b9803895e1845e"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/bus_activity_latest.json",
+      "bytes": 412,
+      "sha256": "6acb72e2ce5e910060b4dceee7d8b03d1b0ed4fe31f34e80a08b1f407ce80968"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/bus_display_04f8996da763b7a969b1028ee3007569eaf3a635486ddab211d512c85b9df8fb.json",
+      "bytes": 1722,
+      "sha256": "fe8f3c0a615f007a496fd2938698edfebe706a2eae9ce7e4a1a973fad8409e54"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/bus_meta.json",
+      "bytes": 821,
+      "sha256": "5836a680b753f1035f80086c15c8ae51227d6cb68449be5619d64f15993aae40"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/bus_route_counts.sqlite3",
+      "bytes": 20480,
+      "sha256": "13b85743b465a55d2b7ddfb9e372d0acf065bca9a74c1b8836d261831a8ca6a9"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/catalog.json",
+      "bytes": 296,
+      "sha256": "fecf9d25fce71ba840ab6653c8453a13b8598048d69a9f9f99deb02fbc430136"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/compaction-commits.sqlite3",
+      "bytes": 57344,
+      "sha256": "0bd077e68d27029209fa046802c0ac04b666d7c8e8e536f068d1e16cf360bb9d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/coordination.sqlite3",
+      "bytes": 393216,
+      "sha256": "3eb9438d56b94f30179e74c3effc0a480d443b7de414dfeac55c6e8f57c176c7"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/09cc02cd1cd5fdb1a5f038fa97d3ddf0.requests.jsonl",
+      "bytes": 11891,
+      "sha256": "1880d66431e96d66e45aae22bfa5c5b301ff39a656f42059a1f975460ca9210d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/170d0a96bb42ea1b203f4e9faeb6af39.requests.jsonl",
+      "bytes": 11892,
+      "sha256": "91fc24e2ed37aff1fe10c936378bb1ec4a5c0cdf92ee36c5c2fdcc74d5c7ffe6"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/192c92e8c8a743608427545906e2f518.requests.jsonl",
+      "bytes": 29071,
+      "sha256": "988b8dbafa046dbdd2ad94c4c102a3051294b49cbbac64ebb81385bc1cb73d43"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/203d050e4b2ddae1abdc901a29883a88.requests.jsonl",
+      "bytes": 11888,
+      "sha256": "6e0d311c37f03a7d7a4c3876052bb9ce5660afe3b7f82fd2c71051b1e19d433d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/7ae8d58a4f27482db2893db34b5c1aab.requests.jsonl",
+      "bytes": 14509,
+      "sha256": "9842b5663d45411a349ef6e04edeb1799146a0f31dee56553a6d07c4da0e0f09"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/825341ed7014b05b97b801eea629deca.requests.jsonl",
+      "bytes": 11901,
+      "sha256": "30b9b947cd4b3e2976bc4c8530dc19a46f8b0bf35b640d72a33ba4c1c162cb10"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/8c7e0d312db0324834ef3b93c793ed0e.requests.jsonl",
+      "bytes": 11896,
+      "sha256": "ef77328f763675b58109497aba308c4fe781b7e6f459c16d9d400f637bb7dfcf"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/993d056cce04456d93c1267227104d49.requests.jsonl",
+      "bytes": 14534,
+      "sha256": "8cab0f9d4ac7420a2cd008bcd6a720d3aa17e34f23381b42f89daed39a31278d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/aa4013acf1ad93cbdcdc1598b6e0dae0.requests.jsonl",
+      "bytes": 11892,
+      "sha256": "6b13de06454b53af961bae58d0cbf51e143cb150a98bf0e251b81f90fb7b898c"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/bc75892862d9bf2eefd329fb597563c7.requests.jsonl",
+      "bytes": 11895,
+      "sha256": "aae7219fdf7fd6b2a673e3b4917da05e440715a6c6f8f6721ef2e0e39caae307"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/d064f063055e42958a8f793697122487.requests.jsonl",
+      "bytes": 14521,
+      "sha256": "6f37ae38a3796a10aed6d8d28f7fc2c0354db82a138495b243b470db68520c0b"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/owner-a9c4c6755ee23e08a87d77bc1f08f4c2-0613112e74404f6aa49dc516d6c03976.log",
+      "bytes": 20,
+      "sha256": "5aae7d85983175ab45e739e56952a1edd1c6d6fa3179d1c91dbb988723cdb6e9"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/diagnostics/owner-b33efc2c1d50d7cb7179136f5cf8e234-39dafa8ba3914230b3d77aa2c44f295f.log",
+      "bytes": 101,
+      "sha256": "c657297d3757c8fe21500f4a7f3c36c7b0389a574f453c257873d1c7fad0c29d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/input_dispositions.json",
+      "bytes": 5890,
+      "sha256": "e08cdb2f24009c9b8b0b463571f1d30517e1a2e0d1c78d824362cfd355babe00"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/a9c4c6755ee23e08a87d77bc1f08f4c2/.native-pi-agent/settings.json",
+      "bytes": 102,
+      "sha256": "b25410bb9ae164c9c5736066f70923cfb3233893afdeefd3b17c00e181531307"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/a9c4c6755ee23e08a87d77bc1f08f4c2/2026-10-01T03-18-49-000Z_01a0f578-c9a7-762c-a897-184d0ac14628.jsonl",
+      "bytes": 2698,
+      "sha256": "bc8510d95129fa41c112df7caecc2722bbca35868fc88c649d8798ccdcc1a54f"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/a9c4c6755ee23e08a87d77bc1f08f4c2/2026-10-01T03-18-49-000Z_01a0f578-c9a7-762c-a897-184d0ac14628.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "fdc7fe275b0bcc30efa0c18fec2fc243101c7368afc79058a25daeb647b56da2"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/.native-pi-agent/settings.json",
+      "bytes": 102,
+      "sha256": "b25410bb9ae164c9c5736066f70923cfb3233893afdeefd3b17c00e181531307"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-38-337Z_01a0f578-a000-74a8-b78e-a1b8ef2b225a.jsonl",
+      "bytes": 3165,
+      "sha256": "b47ad92dbaef70462f031b7876e0d87877034f22699522cbfe58b15e79a480ed"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-38-337Z_01a0f578-a000-74a8-b78e-a1b8ef2b225a.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "10a890f7dabcd42735ab0253ed8ed45858db4734543dd80e9804088c5f15b85c"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-48-915Z_01a0f578-c952-7443-8d9f-85d382aa8c0a.jsonl",
+      "bytes": 2698,
+      "sha256": "ada37438bea0a4f595eceb8161ef32a80d1efb7f3c40fdb666bb34a976cdb999"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-48-915Z_01a0f578-c952-7443-8d9f-85d382aa8c0a.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "b626b00447bd8cc2a75822945f5d53bb12a4fd32ab5a790d2d670d73ebfcdb95"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-54-345Z_01a0f578-de88-74e1-84c5-f8989eae5275.jsonl",
+      "bytes": 2698,
+      "sha256": "7ee38c08ba4e39588735c07387824a1564a39652dd0cd00770773b9f255eaa41"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-54-345Z_01a0f578-de88-74e1-84c5-f8989eae5275.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "c2a67dda35b3c2dde1065ad31d444019451d57d57ffd7d13d35614e65ef57f2d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-59-157Z_01a0f578-f154-70d0-adc4-accb819ce897.jsonl",
+      "bytes": 2698,
+      "sha256": "cc411e58eb89fabefe186be1f71958466eacec114347e98c43a8f49c37fe945c"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-18-59-157Z_01a0f578-f154-70d0-adc4-accb819ce897.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "5087c0a7257c9b5804fb12adc9e6d411cea68a99cfc97ea126eadfb24b92face"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-19-04-228Z_01a0f579-0523-7685-8c1d-2152b2ecef39.jsonl",
+      "bytes": 2698,
+      "sha256": "138b885c98612e363cec50dc70a0ae974c98f1badc6a8853aea530da79b92ae1"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-19-04-228Z_01a0f579-0523-7685-8c1d-2152b2ecef39.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "c91931225aa8c4289fda3263c40ce1032d4568b8ec812a3da0a7525f098a3e1f"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-19-09-131Z_01a0f579-184a-72dc-bc2a-454ac482c9a6.jsonl",
+      "bytes": 2698,
+      "sha256": "0ccda2375a927f6f00b88d9062c3ac24f725a97baff42caf4436a3b08ec10fcb"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native-sessions/b33efc2c1d50d7cb7179136f5cf8e234/2026-10-01T03-19-09-131Z_01a0f579-184a-72dc-bc2a-454ac482c9a6.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "d3f78d1dfc0aaf623f5f3d8e41327b8fe18db0d43fea9d179cc9eeb3b58faa97"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/native_prompt_bindings.sqlite3",
+      "bytes": 12288,
+      "sha256": "8169e4bf4a5b9f38fd1cb2c25128e6eb16c5eac7f9836b865296b01b295c307a"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/owner_release_receipts.json",
+      "bytes": 1477,
+      "sha256": "c6f1f04f1beae6102402f3af4b63deda52561fd399766ef3b6cbffd2664371e7"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/private_bus_checkpoint.sqlite3",
+      "bytes": 32768,
+      "sha256": "9d54a03605e96fd1f3657571ec781815d5ce821a516f167c05a046c7168eb490"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/read_ledger.json",
+      "bytes": 568,
+      "sha256": "f7cfd9d67d066cd1e9fb455310077f47ba062e698508d83c28a406a0c40ff1a5"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/registry.json",
+      "bytes": 2852,
+      "sha256": "61566455cd87d707e5645216ac8f90bd7235224230ed6e33025c174b50632221"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/runtime/native-startup/0.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/runtime/native-startup/1.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/runtime_info.json",
+      "bytes": 378,
+      "sha256": "20264eb5bfd8cb1b81637f5dbf179f5dc25bc86632ce584a54d29c91859ab450"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/transcript_reply_index.v3.sqlite3",
+      "bytes": 16384,
+      "sha256": "f2aca0fbdbc99de46532ee3456ac6f9b91509fd4357d41c1c932c3dc061acc48"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/transcript_routes.sqlite3",
+      "bytes": 12288,
+      "sha256": "a01e33bde7f129f9e3468d5067652f20dbe6af9accfee6150ec76788aab9b88e"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/wake_candidates.sqlite3",
+      "bytes": 24576,
+      "sha256": "9de92371ec39dd72587a93a1aa48c8998752cd682cf848b1e78ee882e725d03d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/wake_candidates.sqlite3-shm",
+      "bytes": 32768,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/canonical-wire/wake_candidates.sqlite3-wal",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/cold-before-scroll.svg",
+      "bytes": 56580,
+      "sha256": "ba6d8ae3209a981f5a6301516f6c8949604f87e949b3e6b48d827edd5e0241c5"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/cold-sender.svg",
+      "bytes": 57641,
+      "sha256": "03159816f71553e48ed0917b8dc4113d98b76c9423316316ffdb385be86a641e"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/irc.svg",
+      "bytes": 60840,
+      "sha256": "625acbc457d8fa5e5c0e6b815d2210a4aa54df1d6c6f566e7b0460e73516cab4"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-alpha.jsonl",
+      "bytes": 5248,
+      "sha256": "39aca79af083dd62e7d1fbc004949cac3db2f174dae03b73362376293acfd918"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-beta.jsonl",
+      "bytes": 4329,
+      "sha256": "90be66b66bd15480cd20df37faba1aaf2e02ee1c815ccbe5d61a0d70e48ec791"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/auth.json",
+      "bytes": 72,
+      "sha256": "b74de51c7c5f2cc6401b75a85f4607ded1a909861e63ffb870f6f58f7a946f10"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/models-store.json",
+      "bytes": 393216,
+      "sha256": "c692696d44d2c6990823546e15b05fddf0499fe8f994143e301b615ff16d163c"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/models.json",
+      "bytes": 207,
+      "sha256": "8ad3c993a043afaca9882441c1472eacd755a5e43de482f65c83609bdcad637b"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/sessions/--home-ts-wt-g460b-u09-application-project--/.2026-10-01T03-18-33-025Z_01a0f578-8b40-74a0-bbeb-dc97dee0c035.jsonl.agent-comms-writer.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/sessions/--home-ts-wt-g460b-u09-application-project--/.2026-10-01T03-19-42-620Z_01a0f579-9b1b-731c-8602-c194f025d961.jsonl.agent-comms-writer.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/sessions/--home-ts-wt-g460b-u09-application-project--/2026-10-01T03-18-33-025Z_01a0f578-8b40-74a0-bbeb-dc97dee0c035.jsonl",
+      "bytes": 5248,
+      "sha256": "39aca79af083dd62e7d1fbc004949cac3db2f174dae03b73362376293acfd918"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/sessions/--home-ts-wt-g460b-u09-application-project--/2026-10-01T03-18-33-025Z_01a0f578-8b40-74a0-bbeb-dc97dee0c035.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "cbbb6776856a41fa6e061a4ea3e27d7060c3c894ee4fb05696cb06607b19e429"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/sessions/--home-ts-wt-g460b-u09-application-project--/2026-10-01T03-19-42-620Z_01a0f579-9b1b-731c-8602-c194f025d961.jsonl",
+      "bytes": 4329,
+      "sha256": "90be66b66bd15480cd20df37faba1aaf2e02ee1c815ccbe5d61a0d70e48ec791"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/native-config-and-journals/sessions/--home-ts-wt-g460b-u09-application-project--/2026-10-01T03-19-42-620Z_01a0f579-9b1b-731c-8602-c194f025d961.jsonl.input-proof",
+      "bytes": 16384,
+      "sha256": "9731e775a76ffe9364b56b3d5dadb3d7dc667d69beb3fb6cac55e58f3b600291"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/original-native-reply-proof.json",
+      "bytes": 524,
+      "sha256": "404f3fc9b8afbcf33bbd86d3fd18932451e1162eafa72942e5f50085e616a76e"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/original-wire.json",
+      "bytes": 1550,
+      "sha256": "2d36a9cd2f65c666d72e8042ec987a7e53e97e4498a98a52a12c540c714d6c19"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/owner-a9c4c6755ee23e08a87d77bc1f08f4c2-0613112e74404f6aa49dc516d6c03976.log",
+      "bytes": 20,
+      "sha256": "5aae7d85983175ab45e739e56952a1edd1c6d6fa3179d1c91dbb988723cdb6e9"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/owner-b33efc2c1d50d7cb7179136f5cf8e234-39dafa8ba3914230b3d77aa2c44f295f.log",
+      "bytes": 101,
+      "sha256": "c657297d3757c8fe21500f4a7f3c36c7b0389a574f453c257873d1c7fad0c29d"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-physical_return_0_original_source.png",
+      "bytes": 64041,
+      "sha256": "6ee20df8fb643d9af395b3e22c1405a742a7a478196e4e5c46f3ff4cafbdef58"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-physical_return_1_original_source.png",
+      "bytes": 63526,
+      "sha256": "9b211457771132f69611b6083c289ab5e24a170eb87a85d338256656163b1d04"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-physical_return_2_original_source.png",
+      "bytes": 69748,
+      "sha256": "6f9e5e391da42fb9835a61a05b4ca0606bc5f3165d61e190bb00f60a98503fa7"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-return-0.svg",
+      "bytes": 59260,
+      "sha256": "8d749c1a4899bf60b21545322a6a56721202586a148a9370d48e76119615ff65"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-return-1.svg",
+      "bytes": 55512,
+      "sha256": "45f3cc34d18f95e225b2660b51528b6b7606dbc20995773512a0f7cd788d8488"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-return-2.svg",
+      "bytes": 68514,
+      "sha256": "c56896e6d7e68d4e3353ca1884cc4deb2b79469ac8d715f8e9ded5eadba74087"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/physical-same_open_31s_complete.png",
+      "bytes": 63385,
+      "sha256": "9010feaa3e716101fadf174aece9a5bc7768fec49fd803c220035ab897a40a19"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/progress.json",
+      "bytes": 51314,
+      "sha256": "f8a6216459f16ecdb53242575d63d29321b23647f3c9a337ba321191e1cac358"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/receipt.json",
+      "bytes": 51314,
+      "sha256": "f8a6216459f16ecdb53242575d63d29321b23647f3c9a337ba321191e1cac358"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/recipient-reply-resources.json",
+      "bytes": 741,
+      "sha256": "b16a707ccbf94161ce9bcef2b04583c5da65362367f03ee2a981bb547e42b016"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/recipient-reply.svg",
+      "bytes": 72314,
+      "sha256": "6d385c2ee7b92ad9e6eb106264ce82a1273ab927918460f78f4eaba49b3c913e"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/recipient.svg",
+      "bytes": 72314,
+      "sha256": "6d385c2ee7b92ad9e6eb106264ce82a1273ab927918460f78f4eaba49b3c913e"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/sender.svg",
+      "bytes": 57594,
+      "sha256": "ca816a80bdf7094fec295c8b689c42eca1b3f3f2a086edce3e8d24bf009d4db6"
+    },
+    {
+      "path": "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/u09/proof/toad-acp.log",
+      "bytes": 56606,
+      "sha256": "d56f7839853cb83eb9820a58fc5e3f2eb96264ddc9255f76494656ed8dd76239"
+    }
+  ],
+  "preserve": "Source/native/wire/journals, original failures and uncertain inputs; no replay"
+}
