@@ -1,0 +1,1393 @@
+{
+  "owner": "Kepler physical/profile evidence; Heisenberg PR269 integration",
+  "scope": "One original41MB affected installed warm_scroll journey; not defaultactivation/fullCPUtarget",
+  "command": [
+    "$HOME/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "started_utc": "2026-10-01T07:10:31.856611+00:00",
+  "duration_seconds": 91.0741570770042,
+  "completed": true,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "runtime_selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "runtime_bin": "$HOME/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/bin",
+  "activation_sha256": "a4026c78c2825e50f262006d5260c6054ae64c748b335c611ff4cbff48865754",
+  "pins": {
+    "agent-comms": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+    "batrachian-toad": "f39a38b4d71caa8e97d022e2ebb71378627fb92e",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+  },
+  "sdk": "0.12.1",
+  "native_package": "$HOME/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "package_origins": {
+    "toad": {
+      "origin": "$HOME/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/lib/python3.14/site-packages/toad/__init__.py",
+      "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+      "source_tree_sha256": "9d052f94400a7e1f5c522e89e537a4b8b38e5d68e85055d1c13c4298ff2f17c4",
+      "distribution": "batrachian-toad",
+      "version": "0.6.20",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "f39a38b4d71caa8e97d022e2ebb71378627fb92e",
+          "requested_revision": "f39a38b4d71caa8e97d022e2ebb71378627fb92e"
+        }
+      }
+    },
+    "textual": {
+      "origin": "$HOME/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/lib/python3.14/site-packages/textual/__init__.py",
+      "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+      "source_tree_sha256": "74d7ca0a6760e18c8de6733f6264af85ece6c496680bd6fffe51d3da4ce65dd8",
+      "distribution": "textual",
+      "version": "8.2.8",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+          "requested_revision": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+        }
+      }
+    },
+    "agent_comms": {
+      "origin": "$HOME/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+      "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+      "source_tree_sha256": "f0fb2f3cafc9512094d1076eb058b32c4e88831428bbfafe10511d0ef2a5f79b",
+      "distribution": "agent-comms",
+      "version": "0.1.0",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+          "requested_revision": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b"
+        }
+      }
+    }
+  },
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "physically_reviewed_frames": [
+    "phase-down-done.png",
+    "phase-reverse-done.png",
+    "phase-idle-done.png",
+    "phase-a-return.png"
+  ],
+  "physical_review": "Down/reverse/End15idle/Areturn readable chat+chrome; no every-moving-frame claim",
+  "original_preservation": {
+    "before": {
+      "root": "${PUBLIC_ROOT}",
+      "threads": {
+        "nra-architecture": {
+          "identity": {
+            "pid": 465576,
+            "start_time": 30187842
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+            "bytes": 41270257,
+            "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl.input-proof",
+            "bytes": 7024640,
+            "sha256": "ddd0cb7073678e4814e13d36311e1e2e4c76d5485c3a9dad893afaf0e2d3e59f"
+          }
+        },
+        "openhcs-architecture-memory": {
+          "identity": {
+            "pid": 465783,
+            "start_time": 30188696
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl",
+            "bytes": 41424974,
+            "sha256": "8f7f425b747f1cdf17091d9b3b69745c80131ba206ed77a7ea54e35bcc3a8ee1"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl.input-proof",
+            "bytes": 180224,
+            "sha256": "194f0d2e923f9323e37159b4d9bf627d051c0ccf950f07f726e6a5e9826258d2"
+          }
+        }
+      },
+      "wire_metadata": {
+        "path": "${PUBLIC_ROOT}/bus_meta.json",
+        "bytes": 828,
+        "sha256": "31095d68a8e2c92c417c419bc3678108c59b965b098d0007b32580ccd1a80211"
+      },
+      "inputs": {
+        "path": "${PUBLIC_ROOT}/input_dispositions.json",
+        "bytes": 1152447,
+        "sha256": "7c6fd248957ec02848fa5b5170e81d4695dcbef371f0d8de207a37fdc6a2b128"
+      }
+    },
+    "after": {
+      "root": "${PUBLIC_ROOT}",
+      "threads": {
+        "nra-architecture": {
+          "identity": {
+            "pid": 465576,
+            "start_time": 30187842
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+            "bytes": 41270257,
+            "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl.input-proof",
+            "bytes": 7024640,
+            "sha256": "ddd0cb7073678e4814e13d36311e1e2e4c76d5485c3a9dad893afaf0e2d3e59f"
+          }
+        },
+        "openhcs-architecture-memory": {
+          "identity": {
+            "pid": 465783,
+            "start_time": 30188696
+          },
+          "journal": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl",
+            "bytes": 41424974,
+            "sha256": "8f7f425b747f1cdf17091d9b3b69745c80131ba206ed77a7ea54e35bcc3a8ee1"
+          },
+          "input_proof": {
+            "path": "$HOME/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl.input-proof",
+            "bytes": 180224,
+            "sha256": "194f0d2e923f9323e37159b4d9bf627d051c0ccf950f07f726e6a5e9826258d2"
+          }
+        }
+      },
+      "wire_metadata": {
+        "path": "${PUBLIC_ROOT}/bus_meta.json",
+        "bytes": 828,
+        "sha256": "31095d68a8e2c92c417c419bc3678108c59b965b098d0007b32580ccd1a80211"
+      },
+      "inputs": {
+        "path": "${PUBLIC_ROOT}/input_dispositions.json",
+        "bytes": 1152447,
+        "sha256": "7c6fd248957ec02848fa5b5170e81d4695dcbef371f0d8de207a37fdc6a2b128"
+      }
+    },
+    "same_threads": true,
+    "same_inputs": true,
+    "same_wire_metadata": true
+  },
+  "recorder_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "caller_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 842731,
+        "start_ticks": 31427056,
+        "returncode": 0
+      }
+    ]
+  },
+  "encoder_returncode": 255,
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c02a",
+        "width": 1280,
+        "height": 900,
+        "coded_width": 1280,
+        "coded_height": 900,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 42,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 1398528,
+        "duration": "91.050000",
+        "bit_rate": "721096",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "5463",
+        "extradata_size": 38,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "$HOME/.cache/agent-scratch/viewport-preparation-269-20261001-installed01/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "91.050000",
+      "size": "8229874",
+      "bit_rate": "723108",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "profile": {
+    "gil_samples": 1266,
+    "sampling_errors": 0,
+    "clock_alignment_nominal_uncertainty_seconds": 0.059407585001317785,
+    "phase_kernel_cpu": [
+      {
+        "phase": "up",
+        "video_start_seconds": 29.53917217697017,
+        "video_end_seconds": 35.268174109980464,
+        "candidate_cpu_seconds": 5.309999999999999,
+        "candidate_average_cpu_percent": 92.68630142021732,
+        "prior_cpu_seconds": 5.34,
+        "prior_average_cpu_percent": 92.93652077651579
+      },
+      {
+        "phase": "down",
+        "video_start_seconds": 36.82548258401221,
+        "video_end_seconds": 42.550125023990404,
+        "candidate_cpu_seconds": 5.77,
+        "candidate_average_cpu_percent": 100.79232127591142,
+        "prior_cpu_seconds": 4.98,
+        "prior_average_cpu_percent": 87.09888362518906
+      },
+      {
+        "phase": "reverse",
+        "video_start_seconds": 43.91444388398668,
+        "video_end_seconds": 49.69942373101367,
+        "candidate_cpu_seconds": 5.510000000000002,
+        "candidate_average_cpu_percent": 95.24665851397383,
+        "prior_cpu_seconds": 5.039999999999999,
+        "prior_average_cpu_percent": 87.26614397506619
+      },
+      {
+        "phase": "end",
+        "video_start_seconds": 51.11393350997241,
+        "video_end_seconds": 53.66077275399584,
+        "candidate_cpu_seconds": 1.6899999999999977,
+        "candidate_average_cpu_percent": 66.35675981379097,
+        "prior_cpu_seconds": 1.9499999999999993,
+        "prior_average_cpu_percent": 69.0864524712903
+      },
+      {
+        "phase": "idle",
+        "video_start_seconds": 53.66077275399584,
+        "video_end_seconds": 70.21589040796971,
+        "candidate_cpu_seconds": 3.9299999999999997,
+        "candidate_average_cpu_percent": 23.738882937244774,
+        "prior_cpu_seconds": 3.719999999999999,
+        "prior_average_cpu_percent": 22.42812036575877
+      },
+      {
+        "phase": "a-return",
+        "video_start_seconds": 82.87274996400811,
+        "video_end_seconds": 87.44835317297839,
+        "candidate_cpu_seconds": 1.230000000000004,
+        "candidate_average_cpu_percent": 26.881701577371054,
+        "prior_cpu_seconds": 1.2199999999999989,
+        "prior_average_cpu_percent": 27.39859563709443
+      }
+    ],
+    "interpretation": "No overallCPUgain; sourcepopulation/travel changed afteradmissionpolicy. Trace transitions notcalls/weights/CPUduration."
+  },
+  "source_interval_resource_observations": {
+    "scope": "Existing original native DTO and typed saved-page resources, no text",
+    "phases": {
+      "warm-start": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 237
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 259
+                },
+                "outcomes": null
+              }
+            },
+            "start": 8,
+            "stop": 20
+          }
+        ],
+        "native_page_parent_ids": [
+          140216067112656
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 1,
+        "body_resources": {
+          "outer_owner_count": 12,
+          "outer_materialized_widgets": 136,
+          "outer_materialized_source_bytes": 15391,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 0,
+          "visible": 4,
+          "visible_dormant": 0,
+          "dormant": 0,
+          "registered": 12
+        },
+        "ready_body_ids": [
+          140216055186448,
+          140216055185488,
+          140215690931856,
+          140216055186128,
+          140216055495120,
+          140216055483600,
+          140215691682000,
+          140215690935056,
+          140215690931536,
+          140216055198608,
+          140216055185808,
+          140216481632720
+        ]
+      },
+      "up-done": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40999956,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41057631,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 9
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41057631,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41121681,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 13
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41121681,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41176028,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 6
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41176028,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41236165,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 15
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41236165,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 237
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 9
+          }
+        ],
+        "native_page_parent_ids": [
+          140215225131856,
+          140215232148368,
+          140216055195728,
+          140216055487440,
+          140216088879632
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 5,
+        "body_resources": {
+          "outer_owner_count": 52,
+          "outer_materialized_widgets": 309,
+          "outer_materialized_source_bytes": 231992,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 21,
+          "visible": 4,
+          "visible_dormant": 0,
+          "dormant": 0,
+          "registered": 52
+        },
+        "ready_body_ids": [
+          140216054781968,
+          140215218933904,
+          140216055494800,
+          140215232149648,
+          140215655084304,
+          140215218936144,
+          140216088871312,
+          140215218940304,
+          140215218340240,
+          140216093309392,
+          140216481632720,
+          140215232149968,
+          140215232139728,
+          140215222211024,
+          140215222761936,
+          140216088873552,
+          140215232148048,
+          140215218936464,
+          140215222753936,
+          140216093305552,
+          140215230694096,
+          140216055495440,
+          140215222221584,
+          140215218944784,
+          140215218344720,
+          140215218942864,
+          140216055493520,
+          140215225125776,
+          140215655078864,
+          140215232142288,
+          140215218940944,
+          140216055481360,
+          140215225123856,
+          140215222207504,
+          140216055200848,
+          140215218939024,
+          140215222209744,
+          140216093306192,
+          140215232150928,
+          140215222211984,
+          140215218345360,
+          140216055201168,
+          140215655075344,
+          140216055201488,
+          140215222222544,
+          140216055496400,
+          140215225132816,
+          140215222220624,
+          140216055494480,
+          140215655085904,
+          140215225126736,
+          140215218347920
+        ]
+      },
+      "down-done": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41236165,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 237
+                },
+                "outcomes": null
+              }
+            },
+            "start": 1,
+            "stop": 16
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 237
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 259
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 16
+          }
+        ],
+        "native_page_parent_ids": [
+          140215653672720,
+          140216054782288
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 2,
+        "body_resources": {
+          "outer_owner_count": 34,
+          "outer_materialized_widgets": 310,
+          "outer_materialized_source_bytes": 48541,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 96,
+          "visible": 4,
+          "visible_dormant": 0,
+          "dormant": 3,
+          "registered": 34
+        },
+        "ready_body_ids": [
+          140215222747216,
+          140215653665040,
+          140215653663120,
+          140215218344400,
+          140215653677520,
+          140216055495120,
+          140215222221264,
+          140215222759376,
+          140216055197648,
+          140215218344720,
+          140215232144208,
+          140215232783184,
+          140215690933136,
+          140215691676560,
+          140215218351120,
+          140215218345040,
+          140215222211664,
+          140215317007568,
+          140215653670160,
+          140215653674320,
+          140215218345360,
+          140215653668240,
+          140216088880592,
+          140215653672400,
+          140215652984272,
+          140215317007888,
+          140215218343440,
+          140215232781904,
+          140215690934096,
+          140215652978512,
+          140215218341840
+        ]
+      },
+      "reverse-done": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40886259,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 188
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40937665,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 2,
+            "stop": 26
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40937665,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40999956,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 12
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40999956,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41057631,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 9
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41057631,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41121681,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 11
+          }
+        ],
+        "native_page_parent_ids": [
+          140215652989392,
+          140215653662800,
+          140215690920016,
+          140216088875152
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 4,
+        "body_resources": {
+          "outer_owner_count": 56,
+          "outer_materialized_widgets": 311,
+          "outer_materialized_source_bytes": 237543,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 135,
+          "visible": 10,
+          "visible_dormant": 0,
+          "dormant": 0,
+          "registered": 56
+        },
+        "ready_body_ids": [
+          140215655077904,
+          140216093300752,
+          140216055480400,
+          140216461328464,
+          140215218350160,
+          140215652978832,
+          140215317008528,
+          140215225127056,
+          140215317018768,
+          140215653671120,
+          140215691688080,
+          140215690934416,
+          140215653675280,
+          140216067109136,
+          140215222749456,
+          140215222749136,
+          140215218346320,
+          140215691680080,
+          140216054790608,
+          140215232149968,
+          140215655084624,
+          140215652987472,
+          140216055487120,
+          140215652981392,
+          140215653663440,
+          140215691674320,
+          140215652985552,
+          140215653673680,
+          140215317009168,
+          140215690924816,
+          140216088875792,
+          140216055485200,
+          140215652983632,
+          140215653664720,
+          140215222760336,
+          140215222209424,
+          140216055485520,
+          140215652990032,
+          140216484084816,
+          140215218349200,
+          140215232138448,
+          140215690921296,
+          140215218341200,
+          140215222758736,
+          140215222752656,
+          140216093304272,
+          140215232787984,
+          140215690927696,
+          140215655077584,
+          140216461475536,
+          140215222222544,
+          140215655081744,
+          140215653666640,
+          140215218343760,
+          140215218937744,
+          140215652986832
+        ]
+      },
+      "end": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40886259,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 188
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40937665,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 2,
+            "stop": 26
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40937665,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40999956,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 12
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 40999956,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41057631,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 9
+          },
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41057631,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41121681,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 228
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 11
+          }
+        ],
+        "native_page_parent_ids": [
+          140215652989392,
+          140215653662800,
+          140215690920016,
+          140216088875152
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 4,
+        "body_resources": {
+          "outer_owner_count": 56,
+          "outer_materialized_widgets": 311,
+          "outer_materialized_source_bytes": 237543,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 135,
+          "visible": 10,
+          "visible_dormant": 0,
+          "dormant": 0,
+          "registered": 56
+        },
+        "ready_body_ids": [
+          140215655077904,
+          140216093300752,
+          140216055480400,
+          140216461328464,
+          140215218350160,
+          140215652978832,
+          140215317008528,
+          140215225127056,
+          140215317018768,
+          140215653671120,
+          140215691688080,
+          140215690934416,
+          140215653675280,
+          140216067109136,
+          140215222749456,
+          140215222749136,
+          140215218346320,
+          140215691680080,
+          140216054790608,
+          140215232149968,
+          140215655084624,
+          140215652987472,
+          140216055487120,
+          140215652981392,
+          140215653663440,
+          140215691674320,
+          140215652985552,
+          140215653673680,
+          140215317009168,
+          140215690924816,
+          140216088875792,
+          140216055485200,
+          140215652983632,
+          140215653664720,
+          140215222760336,
+          140215222209424,
+          140216055485520,
+          140215652990032,
+          140216484084816,
+          140215218349200,
+          140215232138448,
+          140215690921296,
+          140215218341200,
+          140215222758736,
+          140215222752656,
+          140216093304272,
+          140215232787984,
+          140215690927696,
+          140215655077584,
+          140216461475536,
+          140215222222544,
+          140215655081744,
+          140215653666640,
+          140215218343760,
+          140215218937744,
+          140215652986832
+        ]
+      },
+      "idle-done": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 237
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 259
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 20
+          }
+        ],
+        "native_page_parent_ids": [
+          140216481632720
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 1,
+        "body_resources": {
+          "outer_owner_count": 20,
+          "outer_materialized_widgets": 217,
+          "outer_materialized_source_bytes": 23902,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 135,
+          "visible": 4,
+          "visible_dormant": 0,
+          "dormant": 0,
+          "registered": 20
+        },
+        "ready_body_ids": [
+          140216054781968,
+          140216461474896,
+          140216486470800,
+          140215317013648,
+          140216054790288,
+          140215317018768,
+          140215317017808,
+          140216067109136,
+          140216461459856,
+          140216054790608,
+          140216054789648,
+          140215317016208,
+          140216461460176,
+          140215317015248,
+          140215317020368,
+          140216461475536,
+          140216461474576,
+          140215317013328,
+          140215317018448,
+          140215317017488
+        ]
+      },
+      "a-return": {
+        "source_intervals": [
+          {
+            "interval": {
+              "before": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 237
+                },
+                "outcomes": null
+              },
+              "through": {
+                "session_file": "$HOME/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                "offset": 41270257,
+                "receipts": {
+                  "root": "${PUBLIC_ROOT}",
+                  "recipient": {
+                    "name": "nra-architecture",
+                    "created_at": 1790049182.3907015
+                  },
+                  "sequence": 259
+                },
+                "outcomes": null
+              }
+            },
+            "start": 0,
+            "stop": 20
+          }
+        ],
+        "native_page_parent_ids": [
+          140216481632720
+        ],
+        "window_id": 140216481631760,
+        "source_pagers": 1,
+        "loaded_pages": 1,
+        "body_resources": {
+          "outer_owner_count": 20,
+          "outer_materialized_widgets": 217,
+          "outer_materialized_source_bytes": 23902,
+          "widget_limit": 320,
+          "source_byte_limit": 67108864,
+          "body_evictions": 135,
+          "visible": 4,
+          "visible_dormant": 0,
+          "dormant": 0,
+          "registered": 20
+        },
+        "ready_body_ids": [
+          140216054781968,
+          140216461474896,
+          140216486470800,
+          140215317013648,
+          140216054790288,
+          140215317018768,
+          140215317017808,
+          140216067109136,
+          140216461459856,
+          140216054790608,
+          140216054789648,
+          140215317016208,
+          140216461460176,
+          140215317015248,
+          140215317020368,
+          140216461475536,
+          140216461474576,
+          140215317013328,
+          140215317018448,
+          140215317017488
+        ]
+      }
+    },
+    "limits": [
+      "Snapshot membership is not allocation/destruction counts.",
+      "No typedinterval-to-nativepageidentity join in original DTO; no ordinal reconstruction.",
+      "Resource bounds witnessed at phase snapshots; not every intermediate frame.",
+      "Ready-body return check compares idle working set to A-return, not initial warm set through entire history excursion."
+    ]
+  },
+  "raw_directory": "$HOME/.cache/agent-scratch/viewport-preparation-269-20261001-installed01",
+  "raw_hashes": {
+    "capture/receipt.json": "02e4558b2920ae2c85cbfc32ceb865f07d4f8cd68c102fd31e329896193a1fea",
+    "public-original-preservation.json": "e3cad604d63f19c34c9431118e218b345f9f8a3284f848912bdfa081b531faaa",
+    "capture/terminal.mp4": "afee75a7548eaf1f09cda0e210b4dc9d1b02c3eeac6057ed9c29ac5ef89b7ef5",
+    "capture/cpu-profile.json": "502f4dd4c14e4a541568dc0267c2ffeca2c21c574e27b2428bb38e2118d68a3d",
+    "capture/profiler.log": "c2206c6bc185d77ca3e4d09cfaed70bb2c7bf15a7addbb0056f86e2dbec0a2ef",
+    "capture/foreground-cost-stacks.json": "fdf7848313832a374348c2ab5788e53222d053ae7c2bbfe4a4ba5f29b31adb74",
+    "capture/source-interval-resources-269-readonly.json": "40e562928922de1b98f8f58fa6c5a9c161c4420485aaa1f55deaf0f4ab7db910",
+    "capture/phase-down-done.png": "c0e9e87f057f0628c1adbbad80cbadc8a8f5fba93f1dfb8a2b90e14823ed3f99",
+    "capture/phase-reverse-done.png": "909d60867622dfcc25acd928222d8f003ed87855ada77d815a850ad5538d0552",
+    "capture/phase-idle-done.png": "9df2b0abca4d0613ed0befd8e34c8a8be90e268cd53fd4e9a76817ba6040c623",
+    "capture/phase-a-return.png": "046ceaa67ad113fc683d36387f254ab686b82f1c845fa6d72203f90ae095494e"
+  },
+  "deletions": {
+    "production": 0
+  },
+  "limits": [
+    "Phase resource snapshots do not prove maximum over every intermediate frame.",
+    "Idle\u2192Areturn20readyresources retained; initialwarm12\u2192Areturn0, notunboundedinitialretention.",
+    "Membership changes not allocation/destruction; DTO lacks interval\u2192nativeparent join.",
+    "No providerinputs/Enter/originalownersignals/restart/uncertainreplays; backenderrorspreserved.",
+    "Parent ownsdefaultactivation; finalCPU/latency/focus acceptanceopen."
+  ]
+}
