@@ -449,6 +449,13 @@ class WarmSourceJourney(WarmScrollJourney):
         return native_click_command("phase-switch-b-state.pickle", target="peer_tab",
                                     original_state="phase-warm-start-state.pickle")
 
+    @classmethod
+    def peer_ready(cls, args):
+        return (marker_command() + f"b-open --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                "--wait-history-peer-state phase-switch-b-state.pickle "
+                "--original-state phase-warm-start-state.pickle")
+
 
 class SavedTabCloseJourney(PhysicalJourney):
     @classmethod
@@ -855,7 +862,8 @@ def review_recording(args):
 
 
 def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False,
-                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
+                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
+                         wait_history_mode=None):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -869,6 +877,7 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
+                       *(["--wait-history-mode", wait_history_mode] if wait_history_mode else []),
                        *(["--screen"] if screen else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
@@ -1163,7 +1172,8 @@ def record(args):
     return output
 
 
-def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
+def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
+         wait_history_mode=None):
     """A native xdotool exec marker; timestamps bracket actual input injection."""
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,39}", label):
         raise ValueError("Invalid phase label")
@@ -1175,8 +1185,8 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_histor
         raise ValueError("Marker needs an isolated display")
     if wait_history_seconds and os.environ.get("TOAD_VIDEO_MARK_SNAPSHOTS") != "1":
         raise ValueError("Visible history observation requires native marker snapshots")
-    if wait_history_seconds and not wait_history_thread:
-        raise ValueError("Visible history observation requires the intended thread")
+    if wait_history_seconds and bool(wait_history_thread) + bool(wait_history_mode) != 1:
+        raise ValueError("Visible history observation requires one native source identity")
     event = {"label": label, "utc": datetime.now(timezone.utc).isoformat(),
              "seconds_since_capture_launch": time.monotonic() - float(os.environ["TOAD_VIDEO_EPOCH"])}
     if os.environ.get("TOAD_VIDEO_TERMINAL"):
@@ -1194,7 +1204,8 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_histor
                 event["state_capture"] = capture_loaded_state(
                     output, f"phase-{label}", identity, owner, os.environ.copy(), timeout=remaining,
                     wait_history_seconds=min(wait_history_seconds, remaining),
-                    wait_history_interval=wait_history_interval, wait_history_thread=wait_history_thread)
+                    wait_history_interval=wait_history_interval, wait_history_thread=wait_history_thread,
+                    wait_history_mode=wait_history_mode)
                 state = output / f"phase-{label}-state.json"
                 if not state.exists():
                     error_path = output / f"phase-{label}-state-error.json"
@@ -1271,14 +1282,29 @@ def main():
         marker.add_argument("label")
         marker.add_argument("--wait-history-seconds", type=float, default=0)
         marker.add_argument("--wait-history-interval", type=float, default=.1)
-        marker.add_argument("--wait-history-thread")
+        identity = marker.add_mutually_exclusive_group()
+        identity.add_argument("--wait-history-thread")
+        identity.add_argument("--wait-history-peer-state", type=Path)
+        marker.add_argument("--original-state", type=Path)
         options = marker.parse_args(sys.argv[2:])
         if (not math.isfinite(options.wait_history_seconds) or options.wait_history_seconds < 0
                 or not math.isfinite(options.wait_history_interval) or options.wait_history_interval <= 0):
             marker.error("History budget must be nonnegative and observation interval positive")
+        peer_mode = None
+        if options.wait_history_peer_state is not None:
+            sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools/performance"))
+            from click_history import PeerTabTarget, read_snapshot
+            from agent_comms.child_process import ProcessIdentity
+            from agent_comms.field_codec import FieldCodec
+
+            snapshot = read_snapshot(options.wait_history_peer_state)
+            ui = FieldCodec.decode(ProcessIdentity, json.loads(os.environ["TOAD_VIDEO_UI_IDENTITY"]))
+            if snapshot["metadata"]["pid"] != ui.pid:
+                raise ValueError("Peer readiness snapshot belongs to a different UI")
+            peer_mode = PeerTabTarget.locate(snapshot, options)["name"]
         mark(options.label, wait_history_seconds=options.wait_history_seconds,
              wait_history_interval=options.wait_history_interval,
-             wait_history_thread=options.wait_history_thread)
+             wait_history_thread=options.wait_history_thread, wait_history_mode=peer_mode)
         return
     if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
         profile_launch(sys.argv[2:])
