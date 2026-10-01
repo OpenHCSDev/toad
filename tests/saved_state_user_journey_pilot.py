@@ -14,7 +14,7 @@ from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main as native_fixture
 from l0a_native_installed_pilot import until
 from native_session_retention_pilot import InstalledApp, conversation_paint
-from runtime_fixture import wait_channel_roster
+from runtime_fixture import wait_channel_roster, wait_fork_dialog
 from textual.widgets import Input
 from textual.widgets._markdown import MarkdownBlock
 from viewport_recent_tabs_pilot import settled
@@ -23,7 +23,6 @@ from toad.screens.comms import CommsScreen
 from toad.thread_actions import ForkAction
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
@@ -233,15 +232,21 @@ async def independent_source_publication(agent, comms):
             await observation
 
 
-async def submit_editor(pilot, editor, text):
+async def prepare_editor(pilot, editor, text):
+    """Reveal and physically focus the original composer before submission."""
     editor.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(editor), "Native composer was not physically clickable"
     editor.insert(text)
+
+
+async def submit_editor(pilot, editor, text):
+    await prepare_editor(pilot, editor, text)
     await pilot.press("enter")
 
 
-async def click_thread(app, pilot, name, channel_name="#team"):
+async def reveal_thread_row(app, pilot, name, channel_name="#team"):
+    """Physically reveal one channel's member before any pointer action."""
     sidebar = await wait_channel_roster(app, pilot, channel_name)
     group = next(group for group in sidebar.query(ChannelGroup)
                  if group.row.target_name == channel_name)
@@ -252,6 +257,14 @@ async def click_thread(app, pilot, name, channel_name="#team"):
     row = next(row for row in group.member_container.children if row.target_name == name)
     row.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
+    assert row.is_attached and group.expanded
+    assert app.screen.get_widget_at(*row.region.offset)[0] is row, (
+        'Revealed channel member is not the native pointer target', name, channel_name, row.region)
+    return row
+
+
+async def click_thread(app, pilot, name, channel_name="#team"):
+    row = await reveal_thread_row(app, pilot, name, channel_name)
     previous = app.selected_session
     assert await pilot.click(row), f"Unopened thread {name} was not physically clickable"
     await until(pilot, lambda: app.selected_session is not previous)
@@ -510,12 +523,13 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     fork = next(item for item in app.screen.query(ContextMenuItem)
                 if item.action == ForkAction.declared_name)
     assert await pilot.click(fork)
-    await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    entry = app.screen.query_one("#fork-name", Input)
+    dialog = await wait_fork_dialog(app, pilot)
+    entry = dialog.query_one("#fork-name", Input)
     assert await pilot.click(entry)
     entry.value = "journey-child"
     assert app.screen.query_one("#fork-tags", Input).value == "team"
-    app.screen.query_one("#fork-task", Input).value = "JOURNEY_FORK_INPUT"
+    from textual.widgets import TextArea
+    dialog.query_one("#fork-task", TextArea).text = "JOURNEY_FORK_INPUT"
     app.screen.query_one("#fork-tags", Input).value = "refactor"
     entered.clear()
     release.clear()

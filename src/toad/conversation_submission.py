@@ -7,12 +7,13 @@ from dataclasses import dataclass
 from functools import partial
 from typing import ClassVar
 
-from agent_comms.acp_extension import QueuePromptRequest, SteerPromptRequest
+from agent_comms.acp_extension import InputStartedUpdate, QueuePromptRequest, SteerPromptRequest
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc, messages
 from toad.acp.client_session import ClientSessionRequest
 from agent_comms.acp_extension import PendingQueueProjection
 from toad.widgets.prompt import Prompt
+from toad.widgets.user_input import UserInput
 
 
 @dataclass(frozen=True)
@@ -80,8 +81,6 @@ class ShellInputSubmission(InputSubmission):
 
 
 class AgentInputSubmission(InputSubmission):
-    pending_text = ''
-
     @property
     @abstractmethod
     def request(self): ...
@@ -158,10 +157,6 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
     @property
     def request(self):
         return SteerPromptRequest(self.text)
-    @property
-    def pending_text(self):
-        return self.text
-
 
 class SubmissionExecution:
     """Immutable source binding and the real outstanding local request."""
@@ -170,6 +165,7 @@ class SubmissionExecution:
         self.authority = ClientSessionRequest(agent, agent.session_id)
         self.scope = agent.queue_attachment.scope
         self.request = submission.request
+        self.started_receipt: InputStartedUpdate | None = None
 
     @property
     def current(self):
@@ -245,9 +241,26 @@ class ConversationSubmissions:
         return agent.presentation.queue if agent is not None else PendingQueueProjection()
 
     @property
+    def queued_inputs(self):
+        """Accepted producer rows not yet handed to their original native body."""
+        claims = tuple(block.commit_claim for block in self.view.contents.query(UserInput))
+        return tuple(row for row in self.queue_projection.items
+                     if not any(claim.represents_input(row.input_id) for claim in claims))
+
+    @property
     def delivering(self):
-        return next((item.submission.pending_text for item in reversed(self.active)
-                     if item.current and item.submission.pending_text), '')
+        queue = self.queue_projection
+        accepted = {row.input_id for row in (*queue.items, *queue.restored)}
+        return tuple(item.submission.text for item in self.active
+                     if item.current and item.agent.presentation.uses_managed_turns
+                     and item.request.input_id not in accepted
+                     and item.started_receipt is None)
+
+    def native_input_presented(self, receipt: InputStartedUpdate):
+        """Retain this request's actual response while its RPC is outstanding."""
+        for execution in self.active:
+            if execution.current and execution.request.input_id == receipt.input_id:
+                execution.started_receipt = receipt
 
     def publish_pending(self):
         if (prompt := self.view.query_one_optional(Prompt)) is not None:

@@ -47,7 +47,7 @@ from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
 from toad.work_preparation import retained_bytes
-from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage
+from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage, TranscriptInputClaim
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
@@ -78,7 +78,7 @@ class TranscriptBlockConsumer(MroDispatch):
 
     @handles(UserTranscript)
     def user(self, event: UserTranscript):
-        self.blocks.append(UserInput(event.text, native_id=event.native_id,
+        self.blocks.append(UserInput(event.text, claim=TranscriptInputClaim(event),
                                      show_divider=self.show_divider,
                                      clock=MessageClock.recorded(event.timestamp)))
 

@@ -119,7 +119,7 @@ async def main():
                 editor.insert(prompt)
                 await pilot.press("enter")
                 print("LIVE_AFTER_SEND", repr(editor.text), editor.agent_ready,
-                      first_view.queue_projection.status, repr(first_view.delivering_prompt),
+                      first_view.submissions.queue_projection.status, repr(first_view.submissions.delivering),
                       flush=True)
             for _ in range(100):
                 await pilot.pause(.1)
