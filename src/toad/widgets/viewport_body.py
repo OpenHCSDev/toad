@@ -74,6 +74,9 @@ class BodyMeasurement:
 class MeasuredViewportBody(ViewportBody):
     """Shared native extent and restoration state for body-owning widgets."""
 
+    CACHE_HEIGHT_INDEPENDENT_BOX = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
     def __init__(self, *args, **kwargs):
         self._body_dormant = False
         self._body_restoring = False
