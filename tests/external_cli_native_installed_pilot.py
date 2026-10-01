@@ -20,6 +20,7 @@ from time import monotonic
 from agent_comms.acp import CommsClient
 from agent_comms.errors import RelationViolationError
 from agent_comms.field_codec import FieldCodec
+from agent_comms.messages import Message
 from agent_comms.thread_execution import ExternalThreadExecution, NativeThreadExecution
 from agent_comms.thread_identity import ThreadRole
 from agent_comms.threads import Thread
@@ -122,7 +123,11 @@ async def journey():
     async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
         assert type(app._driver).__name__ == "LinuxDriver" and not app.is_headless
         original_native = comms.registry.require("beta").process_identity
-        original_mode = app.selected_mode
+        original_participants = {
+            thread.name: (thread.execution, thread.process_identity, thread.session_file)
+            for thread in comms.registry.all_threads().values()
+            if thread.role is ThreadRole.AGENT
+        }
 
         async def phase(label):
             await pilot.pause()
@@ -158,14 +163,16 @@ async def journey():
         await phase("channel-pending")
 
         pending = await cli.invoke("inbox", "--thread", NAME)
-        assert sum(message["body"] == CHANNEL_INPUT for message in pending["messages"]) == 1
+        assert sum(Message.from_wire(message).body == CHANNEL_INPUT
+                   for message in pending["messages"]) == 1
         acknowledgement = await cli.invoke("ack", "--thread", NAME)
         assert acknowledgement["acknowledged"] == 1
         await until(pilot, lambda: any("Checked by CLI" in str(item.title)
                     for item in channel.query(MessageNotifications)))
         await phase("channel-checked")
         pending_peer = await peer.invoke("inbox", "--thread", PEER_NAME)
-        assert sum(message["body"] == CHANNEL_INPUT for message in pending_peer["messages"]) == 1
+        assert sum(Message.from_wire(message).body == CHANNEL_INPUT
+                   for message in pending_peer["messages"]) == 1
         assert (await peer.invoke("ack", "--thread", PEER_NAME))["acknowledged"] == 2
         await until(pilot, lambda: any("Checked by CLI (2)" in str(item.title)
                     for item in channel.query(MessageNotifications)))
@@ -195,7 +202,8 @@ async def journey():
         await until(pilot, lambda: DM_INPUT in screen_paint(app))
         await phase("dm-pending")
         pending = await cli.invoke("inbox", "--thread", NAME)
-        assert sum(message["body"] == DM_INPUT for message in pending["messages"]) == 1
+        assert sum(Message.from_wire(message).body == DM_INPUT
+                   for message in pending["messages"]) == 1
         assert (await cli.invoke("ack", "--thread", NAME))["acknowledged"] == 1
         await until(pilot, lambda: any("Checked by CLI" in str(item.title)
                     for item in dm.query(MessageNotifications)))
@@ -237,7 +245,11 @@ async def journey():
         assert comms.registry.require(NAME).session_file is None
         assert comms.registry.require("beta").process_identity == original_native
         assert not requests, "External CLI UI interaction called a native provider"
-        assert sum(thread.session_file is not None for thread in comms.registry.all_threads().values()) == 1
+        assert {
+            thread.name: (thread.execution, thread.process_identity, thread.session_file)
+            for thread in comms.registry.all_threads().values()
+            if thread.role is ThreadRole.AGENT
+        } == original_participants, "External conversation changed native ownership or retention"
         receipt["completed"] = True
         receipt["native_owner_unchanged"] = True
         await phase("return-no-native-spawn")
