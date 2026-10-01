@@ -35,6 +35,14 @@ projected item-bound assertion; exercise80 passes on both. This pre-existing
 contract mismatch remains OPEN, and is not rewritten as a passing guard.
 
 The matching counter receipts and all failed diagnostics are retained here.
-Rich materialization cost and the affected immutable installed original-history
-journey remain pending. No READY, live activation, total CPU gain, Strip reuse,
+Rich native materialization diagnostic passes with30 source records,20 list
+items each,three Up/Down/reverse inputs and End. Recorded peak289/300 native
+widgets,18 body evictions,Agent unbound and no application exception. The
+longer15-input run timed out with no verdict and remains preserved. Its fragment
+construction index used equality, which conflates repeated identical list bodies;
+no rich source uniqueness or reconstruction claim is made. The observer now
+uses original fragment object identity; no optional repeat is needed for the
+independent native widget-cost measurement.
+
+The affected immutable installed original-history journey remains pending. No READY, live activation, total CPU gain, Strip reuse,
 whole-frame gap closure or final latency claim is made from these counters.
