@@ -5,7 +5,7 @@ from toad.acp.status import StopReason
 import asyncio
 from abc import abstractmethod
 from weakref import ref
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
@@ -22,6 +22,7 @@ from agent_comms.acp_extension import (
     CompactRequest, InputFailedUpdate, decode_updates, encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
+from agent_comms.input_origin import HumanInputOrigin
 
 
 @dataclass(frozen=True)
@@ -245,6 +246,16 @@ class AgentController(OperationalTerminalOwner):
         if submission is not None:
             self._deferred_submissions.add(submission)
         try:
+            coordination = self.coordination
+            if coordination is not None:
+                self.require_owner(coordination, authority)
+                if queue_scope is None:
+                    raise ValueError('The original input attachment is not available.')
+                async with self.transcripts.bind(coordination.wire_root) as comms:
+                    origin = await asyncio.to_thread(HumanInputOrigin.capture,
+                                                     comms, queue_scope.admission)
+                self.require_owner(coordination, authority)
+                command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
             if any(block.type == 'image' for block in content):
                 coordinated = self.coordination is not None

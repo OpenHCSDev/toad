@@ -1,0 +1,13 @@
+{
+  "owner": "Mendel receiving parent270",
+  "purpose": "Image-attribution corrected normal immutable S2 S5 stage; shared journey Schrodinger+Einstein",
+  "prefix": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-origin-context-0064-20261001",
+  "core": "43df95f00f4e29f9086e2b5bb1e1f651ab5f67dc",
+  "toad": "89655a17336da92eed0d4cd06443925af909e914",
+  "native": "/home/ts/wt/comms-retained-task-facts-s2-20261001/stack/.pi-native-0064a96bb79c21c1/node_modules/@earendil-works/pi-coding-agent",
+  "donor": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/staging-s2-s5-origin-context-20261001/requirements.txt",
+  "donor_sha256": "1d85f8ac7125ad7aab0ee553fce2a3602e161fca78a2ca17ae8cfbbef9c9d296",
+  "protected_files": 4166,
+  "public_effects": false,
+  "created_utc": "2026-10-01T09:59:22Z"
+}

@@ -1,0 +1,30 @@
+{
+  "state": "DRIVER_API_CORRECTED_NOT_FULL_JOURNEY_ACCEPTANCE",
+  "changed_file": "/home/ts/wt/toad-retained-input-origin-s2-20261001/tests/retained_input_origin_observer.py",
+  "helper_sha256": "b2633823d3b04c3459b59e7386c7abcb7619cc18bd2ecb0e2581679ccd473ae4",
+  "installed_core": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-origin-context-0064-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "installed_toad": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-origin-context-0064-20261001/lib/python3.14/site-packages/toad/__init__.py",
+  "installed_textual": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-origin-context-0064-20261001/lib/python3.14/site-packages/textual/__init__.py",
+  "actual_export_signature": "(self, *, title: 'str | None' = None, simplify: 'bool' = False) -> 'str'",
+  "actual_save_signature": "(self, filename: 'str | None' = None, path: 'str | None' = None, time_format: 'str | None' = None) -> 'str'",
+  "syntax_compile": "PASS",
+  "actual_export_signature_bind_no_filename": "PASS",
+  "receipt_lifetime": "original terminal/native IDs/same-turn input bindings/visible count persisted BEFORE exporting SVG; wrapper retains failure phase",
+  "preserved_original_terminal": {
+    "python": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-origin-context-0064-20261001/bin/python",
+    "core": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-origin-context-0064-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "fixture": "/home/ts/wt/s5i07",
+    "public_inputs": 0,
+    "paid_provider_calls": 0,
+    "state": "FAILED_NO_REPLAY",
+    "error": "TypeError(\"App.export_screenshot() got an unexpected keyword argument 'filename'\")",
+    "local_provider_posts": 2,
+    "original_provider_requests": "/home/ts/wt/s5i07/original-provider-requests.json",
+    "elapsed_seconds": 35.92824684496736
+  },
+  "prior_original_receipt_limit": "35 native/frame observation reached but receipt update was AFTER failed artifact call, so native IDs/body count were not persisted there",
+  "production_changed": false,
+  "original_inputs_replayed": 0,
+  "new_provider_calls": 0,
+  "remaining": "Einstein sole fresh shared installed journey with this driver-only correction; preserve 35 failed original"
+}

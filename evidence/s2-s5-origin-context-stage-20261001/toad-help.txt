@@ -1,0 +1,15 @@
+Usage: python -m toad [OPTIONS] PATH OR COMMAND [ARGS]...
+
+  🐸 Toad — AI for your terminal.
+
+Options:
+  -v, --version  Show version and exit.
+  --help         Show this message and exit.
+
+Commands:
+  about     Show about information.
+  acp       Run an ACP agent from a command.
+  replay    Replay interaction from a log file.
+  run       Run an installed agent (same as `toad PATH`).
+  serve     Serve Toad as a web application.
+  settings  Settings information.

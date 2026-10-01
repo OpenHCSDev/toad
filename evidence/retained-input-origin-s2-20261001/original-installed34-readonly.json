@@ -1,0 +1,89 @@
+{
+  "scope": "READ_ONLY_ORIGINAL34_NATIVE_TURN_RELATION",
+  "input_origin_authored": [
+    {
+      "kind": "human",
+      "root_id": "a930828342de4ab4990f34005d07e0ec",
+      "author": {
+        "sender": "user",
+        "created_at": 1790846448.680481,
+        "worktree": "/home/ts/wt/s5i06/sdk-source/project"
+      },
+      "admission": {
+        "incarnation": {
+          "name": "context-source",
+          "created_at": 1790846434.8665957
+        },
+        "admission_generation": 1
+      },
+      "project": "/home/ts/wt/s5i06/sdk-source/project",
+      "goal": {
+        "id": "c4cc9374ce714107aa46a2e4bf76f2d1",
+        "revision": 2
+      }
+    },
+    {
+      "kind": "human",
+      "root_id": "a930828342de4ab4990f34005d07e0ec",
+      "author": {
+        "sender": "user",
+        "created_at": 1790846448.680481,
+        "worktree": "/home/ts/wt/s5i06/sdk-source/project"
+      },
+      "admission": {
+        "incarnation": {
+          "name": "context-source",
+          "created_at": 1790846434.8665957
+        },
+        "admission_generation": 1
+      },
+      "project": "/home/ts/wt/s5i06/sdk-source/project",
+      "goal": {
+        "id": "c4cc9374ce714107aa46a2e4bf76f2d1",
+        "revision": 2
+      }
+    }
+  ],
+  "original_turn_id": "87e3f5e6685b499bb356ff2bc30cafc9",
+  "native_users": [
+    {
+      "entry_id": "148cd891",
+      "input_id": "7382ffe940b6b36aa68b0180d47f0cab"
+    },
+    {
+      "entry_id": "8734fe8f",
+      "input_id": "d1ad89de467d19e437fd11ca0793e93b"
+    }
+  ],
+  "native_final_reply_entry_id": "aa4d84d2",
+  "native_final_reply_text": "Native response lifecycle.",
+  "native_assistant_stop_reasons": [
+    {
+      "id": "d46276a5",
+      "reason": "stop"
+    },
+    {
+      "id": "d2ddb07d",
+      "reason": "toolUse"
+    },
+    {
+      "id": "aa4d84d2",
+      "reason": "stop"
+    }
+  ],
+  "source_hashes_unchanged": {
+    "/home/ts/wt/s5i06/sdk-source/sessions/2026-10-01T09-20-34-800Z_01a0f6c3-fdef-70d1-aca2-38b4ad8e43c6.jsonl": "1554e7fe8add8c0f1c70ed2657df53691b37f6b3a53cdf3db5a7e7cb4285486f",
+    "/home/ts/wt/s5i06/wire/input_dispositions.json": "42c3c10e415b76978ee15f9a0ef59cc4e418aa5bfe9369a7eac6a6d585118e13",
+    "/home/ts/wt/s5i06/wire/registry.json": "ebb3323d8b6c9a1f26b484b5b7bc658978c4f2e7535a4c7325b071c981b573f5"
+  },
+  "new_provider_calls": 0,
+  "inputs_replayed": 0,
+  "ui_after_wrong_terminal_predicate": "NOT_CAPTURED",
+  "full_ready": false,
+  "reader_provenance": {
+    "mode": "source reader using normal paired interpreter dependencies; not installed acceptance",
+    "core_source": "/home/ts/wt/comms-retained-task-facts-s2-20261001/src/agent_comms",
+    "same_source_as_frozen_core": "3f0af4940bfd9f3ade523f230e4240e3acd8ab2a; git diff src/agent_comms after this freeze is zero",
+    "full_installed_acceptance": "PENDING Einstein continuous gate"
+  }
+}

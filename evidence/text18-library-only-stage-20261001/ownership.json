@@ -1,0 +1,25 @@
+{
+  "owner": "Mendel sole normal library-only receiving builder",
+  "source_owners": [
+    "Schrodinger475",
+    "Einstein270/473",
+    "Heisenberg271",
+    "Arendt274/480"
+  ],
+  "journey_owners": [
+    "Heisenberg UI-only physical/profile gate"
+  ],
+  "purpose": "Separate Text18 library-only comparison; production a87 identical, final49 stage unchanged",
+  "prefix": "/home/ts/wt/toad-text18-library-pair-20261001/.artifacts/runtime-text18-library-only-20261001",
+  "core": "0ea6dccbd39b1f8656e2fc2ad983046244d9312d",
+  "toad": "f8e1cedebdc1fb1c43a23475ecdbe69c8f218400",
+  "textual": "ba65da3dfe04fd93a486156684584e8bb60d2dc9",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-retained-task-facts-s2-20261001/stack/.pi-native-0064a96bb79c21c1/node_modules/@earendil-works/pi-coding-agent",
+  "donor": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/staging-s2-s5-final-cohort-20261001/requirements.txt",
+  "donor_sha256": "0a346912849cfd980c5f1c46654f1fa769380f0a002354e05ba8b18b0dedd021",
+  "protected_files": 2088,
+  "public_effects": false,
+  "created_utc": "2026-10-01T12:10:53Z",
+  "source_owner": "Heisenberg Text18; metadata grant parent"
+}
