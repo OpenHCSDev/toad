@@ -10,8 +10,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.threads import Thread
-from agent_comms.comms import wire
+from agent_comms.comms import Comms, wire
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.thread_execution import ConversationPreparation
 
 from toad.session_tracker import CommsViewKey
 from toad.conversation_kind import ConversationKind
@@ -75,14 +76,21 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     async def open(self, opening: ThreadOpening) -> str: ...
 
 
-class StoppedThreadNavigation(ThreadNavigation):
+class ExternalThreadNavigation(ThreadNavigation):
     async def open(self, opening: ThreadOpening) -> str:
         from toad.navigation_target import DirectTarget
 
+        return await DirectTarget(self.thread.name).open(NavigationContext(
+            opening.navigator.app, opening.owner_mode, opening.request.project,
+            opening.origin.source._comms_thread))
+
+
+class StoppedThreadNavigation(ExternalThreadNavigation):
+    async def open(self, opening: ThreadOpening) -> str:
         app = opening.navigator.app
         app.notify(f"@{self.thread.name} is stopped; choose Start thread to resume it",
                    title="Thread view")
-        return await DirectTarget(self.thread.name).open(NavigationContext(app, opening.owner_mode, opening.request.project, opening.origin.source._comms_thread))
+        return await super().open(opening)
 
 
 class NativeThreadNavigation(ThreadNavigation):
@@ -117,21 +125,33 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         root = Path(self.root).expanduser().resolve()
         comms = wire(root)
         thread = comms.registry.require(self.target)
-        active = comms.registry.status(thread.name).active
-        # An active registration authorizes native attachment while its first
-        # owner is still launching. ACP admission serializes with that launch;
-        # a missing PID/session at this instant is not a direct-message route.
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
+        return thread.execution.prepare_conversation(
+            ThreadConversationPreparation(str(root), thread, project, comms, self.open_threads))
+
+
+@dataclass(frozen=True)
+class ThreadConversationPreparation(ConversationPreparation):
+    root: str
+    thread: Thread
+    project: Path
+    comms: Comms
+    open_threads: tuple[OpenThread, ...]
+
+    def external(self) -> ThreadNavigation:
+        return ExternalThreadNavigation(self.root, self.thread, self.project)
+
+    def native(self) -> ThreadNavigation:
         existing = next((view for view in self.open_threads
-                         if view.root == str(root)
-                         and comms.registry.canonical_name(view.name) == thread.name), None)
-        if not active:
-            return StoppedThreadNavigation(str(root), thread, project)
+                         if view.root == self.root
+                         and self.comms.registry.canonical_name(view.name) == self.thread.name), None)
+        if not self.comms.registry.status(self.thread.name).active:
+            return StoppedThreadNavigation(self.root, self.thread, self.project)
         if existing is not None:
-            return ExistingThreadNavigation(str(root), thread, project, existing)
-        return NativeThreadNavigation(str(root), thread, project)
+            return ExistingThreadNavigation(self.root, self.thread, self.project, existing)
+        return NativeThreadNavigation(self.root, self.thread, self.project)
 
 
 class ThreadOpening:

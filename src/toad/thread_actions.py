@@ -118,17 +118,17 @@ class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
         return cls.tool.action_label or cls.tool.label
 
     @classmethod
-    def available(cls, status: ThreadStatus, owner_pid: int) -> bool:
-        return cls.tool.available_for(status, owner_pid=owner_pid)
+    def available(cls, thread, status: ThreadStatus) -> bool:
+        return cls.tool.available_for_thread(thread, status)
 
     @classmethod
     def menu(cls) -> tuple[type[ThreadAction], ...]:
         return tuple(sorted(cls.members_with(cls), key=lambda action: action.tool.action_order))
 
     @classmethod
-    def available_menu(cls, status: ThreadStatus, owner_pid: int) -> tuple[type[ThreadAction], ...]:
+    def available_menu(cls, thread, status: ThreadStatus) -> tuple[type[ThreadAction], ...]:
         """Project one captured registry state through the action declarations."""
-        return tuple(action for action in cls.menu() if action.available(status, owner_pid))
+        return tuple(action for action in cls.menu() if action.available(thread, status))
 
     @classmethod
     def request(
