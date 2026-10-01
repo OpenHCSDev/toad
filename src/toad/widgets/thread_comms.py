@@ -111,85 +111,84 @@ class RelationshipRows(SidebarGroup):
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
         self.rows: dict[tuple[str, str], RelationshipRow] = {}
-        self._sync_lock = asyncio.Lock()
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
     async def update_group(self, model: RelationshipGroup) -> None:
-        self.model = model
-        await self._sync_members()
+        async with self.member_lock:
+            self.model = model
+            await self._reconcile_members()
 
-    async def _sync_members(self) -> None:
+    async def _reconcile_members(self) -> None:
         if not self.is_mounted:
             return
-        async with self._sync_lock:
-            tree = self.query_ancestor(ThreadCommsSidebar)
-            state = tree.view_state
-            container = self.member_container
-            if not self.expanded:
-                if container.display:
-                    state.scroll[self.model.key] = container.scroll_y
-                container.display = False
-                return
-            was_hidden = not container.display
-            container.display = True
-            entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
-            model, owner = self.model, tree.owner
-            row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
-            inputs = tuple(ThreadRowInput(
-                entries[key].person,
-                unread=tree.unread(person_target(entries[key].person)),
-                action_status=tree.app.thread_actions.pending.get(entries[key].target),
-            ) for key in row_keys)
-            prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
-            if not self.is_attached or self.model is not model or tree.owner != owner:
-                return
-            prepared_rows = dict(zip(row_keys, prepared))
-            empty = container.query_one_optional(".relationship-empty")
-            if entries and empty is not None:
-                await empty.remove()
-            if not entries and empty is None:
-                await container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
-            # Keep the top visible row stable when newer entries reorder a
-            # scrolled list. Identity, rather than list index, owns selection.
-            old_scroll = container.scroll_y
-            anchor = (next((row for row in container.children
-                            if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
-                      if old_scroll > 0 else None)
-            previous_order = tuple(container.children)
+        tree = self.query_ancestor(ThreadCommsSidebar)
+        state = tree.view_state
+        container = self.member_container
+        entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
+        model, owner = self.model, tree.owner
+        row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
+        inputs = tuple(ThreadRowInput(
+            entries[key].person,
+            unread=tree.unread(person_target(entries[key].person)),
+            action_status=tree.app.thread_actions.pending.get(entries[key].target),
+        ) for key in row_keys) if self.expanded else ()
+        prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
+        if not self.is_attached or self.model is not model or tree.owner != owner:
+            return
+        if not self.expanded:
+            if container.display:
+                state.scroll[self.model.key] = container.scroll_y
+            container.display = False
+            return
+        was_hidden = not container.display
+        container.display = True
+        prepared_rows = dict(zip(row_keys, prepared))
+        empty = container.query_one_optional(".relationship-empty")
+        if entries and empty is not None:
+            await empty.remove()
+        if not entries and empty is None:
+            await container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
+        # Keep the top visible row stable when newer entries reorder a
+        # scrolled list. Identity, rather than list index, owns selection.
+        old_scroll = container.scroll_y
+        anchor = (next((row for row in container.children
+                        if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
+                  if old_scroll > 0 else None)
+        previous_order = tuple(container.children)
 
-            def create(key):
-                entry = entries[key]
-                target = person_target(entry.person) if entry.person else linked_target(entry.target)
-                return RelationshipRow(target, entry.target)
+        def create(key):
+            entry = entries[key]
+            target = person_target(entry.person) if entry.person else linked_target(entry.target)
+            return RelationshipRow(target, entry.target)
 
-            def update(key, row):
-                entry = entries[key]
-                row.entry = entry
-                row.available = entry.available
-                row.target = person_target(entry.person) if entry.person else linked_target(entry.target)
-                if not entry.available:
-                    row.remove_class("-busy", "-unread", "-current")
-                    row.add_class("-wire-thread")
-                    row._thread_signature = None
-                    _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
-                elif entry.person is not None:
-                    row.apply_thread_preparation(prepared_rows[key])
-                else:
-                    row.set_label(entry.target)
-                    row.tooltip = entry.target
-                if entry.detail:
-                    row.tooltip = Content(f"{entry.target}\n{entry.detail}")
-                row.set_class(state.selected == (self.model.key, entry.target), "-selected")
+        def update(key, row):
+            entry = entries[key]
+            row.entry = entry
+            row.available = entry.available
+            row.target = person_target(entry.person) if entry.person else linked_target(entry.target)
+            if not entry.available:
+                row.remove_class("-busy", "-unread", "-current")
+                row.add_class("-wire-thread")
+                row._thread_signature = None
+                _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
+            elif entry.person is not None:
+                row.apply_thread_preparation(prepared_rows[key])
+            else:
+                row.set_label(entry.target)
+                row.tooltip = entry.target
+            if entry.detail:
+                row.tooltip = Content(f"{entry.target}\n{entry.detail}")
+            row.set_class(state.selected == (self.model.key, entry.target), "-selected")
 
-            ordered = await self.reconcile_rows(entries, self.rows, create, update)
-            if ordered != previous_order:
-                if old_scroll > 0 and anchor in ordered:
-                    new_y = sum(2 if row.has_class("-wire-thread") else 1
-                                for row in ordered[:ordered.index(anchor)])
-                    container.scroll_to(y=new_y, animate=False, immediate=True)
-            if was_hidden:
-                container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
+        ordered = await self.reconcile_rows(entries, self.rows, create, update)
+        if ordered != previous_order:
+            if old_scroll > 0 and anchor in ordered:
+                new_y = sum(2 if row.has_class("-wire-thread") else 1
+                            for row in ordered[:ordered.index(anchor)])
+                container.scroll_to(y=new_y, animate=False, immediate=True)
+        if was_hidden:
+            container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
 class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):

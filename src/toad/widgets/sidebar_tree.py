@@ -1,5 +1,7 @@
 """Shared disclosure, row navigation and keyed tree presentation mechanics."""
 
+import asyncio
+
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
@@ -51,6 +53,7 @@ class SidebarGroup(VerticalGroup):
     def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
+        self.member_lock = asyncio.Lock()
         self.row = row
         self.row.add_class("group-title")
         self.expanded = expanded
@@ -76,6 +79,10 @@ class SidebarGroup(VerticalGroup):
         await self._sync_members()
 
     async def _sync_members(self) -> None:
+        async with self.member_lock:
+            await self._reconcile_members()
+
+    async def _reconcile_members(self) -> None:
         """Specializations reconcile their model-owned members here."""
 
     async def reconcile_rows(self, keys, rows, create, update, *, replace=None):
