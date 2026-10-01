@@ -1,0 +1,18 @@
+{"case": "after_join", "held": {"response_receive_done": true, "finished_receive_done": true, "source_publish_done": true, "saved_resources": 1, "managed_busy": false}, "final_resource_count": 2, "final_resources": [{"id": 140407729149328, "parent": "TranscriptFragmentView"}, {"id": 140407854463120, "parent": "Contents"}], "duplicate_frames": 6, "frames": 9, "native_started": false, "registered_histories": 1}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-late-native-notification-publication-20261001/tests/late_native_after_join_pilot.py", line 150, in <module>
+    if __name__=='__main__': asyncio.run(main())
+                             ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-late-native-notification-publication-20261001/tests/late_native_after_join_pilot.py", line 136, in main
+    assert len(blocks)==1 and not receipt['duplicate_frames'], receipt
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'case': 'after_join', 'held': {'response_receive_done': True, 'finished_receive_done': True, 'source_publish_done': True, 'saved_resources': 1, 'managed_busy': False}, 'final_resource_count': 2, 'final_resources': [{'id': 140407729149328, 'parent': 'TranscriptFragmentView'}, {'id': 140407854463120, 'parent': 'Contents'}], 'duplicate_frames': 6, 'frames': 9, 'native_started': False, 'registered_histories': 1}
