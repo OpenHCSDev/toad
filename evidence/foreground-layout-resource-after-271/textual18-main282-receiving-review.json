@@ -1,0 +1,84 @@
+{
+  "textual_base": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+  "textual_candidate": "efe905de3d37729e434fe33ff098a47dc18c83c6",
+  "production_delta": {
+    "src/textual/_compositor.py": {
+      "added": 254,
+      "deleted": 38
+    },
+    "src/textual/layout.py": {
+      "added": 1,
+      "deleted": 3
+    },
+    "src/textual/widget.py": {
+      "added": 12,
+      "deleted": 0
+    }
+  },
+  "meaning": [
+    "Original Compositor bounded subtree cache now owns typed entries and selective retired-resource eviction.",
+    "Intrinsic body arrangements project through current native placement and clip bounds; scroll-owning/screen-dependent subtrees retain exact placed/culling policy.",
+    "Effective complete-versus-culled coverage is resolved before key lookup using the original visibility key dimension.",
+    "Original native placement order, scrollbar container-relative geometry, invalidation and cache capacity remain owned by the compositor/widget/layout declarations."
+  ],
+  "no_second_cache_or_renderer": true,
+  "source_control": "/home/ts/wt/textual-native-subtree-retirement-20261001/evidence/native-subtree-retirement/native-scroll-reprojection-closure10.json",
+  "actual_installed_gates": [
+    {
+      "receipt": "/home/ts/.cache/agent-scratch/performance275-cf7-text18-20261001-01/physical01/receipt.json",
+      "sha256": "cf67367375d9aca2cef0802b7eabffcada8e4506f2d55d2f199230c0cbee52c9",
+      "seconds": 94.51345766696613,
+      "completed": true,
+      "capture_completed": true,
+      "pins": {
+        "agent_comms": "50d77a17d3d998d403b0349a254f3f85d94517b8",
+        "toad": "0bd0e446b760c144405e711b9015a87a77d60154",
+        "textual": "efe905de3d37729e434fe33ff098a47dc18c83c6"
+      },
+      "checks": {
+        "original_saved_history_loaded": true,
+        "peer_saved_history_loaded": true,
+        "history_scroll_extent": true,
+        "scroll_keys_focus_history": true,
+        "held_page_up_admitted_older_source": true,
+        "held_page_down_admitted_newer_source": true,
+        "reverse_page_up_admitted_older_source": true,
+        "draft_typed": true,
+        "peer_selected": true,
+        "source_retained": true,
+        "editor_retained": true,
+        "history_window_retained": true,
+        "draft_retained": true,
+        "reader_position_retained": true,
+        "ready_body_resources_retained": true,
+        "undo_restored_original_draft": true
+      },
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    },
+    {
+      "receipt": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/receipt.json",
+      "sha256": "3e64c1549c373ba18299d53cf8fffb204228f740c25aab500ef1584896f78043",
+      "seconds": 85.19302513805451,
+      "completed": true,
+      "capture_completed": true,
+      "pins": {
+        "agent_comms": "d0773b22523e44428f10f0d9f1f961fd3fce8cac",
+        "toad": "87c94564a693aa67250eddddb1dc71ef8edbedce",
+        "textual": "efe905de3d37729e434fe33ff098a47dc18c83c6"
+      },
+      "checks": {
+        "input_remains_focused": true,
+        "original_editor_window_and_mode": true,
+        "draft_and_caret_preserved": true,
+        "input_pageup_moves_history": true,
+        "input_pagedown_moves_history": true,
+        "input_pageup_reaches_original_window": true,
+        "input_pagedown_reaches_original_window": true
+      },
+      "cleanup_remaining": [],
+      "cleanup_errors": []
+    }
+  ],
+  "limits": "Installed prior cf7/Core484 warm resource proof plus current source/Core491 input/geometry proof. Not a new Core474 installed gate, complete current-source A/B/A gate, Strip reuse or CPU/frame-latency claim. Parent owns current474 receiving and next paired checkpoint gate."
+}
