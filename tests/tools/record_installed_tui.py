@@ -379,6 +379,31 @@ class ObserveJourney(PhysicalJourney):
         return ""
 
 
+class ArchiveJourney(PhysicalJourney):
+    """Open retained sessions using original native controls, without input."""
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Archive controls require native state capture")
+        if not 0 <= args.archive_index < 111:
+            raise ValueError("Archive index must be within the retained 111-row fixture")
+        marker = marker_command()
+        state = lambda label: str(args.output.resolve() / f"phase-{label}-state.pickle")
+        return "\n".join((
+            "key ctrl+g", "sleep 2", marker + "archive-feed",
+            native_click_command(state("archive-feed"), target="widget", name="Button#historical-sessions"),
+            "sleep 1", marker + "archive-modal",
+            native_click_command(state("archive-modal"), target="widget", name="Select#saved-identity"),
+            "sleep 1", marker + "archive-selector",
+            "key Home", *("key Down" for _ in range(args.archive_index)), "key Return",
+            "sleep 3", marker + "archive-native",
+            native_click_command(state("archive-native"), target="widget", name="HistoryWindow#saved-window"),
+            "sleep .2", marker + "archive-focused", "key End", "sleep 1",
+            marker + "archive-end", "key Escape", "sleep 1", marker + "archive-return",
+        )) + "\n"
+
+
 class ScrollJourney(PhysicalJourney):
     @classmethod
     def script(cls, args):
@@ -1294,6 +1319,7 @@ def main():
                         help="Optional retained script; must match the selected journey, which runs automatically")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
+    parser.add_argument("--archive-index", type=int, default=0, help="Original retained selector row from the current source namespace")
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
