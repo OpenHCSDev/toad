@@ -66,6 +66,9 @@ class ActualS2Ingress:
         assert row.source_text == text
         view = self.app.selected_session.conversation
         summary = view.prompt.query_one(QueueSummary)
+        queued_receipt = {'queued_original': FieldCodec.encode(row)}
+        self.receipts.append(queued_receipt)
+        self.persist('original_followup_reserved_before_queue_paint_assertion')
         await until(self.pilot, lambda: any(item.input_id == command.input_id
             for item in view.submissions.queued_inputs)
             and text in self.painted_region(summary.region))
@@ -74,7 +77,7 @@ class ActualS2Ingress:
         assert summary.is_mounted and summary.region.width > 0 and summary.region.height > 0
         assert not any(block.commit_claim.represents_input(command.input_id)
             for block in view.contents.query(UserInput))
-        self.receipts.append({'queued_original': FieldCodec.encode(row),
+        queued_receipt.update({'queued_original': FieldCodec.encode(row),
             'pre_delivery_queue_paint': {
                 'input_id': command.input_id, 'native_started': row.has_started,
                 'summary_region': tuple(summary.region),
