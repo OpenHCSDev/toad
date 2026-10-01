@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import asyncio
-from asyncio.subprocess import Process
 from abc import abstractmethod
 from collections import deque
 from contextlib import AsyncExitStack, suppress
@@ -22,7 +21,8 @@ from weakref import ref
 from acp import schema as protocol
 from textual.content import Content
 from agent_comms.child_process import (
-    STOP_GRACE_SECONDS, ChildOutcome, ExitedOutcome, SignaledOutcome, join_retirement,
+    AttachedChild, TerminalChildStdio, ChildOutcome, ExitedOutcome, SignaledOutcome,
+    join_retirement,
 )
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -89,10 +89,10 @@ class TerminalCompletion(TerminalOutcome):
     def label(self) -> str: ...
 
     @classmethod
-    def capture(cls, code: int) -> TerminalCompletion:
-        # Existing POSIX outcome owner decodes the operating system once. The
+    def capture(cls, original: ChildOutcome) -> TerminalCompletion:
+        # Existing child owner decodes the operating system once. The
         # terminal projection retains that ORIGINAL rich value, never scalars.
-        return _TerminalCompletionDecoder(ChildOutcome.from_returncode(code)).completion
+        return _TerminalCompletionDecoder(original).completion
 
 
 @dataclass(frozen=True)
@@ -170,16 +170,16 @@ class ToolState:
 @dataclass(frozen=True)
 class PtyProcess:
     """Complete acquired handles, scoped by the execution's AsyncExitStack."""
-    process: Process
+    child: AttachedChild
     master: FileIO
 
     @classmethod
     async def acquire(cls, command, shell_command, master, slave, custody):
-        process = await asyncio.create_subprocess_shell(
-            shell_command, stdin=slave.fileno(), stdout=slave.fileno(), stderr=slave.fileno(),
-            env=os.environ | command.env, cwd=command.cwd, start_new_session=True,
+        child = await AttachedChild.start(
+            shell_command, stdio=TerminalChildStdio(slave),
+            env=os.environ | command.env, cwd=command.cwd,
         )
-        acquired = cls(process, master)
+        acquired = cls(child, master)
         # Register before returning the resource, including when the waiting
         # caller was cancelled while the original spawn was still in flight.
         custody.push_async_callback(acquired.close)
@@ -198,18 +198,11 @@ class PtyProcess:
         except (OSError, ValueError):
             return 0
 
-    def kill(self) -> bool:
-        if self.process.returncode is not None:
-            return False  # Original asyncio process observation at OS boundary.
-        try:
-            os.killpg(self.process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            return False
-        return True
+    def kill(self) -> None:
+        self.child.force()
 
     async def close(self):
-        self.kill()
-        await join_retirement(asyncio.create_task(self.process.wait()))
+        await self.child.stop()
 
 
 class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
@@ -219,8 +212,8 @@ class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
     @abstractmethod
     def outcome(self) -> TerminalOutcome: ...
 
-    def kill(self) -> bool:
-        return False
+    def kill(self) -> None:
+        pass
 
     def resize(self, width, height):
         pass
@@ -297,13 +290,13 @@ class ActiveTerminalOperation(TerminalOperation):
             return await self.ready.result().write(data)
         return 0
 
-    def kill(self):
+    def kill(self) -> None:
         if self.task.done():
-            return False
+            return
         if not self.ready.done():
             self.task.cancel()
-            return False
-        return self.ready.result().kill()
+            return
+        self.ready.result().kill()
 
     async def wait(self):
         # Cancellation of an ACP waiter is not command cancellation.
@@ -316,16 +309,16 @@ class ActiveTerminalOperation(TerminalOperation):
         await join_retirement(asyncio.create_task(self.retire_task()))
 
     async def retire_task(self):
-        self.kill()
-        joined = asyncio.gather(self.task, return_exceptions=True)
-        try:
-            async with asyncio.timeout(STOP_GRACE_SECONDS):
-                await asyncio.shield(joined)
-        except TimeoutError:
+        if self.task.done():
+            await asyncio.gather(self.task, return_exceptions=True)
+            return
+        if not self.ready.done():
             self.task.cancel()
+        else:
+            await self.ready.result().close()
         # Original execution failure belongs to task/outcome; joining does not
         # consume a second success/failure state or suppress cleanup failure.
-        await joined
+        await asyncio.gather(self.task, return_exceptions=True)
 
 
 class TerminalExecution:
@@ -378,8 +371,8 @@ class TerminalExecution:
         self._operation = self._operation.retire()
         await self._operation.close()
 
-    def kill(self):
-        return self._operation.kill()
+    def kill(self) -> None:
+        self._operation.kill()
 
     async def wait_for_exit(self):
         return await self._operation.wait()
@@ -405,7 +398,7 @@ class TerminalExecution:
                 command = self.command
                 run_command = (command.command if " " in command.command
                                else f"{command.command} {shlex.join(command.args)}")
-                shell_command = shlex.join([os.environ.get("SHELL", "sh"), "-c", run_command])
+                shell_command = (os.environ.get("SHELL", "sh"), "-c", run_command)
                 spawn = asyncio.create_task(PtyProcess.acquire(
                     command, shell_command, master_file, slave_file, custody))
                 try:
@@ -431,7 +424,7 @@ class TerminalExecution:
                         self.project()
                     if not data:
                         break
-                return TerminalCompletion.capture(await acquired.process.wait())
+                return TerminalCompletion.capture(await acquired.child.wait())
         except BaseException as error:
             if not ready.done():
                 ready.set_exception(error)

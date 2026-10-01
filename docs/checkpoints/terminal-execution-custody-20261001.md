@@ -24,7 +24,7 @@ and fixtures. Report production deletion separately from fixture/evidence lines.
 
 ## Working paired source checkpoint
 
-Core480 dependency: 199bbaaa69414c59ed17fb16c556c7a10365f7b2. The original
+Initial Core480 dependency: 199bbaaa69414c59ed17fb16c556c7a10365f7b2. The original
 child_process join algorithm has an identical AST; its declaration and both Core
 consumers use the public name `join_retirement`, with no alias or copied loop.
 Existing real-process cancellation controls: 3 passed in 7.81s. Toad's locked
@@ -69,3 +69,37 @@ Patterns: IMPL-10/IMPL-13, IDEN-3, BOUND-7, TIME-2. A new original process outco
 owns its terminal projection as a family member; unrelated consumers do not gain
 another switch. A new bound surface uses the same original MessagePump admission
 and ownership relation, with no terminal-specific closing mirror.
+
+## Original child-owner closure after structural review
+
+Final paired Core480 dependency: f8ae4f5217561b6b8a2def4cafc2dfda583fcdfe.
+Against8116949e current production deletes 261 lines and adds 458 across the same
+seven files. Kepler's single existing helper adds 203/deletes19 fixture lines.
+
+The initial274d01 PtyProcess could skip a surviving group after its leader exited.
+Parent's original installed254 control did NOT reproduce a leak; this finding
+is scoped to the new274 implementation, not claimed as a live254 failure.
+
+PtyProcess now requires the original AttachedChild and master file. Its copied
+process field is deleted, along with Toad's manual subprocess launch, bare PID/
+killpg, OS return-code decode and STOP_GRACE retirement loop. AttachedChild's
+original exec gate owns identity before command execution. TerminalChildStdio
+provides the original slave file; all native streaming defaults remain unchanged.
+kill delegates to original child.force (ACP SIGKILL preserved), retirement uses
+original child.stop including surviving members of an exited leader, and the
+terminal projection consumes the original rich child.wait result. No subprocess
+subclass or alternate stop algorithm is introduced in Toad.
+
+The same cancelled acquisition joins its protected spawn, whose complete child/
+PTY resource has registered its original cleanup in AsyncExitStack. No lost
+nullable handle is reconstructed at exit. The existing original Core group-stop
+and public join own cancellation and settlement, including repeated ACP release
+cancellation. No task deadline is introduced in Toad.
+
+All22 existing Core child-process/guard controls passed in25.68s. Actual SOURCE
+PTY control observed one surviving original child after leader exit and retired
+the entire group/master in2.075s. Source controls are not installed/live claims.
+Kepler65288a29 is normally merged; it migrates every original-custody consumer and
+adds that leader-exited descendant control to the same installed journey. The
+single correctly pinned paired receiving stage/gate is still pending. Parent
+sole public executor; frozen479/pair remains untouched.
