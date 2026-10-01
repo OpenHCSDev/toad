@@ -1,0 +1,571 @@
+{
+  "result": "REGRESSION2_NOT_CONFIRMED_ON_CURRENT_DEFAULT",
+  "production_patch": false,
+  "source_checkpoint": "a89abcdfc0524319204440b99963a9e79c1d15fa",
+  "raw": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01",
+  "recording_seconds": 53.32178362796549,
+  "runtime": {
+    "agent_comms": "1304d0657975020c148a83f40d3b1550d6e70355",
+    "toad": "a9fc52e5f23dae4933bf7268f6cc174ac1d63b45",
+    "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206"
+  },
+  "native_manifest": "17d6e8f97d17832e4f399ccb700033f90c6c024ecb0914ab859409391defe3b5",
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1983746,
+      "start_time": 35522550
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1983746,
+      "start_time": 35522550
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2012700,
+        "start_ticks": 35623045,
+        "returncode": 0
+      },
+      {
+        "pid": 2012728,
+        "start_ticks": 35623147,
+        "returncode": 0
+      },
+      {
+        "pid": 2012744,
+        "start_ticks": 35623157,
+        "returncode": 0
+      },
+      {
+        "pid": 2012751,
+        "start_ticks": 35623211,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2012752,
+        "start_ticks": 35623217,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2012770,
+        "start_ticks": 35623329,
+        "returncode": 0
+      },
+      {
+        "pid": 2012771,
+        "start_ticks": 35623345,
+        "returncode": 0
+      },
+      {
+        "pid": 2012772,
+        "start_ticks": 35623356,
+        "returncode": 255
+      },
+      {
+        "pid": 2012969,
+        "start_ticks": 35623958,
+        "returncode": 0
+      },
+      {
+        "pid": 2013019,
+        "start_ticks": 35623986,
+        "returncode": 0
+      },
+      {
+        "pid": 2013032,
+        "start_ticks": 35624032,
+        "returncode": 0
+      },
+      {
+        "pid": 2013338,
+        "start_ticks": 35625719,
+        "returncode": 0
+      },
+      {
+        "pid": 2013469,
+        "start_ticks": 35625823,
+        "returncode": 0
+      },
+      {
+        "pid": 2013558,
+        "start_ticks": 35625991,
+        "returncode": 0
+      },
+      {
+        "pid": 2013559,
+        "start_ticks": 35626006,
+        "returncode": 0
+      },
+      {
+        "pid": 2013627,
+        "start_ticks": 35626428,
+        "returncode": 0
+      },
+      {
+        "pid": 2013628,
+        "start_ticks": 35626440,
+        "returncode": 0
+      },
+      {
+        "pid": 2013641,
+        "start_ticks": 35626586,
+        "returncode": 0
+      },
+      {
+        "pid": 2013657,
+        "start_ticks": 35626680,
+        "returncode": 0
+      },
+      {
+        "pid": 2013763,
+        "start_ticks": 35626822,
+        "returncode": 0
+      },
+      {
+        "pid": 2013764,
+        "start_ticks": 35626836,
+        "returncode": 0
+      },
+      {
+        "pid": 2013864,
+        "start_ticks": 35627260,
+        "returncode": 0
+      },
+      {
+        "pid": 2013865,
+        "start_ticks": 35627272,
+        "returncode": 0
+      },
+      {
+        "pid": 2013878,
+        "start_ticks": 35627414,
+        "returncode": 0
+      },
+      {
+        "pid": 2013894,
+        "start_ticks": 35627514,
+        "returncode": 0
+      },
+      {
+        "pid": 2013917,
+        "start_ticks": 35627657,
+        "returncode": 0
+      },
+      {
+        "pid": 2014144,
+        "start_ticks": 35628475,
+        "returncode": 0
+      },
+      {
+        "pid": 2014201,
+        "start_ticks": 35628632,
+        "returncode": 0
+      },
+      {
+        "pid": 2014205,
+        "start_ticks": 35628652,
+        "returncode": 0
+      },
+      {
+        "pid": 2014211,
+        "start_ticks": 35628734,
+        "returncode": 0
+      },
+      {
+        "pid": 2014284,
+        "start_ticks": 35628815,
+        "returncode": 0
+      },
+      {
+        "pid": 2014288,
+        "start_ticks": 35628872,
+        "returncode": 0
+      }
+    ]
+  },
+  "phases": [
+    {
+      "name": "input-held-up",
+      "seconds": 6.110425923,
+      "deltas": {
+        "all_walks": 43,
+        "retained_cost_walks": 0,
+        "height_cost_walks": 0,
+        "diagnostic_walks": 17
+      },
+      "rates_per_second": {
+        "all_walks": 7.037152653818367,
+        "retained_cost_walks": 0.0,
+        "height_cost_walks": 0.0,
+        "diagnostic_walks": 2.782130118951448
+      },
+      "nondiagnostic_walks_per_second": 4.25502253486692,
+      "observer_seconds": 0.000770309,
+      "state": [
+        {
+          "phase": "phase-input-held-up",
+          "focus": "PromptTextArea",
+          "scroll_y": 65,
+          "maximum": 65,
+          "follows_tail": true,
+          "registered_bodies": 8,
+          "dormant_bodies": 0,
+          "native_widgets": 80,
+          "body_ids": [
+            139799109710416,
+            139799109704336,
+            139799109708496,
+            139799109702416,
+            139799109704016,
+            139799109709136,
+            139798385031632,
+            139799109704656
+          ],
+          "node_revisions": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ]
+        },
+        {
+          "phase": "phase-input-held-up-done",
+          "focus": "PromptTextArea",
+          "scroll_y": 65,
+          "maximum": 65,
+          "follows_tail": true,
+          "registered_bodies": 8,
+          "dormant_bodies": 0,
+          "native_widgets": 80,
+          "body_ids": [
+            139799109710416,
+            139799109704336,
+            139799109708496,
+            139799109702416,
+            139799109704016,
+            139799109709136,
+            139798385031632,
+            139799109704656
+          ],
+          "node_revisions": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "name": "history-held-up",
+      "seconds": 5.946244071,
+      "deltas": {
+        "all_walks": 114,
+        "retained_cost_walks": 54,
+        "height_cost_walks": 16,
+        "diagnostic_walks": 17
+      },
+      "rates_per_second": {
+        "all_walks": 19.171766015455237,
+        "retained_cost_walks": 9.081362849426165,
+        "height_cost_walks": 2.6907741776077527,
+        "diagnostic_walks": 2.858947563708237
+      },
+      "nondiagnostic_walks_per_second": 16.312818451747003,
+      "observer_seconds": 0.002494427,
+      "state": [
+        {
+          "phase": "phase-history-held-up",
+          "focus": "Window",
+          "scroll_y": 65,
+          "maximum": 65,
+          "follows_tail": true,
+          "registered_bodies": 8,
+          "dormant_bodies": 0,
+          "native_widgets": 80,
+          "body_ids": [
+            139799109710416,
+            139799109704336,
+            139799109708496,
+            139799109702416,
+            139799109704016,
+            139799109709136,
+            139798385031632,
+            139799109704656
+          ],
+          "node_revisions": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ]
+        },
+        {
+          "phase": "phase-history-held-up-done",
+          "focus": "Window",
+          "scroll_y": 82,
+          "maximum": 179,
+          "follows_tail": false,
+          "registered_bodies": 16,
+          "dormant_bodies": 0,
+          "native_widgets": 160,
+          "body_ids": [
+            139799135032400,
+            139798845192336,
+            139799125194896,
+            139797963639056,
+            139799109704016,
+            139799109709136,
+            139798405863760,
+            139798385031632,
+            139798845765136,
+            139799109710416,
+            139797963649616,
+            139799109704336,
+            139799109708496,
+            139799109702416,
+            139797963651856,
+            139799109704656
+          ],
+          "node_revisions": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input-focused-mid-history-idle",
+      "seconds": 9.631726562,
+      "deltas": {
+        "all_walks": 56,
+        "retained_cost_walks": 0,
+        "height_cost_walks": 0,
+        "diagnostic_walks": 33
+      },
+      "rates_per_second": {
+        "all_walks": 5.814118542457019,
+        "retained_cost_walks": 0.0,
+        "height_cost_walks": 0.0,
+        "diagnostic_walks": 3.4261769982336006
+      },
+      "nondiagnostic_walks_per_second": 2.3879415442234184,
+      "observer_seconds": 0.000836397,
+      "state": [
+        {
+          "phase": "phase-cost-idle-start",
+          "focus": "PromptTextArea",
+          "scroll_y": 82,
+          "maximum": 179,
+          "follows_tail": false,
+          "registered_bodies": 16,
+          "dormant_bodies": 0,
+          "native_widgets": 160,
+          "body_ids": [
+            139799135032400,
+            139798845192336,
+            139799125194896,
+            139797963639056,
+            139799109704016,
+            139799109709136,
+            139798405863760,
+            139798385031632,
+            139798845765136,
+            139799109710416,
+            139797963649616,
+            139799109704336,
+            139799109708496,
+            139799109702416,
+            139797963651856,
+            139799109704656
+          ],
+          "node_revisions": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ]
+        },
+        {
+          "phase": "phase-cost-idle-done",
+          "focus": "PromptTextArea",
+          "scroll_y": 82,
+          "maximum": 179,
+          "follows_tail": false,
+          "registered_bodies": 16,
+          "dormant_bodies": 0,
+          "native_widgets": 160,
+          "body_ids": [
+            139799135032400,
+            139798845192336,
+            139799125194896,
+            139797963639056,
+            139799109704016,
+            139799109709136,
+            139798405863760,
+            139798385031632,
+            139798845765136,
+            139799109710416,
+            139797963649616,
+            139799109704336,
+            139799109708496,
+            139799109702416,
+            139797963651856,
+            139799109704656
+          ],
+          "node_revisions": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ]
+        }
+      ]
+    }
+  ],
+  "idle_kernel_cpu": {
+    "pid": "2012752",
+    "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "cpu_seconds": 3.1800000000000015,
+    "average_cpu_percent": 33.045191357025395
+  },
+  "clock_limit": "Counter monotonic phase checkpoints exact; kernel action boundaries differ by screenshot overhead. Chrome transition groups are not calls/sample/time fractions.",
+  "profile_samples": 686,
+  "profile_errors": 0,
+  "profile_alignment_uncertainty_seconds": 0.06228043548529968,
+  "source_explanation": {
+    "original": "e7dbc1c3a",
+    "existing_correction": "bbd4ee75e3d9cd01ec7c07c7e47b43eb3dec3fcc",
+    "meaning": "Original BodyMeasurement count validates against propagated NodeList membership revision instead of geometry revision; stable idle has no height/cost subtree walks."
+  },
+  "scope_limits": [
+    "Existing original saved nra-architecture; no new native input or synthetic active provider stream.",
+    "Physical input-held PageUp does not move chat; history-focused held PageUp does load and scroll; keyboard routing is Heisenberg owned.",
+    "Busy sidebar has external activity, but this original thread is Ready.",
+    "Existing PromptSendUnknown/Needs attention/Context unavailable visible; no whole product Ready claim.",
+    "No pre254 comparative performance or speed claim.",
+    "FFmpeg capture_returncode255 at intentional finalization preserved; valid53.567s/1607frame video, completed true/cleanup0."
+  ],
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/receipt.json",
+      "sha256": "07af2edf39860677afc42238e093bd8b7e8c112d12053ee23dfee4a083c59f14",
+      "bytes": 151290
+    },
+    "widget-cost.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/widget-cost.jsonl",
+      "sha256": "9f6092e89441acf5d61498dd539ddfef87b9590e23a6475ad05b9e013e41ecda",
+      "bytes": 7871
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/terminal.mp4",
+      "sha256": "c78ac01f2f53798f6551c4f2040a819fb6d4b86d1e9f9a75f951910f8ffe90af",
+      "bytes": 616813
+    },
+    "cpu-profile.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/cpu-profile.json",
+      "sha256": "8b5c778c19cb8b3eee9a47f6a5b19459170e4aa681bbd6cc2dee8f0736e4ea7e",
+      "bytes": 4267828
+    },
+    "profile-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/profile-review.json",
+      "sha256": "199187182636cc9aa6c4a03071c6b5fe452775fe1e24502bd65b5a2380c411fa",
+      "bytes": 85832
+    },
+    "profiler.log": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/profiler.log",
+      "sha256": "1e44c1dace3214a1ebb59e49aa0ebfb1e046c6ae5e8015ef75e1e4f4a1e0c857",
+      "bytes": 352
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/events.jsonl",
+      "sha256": "043073451ce00d0b9b76baf12a5cdfd6f14df2afc53619ab0d57f4e5c1efb056",
+      "bytes": 18961
+    },
+    "phase-cost-idle-start.png": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/phase-cost-idle-start.png",
+      "sha256": "8e2a0e4fff468852c0992aab554c6da7e32550ae6c8479ffe8a39728187d0aef",
+      "bytes": 48766
+    },
+    "phase-cost-idle-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/phase-cost-idle-done.png",
+      "sha256": "cc949731b4ecfff7c4529f81ead65e96f709856cf64be7fbf198074887b6f246",
+      "bytes": 49093
+    },
+    "phase-cost-idle-start-state.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/phase-cost-idle-start-state.json",
+      "sha256": "158a98cfd52f96876b4472e676005dd42c3c3ec6cbc7ddac7d596d8b647972cf",
+      "bytes": 1049168
+    },
+    "phase-cost-idle-done-state.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf280-widget-cost-busy-default-20261001-01/phase-cost-idle-done-state.json",
+      "sha256": "6d4b1aab832a022c886dac7cf8020a0ef037af3175ee3e35643846694365e9e5",
+      "bytes": 1049169
+    }
+  }
+}
