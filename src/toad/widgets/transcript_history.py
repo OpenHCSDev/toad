@@ -366,13 +366,16 @@ class TranscriptPageView(VerticalGroup):
         for index, child in previous.items():
             if not start <= index < stop:
                 await child.remove()
-        for index in range(start, stop):
+        before = None
+        for index in range(stop - 1, start - 1, -1):
             child = previous.get(index)
             if child is None:
                 body = self._body(fragments[index])
-                await self.mount(body)
+                await self.mount(body, before=before)
+                child = body
             elif child.fragment != fragments[index]:
                 await child.update_fragment(fragments[index])
+            before = child
         self.start, self.stop = start, stop
 
 
@@ -738,15 +741,23 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 return
             async with window.preserve_history(None):
                 self._saturated_widget_limit = 0
-                await self.remove_children(list(self.pages))
-                view = TranscriptPageView(
-                    page, fragments=fragments,
-                    batch_size=destination_admission,
-                )
-                view.visible_categories = self.selected_categories
-
+                view = self.pages[-1]
+                if view.capture_admission().interval == CommittedInterval(page.before, page.after):
+                    # The certified source interval already has native custody.
+                    # End changes its admitted range, not its presentation owner.
+                    await self.remove_children([retired for retired in self.pages if retired is not view])
+                    view.batch_size = destination_admission
+                    await view.update_fragments(fragments, follow=True)
+                    view.page = page
+                else:
+                    await self.remove_children(list(self.pages))
+                    view = TranscriptPageView(
+                        page, fragments=fragments,
+                        batch_size=destination_admission,
+                    )
+                    view.visible_categories = self.selected_categories
+                    await self.mount(view, before=self.newer)
                 self.pages = deque([view])
-                await self.mount(view, before=self.newer)
                 self._update_edges()
                 self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
 
