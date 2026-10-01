@@ -55,5 +55,5 @@ def test_queue_capture_refuses_prebind_and_replacement(tmp_path):
     assert attachment.capture_human_input(comms, scope) == HumanInputOrigin.capture(comms, scope.admission)
     # begin retains the old observed scope, but owns an unavailable projection.
     attachment.begin('source')
-    with pytest.raises(ValueError, match='attachment changed'):
+    with pytest.raises(ValueError, match='Remote queue unavailable'):
         attachment.capture_human_input(comms, scope)
