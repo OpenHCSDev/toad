@@ -1,0 +1,15 @@
+{
+  "owner": "Mendel authorized sole receiving stage",
+  "source_owner": "Arendt480/274",
+  "journey_owner": "Kepler",
+  "purpose": "Private installed ACP PTY custody continuous journey",
+  "prefix": "/home/ts/wt/toad-terminal-execution-custody-20261001/.artifacts/runtime-terminal-custody-480-274-20261001",
+  "core": "f8ae4f5217561b6b8a2def4cafc2dfda583fcdfe",
+  "toad": "4552528de1e1c1126232b9114da0711282cd8997",
+  "native": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "donor": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/staging-openhcs-recovery-cohort-20261001/requirements.txt",
+  "donor_sha256": "96e73018bf1a2780266b1a451ac0cd4d8ea7f552b8c2954d6073a339a5d39a12",
+  "protected_files": 4163,
+  "public_effects": false,
+  "created_utc": "2026-10-01T10:17:55Z"
+}

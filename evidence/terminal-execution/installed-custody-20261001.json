@@ -1,0 +1,174 @@
+{
+  "assessment": "PASS scoped actual installed terminal lifecycle; not default activation or global UI readiness",
+  "reviewed_at_utc": "2026-10-01T10:25:42.347977+00:00",
+  "pins": {
+    "agent_comms": "f8ae4f5217561b6b8a2def4cafc2dfda583fcdfe",
+    "toad": "4552528de1e1c1126232b9114da0711282cd8997",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+  },
+  "sdk": "0.12.1",
+  "native_manifest": "593b978a717ae8f6ab4300a1a107b615c8ced52e767ef4cad0596f827041a218",
+  "stage": "/home/ts/wt/toad-terminal-execution-custody-20261001/.artifacts/runtime-terminal-custody-480-274-20261001",
+  "source_proof": "/home/ts/wt/toad-terminal-execution-custody-20261001/.artifacts/staging-terminal-custody-480-274-20261001/source-proof.json",
+  "source_proof_sha256": "fbff9d82bbc0283f0cead0b8c5a27d4db12caf6505bfbc5032fd0206366776b6",
+  "driver_sha256": "428e551aa344bb87742a94271b7ad2aa4b2544117d093a327d08dc5944973503",
+  "raw": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01",
+  "private_fixture": "/home/ts/wt/ac480-terminal-installed01",
+  "exit_code": 0,
+  "elapsed_seconds": 22.60940987500362,
+  "runtime_activation_unchanged": true,
+  "journey": "existing installed App/LinuxDriver -> normal ACP launcher/native attachment -> original terminal handlers/AttachedChild/real PTYs -> detach/actual tab click/ANSI paint -> cancellation/release/startup/retirement -> original private owner shutdown",
+  "accepted_cases": {
+    "normal_exit": {
+      "exitCode": 0
+    },
+    "signal_exit": {
+      "signal": "SIGKILL"
+    },
+    "cancelled_wait_preserves_original_process": true,
+    "bounded_utf8": {
+      "output": "",
+      "truncated": true,
+      "exitStatus": {
+        "exitCode": 0
+      }
+    },
+    "failed_startup": {
+      "jsonrpc": "2.0",
+      "id": 15,
+      "error": {
+        "code": -32603,
+        "message": "An error occurred handling your request: FileNotFoundError(2, 'No such file or directory')"
+      }
+    },
+    "released_child": {
+      "pid": 1153329,
+      "alive": false,
+      "pty_closed": true
+    },
+    "cancelled_release": {
+      "cancellations": 2,
+      "pid": 1153331,
+      "alive": false,
+      "pty_closed": true,
+      "address_present": false
+    },
+    "cancelled_startup": {
+      "acquisition": "refused_before_custody"
+    },
+    "exited_leader_descendant": {
+      "leader_pid": 1153335,
+      "leader_return_code": 0,
+      "observed_survivors": [
+        1153337
+      ],
+      "group_retired": true,
+      "pty_closed": true,
+      "address_present": false
+    },
+    "controller_addresses_after_close": 0,
+    "pty_masters_before": [],
+    "pty_masters_after": [],
+    "provider_requests": 0,
+    "native_owner_preserved": true
+  },
+  "physical_terminal_review": {
+    "source": "original captured LinuxDriver ANSI replay; no UI process/capture launched",
+    "columns": 160,
+    "rows": 44,
+    "frames": 234,
+    "consumed_terminal_bytes": 289442,
+    "observations": {
+      "ACTIVE_THEN_DETACHED": {
+        "frame": 204,
+        "elapsed_seconds": 14.998633000000007,
+        "physical_rows": [
+          "                                                               \u2502\u258c\u258a ACTIVE_THEN_DETACHED                                                                  \u258e      "
+        ]
+      },
+      "CREATED_WHILE_DETACHED": {
+        "frame": 205,
+        "elapsed_seconds": 15.015168000000006,
+        "physical_rows": [
+          "                                                               \u2502\u258c\u258a CREATED_WHILE_DETACHED                                                                \u258e      "
+        ]
+      }
+    },
+    "limitation": "offline terminal replay proves emitted terminal rows; not X11 video or CPU acceptance"
+  },
+  "shutdown": {
+    "evidence": "original private registry process identities checked with installed Platform after wrapper EXIT0",
+    "original_private_owners": [
+      {
+        "name": "beta",
+        "pid": 1153161,
+        "alive": false,
+        "group_members": []
+      },
+      {
+        "name": "project",
+        "pid": 1153428,
+        "alive": false,
+        "group_members": []
+      }
+    ],
+    "remaining_owned_groups": 0
+  },
+  "counts": {
+    "provider_posts": 0,
+    "paid_calls": 0,
+    "public_mutations": 0,
+    "default_activation": 0,
+    "input_replays": 0,
+    "new_native_builds": 0
+  },
+  "limits": [
+    "Cancelled startup exercised pre-acquisition refusal; acquired-startup cancellation was not exercised in this installed run.",
+    "Physical proof is original ANSI terminal replay plus native compositor SVG; no X11 video or CPU performance claim.",
+    "This is a staged paired checkpoint, not the default installed launcher or all comms workflows."
+  ],
+  "helper_changes": {
+    "file": "tests/native_terminal_retention_pilot.py",
+    "base": "8116949e27b5bb198158556dbb7a8a3dae42b4ff",
+    "contribution_head": "65288a29500b7f6b11ce7208dfd5de9825448a0b",
+    "added_lines": 203,
+    "deleted_lines": 19
+  },
+  "artifacts": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/launch.json",
+      "bytes": 1587,
+      "sha256": "4a87f7c9206cc1cde11e20eb6a7cb3d6bd9c880bc21bfa1b15bc17c49c81c969"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/terminal-receipt.json",
+      "bytes": 746,
+      "sha256": "0543cb3eafe0c9711dd7a20247921dc5f7f66e1a6dffe37c7fc2b9eb03ca5f5f"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/terminal.ansi",
+      "bytes": 289802,
+      "sha256": "41c7ac9e7dfa83ae37ff53d54266e5dc34829f42629d2e6fbd02060f378adeb1"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/terminal.timing",
+      "bytes": 3188,
+      "sha256": "2cd03494096de5d2a0e025b484c50a1f3890525c3bbdbf20237da5057b3a120f"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/proof/terminal-lifecycle-acceptance.json",
+      "bytes": 1163,
+      "sha256": "c9e72ab0f6d28d282585e30488030e4d33d31d1efc946ab5cded46b79a94bfb4"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/proof/terminal-reattached.svg",
+      "bytes": 47152,
+      "sha256": "8ce08ede582e2fd5d1df5e72b1aa482b53d214331c5a76b06687a41d41304936"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/kepler-terminal-custody-480-274-20261001-installed01/offline-terminal-review.json",
+      "bytes": 961,
+      "sha256": "e95c6cb011818bf9fc5696a82f9206c2a71f38939fbd8d2209370a96c78259b5"
+    }
+  ]
+}
