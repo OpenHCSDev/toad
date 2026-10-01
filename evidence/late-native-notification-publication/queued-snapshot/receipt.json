@@ -1,0 +1,21 @@
+{
+  "case": "queued_snapshot",
+  "held": {
+    "response_receive_done": true,
+    "finished_receive_done": true,
+    "source_publish_done": false,
+    "saved_resources": 0,
+    "managed_busy": false
+  },
+  "final_resource_count": 1,
+  "final_resources": [
+    {
+      "id": 139729019507472,
+      "parent": "TranscriptFragmentView"
+    }
+  ],
+  "duplicate_frames": 0,
+  "frames": 7,
+  "native_started": false,
+  "registered_histories": 1
+}

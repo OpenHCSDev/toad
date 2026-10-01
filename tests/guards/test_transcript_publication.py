@@ -53,6 +53,16 @@ def test_accepted_retirement_has_one_owner():
     assert owners == ['TranscriptPresentation']
 
 
+def test_publication_cases_inherit_original_application_join():
+    tree = ast.parse((Path(__file__).parents[2] / 'src/toad/transcript_publication.py').read_text())
+    cases = [node for node in tree.body if isinstance(node, ast.ClassDef)
+             and any(isinstance(base, ast.Name) and base.id in
+                     {'TranscriptPublication', 'CanonicalSourcePublication'} for base in node.bases)]
+    assert cases
+    assert not [member for case in cases for member in case.body
+                if isinstance(member, ast.AsyncFunctionDef) and member.name == 'publish']
+
+
 async def declaration_case():
     import asyncio
     import os
@@ -81,6 +91,37 @@ async def declaration_case():
             await app.screen.prepare_navigation()
             await app.screen.layout_navigation()
             view=app.selected_session.conversation
+            # Original FIFO application is still in flight. A queued original
+            # request must neither read/prep nor adopt a replacement generation.
+            applied_entered, applied_release = asyncio.Event(), asyncio.Event()
+            async def held_application():
+                applied_entered.set()
+                await applied_release.wait()
+            view.call_later(held_application)
+            await applied_entered.wait()
+            entered, release = asyncio.Event(), asyncio.Event()
+            release.set()
+            publication = view.transcript.capture(DeclaredPublication, entered, release)
+            pending = asyncio.create_task(publication.publish())
+            await asyncio.sleep(.03)
+            assert not entered.is_set() and not pending.done()
+            view.transcript.invalidate()
+            applied_release.set()
+            await pending
+            assert not entered.is_set()
+            # Cancel only the original source waiter while native application
+            # remains held. The original UI pump and its callback stay alive.
+            applied_entered.clear(); applied_release.clear()
+            view.call_later(held_application)
+            await applied_entered.wait()
+            pending = asyncio.create_task(view.transcript.publish(DeclaredPublication, entered, release))
+            await asyncio.sleep(.03)
+            pending.cancel()
+            result = await asyncio.gather(pending, return_exceptions=True)
+            assert isinstance(result[0], asyncio.CancelledError)
+            assert not entered.is_set() and not view.task.done()
+            applied_release.set()
+            await pilot.pause()
             entered,release=asyncio.Event(),asyncio.Event()
             pending=asyncio.create_task(view.transcript.publish(DeclaredPublication,entered,release))
             await entered.wait()
@@ -136,4 +177,5 @@ if __name__=='__main__':
     test_source_operation_flags_deleted()
     test_native_page_coverage_is_joined()
     test_accepted_retirement_has_one_owner()
+    test_publication_cases_inherit_original_application_join()
     test_declared_case()
