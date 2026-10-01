@@ -194,6 +194,10 @@ class InstalledApp(ForkApp):
         )
         with (Path(os.environ['L0A_EVIDENCE']) / 'input-frames.jsonl').open('a') as output:
             output.write(json.dumps(FieldCodec.encode(frame)) + '\n')
+        self.observe_input_paint(frame)
+
+    def observe_input_paint(self, frame: InputPaintFrame) -> None:
+        """Observe the original emitted frame once through the measurement owner."""
         if self.before_delivery_capture is not None:
             self.before_delivery_capture.observe(frame)
 
