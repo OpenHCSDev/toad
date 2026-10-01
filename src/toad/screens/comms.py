@@ -129,16 +129,19 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             )
             with containers.Vertical(id="comms-content"):
                 yield Button("Saved sessions", id="historical-sessions")
-                if not self._content_loaded:
-                    yield Static(f"Opening {self.target}…", id="comms-opening")
-                else:
-                    yield CommsChatView(
-                        self.project_path,
-                        me=self.me,
-                        target=self.target,
-                        kind=self.kind,
-                        wire_root=self.wire_root,
-                    )
+                with containers.Vertical(id="comms-chat-content"):
+                    if not self._content_loaded:
+                        yield Static(f"Opening {self.target}…", id="comms-opening")
+                    else:
+                        yield self.create_chat()
+
+    def create_chat(self) -> CommsChatView:
+        """One route-bound conversation factory for compose and lazy hydration."""
+        return CommsChatView(
+            self.project_path, me=self.me, target=self.target, kind=self.kind,
+            wire_root=self.wire_root,
+        )
+
 
     @on(SelectHistoricalIdentity)
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
@@ -201,11 +204,9 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             # state. Hydrate only the conversation; retain those exact controls
             # and their scroll position throughout the opening transition.
             with self.app.batch_update():
-                content = self.query_one("#comms-content", containers.Vertical)
+                content = self.query_one("#comms-chat-content", containers.Vertical)
                 await content.remove_children()
-                await content.mount(CommsChatView(
-                    self.project_path, me=self.me, target=self.target, kind=self.kind,
-                ))
+                await content.mount(self.create_chat())
                 if self.is_attached:
                     self._prepare_content()
                     if self.is_current:
