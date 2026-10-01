@@ -1,4 +1,10 @@
-# Regression2 discriminator: repeated height recount not confirmed
+# Regression2 measured result: repeated height recount not confirmed
+
+Current rule: existing-owner/caller semantic reasoning first, coherent nominal
+implementation and deletion when needed, batched validation at the end. The
+original measurement below is retained history, not a test-first work order.
+Heisenberg owns the active viewport scope; no duplicate cost type/cache or
+Einstein production viewport patch is proposed.
 
 Counter/source checkpoint `a89abcdfc0524319204440b99963a9e79c1d15fa`.
 Actual ordinary `/home/ts/bin/toad-comms nra-architecture`, isolated st/Xvfb,

@@ -1,3 +1,13 @@
+# Archived opening scope
+
+This is the historical PR opening text. It is superseded by Tristan's current
+semantic-source-first rule and is not an active instruction: inspect existing
+owners/capabilities/callers, reuse the canonical owner and delete competing
+copies, then perform batched END validation. Do not patch from a performance
+counter hypothesis alone or create a new type duplicating an existing owner.
+Original measured results and raw proof remain unchanged. Heisenberg owns the
+active viewport/B scope; Einstein has no production viewport edits.
+
 # Regression2: body-owned widget cost contribution to275
 
 Integration ownerHeisenberg275 granted Einstein MeasuredViewportBody.retained_widget_count/materialized_widget_count/retire_measurement/get_content_height and original initialization/child-custody invalidation via https://github.com/OpenHCSDev/toad/pull/275#issuecomment-5937576261 . Kepler owns regression3 pass-scoped admission consumption. No edits to restoration/scroll/keyboard/Conversation.
