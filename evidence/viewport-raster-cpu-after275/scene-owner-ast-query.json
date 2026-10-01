@@ -1,0 +1,1784 @@
+{
+  "tool": "NRA ParsedModule + SourceIndex + original ClassFunctionStackNodeVisitor",
+  "roots": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+    "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual"
+  ],
+  "parsed_modules": 523,
+  "declarations": [
+    {
+      "symbol": "toad.app.ToadApp._switch_mode_ready",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "name": "ToadApp._switch_mode_ready",
+      "line": 494,
+      "end_line": 515,
+      "bases": []
+    },
+    {
+      "symbol": "toad.block_navigation.BlockCursor.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/block_navigation.py",
+      "name": "BlockCursor.select",
+      "line": 47,
+      "end_line": 47,
+      "bases": []
+    },
+    {
+      "symbol": "toad.block_navigation.AtomicBlockCursor.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/block_navigation.py",
+      "name": "AtomicBlockCursor.select",
+      "line": 61,
+      "end_line": 62,
+      "bases": []
+    },
+    {
+      "symbol": "toad.block_navigation.ChildBlockCursor.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/block_navigation.py",
+      "name": "ChildBlockCursor.select",
+      "line": 82,
+      "end_line": 83,
+      "bases": []
+    },
+    {
+      "symbol": "toad.block_navigation.ContentNavigation.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/block_navigation.py",
+      "name": "ContentNavigation.select",
+      "line": 132,
+      "end_line": 146,
+      "bases": []
+    },
+    {
+      "symbol": "toad.frame_presentation.FrameState",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "name": "FrameState",
+      "line": 60,
+      "end_line": 81,
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "symbol": "toad.frame_presentation.PendingFrame",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "name": "PendingFrame",
+      "line": 84,
+      "end_line": 88,
+      "bases": [
+        "FrameState"
+      ]
+    },
+    {
+      "symbol": "toad.frame_presentation.WritingFrame",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "name": "WritingFrame",
+      "line": 91,
+      "end_line": 92,
+      "bases": [
+        "FrameState"
+      ]
+    },
+    {
+      "symbol": "toad.frame_presentation.SuspendedFrame",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "name": "SuspendedFrame",
+      "line": 95,
+      "end_line": 103,
+      "bases": [
+        "FrameState"
+      ]
+    },
+    {
+      "symbol": "toad.frame_presentation.PresentedFrame",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "name": "PresentedFrame",
+      "line": 106,
+      "end_line": 116,
+      "bases": [
+        "FrameState"
+      ]
+    },
+    {
+      "symbol": "toad.frame_presentation.FramePresentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "name": "FramePresentation",
+      "line": 130,
+      "end_line": 188,
+      "bases": []
+    },
+    {
+      "symbol": "toad.goal_interaction.GoalSession.activate",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "name": "GoalSession.activate",
+      "line": 159,
+      "end_line": 174,
+      "bases": []
+    },
+    {
+      "symbol": "toad.question_presentation.QuestionMount.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_presentation.py",
+      "name": "QuestionMount.select",
+      "line": 17,
+      "end_line": 17,
+      "bases": []
+    },
+    {
+      "symbol": "toad.question_presentation.DetachedQuestionMount.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_presentation.py",
+      "name": "DetachedQuestionMount.select",
+      "line": 30,
+      "end_line": 31,
+      "bases": []
+    },
+    {
+      "symbol": "toad.question_presentation.ActiveQuestionMount.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_presentation.py",
+      "name": "ActiveQuestionMount.select",
+      "line": 48,
+      "end_line": 51,
+      "bases": []
+    },
+    {
+      "symbol": "toad.session_presentation.NativeSessionSurface",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "name": "NativeSessionSurface",
+      "line": 166,
+      "end_line": 288,
+      "bases": []
+    },
+    {
+      "symbol": "toad.session_presentation.NativeSessionSurface.activate",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "name": "NativeSessionSurface.activate",
+      "line": 198,
+      "end_line": 228,
+      "bases": []
+    },
+    {
+      "symbol": "toad.transcript_publication.TranscriptPresentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_publication.py",
+      "name": "TranscriptPresentation",
+      "line": 465,
+      "end_line": 736,
+      "bases": []
+    },
+    {
+      "symbol": "toad.transcript_publication.TranscriptPresentation.restore_native",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_publication.py",
+      "name": "TranscriptPresentation.restore_native",
+      "line": 509,
+      "end_line": 525,
+      "bases": []
+    },
+    {
+      "symbol": "toad.transcript_publication.TranscriptPresentation.refresh_revealed",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_publication.py",
+      "name": "TranscriptPresentation.refresh_revealed",
+      "line": 542,
+      "end_line": 556,
+      "bases": []
+    },
+    {
+      "symbol": "toad.workspace_chrome.WorkspaceChrome.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_chrome.py",
+      "name": "WorkspaceChrome.select",
+      "line": 50,
+      "end_line": 60,
+      "bases": []
+    },
+    {
+      "symbol": "toad.workspace_sessions.WorkspaceSource",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "name": "WorkspaceSource",
+      "line": 13,
+      "end_line": 35,
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "symbol": "toad.workspace_sessions.BoundWorkspaceSource",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "name": "BoundWorkspaceSource",
+      "line": 58,
+      "end_line": 84,
+      "bases": [
+        "WorkspaceSource"
+      ]
+    },
+    {
+      "symbol": "toad.workspace_sessions.LoadingWorkspaceSource",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "name": "LoadingWorkspaceSource",
+      "line": 87,
+      "end_line": 89,
+      "bases": [
+        "BoundWorkspaceSource"
+      ]
+    },
+    {
+      "symbol": "toad.workspace_sessions.ShownWorkspaceSource",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "name": "ShownWorkspaceSource",
+      "line": 92,
+      "end_line": 97,
+      "bases": [
+        "BoundWorkspaceSource"
+      ]
+    },
+    {
+      "symbol": "toad.workspace_sessions.WorkspaceSessions",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "name": "WorkspaceSessions",
+      "line": 108,
+      "end_line": 172,
+      "bases": []
+    },
+    {
+      "symbol": "toad.workspace_sessions.WorkspaceSessions.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "name": "WorkspaceSessions.select",
+      "line": 134,
+      "end_line": 151,
+      "bases": []
+    },
+    {
+      "symbol": "acp.agent_configuration.ConfigurationSetting.select",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent_configuration.py",
+      "name": "ConfigurationSetting.select",
+      "line": 56,
+      "end_line": 68,
+      "bases": []
+    },
+    {
+      "symbol": "screens.main.MainScreen.prepare_presentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/main.py",
+      "name": "MainScreen.prepare_presentation",
+      "line": 182,
+      "end_line": 188,
+      "bases": []
+    },
+    {
+      "symbol": "screens.session_view.SessionView.prepare_presentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/session_view.py",
+      "name": "SessionView.prepare_presentation",
+      "line": 63,
+      "end_line": 64,
+      "bases": []
+    },
+    {
+      "symbol": "screens.workspace.WorkspaceLayoutSnapshot",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "WorkspaceLayoutSnapshot",
+      "line": 36,
+      "end_line": 57,
+      "bases": []
+    },
+    {
+      "symbol": "screens.workspace.MeasuredWorkspaceLayout",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "MeasuredWorkspaceLayout",
+      "line": 71,
+      "end_line": 78,
+      "bases": [
+        "WorkspaceLayout"
+      ]
+    },
+    {
+      "symbol": "screens.workspace.WorkspaceScreen",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "WorkspaceScreen",
+      "line": 81,
+      "end_line": 380,
+      "bases": [
+        "SidebarFocusOwner",
+        "Screen"
+      ]
+    },
+    {
+      "symbol": "screens.workspace.WorkspaceScreen.frame_presentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "WorkspaceScreen.frame_presentation",
+      "line": 111,
+      "end_line": 113,
+      "bases": []
+    },
+    {
+      "symbol": "screens.workspace.WorkspaceScreen._on_timer_update",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "WorkspaceScreen._on_timer_update",
+      "line": 161,
+      "end_line": 175,
+      "bases": []
+    },
+    {
+      "symbol": "screens.workspace.WorkspaceScreen._prepare_compositor_refresh",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "WorkspaceScreen._prepare_compositor_refresh",
+      "line": 177,
+      "end_line": 178,
+      "bases": []
+    },
+    {
+      "symbol": "screens.workspace.WorkspaceScreen._refresh_layout",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "name": "WorkspaceScreen._refresh_layout",
+      "line": 198,
+      "end_line": 230,
+      "bases": []
+    },
+    {
+      "symbol": "widgets.conversation.ConversationSessionBinding.prepare_retained_session",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "name": "ConversationSessionBinding.prepare_retained_session",
+      "line": 551,
+      "end_line": 557,
+      "bases": []
+    },
+    {
+      "symbol": "widgets.retiring_sidebar.RetiringSidebar.prepare_presentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/retiring_sidebar.py",
+      "name": "RetiringSidebar.prepare_presentation",
+      "line": 25,
+      "end_line": 26,
+      "bases": []
+    },
+    {
+      "symbol": "widgets.viewport_body.ViewportPresentation",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "name": "ViewportPresentation",
+      "line": 157,
+      "end_line": 215,
+      "bases": []
+    },
+    {
+      "symbol": "widgets.viewport_body.DocumentViewport",
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "name": "DocumentViewport",
+      "line": 236,
+      "end_line": 503,
+      "bases": []
+    },
+    {
+      "symbol": "textual._animator.Animation",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "name": "Animation",
+      "line": 52,
+      "end_line": 92,
+      "bases": [
+        "ABC"
+      ]
+    },
+    {
+      "symbol": "textual._animator.Animation.transform_values",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "name": "Animation.transform_values",
+      "line": 78,
+      "end_line": 80,
+      "bases": []
+    },
+    {
+      "symbol": "textual._animator.SimpleAnimation",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "name": "SimpleAnimation",
+      "line": 96,
+      "end_line": 178,
+      "bases": [
+        "Animation"
+      ]
+    },
+    {
+      "symbol": "textual._animator.SimpleAnimation.transform_values",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "name": "SimpleAnimation.transform_values",
+      "line": 109,
+      "end_line": 112,
+      "bases": []
+    },
+    {
+      "symbol": "textual._animator.Animator",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "name": "Animator",
+      "line": 233,
+      "end_line": 614,
+      "bases": []
+    },
+    {
+      "symbol": "textual._animator.Animator.transform_running_animation",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "name": "Animator.transform_running_animation",
+      "line": 539,
+      "end_line": 551,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.SubtreeGeometryKey",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "SubtreeGeometryKey",
+      "line": 65,
+      "end_line": 96,
+      "bases": [
+        "NamedTuple"
+      ]
+    },
+    {
+      "symbol": "textual._compositor.SubtreeMapGeometry",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "SubtreeMapGeometry",
+      "line": 150,
+      "end_line": 180,
+      "bases": [
+        "NamedTuple"
+      ]
+    },
+    {
+      "symbol": "textual._compositor.SubtreeGeometry",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "SubtreeGeometry",
+      "line": 187,
+      "end_line": 222,
+      "bases": [
+        "ABC",
+        "Generic"
+      ]
+    },
+    {
+      "symbol": "textual._compositor.PlacedSubtreeGeometry",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "PlacedSubtreeGeometry",
+      "line": 226,
+      "end_line": 235,
+      "bases": [
+        "SubtreeGeometry"
+      ]
+    },
+    {
+      "symbol": "textual._compositor.IntrinsicSubtreeGeometry",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "IntrinsicSubtreeGeometry",
+      "line": 239,
+      "end_line": 262,
+      "bases": [
+        "SubtreeGeometry"
+      ]
+    },
+    {
+      "symbol": "textual._compositor.Compositor",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor",
+      "line": 488,
+      "end_line": 1694,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor.reflow",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor.reflow",
+      "line": 623,
+      "end_line": 696,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor.reflow_visible",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor.reflow_visible",
+      "line": 698,
+      "end_line": 737,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor._damage_geometry",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor._damage_geometry",
+      "line": 739,
+      "end_line": 747,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor.full_map",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor.full_map",
+      "line": 750,
+      "end_line": 770,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor.visible_widgets",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor.visible_widgets",
+      "line": 773,
+      "end_line": 800,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor.render_update",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor.render_update",
+      "line": 1480,
+      "end_line": 1502,
+      "bases": []
+    },
+    {
+      "symbol": "textual._compositor.Compositor.update_widgets",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "name": "Compositor.update_widgets",
+      "line": 1670,
+      "end_line": 1694,
+      "bases": []
+    },
+    {
+      "symbol": "textual.app.App._on_idle",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "name": "App._on_idle",
+      "line": 5034,
+      "end_line": 5036,
+      "bases": []
+    },
+    {
+      "symbol": "textual.message_pump.MessagePump.check_idle",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/message_pump.py",
+      "name": "MessagePump.check_idle",
+      "line": 888,
+      "end_line": 891,
+      "bases": []
+    },
+    {
+      "symbol": "textual.screen.Screen",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen",
+      "line": 149,
+      "end_line": 2301,
+      "bases": [
+        "Generic",
+        "Widget"
+      ]
+    },
+    {
+      "symbol": "textual.screen.Screen._refresh_pending",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen._refresh_pending",
+      "line": 1183,
+      "end_line": 1192,
+      "bases": []
+    },
+    {
+      "symbol": "textual.screen.Screen._on_idle",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen._on_idle",
+      "line": 1194,
+      "end_line": 1202,
+      "bases": []
+    },
+    {
+      "symbol": "textual.screen.Screen._prepare_compositor_refresh",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen._prepare_compositor_refresh",
+      "line": 1204,
+      "end_line": 1211,
+      "bases": []
+    },
+    {
+      "symbol": "textual.screen.Screen._compositor_refresh",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen._compositor_refresh",
+      "line": 1213,
+      "end_line": 1264,
+      "bases": []
+    },
+    {
+      "symbol": "textual.screen.Screen._on_timer_update",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen._on_timer_update",
+      "line": 1266,
+      "end_line": 1295,
+      "bases": []
+    },
+    {
+      "symbol": "textual.screen.Screen._refresh_layout",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "name": "Screen._refresh_layout",
+      "line": 1364,
+      "end_line": 1447,
+      "bases": []
+    },
+    {
+      "symbol": "textual.widget.Widget._on_idle",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "name": "Widget._on_idle",
+      "line": 4778,
+      "end_line": 4784,
+      "bases": []
+    },
+    {
+      "symbol": "textual.css.scalar_animation.ScalarAnimation",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/css/scalar_animation.py",
+      "name": "ScalarAnimation",
+      "line": 14,
+      "end_line": 103,
+      "bases": [
+        "Animation"
+      ]
+    },
+    {
+      "symbol": "textual.css.scalar_animation.ScalarAnimation.transform_values",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/css/scalar_animation.py",
+      "name": "ScalarAnimation.transform_values",
+      "line": 53,
+      "end_line": 56,
+      "bases": []
+    },
+    {
+      "symbol": "textual.widgets._data_table.DataTable._on_idle",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_data_table.py",
+      "name": "DataTable._on_idle",
+      "line": 1870,
+      "end_line": 1891,
+      "bases": []
+    },
+    {
+      "symbol": "textual.widgets._select.SelectOverlay.select",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "name": "SelectOverlay.select",
+      "line": 120,
+      "end_line": 127,
+      "bases": []
+    },
+    {
+      "symbol": "textual.widgets._selection_list.SelectionList.select",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_selection_list.py",
+      "name": "SelectionList.select",
+      "line": 337,
+      "end_line": 352,
+      "bases": []
+    },
+    {
+      "symbol": "textual.widgets._tree.Tree._on_idle",
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_tree.py",
+      "name": "Tree._on_idle",
+      "line": 1246,
+      "end_line": 1250,
+      "bases": []
+    }
+  ],
+  "attribute_references": [
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/agent_presentation.py",
+      "owner": "ACPAgentPresentation.restore_saved_history",
+      "line": 92,
+      "subject": "restore_native",
+      "receiver": "view.transcript",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "owner": "ToadApp.select_session",
+      "line": 457,
+      "subject": "_switch_mode_ready",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "owner": "ToadApp._switch_mode_ready",
+      "line": 506,
+      "subject": "select",
+      "receiver": "self.workspace_sessions",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/block_navigation.py",
+      "owner": "ContentNavigation.select",
+      "line": 144,
+      "subject": "select",
+      "receiver": "block.block_cursor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_kind.py",
+      "owner": "ChannelConversation.painted_page",
+      "line": 204,
+      "subject": "select",
+      "receiver": "scope.displayed",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_kind.py",
+      "owner": "DmConversation.painted_page",
+      "line": 303,
+      "subject": "select",
+      "receiver": "basis.displayed",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/frame_presentation.py",
+      "owner": "FrameDisplay.workspace",
+      "line": 194,
+      "subject": "frame_presentation",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "owner": "GoalSession.poll",
+      "line": 215,
+      "subject": "visible_widgets",
+      "receiver": "view.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/mounted_message_history.py",
+      "owner": "MountedMessageHistory.viewport",
+      "line": 118,
+      "subject": "visible_widgets",
+      "receiver": "self.view.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/mounted_message_history.py",
+      "owner": "MountedMessageHistory.mark_historical",
+      "line": 380,
+      "subject": "select",
+      "receiver": "page.historical_display",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "owner": "OperationalSessionPresentation.prepare",
+      "line": 148,
+      "subject": "activate",
+      "receiver": "screen.app.workspace_chrome.native",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/session_presentation.py",
+      "owner": "NativeSessionSurface.activate",
+      "line": 222,
+      "subject": "prepare_retained_session",
+      "receiver": "conversation",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "owner": "SidebarNavigation.finish",
+      "line": 95,
+      "subject": "_refresh_layout",
+      "receiver": "self.sidebar.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "owner": "SidebarNavigation.finish",
+      "line": 97,
+      "subject": "_refresh_layout",
+      "receiver": "self.sidebar.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_observation.py",
+      "owner": "SidebarObservation.mount",
+      "line": 64,
+      "subject": "frame_presentation",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_observation.py",
+      "owner": "SidebarObservation.after_frame",
+      "line": 85,
+      "subject": "frame_presentation",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_projection.py",
+      "owner": "SidebarProjection.painted_busy_rows",
+      "line": 47,
+      "subject": "visible_widgets",
+      "receiver": "self.sidebar.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "owner": "SeekingFilter.advance",
+      "line": 123,
+      "subject": "visible_widgets",
+      "receiver": "snapshot.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_filter.py",
+      "owner": "Filtered.visible",
+      "line": 182,
+      "subject": "visible_widgets",
+      "receiver": "owner.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_publication.py",
+      "owner": "TranscriptPresentation.restore_native.refresh_after_paint",
+      "line": 522,
+      "subject": "refresh_revealed",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_chrome.py",
+      "owner": "WorkspaceChrome.prepare_navigation",
+      "line": 35,
+      "subject": "frame_presentation",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "owner": "WorkspaceSessions.select",
+      "line": 141,
+      "subject": "frame_presentation",
+      "receiver": "self.app.workspace_screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "owner": "WorkspaceSessions.select",
+      "line": 144,
+      "subject": "select",
+      "receiver": "self.app.workspace_chrome",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/workspace_sessions.py",
+      "owner": "WorkspaceSessions.select",
+      "line": 145,
+      "subject": "prepare_presentation",
+      "receiver": "destination",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent.py",
+      "owner": "Agent.set_model",
+      "line": 309,
+      "subject": "select",
+      "receiver": "self.configuration.setting(ModelConfigurationSetting)",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/acp/agent.py",
+      "owner": "Agent.set_thinking_level",
+      "line": 312,
+      "subject": "select",
+      "receiver": "self.configuration.setting(ThinkingConfigurationSetting)",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/comms.py",
+      "owner": "CommsScreen.on_mount",
+      "line": 170,
+      "subject": "frame_presentation",
+      "receiver": "self.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/main.py",
+      "owner": "MainScreen.prepare_presentation",
+      "line": 188,
+      "subject": "prepare_presentation",
+      "receiver": "sidebar",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/main.py",
+      "owner": "MainScreen.on_mount",
+      "line": 516,
+      "subject": "frame_presentation",
+      "receiver": "self.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/session_view.py",
+      "owner": "SessionView.wait_presented",
+      "line": 77,
+      "subject": "frame_presentation",
+      "receiver": "self.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.on_screen_suspend",
+      "line": 121,
+      "subject": "frame_presentation",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._message_loop_exit",
+      "line": 128,
+      "subject": "frame_presentation",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._on_timer_update",
+      "line": 175,
+      "subject": "_on_timer_update",
+      "receiver": "super()",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.present_navigation",
+      "line": 188,
+      "subject": "update_widgets",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.present_navigation",
+      "line": 189,
+      "subject": "_compositor_refresh",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._refresh_layout",
+      "line": 216,
+      "subject": "_refresh_layout",
+      "receiver": "super()",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._refresh_layout",
+      "line": 223,
+      "subject": "_refresh_layout",
+      "receiver": "super()",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._refresh_layout",
+      "line": 228,
+      "subject": "_refresh_layout",
+      "receiver": "super()",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._screen_resized",
+      "line": 244,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.prepare_navigation",
+      "line": 274,
+      "subject": "frame_presentation",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.layout_navigation",
+      "line": 288,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.layout_navigation",
+      "line": 290,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen.layout_navigation",
+      "line": 292,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "owner": "WorkspaceScreen._on_screen_resume",
+      "line": 299,
+      "subject": "frame_presentation",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/committed_presentation.py",
+      "owner": "RetainViewportCheckpoint.permits",
+      "line": 314,
+      "subject": "visible_widgets",
+      "receiver": "view.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "owner": "PaintOnlyRefresh.automatic_refresh",
+      "line": 167,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "owner": "CursorContainer.render_lines",
+      "line": 308,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "owner": "ConversationSessionBinding.start_native_session",
+      "line": 613,
+      "subject": "frame_presentation",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "owner": "Conversation.on_goal_control",
+      "line": 1776,
+      "subject": "activate",
+      "receiver": "self.goal_controls",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "owner": "Conversation.on_click",
+      "line": 1889,
+      "subject": "select",
+      "receiver": "self.navigation",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/conversation.py",
+      "owner": "Conversation.action_export_to_svg",
+      "line": 2156,
+      "subject": "reflow",
+      "receiver": "compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/goal_bar.py",
+      "owner": "StandbyPulse.automatic_refresh",
+      "line": 58,
+      "subject": "visible_widgets",
+      "receiver": "screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/history_anchor.py",
+      "owner": "WindowRestoration.geometry",
+      "line": 48,
+      "subject": "transform_running_animation",
+      "receiver": "window.app.animator",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/question.py",
+      "owner": "Question.watch_selection",
+      "line": 237,
+      "subject": "select",
+      "receiver": "self.presentation.mount",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/recovery_view.py",
+      "owner": "RecoveryView._fetch_if_visible",
+      "line": 105,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/side_bar.py",
+      "owner": "SideBar.schedule_hydration",
+      "line": 694,
+      "subject": "frame_presentation",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/side_bar.py",
+      "owner": "SideBar.toggle",
+      "line": 990,
+      "subject": "_on_timer_update",
+      "receiver": "self.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/thread_comms.py",
+      "owner": "ThreadCommsSidebar._visible",
+      "line": 360,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/throbber.py",
+      "owner": "Throbber.automatic_refresh",
+      "line": 131,
+      "subject": "visible_widgets",
+      "receiver": "screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "owner": "ToolCall._visible_in_window",
+      "line": 231,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "owner": "TranscriptHistory._visible_fragment_budget",
+      "line": 480,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "owner": "TranscriptHistory._check_edges",
+      "line": 681,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/transcript_history.py",
+      "owner": "TranscriptHistory._load_page",
+      "line": 801,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "owner": "DocumentViewport.visible_body_rows",
+      "line": 297,
+      "subject": "visible_widgets",
+      "receiver": "self.window.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "owner": "DocumentViewport.visible_bodies_ready",
+      "line": 420,
+      "subject": "visible_widgets",
+      "receiver": "self.window.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "owner": "DocumentViewport._reconcile",
+      "line": 430,
+      "subject": "visible_widgets",
+      "receiver": "screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "owner": "DocumentViewport._reconcile",
+      "line": 467,
+      "subject": "visible_widgets",
+      "receiver": "screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_animator.py",
+      "owner": "Animator.transform_running_animation",
+      "line": 551,
+      "subject": "transform_values",
+      "receiver": "animation",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.reflow",
+      "line": 685,
+      "subject": "_damage_geometry",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.reflow_visible",
+      "line": 735,
+      "subject": "_damage_geometry",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor._damage_geometry",
+      "line": 747,
+      "subject": "check_idle",
+      "receiver": "owner",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.full_map",
+      "line": 761,
+      "subject": "_damage_geometry",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.layers_visible",
+      "line": 1171,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.__contains__",
+      "line": 1194,
+      "subject": "full_map",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.get_offset",
+      "line": 1212,
+      "subject": "full_map",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.get_style_at",
+      "line": 1267,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.get_widget_and_offset_at",
+      "line": 1303,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.find_widget",
+      "line": 1382,
+      "subject": "full_map",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.cuts",
+      "line": 1406,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor._get_renders",
+      "line": 1437,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.update_widgets",
+      "line": 1679,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.update_widgets",
+      "line": 1685,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/_compositor.py",
+      "owner": "Compositor.update_widgets",
+      "line": 1686,
+      "subject": "visible_widgets",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "owner": "App._end_batch",
+      "line": 1078,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "owner": "App._end_batch",
+      "line": 1080,
+      "subject": "check_idle",
+      "receiver": "screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "owner": "App.export_screenshot",
+      "line": 1885,
+      "subject": "render_update",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "owner": "App._process_messages.run_process_messages",
+      "line": 3441,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "owner": "App.refresh",
+      "line": 3796,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/app.py",
+      "owner": "App.refresh_css",
+      "line": 3811,
+      "subject": "_refresh_layout",
+      "receiver": "self.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/message_pump.py",
+      "owner": "MessagePump.call_next",
+      "line": 552,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/pilot.py",
+      "owner": "Pilot.pause",
+      "line": 547,
+      "subject": "_on_timer_update",
+      "receiver": "self.app.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/pilot.py",
+      "owner": "Pilot.wait_for_animation",
+      "line": 552,
+      "subject": "_on_timer_update",
+      "receiver": "self.app.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/pilot.py",
+      "owner": "Pilot.wait_for_scheduled_animations",
+      "line": 560,
+      "subject": "_on_timer_update",
+      "receiver": "self.app.screen",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._update_timer",
+      "line": 360,
+      "subject": "_on_timer_update",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._watch_selections",
+      "line": 394,
+      "subject": "visible_widgets",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_idle",
+      "line": 1198,
+      "subject": "_refresh_pending",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._compositor_refresh",
+      "line": 1219,
+      "subject": "_prepare_compositor_refresh",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._compositor_refresh",
+      "line": 1251,
+      "subject": "render_update",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_timer_update",
+      "line": 1279,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_timer_update",
+      "line": 1282,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_timer_update",
+      "line": 1286,
+      "subject": "update_widgets",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_timer_update",
+      "line": 1288,
+      "subject": "_compositor_refresh",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._invoke_and_clear_callbacks",
+      "line": 1303,
+      "subject": "_refresh_pending",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._invoke_and_clear_callbacks",
+      "line": 1304,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._invoke_later",
+      "line": 1321,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._refresh_layout",
+      "line": 1371,
+      "subject": "update_widgets",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._refresh_layout",
+      "line": 1377,
+      "subject": "reflow_visible",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._refresh_layout",
+      "line": 1402,
+      "subject": "reflow",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._refresh_layout",
+      "line": 1406,
+      "subject": "reflow",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._refresh_layout",
+      "line": 1441,
+      "subject": "_compositor_refresh",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_update",
+      "line": 1459,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_layout",
+      "line": 1483,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_update_scroll",
+      "line": 1489,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._screen_resized",
+      "line": 1528,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen._on_screen_resume",
+      "line": 1547,
+      "subject": "_refresh_layout",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen.can_view_entire",
+      "line": 2268,
+      "subject": "visible_widgets",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/screen.py",
+      "owner": "Screen.can_view_partial",
+      "line": 2286,
+      "subject": "visible_widgets",
+      "receiver": "self._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/selection.py",
+      "owner": "SelectState._walk_viewport_widgets",
+      "line": 335,
+      "subject": "visible_widgets",
+      "receiver": "screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "owner": "Widget._refresh_styles",
+      "line": 1587,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "owner": "Widget.can_view_entire",
+      "line": 4028,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "owner": "Widget.can_view_partial",
+      "line": 4052,
+      "subject": "visible_widgets",
+      "receiver": "self.screen._compositor",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "owner": "Widget._refresh_scroll",
+      "line": 4529,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "owner": "Widget.refresh",
+      "line": 4574,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widget.py",
+      "owner": "Widget.refresh",
+      "line": 4584,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/drivers/_input_reader_linux.py",
+      "owner": "InputReader.__iter__",
+      "line": 34,
+      "subject": "select",
+      "receiver": "self._selector",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/drivers/linux_driver.py",
+      "owner": "LinuxDriver.run_input_thread",
+      "line": 465,
+      "subject": "select",
+      "receiver": "selector",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/drivers/linux_driver.py",
+      "owner": "LinuxDriver.run_input_thread",
+      "line": 467,
+      "subject": "select",
+      "receiver": "selector",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/drivers/linux_inline_driver.py",
+      "owner": "LinuxInlineDriver.run_input_thread",
+      "line": 167,
+      "subject": "select",
+      "receiver": "selector",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/drivers/linux_inline_driver.py",
+      "owner": "LinuxInlineDriver.run_input_thread",
+      "line": 169,
+      "subject": "select",
+      "receiver": "selector",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_data_table.py",
+      "owner": "DataTable.add_column",
+      "line": 1665,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_data_table.py",
+      "owner": "DataTable.add_row",
+      "line": 1735,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_data_table.py",
+      "owner": "DataTable.remove_row",
+      "line": 1806,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_data_table.py",
+      "owner": "DataTable.remove_column",
+      "line": 1845,
+      "subject": "check_idle",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "owner": "SelectOverlay._on_key",
+      "line": 112,
+      "subject": "select",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "owner": "Select.Changed.__init__",
+      "line": 387,
+      "subject": "select",
+      "receiver": "self",
+      "access": "Store"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "owner": "Select.Changed.__rich_repr__",
+      "line": 393,
+      "subject": "select",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "owner": "Select.Changed.control",
+      "line": 399,
+      "subject": "select",
+      "receiver": "self",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "owner": "Select._watch_expanded",
+      "line": 642,
+      "subject": "select",
+      "receiver": "overlay",
+      "access": "Load"
+    },
+    {
+      "file": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/src/textual/widgets/_select.py",
+      "owner": "Select._watch_expanded",
+      "line": 648,
+      "subject": "select",
+      "receiver": "overlay",
+      "access": "Load"
+    }
+  ],
+  "limits": [
+    "This is complete lexical source coverage for two declared package roots, not proof of dynamic receiver resolution, behavioral equivalence or installed paint. Candidate receiver paths were checked against their actual nominal owners in OWNER.md. Tests/external compiled code are outside these product roots."
+  ],
+  "source_context": {
+    "toad_base_head": "0e21f6803b538ad0ad337ca757a041ae6d8076c6",
+    "working_change": "WorkspaceSessions.select revokes original Frame receipt before destination preparation",
+    "textual_product_source": "55954718732586f5a89f6f664b78a9b1e6e01f6a",
+    "runtime_global_mutations": 0
+  }
+}

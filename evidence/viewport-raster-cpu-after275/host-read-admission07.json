@@ -1,0 +1,76 @@
+{
+  "capture": "/home/ts/.cache/agent-scratch/viewport284-damage-warm-return-20261001-07/capture",
+  "native_screen_phases": {
+    "warm-start": {
+      "selected_mode": "session-1",
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "frame": {
+        "state": "PresentedFrame",
+        "ready": true,
+        "presented": true,
+        "deferred_callbacks": 0
+      },
+      "layout_required": true,
+      "scroll_required": false,
+      "repaint_required": false
+    },
+    "idle-done": {
+      "selected_mode": "session-1",
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "frame": {
+        "state": "PresentedFrame",
+        "ready": true,
+        "presented": true,
+        "deferred_callbacks": 0
+      },
+      "layout_required": false,
+      "scroll_required": false,
+      "repaint_required": false
+    },
+    "b-open": {
+      "selected_mode": "session-2",
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "frame": {
+        "state": "PresentedFrame",
+        "ready": true,
+        "presented": true,
+        "deferred_callbacks": 0
+      },
+      "layout_required": false,
+      "scroll_required": false,
+      "repaint_required": false
+    },
+    "return-a": {
+      "selected_mode": "session-2",
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "frame": {
+        "state": "PresentedFrame",
+        "ready": true,
+        "presented": true,
+        "deferred_callbacks": 0
+      },
+      "layout_required": false,
+      "scroll_required": false,
+      "repaint_required": false
+    },
+    "a-return": {
+      "selected_mode": "session-1",
+      "batch_count": 1,
+      "atomic_mode_switch": true,
+      "frame": {
+        "state": "PresentedFrame",
+        "ready": true,
+        "presented": true,
+        "deferred_callbacks": 1
+      },
+      "layout_required": true,
+      "scroll_required": false,
+      "repaint_required": false
+    }
+  },
+  "physical": "A-return shows B/loading; original A is0pages. Batch_count1/atomic_mode_switchTrue and oldPresentedFrame during destination preparation directly record global paint hold.07 issued no compaction request; final499 configured failing-state-copy journey is coordinated with Sch."
+}
