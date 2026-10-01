@@ -84,3 +84,21 @@ no cache or policy patch has been invented from the ID deltas. The reproducer
 and baseline receipt are committed; the small raw log/private fixture is owned
 under this worktree .artifacts/source-admission-baseline01. No original journals
 or input dispositions were changed. No new physical capture is justified yet.
+
+## Current meaningful production checkpoint
+
+Code016a8c94fc4b3cad1a8af3e54f3a5062dc426f0e is pushed after normal main d685
+integration. Original TranscriptHistory._jump_latest and
+TranscriptPageView.update_fragments now preserve the certified End page and
+canonical child order when growing backward. One production file21 added/10
+deleted. Actual native source control: wrong order/page discarded/0 retained
+overlap becomes correct order/same page/17 original bodies retained; both87
+widgets under the same300 bound. Strong references witness reuse rather than
+recycled ids. T4nine guards and bounded ownership ratchets pass.
+
+See source-admission/end-checkpoint.md and its original RED/GREEN receipts.
+This code is not installed or physically accepted yet. Whole historical resource
+admission, growing-end and CPU scope remains open; no261-versus241 speedup claim.
+One affected installed original41MB journey must use the parent's current
+declared Core/native/public-route pair, without racing its pending native release.
+No old source ABI, public reset, input replay or duplicate capture.
