@@ -17,7 +17,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
 
     def __init__(self, agent) -> None:
         super().__init__(agent)
-        self.terminals = TerminalController()
+        self.terminals = TerminalController(self)
 
     @abstractmethod
     def start_operation(self, operation): ...
@@ -26,9 +26,14 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         if self.surface.owns(target):
             self.start_operation(self.terminals.attach(target))
 
+    def owns_terminal_projection(self, binding, projection):
+        if self.surface is not binding or self.terminals is not projection.controller:
+            return False
+        return self.terminals.owns_projection(projection.terminal_id, projection.execution)
+
     def replace_terminal_session(self):
         previous = self.terminals
-        self.terminals = TerminalController()
+        self.terminals = TerminalController(self)
         if previous.executions:
             self.start_operation(previous.close())
         self.start_terminal_presentation(self.surface.target)
@@ -67,22 +72,20 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
     @jsonrpc.expose("terminal/output")
     async def terminal_output(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.TerminalOutputResponse:
         self.session_request(sessionId)
-        state = self.terminals.output(terminalId)
-        exit_status = protocol.TerminalExitStatus(exit_code=state.return_code, signal=state.signal) if state.finished else None
-        return protocol.TerminalOutputResponse(output=state.output, truncated=state.truncated, exit_status=exit_status)
+        return self.terminals.output(terminalId).response()
 
     @jsonrpc.expose("terminal/release")
-    def terminal_release(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.ReleaseTerminalResponse:
+    async def terminal_release(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.ReleaseTerminalResponse:
         self.session_request(sessionId)
-        self.terminals.release(terminalId)
+        await self.terminals.release(terminalId)
         return protocol.ReleaseTerminalResponse()
 
     @jsonrpc.expose("terminal/wait_for_exit")
     async def terminal_wait_for_exit(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.WaitForTerminalExitResponse:
         authority = self.session_request(sessionId)
         terminals = self.terminals
-        code, signal = await terminals.wait(terminalId)
+        completion = await terminals.wait(terminalId)
         authority.require()
         if self.terminals is not terminals:
             raise jsonrpc.InvalidParams("ACP terminal owner was replaced while awaiting exit")
-        return protocol.WaitForTerminalExitResponse(exit_code=code, signal=signal)
+        return completion.wait_response()
