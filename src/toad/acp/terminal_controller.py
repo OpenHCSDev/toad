@@ -45,9 +45,11 @@ class TerminalController:
             if self.state is not state:
                 raise TerminalSessionRetired("ACP terminal session retired during creation")
             return terminal_id
-        except BaseException:
+        except BaseException as error:
             await execution.close()
             self.executions.pop(terminal_id, None)
+            if self.state is not state:
+                raise TerminalSessionRetired("ACP terminal session retired during creation") from error
             raise
 
     async def _present(self, terminal_id: str, execution: TerminalExecution) -> None:
@@ -70,24 +72,20 @@ class TerminalController:
             execution.detach()
 
     def require(self, terminal_id: str) -> TerminalExecution:
-        execution = self.executions[terminal_id]
-        if execution.released:
-            raise KeyError(f"Released terminal {terminal_id!r}")
-        return execution
+        return self.executions[terminal_id]
 
     def output(self, terminal_id: str) -> ToolState:
         return self.require(terminal_id).tool_state
 
-    async def wait(self, terminal_id: str) -> tuple[int | None, str | None]:
+    async def wait(self, terminal_id: str):
         return await self.require(terminal_id).wait_for_exit()
 
     def kill(self, terminal_id: str) -> None:
         self.require(terminal_id).kill()
 
-    def release(self, terminal_id: str) -> None:
-        execution = self.require(terminal_id)
-        execution.kill()
-        execution.release()
+    async def release(self, terminal_id: str) -> None:
+        execution = self.executions.pop(terminal_id)
+        await execution.close()
 
     async def retire(self, terminal_id) -> None:
         execution = self.executions.pop(terminal_id, None)
