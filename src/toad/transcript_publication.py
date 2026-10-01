@@ -25,6 +25,49 @@ class TranscriptPublication(ABC):
         self.generation = owner.generation
         self.agent = view.agent
         self.window, self.contents = window, contents
+        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
+
+    def native_current(self) -> bool:
+        """Only anonymous native output requires settled resource custody."""
+        from toad.widgets.committed_presentation import CommitParticipant
+
+        return self.current() and all(
+            widget.commit_claim.admits_native(widget, self.captured)
+            for widget in self.contents.children if isinstance(widget, CommitParticipant)
+        )
+
+    def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
+        """Wire assignment can advance without transferring anonymous native output.
+
+        The mounted canonical history retains the native/outcome prefix. The
+        current certified source supplies its original assigned-wire frontier.
+        This is a bounded read of that source, not another presentation store.
+        """
+        if self.native_current():
+            return cursor
+        prefixes = tuple(bound for history in self.owner.histories
+                         if history in self.captured and history.state.reports_coverage
+                         for bound in (history.committed_cursor,)
+                         if bound.receipts_within(cursor))
+        prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
+                     key=lambda bound: bound.offset,
+                     default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
+        return TranscriptCursor(prefix.session_file, prefix.offset,
+                                cursor.receipts, prefix.outcomes)
+
+    def source_current(self, cursor: TranscriptCursor) -> bool:
+        return self.current() and self.source_bound(cursor) == cursor
+
+    async def read_source_page(self) -> TranscriptPage:
+        page = await self.agent.get_transcript_page()
+        return await self.read_bound(page)
+
+    async def read_bound(self, page: TranscriptPage) -> TranscriptPage:
+        bound = self.source_bound(page.after)
+        if bound != page.after:
+            self.owner.dirty = self.owner.checkpoint_required = True
+            page = await self.agent.get_transcript_page(through=bound)
+        return page
 
     def current(self) -> bool:
         from toad.widgets.conversation import Window, Contents
@@ -37,33 +80,6 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
-    async def retire_presentations(self, output, candidates) -> None:
-        """Accepted source retirement must finish before its window fence opens.
-
-        Caller cancellation can withdraw provisional work, but cannot abandon
-        the resources an accepted source already replaces. The original task
-        records cancellation; this operation owns and joins its exact teardown.
-        """
-        caller = asyncio.current_task()
-        retirement = asyncio.create_task(
-            self._retire_presentations(output, candidates), name="accepted source retirement",
-        )
-        while not retirement.done():
-            try:
-                await asyncio.shield(retirement)
-            except asyncio.CancelledError:
-                if retirement.cancelled():
-                    raise
-        retirement.result()
-        if caller.cancelling():
-            raise asyncio.CancelledError
-
-    async def _retire_presentations(self, output, candidates) -> None:
-        try:
-            await output.retire_presentations(candidates)
-        finally:
-            await self.contents.remove_children(candidates)
-
     @abstractmethod
     async def publish(self) -> None: ...
 
@@ -73,7 +89,6 @@ class SnapshotPublication(TranscriptPublication):
         super().__init__(owner, view, window, contents)
         self.page = page
         self.scroll_revision = window.scroll_revision
-        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
@@ -98,6 +113,9 @@ class SnapshotPublication(TranscriptPublication):
         async with self.window.history_lock:
             if not self.current():
                 return
+            if not self.source_current(self.page.after):
+                self.owner.require_checkpoint()
+                return
             for history in self.owner.histories:
                 history.state.validate_snapshot(history, self.page)
             if not self.admitted():
@@ -114,6 +132,9 @@ class SnapshotPublication(TranscriptPublication):
             # a pre-render absence check cannot authorize a second full page.
             if not self.current() or not self.admitted():
                 return
+            if not self.source_current(self.page.after):
+                self.owner.require_checkpoint()
+                return
             history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                         fragments=fragments, committed=False)
             self.owner.prepare_reader(history)
@@ -121,7 +142,9 @@ class SnapshotPublication(TranscriptPublication):
                 accepted = False
                 try:
                     await self.contents.mount(history)
-                    if not self.current():
+                    if not self.source_current(self.page.after):
+                        if self.current():
+                            self.owner.require_checkpoint()
                         return
                     # This accepted full source replaces exactly the old
                     # history resources captured before its mount. Original
@@ -134,7 +157,7 @@ class SnapshotPublication(TranscriptPublication):
                     history.publish_committed()
                     accepted = True
                     retired = retirement_candidates(self.contents.children, evidence)
-                    await self.retire_presentations(view.output, retired)
+                    await self.owner.retire_presentations(self.contents, view.output, retired)
                 finally:
                     # A provisional mount owns no source coverage. Its cleanup
                     # must finish before native frame admission is released.
@@ -169,7 +192,7 @@ class CanonicalSourcePublication(TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_page(self) -> TranscriptPage:
-        return await self.agent.get_transcript_page()
+        return await self.read_source_page()
 
     async def publish(self) -> None:
         if self.agent is None or not self.agent.transcript_ready:
@@ -186,7 +209,12 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         self.presentation = presentation
 
     async def read_page(self) -> TranscriptPage:
-        return await self.agent.get_transcript_page(read_identity=self.presentation.read_identity)
+        identity = self.presentation.read_identity
+        bound = self.source_bound(identity.page_bound)
+        if bound != identity.page_bound:
+            self.owner.dirty = self.owner.checkpoint_required = True
+            return await self.agent.get_transcript_page(through=bound)
+        return await self.agent.get_transcript_page(read_identity=identity)
 
     async def publish(self) -> None:
         if self.agent is None:
@@ -247,15 +275,33 @@ class CheckpointPublication(TranscriptPublication):
         return (super().current() and not view._pruning
                 and self.plan.current(self.window))
 
+    def admitted(self) -> bool:
+        from toad.acp.agent import Agent
+        from toad.widgets.committed_presentation import (
+            CheckpointBarrier, CommitParticipant, CommittedHistory,
+        )
+
+        view = self.owner.view
+        if not self.current() or not self.owner.dirty:
+            return False
+        if not isinstance(self.agent, Agent) or not view.agent_ready or not self.agent.transcript_ready:
+            return False
+        if any(isinstance(node, CheckpointBarrier) for node in self.contents.walk_children()):
+            return False
+        if not self.owner.checkpoint_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
+            return False
+        history = next((child for child in self.contents.children
+                        if isinstance(child, CommittedHistory)), None)
+        potential = tuple(child for child in self.contents.children
+                          if child is not history and isinstance(child, CommitParticipant))
+        return self.plan.ready(history) and self.plan.permits(view, potential)
+
     async def publish(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
         from agent_comms.coordination_errors import StaleRevision
 
-        from toad.acp.agent import Agent
         from toad.widgets.committed_presentation import (
-            CheckpointBarrier,
             CommitEvidence,
-            CommitParticipant,
             CommittedHistory,
             retirement_candidates,
         )
@@ -265,23 +311,9 @@ class CheckpointPublication(TranscriptPublication):
         if view is None:
             return
         window, contents = self.window, self.contents
-        if (
-            window is None
-            or contents is None
-            or not self.owner.dirty
-            or not isinstance(view.agent, Agent)
-            or not view.agent_ready
-            or not view.agent.transcript_ready
-            or any(
-                isinstance(node, CheckpointBarrier) for node in contents.walk_children()
-            )
-            or (
-                not self.owner.checkpoint_required
-                and len(contents.children) < view.MAX_LIVE_BLOCKS
-            )
-        ):
+        if not self.admitted():
             return
-        agent, plan = self.agent, self.plan
+        plan = self.plan
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
@@ -289,39 +321,31 @@ class CheckpointPublication(TranscriptPublication):
             (child for child in before_read if isinstance(child, CommittedHistory)),
             None,
         )
-        potential = tuple(
-            child
-            for child in before_read
-            if child is not history and isinstance(child, CommitParticipant)
-        )
-        if not plan.ready(history) or not plan.permits(view, potential):
-            return
-
-        is_current = self.current
-
         try:
-            page = await agent.get_transcript_page()
+            page = await self.read_source_page()
+            is_current = partial(self.source_current, page.after)
             if not page.events or not is_current():
                 return
-            prepared = await plan.prepare(view, history, page, before_read, is_current)
+            prepared = await plan.prepare(view, history, page, self.captured, is_current)
         except (UnregisteredThreadError, StaleRevision):
             # Deletion can retire the model before the attachment's final
             # transcript notification has drained. Its view is closing too.
             return
         except (OSError, ValueError) as error:
-            if is_current():
+            if self.current():
                 view.notify(str(error), title="Committed history", severity="error")
             return
         if prepared is None or not is_current():
             return
         evidence = CommitEvidence(
-            view.turns.owner.captured_snapshot(before_read), prepared.sequences, prepared.history,
+            self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
         async with window.history_lock:
             retired = retirement_candidates(contents.children, evidence)
             if (
                 not is_current()
+                or history is not next(iter(self.owner.histories), None)
                 or not plan.ready(prepared.history)
                 or not plan.permits(view, retired)
             ):
@@ -333,7 +357,7 @@ class CheckpointPublication(TranscriptPublication):
                     if prepared.history is None:
                         replacement = TranscriptHistory(
                             page,
-                            agent.get_transcript_page,
+                            self.agent.get_transcript_page,
                             fragments=prepared.fragments,
                             committed=False,
                         )
@@ -351,7 +375,7 @@ class CheckpointPublication(TranscriptPublication):
                     # Once retiring live widgets begins, the accepted source must
                     # survive cancellation so their saved content stays reachable.
                     accepted = True
-                    await self.retire_presentations(view.output, retired)
+                    await self.owner.retire_presentations(contents, view.output, retired)
                 finally:
                     if (
                         not accepted
@@ -361,8 +385,9 @@ class CheckpointPublication(TranscriptPublication):
                         await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
-        self.owner.dirty = False
-        self.owner.checkpoint_required = False
+        if self.native_current():
+            self.owner.dirty = False
+            self.owner.checkpoint_required = False
         plan.finish(view, page.after)
 
 
@@ -535,8 +560,15 @@ class TranscriptPresentation:
                             group="transcript-handling", exclusive=True)
 
     def retry(self) -> None:
-        if self.dirty:
+        if not self.dirty or self.worker is not None and not self.worker.is_finished:
+            return
+        publication = self.capture(CheckpointPublication)
+        if publication is not None and publication.native_current() and publication.admitted():
             self.request()
+
+    def source_work_finished(self, history) -> None:
+        if history in self.histories:
+            self.retry()
 
     async def close(self) -> None:
         await self.suspend()
@@ -591,10 +623,39 @@ class TranscriptPresentation:
                 ),
             )
             protected = protected_blocks(view, candidates)
-            await contents.remove_children(
-                [child for child in candidates if child not in protected]
-            )
+            await self.retire_presentations(contents, view.output,
+                [child for child in candidates if child not in protected])
             # The accepted frontier also invalidates its existing status view.
             # A retained resume can reject an identical snapshot without any
             # widget replacement; it still publishes canonical coverage here.
             view.query_one(SessionDetails)._refresh_summary()
+            from toad.widgets.observed_thread_activity import ObservedThreadActivity
+            observed = view.query_one_optional(ObservedThreadActivity)
+            if observed is not None and observed.presentation is not None:
+                view.run_worker(partial(self.publish, HandlingPublication),
+                                group="transcript-handling", exclusive=True)
+
+    async def retire_presentations(self, contents, output, candidates) -> None:
+        """Join accepted page or snapshot retirement before its frame fence opens."""
+        if not candidates:
+            return
+        caller = asyncio.current_task()
+        retirement = asyncio.create_task(
+            self._retire_presentations(contents, output, candidates),
+            name="accepted source retirement",
+        )
+        while not retirement.done():
+            try:
+                await asyncio.shield(retirement)
+            except asyncio.CancelledError:
+                if retirement.cancelled():
+                    raise
+        retirement.result()
+        if caller.cancelling():
+            raise asyncio.CancelledError
+
+    async def _retire_presentations(self, contents, output, candidates) -> None:
+        try:
+            await output.retire_presentations(candidates)
+        finally:
+            await contents.remove_children(candidates)

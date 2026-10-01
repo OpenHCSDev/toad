@@ -1,0 +1,43 @@
+{
+  "source_head": "20c0e213eae247a35fad3bc12af43f11b56d30b7",
+  "source_delivery": "worktree PYTHONPATH; not an immutable Toad installed-wheel acceptance",
+  "dependencies": {
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "970bc527f4ddd9b3bde5522dc671aea11fd27ece",
+        "requested_revision": "970bc527f4ddd9b3bde5522dc671aea11fd27ece"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+        "requested_revision": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+      }
+    },
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "85d45b512cac88bdf5dd8870f41e53768ab3c009",
+        "requested_revision": "85d45b512cac88bdf5dd8870f41e53768ab3c009"
+      }
+    }
+  },
+  "admitted_frames": 19,
+  "duplicate_frames": 0,
+  "maximum_response_resources": 1,
+  "guards": {
+    "test_publication_loaders_use_captured_actor": "PASS",
+    "test_root_custody_deleted": "PASS",
+    "test_source_operation_flags_deleted": "PASS",
+    "test_native_page_coverage_is_joined": "PASS",
+    "test_accepted_retirement_has_one_owner": "PASS"
+  },
+  "providers_started": 0,
+  "native_owners_started": 0,
+  "inputs_replayed": 0
+}

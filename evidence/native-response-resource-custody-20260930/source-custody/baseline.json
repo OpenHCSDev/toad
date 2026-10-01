@@ -1,0 +1,17 @@
+{
+  "source": "516daa0f",
+  "probe": {
+    "live_response_attached": true,
+    "response_resources": 2,
+    "history_frontier_advanced": true,
+    "managed_phase": "PublishingPhase",
+    "managed_busy": true,
+    "history_count": 1,
+    "response_resource_ids": [
+      140565084877072,
+      140565423406160
+    ]
+  },
+  "result": "assertion_failed_two_responses",
+  "boundary": "actual ToadApp/native Window/source reader, controlled typed turn, no ACP/provider/input"
+}

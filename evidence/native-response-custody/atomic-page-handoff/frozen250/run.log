@@ -1,0 +1,6 @@
+{"observed_read": {"native_prefix_retained": true, "assigned_frontier_advanced": true}, "events": ["SentTranscript", "IncomingTranscript", "AssistantTranscript"]}
+{"live_response_attached": true, "response_resources": 1, "history_frontier_advanced": false, "managed_phase": "PublishingPhase", "managed_busy": true, "history_count": 1, "response_resource_ids": [139861889569872]}
+{"wire": {"sent_resources": 1, "incoming_resources": 1, "wire_frontier": 2, "native_frontier": 118, "live_response_attached": true, "native_transfer_pending": true}, "pages": [{"before": 0, "after": 118, "wire_before": 0, "wire_after": 0, "events": ["AssistantTranscript"], "start": 0, "stop": 1, "children": 1}, {"before": 118, "after": 118, "wire_before": 0, "wire_after": 2, "events": ["SentTranscript", "IncomingTranscript"], "start": 0, "stop": 2, "children": 2}], "state": "LiveTranscript"}
+{"sent_resources": 1, "incoming_resources": 1, "wire_frontier": 2, "native_frontier": 118, "live_response_attached": true, "native_transfer_pending": true}
+{"response_resources": 1, "live_response_attached": false, "history_frontier_advanced": true, "history_count": 1, "managed_busy": false, "captured_history_retired": true, "accepted_history_registered": true}
+{"history_count": 1, "old_history_attached": false, "managed_busy": true, "frontier_matches": true}

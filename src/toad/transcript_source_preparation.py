@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from textual.worker import WorkerCancelled
+from textual.message import Message
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
 from toad.widgets.committed_presentation import TranscriptCoverage
@@ -31,6 +32,14 @@ class HistorySourceSnapshot:
         if not owner.source_publication_available:
             return False
         return self == owner.source_snapshot()
+
+
+class TranscriptSourceWorkFinished(Message):
+    """The original pager released its admitted mutation resource."""
+
+    def __init__(self, history):
+        super().__init__()
+        self.history = history
 
 
 class TranscriptSourcePreparation:
@@ -79,6 +88,7 @@ class TranscriptSourcePreparation:
             if self.state.accepts_publication:
                 self.window.check_follow()
                 self._scroll_changed()
+                self.post_message(TranscriptSourceWorkFinished(self))
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""

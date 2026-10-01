@@ -8,7 +8,7 @@ from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
-from toad.widgets.committed_presentation import NativeInputClaim, SnapshotPresentation
+from toad.widgets.committed_presentation import CAPTURED_CLAIM, CommitClaim, SnapshotPresentation
 
 
 
@@ -44,16 +44,16 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
     def message_category(self) -> type[MessageCategory]:
         return UserCategory
 
-    def __init__(self, content: str, *, native_id: str | None = None, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
+    def __init__(self, content: str, *, claim: CommitClaim = CAPTURED_CLAIM, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__()
         self.content = content
         self.show_divider = show_divider
         self.clock = clock
-        self.native_id = native_id
+        self.claim = claim
 
     @property
     def commit_claim(self):
-        return NativeInputClaim(self.native_id) if self.native_id is not None else super().commit_claim
+        return self.claim
 
     def compose(self) -> ComposeResult:
         if self.show_divider:

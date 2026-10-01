@@ -47,7 +47,7 @@ from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
 from toad.work_preparation import retained_bytes
-from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage
+from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage, TranscriptInputClaim
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
@@ -78,7 +78,7 @@ class TranscriptBlockConsumer(MroDispatch):
 
     @handles(UserTranscript)
     def user(self, event: UserTranscript):
-        self.blocks.append(UserInput(event.text, native_id=event.native_id,
+        self.blocks.append(UserInput(event.text, claim=TranscriptInputClaim(event),
                                      show_divider=self.show_divider,
                                      clock=MessageClock.recorded(event.timestamp)))
 
@@ -432,9 +432,18 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
 
 
-    def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+    async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
-            self.post_message(TranscriptCoverage(page.events, self))
+            from toad.widgets.conversation import Conversation
+            # The native page admission still owns its frame fence. Transfer
+            # identity-backed rows before releasing it; a queued message can
+            # otherwise paint saved and live resources together.
+            # Standalone saved viewers have no live transcript to transfer.
+            # Resolve custody from native ancestry, not a second owner field.
+            for ancestor in self.ancestors:
+                if isinstance(ancestor, Conversation):
+                    await ancestor.transcript.covered(TranscriptCoverage(page.events, self))
+                    break
 
     def publish_committed(self) -> None:
         """Acquire live-row ownership only after a provisional mount is accepted."""
@@ -517,7 +526,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     async def _finish_mount(self) -> None:
         self.window.histories.add(self)
-        self._report_coverage(self.pages[0].page, self.pages[0].fragments)
+        await self._report_coverage(self.pages[0].page, self.pages[0].fragments)
         self._update_edges()
         self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
@@ -836,7 +845,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 self._require_publication()
                 protected.update(view.children)
                 protected.add(view)
-                self._report_coverage(page, fragments)
+                await self._report_coverage(page, fragments)
                 if older:
                     self.pages.appendleft(view)
                 else:
@@ -960,9 +969,9 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def coverage_events(self) -> Iterator[TranscriptEvent]:
         return (event for page in self.pages for fragment in page.fragments for event in fragment.events)
 
-    def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+    async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
         if owner is not None and owner.filter.owns_projection(self):
-            owner._report_coverage(replace(page, events=tuple(
+            await owner._report_coverage(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

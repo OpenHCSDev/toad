@@ -1,0 +1,18 @@
+{"live_response_attached": true, "response_resources": 1, "history_frontier_advanced": false, "managed_phase": "PublishingPhase", "managed_busy": true, "history_count": 1, "response_resource_ids": [140083916641040]}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 129, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 80, in main
+    assert wire['sent_resources']==wire['incoming_resources']==1,wire
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'sent_resources': 0, 'incoming_resources': 0, 'wire_frontier': 0, 'native_frontier': 90, 'live_response_attached': True, 'native_transfer_pending': True}
