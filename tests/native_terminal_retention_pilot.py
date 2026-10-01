@@ -7,8 +7,6 @@ from pathlib import Path
 import signal
 import sys
 
-from agent_comms.child_process import ProcessIdentity
-
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import conversation_paint
 from runtime_fixture import ToadApp
@@ -69,7 +67,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert "ACTIVE_THEN_DETACHED" in (await rpc("terminal/output", terminalId=first))["output"]
     assert "CREATED_WHILE_DETACHED" in (await rpc("terminal/output", terminalId=second))["output"]
     assert execution.outcome.finished and execution.outcome.successful
-    assert original_custody.process.returncode == 0 and original_custody.master.closed
+    assert original_custody.child.process.returncode == 0 and original_custody.master.closed
+    assert original_custody.child.retired
     assert agent.process.process is process and process.returncode is None
     assert agent.process.runner is runner and not runner.done()
     assert comms.registry.require("beta").process_identity == owner
@@ -87,7 +86,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     doomed = (await rpc("terminal/create", command="sleep", args=["30"]))["terminalId"]
     running = terminals.require(doomed)
     running_custody = await running.custody()
-    child = ProcessIdentity.capture(running_custody.process.pid)
+    child = running_custody.child.identity
     assert child.alive() and not running.outcome.finished
     waiter = asyncio.create_task(rpc("terminal/wait_for_exit", terminalId=doomed))
     try:
@@ -108,7 +107,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert (await rpc("terminal/output", terminalId=doomed))["exitStatus"] == killed
     assert running.outcome.finished and not running.outcome.successful
     assert not child.alive() and running_custody.master.closed
-    assert running_custody.process.returncode == -signal.SIGKILL
+    assert running_custody.child.process.returncode == -signal.SIGKILL
+    assert running_custody.child.retired
 
     # A byte bound may cut through a UTF-8 scalar, including its entire tail.
     bounded = (await rpc("terminal/create", command=sys.executable, args=[
@@ -139,18 +139,19 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
     released = (await rpc("terminal/create", command="sleep", args=["30"]))["terminalId"]
     released_custody = await terminals.require(released).custody()
-    released_child = ProcessIdentity.capture(released_custody.process.pid)
+    released_child = released_custody.child.identity
     assert released_child.alive()
     await rpc("terminal/release", terminalId=released)
     assert released not in terminals.executions and not released_child.alive()
     assert released_custody.master.closed
+    assert released_custody.child.retired
     assert "error" in await request("terminal/output", terminalId=released)
 
     # Cancellation belongs to the request; original retirement still joins.
     interrupted = (await rpc("terminal/create", command="sleep", args=["30"]))["terminalId"]
     interrupted_execution = terminals.require(interrupted)
     interrupted_custody = await interrupted_execution.custody()
-    interrupted_child = ProcessIdentity.capture(interrupted_custody.process.pid)
+    interrupted_child = interrupted_custody.child.identity
     releasing = asyncio.create_task(rpc("terminal/release", terminalId=interrupted))
     await asyncio.sleep(0)  # Enter the real handler, without a screen barrier.
     assert terminals.require(interrupted) is interrupted_execution
@@ -163,6 +164,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert interrupted not in terminals.executions
     assert interrupted_execution.outcome.finished
     assert interrupted_custody.master.closed and not interrupted_child.alive()
+    assert interrupted_custody.child.retired
     assert "error" in await request("terminal/output", terminalId=interrupted)
 
     # Original creation publishes its execution before yielding to PTY spawn.
@@ -184,14 +186,34 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     except asyncio.CancelledError:
         startup_observation = {"acquisition": "refused_before_custody"}
     else:
-        assert acquired.master.closed and acquired.process.returncode is not None
+        assert acquired.master.closed and acquired.child.process.returncode is not None
+        assert acquired.child.retired
         startup_observation = {
-            "acquisition": "original_custody_joined", "pid": acquired.process.pid,
-            "return_code": acquired.process.returncode, "pty_closed": acquired.master.closed,
+            "acquisition": "original_custody_joined", "pid": acquired.child.identity.pid,
+            "return_code": acquired.child.process.returncode, "pty_closed": acquired.master.closed,
         }
     assert startup_id not in terminals.executions and startup_execution.outcome.finished
     assert frozenset(terminals.executions) == before_startup
     assert pty_masters() == before_startup_pty
+
+    # Leader completion cannot retire a group whose descendant still owns IO.
+    descendant_id = (await rpc("terminal/create", command="sh", args=[
+        "-c", "(trap '' HUP TERM; sleep 30) & exit 0"
+    ]))["terminalId"]
+    descendant_execution = terminals.require(descendant_id)
+    descendant_custody = await descendant_execution.custody()
+    group_owner = descendant_custody.child
+    await until(pilot, lambda: group_owner.process.returncode == 0)
+    survivors = group_owner.platform.group_members(group_owner.identity)
+    assert survivors, "The exited-leader/living-descendant phase was not exercised"
+    assert not group_owner.retired and not descendant_custody.master.closed
+    assert not descendant_execution.outcome.finished
+    await rpc("terminal/release", terminalId=descendant_id)
+    assert descendant_id not in terminals.executions
+    assert group_owner.retired and descendant_custody.master.closed
+    assert not group_owner.platform.group_members(group_owner.identity)
+    assert all(not survivor.alive() for survivor in survivors)
+    assert "error" in await request("terminal/output", terminalId=descendant_id)
 
     await terminals.close()
     assert execution.outcome.finished and execution.outcome.successful
@@ -210,6 +232,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                               "pty_closed": interrupted_custody.master.closed,
                               "address_present": interrupted in terminals.executions},
         "cancelled_startup": startup_observation,
+        "exited_leader_descendant": {
+            "leader_pid": group_owner.identity.pid,
+            "leader_return_code": group_owner.process.returncode,
+            "observed_survivors": [survivor.pid for survivor in survivors],
+            "group_retired": group_owner.retired,
+            "pty_closed": descendant_custody.master.closed,
+            "address_present": descendant_id in terminals.executions,
+        },
         "controller_addresses_after_close": len(terminals.executions),
         "pty_masters_before": sorted(initial_pty_masters),
         "pty_masters_after": sorted(pty_masters()),
