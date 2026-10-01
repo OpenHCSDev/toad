@@ -102,3 +102,18 @@ admission, growing-end and CPU scope remains open; no261-versus241 speedup claim
 One affected installed original41MB journey must use the parent's current
 declared Core/native/public-route pair, without racing its pending native release.
 No old source ABI, public reset, input replay or duplicate capture.
+
+## Scoped installed checkpoint accepted
+
+The sole normal-installed affected original41MB gate passed91.2303s/16of16
+with exact38fd/Coree191/Text6b/SDK12/native593. Source bytes remain identical
+to016a. Personally inspected Areturn/Down/idle images are readable. Original
+processes, journals, inputs and wire metadata unchanged; cleanup[]0. The full
+Kepler3fdb evidence contribution is normally merged, including honest typed
+interval limits and measuredCPU. No unchanged retake or fullCPUclaim.
+
+SCOPED READY for certified End custody and canonical backward admission order.
+Default publication remains parent-owned; not activated. Remaining ENTIRE
+foreground/warmStrip/coldB/focus/TC1T9/growingEnd/void/full-lifetime/resource-budget
+scope transferred intact to NEW actual-main-based draft269 before further long
+work, at /home/ts/wt/toad-historical-admission-resource-followup-20261001.
