@@ -66,6 +66,16 @@ phases. These compressed stack transitions identify paths; they do not prove
 CPU sample weights, cache misses or individual visual gaps. Kernel phase CPU
 and physical footage retain their separate measurement boundaries.
 
+One bounded offline review of the retained installed candidate video inspects
+all 24 frames from 39.000 through 39.383 seconds at 60 fps. Chat and chrome
+remain visible while page contents move. The same existing ProfileTrace
+shows foreground ToolCall metadata/CSS and native height/layout work in this
+slice, with nominal clock uncertainty of 84.5 ms. Exact artifact hashes and
+observed stacks are appended to the video proof. This short slice does not
+certify the entire moving phase or attribute a frame change to a stack.
+Heisenberg received these concrete paths for the existing PR264 mechanism
+investigation; no speculative source/cache patch or new capture was added.
+
 Raw artifacts remain in the protected named scratch directories recorded in
 the receipts. No production or tool source changed for this contribution:
 **0 lines deleted**. Native geometry/preparation and rendering resources keep
