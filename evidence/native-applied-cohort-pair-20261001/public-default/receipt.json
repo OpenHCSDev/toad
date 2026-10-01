@@ -954,7 +954,7 @@
   ],
   "limitations": [
     "Original historical UNKNOWN notices remain visible; no uncertain input retried.",
-    "No input was sent; paid native provider gate remains the separate previously accepted installed34 proof.",
+    "No input was sent in this default check; the separate accepted installed34 proof covers the actual native/ACP controlled-provider journey on the same immutable pair, with zero paid calls.",
     "No warm-cache latency/CPU target claim.",
     "u05 failure-time resource census was not recorded, so missing/duplicate paint remains unclassified; later original u07 red and corrected u09 proof are separate.",
     "Snapshot native hash baseline was read during readonly navigation; protected input hash also matches the original pre-cutover operator receipt."
