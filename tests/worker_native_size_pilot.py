@@ -40,7 +40,11 @@ async def main():
                           XDG_STATE_HOME=str(root / 'state'),
                           XDG_DATA_HOME=str(root / 'data'))
         comms = Comms(root / 'wire')
-        comms.messaging.initialize_private_initial_protocol()
+        if physical:
+            from agent_comms.active_route import resolve_comms_route
+            assert resolve_comms_route().observe_root() == comms.root
+        else:
+            comms.messaging.initialize_private_initial_protocol()
         app = ToadApp(project_dir=str(root))
         receipt = {'boundary': 'actual source Toad/ToolCall/Contents/native compositor/worker',
                    'source': str(Path(sys.modules['toad.widgets.worker_static'].__file__).resolve()),
