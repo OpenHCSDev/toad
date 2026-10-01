@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import cached_property
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 import asyncio
 from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
@@ -28,12 +28,19 @@ class WindowRestoration(ABC):
     def restore(self, window: "HistoryWindow") -> None:
         if not self.current(window):
             return
+        with self.geometry(window):
+            self._restore(window)
+
+    @contextmanager
+    def geometry(self, window: "HistoryWindow"):
+        """Own native reflow and its compensation as one reader restoration."""
+        restoring = window._restoring
         window._restoring = True
         try:
-            self._restore(window)
-            window.document_viewport.lookahead.relocated(window.scroll_y)
+            yield
         finally:
-            window._restoring = False
+            window.document_viewport.lookahead.relocated(window.scroll_y)
+            window._restoring = restoring
 
     @abstractmethod
     def _restore(self, window: "HistoryWindow") -> None: ...

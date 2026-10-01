@@ -1,6 +1,7 @@
 """The one native workspace frame; session surfaces never own compositors."""
 
 import asyncio
+from contextlib import ExitStack
 from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import TYPE_CHECKING, cast
@@ -209,7 +210,11 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             return
         # Screen normally paints from inside _refresh_layout. Do not expose the
         # prepend/eviction coordinates before compensating for their height.
-        with self.app.batch_update():
+        with self.app.batch_update(), ExitStack() as restoration:
+            # Native reflow may clamp the old offset before compensation. That
+            # geometry belongs to this same reader operation, not user travel.
+            for window, position in anchors:
+                restoration.enter_context(position.geometry(window))
             super()._refresh_layout(size, scroll)
             changed = False
             for window, position in anchors:
