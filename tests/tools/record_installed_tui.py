@@ -451,6 +451,8 @@ class SavedTabCloseJourney(PhysicalJourney):
 class CaptureTarget(DeclaredFamily, affix="Capture"):
     """Own launch authorization and original native-owner preservation proof."""
 
+    purpose = "installed TUI physical interaction video review"
+
     @classmethod
     @abstractmethod
     def admit(cls, args, command, env): ...
@@ -514,6 +516,7 @@ class SourceCapture(PrivateCapture):
     """
 
     source: Path
+    purpose = "source Toad physical interaction video review"
 
     @classmethod
     def admit(cls, args, command, env):
@@ -883,7 +886,7 @@ def record(args):
         raise ValueError("Run recorder with the selected installed runtime's Python")
     output.mkdir(parents=True, exist_ok=False)
     receipt = {
-        "owner": args.owner, "purpose": "installed TUI physical interaction video review",
+        "owner": args.owner, "purpose": target.purpose,
         "output": str(output), "command": command, "terminal_command": ["st", "-e", *command],
         "fps": args.fps, "screen": [args.width, args.height],
         "profiling_requested": args.profile,

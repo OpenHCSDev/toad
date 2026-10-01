@@ -1,0 +1,32 @@
+{
+  "owner": "Kepler256",
+  "purpose": "scoped source physical scrolling/video/native geometry/CPU review",
+  "scratch": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical01",
+      "retain": "original failure or reviewed raw; no provider inputs/native owners"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical02",
+      "retain": "original failure or reviewed raw; no provider inputs/native owners"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03",
+      "retain": "original failure or reviewed raw; no provider inputs/native owners"
+    }
+  ],
+  "physical_source_sha256": "124e747c812e4a2d4030933f85a26757439237470857f532c08da59343019420",
+  "source_unchanged": true,
+  "video": "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/terminal.mp4",
+  "profile": "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/cpu-profile.json",
+  "join": "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/worker-scene-profile-join.json",
+  "reviewed_frames": [
+    "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-up-done.png",
+    "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-down-done.png",
+    "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-idle-done.png",
+    "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/body-up-contact-sheet.png",
+    "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/body-down-contact-sheet.png",
+    "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/body-reverse-contact-sheet.png"
+  ],
+  "acceptance_limit": "source ToolCall scrolling; not installed, live original saved source, cold pending lazy history or final latency acceptance"
+}

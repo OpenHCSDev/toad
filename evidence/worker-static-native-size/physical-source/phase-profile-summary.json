@@ -1,0 +1,312 @@
+{
+  "sample_count": 279,
+  "sampling_errors": 0,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant"
+  ],
+  "ui_pid": 220579,
+  "phases": [
+    {
+      "label": "up",
+      "video_start_seconds": 20.351733937044628,
+      "video_end_seconds": 25.9872153190081,
+      "kernel_ui_cpu": {
+        "pid": "220579",
+        "command": "toad                                                                                                                                                                           ",
+        "cpu_seconds": 0.8600000000000003,
+        "average_cpu_percent": 15.260453219709962
+      },
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-up.png",
+          "state_capture": {
+            "started_seconds": 20.62822444899939,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 141737984,
+              "started_ns": 1790817244440826999,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-up-state": "complete"
+              },
+              "finished_ns": 1790817244573194630
+            },
+            "finished_seconds": 20.9184976190445
+          },
+          "native_state": "phase-up-state.pickle",
+          "native_metadata": "phase-up-state.json"
+        },
+        "end": {
+          "screenshot": "phase-up-done.png",
+          "state_capture": {
+            "started_seconds": 26.27124674001243,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 141783040,
+              "started_ns": 1790817250087382661,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-up-done-state": "complete"
+              },
+              "finished_ns": 1790817250220046713
+            },
+            "finished_seconds": 26.562076254049316
+          },
+          "native_state": "phase-up-done-state.pickle",
+          "native_metadata": "phase-up-done-state.json"
+        }
+      }
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 27.305976661038585,
+      "video_end_seconds": 32.957307136035524,
+      "kernel_ui_cpu": {
+        "pid": "220579",
+        "command": "toad                                                                                                                                                                           ",
+        "cpu_seconds": 0.8099999999999996,
+        "average_cpu_percent": 14.332908039684908
+      },
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-down.png",
+          "state_capture": {
+            "started_seconds": 27.532359099015594,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 141881344,
+              "started_ns": 1790817251341882368,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-down-state": "complete"
+              },
+              "finished_ns": 1790817251474480545
+            },
+            "finished_seconds": 27.851082673005294
+          },
+          "native_state": "phase-down-state.pickle",
+          "native_metadata": "phase-down-state.json"
+        },
+        "end": {
+          "screenshot": "phase-down-done.png",
+          "state_capture": {
+            "started_seconds": 33.2272990620113,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 141922304,
+              "started_ns": 1790817257035675399,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-down-done-state": "complete"
+              },
+              "finished_ns": 1790817257100192418
+            },
+            "finished_seconds": 33.483874432044104
+          },
+          "native_state": "phase-down-done-state.pickle",
+          "native_metadata": "phase-down-done-state.json"
+        }
+      }
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 34.21043934300542,
+      "video_end_seconds": 39.92710656003328,
+      "kernel_ui_cpu": {
+        "pid": "220579",
+        "command": "toad                                                                                                                                                                           ",
+        "cpu_seconds": 0.8200000000000003,
+        "average_cpu_percent": 14.344021942671773
+      },
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-reverse.png",
+          "state_capture": {
+            "started_seconds": 34.49077701003989,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 141959168,
+              "started_ns": 1790817258302770808,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-reverse-state": "complete"
+              },
+              "finished_ns": 1790817258435067144
+            },
+            "finished_seconds": 34.78413529304089
+          },
+          "native_state": "phase-reverse-state.pickle",
+          "native_metadata": "phase-reverse-state.json"
+        },
+        "end": {
+          "screenshot": "phase-reverse-done.png",
+          "state_capture": {
+            "started_seconds": 40.217093339015264,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 141996032,
+              "started_ns": 1790817264037765379,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-reverse-done-state": "complete"
+              },
+              "finished_ns": 1790817264170751992
+            },
+            "finished_seconds": 40.530834849050734
+          },
+          "native_state": "phase-reverse-done-state.pickle",
+          "native_metadata": "phase-reverse-done-state.json"
+        }
+      }
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 41.32290213502711,
+      "video_end_seconds": 43.95375159604009,
+      "kernel_ui_cpu": {
+        "pid": "220579",
+        "command": "toad                                                                                                                                                                           ",
+        "cpu_seconds": 0.20999999999999996,
+        "average_cpu_percent": 7.982212707797477
+      },
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-end.png",
+          "state_capture": {
+            "started_seconds": 41.61297299299622,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 142036992,
+              "started_ns": 1790817265423351472,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-end-state": "complete"
+              },
+              "finished_ns": 1790817265556080597
+            },
+            "finished_seconds": 41.93276417901507
+          },
+          "native_state": "phase-end-state.pickle",
+          "native_metadata": "phase-end-state.json"
+        },
+        "end": {
+          "screenshot": "phase-idle.png",
+          "state_capture": {
+            "started_seconds": 44.16561216401169,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 142749696,
+              "started_ns": 1790817267972179476,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-idle-state": "complete"
+              },
+              "finished_ns": 1790817268104527270
+            },
+            "finished_seconds": 44.46783428202616
+          },
+          "native_state": "phase-idle-state.pickle",
+          "native_metadata": "phase-idle-state.json"
+        }
+      }
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 43.95375159604009,
+      "video_end_seconds": 49.316035865049344,
+      "kernel_ui_cpu": {
+        "pid": "220579",
+        "command": "toad                                                                                                                                                                           ",
+        "cpu_seconds": 0.21999999999999975,
+        "average_cpu_percent": 4.102729153533807
+      },
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-idle.png",
+          "state_capture": {
+            "started_seconds": 44.16561216401169,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 142749696,
+              "started_ns": 1790817267972179476,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-idle-state": "complete"
+              },
+              "finished_ns": 1790817268104527270
+            },
+            "finished_seconds": 44.46783428202616
+          },
+          "native_state": "phase-idle-state.pickle",
+          "native_metadata": "phase-idle-state.json"
+        },
+        "end": {
+          "screenshot": "phase-idle-done.png",
+          "state_capture": {
+            "started_seconds": 49.59167034603888,
+            "manifest": {
+              "pid": 220579,
+              "created": 1790817222.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 142839808,
+              "started_ns": 1790817273403577069,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/worker-static-source-256-20260930-physical03/capture/phase-idle-done-state": "complete"
+              },
+              "finished_ns": 1790817273536176559
+            },
+            "finished_seconds": 49.885375466023106
+          },
+          "native_state": "phase-idle-done-state.pickle",
+          "native_metadata": "phase-idle-done-state.json"
+        }
+      }
+    }
+  ]
+}

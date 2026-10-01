@@ -1,0 +1,9 @@
+{
+  "boundary": "actual source Toad/ToolCall/Contents/native compositor/worker",
+  "source": "/home/ts/wt/toad-worker-static-native-size-20260930/src/toad/widgets/worker_static.py",
+  "provider_calls": 0,
+  "physical_driver": "LinuxDriver",
+  "retained_tool_bodies": 12,
+  "ready": true,
+  "source_sha256": "124e747c812e4a2d4030933f85a26757439237470857f532c08da59343019420"
+}
