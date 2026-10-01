@@ -144,6 +144,9 @@ class MovingPreparation(PreparationDemand):
         return (tuple(reversed(sequence[max(0, first - count):first]))
                 if self.velocity < 0 else tuple(sequence[last:last + count]))
 
+    def edges(self, before, after):
+        return (before, None) if self.velocity < 0 else (None, after)
+
     def body_order(self, runway, predicted):
         # The measured incoming direction gets resource admission first. A
         # reverse runway cannot consume the bound before fast forward travel.

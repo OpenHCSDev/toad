@@ -99,9 +99,28 @@ async def main():
             }}) + "\n" for number in range(65)))
         comms.registry.declare(Thread("saved-pages", frozenset(), str(root), session_file=str(journal)))
 
+        source_reads = []
+        scroll_observations = []
+
         async def read(**kwargs):
             source, name = (original, "nra-architecture") if original is not None else (comms, "saved-pages")
-            return await asyncio.to_thread(source.transcripts.thread_transcript_page, name, **kwargs)
+            if physical:
+                lookahead = app.selected_session.conversation.window.document_viewport.lookahead
+                record = dict(clock=monotonic(), demand=type(lookahead.demand).__name__,
+                              travel_rows=lookahead.travel_rows,
+                              before=kwargs["before"].offset if kwargs.get("before") is not None else None,
+                              after=kwargs["after"].offset if kwargs.get("after") is not None else None)
+                source_reads.append(record)
+            try:
+                page = await asyncio.to_thread(source.transcripts.thread_transcript_page, name, **kwargs)
+            except BaseException as error:
+                if physical:
+                    record.update(finished=monotonic(), failure=type(error).__name__)
+                raise
+            if physical:
+                record.update(finished=monotonic(), returned_before=page.before.offset,
+                              returned_after=page.after.offset, events=len(page.events))
+            return page
 
         app = PublicationApp(project_dir=str(root))
         try:
@@ -111,6 +130,16 @@ async def main():
                 history = await view.post(TranscriptHistory(await read(), read))
                 await pilot.pause(.3)
                 if physical:
+                    window = view.window
+
+                    def observe_scroll(y):
+                        lookahead = window.document_viewport.lookahead
+                        scroll_observations.append(dict(
+                            clock=monotonic(), position=y, demand=type(lookahead.demand).__name__,
+                            travel_rows=lookahead.travel_rows,
+                        ))
+
+                    window.watch(window, "scroll_y", observe_scroll, init=False)
                     async with asyncio.timeout(20):
                         while not view.window.document_viewport.visible_bodies_ready:
                             await pilot.pause(.02)
@@ -171,6 +200,8 @@ async def main():
         finally:
             (evidence / "frames.json").write_text(json.dumps(app.frames, indent=2))
             if physical:
+                (evidence / "source-reads.json").write_text(json.dumps(source_reads, indent=2) + "\n")
+                (evidence / "scroll-demand.json").write_text(json.dumps(scroll_observations, indent=2) + "\n")
                 source_after = dict(path=str(journal), bytes=journal.stat().st_size,
                                     sha256=hashlib.sha256(journal.read_bytes()).hexdigest())
                 (evidence / "retained-source.json").write_text(json.dumps(dict(
