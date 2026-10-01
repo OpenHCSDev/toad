@@ -235,3 +235,13 @@ SelectedPR159 had its history lock held, eight body owners, four visible bodies
 and no dormant visible body. The observed cold blank still needs a correlated
 publication/frame diagnosis; neither this counter nor body materialization
 proves it fixed.
+
+## Current original producer capture boundary
+
+The next factory invocation requires `--original-python` naming the parent-approved
+current installed producer. The previous hardcoded native-applied e191 interpreter
+is deleted after public476 publication. `CurrentTypedCapture` continues to own
+the original read/process/admission witness; no old-format reader or carry adapter
+is introduced. The argument is recorded in the factory receipt. Existing raw
+ba65 command/receipt remains unchanged. No capture was started for this caller
+closure; normal builder/cohort pins and the sole physical slot remain parent-owned.

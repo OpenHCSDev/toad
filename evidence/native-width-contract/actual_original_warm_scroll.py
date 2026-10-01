@@ -34,15 +34,15 @@ def fingerprint(path):
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
-async def run(root, stage_proof):
+async def run(root, stage_proof, original_python):
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     runtime = Path(sys.executable).parent
     stage = runtime.parent
     public = Path("/var/tmp/agent-comms-live-20260927-wzjtqhza")
-    original_python = Path("/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python")
     receipt = {"state": "PREPARING", "owner": "Heisenberg275", "fixture": str(root),
                "inputs": 0, "provider_requests": 0, "public_owner_operations": 0,
-               "python": sys.executable, "runtime": str(stage)}
+               "python": sys.executable, "runtime": str(stage),
+               "original_python": str(original_python)}
     started = time.monotonic()
     owner = None
     processes = None
@@ -166,5 +166,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path)
     parser.add_argument("--stage-proof", required=True, type=Path)
+    parser.add_argument("--original-python", required=True, type=Path,
+                        help="Approved current producer interpreter for the original owner read")
     args = parser.parse_args()
-    asyncio.run(run(args.root, args.stage_proof))
+    asyncio.run(run(args.root, args.stage_proof, args.original_python))
