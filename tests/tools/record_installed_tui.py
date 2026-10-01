@@ -523,9 +523,12 @@ class StationaryInputScrollJourney(ScrollJourney):
             raise ValueError("Stationary/input scrolling requires native state capture")
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
+        ready = (marker + f"stationary-start --wait-history-seconds {args.history_wait_seconds:g} "
+                 f"--wait-history-interval {args.history_wait_interval:g} "
+                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
         return "\n".join([
-            marker + "stationary-start",
-            native_click_command("phase-stationary-start-state.pickle"),
+            ready, settle, marker + "stationary-loaded",
+            native_click_command("phase-stationary-loaded-state.pickle"),
             "key Prior", settle, marker + "slightly-up",
             f"sleep {args.scroll_idle_seconds:g}", marker + "stationary-done",
             native_click_command("phase-stationary-done-state.pickle", target="editor"),
@@ -536,6 +539,32 @@ class StationaryInputScrollJourney(ScrollJourney):
                           state="phase-input-pagedown-state.pickle"),
             "",
         ])
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import NativePhase
+
+        labels = ("stationary-loaded", "slightly-up", "stationary-done",
+                  "input-focused", "input-pageup", "input-pagedown", "idle-done")
+        phases = {label: NativePhase.read(output, label) for label in labels}
+        initial, offset, idle = (phases[label] for label in labels[:3])
+        result = {"checks": {
+            "loaded_before_pageup": initial.loaded_pages > 0 and initial.maximum > 0,
+            "stationary_away_from_tail": not offset.follows_tail and not idle.follows_tail,
+            "offset_reader": offset.scroll_y < offset.maximum and idle.scroll_y < idle.maximum,
+            "input_keeps_focus": all(phases[label].focused_widget == phases[label].editor
+                                     for label in ("input-focused", "input-pageup", "input-pagedown")),
+        }, "phases": {label: vars(phase) for label, phase in phases.items()},
+                  "scope": "Diagnostic coverage; frame smoothness and input paging remain observations"}
+        (output / "stationary-scroll-review.json").write_text(
+            json.dumps(result, default=str, indent=2) + "\n")
+        return result
+
+    @classmethod
+    def validate_review(cls, review):
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Stationary diagnostic missed its required coverage: " + ", ".join(failed))
 
 
 class SavedTabCloseJourney(PhysicalJourney):
