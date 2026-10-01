@@ -302,10 +302,32 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         if manager is not None:
                             visible = visible_regions
                             owners = tuple(manager.owners)
+                            roots = tuple(manager.body_roots())
+                            exposed = [index for index, body in enumerate(roots) if body in visible]
+                            ready_runway = {}
+                            if exposed:
+                                for side, neighbors in (
+                                    ("before", reversed(roots[:min(exposed)])),
+                                    ("after", iter(roots[max(exposed) + 1:])),
+                                ):
+                                    rows = 0
+                                    for body in neighbors:
+                                        if not body.body_ready:
+                                            break
+                                        rows += body.measured_rows
+                                    ready_runway[side] = rows
                             outer = tuple(body for body in owners
                                           if not any(parent in manager.owners for parent in body.ancestors))
                             window["body_resources"] = {
                                 "budget": asdict(manager.budget),
+                                "runway": {
+                                    "requested_rows": manager.lookahead.ahead_rows(node.size.height),
+                                    "baseline_rows": manager.budget.runway_rows(node.size.height),
+                                    "ready_rows": ready_runway,
+                                    "demand": type(manager.lookahead.demand).__name__,
+                                    "travel_rows": manager.lookahead.travel_rows,
+                                    "foreground_delivery_seconds": manager.lookahead.delivery_seconds,
+                                },
                                 "widget_limit": manager.budget.widget_limit(node.size.height),
                                 "source_byte_limit": node.app.preparation.max_bytes,
                                 "body_evictions": manager.body_evictions,
