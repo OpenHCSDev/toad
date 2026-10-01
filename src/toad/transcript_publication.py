@@ -63,10 +63,20 @@ class TranscriptPublication(ABC):
         return await self.read_bound(page)
 
     async def read_bound(self, page: TranscriptPage) -> TranscriptPage:
+        from agent_comms.coordination_errors import StaleRevision
+
+        # The known native cut and its applied original resources meet here,
+        # before native/outcome bounding or asynchronous render preparation.
+        if not await self.capture_application():
+            raise StaleRevision("Transcript application retired before source capture")
         bound = self.source_bound(page.after)
         if bound != page.after:
             self.owner.dirty = self.owner.checkpoint_required = True
             page = await self.agent.get_transcript_page(through=bound)
+            # This bounded read retains the cut's original cohort. A newly
+            # settled anonymous body cannot become evidence for an older prefix.
+            if not await self.application_current():
+                raise StaleRevision("Transcript application retired during bounded read")
         return page
 
     def current(self) -> bool:
@@ -98,9 +108,15 @@ class TranscriptPublication(ABC):
             # messages whose resource custody the source needs to capture.
             self.owner.source_requests.submit(self)
             return
-        if await self.application_current():
-            self.captured = view.turns.owner.captured_snapshot(tuple(self.contents.children))
+        if await self.capture_application():
             await self.publish_applied()
+
+    async def capture_application(self) -> bool:
+        """Capture the original applied cohort once its source cut is known."""
+        if not await self.application_current():
+            return False
+        self.captured = self.owner.view.turns.owner.captured_snapshot(tuple(self.contents.children))
+        return True
 
     async def application_current(self) -> bool:
         """The original native pump attests applied effects at this source cut."""
@@ -146,6 +162,11 @@ class SnapshotPublication(TranscriptPublication):
         return False
 
     async def publish_applied(self) -> None:
+        # The original supplied page is already known at the inherited join.
+        await self.publish_page()
+
+    async def publish_page(self) -> None:
+        """Admit this operation's known cut and original applied resource cohort."""
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
@@ -241,7 +262,13 @@ class CanonicalSourcePublication(TranscriptPublication):
             return
         page = await self.read_page()
         if self.current():
-            await self.owner.snapshot(page)
+            # Keep this read's original cohort through saved-page admission.
+            # Snapshot notifications obtain their cut at their own boundary;
+            # this source read already joined the same pump in read_bound.
+            snapshot = SnapshotPublication(self.owner, self.owner.view,
+                                           self.window, self.contents, page)
+            snapshot.captured = self.captured
+            await snapshot.publish_page()
             await self.owner.publish(HandlingPublication)
 
 
@@ -252,11 +279,8 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 
     async def read_page(self) -> TranscriptPage:
         identity = self.presentation.read_identity
-        bound = self.source_bound(identity.page_bound)
-        if bound != identity.page_bound:
-            self.owner.dirty = self.owner.checkpoint_required = True
-            return await self.agent.get_transcript_page(through=bound)
-        return await self.agent.get_transcript_page(read_identity=identity)
+        page = await self.agent.get_transcript_page(read_identity=identity)
+        return await self.read_bound(page)
 
     async def publish_applied(self) -> None:
         if self.agent is None:
@@ -369,13 +393,6 @@ class CheckpointPublication(TranscriptPublication):
         )
         try:
             page = await self.read_source_page()
-            # Reading can yield to later original notifications. Their UI
-            # effects must apply before this page's native-claim admission,
-            # including plans that admit pages during preparation. Keep the
-            # original captured cohort: late anonymous output cannot be
-            # transferred by an earlier operation's source evidence.
-            if not await self.application_current():
-                return
             is_current = partial(self.source_current, page.after)
             if not page.events or not is_current():
                 return
