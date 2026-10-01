@@ -1,0 +1,25 @@
+{
+  "owner": "Mendel sole final69 builder",
+  "source_owners": [
+    "Schrodinger475",
+    "Einstein270/473",
+    "Heisenberg271",
+    "Arendt274/480"
+  ],
+  "journey_owners": [
+    "Einstein",
+    "Kepler"
+  ],
+  "purpose": "ONE final private controlled original-input/image/followup +crossaudience/GoalCheckpoint/selectedcommit ACP/UI receiving journey",
+  "prefix": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-final-cohort-20261001",
+  "core": "0ea6dccbd39b1f8656e2fc2ad983046244d9312d",
+  "toad": "a87de510fa1b4fd67113446a9ef698fc0865141d",
+  "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-retained-task-facts-s2-20261001/stack/.pi-native-0064a96bb79c21c1/node_modules/@earendil-works/pi-coding-agent",
+  "donor": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/staging-openhcs-recovery-cohort-20261001/requirements.txt",
+  "donor_sha256": "96e73018bf1a2780266b1a451ac0cd4d8ea7f552b8c2954d6073a339a5d39a12",
+  "protected_files": 4163,
+  "public_effects": false,
+  "created_utc": "2026-10-01T11:27:16Z"
+}
