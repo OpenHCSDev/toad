@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import sys
+from functools import partial
 from tempfile import TemporaryDirectory
 from time import monotonic
 from unittest.mock import patch
@@ -102,10 +103,10 @@ async def main():
         source_reads = []
         scroll_observations = []
 
-        async def read(**kwargs):
-            source, name = (original, "nra-architecture") if original is not None else (comms, "saved-pages")
+        async def read(window, *, name="saved-pages", **kwargs):
+            source, name = (original, "nra-architecture") if original is not None else (comms, name)
             if physical:
-                lookahead = app.selected_session.conversation.window.document_viewport.lookahead
+                lookahead = window.document_viewport.lookahead
                 record = dict(clock=monotonic(), demand=type(lookahead.demand).__name__,
                               travel_rows=lookahead.travel_rows,
                               before=kwargs["before"].offset if kwargs.get("before") is not None else None,
@@ -127,9 +128,27 @@ async def main():
             async with app.run_test(size=(120, 35), headless=not physical) as pilot:
                 await app.selected_session.wait_content_ready()
                 view = app.selected_session.conversation
-                history = await view.post(TranscriptHistory(await read(), read))
+                loader = partial(read, view.window)
+                history = await view.post(TranscriptHistory(await loader(), loader))
                 await pilot.pause(.3)
                 if physical:
+                    first = app.selected_session
+                    if os.environ.get("PUBLICATION_WARM") == "1":
+                        from toad.screens.main import MainScreen
+
+                        peer_project = root / 'saved-peer'
+                        peer_project.mkdir()
+                        comms.registry.declare(Thread('saved-peer', frozenset(), str(peer_project),
+                                                      session_file=str(journal)))
+                        await app.session_navigation.new(
+                            lambda: MainScreen(peer_project, app.agent_data), title='Saved peer')
+                        await app.selected_session.wait_content_ready()
+                        peer_view = app.selected_session.conversation
+                        peer_loader = partial(read, peer_view.window, name='saved-peer')
+                        await peer_view.post(TranscriptHistory(await peer_loader(), peer_loader))
+                        await pilot.pause(.3)
+                        await app.select_session(first.id)
+                        await pilot.pause(.3)
                     window = view.window
 
                     def observe_scroll(y):

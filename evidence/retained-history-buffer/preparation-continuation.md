@@ -43,3 +43,25 @@ bypass (BOUND-2) rather than introducing another revocation path.
 
 Actual changed-source physical acceptance is pending the single coordinated
 source capture; do not treat this source checkpoint as installed readiness.
+
+The original native counter is now RED/GREEN. The old f053 viewport implementation
+passes the newly current demand to acceptance after real PageUp reversal;
+`demand-custody-red.json` records `original_demand=false, accepted=true`.
+The corrected source retains the original reference and rejects it:
+`demand-custody-green.json` starts `original_demand=true, accepted=false`, then
+accepts the new native direction through the same resource worker.
+
+`tests/viewport_demand_custody_pilot.py` runs the actual ToadApp, native Markdown
+body, original viewport worker and actual driver Key route. Its observer holds
+after original foreground restoration completes, before the awaiting caller
+continues. It does not replace bodies, records, protocol or UI. Earlier control
+failures stay documented in `demand-control-negatives.json`. Original RED log
+and GREEN receipt remain in owned persistent scratch; no provider was invoked.
+
+The existing physical pilot can now seed a second actual MainScreen through
+SessionAdmissions and read the same protected native journal under its own
+declared private Thread. Each loader is bound to its original native Window,
+so hidden-view reads cannot be mislabeled as the selected view's demand.
+WarmSourceJourney extends the existing WarmScrollJourney peer-click hook,
+using the captured native peer tab rather than starting an ACP owner. All
+scroll, End/idle, A/B/A, draft and Undo checks remain in the same journey.
