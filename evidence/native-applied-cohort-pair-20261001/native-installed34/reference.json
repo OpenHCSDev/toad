@@ -1,0 +1,11 @@
+{
+  "owner": "Einstein",
+  "commit": "0befccb19fcd1b5f933bf079c4c91cad29fcffd2",
+  "receipt_path": "/home/ts/wt/comms-c1-terminal-data-20260930/evidence/c1-terminal-data-20260930/installed34/ready-receipt.json",
+  "receipt_sha256": "a6031469f494fdaa4aac5e77497514f1638f9c66a27daed27abfab7a869b68f3",
+  "raw_root": "/home/ts/wt/g458j/u03",
+  "source_proof_matches_package_pins": true,
+  "original_ANSI_stationary_png_personally_viewed": true,
+  "image_provenance": "software monochrome rendering of exact recorded original ANSI text snapshots; no new GUI run or X screenshot",
+  "remaining_public_boundary": "Parent quiet cutover and separate affected ordinary default entrypoint"
+}
