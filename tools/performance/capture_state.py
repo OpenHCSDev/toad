@@ -17,7 +17,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     from toad.widgets.conversation import CursorContainer
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.prompt import PromptTextArea
-    from toad.widgets.comms_sidebar import ThreadRow
+    from toad.navigation_target import ChannelTarget
+    from toad.widgets.comms_sidebar import CommsRow, ThreadRow
     from toad.widgets.session_tabs import SessionLabel
     from toad.widgets.tool_call import ToolCall
 
@@ -147,14 +148,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             "cuts_cached": compositor._cuts is not None,
             "maps": {},
         }
-        metadata["navigation_targets"] = {"threads": [], "tabs": []}
+        metadata["navigation_targets"] = {"threads": [], "channels": [], "tabs": [], "widgets": []}
         # The public owner handles full-layout and partial-layout publication.
         # _visible_map alone is only the optional partial-layout representation.
         visible_regions = compositor.visible_widgets
 
         def navigation_target(node, region, name):
             cell = Offset(*(int(value) for value in region.center))
-            if screen.get_widget_at(*cell)[0] is not node:
+            hit = screen.get_widget_at(*cell)[0]
+            if hit is None or node not in hit.ancestors_with_self:
                 return None
             return {**node_identity(node), "name": name, "region": tuple(region),
                     "focus_target": {"widget": node_identity(node), "cell": tuple(cell)}}
@@ -163,9 +165,14 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             region = native_region.intersection(native_clip)
             if not region:
                 continue
+            if target := navigation_target(node, region, node.id or type(node).__name__):
+                metadata["navigation_targets"]["widgets"].append(target)
             if isinstance(node, ThreadRow):
                 if target := navigation_target(node, region, node.target_name):
                     metadata["navigation_targets"]["threads"].append(target)
+            if isinstance(node, CommsRow) and isinstance(node.target, ChannelTarget):
+                if target := navigation_target(node, region, node.target_name):
+                    metadata["navigation_targets"]["channels"].append(target)
             if isinstance(node, SessionLabel):
                 if target := navigation_target(node, region, node.id):
                     metadata["navigation_targets"]["tabs"].append(target)

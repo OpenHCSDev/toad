@@ -3,9 +3,11 @@ from textual.containers import Vertical
 from textual.widget import Widget
 from textual.reactive import reactive
 from toad.widgets.side_bar import SidebarFocusOwner
+from pathlib import Path
+from toad.project_path_owner import ProjectPathOwner
 
 
-class SessionView(SidebarFocusOwner, Vertical):
+class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
     title = reactive("")
     sub_title = reactive("")
 
@@ -14,6 +16,10 @@ class SessionView(SidebarFocusOwner, Vertical):
     COMMANDS = set()
     footer_compact = False
     shows_channels = True
+
+    @property
+    def project_root(self) -> Path:
+        return Path(self.project_path)
 
     @property
     def is_current(self) -> bool:

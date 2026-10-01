@@ -16,17 +16,18 @@ from textual.screen import ModalScreen
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceScreen
-from toad.widgets.conversation import Window
+from toad.project_path_owner import ProjectPathOwner
+from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_history import TranscriptHistory
 
 
-class HistoricalSessions(WorkspaceScreen, ModalScreen):
+class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
     BINDINGS: ClassVar = [("escape", "close", "Back to chats")]
     DEFAULT_CSS = """
     HistoricalSessions { align: center middle; background: $background 60%; }
     HistoricalSessions > Vertical { width: 95%; height: 95%; background: $surface; border: solid $primary; }
     HistoricalSessions #source-label { height: auto; padding: 1; }
-    HistoricalSessions Window { height: 1fr; }
+    HistoricalSessions HistoryWindow { height: 1fr; }
     HistoricalSessions #saved-content { height: auto; }
     """
 
@@ -44,6 +45,11 @@ class HistoricalSessions(WorkspaceScreen, ModalScreen):
         self.initial_name = name
         self.initial_source = source
         self._selection_generation = 0
+
+    @property
+    def project_root(self) -> Path:
+        index = self.query_one("#saved-identity", Select).value
+        return Path(self.threads[index].thread.worktree)
 
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -74,7 +80,7 @@ class HistoricalSessions(WorkspaceScreen, ModalScreen):
                 0,
             )
             yield Select(options, allow_blank=False, value=initial, id="saved-identity")
-            with Window():
+            with HistoryWindow(id="saved-window"):
                 yield VerticalGroup(id="saved-content")
 
     @on(Select.Changed, "#saved-identity")
@@ -117,10 +123,10 @@ class HistoricalSessions(WorkspaceScreen, ModalScreen):
             )
         else:
             await content.mount(TranscriptHistory(page, load))
-            self.query_one(Window).scroll_end(animate=False, immediate=True)
+            self.query_one(HistoryWindow).scroll_end(animate=False, immediate=True)
 
     def action_focus_prompt(self) -> None:
-        self.query_one(Window).scroll_end(animate=False)
+        self.query_one(HistoryWindow).jump_to_latest()
 
     def action_close(self) -> None:
         self.dismiss()
