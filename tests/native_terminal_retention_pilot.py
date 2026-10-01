@@ -146,6 +146,53 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert released_custody.master.closed
     assert "error" in await request("terminal/output", terminalId=released)
 
+    # Cancellation belongs to the request; original retirement still joins.
+    interrupted = (await rpc("terminal/create", command="sleep", args=["30"]))["terminalId"]
+    interrupted_execution = terminals.require(interrupted)
+    interrupted_custody = await interrupted_execution.custody()
+    interrupted_child = ProcessIdentity.capture(interrupted_custody.process.pid)
+    releasing = asyncio.create_task(rpc("terminal/release", terminalId=interrupted))
+    await asyncio.sleep(0)  # Enter the real handler, without a screen barrier.
+    assert terminals.require(interrupted) is interrupted_execution
+    assert releasing.cancel(), "Release settled before the cancellation observation"
+    await asyncio.sleep(0)  # Deliver the first cancellation at its original await.
+    assert releasing.cancel(), "Repeated cancellation was not exercised"
+    release_cancellation, = await asyncio.gather(releasing, return_exceptions=True)
+    assert isinstance(release_cancellation, asyncio.CancelledError)
+    assert releasing.cancelling() == 2
+    assert interrupted not in terminals.executions
+    assert interrupted_execution.outcome.finished
+    assert interrupted_custody.master.closed and not interrupted_child.alive()
+    assert "error" in await request("terminal/output", terminalId=interrupted)
+
+    # Original creation publishes its execution before yielding to PTY spawn.
+    # Cancel at that real await, preserving whichever acquisition actually won.
+    before_startup = frozenset(terminals.executions)
+    before_startup_pty = pty_masters()
+    starting = asyncio.create_task(rpc("terminal/create", command="sleep", args=["30"]))
+    await asyncio.sleep(0)
+    startup_ids = frozenset(terminals.executions) - before_startup
+    assert len(startup_ids) == 1 and not starting.done(), "Startup phase was not observed"
+    startup_id, = startup_ids
+    startup_execution = terminals.require(startup_id)
+    acquisition = asyncio.create_task(startup_execution.custody())
+    assert starting.cancel()
+    startup_cancellation, = await asyncio.gather(starting, return_exceptions=True)
+    assert isinstance(startup_cancellation, asyncio.CancelledError)
+    try:
+        acquired = await acquisition
+    except asyncio.CancelledError:
+        startup_observation = {"acquisition": "refused_before_custody"}
+    else:
+        assert acquired.master.closed and acquired.process.returncode is not None
+        startup_observation = {
+            "acquisition": "original_custody_joined", "pid": acquired.process.pid,
+            "return_code": acquired.process.returncode, "pty_closed": acquired.master.closed,
+        }
+    assert startup_id not in terminals.executions and startup_execution.outcome.finished
+    assert frozenset(terminals.executions) == before_startup
+    assert pty_masters() == before_startup_pty
+
     await terminals.close()
     assert execution.outcome.finished and execution.outcome.successful
     assert not terminals.executions and pty_masters() == initial_pty_masters
@@ -158,6 +205,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         "failed_startup": failure,
         "released_child": {"pid": released_child.pid, "alive": released_child.alive(),
                            "pty_closed": released_custody.master.closed},
+        "cancelled_release": {"cancellations": releasing.cancelling(),
+                              "pid": interrupted_child.pid, "alive": interrupted_child.alive(),
+                              "pty_closed": interrupted_custody.master.closed,
+                              "address_present": interrupted in terminals.executions},
+        "cancelled_startup": startup_observation,
         "controller_addresses_after_close": len(terminals.executions),
         "pty_masters_before": sorted(initial_pty_masters),
         "pty_masters_after": sorted(pty_masters()),
