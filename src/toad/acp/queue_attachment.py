@@ -39,6 +39,12 @@ class QueueAttachment(ProjectionAttachment):
         return (self.scope is not None and self.scope.relation(scope).current
                 and self.projection.status == "available")
 
+    def capture_human_input(self, comms, scope):
+        """Certify the original captured request through its current observation."""
+        if not self.accepts_request(scope):
+            raise ValueError('The original input attachment changed before capture.')
+        return self.projection.capture_human_input(comms, scope)
+
     def begin(self, session_id):
         self._pending_starts.clear()
         return super().begin(session_id)
