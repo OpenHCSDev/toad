@@ -871,12 +871,19 @@ class ExistingThreadCapture(CaptureTarget):
             raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
         # Match the real default launcher's environment, not a copied private
         # route or thread identity that would redirect its retained history.
-        for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
-                    "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
+        for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"):
             env.pop(key, None)
+        cls.attachment_environment(env)
         route = cls.read_route(env)
         _, thread = cls.capture_owner(route, command[1])
         return cls(route, thread.name, thread.require_process(), RuntimeSelection.from_environment(command, env))
+
+    @staticmethod
+    def attachment_environment(env):
+        """The ACP client attaches; it never adopts its worker's process role."""
+        for key in ("AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID",
+                    "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
+            env.pop(key, None)
 
     @staticmethod
     def capture_owner(route, name):
@@ -947,6 +954,7 @@ class OwnedForkCapture(ExistingThreadCapture, PrivateCapture):
         env.update(capture_environment)
         for key in ("DISPLAY", "NO_COLOR", "PYTHONPATH"):
             env.pop(key, None)
+        cls.attachment_environment(env)
         launch.apply_environment(env)
         return cls(route=route, name=thread.name, identity=retained.process, selection=selection)
 
