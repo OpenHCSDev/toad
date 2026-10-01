@@ -16,6 +16,7 @@ import shlex
 import sys
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.acp_extension import QueuePromptRequest
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.native_entries import NativeEntry
 from agent_comms.retained_task_facts import HumanInputTaskFact
@@ -45,7 +46,21 @@ class ActualS2Ingress:
             'receipts': self.receipts,
         }, indent=2))
 
-    async def submit(self, text, *, image=None):
+    async def queue_followup(self, text):
+        """Use the same original client while the caller holds its provider turn."""
+        inputs = InputDispositions(self.comms.root / InputDispositions.filename)
+        before = inputs.read()
+        command = QueuePromptRequest(text, True)
+        await self.app.selected_session.conversation.agent.send_prompt(text, request=command)
+        await until(self.pilot, lambda: len(inputs.read().rows) == len(before.rows) + 1)
+        row = inputs.read().lookup('acp:' + command.input_id)
+        row.origin.require_human().author.require_registered(self.comms.registry.snapshot())
+        assert row.source_text == text
+        self.receipts.append({'queued_original': FieldCodec.encode(row)})
+        self.persist('same_actual_controller_queued_original_human_followup')
+        return row
+
+    async def submit(self, text, *, image=None, while_running=None):
         view = self.app.selected_session.conversation
         agent = view.agent
         inputs = InputDispositions(self.comms.root / InputDispositions.filename)
@@ -74,11 +89,14 @@ class ActualS2Ingress:
         with self.comms.bus.log.locked():
             assert origin.root_id == self.comms.bus.log.read_metadata_unlocked().wire_root_id
         assert Path(agent.coordination.wire_root) == self.comms.root
-        self.receipts.append({'original': FieldCodec.encode(original),
-                              'wire_sequence_before': wire_sequence})
+        receipt = {'original': FieldCodec.encode(original),
+                   'wire_sequence_before': wire_sequence}
+        self.receipts.append(receipt)
         self.persist('actual_editor_enter_original_authored_reservation')
 
         await until(self.pilot, lambda: inputs.read().lookup(key).has_started, 30)
+        if while_running is not None:
+            await while_running(self, inputs.read().lookup(key))
         await until(self.pilot, lambda: not self.comms.registry.require(self.subject.name).executing, 30)
         terminal = InputDispositions(inputs.path).read().lookup(key)
         assert terminal.origin == origin
@@ -107,7 +125,7 @@ class ActualS2Ingress:
         await until(self.pilot, lambda: body in frame())
         visible_occurrences = frame().count(body)
         self.app.export_screenshot(filename=str(self.output / f'original-reply-{len(self.receipts)}.svg'))
-        self.receipts[-1].update({
+        receipt.update({
             'terminal': FieldCodec.encode(terminal), 'native_user_entry': user.id,
             'native_reply_entry': reply.id, 'native_header': FieldCodec.encode(header),
             'actual_frame_body_occurrences': visible_occurrences,
