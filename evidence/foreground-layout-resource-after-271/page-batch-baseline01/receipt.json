@@ -1,0 +1,5 @@
+{
+  "scope": "rejected diagnostic output, not product proof",
+  "failure": "Test serialized Lock.locked method rather than calling locked(); corrected before baseline02",
+  "log": "../page-batch-baseline01.log"
+}

@@ -1,0 +1,47 @@
+{
+  "scope": "actual source Toad/native admission; not installed physical/CPU acceptance",
+  "cases": [
+    {
+      "direction": "older",
+      "mount_transactions": [
+        4
+      ],
+      "admitted_range": [
+        24,
+        32
+      ],
+      "ordered_original_fragments": true,
+      "previous_children_retained": true,
+      "all_children_mounted": true,
+      "publication_fence_held": true
+    },
+    {
+      "direction": "newer",
+      "mount_transactions": [
+        4
+      ],
+      "admitted_range": [
+        24,
+        32
+      ],
+      "ordered_original_fragments": true,
+      "previous_children_retained": true,
+      "all_children_mounted": true,
+      "publication_fence_held": true
+    },
+    {
+      "direction": "newer",
+      "mount_transactions": [],
+      "admitted_range": [
+        24,
+        32
+      ],
+      "ordered_original_fragments": true,
+      "previous_children_retained": true,
+      "all_children_mounted": true,
+      "publication_fence_held": true
+    }
+  ],
+  "agent_bound": false,
+  "exception": "None"
+}

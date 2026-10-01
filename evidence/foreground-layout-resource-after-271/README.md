@@ -268,3 +268,38 @@ counter. Physical typing/deletion/arrows/undo, active/post-cancel and A/B/A rema
 part of the full receiving275 workflow. Native peer controls were not exposed
 in this recovered session, so shared prompt edits and the sole Mendel build are
 not started through another control path.
+
+## One native transaction per page admission
+
+At normal-main union `ac62c8fd`, `TranscriptPageView.extend` awaited four
+individual native mounts for the existing four-fragment admission. Each mount
+has its own native style-order callback and AwaitMount layout completion.
+The page now delegates the whole admitted range to original `Widget.mount_all`.
+That mechanism already owns ordered registration and completion. The page keeps
+the original batch size, before-child placement, range commit, and history
+publication fence. Both canonical `_extend_and_trim` and projected
+`_admit_initial` inherit it. No copied mount loop, scheduler, cache, renderer,
+status field or per-consumer workaround is introduced (IMPL-13).
+
+`tests/history_page_batch_mount_pilot.py` exercises actual Toad/native resources,
+with no Agent/provider/input/public root. Baseline02 is RED: `[1,1,1,1]` mount
+transactions for both older and newer admission. Candidate01 is GREEN: `[4]`
+in both directions, the same original fragment order, retained existing child
+identities, mounted completion, and held native publication fence. A complete
+range performs no mount. Baseline01 is a rejected diagnostic serialization
+failure, preserved separately. Function/file dispatch, arm, probe and chain
+ratchets pass without growth in `page-batch-ratchet.json`. Production delta:
+three lines deleted, five added. A new fragment kind still uses its original
+`_body` declaration and native mount contract, with no admission consumer edit.
+
+The latest parent default queue receipt at
+`/home/ts/.cache/agent-scratch/parent-public-queue-default-20261001-01/capture/phase-receiver-open-state.json`
+is not a candidate proof. Selected PR159 had seven live blocks, six registered
+body resources, two visible ready bodies, no dormant bodies, scroll/max zero,
+and the history lock held. It requested 93 runway rows and reported 35 ready
+rows after the viewport. This supports investigating the original admission
+and frame-publication seam, but does not prove this transaction reduction fixes
+the physical two-second cold blank. Einstein owns queue-label classification.
+Cold first paint, original A/B/A, held/reverse/End/idle and honest same-run CPU
+remain in the sole installed gate. No heavy build/capture was started while
+Mendel reclaims disk; the new source counters completed in bounded private roots.
