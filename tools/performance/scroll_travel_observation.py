@@ -17,6 +17,7 @@ class ScrollTravelObservation:
         from toad.widgets.history_anchor import HistoryWindow
         from toad.widgets.presentation_window import DirectionalPreparation
         from toad.widgets.viewport_body import DocumentViewport
+        from toad.widgets.transcript_history import TranscriptHistory
 
         self.stream = path.open("x", buffering=1)
         self.written = 0
@@ -29,10 +30,14 @@ class ScrollTravelObservation:
             TextArea.action_cursor_page_down.__code__: self.editor_page_down,
             HistoryWindow.action_page_down.__code__: self.history_page_down,
             DirectionalPreparation.relocated.__code__: self.relocating,
+            DocumentViewport.admission.__code__: self.full_admission,
+            TranscriptHistory._resource_fragment_budget.__code__: self.fragment_budget,
+            TranscriptHistory._extend_and_trim.__code__: self.page_extension,
         }
         self.returns = {
             DirectionalPreparation.observe.__code__: self.observed,
             DirectionalPreparation.relocated.__code__: self.relocated,
+            TranscriptHistory._extend_and_trim.__code__: self.page_extended,
         }
         self.tool = sys.monitoring.PROFILER_ID
 
@@ -47,6 +52,25 @@ class ScrollTravelObservation:
         window = native["self"].window
         self.emit("request", window=id(window), position=window.scroll_y,
                   restoring=window._restoring)
+
+    def full_admission(self, native):
+        caller = sys._getframe(2).f_back.f_code
+        self.emit("full_admission", window=id(native["self"].window),
+                  caller=caller.co_name, caller_source=caller.co_filename)
+
+    def fragment_budget(self, native):
+        self.emit("fragment_budget", history=id(native["self"]),
+                  window=id(native["self"].window))
+
+    def page_extension(self, native):
+        self.emit("page_extension", history=id(native["self"]),
+                  window=id(native["self"].window), local=native["local"],
+                  older=native["older"])
+
+    def page_extended(self, native):
+        self.emit("page_extended", history=id(native["self"]),
+                  window=id(native["self"].window), local=native["local"],
+                  older=native["older"])
 
     def scroll(self, native):
         window = native["self"]
