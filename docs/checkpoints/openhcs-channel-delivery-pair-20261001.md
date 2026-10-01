@@ -19,3 +19,16 @@ public activation; no public source, goal, UNKNOWN, route or process is mutated.
 Current source includes original unhandled delivery and source-acquired recipient
 availability. The original u06 failed UI trace remains protected. Fresh u07 must
 prove current actual recovery paint before this metadata pair is Ready.
+
+
+Actual installed u07 acceptance PASS12.4846s/2localhostPOSTs on exact tested
+Corea2a47db2/Toadc38aa9de. Ordinary reply paint, real native failure, original
+unhandled frozen source waiting recovery, physical DM/return clicks and unchanged
+uncertain input all pass. All owned processes retired. Sanitized evidence is in
+Core476 evidence/openhcs-channel-delivery/ui-native-gates/ac476-u07.json.
+
+The final Core pin includes the reviewed bounded-window acquisition reuse:
+registry scan and activity read occur once per recipient, not per message. Its
+31 affected controls pass; the exact u07 heads remain explicit in the receipt.
+No Toad production, Textual, SDK or native package change follows that gate.
+Parent alone owns public merge/installation/activation.
