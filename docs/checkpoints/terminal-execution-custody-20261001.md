@@ -73,8 +73,8 @@ and ownership relation, with no terminal-specific closing mirror.
 ## Original child-owner closure after structural review
 
 Final paired Core480 dependency: f8ae4f5217561b6b8a2def4cafc2dfda583fcdfe.
-Against8116949e current production deletes 261 lines and adds 458 across the same
-seven files. Kepler's single existing helper adds 203/deletes19 fixture lines.
+Against8116949e current production deletes 265 lines and adds 463 across nine
+files. Kepler's single existing helper adds 203/deletes19 fixture lines.
 
 The initial274d01 PtyProcess could skip a surviving group after its leader exited.
 Parent's original installed254 control did NOT reproduce a leak; this finding
@@ -103,3 +103,23 @@ Kepler65288a29 is normally merged; it migrates every original-custody consumer a
 adds that leader-exited descendant control to the same installed journey. The
 single correctly pinned paired receiving stage/gate is still pending. Parent
 sole public executor; frozen479/pair remains untouched.
+
+## Paired launch consumer closure
+
+Parent caught the remaining old IO keywords at maintenance_ingress169 before
+staging. The earlier Core-only caller-default census omitted this receiving
+repo. Corrected full Core/Toad source, tests and tools census covers direct
+AttachedChild.start plus BoundedRun.session/admitted_spawn forwarding.
+
+admitted_spawn now consumes and forwards the same original ChildStdio member;
+its scalar input_enabled/limit arguments are deleted. AgentProcess's sole
+override constructs StreamingChildStdio with the unchanged10MiB ACP stream
+budget. The only AgentProcess changes are that import and the launch argument.
+No admission/retirement/phase/route behavior was relaxed or duplicated. No
+compatibility kwargs, alias or fallback retains the removed signature.
+
+Exact affected SOURCE control: actual admitted_spawn shell/stream/retirement with
+StreamingChildStdio(limit=10MiB) passed through original route/maintenance custody.
+The installed receiving journey still must launch ACP through this same seam;
+no installed or live claim is inferred from the source control. Current original
+session controls also pass4/4 in0.76s after the AttachedChild migration.
