@@ -47,5 +47,257 @@
       "cleanup_remaining": [],
       "cleanup_errors": []
     }
-  ]
+  ],
+  "installed_candidate_moving_frame_review": {
+    "boundary": "Existing installed candidate recording only; not default startup or another capture.",
+    "source_start_seconds": 39.0,
+    "seconds": 0.4,
+    "review_fps": 60,
+    "reviewed_frames": 24,
+    "physical_observation": "Chat and chrome visible throughout inspected24frame contact sheet; page-content shifts visible at39.217 and39.350. No entirephase/nohiccup/smoothness claim.",
+    "alignment_nominal_uncertainty_seconds": 0.08450495599303395,
+    "phase_kernel_cpu_percent": 87.2725802900472,
+    "artifacts": {
+      "down-moving-39s-264-frames.png": {
+        "path": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-installed01/capture/down-moving-39s-264-frames.png",
+        "bytes": 1316845,
+        "sha256": "232801dd3ad2fb62d066ac7d5876213bddd81bcda1acc23e1d29ca517332a65b"
+      },
+      "down-moving-39s-264-slow.mp4": {
+        "path": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-installed01/capture/down-moving-39s-264-slow.mp4",
+        "bytes": 116093,
+        "sha256": "85b071b7ee74cb8b6064feb8fa5e20f1b10f18d8471be55847ce2317cc927956"
+      },
+      "down-moving-39s-264-stacks.json": {
+        "path": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-installed01/capture/down-moving-39s-264-stacks.json",
+        "bytes": 24336,
+        "sha256": "5788c411226ec0e879a5f7a180d3a6796bd4cf1a926b5716c23fd9b8ed0b8d8e"
+      },
+      "down-moving-39s-264-review.json": {
+        "path": "$HOME/.cache/agent-scratch/viewport-preparation-263-20261001-installed01/capture/down-moving-39s-264-review.json",
+        "bytes": 594,
+        "sha256": "977fa04e32051a62e05ea34cd8753563bd41e398e009246cc7ea58867ed2d9e9"
+      }
+    },
+    "observed_main_thread_leads": [
+      {
+        "video_seconds": 39.05810374796869,
+        "leaf_frames": [
+          {
+            "function": "compose",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/compose.py",
+            "line": 54
+          },
+          {
+            "function": "compose",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/toad/widgets/tool_call.py",
+            "line": 182
+          },
+          {
+            "function": "_update_metadata",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/toad/widgets/tool_call.py",
+            "line": 208
+          },
+          {
+            "function": "__set__",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/reactive.py",
+            "line": 441
+          },
+          {
+            "function": "_set",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/reactive.py",
+            "line": 413
+          },
+          {
+            "function": "set_class",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/dom.py",
+            "line": 1823
+          },
+          {
+            "function": "add_class",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/dom.py",
+            "line": 1879
+          }
+        ]
+      },
+      {
+        "video_seconds": 39.080691747968686,
+        "leaf_frames": [
+          {
+            "function": "get_content_height",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/widget.py",
+            "line": 2101
+          },
+          {
+            "function": "get_content_height",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/layout.py",
+            "line": 294
+          },
+          {
+            "function": "arrange",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/widget.py",
+            "line": 1409
+          },
+          {
+            "function": "arrange",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/_arrange.py",
+            "line": 97
+          },
+          {
+            "function": "arrange",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/layouts/vertical.py",
+            "line": 55
+          },
+          {
+            "function": "resolve_box_models",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/_resolve.py",
+            "line": 254
+          },
+          {
+            "function": "_get_box_model",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/widget.py",
+            "line": 2015
+          }
+        ]
+      },
+      {
+        "video_seconds": 39.103012747968684,
+        "leaf_frames": [
+          {
+            "function": "_invoke",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/_callback.py",
+            "line": 56
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/toad/screens/workspace.py",
+            "line": 173
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/screen.py",
+            "line": 1279
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/toad/screens/workspace.py",
+            "line": 221
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/screen.py",
+            "line": 1430
+          },
+          {
+            "function": "post_message",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/widget.py",
+            "line": 4704
+          },
+          {
+            "function": "post_message",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/message_pump.py",
+            "line": 934
+          }
+        ]
+      },
+      {
+        "video_seconds": 39.11007474796868,
+        "leaf_frames": [
+          {
+            "function": "replace_rules",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/css/stylesheet.py",
+            "line": 903
+          },
+          {
+            "function": "__set__",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/css/_style_properties.py",
+            "line": 1034
+          },
+          {
+            "function": "__set__",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/css/_style_properties.py",
+            "line": 1001
+          },
+          {
+            "function": "set_rule",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/css/styles.py",
+            "line": 967
+          },
+          {
+            "function": "_mark_updated",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/css/styles.py",
+            "line": 929
+          },
+          {
+            "function": "_style_rules_updated",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/dom.py",
+            "line": 153
+          },
+          {
+            "function": "_parent",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/message_pump.py",
+            "line": 185
+          }
+        ]
+      },
+      {
+        "video_seconds": 39.38622574796869,
+        "leaf_frames": [
+          {
+            "function": "resolve_box_models",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/_resolve.py",
+            "line": 254
+          },
+          {
+            "function": "_get_box_model",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/widget.py",
+            "line": 2010
+          },
+          {
+            "function": "get_content_height",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/widget.py",
+            "line": 2101
+          },
+          {
+            "function": "get_content_height",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/layout.py",
+            "line": 297
+          },
+          {
+            "function": "total_region",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/layout.py",
+            "line": 63
+          },
+          {
+            "function": "spatial_map",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/layout.py",
+            "line": 42
+          },
+          {
+            "function": "insert",
+            "filename": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/textual/_spatial_map.py",
+            "line": 80
+          }
+        ]
+      }
+    ],
+    "interpretation": "Foreground ToolCall metadata/CSS, native height/layout, spatial-map paths present during heldPageDown; not proof of cache misses, redundancy or CPU sample weights. Production mechanism investigation belongs to Heisenberg PR264.",
+    "review_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 633300,
+          "start_ticks": 30714331,
+          "returncode": 0
+        },
+        {
+          "pid": 633465,
+          "start_ticks": 30714523,
+          "returncode": 0
+        }
+      ]
+    }
+  }
 }
