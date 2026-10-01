@@ -5,7 +5,7 @@ from toad.acp.status import StopReason
 import asyncio
 from abc import abstractmethod
 from weakref import ref
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
@@ -245,6 +245,14 @@ class AgentController(OperationalTerminalOwner):
         if submission is not None:
             self._deferred_submissions.add(submission)
         try:
+            coordination = self.coordination
+            if coordination is not None:
+                self.require_owner(coordination, authority)
+                async with self.transcripts.bind(coordination.wire_root) as comms:
+                    origin = await asyncio.to_thread(
+                        self.agent.queue_attachment.capture_human_input, comms, queue_scope)
+                self.require_owner(coordination, authority)
+                command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
             if any(block.type == 'image' for block in content):
                 coordinated = self.coordination is not None

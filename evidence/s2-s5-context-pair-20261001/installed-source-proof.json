@@ -1,0 +1,25 @@
+{
+  "state": "installed-source-and-native-trust-verified; user journey pending",
+  "sources": [
+    {
+      "sha": "3f4456c5ff25952fd7bf3ae0ede798e955662135",
+      "module": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-context-270-20261001/lib/python3.14/site-packages/agent_comms",
+      "python_files": 301,
+      "equal": true
+    },
+    {
+      "sha": "f9bfa77e80e03c1e220bd4aa66e7f4b9776ab8e7",
+      "module": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-context-270-20261001/lib/python3.14/site-packages/toad",
+      "python_files": 273,
+      "equal": true
+    }
+  ],
+  "native": "/home/ts/wt/comms-retained-task-facts-s2-20261001/stack/.pi-native-4519164ef97bb5ec/node_modules/@earendil-works/pi-coding-agent",
+  "sdk": "0.12.1",
+  "packages": 69,
+  "textual_module": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-context-270-20261001/lib/python3.14/site-packages/textual/__init__.py",
+  "public_effects": false,
+  "pair_prefix": "/home/ts/wt/toad-s2-s5-context-pair-20261001/.artifacts/runtime-s2-s5-context-270-20261001",
+  "dependency_donor": "/home/ts/.cache/agent-scratch/openhcs-channel-delivery-stage-20261001/requirements-paired04.txt",
+  "build": "normal uv venv + uv pip install from matched donor; no source shadow or dependency bypass"
+}

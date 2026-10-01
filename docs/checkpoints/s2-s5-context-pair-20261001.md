@@ -1,0 +1,74 @@
+# Paired retained-facts and turn-context acceptance
+
+Parent owns only the Toad dependency pin and normal package pairing for Core475
+and473. Schrodinger owns the single native assembly; Einstein owns the context
+observer/inspection contribution. No Toad production change belongs here.
+
+The tested native stock recipe produces manifest4519164ef97bb5ec for Core449e423b. Receiving Core3f4456c5 adds the selected-root CLI correction
+without changing that native manifest.
+Its native package stays in the original persistent475 worktree. Build through
+normal dependency resolution with the existing69-package donor; do not bypass
+the dependency contract or shadow installed source.
+
+The isolated cohort supports the existing full native/context/CLI acceptance
+journey. Native trust and source tests are not installed or live acceptance.
+S2 general constraints, artifact provenance and complete retained-fact journeys
+remain unfinished; S5 full logical provenance/bounds and recorded provider
+acceptance remain unfinished. This branch is not a public activation claim.
+
+The urgent channel and archive releases remain independently scoped. Integrate
+their accepted main normally before this pair is published; keep the declared
+S5 reverse-merge ancestry closure when Core477 lands.
+
+## Receiving original-input-origin cohort
+
+Normal merge of Toad272 `7f32d8ec6802051d09d375dad7e3c563924affd5`
+keeps its production source identical to reviewed `6f84eecd`. Core is pinned
+to `3f0af4940bfd9f3ade523f230e4240e3acd8ab2a`, including the shared
+S2/S5 native assembly. Its reviewed native manifest is
+`f1178500e5154c38152aeb5d1133ab9fbd84774e2a8bc6b6233ba9b490b4eb4c`
+and full-tree commitment is
+`53c34d888755517eceb50bb46a667b48add88e916c802dc0ea096bd390c58bd4`.
+
+The new prefix is `.artifacts/runtime-s2-s5-origin-context-20261001`.
+The earlier 270/451 prefix stays immutable. Mendel owns only this receiving
+metadata and normal 69-package stage; Schrodinger and Einstein own the
+continuous Core nested-tool/native/context/Toad journey. Installed-source and
+full-trust checks prepare that journey and do not establish its acceptance.
+No public route, root, native package, default link or owner is changed.
+
+## Image-attribution receiving correction
+
+The original f117 cohort stays immutable; Einstein's mandatory SDK36
+changed-image control exposed its image-attribution failure. Schrodinger's
+normal stock11 build publishes Core
+`43df95f00f4e29f9086e2b5bb1e1f651ab5f67dc` with native manifest
+`0064a96bb79c21c13317a37f44173bd0acfb63d628e9f9b31cd3a374c2c25ae1`
+and full-tree commitment
+`cc9e86f72ba7b2c285b209b3fc96a2e8dcc4f182a528941712a5dbd7e457a9d1`.
+Only the existing native context/image fingerprint owner changes; the Core
+Python API and Toad production source remain the original cohort. The new
+normal69 prefix is `.artifacts/runtime-s2-s5-origin-context-0064-20261001`.
+Einstein's changed-image gate and the same shared continuous journey remain
+required. No old cohort or public route is changed by this receiving update.
+
+## Final reviewed source union and receiving freeze
+
+Parent granted one final normal69 stage after reviewing Core475
+`0ea6dccbd39b1f8656e2fc2ad983046244d9312d`. The receiving branch
+normally incorporates Einstein270 source `466d3c77` (274 ChildStdio/ACP
+maintenance+272 original human origin) and Heisenberg271 source
+`405a9d340c7b52ed3c4d96f390b5554a11acb6a9`. The sole conflict was
+receiving pyproject pins; no production source was manually rewritten.
+
+Final native stays reviewed0064. Textual is
+`4e9016c1a8f3592eb652efc39ada493a41ee9206`, and TextualDiffView is
+`8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9`. Core/native pin+uvlock and
+this normal stage belong solely to Mendel. Einstein/Kepler own ONE shared
+controlled native/ACP/UI receiving journey with changed-image/followup,
+manifest/CLI, cross-audience/goal named-state/selected-commit controls.
+No paid repeat, uncertain replay, public publication or old-prefix change.
+
+Heisenberg retains the full275 performance/resource followup; prior warm
+receipts remain scoped to their original immutable cohorts. This source union
+and eventual package proof do not substitute for final receiving acceptance.

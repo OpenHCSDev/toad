@@ -1,0 +1,39 @@
+{
+  "state": "SOURCE_COHERENCE_CHECKPOINT_NOT_PACKAGE_READY",
+  "source_head": "40f78b7926873177357fb804d23c5d4de45d1e24",
+  "original_270": "1cc84de800441ffb68cdfe2bf8bde5ddec46f753",
+  "main_274": "083245d035314eead6fe10d22be4751e9e1cf045",
+  "origin_272": "38c1fdded7c453e482a5b33af63d68209119185a",
+  "normal_merges": true,
+  "metadata_policy": "Original270 Core43df/native0064 pins+lock remain byteidentical; final reviewed Core/69 stage stays Mendel-owned. Pending old pins cannot run new ChildStdio consumers. No build or public change.",
+  "ast_parsed_python_files": 274,
+  "consumer_checks": [
+    "original HumanInputOrigin.capture still called at actual request boundary",
+    "original SurfaceBinding terminal publication preserved",
+    "AgentProcess uses StreamingChildStdio with original10MiB budget",
+    "admitted_spawn forwards original ChildStdio to AttachedChild.start"
+  ],
+  "consumer_files": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "sha256": "5d5a2fcffd94ce1c0fe6b7e77bf653cf189eb8ca1c2f66bec0ff4a1949a2724f"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "sha256": "31e21ba87011d5051bff4627cf14d1b9d299dbadf96c48f0c8171cbbfe44b9e0"
+    },
+    {
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "sha256": "c31dfd4c7ecae859621919e53207bd29cd18ecc617e8db3942c1cb84dd9c9eb8"
+    }
+  ],
+  "production_delta_to_main": "12\t1\tsrc/toad/acp/agent_controller.py\n",
+  "reused_scoped_evidence": [
+    "Core480/Toad274 installed ACP/native/PTY22.609s",
+    "Core43df/Toad89655/native0064 actual39/41 context journeys"
+  ],
+  "new_native_launches": 0,
+  "provider_calls": 0,
+  "installed_readiness_claim": false,
+  "public_changes": []
+}

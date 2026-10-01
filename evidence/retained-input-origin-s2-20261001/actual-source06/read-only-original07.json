@@ -1,0 +1,87 @@
+{
+  "kind": "READ_ONLY_ORIGINAL06_CORROBORATION_NOT_NEW_UI",
+  "source_mode": "source-control oldnative451, not installed paired acceptance",
+  "original_driver_exit": 1,
+  "original_driver_failure": "idle-only test called active compaction_material; no product change",
+  "input_rows": [
+    {
+      "input": {
+        "kind": "started",
+        "key": "acp:0a29112ad11b4fc3880dcd2648125dc8",
+        "sequence": null,
+        "owner": "beta",
+        "admission": 3,
+        "target": "beta",
+        "source_text": "S2_ORIGINAL_HUMAN_INPUT: preserve UNKNOWN and original project.",
+        "origin": {
+          "kind": "human",
+          "root_id": "6004c46e1c9d4a288694c79c9e2fea11",
+          "author": {
+            "sender": "user",
+            "created_at": 1790842922.5697696,
+            "worktree": "/home/ts/wt/s2origin06/application/project"
+          },
+          "admission": {
+            "incarnation": {
+              "name": "beta",
+              "created_at": 1790842921.9444458
+            },
+            "admission_generation": 3
+          },
+          "project": "/home/ts/wt/s2origin06/application/project",
+          "goal": null
+        },
+        "turn_id": "a76a6a367da04521a2d93da5101e9796",
+        "native_id": "8100724a9a59821044ea167f4035fb51",
+        "sent_text": "Coordination context: you are thread 'beta'; parent=None. This identity overrides identities in inherited conversation history. Use your own identity for comms tools. Incoming direct messages automatically start a new turn when you are idle, or are delivered into your current turn. End your turn when done; never sleep or poll waiting for messages. Reply with comms_send when a reply is useful; otherwise call comms_dismiss with the channel to end quietly. Do not echo acknowledgments. Your project directory is '/home/ts/wt/s2origin06/application/project'. Use comms_set_project(path) to change it persistently without creating another thread. After changing projects, end this turn; the runtime automatically resumes in the new project. When the user asks you to set or start a persistent goal, call comms_set_goal(text) so this same thread continues it autonomously. Peer state: []\n\nS2_ORIGINAL_HUMAN_INPUT: preserve UNKNOWN and original project."
+      },
+      "native_entry_id": "dc26beb2"
+    },
+    {
+      "input": {
+        "kind": "started",
+        "key": "acp:a48c84066177437a9e0ee767b4d2f73d",
+        "sequence": null,
+        "owner": "beta",
+        "admission": 3,
+        "target": "beta",
+        "source_text": "S2_FOLLOWING_HUMAN_INPUT: never replay the original.",
+        "origin": {
+          "kind": "human",
+          "root_id": "6004c46e1c9d4a288694c79c9e2fea11",
+          "author": {
+            "sender": "user",
+            "created_at": 1790842922.5697696,
+            "worktree": "/home/ts/wt/s2origin06/application/project"
+          },
+          "admission": {
+            "incarnation": {
+              "name": "beta",
+              "created_at": 1790842921.9444458
+            },
+            "admission_generation": 3
+          },
+          "project": "/home/ts/wt/s2origin06/application/project",
+          "goal": null
+        },
+        "turn_id": "a76a6a367da04521a2d93da5101e9796",
+        "native_id": "3334671f8bb45ee6a6c89d02c2d04b9a",
+        "sent_text": "User follow-up:\nS2_FOLLOWING_HUMAN_INPUT: never replay the original."
+      },
+      "native_entry_id": "2b0c36b3"
+    }
+  ],
+  "native_assistant_entry_ids": [
+    "2bad0e55",
+    "cdc0c8b0"
+  ],
+  "source_sha256_unchanged": {
+    "/home/ts/wt/s2origin06/private-root/wire/registry.json": "56275aa033f08a1c130b1c4e656bf1c9662a32ec65ac7c9367a93902268537fa",
+    "/home/ts/wt/s2origin06/private-root/wire/input_dispositions.json": "da9461725852941071ec740814e624f5ebe26b3132eceb8e572c31c1dd50dcbf",
+    "/home/ts/wt/s2origin06/application/pi/sessions/--home-ts-wt-s2origin06-application-project--/2026-10-01T08-22-11-812Z_01a0f68e-8a63-7347-9e5f-0163e2629f60.jsonl": "cef8538d4d7c41d44176891f6f0cd1208a72f1c130ab2c2e46a4b94f4d7c5421"
+  },
+  "original_inputs_replayed": 0,
+  "new_provider_calls": 0,
+  "actual_ui_frame_after_terminal_census": "NOT_CAPTURED",
+  "full_ready": false
+}
