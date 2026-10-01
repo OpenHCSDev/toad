@@ -22,7 +22,6 @@ from agent_comms.acp_extension import (
     CompactRequest, InputFailedUpdate, decode_updates, encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
-from agent_comms.input_origin import HumanInputOrigin
 
 
 @dataclass(frozen=True)
@@ -249,11 +248,9 @@ class AgentController(OperationalTerminalOwner):
             coordination = self.coordination
             if coordination is not None:
                 self.require_owner(coordination, authority)
-                if queue_scope is None:
-                    raise ValueError('The original input attachment is not available.')
                 async with self.transcripts.bind(coordination.wire_root) as comms:
-                    origin = await asyncio.to_thread(HumanInputOrigin.capture,
-                                                     comms, queue_scope.admission)
+                    origin = await asyncio.to_thread(
+                        self.agent.queue_attachment.capture_human_input, comms, queue_scope)
                 self.require_owner(coordination, authority)
                 command = replace(command, origin=origin)
             content = await asyncio.to_thread(build_prompt, project, prompt)
