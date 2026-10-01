@@ -13,7 +13,6 @@ acts through ``agent_comms`` operations.
 
 from __future__ import annotations
 
-import asyncio
 import os
 from collections.abc import Mapping
 from functools import partial
@@ -73,7 +72,6 @@ class ChannelGroup(SidebarGroup):
         self._view: ChannelView | None = None
         self._snapshot: SidebarSnapshot | None = None
         self._members: dict[str, ThreadRow] = {}
-        self._lock = asyncio.Lock()
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
         self.unread_badge.display = False
@@ -89,9 +87,10 @@ class ChannelGroup(SidebarGroup):
         await self._sync_members()
 
     async def update_members(self, view: ChannelView, snapshot: SidebarSnapshot) -> None:
-        self._view, self._snapshot = view, snapshot
-        self.sort_control.update_order(view.channel.order)
-        await self._sync_members()
+        async with self.member_lock:
+            self._view, self._snapshot = view, snapshot
+            self.sort_control.update_order(view.channel.order)
+            await self._reconcile_members()
 
     def update_unread(self, unread: int) -> None:
         if unread != self._unread:
@@ -124,45 +123,44 @@ class ChannelGroup(SidebarGroup):
         if self.is_attached and not self._pruning and not self._closing:
             self.query_ancestor(CommsSidebar).navigation.apply(force=True)
 
-    async def _sync_members(self) -> None:
-        async with self._lock:
-            if not self.is_mounted or self._view is None or self._snapshot is None:
-                return
-            wanted = tuple(name for name in self._view.members
-                           if name in self._snapshot.all_people) if self.expanded else ()
-            app = cast("ToadApp", self.app)
-            view, snapshot = self._view, self._snapshot
-            inputs = tuple(ThreadRowInput(
-                snapshot.all_people[name],
-                unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
-                pinned=name in view.pinned_members,
-                action_status=app.thread_actions.pending.get(name),
-            ) for name in wanted)
-            results = await app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
-            if (not self.is_attached or self._pruning or self._closing
-                    or self._view is not view or self._snapshot is not snapshot):
-                return
-            prepared_rows = dict(zip(wanted, results))
-            # A tab may close while immutable row text is being prepared. The
-            # shared roster survives that close; project live view routes only
-            # after the await, rather than restoring a retired mode from a DTO.
-            current = self.query_ancestor(CommsSidebar).observation.project(snapshot.wire)
-            modes = {name: mode for mode, name in current.session_threads.items()}
+    async def _reconcile_members(self) -> None:
+        if not self.is_mounted or self._view is None or self._snapshot is None:
+            return
+        wanted = tuple(name for name in self._view.members
+                       if name in self._snapshot.all_people) if self.expanded else ()
+        app = cast("ToadApp", self.app)
+        view, snapshot = self._view, self._snapshot
+        inputs = tuple(ThreadRowInput(
+            snapshot.all_people[name],
+            unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
+            pinned=name in view.pinned_members,
+            action_status=app.thread_actions.pending.get(name),
+        ) for name in wanted)
+        results = await app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
+        if (not self.is_attached or self._pruning or self._closing
+                or self._view is not view or self._snapshot is not snapshot):
+            return
+        prepared_rows = dict(zip(wanted, results))
+        # A tab may close while immutable row text is being prepared. The
+        # shared roster survives that close; project live view routes only
+        # after the await, rather than restoring a retired mode from a DTO.
+        current = self.query_ancestor(CommsSidebar).observation.project(snapshot.wire)
+        modes = {name: mode for mode, name in current.session_threads.items()}
 
-            def create(name):
-                person = self._snapshot.all_people[name]
-                return ThreadRow(person_target(person), name)
+        def create(name):
+            person = self._snapshot.all_people[name]
+            return ThreadRow(person_target(person), name)
 
-            def update(name, row):
-                # The thread is the row identity. Opening/closing one of its
-                # views changes navigation, not its content widget or geometry.
-                row.mode_name = modes.get(name)
-                row.target = person_target(self._snapshot.all_people[name])
-                row.apply_thread_preparation(prepared_rows[name])
-                row.current = row.mode_name == app.selected_mode
+        def update(name, row):
+            # The thread is the row identity. Opening/closing one of its
+            # views changes navigation, not its content widget or geometry.
+            row.mode_name = modes.get(name)
+            row.target = person_target(self._snapshot.all_people[name])
+            row.apply_thread_preparation(prepared_rows[name])
+            row.current = row.mode_name == app.selected_mode
 
-            await self.reconcile_rows(
-                wanted, self._members, create, update)
+        await self.reconcile_rows(
+            wanted if self.expanded else (), self._members, create, update)
 
 
     async def present(self, view: ChannelView,
@@ -523,4 +521,3 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         if row is None:
             return
         row.show_menu(self, event.screen_offset)
-
