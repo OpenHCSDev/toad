@@ -1,0 +1,13 @@
+{
+  "original_frames": 7838,
+  "apps": 4,
+  "painted_answer_bodies": [
+    "CONTROLLED_RETURN_0",
+    "CONTROLLED_RETURN_1",
+    "CONTROLLED_RETURN_2",
+    "RECIPIENT_RESPONSE_PROOF",
+    "SENDER_SENT_CONFIRMATION"
+  ],
+  "duplicate_frames": [],
+  "boundary": "Original admitted incremental ANSI replayed through existing pyte; exact fixture answer lines, never prompt substring dedup"
+}

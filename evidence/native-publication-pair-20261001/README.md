@@ -21,3 +21,9 @@ Package source is frozen at Toad `66098518c4850e8e0bf83ed983383538f993c4ef`. One
 Schrodinger owns one fresh isolated continuous hot sender/recipient DM + IRC journey: original Processing/Responded, original canonical execution completion, one source/presentation per original identity, 31-second observation, physical A/B/A immediate distinct sends, cold reopen and owned shutdown. Einstein owns the existing continuous installed native/fork/queue gate in a separate private fixture using the same prefix. These can run in parallel within the authorized bounded fleet.
 
 No public defaults, routes, schemas, user owners, model/account configuration or uncertain attempts are changed here. No full readiness claim before both actual gates pass.
+
+## Current disposition
+
+The scoped bus-u08 continuous journey passed naturally (142.076s, strict 7,838 original ANSI frames with no duplicates, original execution/handling/31s/tab-return/cold/shutdown coverage). Its receipts and personally inspected physical PNGs are preserved under `bus-u08/`.
+
+Full readiness is rejected: Heisenberg258 subsequently reported an actual after-initial-join/during-Checkpoint-read publication counterexample on the same frozen source. His shared application/source/cohort correction is the next dependency. Einstein's separate native gate had not started, so no fork/provider input needs disposition. Freeze/prefix remain untouched; no build or unchanged rerun until a meaningful source checkpoint is reviewed.
