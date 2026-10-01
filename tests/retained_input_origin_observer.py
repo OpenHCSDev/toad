@@ -61,7 +61,8 @@ class ActualS2Ingress:
         self.persist('same_actual_controller_queued_original_human_followup')
         return row
 
-    async def submit(self, text, *, image=None, while_running=None):
+    async def submit(self, text, *, image=None, while_running=None,
+                     observation_seconds=30):
         view = self.app.selected_session.conversation
         agent = view.agent
         inputs = InputDispositions(self.comms.root / InputDispositions.filename)
@@ -95,10 +96,12 @@ class ActualS2Ingress:
         self.receipts.append(receipt)
         self.persist('actual_editor_enter_original_authored_reservation')
 
-        await until(self.pilot, lambda: inputs.read().lookup(key).has_started, 30)
+        await until(self.pilot, lambda: inputs.read().lookup(key).has_started,
+                    observation_seconds)
         if while_running is not None:
             await while_running(self, inputs.read().lookup(key))
-        await until(self.pilot, lambda: not self.comms.registry.require(self.subject.name).executing, 30)
+        await until(self.pilot, lambda: not self.comms.registry.require(self.subject.name).executing,
+                    observation_seconds)
         document = InputDispositions(inputs.path).read()
         terminal = document.lookup(key)
         assert terminal.origin == origin
@@ -222,7 +225,8 @@ class IsolatedS2Ingress:
     async def queue_followup(self, text):
         return await self.run(self.observer.queue_followup(text))
 
-    async def submit(self, text, *, image=None, while_running=None):
+    async def submit(self, text, *, image=None, while_running=None,
+                     observation_seconds=30):
         caller = asyncio.get_running_loop()
 
         async def callback(observer, original):
@@ -230,7 +234,8 @@ class IsolatedS2Ingress:
                 while_running(self, original), caller))
 
         return await self.run(self.observer.submit(text, image=image,
-            while_running=callback if while_running is not None else None))
+            while_running=callback if while_running is not None else None,
+            observation_seconds=observation_seconds))
 
 
 @asynccontextmanager
