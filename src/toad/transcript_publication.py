@@ -80,8 +80,43 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
+    async def publish(self) -> None:
+        """Join original UI application before capturing source-transfer custody.
+
+        Ordered ACP ingress can already report a settled source while its
+        original body messages are still queued on the Conversation. Only that
+        native pump can certify that those effects have applied. Reads and
+        preparation start after the join, with the same actor and generation.
+        """
+        if not self.current():
+            return
+        view = self.owner.view
+        pump = view.task
+        if asyncio.current_task() is pump:
+            # A snapshot notification itself runs on this pump. Its existing
+            # source worker must perform the join; waiting here blocks the very
+            # messages whose resource custody the source needs to capture.
+            self.owner.source_requests.submit(self)
+            return
+        applied = asyncio.get_running_loop().create_future()
+
+        def complete() -> None:
+            if not applied.done():
+                applied.set_result(None)
+
+        if not view.call_later(complete):
+            return
+        try:
+            await asyncio.wait((applied, pump), return_when=asyncio.FIRST_COMPLETED)
+            if not applied.done() or not self.current():
+                return
+            self.captured = view.turns.owner.captured_snapshot(tuple(self.contents.children))
+            await self.publish_applied()
+        finally:
+            applied.cancel()
+
     @abstractmethod
-    async def publish(self) -> None: ...
+    async def publish_applied(self) -> None: ...
 
 
 class SnapshotPublication(TranscriptPublication):
@@ -103,7 +138,7 @@ class SnapshotPublication(TranscriptPublication):
             self.owner.require_checkpoint()
         return False
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
@@ -170,7 +205,7 @@ class SnapshotPublication(TranscriptPublication):
 class HandlingPublication(TranscriptPublication):
     """Render original recipient outcomes on existing original source bodies."""
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         from toad.widgets.wire_message_handling import WireMessageHandling
 
         if self.agent is None:
@@ -194,7 +229,7 @@ class CanonicalSourcePublication(TranscriptPublication):
     async def read_page(self) -> TranscriptPage:
         return await self.read_source_page()
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         if self.agent is None or not self.agent.transcript_ready:
             return
         page = await self.read_page()
@@ -216,12 +251,12 @@ class ObservedSourcePublication(CanonicalSourcePublication):
             return await self.agent.get_transcript_page(through=bound)
         return await self.agent.get_transcript_page(read_identity=identity)
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         if self.agent is None:
             return
         await self.agent.observe_thread_presentation(self.presentation)
         if self.current():
-            await super().publish()
+            await super().publish_applied()
 
 
 class SourcePublicationRequests:
@@ -236,6 +271,10 @@ class SourcePublicationRequests:
         publication = self.owner.capture(kind, *args)
         if publication is None:
             return
+        self.submit(publication)
+
+    def submit(self, publication: TranscriptPublication) -> None:
+        """Keep the original operation when its caller is the native UI pump."""
         if self.pending.full():
             self.pending.get_nowait()
         self.pending.put_nowait(publication)
@@ -296,7 +335,7 @@ class CheckpointPublication(TranscriptPublication):
                           if child is not history and isinstance(child, CommitParticipant))
         return self.plan.ready(history) and self.plan.permits(view, potential)
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
         from agent_comms.coordination_errors import StaleRevision
 

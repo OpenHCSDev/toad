@@ -66,7 +66,7 @@ async def declaration_case():
             super().__init__(owner, view, window, contents)
             self.entered, self.release = entered, release
 
-        async def publish(self):
+        async def publish_applied(self):
             self.entered.set()
             await self.release.wait()
             if self.current():

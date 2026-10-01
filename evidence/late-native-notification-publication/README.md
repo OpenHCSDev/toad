@@ -19,3 +19,13 @@ IDEN-5: synchronously applied canonical ingress facts and queued UI resource app
 ## Acceptance
 
 First establish a held-original-message counterexample in the actual Toad app and native compositor, with private canonical saved source and no provider/native input. Record admitted visible response resources while joining settlement and source publication. Then close the whole original transport/publication relation and publish bounded red/green evidence. Actual installed native/ACP/LinuxDriver gate remains required before full readiness. No source-only Ready claim.
+
+## Source checkpoint
+
+`tests/late_native_application_pilot.py` holds the original Conversation dispatch of an SDK-admitted AgentMessageChunk. Canonical ordered completion and EMPTY-to-first-native-file publication run while that original message has not applied.
+
+Baseline02: both original receive tasks and source publication finish before the body applies; one saved response is already mounted. Releasing the same message gives two response resources and five admitted duplicate frames. Candidate01: source publication remains pending during the hold; after original application it captures and transfers that body. One final saved resource, zero duplicate frames across ten observed frames, one registered history. No native process/provider/input started. Baseline01 failed to enter the held handler because replacing a decorated class method did not replace Textual's registered handler; its original diagnostic is retained.
+
+The existing TranscriptPublication ancestor owns the native FIFO join. All snapshot/checkpoint/observed/handling implementations become `publish_applied` hooks. A same-pump source notification passes its original operation to the existing SourcePublicationRequests worker, rather than awaiting its own message queue. Actor, native Window/Contents and original generation must remain current through the join; capture still precedes asynchronous source reading/render preparation. Joining races the original public native pump task, so final pump disposal releases the source waiter. No ingress backpressure, second scheduler/queue or copied semantic state.
+
+Focused existing publication guard passes including original-generation rejection, one coalesced request, actual cropped paint and final retirement. Pending: specifically queued snapshot, held-join cancellation/disposal, and actual reviewed installed native bus gate. This is a source causal checkpoint, not full installed readiness.
