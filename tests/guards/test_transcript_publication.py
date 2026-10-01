@@ -31,6 +31,28 @@ def test_source_operation_flags_deleted():
                     and node.attr in {'_loading', '_advancing'}], relative
 
 
+def test_native_page_coverage_is_joined():
+    """No page/projection may defer live custody until after its admitted frame."""
+    tree = ast.parse((Path(__file__).parents[2] / 'src/toad/widgets/transcript_history.py').read_text())
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+    declarations = [node for node in ast.walk(tree)
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and node.name == '_report_coverage']
+    calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)
+             and isinstance(node.func, ast.Attribute) and node.func.attr == '_report_coverage']
+    assert declarations and calls
+    assert all(isinstance(node, ast.AsyncFunctionDef) for node in declarations)
+    assert all(isinstance(parents[node], ast.Await) for node in calls)
+
+
+def test_accepted_retirement_has_one_owner():
+    tree = ast.parse((Path(__file__).parents[2] / 'src/toad/transcript_publication.py').read_text())
+    owners = [node.name for node in tree.body if isinstance(node, ast.ClassDef)
+              for member in node.body if isinstance(member, ast.AsyncFunctionDef)
+              and member.name == 'retire_presentations']
+    assert owners == ['TranscriptPresentation']
+
+
 async def declaration_case():
     import asyncio
     import os
@@ -112,4 +134,6 @@ if __name__=='__main__':
     test_publication_loaders_use_captured_actor()
     test_root_custody_deleted()
     test_source_operation_flags_deleted()
+    test_native_page_coverage_is_joined()
+    test_accepted_retirement_has_one_owner()
     test_declared_case()

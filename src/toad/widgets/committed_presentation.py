@@ -208,7 +208,7 @@ class CheckpointPlan(ABC):
 
     @abstractmethod
     async def prepare(self, view: Conversation, history: CommittedHistory | None,
-                      page: TranscriptPage, captured: tuple[Widget, ...],
+                      page: TranscriptPage, captured: frozenset[Widget],
                       is_current: Callable[[], bool]) -> PreparedCommit | None:
         pass
 
@@ -236,7 +236,13 @@ class FollowTailCheckpoint(CheckpointPlan):
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
 
-        if history is not None and history.accepts_commit(page.after):
+        # An in-place advance admits bounded pages before its final paint.
+        # Anonymous captured output needs the complete source transaction,
+        # not an eager mount followed by retirement after that paint.
+        transfers = retirement_candidates(
+            captured, CommitEvidence(frozenset(captured), retained_history=history),
+        )
+        if history is not None and history.accepts_commit(page.after) and not transfers:
             if not await history.advance_committed(page.after, is_current):
                 return None
             return PreparedCommit(history, None, incoming_sequences(page.events)

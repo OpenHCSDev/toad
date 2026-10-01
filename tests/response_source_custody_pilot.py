@@ -35,6 +35,22 @@ async def main():
         old_page=comms.transcripts.thread_transcript_page('source')
         source.write_text(source.read_text()+json.dumps({'type':'message','message':{'role':'assistant','content':'SOURCE_RESPONSE_ONCE'}})+'\n')
         app=ToadApp(project_dir=str(root))
+        frames=[]
+        display=app._display
+        def observe_frame(screen, renderable):
+            display(screen, renderable)
+            if renderable is None or screen is not app.screen:
+                return
+            view=app.selected_session.conversation
+            visible=screen._compositor.visible_widgets
+            resources=[widget for widget in view.contents.query(AgentResponse)
+                       if 'SOURCE_RESPONSE_ONCE' in widget.source and widget in visible]
+            if resources:
+                frames.append({'response_resources':len(resources),
+                               'resource_ids':[id(widget) for widget in resources],
+                               'native_mutating':view.window.history_mutating(),
+                               'preparation_suspended':view.window.document_viewport._suspended})
+        app._display=observe_frame
         async with app.run_test(size=(120,35)) as pilot:
             await app.selected_session.wait_content_ready()
             view=app.selected_session.conversation
@@ -115,9 +131,14 @@ async def main():
                 while block.is_attached:
                     await pilot.pause(.02)
             responses=[widget for widget in view.contents.query(AgentResponse) if 'SOURCE_RESPONSE_ONCE' in widget.source]
-            settled={'response_resources':len(responses),'live_response_attached':block.is_attached,'history_frontier_advanced':history.committed_cursor.offset>old_page.after.offset,'history_count':len(view.window.histories),'managed_busy':view.turns.owner.busy}
+            settled_history=next(iter(view.transcript.histories))
+            settled={'response_resources':len(responses),'live_response_attached':block.is_attached,'history_frontier_advanced':settled_history.committed_cursor.offset>old_page.after.offset,'history_count':len(view.window.histories),'managed_busy':view.turns.owner.busy,
+                     'captured_history_retired':not history.is_attached,
+                     'accepted_history_registered':settled_history in view.window.histories}
             print(json.dumps(settled))
             assert len(responses)==1 and not block.is_attached and settled['history_frontier_advanced'],settled
+            (folder/'admitted-frames.json').write_text(json.dumps(frames,indent=2)+'\n')
+            assert frames and all(frame['response_resources']==1 for frame in frames),frames
             # An active turn does not bar first paint or replacement of saved
             # resources when there is no anonymous live output to transfer.
             assert binding.receive(TurnState(ActiveTurn('next-turn',os.getpid(),phase=PublishingPhase())))
@@ -127,7 +148,7 @@ async def main():
             # second full history. Exercise initial saved admission separately
             # through actual retirement of this window's existing resource.
             await view.transcript.suspend()
-            await history.remove()
+            await settled_history.remove()
             snapshot=SnapshotPublication(view.transcript,view,view.window,view.contents,page)
             assert snapshot.current() and snapshot.source_current(page.after)
             task=asyncio.create_task(snapshot.publish())

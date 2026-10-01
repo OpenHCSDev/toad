@@ -80,33 +80,6 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
-    async def retire_presentations(self, output, candidates) -> None:
-        """Accepted source retirement must finish before its window fence opens.
-
-        Caller cancellation can withdraw provisional work, but cannot abandon
-        the resources an accepted source already replaces. The original task
-        records cancellation; this operation owns and joins its exact teardown.
-        """
-        caller = asyncio.current_task()
-        retirement = asyncio.create_task(
-            self._retire_presentations(output, candidates), name="accepted source retirement",
-        )
-        while not retirement.done():
-            try:
-                await asyncio.shield(retirement)
-            except asyncio.CancelledError:
-                if retirement.cancelled():
-                    raise
-        retirement.result()
-        if caller.cancelling():
-            raise asyncio.CancelledError
-
-    async def _retire_presentations(self, output, candidates) -> None:
-        try:
-            await output.retire_presentations(candidates)
-        finally:
-            await self.contents.remove_children(candidates)
-
     @abstractmethod
     async def publish(self) -> None: ...
 
@@ -184,7 +157,7 @@ class SnapshotPublication(TranscriptPublication):
                     history.publish_committed()
                     accepted = True
                     retired = retirement_candidates(self.contents.children, evidence)
-                    await self.retire_presentations(view.output, retired)
+                    await self.owner.retire_presentations(self.contents, view.output, retired)
                 finally:
                     # A provisional mount owns no source coverage. Its cleanup
                     # must finish before native frame admission is released.
@@ -353,7 +326,7 @@ class CheckpointPublication(TranscriptPublication):
             is_current = partial(self.source_current, page.after)
             if not page.events or not is_current():
                 return
-            prepared = await plan.prepare(view, history, page, before_read, is_current)
+            prepared = await plan.prepare(view, history, page, self.captured, is_current)
         except (UnregisteredThreadError, StaleRevision):
             # Deletion can retire the model before the attachment's final
             # transcript notification has drained. Its view is closing too.
@@ -402,7 +375,7 @@ class CheckpointPublication(TranscriptPublication):
                     # Once retiring live widgets begins, the accepted source must
                     # survive cancellation so their saved content stays reachable.
                     accepted = True
-                    await self.retire_presentations(view.output, retired)
+                    await self.owner.retire_presentations(contents, view.output, retired)
                 finally:
                     if (
                         not accepted
@@ -650,10 +623,39 @@ class TranscriptPresentation:
                 ),
             )
             protected = protected_blocks(view, candidates)
-            await contents.remove_children(
-                [child for child in candidates if child not in protected]
-            )
+            await self.retire_presentations(contents, view.output,
+                [child for child in candidates if child not in protected])
             # The accepted frontier also invalidates its existing status view.
             # A retained resume can reject an identical snapshot without any
             # widget replacement; it still publishes canonical coverage here.
             view.query_one(SessionDetails)._refresh_summary()
+            from toad.widgets.observed_thread_activity import ObservedThreadActivity
+            observed = view.query_one_optional(ObservedThreadActivity)
+            if observed is not None and observed.presentation is not None:
+                view.run_worker(partial(self.publish, HandlingPublication),
+                                group="transcript-handling", exclusive=True)
+
+    async def retire_presentations(self, contents, output, candidates) -> None:
+        """Join accepted page or snapshot retirement before its frame fence opens."""
+        if not candidates:
+            return
+        caller = asyncio.current_task()
+        retirement = asyncio.create_task(
+            self._retire_presentations(contents, output, candidates),
+            name="accepted source retirement",
+        )
+        while not retirement.done():
+            try:
+                await asyncio.shield(retirement)
+            except asyncio.CancelledError:
+                if retirement.cancelled():
+                    raise
+        retirement.result()
+        if caller.cancelling():
+            raise asyncio.CancelledError
+
+    async def _retire_presentations(self, contents, output, candidates) -> None:
+        try:
+            await output.retire_presentations(candidates)
+        finally:
+            await contents.remove_children(candidates)

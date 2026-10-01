@@ -1515,10 +1515,6 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     async def on_transcript_coverage(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
-        observed = self.query_one_optional(ObservedThreadActivity)
-        if observed is not None and observed.presentation is not None:
-            from toad.transcript_publication import HandlingPublication
-            await self.transcript.publish(HandlingPublication)
 
     def on_transcript_source_work_finished(self, message) -> None:
         message.stop()
