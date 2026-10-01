@@ -11,3 +11,9 @@ Build one fresh normal noneditable immutable installation at `/home/ts/.local/sh
 Schrodinger owns the fresh actual hot sender/recipient DM + IRC, original handling/execution, 31-second observation, physical Beta/Alpha/Beta immediate distinct sends, original once-only source/paint, cold reopen and owned shutdown gate. Einstein uses the exact same installed prefix for the separate original retained native/fork/queue/cancel/physical gate. Preserve all originals and uncertain inputs; no replay.
 
 Original156/u07 negative and259/660/u08 scoped positive remain immutable. The u08 pass did not waive the after-read counterexample. No public root/default/owner or account/model changes occur in this lane. Package/source/control tests do not establish full application readiness or a CPU/latency target.
+
+## Exact package freeze
+
+The immutable Toad pin is `1edd96c0cfa011a69782cdeb67138ceea98e227b`, with product source equal to reviewed7026. One normal build installed 69 distributions; all 304 Core, 304 Toad and 266 Textual original package files matched their Git objects. Native593 full trust and existing RuntimeSelection private admission passed, with probe exit0 and empty owned cleanup. No owner/input/provider starts occurred during preflight. Activation SHA256: `f03e2370464094408d2a8cd3eb90966d55f8dcb6c75829e90cd86ab34ecfb043`; staging receipt SHA256: `5a6a82b04d68ab1436a323eb7678c010d28925b22433a63402bff70330d94b82`. Full receipts are in `package/`.
+
+The exact prefix has been handed directly to Einstein for his sole native gate. Fresh bus-u09 is active independently; no earlier fixture input was replayed. Both actual gates remain publication prerequisites.

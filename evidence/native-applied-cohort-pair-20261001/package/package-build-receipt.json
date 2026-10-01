@@ -1,0 +1,11 @@
+{
+  "stage": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001",
+  "core": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+  "toad": "1edd96c0cfa011a69782cdeb67138ceea98e227b",
+  "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+  "distribution_count": 69,
+  "dependency_source": "final committed Toad uv.lock, exported without dev dependencies",
+  "resolver": "normal uv pip install, no source or dependency overrides",
+  "public_effects": 0,
+  "scope": "packaging only; source/native/private-root admission follows"
+}
