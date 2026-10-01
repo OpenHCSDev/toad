@@ -287,7 +287,7 @@ class DocumentViewport:
                 if owner in visible and owner.measured_rows]
         return sum(rows) / len(rows) if rows else max(1, self.window.size.height)
 
-    async def _trim_warm(self, *, required=(), ahead=()):
+    def admission(self, *, required=(), ahead=()):
         # Select the bounded materialized working set BEFORE restoring a body.
         # A dormant body carries its last native cost with its measured extent.
         # Restoring everything then evicting it causes its own layouts to repeat
@@ -296,9 +296,12 @@ class DocumentViewport:
             for key in reversed(self._warm.values()) if (owner := key()) is not None)))
         roots = tuple(owner for owner in candidates
                       if not any(parent in self.owners for parent in owner.ancestors))
-        admitted = self.budget.admit(
+        return self.budget.admit(
             roots, required, self.window.size.height, self.window.app.preparation.max_bytes,
         )
+
+    async def _trim_warm(self, *, required=(), ahead=()):
+        admitted = self.admission(required=required, ahead=ahead)
         for key in tuple(self._warm):
             if key() not in admitted:
                 self._warm.pop(key)

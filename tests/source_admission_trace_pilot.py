@@ -1,4 +1,4 @@
-import asyncio,json,os
+import argparse,asyncio,json,os
 from collections import Counter
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -8,7 +8,7 @@ from agent_comms.transcripts import TranscriptCursor,TranscriptPage
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory,TranscriptPageView
 
-async def main():
+async def main(*, rich=False, steps=15):
  out=Path(os.environ['SOURCE_ADMISSION_EVIDENCE']); out.mkdir(exist_ok=False)
  with TemporaryDirectory(dir=out) as directory:
   root=Path(directory)
@@ -20,12 +20,12 @@ async def main():
    view=app.selected_session.conversation
    await view.transcript.suspend()
    cursor=TranscriptCursor('owned-fixed-page',1)
-   events=tuple(AssistantTranscript(f'Record {i}.') for i in range(80))
+   events=tuple(AssistantTranscript(f'Record {i}.\n\n' + ('\n'.join(f'- item {j}' for j in range(20)) if rich else '')) for i in range(30 if rich else 80))
    history=TranscriptHistory(TranscriptPage(events,cursor,cursor,False,False))
    page=history.pages[0]; constructed=[]
    original=TranscriptPageView._body
    def body(owner,fragment):
-    constructed.append(owner.fragments.index(fragment)); return original(owner,fragment)
+    constructed.append(next(index for index,item in enumerate(owner.fragments) if item is fragment)); return original(owner,fragment)
    TranscriptPageView._body=body
    await view.post(history)
    await pilot.pause()
@@ -36,7 +36,7 @@ async def main():
      await pilot.pause(.3)
      end_before={'constructs':len(constructed),'pages':[id(p) for p in history.pages],
                  'bodies':[id(c) for p in history.pages for c in p.children]}
-    for step in range(15 if phase!='end' else 1):
+    for step in range(steps if phase!='end' else 1):
      await pilot.press(key); await pilot.pause(.03)
      states.append({'phase':phase,'step':step,'range':[(p.start,p.stop) for p in history.pages], 'fragment_count':history.fragment_count,'widgets':history.widget_count,'widget_bound':history.widget_limit,'y':view.window.scroll_y,'maximum':view.window.max_scroll_y,'native_body_evictions':view.window.document_viewport.body_evictions,'constructs':len(constructed)})
    await pilot.pause(.3)
@@ -48,4 +48,6 @@ async def main():
    TranscriptPageView._body=original
   await asyncio.get_running_loop().shutdown_default_executor()
 
-if __name__=='__main__': asyncio.run(main())
+if __name__=='__main__':
+ parser=argparse.ArgumentParser();parser.add_argument('--rich',action='store_true');parser.add_argument('--steps',type=int,default=15)
+ args=parser.parse_args();asyncio.run(main(rich=args.rich,steps=args.steps))
