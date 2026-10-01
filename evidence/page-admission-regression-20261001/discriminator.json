@@ -1,0 +1,228 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/perf275-kepler-page-admission-discriminator-20261001-01",
+  "scope": "Installed default original busy native history; local Python function starts/returns, not sampled calls",
+  "completed": true,
+  "capture_completed": true,
+  "duration_seconds": 59.805417992,
+  "counts": {
+    "installed": 1,
+    "relocating": 128,
+    "relocated": 128,
+    "request": 210,
+    "observe": 198,
+    "full_admission": 200,
+    "scroll": 27,
+    "page_extension": 12,
+    "fragment_budget": 12,
+    "page_extended": 12,
+    "editor_page_up": 53,
+    "history_page_up": 132
+  },
+  "admission_callers": {
+    "_trim_warm": 188,
+    "_resource_fragment_budget": 12
+  },
+  "completed_extensions": {
+    "local_fragment_batch": 10,
+    "transport_page": 2
+  },
+  "extra_full_admissions_per_completed_extension": 1.0,
+  "same_runtime": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "observer_ns": 353002751,
+  "phases": [
+    {
+      "label": "travel-start",
+      "video_start": 16.976271166000515,
+      "video_end": 18.268231274036225,
+      "counts": {
+        "relocating": 3,
+        "relocated": 3,
+        "request": 3,
+        "observe": 3,
+        "full_admission": 3
+      },
+      "admission_callers": {
+        "_trim_warm": 3
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 1.0,
+          "average_cpu_percent": 77.40177067234649
+        }
+      ]
+    },
+    {
+      "label": "input-held-up",
+      "video_start": 18.268231274036225,
+      "video_end": 24.54805323900655,
+      "counts": {
+        "page_extension": 1,
+        "request": 22,
+        "observe": 19,
+        "full_admission": 23,
+        "fragment_budget": 1,
+        "page_extended": 1,
+        "relocating": 17,
+        "relocated": 17,
+        "scroll": 3,
+        "editor_page_up": 50
+      },
+      "admission_callers": {
+        "_trim_warm": 22,
+        "_resource_fragment_budget": 1
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 3.950000000000001,
+          "average_cpu_percent": 62.89987235360528
+        }
+      ]
+    },
+    {
+      "label": "input-held-up-done",
+      "video_start": 24.54805323900655,
+      "video_end": 26.229117224982474,
+      "counts": {
+        "relocating": 3,
+        "relocated": 3,
+        "request": 4,
+        "observe": 3,
+        "full_admission": 4,
+        "scroll": 1,
+        "editor_page_up": 3
+      },
+      "admission_callers": {
+        "_trim_warm": 4
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 0.5299999999999994,
+          "average_cpu_percent": 31.527651797995848
+        }
+      ]
+    },
+    {
+      "label": "before-history-focus",
+      "video_start": 26.229117224982474,
+      "video_end": 28.82555750402389,
+      "counts": {
+        "relocating": 3,
+        "relocated": 3,
+        "request": 3,
+        "observe": 3,
+        "full_admission": 3
+      },
+      "admission_callers": {
+        "_trim_warm": 3
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 1.0399999999999991,
+          "average_cpu_percent": 40.05484002058226
+        }
+      ]
+    },
+    {
+      "label": "history-held-up",
+      "video_start": 28.82555750402389,
+      "video_end": 35.09447165601887,
+      "counts": {
+        "relocating": 33,
+        "relocated": 33,
+        "request": 71,
+        "observe": 64,
+        "full_admission": 56,
+        "scroll": 19,
+        "history_page_up": 132,
+        "page_extension": 5,
+        "fragment_budget": 5,
+        "page_extended": 5
+      },
+      "admission_callers": {
+        "_trim_warm": 51,
+        "_resource_fragment_budget": 5
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 3.209999999999999,
+          "average_cpu_percent": 51.20504001444126
+        }
+      ]
+    },
+    {
+      "label": "history-held-up-done",
+      "video_start": 35.09447165601887,
+      "video_end": 51.94853350799531,
+      "counts": {
+        "observe": 22,
+        "full_admission": 24,
+        "relocating": 19,
+        "relocated": 19,
+        "request": 22,
+        "page_extension": 1,
+        "fragment_budget": 1,
+        "page_extended": 1,
+        "scroll": 1
+      },
+      "admission_callers": {
+        "_trim_warm": 23,
+        "_resource_fragment_budget": 1
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 8.650000000000002,
+          "average_cpu_percent": 51.322939692342686
+        }
+      ]
+    },
+    {
+      "label": "mid-history-idle-done",
+      "video_start": 51.94853350799531,
+      "video_end": 55.93837039201753,
+      "counts": {
+        "relocating": 18,
+        "relocated": 18,
+        "request": 40,
+        "observe": 40,
+        "full_admission": 38,
+        "scroll": 2,
+        "page_extension": 1,
+        "fragment_budget": 1,
+        "page_extended": 1
+      },
+      "admission_callers": {
+        "_trim_warm": 37,
+        "_resource_fragment_budget": 1
+      },
+      "kernel_ui_cpu": [
+        {
+          "pid": "1995177",
+          "cpu_seconds": 3.75,
+          "average_cpu_percent": 93.9888047809002
+        }
+      ]
+    }
+  ],
+  "source_files": {
+    "receipt.json": "bc4fa41d86e1d00abf15350bdeebc9ceaefa8ed80a44f8aa2fe7b46332e3d218",
+    "scroll-travel.jsonl": "4f131cd1593a6f8cd3274966d98aec746b9af0df30de5f5f171de255c25d2a16",
+    "cpu-profile.json": "fd886d2ab4eb32b17449bba06fc525ed7128c1e10017325fd6f7f847233d4423",
+    "terminal.mp4": "de7c7d79861fa100895ea98fac7236a7a9bb552095acd90a05addfad6180b33b"
+  },
+  "limits": [
+    "12 extensions comprise10 local batches and2 transport pages; ratio is per extension, not per transport request",
+    "Total reconciliation admissions are not individually attributed to page loads",
+    "Profiling and native event observation add overhead; no unprofiled speedup claim",
+    "Input-focused PageUp routing remains a distinct Heisenberg275 seam; this diagnostic subsequently focuses original history",
+    "No pre254 paired speed comparison or absence-of-frozen-frames claim",
+    "Fix source sanity passed; this capture observes pre-fix installed source, not installed fix acceptance"
+  ]
+}

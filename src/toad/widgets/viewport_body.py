@@ -234,6 +234,7 @@ class DocumentViewport:
         self._window = ref(window)
         self.owners = WeakSet()
         self._warm = OrderedDict()
+        self.admitted_bodies = set()
         self.body_evictions = 0
         self._pending = False
         self._running = False
@@ -263,6 +264,7 @@ class DocumentViewport:
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
+        self.admitted_bodies.discard(owner)
 
     def body_roots(self):
         """Native document order, stopping at each registered body boundary.
@@ -301,7 +303,8 @@ class DocumentViewport:
         )
 
     async def _trim_warm(self, *, required=(), ahead=()):
-        admitted = self.admission(required=required, ahead=ahead)
+        self.admitted_bodies = self.admission(required=required, ahead=ahead)
+        admitted = self.admitted_bodies
         for key in tuple(self._warm):
             if key() not in admitted:
                 self._warm.pop(key)
@@ -373,6 +376,7 @@ class DocumentViewport:
         await self.suspend_source()
         self._warm.clear()
         self.owners.clear()
+        self.admitted_bodies.clear()
 
     def protected(self) -> set[Widget]:
         screen = self.window.screen
