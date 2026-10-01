@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import traceback
 from time import monotonic
 
 from agent_comms.acp import CommsClient
@@ -32,6 +33,7 @@ from toad.widgets.message_notifications import MessageNotifications
 
 
 NAME = "external-cli-fixture"
+PEER_NAME = "external-cli-peer"
 CHANNEL = "#openhcs"
 SEED = "CLI_SAVED_CHANNEL_ORIGINAL"
 CHANNEL_INPUT = "CLI_CHANNEL_PHYSICAL_ENTER"
@@ -39,7 +41,7 @@ DM_INPUT = "CLI_DM_PHYSICAL_ENTER"
 REPLY = "CLI_ORIGINAL_AGENT_REPLY"
 
 
-def participant(root: Path, project: Path):
+def participant(root: Path, project: Path, name: str):
     """An external agent process shells out to the public CLI; no native RPC."""
     command = [sys.executable, "-I", "-m", "agent_comms.cli", "--root", str(root)]
 
@@ -48,7 +50,7 @@ def participant(root: Path, project: Path):
                                    capture_output=True, text=True)
         print(completed.stdout.strip(), flush=True)
 
-    run(["register", "--name", NAME, "--worktree", str(project),
+    run(["register", "--name", name, "--worktree", str(project),
          "--tags", "openhcs", "--pid", str(os.getpid())])
     for line in sys.stdin:
         run(json.loads(line))
@@ -82,22 +84,31 @@ async def journey():
     evidence = Path(os.environ["L0A_EVIDENCE"])
     receipt = {"phases": [], "provider_requests": 0, "public_mutations": 0}
     cli = None
+    peer = None
     started = monotonic()
 
     async def prepare(comms, project, requests, entered, release, hold_next):
-        nonlocal cli
+        nonlocal cli, peer
         release.set()
         hold_next.clear()
         other = project.parent / "external-project"
         other.mkdir()
         process = await asyncio.create_subprocess_exec(
             sys.executable, str(Path(__file__).resolve()), "--participant",
-            str(comms.root), str(other), stdin=asyncio.subprocess.PIPE,
+            str(comms.root), str(other), NAME, stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=(evidence / "participant-stderr.txt").open("w"),
         )
         cli = CliParticipant(process)
         assert await cli.receive() == {"registered": NAME}
+        peer_project = project.parent / "peer-project"
+        peer_project.mkdir()
+        peer = CliParticipant(await asyncio.create_subprocess_exec(
+            sys.executable, str(Path(__file__).resolve()), "--participant",
+            str(comms.root), str(peer_project), PEER_NAME,
+            stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
+            stderr=(evidence / "peer-stderr.txt").open("w")))
+        assert await peer.receive() == {"registered": PEER_NAME}
         registered = comms.registry.require(NAME)
         assert registered.execution is ExternalThreadExecution
         assert registered.role is ThreadRole.AGENT and registered.process_alive
@@ -109,7 +120,7 @@ async def journey():
         await cli.invoke("send", "--from", NAME, "--to", CHANNEL, "--body", SEED)
 
     async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-        assert type(app._driver).__name__ == "LinuxDriver" and not app._headless
+        assert type(app._driver).__name__ == "LinuxDriver" and not app.is_headless
         original_native = comms.registry.require("beta").process_identity
         original_mode = app.selected_mode
 
@@ -118,11 +129,14 @@ async def journey():
             from PIL import ImageGrab
             ImageGrab.grab(xdisplay=os.environ["DISPLAY"]).save(evidence / f"{label}.png")
             (evidence / f"{label}-paint.txt").write_text(screen_paint(app))
+            presentation = comms.views.thread_presentation(NAME)
             receipt["phases"].append({"phase": label,
                 "seconds": monotonic() - started, "session": app.selected_session.id,
                 "driver": type(app._driver).__name__,
                 "external": comms.registry.require(NAME).to_wire(),
-                "presentation": FieldCodec.encode(comms.views.thread_presentation(NAME))})
+                "presentation": {"marker": presentation.marker,
+                                 "summary": presentation.summary,
+                                 "busy": presentation.busy}})
             (evidence / "journey.json").write_text(json.dumps(receipt, indent=2))
 
         # Actual channel-bar row, then its originally mounted participant row.
@@ -139,7 +153,7 @@ async def journey():
         await until(pilot, lambda: SEED in screen_paint(app))
         await submit_editor(pilot, channel.prompt.prompt_text_area, CHANNEL_INPUT)
         await until(pilot, lambda: CHANNEL_INPUT in screen_paint(app))
-        await until(pilot, lambda: any("Waiting for agent" in str(item.title)
+        await until(pilot, lambda: any("Waiting for agent (2)" in str(item.title)
                     for item in channel.query(MessageNotifications)))
         await phase("channel-pending")
 
@@ -150,6 +164,22 @@ async def journey():
         await until(pilot, lambda: any("Checked by CLI" in str(item.title)
                     for item in channel.query(MessageNotifications)))
         await phase("channel-checked")
+        pending_peer = await peer.invoke("inbox", "--thread", PEER_NAME)
+        assert sum(message["body"] == CHANNEL_INPUT for message in pending_peer["messages"]) == 1
+        assert (await peer.invoke("ack", "--thread", PEER_NAME))["acknowledged"] == 2
+        await until(pilot, lambda: any("Checked by CLI (2)" in str(item.title)
+                    for item in channel.query(MessageNotifications)))
+        await phase("channel-both-checked")
+
+        peer_row = await reveal_thread_row(app, pilot, PEER_NAME, CHANNEL)
+        assert await pilot.click(peer_row)
+        await until(pilot, lambda: app.selected_session is not channel_screen)
+        await app.selected_session.wait_content_ready()
+        peer_dm = app.selected_session.query_one(CommsChatView)
+        assert peer_dm.target == PEER_NAME and peer_dm.kind == "dm" and peer_dm.agent is None
+        assert comms.registry.require(PEER_NAME).session_file is None
+        await phase("second-cli-open-no-native")
+        await click_tab(app, pilot, channel_screen.id)
 
         row = await reveal_thread_row(app, pilot, NAME, CHANNEL)
         assert await pilot.click(row)
@@ -219,15 +249,21 @@ async def journey():
     finally:
         if cli is not None:
             await cli.retire()
+        if peer is not None:
+            await peer.retire()
         receipt["duration_seconds"] = monotonic() - started
         (evidence / "journey.json").write_text(json.dumps(receipt, indent=2))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--participant", nargs=2, type=Path)
+    parser.add_argument("--participant", nargs=3)
     arguments = parser.parse_args()
     if arguments.participant:
         participant(*arguments.participant)
     else:
-        asyncio.run(journey())
+        try:
+            asyncio.run(journey())
+        except BaseException:
+            (Path(os.environ["L0A_EVIDENCE"]) / "fatal.txt").write_text(traceback.format_exc())
+            raise
