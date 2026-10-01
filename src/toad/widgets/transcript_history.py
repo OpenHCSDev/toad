@@ -56,7 +56,7 @@ from toad.widgets.transcript_fragments import (
 )
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Window
+    from toad.widgets.history_anchor import HistoryWindow
 
 
 
@@ -403,7 +403,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._saturated_widget_limit = 0
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
-        self.window: Window
+        self.window: HistoryWindow
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
@@ -518,8 +518,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         yield self.newer
 
     async def on_mount(self) -> None:
-        from toad.widgets.conversation import Window
-        self.window = self.query_ancestor(Window)
+        from toad.widgets.history_anchor import HistoryWindow
+        self.window = self.query_ancestor(HistoryWindow)
         await self._finish_mount()
 
     async def _finish_mount(self) -> None:
