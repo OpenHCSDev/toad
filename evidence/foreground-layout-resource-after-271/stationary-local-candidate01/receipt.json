@@ -1,0 +1,27 @@
+{
+  "scope": "actual source Toad/native idle preparation; not installed physical acceptance",
+  "transport_has_older": false,
+  "transport_has_newer": false,
+  "travel_rows": 0,
+  "local_unmounted_fragments": 28,
+  "admitted_range": [
+    28,
+    32
+  ],
+  "prepared_indexes": [
+    27,
+    26,
+    25,
+    24,
+    23,
+    22
+  ],
+  "idle_local_worker_exists": true,
+  "original_children_unchanged": true,
+  "original_admission_unchanged": true,
+  "transport_reads": 0,
+  "prepared_bytes": 29886,
+  "byte_bound": 67108864,
+  "agent_bound": false,
+  "exception": "None"
+}

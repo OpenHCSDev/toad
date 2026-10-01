@@ -196,3 +196,42 @@ gate is ONE normally packaged current-cohort copied41MB physical A/B/A + held
 Up/Down/reverse/End/fifteen-second idle + draft/Undo with same-run profile and
 the new failure-time scene/readiness census. Zero prompt/provider/public-owner
 operations; all earlier raw failures retained. Full275 scope remains active.
+
+## Stationary local source runway checkpoint
+
+`TranscriptSourcePreparation.prepare_scroll` used transport-edge availability
+and measured travel to suppress its entire worker. A complete transport page
+can still own unmounted local fragments. Its existing stationary demand and
+`TranscriptPageView.prepare_adjacent` therefore never reached the existing
+render preparation owner. Transport completion and local preparation are
+different questions (IDEN-1); transport-edge traversal stays owned by
+`TranscriptPageBuffer.prefetch`, which already skips missing edges.
+
+The worker now reaches local neighbor preparation whenever the existing budget
+admits rounds. The same intent, page admissions, renderer, cancellation and
+byte bound apply. No timer, resource catalog, status field or source reader is
+added. One production line replaced; all callers inherit the source owner.
+
+Actual source Toad/native counter `tests/history_stationary_local_runway_pilot.py`
+uses the original typed page contract and actual native resource/render workers,
+with no Agent, provider, input or public root. A reserved original source operation
+holds foreground page admission while the preparation counter runs. Baseline02
+is RED: complete transport page, 28 unmounted local fragments, zero travel, no
+worker/no prepared neighbors. Candidate01 is GREEN: six original adjacent
+fragments prepared at indexes27 through22, zero transport reads, unchanged
+native children and page admission, 29,886 retained bytes within64MiB.
+Baseline01 is a rejected test seed: manually authored journal entries did not
+produce source events; it supplies no product evidence. All receipts are kept.
+The changed function/file dispatch, arms, foreign-probe and chain ratchets pass
+without growth in `stationary-local-ratchet.json`.
+
+This is preparation coverage proof, not installed physical latency, whole
+CPU, cold peer readiness or warm raster acceptance. The sole receiving physical
+gate remains pending after the queue lane and normal immutable builder.
+
+The parent's new public476 cold-open raw state is separately retained at
+`/home/ts/.cache/agent-scratch/parent-public476-channel-recovery-20261001-01/capture/phase-receiver-open-state.json`.
+SelectedPR159 had its history lock held, eight body owners, four visible bodies
+and no dormant visible body. The observed cold blank still needs a correlated
+publication/frame diagnosis; neither this counter nor body materialization
+proves it fixed.
