@@ -2,8 +2,8 @@
 
 Integration owner Heisenberg. Persistent branch
 perf/historical-admission-resource-followup-20261001 starts from actual main
-d6856f6bcdf6f5430fb654c3d8b09c52df7298e8, including merged264. Normally integrate
-PR266 through main after parent review/merge; no hidden feature-stack base.
+d6856f6bcdf6f5430fb654c3d8b09c52df7298e8, including merged264. PR266 is normally integrated through main d0349869 in merge46c32438;
+no hidden feature-stack base.
 Kepler contributes directly granted read-only same-run frame/profile helpers.
 Mendel owns268 shared viewport-screen/archive capability and its consumers.
 Sch owns source/T5 publication; native/backend facts and UNKNOWN dispositions
@@ -66,3 +66,29 @@ Old254 default and264/266 immutable prefixes remain protected dependencies until
 parent retirement. No provider replay, original owner restart, public mutation,
 unnecessary repeat gate/CI or broad scan. Meaningful code then one affected actual
 installed workflow; final targets do not hold an accepted useful checkpoint.
+
+## Published269 resource-admission checkpoint
+
+Production source f39a38b4d71caa8e97d022e2ebb71378627fb92e, evidence revision
+43687234, two existing production files16 added/2 deleted. The existing
+DocumentViewport admission query now supplies historical source retention as
+well as native body restoration. Original nominal item reserve, actual widget
+trim, empty-page overhead, weak LRU and renderer byte limits remain owners.
+No secondary body/page catalog, status mirror, timer or renderer.
+
+Matched native80-source counter275→119 body constructors; candidate299/300
+settled widgets. Rich native boundary289/300 with actual body retirements.
+Nine original T4 guards and same-run per-file/per-function StringDispatch,
+TypeSwitch, absence-probe and boolean-chain ratchets pass. The existing
+projected-history800 item-bound assertion fails20/19 identically on baseline
+and candidate; preserved, not loosened or counted as a pass.
+
+Immutable UI-only stage uses69 original normal Git distributions, Coree191,
+Text6b, SDK12/native593. Full source equality/imports/nativeTrust/pipcheck pass.
+Kepler owns the sole affected real original41MB installed physical capture;
+readiness remains pending its result. No default/native/public changes.
+
+Detailed source and package receipts: [resource-admission](resource-admission/README.md).
+All original full scope above remains active, including CPU/firstpaint/Strip,
+focus/TC1/T9 and PRIMARY growing-end held-PageDown correctness. A useful
+source/resource checkpoint does not close those targets.
