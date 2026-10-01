@@ -1,0 +1,15 @@
+{
+  "toad_metadata_head": "0dd9de96083126d37eb1534a62a91df9674ee120",
+  "reviewed_production_head": "25d8e60207c457cc480dff6ed1c5cf1e0fa77193",
+  "metadata_src_tree": "dcd3cf547be3f565555462aa03994028e13abfae",
+  "reviewed_src_tree": "dcd3cf547be3f565555462aa03994028e13abfae",
+  "src_tree_equal": true,
+  "normal_merge_parents": [
+    "f99dce78e282e79ee045ff9940219443b2742e31",
+    "25d8e60207c457cc480dff6ed1c5cf1e0fa77193"
+  ],
+  "production_edits_outside_reviewed_source": false,
+  "metadata_delta_from25d": "3\t2\tpyproject.toml\n6\t10\tuv.lock\n",
+  "published_270_head": "0dd9de96083126d37eb1534a62a91df9674ee120",
+  "normal_fast_forward_remote_publication": true
+}

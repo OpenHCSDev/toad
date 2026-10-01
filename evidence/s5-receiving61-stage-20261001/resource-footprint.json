@@ -1,0 +1,49 @@
+{
+  "state": "post_build_retained_footprint_measured; disk_peak_not_continuously_sampled",
+  "components": {
+    "new_metadata_worktree_excluding_artifacts": {
+      "unique_inode_allocated_bytes": 84504576,
+      "exclusive_last_link_allocated_bytes": 84504576,
+      "entries": 3967
+    },
+    "core_vcs_checkout": {
+      "unique_inode_allocated_bytes": 164442112,
+      "exclusive_last_link_allocated_bytes": 141729792,
+      "entries": 6262
+    },
+    "toad_vcs_checkout": {
+      "unique_inode_allocated_bytes": 130617344,
+      "exclusive_last_link_allocated_bytes": 85254144,
+      "entries": 4095
+    },
+    "runtime": {
+      "unique_inode_allocated_bytes": 83128320,
+      "exclusive_last_link_allocated_bytes": 23068672,
+      "entries": 4353
+    },
+    "staging_evidence": {
+      "unique_inode_allocated_bytes": 5484544,
+      "exclusive_last_link_allocated_bytes": 5484544,
+      "entries": 18
+    }
+  },
+  "new_core_toad_package_payload_unique_bytes": 17100800,
+  "installer_peak_rss_kib": 172472,
+  "installer_elapsed_seconds": 2.02,
+  "installer_cpu_user_seconds": 0.98,
+  "installer_cpu_system_seconds": 0.71,
+  "stage_budget_bytes": 469762048,
+  "gate_disk_forecast_bytes": 67108864,
+  "gate_ram_forecast_bytes": 2147483648,
+  "existing_concurrent_NRA_viewer_budget_bytes": 536870912,
+  "warning_remains_proportional": true,
+  "new_native_builds": 0,
+  "provider_calls": 0,
+  "available_now_bytes": 10282655744,
+  "notes": [
+    "Footprint uses explicit inode/exclusive counts; shared normalUV dependencies are not counted as newfullcopies.",
+    "This reports retained footprints and time-v installer RSS, not a fabricated high-water disk measurement.",
+    "No large ephemeral build artifacts remain; TMPDIR onlyempty directory.",
+    "All existing22666 protected source/asset/environment files checked unchanged; currentactivation is final written evidence."
+  ]
+}

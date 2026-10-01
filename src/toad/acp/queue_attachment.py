@@ -32,12 +32,26 @@ class QueueAttachment(ProjectionAttachment):
             else UnavailableQueueProjection()
         )
 
-    def accepts_request(self, scope) -> bool:
-        """A request's original queue authority must still own this attachment."""
+    def _matches_request_scope(self, scope) -> bool:
+        """Freshness of the original scope, independent of queue availability."""
         if scope is None:
             return self.scope is None
-        return (self.scope is not None and self.scope.relation(scope).current
-                and self.projection.status == "available")
+        return self.scope is not None and self.scope.relation(scope).current
+
+    def accepts_request(self, scope) -> bool:
+        """A request's original queue authority must still own this attachment."""
+        return self._matches_request_scope(scope) and (
+            scope is None or self.projection.status == "available")
+
+    def _acquire_input_scope(self, scope):
+        if scope is None or not self._matches_request_scope(scope):
+            raise ValueError('The original input attachment changed before capture.')
+        return scope
+
+    def capture_human_input(self, comms, scope):
+        """Certify the original captured request through its current observation."""
+        return self.projection.capture_human_input(
+            comms, lambda: self._acquire_input_scope(scope))
 
     def begin(self, session_id):
         self._pending_starts.clear()
