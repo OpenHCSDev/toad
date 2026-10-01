@@ -9,7 +9,8 @@ Textual6b5895fa0a72aeec2aeaef7206d5debfa0c1803c / ACP0.12.1 / native593 remain.
 The normal resolver refused the old Toad264 declaration of Coree191 when paired
 with Core476. Preserve that failed build; replace the declaration and lock through
 the original package metadata owner, without dependency/source overrides.
-No Toad production change or independent UI framework is introduced here.
+That initial metadata phase introduced no Toad production change. The subsequent
+three-file receiver-readiness closure is recorded below; it uses the existing UI.
 
 Installed native cancellation and subsequent canonical channel reply already
 passed in the Core-owned fixture. This pair will exercise the actual installed
@@ -68,9 +69,9 @@ only canonical presentation supplies that status. Rename the existing open-tabs
 subscriber (previously misleadingly called _coordination_changed) and close its
 single caller; no alias remains and its original goal/command behavior is preserved.
 
-Source import/parse/check controls pass. This production checkpoint is Draft;
-parent's next actual external original-root DM/readiness/history paint gate is
-mandatory before Ready/live claims. Preserve original262UNKNOWN/266frozen input,
+Source import/parse/check controls passed at the draft checkpoint. The second
+external receiver-readiness gate below closes that specific requirement.
+Preserve original262UNKNOWN/266frozen input,
 diagnostics, native journals/proofs and current owners. No public write/restart,
 provider call or replay accompanies this source checkpoint. Native admission476's
 completed acceptance remains separate and is not repeated.
@@ -98,7 +99,7 @@ Sanitized current receiver proof: evidence/openhcs-channel-delivery/
 physical-original-dm02.json. Original PNGs/video/private hashes remain in parent's
 owned scratch; their hashes are recorded without publishing session content.
 
-Normal main1cef2a46 (accepted268 plus266) is integrated with no source conflict.
+Normal mainf1a3d011 (accepted269,268 and266) is integrated with no source conflict.
 The final normal pyproject/uv.lock pins CoreMAINcac7bdf337d9e4dba888ce7c2093ddcc55802bc3
 (native593); uv lock resolves. These are normal source integration and metadata
 changes after the exact f76 physical gate. Parent owns ONE combinedrelease69
