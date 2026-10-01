@@ -25,7 +25,7 @@ Actual original Toad/Pilot application, no Agent/provider/public root:
 * Fixed mode stays unified. Declared44-column padding yields content21/0/21
   and correctly stays unified; baseline fails the same unchanged assertion.
 * Baseline native mount-induced full arrangements4; candidate0. Total native
-  arrangements32→24 in the four-consumer control. This is not a CPU metric.
+  arrangements28→24 in the four-consumer control. This is not a CPU metric.
 * Tool patch follows ACP schema→ToolCallStatus→ToolCall→ToolOutput/PatchPreparation
   →ToolCallDiff→PatchDiffView. No fake Agent/viewport or replaced renderer.
 * Bounded library dispatch/arms/absence-probe/boolean-chain measures do not grow.

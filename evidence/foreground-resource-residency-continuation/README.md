@@ -90,7 +90,7 @@ DRAFT textual-diff-view#1 aa4a78e changes the original native DiffView owner:
 remove premature mount-time full scene acquisition, use existing committed
 Resize geometry minus declared gutter. Toad's normal source pin/lock select
 this owner for every ordinary, permission and prepared patch consumer. Native
-four-consumer actual To ad control reduces mount-induced arrangements4→0 and
+four-consumer actual Toad control reduces mount-induced arrangements4→0 and
 preserves auto/fixed/prepared/padded wide/narrow/wide behavior. Baseline padding
 failure is retained; no CPU/readiness claim before the affected installed gate.
 [Source/resource evidence](../native-diff-lifecycle/README.md) is committed here.
