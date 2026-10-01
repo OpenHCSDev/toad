@@ -91,8 +91,6 @@ class SessionDetails(Collapsible):
                     parts.append(f"Latest inbound {source.target} from @{source.sender}: {latest.state}")
                 if len(presentation.notifications) > 1:
                     parts.append(f"{len(presentation.notifications)} recent")
-        elif self.turns is not None and self.turns.owner.session_state is not None:
-            parts.append("Ready")
         parts.extend(self.history_details.summary)
         attention |= self.history_details.attention
         if self.delivery is not None:

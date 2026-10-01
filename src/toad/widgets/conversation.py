@@ -24,6 +24,7 @@ from agent_comms import agent_events as comms_events
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CompactionPublishedUpdate,
+    CoordinationChangedUpdate,
     GoalChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
@@ -1050,6 +1051,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                     )
 
         self.agent_ready = True
+        self.query_one(ObservedThreadActivity).refresh_observation()
         self.call_later(self.goal_observation.refresh)
         self.call_later(self.delivery_observation.refresh)
         self.transcript.request()
@@ -1718,7 +1720,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         ).commands
         self.call_after_refresh(self.post_welcome)
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
+        self.app.open_tabs_changed.subscribe(self, self._open_tabs_changed)
 
         self.input_histories.shell.complete.add_words(
             self.app.settings.shell.allow_commands.split()
@@ -1778,7 +1780,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             return
         await ConversationCommsConsumer(self, event).dispatch(event.update)
 
-    async def _coordination_changed(self, _update: None) -> None:
+    async def _open_tabs_changed(self, _update: None) -> None:
         self.update_slash_commands()
         await self.goal_observation.refresh()
 
@@ -2237,6 +2239,12 @@ class ConversationCommsConsumer(MroDispatch):
     def __init__(self, conversation, message):
         self.conversation = conversation
         self.message = message
+
+    @handles(CoordinationChangedUpdate)
+    async def coordination_changed(self, update: CoordinationChangedUpdate):
+        # Source binding is published independently of registry/activity changes.
+        # A fresh DM must acquire its original status even on an unchanged wire.
+        self.conversation.query_one(ObservedThreadActivity).refresh_observation()
 
     @handles(CursorPresentation)
     async def cursor_presentation(self, update):
