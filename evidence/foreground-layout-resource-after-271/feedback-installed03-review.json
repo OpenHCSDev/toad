@@ -1,6 +1,5 @@
 {
   "state": "SCOPED INSTALLED PASS: native input paging, reader compensation and settled body demand; remaining warm/full performance open",
-  "tested_to_ad_commit": "87c94564a693aa67250eddddb1dc71ef8edbedce",
   "implementation_commit": "be18026f",
   "stage": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb",
   "core": "d0773b22523e44428f10f0d9f1f961fd3fce8cac",
@@ -614,5 +613,6 @@
       "bytes": 2490,
       "sha256": "87771d2dc637e236e2939b388145ede622802de73725da3881f6db8591408b97"
     }
-  }
+  },
+  "tested_toad_commit": "87c94564a693aa67250eddddb1dc71ef8edbedce"
 }
