@@ -1,0 +1,10 @@
+{
+  "state": "diagnostic serialization failed before prospective decoding",
+  "error": "FieldCodec.encode(PublicWireRecord): NameError Message forward annotation",
+  "classification": "observer attempted to encode a runtime reader record, not the canonical publication proof",
+  "public_writes": 0,
+  "provider_calls": 0,
+  "target_comms_initializations": 0,
+  "old_journal_decodes": 0,
+  "corrective_action": "compare native Message.to_wire, typed FrozenAudience, original decisions_wire and typed keyed receipt; no codec or product patch"
+}

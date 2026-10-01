@@ -1,0 +1,42 @@
+{
+  "rows": 274,
+  "messages": 274,
+  "silent_observations": 0,
+  "attested_deliveries": 236,
+  "authored_choice_messages": 0,
+  "explicit_original_decision_fields": 0,
+  "final_sequence": 274,
+  "typed_public_private_equal": true,
+  "original_public_envelope_equal": true,
+  "ordinary_default_omitted": true,
+  "target_pin": "4345bfc8aac0e4717450d4f79e6fe53e331f3ccf",
+  "state": "PASS original certified typed public/private source equivalence",
+  "source_pin": "cac7bdf337d9e4dba888ce7c2093ddcc55802bc3",
+  "source_interpreter": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/bin/python",
+  "target_interpreter": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-s5-receiving61-20261001/bin/python",
+  "source_bytes": 908173,
+  "source_sha256": "1ab9de1aebea1c212a4a6d6f745a9c9c03bae77e100c398b91e80a17ba8d5d17",
+  "original_typed_records_sha256": "c1dcbf8d46fa9ee37fd07f79b1bbb06cc62339459049005641177bc8de2b34c5",
+  "original_revision": {
+    "identity": {
+      "device": 2083,
+      "inode": 4606680
+    },
+    "size": 908173,
+    "mtime_ns": 1790866840057826137,
+    "ctime_ns": 1790866840057826137
+  },
+  "original_revision_unchanged_at_readback": true,
+  "elapsed_seconds": 1.3294160370132886,
+  "public_writes": 0,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "target_comms_initializations": 0,
+  "old_journal_decodes": 0,
+  "decision_to_task_carry": 0,
+  "limitations": [
+    "Point-in-time snapshot; stopped-owner/source fences required at cutover",
+    "Zero silent observations is absence, not future observation compatibility proof",
+    "No journal/input/native/UNKNOWN mutation or replay; no public execution"
+  ]
+}
