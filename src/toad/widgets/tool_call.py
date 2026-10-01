@@ -222,7 +222,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.retire()
 
     def _visible_in_window(self) -> bool:
-        from toad.widgets.conversation import Window
+        from toad.widgets.history_anchor import HistoryWindow
 
         if not self.is_attached or not self.screen.is_active:
             return False
@@ -230,7 +230,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         if geometry is None:
             return False
         try:
-            window = self.query_ancestor(Window)
+            window = self.query_ancestor(HistoryWindow)
         except NoMatches:
             return True
         region, _clip = geometry
