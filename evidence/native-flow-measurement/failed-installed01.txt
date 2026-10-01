@@ -1,0 +1,96 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/app.py", line 2212, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/evidence/native-flow-measurement/actual_native_flow_control.py", line 98, in main
+    layouts=[owner.arrange(Size(owner.size.width,height)) for height in range(80,88)]
+                                ^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/widget.py", line 2375, in size
+    return self.content_region.size
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/widget.py", line 2411, in content_region
+    content_region = self.region.shrink(self.styles.gutter)
+                     ^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/widget.py", line 2462, in region
+    return self.screen.find_widget(self).region
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/screen.py", line 771, in find_widget
+    return self._compositor.find_widget(widget)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/_compositor.py", line 1136, in find_widget
+    region = self.full_map[widget]
+             ^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/_compositor.py", line 546, in full_map
+    map, _widgets = self._arrange_root(self.root, self.size, visible_only=False)
+                    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/evidence/native-flow-measurement/actual_native_flow_control.py", line 25, in arranged
+    calls.append(frames);return original(owner,*args,**kwargs)
+                                ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+TypeError: HorizontalLayout.arrange() got an unexpected keyword argument 'visible_only'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/evidence/native-flow-measurement/actual_native_flow_control.py", line 123, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/evidence/native-flow-measurement/actual_native_flow_control.py", line 27, in main
+    async with app.run_test(size=(120,38)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/app.py", line 2216, in run_test
+    await app._shutdown()
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/app.py", line 3746, in _shutdown
+    await self._close_all()
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/toad/app.py", line 336, in _close_all
+    await super()._close_all()
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/toad/workspace_sessions.py", line 176, in _close_all
+    await self.workspace_sessions.aclose()
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/toad/workspace_sessions.py", line 166, in aclose
+    await self.app.workspace_chrome.native.close()
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/toad/session_presentation.py", line 287, in close
+    await self._remove(owner)
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/toad/session_presentation.py", line 269, in _remove
+    await conversation.remove()
+          ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/widget.py", line 4580, in remove
+    await_remove = self.app._prune(self, parent=self._parent)
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/app.py", line 4394, in _prune
+    screen._reset_focus(screen.focused, list(pruning_nodes))
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/screen.py", line 1058, in _reset_focus
+    focusable_widgets = self.focus_chain
+                        ^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/screen.py", line 814, in focus_chain
+    iter(sorted(root_node.displayed_children, key=focus_sorter)),
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/widget.py", line 2550, in _focus_sort_key
+    x, y, _, _ = self.virtual_region
+                 ^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/widget.py", line 2500, in virtual_region
+    return self.screen.find_widget(self).virtual_region
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/screen.py", line 771, in find_widget
+    return self._compositor.find_widget(widget)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/_compositor.py", line 1136, in find_widget
+    region = self.full_map[widget]
+             ^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/lib/python3.14/site-packages/textual/_compositor.py", line 546, in full_map
+    map, _widgets = self._arrange_root(self.root, self.size, visible_only=False)
+                    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/evidence/native-flow-measurement/actual_native_flow_control.py", line 25, in arranged
+    calls.append(frames);return original(owner,*args,**kwargs)
+                                ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+TypeError: HorizontalLayout.arrange() got an unexpected keyword argument 'visible_only'
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-4hwl94jx', '/mp-55m_54ac', '/mp-568ge5n1', '/mp-fifxpepf', '/mp-0ttjra_a'}
+  warnings.warn(

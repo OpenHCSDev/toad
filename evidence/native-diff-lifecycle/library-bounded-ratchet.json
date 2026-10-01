@@ -1,0 +1,18 @@
+{
+  "before": {
+    "string_dispatch": 6,
+    "type_switch": 0,
+    "string_dispatch_arms": 22,
+    "type_switch_arms": 0,
+    "foreign_absence_probe": 0,
+    "boolean_chain_terms": 0
+  },
+  "after": {
+    "string_dispatch": 6,
+    "type_switch": 0,
+    "string_dispatch_arms": 22,
+    "type_switch_arms": 0,
+    "foreign_absence_probe": 0,
+    "boolean_chain_terms": 0
+  }
+}

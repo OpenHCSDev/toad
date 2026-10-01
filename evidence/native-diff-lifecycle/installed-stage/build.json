@@ -1,0 +1,31 @@
+{
+  "source": "ba4d12c5bcec864eac316c0ece148ce548363f65",
+  "stage": "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-diff-271-20261001",
+  "declared_source": "normal main267 lock, plus original library Git pin",
+  "public_effects": 0,
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--python",
+      "/home/ts/wt/toad-historical-admission-resource-followup-20261001/.artifacts/runtime-resource-admission-269-20261001/bin/python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-diff-271-20261001"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-diff-271-20261001/bin/python",
+      "--requirement",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/staging-native-diff-271-20261001/requirements.txt"
+    ],
+    [
+      "uv",
+      "pip",
+      "check",
+      "--python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-diff-271-20261001/bin/python"
+    ]
+  ]
+}
