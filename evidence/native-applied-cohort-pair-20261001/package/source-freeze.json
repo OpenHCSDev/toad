@@ -1,0 +1,19 @@
+{
+  "source": {
+    "toad": "1edd96c0cfa011a69782cdeb67138ceea98e227b",
+    "accepted_toad": "7026ea09e6134d51d93e692a2bf760f7412d313d",
+    "core": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+    "sdk": "0.12.1",
+    "audit": "d392c5e4cd189ce1203127a746337ad498a0330d",
+    "native_manifest": "593b978a717ae8f6ab4300a1a107b615c8ced52e767ef4cad0596f827041a218"
+  },
+  "accepted_toad_production_equal": true,
+  "metadata_sha256": {
+    "pyproject.toml": "01776e1120eee99436433010561cf270ab0fb15fa6f29555961765bf43fa8efd",
+    "uv.lock": "39a8322434dd8ba08083cda11329e0e4aa4eed8d481cb037e05c7f03d16c8245"
+  },
+  "source_recorder_sha256": "74f1b48aece7d8f701734be6404f84356e8d527ec1ffe5e9bc7a88cde55386b0",
+  "public_effects": 0,
+  "original_proofs": "156/u07 negative and259/660/u08 scoped positive untouched"
+}

@@ -1,0 +1,25 @@
+{
+  "case": "after_join",
+  "held": {
+    "response_receive_done": true,
+    "finished_receive_done": true,
+    "source_publish_done": true,
+    "saved_resources": 1,
+    "managed_busy": false
+  },
+  "final_resource_count": 2,
+  "final_resources": [
+    {
+      "id": 140407729149328,
+      "parent": "TranscriptFragmentView"
+    },
+    {
+      "id": 140407854463120,
+      "parent": "Contents"
+    }
+  ],
+  "duplicate_frames": 6,
+  "frames": 9,
+  "native_started": false,
+  "registered_histories": 1
+}
