@@ -56,7 +56,7 @@ from toad.widgets.transcript_fragments import (
 )
 
 if TYPE_CHECKING:
-    from toad.widgets.conversation import Window
+    from toad.widgets.history_anchor import HistoryWindow
 
 
 
@@ -174,8 +174,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     # retained bodies still own the same native scene. Textual bounds and
     # invalidates this geometry on content/style/size/pruning changes.
     CACHE_SUBTREE_GEOMETRY = True
-    CACHE_HEIGHT_INDEPENDENT_BOX = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()
@@ -368,13 +366,16 @@ class TranscriptPageView(VerticalGroup):
         for index, child in previous.items():
             if not start <= index < stop:
                 await child.remove()
-        for index in range(start, stop):
+        before = None
+        for index in range(stop - 1, start - 1, -1):
             child = previous.get(index)
             if child is None:
                 body = self._body(fragments[index])
-                await self.mount(body)
+                await self.mount(body, before=before)
+                child = body
             elif child.fragment != fragments[index]:
                 await child.update_fragment(fragments[index])
+            before = child
         self.start, self.stop = start, stop
 
 
@@ -405,7 +406,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._saturated_widget_limit = 0
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
-        self.window: Window
+        self.window: HistoryWindow
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
@@ -520,8 +521,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         yield self.newer
 
     async def on_mount(self) -> None:
-        from toad.widgets.conversation import Window
-        self.window = self.query_ancestor(Window)
+        from toad.widgets.history_anchor import HistoryWindow
+        self.window = self.query_ancestor(HistoryWindow)
         await self._finish_mount()
 
     async def _finish_mount(self) -> None:
@@ -740,15 +741,23 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 return
             async with window.preserve_history(None):
                 self._saturated_widget_limit = 0
-                await self.remove_children(list(self.pages))
-                view = TranscriptPageView(
-                    page, fragments=fragments,
-                    batch_size=destination_admission,
-                )
-                view.visible_categories = self.selected_categories
-
+                view = self.pages[-1]
+                if view.capture_admission().interval == CommittedInterval(page.before, page.after):
+                    # The certified source interval already has native custody.
+                    # End changes its admitted range, not its presentation owner.
+                    await self.remove_children([retired for retired in self.pages if retired is not view])
+                    view.batch_size = destination_admission
+                    await view.update_fragments(fragments, follow=True)
+                    view.page = page
+                else:
+                    await self.remove_children(list(self.pages))
+                    view = TranscriptPageView(
+                        page, fragments=fragments,
+                        batch_size=destination_admission,
+                    )
+                    view.visible_categories = self.selected_categories
+                    await self.mount(view, before=self.newer)
                 self.pages = deque([view])
-                await self.mount(view, before=self.newer)
                 self._update_edges()
                 self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
 
@@ -857,6 +866,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(set(self.fragment_views) & protected)),
                 self._visible_fragment_budget(),
+                self._resource_fragment_budget(protected),
             )
             excess = self.fragment_count - limit
             trim_older = self._follow_source_tail or not older
@@ -909,6 +919,16 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     excess -= remove_count
             await self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
+
+    def _resource_fragment_budget(self, protected: set[Widget]) -> int:
+        """Native fragments retain the same window-wide working-set lease."""
+        viewport = self.window.document_viewport
+        visible = self.screen._compositor.visible_widgets
+        endpoints = viewport.protected()
+        required = tuple(owner for owner in viewport.body_roots()
+                         if owner in visible or owner in protected or owner in endpoints)
+        admitted = viewport.admission(required=required)
+        return len(set(self.fragment_views) & admitted)
 
 
 class ProjectedTranscriptHistory(TranscriptHistory):

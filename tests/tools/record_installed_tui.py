@@ -379,6 +379,31 @@ class ObserveJourney(PhysicalJourney):
         return ""
 
 
+class ArchiveJourney(PhysicalJourney):
+    """Open retained sessions using original native controls, without input."""
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Archive controls require native state capture")
+        if not 0 <= args.archive_index < 111:
+            raise ValueError("Archive index must be within the retained 111-row fixture")
+        marker = marker_command()
+        state = lambda label: str(args.output.resolve() / f"phase-{label}-state.pickle")
+        return "\n".join((
+            "key ctrl+g", "sleep 2", marker + "archive-feed",
+            native_click_command(state("archive-feed"), target="widget", name="Button#historical-sessions"),
+            "sleep 1", marker + "archive-modal",
+            native_click_command(state("archive-modal"), target="widget", name="Select#saved-identity"),
+            "sleep 1", marker + "archive-selector --image-only",
+            "key Home", *("key Down" for _ in range(args.archive_index)), "key Return",
+            "sleep 3", marker + "archive-native",
+            native_click_command(state("archive-native"), target="widget", name="HistoryWindow#saved-window"),
+            "sleep .2", marker + "archive-focused", "key End", "sleep 1",
+            marker + "archive-end", "key Escape", "sleep 1", marker + "archive-return",
+        )) + "\n"
+
+
 class ScrollJourney(PhysicalJourney):
     @classmethod
     def script(cls, args):
@@ -1163,7 +1188,8 @@ def record(args):
     return output
 
 
-def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
+def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
+         image_only=False):
     """A native xdotool exec marker; timestamps bracket actual input injection."""
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,39}", label):
         raise ValueError("Invalid phase label")
@@ -1177,7 +1203,10 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_histor
         raise ValueError("Visible history observation requires native marker snapshots")
     if wait_history_seconds and not wait_history_thread:
         raise ValueError("Visible history observation requires the intended thread")
+    if wait_history_seconds and image_only:
+        raise ValueError("Visible history observation requires a state snapshot")
     event = {"label": label, "utc": datetime.now(timezone.utc).isoformat(),
+             "image_only": image_only,
              "seconds_since_capture_launch": time.monotonic() - float(os.environ["TOAD_VIDEO_EPOCH"])}
     if os.environ.get("TOAD_VIDEO_TERMINAL"):
         event["cpu"] = cpu_snapshot(int(os.environ["TOAD_VIDEO_TERMINAL"]))
@@ -1209,7 +1238,7 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_histor
             owner.run(["import", "-display", display, "-window", "root", str(output / name)],
                       os.environ.copy(), timeout=5)
             event["screenshot"] = name
-            if os.environ.get("TOAD_VIDEO_UI_IDENTITY") and not wait_history_seconds:
+            if os.environ.get("TOAD_VIDEO_UI_IDENTITY") and not wait_history_seconds and not image_only:
                 from agent_comms.child_process import ProcessIdentity
                 from agent_comms.field_codec import FieldCodec
                 identity = FieldCodec.decode(ProcessIdentity, json.loads(os.environ["TOAD_VIDEO_UI_IDENTITY"]))
@@ -1269,6 +1298,8 @@ def main():
     if len(sys.argv) >= 3 and sys.argv[1] == "--mark":
         marker = argparse.ArgumentParser(description="Observe an actual native phase")
         marker.add_argument("label")
+        marker.add_argument("--image-only", action="store_true",
+                            help="Capture actual phase image/time without optional DTO export")
         marker.add_argument("--wait-history-seconds", type=float, default=0)
         marker.add_argument("--wait-history-interval", type=float, default=.1)
         marker.add_argument("--wait-history-thread")
@@ -1278,7 +1309,7 @@ def main():
             marker.error("History budget must be nonnegative and observation interval positive")
         mark(options.label, wait_history_seconds=options.wait_history_seconds,
              wait_history_interval=options.wait_history_interval,
-             wait_history_thread=options.wait_history_thread)
+             wait_history_thread=options.wait_history_thread, image_only=options.image_only)
         return
     if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
         profile_launch(sys.argv[2:])
@@ -1294,6 +1325,7 @@ def main():
                         help="Optional retained script; must match the selected journey, which runs automatically")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
+    parser.add_argument("--archive-index", type=int, default=0, help="Original retained selector row from the current source namespace")
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")

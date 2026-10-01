@@ -1,0 +1,975 @@
+{
+  "boundary": "actual native Toad/Pilot source-admission diagnostic; no Agent/provider or public root; not saved41MB physical acceptance",
+  "agent_bound": false,
+  "constructor_calls": 241,
+  "distinct_source_fragments": 80,
+  "reconstructed_source_fragments": {
+    "76": 5,
+    "77": 6,
+    "78": 6,
+    "79": 6,
+    "72": 5,
+    "73": 4,
+    "74": 4,
+    "75": 5,
+    "68": 3,
+    "69": 4,
+    "70": 4,
+    "71": 4,
+    "64": 3,
+    "65": 3,
+    "66": 4,
+    "67": 3,
+    "60": 4,
+    "61": 3,
+    "62": 3,
+    "63": 3,
+    "56": 5,
+    "57": 6,
+    "58": 5,
+    "59": 4,
+    "52": 5,
+    "53": 4,
+    "54": 5,
+    "55": 5,
+    "48": 3,
+    "49": 3,
+    "50": 3,
+    "51": 5,
+    "45": 2,
+    "46": 2,
+    "47": 2,
+    "41": 2,
+    "42": 2,
+    "43": 2,
+    "44": 2,
+    "38": 2,
+    "39": 2,
+    "40": 2,
+    "29": 3,
+    "30": 2,
+    "26": 3,
+    "27": 3,
+    "28": 2,
+    "23": 3,
+    "24": 2,
+    "25": 2,
+    "20": 3,
+    "21": 2,
+    "22": 2,
+    "17": 3,
+    "18": 2,
+    "19": 2,
+    "13": 2,
+    "14": 3,
+    "15": 3,
+    "16": 3,
+    "9": 3,
+    "10": 2,
+    "11": 2,
+    "12": 2,
+    "5": 3,
+    "6": 3,
+    "7": 3,
+    "8": 3,
+    "2": 3,
+    "3": 2,
+    "4": 2,
+    "0": 3,
+    "1": 3
+  },
+  "native_body_evictions": 0,
+  "source_fragments": 80,
+  "states": [
+    {
+      "phase": "up",
+      "step": 0,
+      "range": [
+        [
+          49,
+          80
+        ]
+      ],
+      "fragment_count": 31,
+      "widgets": 127,
+      "widget_bound": 300,
+      "y": 85.62327131408992,
+      "maximum": 98,
+      "native_body_evictions": 0,
+      "constructs": 33
+    },
+    {
+      "phase": "up",
+      "step": 1,
+      "range": [
+        [
+          45,
+          80
+        ]
+      ],
+      "fragment_count": 35,
+      "widgets": 143,
+      "widget_bound": 300,
+      "y": 94.42815652897087,
+      "maximum": 114,
+      "native_body_evictions": 0,
+      "constructs": 37
+    },
+    {
+      "phase": "up",
+      "step": 2,
+      "range": [
+        [
+          41,
+          80
+        ]
+      ],
+      "fragment_count": 39,
+      "widgets": 159,
+      "widget_bound": 300,
+      "y": 93.28625332363242,
+      "maximum": 130,
+      "native_body_evictions": 0,
+      "constructs": 41
+    },
+    {
+      "phase": "up",
+      "step": 3,
+      "range": [
+        [
+          37,
+          80
+        ]
+      ],
+      "fragment_count": 43,
+      "widgets": 175,
+      "widget_bound": 300,
+      "y": 93.40613117598372,
+      "maximum": 146,
+      "native_body_evictions": 0,
+      "constructs": 45
+    },
+    {
+      "phase": "up",
+      "step": 4,
+      "range": [
+        [
+          33,
+          80
+        ]
+      ],
+      "fragment_count": 47,
+      "widgets": 191,
+      "widget_bound": 300,
+      "y": 92.98383738772947,
+      "maximum": 162,
+      "native_body_evictions": 0,
+      "constructs": 49
+    },
+    {
+      "phase": "up",
+      "step": 5,
+      "range": [
+        [
+          30,
+          80
+        ]
+      ],
+      "fragment_count": 50,
+      "widgets": 203,
+      "widget_bound": 300,
+      "y": 88.31327204572364,
+      "maximum": 174,
+      "native_body_evictions": 0,
+      "constructs": 56
+    },
+    {
+      "phase": "up",
+      "step": 6,
+      "range": [
+        [
+          27,
+          79
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.54756743080844,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 64
+    },
+    {
+      "phase": "up",
+      "step": 7,
+      "range": [
+        [
+          24,
+          76
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.45775669750697,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 72
+    },
+    {
+      "phase": "up",
+      "step": 8,
+      "range": [
+        [
+          21,
+          73
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.13211453417352,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 80
+    },
+    {
+      "phase": "up",
+      "step": 9,
+      "range": [
+        [
+          17,
+          69
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 90.7633599500439,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 84
+    },
+    {
+      "phase": "up",
+      "step": 10,
+      "range": [
+        [
+          13,
+          65
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.68294127274791,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 88
+    },
+    {
+      "phase": "up",
+      "step": 11,
+      "range": [
+        [
+          9,
+          61
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 92.33984164230998,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 92
+    },
+    {
+      "phase": "up",
+      "step": 12,
+      "range": [
+        [
+          6,
+          58
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.62770186833154,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 100
+    },
+    {
+      "phase": "up",
+      "step": 13,
+      "range": [
+        [
+          3,
+          55
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 86.92466203494547,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 108
+    },
+    {
+      "phase": "up",
+      "step": 14,
+      "range": [
+        [
+          0,
+          51
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 86.88145795734175,
+      "maximum": 178,
+      "native_body_evictions": 0,
+      "constructs": 111
+    },
+    {
+      "phase": "down",
+      "step": 0,
+      "range": [
+        [
+          3,
+          55
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.27018011234378,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 115
+    },
+    {
+      "phase": "down",
+      "step": 1,
+      "range": [
+        [
+          7,
+          59
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.55295174938908,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 119
+    },
+    {
+      "phase": "down",
+      "step": 2,
+      "range": [
+        [
+          11,
+          63
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.54055313264823,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 123
+    },
+    {
+      "phase": "down",
+      "step": 3,
+      "range": [
+        [
+          14,
+          66
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 95.87368707498635,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 131
+    },
+    {
+      "phase": "down",
+      "step": 4,
+      "range": [
+        [
+          19,
+          70
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 92.94296612224952,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 135
+    },
+    {
+      "phase": "down",
+      "step": 5,
+      "range": [
+        [
+          22,
+          74
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 90.56839650055556,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 139
+    },
+    {
+      "phase": "down",
+      "step": 6,
+      "range": [
+        [
+          26,
+          78
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 90.05388480464461,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 143
+    },
+    {
+      "phase": "down",
+      "step": 7,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 83.94663585369068,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 8,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 111,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 9,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 138,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 10,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 165,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 11,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 12,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 13,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "down",
+      "step": 14,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 170,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "reverse",
+      "step": 0,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 143,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "reverse",
+      "step": 1,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 116,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "reverse",
+      "step": 2,
+      "range": [
+        [
+          31,
+          80
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 89,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 145
+    },
+    {
+      "phase": "reverse",
+      "step": 3,
+      "range": [
+        [
+          28,
+          80
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 87.66514830954327,
+      "maximum": 182,
+      "native_body_evictions": 0,
+      "constructs": 153
+    },
+    {
+      "phase": "reverse",
+      "step": 4,
+      "range": [
+        [
+          24,
+          76
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 92.31754056513051,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 157
+    },
+    {
+      "phase": "reverse",
+      "step": 5,
+      "range": [
+        [
+          20,
+          72
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.79381343771718,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 161
+    },
+    {
+      "phase": "reverse",
+      "step": 6,
+      "range": [
+        [
+          16,
+          68
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.4741376056893,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 165
+    },
+    {
+      "phase": "reverse",
+      "step": 7,
+      "range": [
+        [
+          12,
+          64
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.63992440228623,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 169
+    },
+    {
+      "phase": "reverse",
+      "step": 8,
+      "range": [
+        [
+          10,
+          61
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 85.87914880611646,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 177
+    },
+    {
+      "phase": "reverse",
+      "step": 9,
+      "range": [
+        [
+          8,
+          59
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 85.30754822666083,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 185
+    },
+    {
+      "phase": "reverse",
+      "step": 10,
+      "range": [
+        [
+          4,
+          56
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 91.458299538641,
+      "maximum": 183,
+      "native_body_evictions": 0,
+      "constructs": 189
+    },
+    {
+      "phase": "reverse",
+      "step": 11,
+      "range": [
+        [
+          2,
+          53
+        ]
+      ],
+      "fragment_count": 51,
+      "widgets": 207,
+      "widget_bound": 300,
+      "y": 85.89794493177163,
+      "maximum": 179,
+      "native_body_evictions": 0,
+      "constructs": 197
+    },
+    {
+      "phase": "reverse",
+      "step": 12,
+      "range": [
+        [
+          0,
+          49
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 85.38803638447749,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 199
+    },
+    {
+      "phase": "reverse",
+      "step": 13,
+      "range": [
+        [
+          0,
+          49
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 58,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 199
+    },
+    {
+      "phase": "reverse",
+      "step": 14,
+      "range": [
+        [
+          0,
+          49
+        ]
+      ],
+      "fragment_count": 49,
+      "widgets": 199,
+      "widget_bound": 300,
+      "y": 31,
+      "maximum": 170,
+      "native_body_evictions": 0,
+      "constructs": 199
+    },
+    {
+      "phase": "end",
+      "step": 0,
+      "range": [
+        [
+          38,
+          80
+        ]
+      ],
+      "fragment_count": 42,
+      "widgets": 171,
+      "widget_bound": 300,
+      "y": 142,
+      "maximum": 142,
+      "native_body_evictions": 0,
+      "constructs": 241
+    }
+  ],
+  "end_before": {
+    "constructs": 199,
+    "pages": [
+      139899904090960
+    ],
+    "bodies": [
+      139899643523664,
+      139899690856400,
+      139899904088400,
+      139899641006672,
+      139899663343504,
+      139899662622288,
+      139899641575888,
+      139899641011792,
+      139899640555920,
+      139899641014992,
+      139899641566928,
+      139899641017872,
+      139899640555280,
+      139899643962192,
+      139899939433488,
+      139899641566288,
+      139899929765328,
+      139899904090000,
+      139899690856080,
+      139899663349264,
+      139899644429328,
+      139899643522384,
+      139899904083920,
+      139899640550480,
+      139899643522704,
+      139899641575568,
+      139899641567888,
+      139899641569168,
+      139899643514384,
+      139899643524944,
+      139899643525584,
+      139899643517264,
+      139899643521424,
+      139899644442768,
+      139899642954128,
+      139899642965648,
+      139899690848720,
+      139899643963472,
+      139899644437328,
+      139899643964112,
+      139899644437648,
+      139899690858000,
+      139899663336464,
+      139899644440528,
+      139899904096080,
+      139899663337104,
+      139899643964752,
+      139899690848400,
+      139899644434448
+    ]
+  },
+  "end_after": {
+    "constructs": 241,
+    "pages": [
+      139899904090960
+    ],
+    "bodies": [
+      139899642954128,
+      139899642965648,
+      139899644434448,
+      139899644440528,
+      139899641575888,
+      139899904085200,
+      139899690848400,
+      139899643524944,
+      139899639878416,
+      139899639876496,
+      139899639879056,
+      139899639881616,
+      139899645191632,
+      139899643963472,
+      139899643968592,
+      139899640385360,
+      139899640389840,
+      139899640394320,
+      139899640397200,
+      139899637352720,
+      139899639886736,
+      139899639458832,
+      139899639460752,
+      139899663340944,
+      139899663346064,
+      139899644433488,
+      139899644439568,
+      139899904086160,
+      139899640556240,
+      139899640551440,
+      139899641572048,
+      139899641564368,
+      139899643513424,
+      139899643517904,
+      139899643521104,
+      139899642962448,
+      139899642967568,
+      139899642955728,
+      139899642957968,
+      139899642961168,
+      139899642961488,
+      139899642960208
+    ]
+  },
+  "exception": "None"
+}

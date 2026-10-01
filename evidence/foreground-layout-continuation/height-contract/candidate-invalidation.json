@@ -1,0 +1,95 @@
+{
+  "dependencies": [
+    {
+      "kind": "TranscriptFragmentView",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 1,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "VerticalLayout",
+      "measurement": "BodyMeasurement(width=65, rows=15, widgets=4, nodes_revision=4)"
+    },
+    {
+      "kind": "AgentResponse",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 1,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "StreamLayout",
+      "measurement": "BodyMeasurement(width=64, rows=14, widgets=3, nodes_revision=3)"
+    },
+    {
+      "kind": "PreparedCodeFence",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 1,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "VerticalLayout",
+      "measurement": "leaf"
+    },
+    {
+      "kind": "PreparedCodeLabel",
+      "policy": "NativeWidgetHeight",
+      "dependent": false,
+      "native_hooks": true,
+      "display": true,
+      "height": "auto",
+      "displayed_children": 0,
+      "fresh_dependent": false,
+      "content_dependent": false,
+      "layout": "VerticalLayout",
+      "measurement": "leaf"
+    }
+  ],
+  "box_calls": 7,
+  "available_heights": [
+    80,
+    24,
+    24,
+    33,
+    42,
+    51,
+    60
+  ],
+  "elapsed_seconds": 0.0004352040123194456,
+  "all_boxes_equal": true,
+  "arrangement_calls": 1,
+  "arrangement_heights": [
+    80
+  ],
+  "all_arrangements_equal": true,
+  "padding_before": [
+    1,
+    0,
+    1,
+    0
+  ],
+  "padding_after": [
+    2,
+    0,
+    2,
+    0
+  ],
+  "style_invalidated": true,
+  "relative_arrangement_calls": 4,
+  "relative_geometry_changed": true,
+  "label_rows": 12,
+  "actual_height": "15",
+  "body_ready": true,
+  "native_widgets": 3,
+  "agent_bound": false,
+  "provider_calls": 0,
+  "boundary": "actual Toad/Markdown/native mounted body/box resolver; source diagnostic, not physical CPU acceptance"
+}

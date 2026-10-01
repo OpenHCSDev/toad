@@ -52,6 +52,16 @@ class ThreadTarget(NativeFocusTarget):
         return next(row for row in snapshot["metadata"]["navigation_targets"]["threads"] if row["name"] == args.name)
 
 
+class ChannelTarget(NativeFocusTarget):
+    @classmethod
+    def locate(cls, snapshot, args):
+        if not args.name:
+            raise ValueError("Channel target requires --name")
+        resource, = (row for row in snapshot["metadata"]["navigation_targets"]["channels"]
+                     if row["name"] == args.name)
+        return resource
+
+
 class OriginalTabTarget(NativeFocusTarget):
     @classmethod
     def locate(cls, snapshot, args):
@@ -89,18 +99,11 @@ class WidgetTarget(NativeFocusTarget):
             raise ValueError("Widget target requires --name Class or Class#id")
         kind, _, identifier = args.name.partition("#")
         focused = snapshot["metadata"]["screen"]["focused"]
-        nodes = snapshot["metadata"]["compositor"]["maps"]["full"]["nodes"]
-        candidates = []
-        for node in nodes:
-            if node["class"] != kind or (identifier and node["id"] != identifier):
-                continue
-            if args.focused and (focused is None or node["object_id"] != focused["object_id"]):
-                continue
-            geometry = node["geometry"]
-            region = Region(*geometry["region"]).intersection(Region(*geometry["clip"]))
-            if region.width and region.height:
-                candidates.append({**node, "region": tuple(region),
-                    "focus_target": {"widget": node, "cell": tuple(int(value) for value in region.center)}})
+        nodes = snapshot["metadata"]["navigation_targets"]["widgets"]
+        candidates = [node for node in nodes
+                      if node["class"] == kind and (not identifier or node["id"] == identifier)
+                      and (not args.focused or (focused is not None
+                           and node["object_id"] == focused["object_id"]))]
         if len(candidates) != 1:
             raise ValueError(f"Expected one visible {args.name}, found {len(candidates)}")
         return candidates[0]
@@ -152,7 +155,7 @@ def main():
     parser.add_argument("--state", required=True, type=Path, help="Fresh native recorder state snapshot")
     parser.add_argument("--target", type=NativeFocusTarget.decode, default=HistoryTarget,
                         help="Native resource: " + ", ".join(NativeFocusTarget.names()))
-    parser.add_argument("--name", help="Native thread name or widget Class#id")
+    parser.add_argument("--name", help="Native thread/channel name or widget Class#id")
     parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
     parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
     args = parser.parse_args()

@@ -31,7 +31,7 @@ same committed tail interval, admitted range `[8,20)` and native parent
 `140563357037456`. The DTO does not join each native page parent to its typed
 interval. This run therefore does **not** independently prove End preserves
 an already-mounted matching-interval root. The integration owner's separate
-seventeen native source controls cover that relation. No ordinal reconstruction
+native source control preserves seventeen original bodies at that relation. No ordinal reconstruction
 or allocation/destruction counts are inferred from membership snapshots.
 
 Same-run profiling produced **1,172 GIL samples and zero sampling errors**.

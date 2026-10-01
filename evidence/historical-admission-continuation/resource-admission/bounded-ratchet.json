@@ -1,0 +1,40 @@
+{
+  "widgets/viewport_body.py": {
+    "before": {
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "foreign_absence_probe": 12,
+      "boolean_chain_terms": 4
+    },
+    "after": {
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "foreign_absence_probe": 12,
+      "boolean_chain_terms": 4
+    },
+    "per_function_no_growth": true
+  },
+  "widgets/transcript_history.py": {
+    "before": {
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "foreign_absence_probe": 10,
+      "boolean_chain_terms": 19
+    },
+    "after": {
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "foreign_absence_probe": 10,
+      "boolean_chain_terms": 19
+    },
+    "per_function_no_growth": true
+  }
+}
