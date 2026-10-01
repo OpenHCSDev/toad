@@ -1,5 +1,5 @@
 {
-  "state": "NOT_READY_PHYSICAL_READER_RETURN_UNCLOSED",
+  "state": "SCOPED_PHYSICAL_BODY_REUSE_CONFIRMED_FULL_PERFORMANCE_OPEN",
   "capture": "/home/ts/.cache/agent-scratch/viewport284-publication-busy-warm-20261001-05/capture",
   "source_pins": {
     "toad": "83820534e7a9a04b793a7382a4e4b83b7c47a2ac",
@@ -37,7 +37,7 @@
       "input_pagedown_reaches_original_window": true
     }
   },
-  "physical": "Input-held history and End readable. A-return/Undo pixels differ from pre-switch idle-done despite unchanged A window/reader/cursor and retained bodies. Earlier B attribution is withdrawn: e19f0c4 older text is an original A saved AssistantTranscript under TranscriptFragmentView, NOT an independent live block or confirmed peer-source leak. Diagnose map/native-rendered-strip publication; no product text matching/dedup. Geometry-generation closure did not resolve physical reader continuity.",
+  "physical": "Exact PNG inspection and RGB comparison: body crop (499,70,1229,711) is byte-identical idle-done -> A-return -> Undo. Older e19f0c4 text is original A saved AssistantTranscript. Previous B-source and body-difference attribution was incorrect. Full-frame differences are tab/sidebar keyboard selection and editor caret/draft. SidebarNavigation remembers the keyboard row separately from active row.current; A remains bold/current while B remains pink selection. These observations establish this scoped body return, not full smooth/concurrent sidebar performance.",
   "phase_sources": {
     "idle-done": {
       "selected_source": "nra-architecture",
@@ -327,6 +327,29 @@
   "limits": [
     "No CPU/smooth-scroll/concurrent-model sidebar acceptance claimed; visible current inbox NativePiUnavailable remains Arendt-owned.",
     "Original capture_state live_blocks label includes saved fragments; it does not establish live/peer classification.",
-    "No new capture planned until coherent source change. Default275/18 unchanged."
-  ]
+    "Native damage root-wake source55954718 is a coherent later change, under one final affected gate06. Default275/18 unchanged."
+  ],
+  "physical_pixel_comparison": {
+    "mode": "RGB",
+    "body_crop": [
+      499,
+      70,
+      1229,
+      711
+    ],
+    "idle_to_return_difference_bbox": null,
+    "idle_to_undo_difference_bbox": null,
+    "full_screen_idle_to_return_difference_bbox": [
+      17,
+      30,
+      654,
+      830
+    ],
+    "full_screen_idle_to_undo_difference_bbox": [
+      17,
+      36,
+      654,
+      830
+    ]
+  }
 }

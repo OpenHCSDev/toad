@@ -512,11 +512,9 @@ class TranscriptPresentation:
 
         view = self.view
         history = next(iter(self.histories), None)
-        if history is None:
-            await view.present_retained_native_session()
-            return
         source = view.query_ancestor(SessionView)
-        await self.reveal_retained(history)
+        if history is not None:
+            await self.reveal_retained(history)
         view.refresh_native_projection()
 
         def refresh_after_paint() -> None:
@@ -550,6 +548,12 @@ class TranscriptPresentation:
                 or not view.is_attached):
             return
         await self.snapshot(page)
+        if generation != self.generation or view.agent is not agent:
+            return
+        for history in self.histories:
+            if history.state.reports_coverage:
+                await self.reveal_retained(history)
+                break
 
     def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:
         """Admit an operation with its original attachment and resource custody."""
@@ -651,6 +655,7 @@ class TranscriptPresentation:
         workers = [worker, self.source_requests.cancel()]
         if (view := self.view) is not None:
             workers.extend(view.workers.cancel_group(view, "transcript-handling"))
+            workers.extend(view.workers.cancel_group(view, "retained-native-refresh"))
         for worker in workers:
             if worker is None:
                 continue
