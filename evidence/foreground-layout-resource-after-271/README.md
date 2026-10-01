@@ -130,3 +130,34 @@ acceptance follows one meaningful coherent installed package, not an old rerun.
 
 Source/proofs remain persistent at
 `/home/ts/wt/textual-native-subtree-retirement-20261001/evidence/native-subtree-retirement`.
+
+## Exact Text18 installed physical attempt
+
+Mendel's normal immutable prefix uses Core0ea / Toadf8e1 (production a87) /
+Textualba65 / native-diff8fa7 / SDK0.12.1 / native0064. Normal contribution is
+merged into this branch; the original critical prefix remains untouched.
+The existing authenticated factory now requires its current source-proof schema
+and verifies exact prefix/pins/native package without donor-format fallbacks.
+
+One zero-input copied41MB physical attempt is preserved at
+`/home/ts/.cache/agent-scratch/text18-original-warm-20261001-01`.
+The recorder fails the cold-B ten-second native readiness assertion; A-return
+is unreachable. Actual Down/End/fifteen-second idle PNGs are readable. The
+75-second video frame shows B selected with readable history and empty B draft,
+which does not waive the failed readiness assertion. No application crash was
+recorded. Failure-time readiness/resource census is missing; the existing
+diagnostic now captures it on failure without weakening the predicate.
+
+Original PID/birth/journal hash remain equal; inputs/provider/public operations
+are zero and cleanup empty. Profiler exports1009samples/zeroerrors before UI
+retirement. Observer-inclusive kernel UI Up80.1%, Down73.8%, reverse80.6%,
+idle16.9% do not establish a CPU reduction. Exact source/artifact hashes and
+phase timings are in `text18-actual-warm01.json`. No Ready/fullA-B-A/Strip or
+firstpaint claim, unchanged rerun, or historicalu05 relabeling follows.
+
+The next independent layout question is the original subtree resource's absolute
+region: native PageDown0→20 keeps body/style epochs but changes that key field
+and rebuilds the resource. Placement also owns screen constraints, overlays,
+fixed positioning and clipping. Intrinsic arrangement reuse must preserve those
+contracts; ignoring region/clip is not an accepted optimization. Sch confirms
+no ordinary saved-load admission change in this exact installed Core0ea.
