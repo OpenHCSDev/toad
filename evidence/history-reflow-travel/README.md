@@ -106,3 +106,17 @@ One coherent affected installed gate remains before whole254 readiness. All
 CPU/warm/focus/TC1/T9/growing-end lifetime requirements remain in original PR254.
 Critical258 source freeze7026/6b8 and Sch's replacement bus gate are independent;
 this continuation does not alter or delay that reviewed release.
+
+## Current paired dependency integration
+
+Normal main8ea96a37 (whole critical7026 source, Coree191 metadata) and contributor
+26398bd363e original-demand-before-await correction normally integrated at
+19a6f2f5. One proportional source ABI control used the CURRENT reviewed immutable
+runtime-native-applied-cohort-20261001/bin/python: Coree191/Textual6b/SDK0.12.1,
+owned254 source imports. Original trim/resize/native PageDown control exits0;
+all geometry changes restoring, zero false geometry samples,29 actual native
+input samples. No native/ACP/provider/input submission or public root effects.
+The prior physical proof boundaries remain unchanged, not retroactively upgraded.
+Kepler is sole next physical capturer after whole original-demand async counter
+and the actual two-workspace-source helper; Heisenberg retains restoration and
+whole254 integration. Parent cutover does not wait on this performance scope.

@@ -1,0 +1,554 @@
+{
+  "before": {
+    "y": 254,
+    "maximum": 357,
+    "marker_y": 3,
+    "revision": 4
+  },
+  "after": {
+    "y": 127,
+    "maximum": 230,
+    "marker_y": 3,
+    "revision": 4
+  },
+  "changes": [
+    {
+      "old": 254,
+      "new": 230,
+      "restoring": true,
+      "revision": 4
+    },
+    {
+      "old": 230,
+      "new": 127,
+      "restoring": true,
+      "revision": 4
+    }
+  ],
+  "samples": [
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-34.70971123383204)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-34.70971123383204)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-34.70971123383204)"
+    }
+  ],
+  "demand_before": "MovingPreparation(velocity=-34.70971123383204)",
+  "demand_after": "MovingPreparation(velocity=-34.70971123383204)",
+  "resize": {
+    "y": 70,
+    "maximum": 70,
+    "revision": 4,
+    "changes": [
+      {
+        "old": 127,
+        "new": 70,
+        "restoring": true,
+        "revision": 4
+      }
+    ],
+    "samples": [
+      {
+        "position": 70,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=-34.70971123383204)"
+      },
+      {
+        "position": 70,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=-34.70971123383204)"
+      },
+      {
+        "position": 70,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=-34.70971123383204)"
+      }
+    ],
+    "demand_before": "MovingPreparation(velocity=-34.70971123383204)",
+    "demand_after": "MovingPreparation(velocity=-34.70971123383204)"
+  },
+  "input_control": {
+    "changes": [
+      {
+        "old": 70,
+        "new": 72.5327910955172,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 72.5327910955172,
+        "new": 74.74423073250269,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 74.74423073250269,
+        "new": 76.79744836305477,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 76.79744836305477,
+        "new": 78.75716751704911,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 78.75716751704911,
+        "new": 80.5246667387253,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 80.5246667387253,
+        "new": 82.10854219543765,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 82.10854219543765,
+        "new": 83.59076198546073,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 83.59076198546073,
+        "new": 84.97491970159871,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 84.97491970159871,
+        "new": 86.25350179721133,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 86.25350179721133,
+        "new": 87.32282467154364,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 87.32282467154364,
+        "new": 88.33281900714331,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 88.33281900714331,
+        "new": 89.25509630352528,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 89.25509630352528,
+        "new": 90.061906242091,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 90.061906242091,
+        "new": 90.7735604654495,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 90.7735604654495,
+        "new": 91.38076312560358,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 91.38076312560358,
+        "new": 91.89055496980048,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 91.89055496980048,
+        "new": 92.3541969230869,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 92.3541969230869,
+        "new": 92.75155172766614,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 92.75155172766614,
+        "new": 93.06712940341626,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.06712940341626,
+        "new": 93.32009230357998,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.32009230357998,
+        "new": 93.52352332353593,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.52352332353593,
+        "new": 93.69944328697187,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.69944328697187,
+        "new": 93.8278224080717,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.8278224080717,
+        "new": 93.90211333441545,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.90211333441545,
+        "new": 93.95499558371418,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.95499558371418,
+        "new": 93.9785500007835,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.9785500007835,
+        "new": 93.99458326232417,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.99458326232417,
+        "new": 93.99947110853304,
+        "restoring": false,
+        "revision": 6
+      },
+      {
+        "old": 93.99947110853304,
+        "new": 94,
+        "restoring": false,
+        "revision": 6
+      }
+    ],
+    "samples": [
+      {
+        "position": 70,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=-34.70971123383204)"
+      },
+      {
+        "position": 72.5327910955172,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=2.3169947347405278)"
+      },
+      {
+        "position": 72.5327910955172,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=2.3169947347405278)"
+      },
+      {
+        "position": 74.74423073250269,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=134.58608231805152)"
+      },
+      {
+        "position": 74.74423073250269,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=134.58608231805152)"
+      },
+      {
+        "position": 76.79744836305477,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=124.87071862637646)"
+      },
+      {
+        "position": 76.79744836305477,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=124.87071862637646)"
+      },
+      {
+        "position": 78.75716751704911,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=115.52528360308497)"
+      },
+      {
+        "position": 78.75716751704911,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=115.52528360308497)"
+      },
+      {
+        "position": 80.5246667387253,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=106.4331102357774)"
+      },
+      {
+        "position": 80.5246667387253,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=106.4331102357774)"
+      },
+      {
+        "position": 82.10854219543765,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=97.43458395345911)"
+      },
+      {
+        "position": 82.10854219543765,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=97.43458395345911)"
+      },
+      {
+        "position": 83.59076198546073,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=90.22148344820286)"
+      },
+      {
+        "position": 83.59076198546073,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=90.22148344820286)"
+      },
+      {
+        "position": 84.97491970159871,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=81.99696955435674)"
+      },
+      {
+        "position": 84.97491970159871,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=81.99696955435674)"
+      },
+      {
+        "position": 86.25350179721133,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=74.52774804982613)"
+      },
+      {
+        "position": 86.25350179721133,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=74.52774804982613)"
+      },
+      {
+        "position": 87.32282467154364,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=67.16840840604816)"
+      },
+      {
+        "position": 87.32282467154364,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=67.16840840604816)"
+      },
+      {
+        "position": 88.33281900714331,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=60.67010779278308)"
+      },
+      {
+        "position": 88.33281900714331,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=60.67010779278308)"
+      },
+      {
+        "position": 89.25509630352528,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=53.4646841607673)"
+      },
+      {
+        "position": 89.25509630352528,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=53.4646841607673)"
+      },
+      {
+        "position": 90.061906242091,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=48.07502586185545)"
+      },
+      {
+        "position": 90.061906242091,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=48.07502586185545)"
+      },
+      {
+        "position": 90.7735604654495,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=42.41525264164059)"
+      },
+      {
+        "position": 90.7735604654495,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=42.41525264164059)"
+      },
+      {
+        "position": 91.38076312560358,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=36.60818131897645)"
+      },
+      {
+        "position": 91.89055496980048,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=31.9952484305816)"
+      },
+      {
+        "position": 91.89055496980048,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=31.9952484305816)"
+      },
+      {
+        "position": 92.3541969230869,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=27.3454136555463)"
+      },
+      {
+        "position": 92.75155172766614,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=22.88394620594033)"
+      },
+      {
+        "position": 92.75155172766614,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=22.88394620594033)"
+      },
+      {
+        "position": 93.06712940341626,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=19.135953894073978)"
+      },
+      {
+        "position": 93.32009230357998,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=15.342110757034092)"
+      },
+      {
+        "position": 93.52352332353593,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=12.423011203453473)"
+      },
+      {
+        "position": 93.52352332353593,
+        "restoring": false,
+        "sampled": false,
+        "demand": "MovingPreparation(velocity=12.423011203453473)"
+      },
+      {
+        "position": 93.69944328697187,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=9.580543616735524)"
+      },
+      {
+        "position": 93.8278224080717,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=6.761499010867483)"
+      },
+      {
+        "position": 93.90211333441545,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=4.698555074212454)"
+      },
+      {
+        "position": 93.95499558371418,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=3.0274363084914424)"
+      },
+      {
+        "position": 93.9785500007835,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=1.8264574371475215)"
+      },
+      {
+        "position": 93.99458326232417,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=0.9444493730012727)"
+      },
+      {
+        "position": 93.99947110853304,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=0.3103391466690407)"
+      },
+      {
+        "position": 94,
+        "restoring": false,
+        "sampled": true,
+        "demand": "MovingPreparation(velocity=0.03055390728616329)"
+      }
+    ]
+  },
+  "same_demand": true,
+  "source_resources": [
+    140013489682576,
+    140013197090384
+  ],
+  "remaining_histories": 2,
+  "agent_bound": false
+}
