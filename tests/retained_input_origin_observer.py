@@ -23,6 +23,9 @@ from agent_comms.native_entries import NativeEntry
 from agent_comms.retained_task_facts import HumanInputTaskFact
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
+from toad.widgets.committed_presentation import NativeInputClaim
+from toad.widgets.prompt import QueueSummary
+from toad.widgets.user_input import UserInput
 
 
 async def until(pilot, predicate, seconds=20):
@@ -39,6 +42,10 @@ class ActualS2Ingress:
     subject: object
     output: Path
     receipts: list = field(default_factory=list)
+
+    def painted_region(self, region):
+        return '\n'.join(strip.crop(region.x, region.right).text
+            for strip in self.app.screen._compositor.render_strips()[region.y:region.bottom])
 
     def persist(self, phase):
         (self.output / 'actual-human-ingress.json').write_text(json.dumps({
@@ -57,8 +64,25 @@ class ActualS2Ingress:
         row = inputs.read().lookup('acp:' + command.input_id)
         row.origin.require_human().author.require_registered(self.comms.registry.snapshot())
         assert row.source_text == text
-        self.receipts.append({'queued_original': FieldCodec.encode(row)})
-        self.persist('same_actual_controller_queued_original_human_followup')
+        view = self.app.selected_session.conversation
+        summary = view.prompt.query_one(QueueSummary)
+        await until(self.pilot, lambda: any(item.input_id == command.input_id
+            for item in view.submissions.queued_inputs)
+            and text in self.painted_region(summary.region))
+        row = inputs.read().lookup(row.key)
+        assert not row.has_started
+        assert summary.is_mounted and summary.region.width > 0 and summary.region.height > 0
+        assert not any(block.commit_claim.represents_input(command.input_id)
+            for block in view.contents.query(UserInput))
+        self.receipts.append({'queued_original': FieldCodec.encode(row),
+            'pre_delivery_queue_paint': {
+                'input_id': command.input_id, 'native_started': row.has_started,
+                'summary_region': tuple(summary.region),
+                'actual_compositor_text': self.painted_region(summary.region),
+                'summary_render': summary.render().plain,
+                'native_chat_claims': 0,
+            }})
+        self.persist('held_original_followup_actual_queue_paint_before_native_start')
         return row
 
     async def submit(self, text, *, image=None, while_running=None,
@@ -126,11 +150,34 @@ class ActualS2Ingress:
         assert body, 'This controlled journey requires a nonempty original reply'
 
         def frame():
-            window = view.window.region
-            return '\n'.join(strip.crop(window.x, window.right).text
-                for strip in self.app.screen._compositor.render_strips()[window.y:window.bottom])
+            return self.painted_region(view.window.region)
 
         await until(self.pilot, lambda: body in frame())
+        for queued_receipt in self.receipts:
+            if 'queued_original' not in queued_receipt:
+                continue
+            queued = document.lookup(queued_receipt['queued_original']['key'])
+            if queued.turn_id != terminal.turn_id:
+                continue
+            input_id = queued_receipt['pre_delivery_queue_paint']['input_id']
+
+            def handed_to_chat():
+                return not any(item.input_id == input_id for item in view.submissions.queued_inputs) \
+                    and queued.source_text in frame()
+
+            await until(self.pilot, handed_to_chat)
+            claims = tuple(block.commit_claim for block in view.contents.query(UserInput)
+                if isinstance(block.commit_claim, NativeInputClaim)
+                and block.commit_claim.native_id == queued.native_id)
+            assert len(claims) == 1
+            assert frame().count(queued.source_text) == 1
+            assert queued.source_text not in self.painted_region(view.prompt.query_one(QueueSummary).region)
+            queued_receipt['queue_to_chat_handoff'] = {
+                'input_id': input_id, 'native_id': queued.native_id,
+                'original': FieldCodec.encode(queued), 'native_chat_claims': len(claims),
+                'actual_chat_occurrences': frame().count(queued.source_text),
+                'queue_caption_cleared': True, 'actual_compositor_text': frame(),
+            }
         visible_occurrences = frame().count(body)
         receipt.update({
             'terminal': FieldCodec.encode(terminal), 'native_user_entry': user.id,
