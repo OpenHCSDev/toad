@@ -1,0 +1,21 @@
+{
+  "boundary": "actual native Toad page/end owner/source-order proof; no Agent/provider/public root; not physical41MB acceptance",
+  "widen_source_order": false,
+  "widen_retained_bodies": 0,
+  "page_reused": false,
+  "overlap_retained_bodies": 0,
+  "before_admission": [
+    48,
+    76
+  ],
+  "after_admission": [
+    59,
+    80
+  ],
+  "after_source_order": true,
+  "before_widgets": 115,
+  "after_widgets": 87,
+  "widget_bound": 300,
+  "agent_bound": false,
+  "exception": "None"
+}
