@@ -264,6 +264,12 @@ def runtime_probe():
         root = route.observe_root()
         result["route"] = {"root": str(root), "wire_root_id": route.wire_root_id,
                            "native_package": str(route.native_package.resolve())}
+        from agent_comms.private_nk_entrypoint import private_nk_from_environment
+        launch = private_nk_from_environment()
+        if launch is not None:
+            result["native_launch"] = {"root": str(launch.validated_root),
+                "wire_root_id": launch.wire_root_id,
+                "native_package": str(launch.native_package.resolve())}
     for name in ("toad", "textual", "agent_comms"):
         spec = importlib.util.find_spec(name)
         if spec is None or spec.origin is None:
@@ -359,22 +365,27 @@ class RuntimeSelection:
         probe = owner.run([str(self.bin_directory / "python"), str(Path(__file__).resolve()),
                            "--runtime-probe"], env, stdout=subprocess.PIPE, text=True, timeout=15)
         result["observed"] = json.loads(probe.stdout)
-        route = result["observed"].get("route")
-        if route is not None:
+        launch = result["observed"].get("native_launch")
+        if launch is not None:
             native = result.get("activation", {}).get("native_package")
-            if not native or Path(native).resolve() != Path(route["native_package"]):
-                raise ValueError("Candidate activation and private route native packages must match")
+            if not native or Path(native).resolve() != Path(launch["native_package"]):
+                raise ValueError("Candidate activation and actual ACP native launch must match")
         return result
 
 
 class PhysicalJourney(DeclaredFamily, affix="Journey"):
-    """Declare bounded physical journeys that never submit native inputs."""
+    """Declare bounded physical journeys; submission needs its original capability."""
 
     review_artifacts = ()
 
     @classmethod
     @abstractmethod
     def script(cls, args): ...
+
+    @classmethod
+    def authorize(cls, target, args):
+        if args.fresh_input is not None:
+            raise ValueError("This physical journey does not submit native inputs")
 
     @classmethod
     def actions(cls, args):
@@ -646,6 +657,25 @@ class InputWarmJourney(WarmScrollJourney):
         InputPagingAcceptanceJourney.validate_review(review["input"])
 
 
+class ForkCompactionJourney(InputWarmJourney):
+    """One fresh configured input on the authorized fork, then original warm paging."""
+
+    @classmethod
+    def authorize(cls, target, args):
+        target.authorize_input()
+        if not args.fresh_input or "\n" in args.fresh_input or len(args.fresh_input) > 512:
+            raise ValueError("Fork compaction requires one explicit bounded fresh input")
+
+    @classmethod
+    def opening_commands(cls, args):
+        marker = marker_command()
+        click = native_click_command("phase-fork-submit-ready-state.pickle", target="editor")
+        return (*super().opening_commands(args), marker + "fork-submit-ready",
+                click + " --empty", "type --clearmodifiers --delay 30 " + shlex.quote(args.fresh_input),
+                marker + "fork-input --require-editor-focus", "key Return",
+                marker + "fork-submitted")
+
+
 class StationaryInputScrollJourney(ScrollJourney):
     """Observe idle feedback and editor-focused paging on the existing bus."""
 
@@ -720,6 +750,10 @@ class CaptureTarget(DeclaredFamily, affix="Capture"):
 
     purpose = "installed TUI physical interaction video review"
 
+    @property
+    def root(self):
+        return self.route.root
+
     @classmethod
     @abstractmethod
     def admit(cls, args, command, env): ...
@@ -731,10 +765,13 @@ class CaptureTarget(DeclaredFamily, affix="Capture"):
     @abstractmethod
     def observe(self): ...
 
+    def authorize_input(self):
+        raise ValueError("This capture has no configured-provider input authority")
+
 
 @dataclass(frozen=True)
 class PrivateCapture(CaptureTarget):
-    root: Path
+    route: ActiveRoute
     selection: RuntimeSelection
 
     @classmethod
@@ -761,14 +798,19 @@ class PrivateCapture(CaptureTarget):
     @classmethod
     def admit(cls, args, command, env):
         root = cls.admit_root(args, env)
-        if Path(command[0]).name != "toad":
-            raise ValueError("Private capture requires installed toad acp; toad-comms clears private pins")
         selection = RuntimeSelection.from_environment(command, env)
+        cls.require_acp_command(command, selection)
+        route = cls.read_route(env)
+        if route.observe_root() != root:
+            raise ValueError("Private launch route does not name its admitted root")
+        return cls(route, selection)
+
+    @staticmethod
+    def require_acp_command(command, selection):
         expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
         if (len(command) < 4 or command[1:3] != ["acp", expected_acp]
                 or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve()):
-            raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
-        return cls(root, selection)
+            raise ValueError("Capture requires selected installed toad acp and its paired Python ACP command")
 
     def observe(self):
         return {"root": str(self.root), "mode": self.declared_name}
@@ -794,7 +836,10 @@ class SourceCapture(PrivateCapture):
         source = Path(command[1]).resolve()
         if not source.is_file() or not source.is_relative_to(Path.home() / 'wt'):
             raise ValueError('Source capture requires an existing persistent worktree entrypoint')
-        return cls(root, selection, source)
+        route = cls.read_route(env)
+        if route.observe_root() != root:
+            raise ValueError("Source launch route does not name its admitted root")
+        return cls(route, selection, source)
 
     def observe(self):
         return {**super().observe(), 'source': str(self.source), 'source_sha256': digest(self.source),
@@ -810,10 +855,6 @@ class ExistingThreadCapture(CaptureTarget):
     identity: ProcessIdentity
     selection: RuntimeSelection
 
-    @property
-    def root(self):
-        return self.route.root
-
     @classmethod
     def read_route(cls, env):
         from agent_comms.active_route import read_active_route
@@ -824,7 +865,6 @@ class ExistingThreadCapture(CaptureTarget):
 
     @classmethod
     def admit(cls, args, command, env):
-        from agent_comms.registration import Registration
         if args.private_root is not None:
             raise ValueError("Existing-thread capture derives its root from the canonical active route")
         if len(command) != 2 or Path(command[0]).name != "toad-comms":
@@ -835,12 +875,19 @@ class ExistingThreadCapture(CaptureTarget):
                     "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
             env.pop(key, None)
         route = cls.read_route(env)
+        _, thread = cls.capture_owner(route, command[1])
+        return cls(route, thread.name, thread.require_process(), RuntimeSelection.from_environment(command, env))
+
+    @staticmethod
+    def capture_owner(route, name):
+        from agent_comms.registration import Registration
         route.observe_root()
-        thread = Registration(route.root / "registry.json").require(command[1])
+        snapshot = Registration(route.root / "registry.json").snapshot()
+        thread = snapshot.require_active(name)
         identity = thread.process_identity
         if identity is None or not identity.alive():
             raise ValueError("Existing-thread capture requires an already running owner; it must not start one")
-        return cls(route, thread.name, identity, RuntimeSelection.from_environment(command, env))
+        return snapshot, thread
 
     def observe(self):
         from agent_comms.registration import Registration
@@ -852,6 +899,56 @@ class ExistingThreadCapture(CaptureTarget):
             raise ValueError("Existing-thread capture's original native owner changed or exited")
         return {"root": str(self.root), "mode": self.declared_name, "name": self.name,
                 "identity": FieldCodec.encode(self.identity), "original_owner_alive": True}
+
+
+@dataclass(frozen=True)
+class OwnedForkCapture(ExistingThreadCapture, PrivateCapture):
+    """Authorized canonical fork: original-root custody and its actual ACP launch."""
+
+    purpose = "configured-provider canonical application fork physical journey"
+
+    def authorize_input(self):
+        self.observe()
+
+    @classmethod
+    def admit(cls, args, command, env):
+        from agent_comms.owner_launch import RetainedOwnerLaunch, RestartEnvironment
+        from agent_comms.private_nk_entrypoint import PrivateNkLaunch
+
+        if args.private_root is not None or not args.fork_thread or not args.fork_parent:
+            raise ValueError("Owned fork requires explicit registered child/parent, never a private fixture root")
+        route = cls.read_route(env)
+        snapshot, thread = cls.capture_owner(route, args.fork_thread)
+        parent = snapshot.require_active(args.fork_parent)
+        if thread.parent != parent.name or thread.name == parent.name:
+            raise ValueError("Selected thread is not the authorized original parent's canonical fork")
+        selection = RuntimeSelection.from_environment(command, env)
+        cls.require_acp_command(command, selection)
+        if command[3:] != [thread.worktree, "--session", thread.name]:
+            raise ValueError("Owned fork ACP must select the actual child and its original worktree")
+        retained = RetainedOwnerLaunch.capture(thread, snapshot,
+                                              interpreter=str(selection.bin_directory / "python"))
+        runtime = RestartEnvironment.inherit(retained.environment)
+        if runtime.root is None:
+            raise ValueError("Retained child has no explicit native launch root")
+        launch = PrivateNkLaunch.from_environment(Path(runtime.root), retained.environment)
+        if launch is None:
+            raise ValueError("Retained child has no configured native launch")
+        launch.validate()
+        if launch.validated_root.resolve() != route.observe_root() or launch.wire_root_id != route.wire_root_id:
+            raise ValueError("Retained child launch does not belong to the original active root")
+        # Provider credentials/settings come from the actual retained process.
+        # Only the recorder's isolated UI resource locations remain local.
+        capture_environment = {key: value for key, value in env.items()
+            if key.startswith("TOAD_VIDEO_") or key in ("XDG_CONFIG_HOME", "XDG_STATE_HOME",
+                                                       "XDG_DATA_HOME", "AGENT_COMMS_RUNTIME_ROOT")}
+        env.clear()
+        env.update(retained.environment)
+        env.update(capture_environment)
+        for key in ("DISPLAY", "NO_COLOR", "PYTHONPATH"):
+            env.pop(key, None)
+        launch.apply_environment(env)
+        return cls(route=route, name=thread.name, identity=retained.process, selection=selection)
 
 
 def cpu_snapshot(root_pid):
@@ -1145,8 +1242,9 @@ def record(args):
     env.pop("DISPLAY", None)
     env.pop("NO_COLOR", None)
     env.pop("PYTHONPATH", None)  # The installed toad-comms launcher also clears it.
-    script = args.journey.actions(args)
     target = args.capture_target.admit(args, command, env)
+    args.journey.authorize(target, args)
+    script = args.journey.actions(args)
     private_root = target.root
     selection = target.selection
     env["TOAD_VIDEO_CAPTURE_TARGET"] = target.declared_name
@@ -1568,6 +1666,9 @@ def main():
     parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
     parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
+    parser.add_argument("--fork-thread", help="Explicit canonical child for owned-fork capture")
+    parser.add_argument("--fork-parent", help="Original registered parent of the authorized child")
+    parser.add_argument("--fresh-input", help="One new configured-provider input for the owned fork journey")
     parser.add_argument("--actions", type=Path,
                         help="Optional retained script; must match the selected journey, which runs automatically")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
