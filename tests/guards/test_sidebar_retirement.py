@@ -11,6 +11,23 @@ from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 ROOT = Path(__file__).resolve().parents[2] / "src/toad/widgets"
 
 
+def test_member_source_updates_share_disclosure_custody():
+    from toad.widgets.comms_sidebar import ChannelGroup
+    from toad.widgets.sidebar_tree import SidebarGroup
+    from toad.widgets.thread_comms import RelationshipRows
+
+    for owner, method in ((ChannelGroup, 'update_members'), (RelationshipRows, 'update_group')):
+        assert owner._sync_members is SidebarGroup._sync_members
+        function = ast.parse(inspect.getsource(owner).strip())
+        update = next(node for node in function.body[0].body
+                      if isinstance(node, ast.AsyncFunctionDef) and node.name == method)
+        assert len(update.body) == 1 and isinstance(update.body[0], ast.AsyncWith)
+        assert ast.unparse(update.body[0].items[0].context_expr) == 'self.member_lock'
+        assert not {'_lock', '_sync_lock'} & {
+            node.attr for node in ast.walk(function) if isinstance(node, ast.Attribute)
+        }
+
+
 def test_channel_row_order_has_no_stored_copy():
     for path in ROOT.parent.rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
