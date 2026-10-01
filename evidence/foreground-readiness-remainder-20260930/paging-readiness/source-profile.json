@@ -1,0 +1,26 @@
+{
+  "edge-readiness-baseline": {
+    "_check_edges": {
+      "calls": 100,
+      "self_seconds": 0.0012393950000000001,
+      "cumulative_seconds": 0.016794054000000003
+    },
+    "walk_children": {
+      "calls": 100,
+      "self_seconds": 0.000497613,
+      "cumulative_seconds": 0.004752554
+    }
+  },
+  "edge-readiness-candidate": {
+    "_check_edges": {
+      "calls": 100,
+      "self_seconds": 0.0007811130000000001,
+      "cumulative_seconds": 0.018922595
+    },
+    "visible_bodies_ready": {
+      "calls": 100,
+      "self_seconds": 0.00035033300000000004,
+      "cumulative_seconds": 0.009408665
+    }
+  }
+}

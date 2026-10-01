@@ -1,0 +1,40 @@
+{
+  "boundary": "actual source Toad/ToolCall/Contents/native compositor/worker",
+  "source": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/toad/widgets/worker_static.py",
+  "provider_calls": 0,
+  "full_map": 212,
+  "preparation_full_map": 212,
+  "preparation_requests": 2832,
+  "elapsed_seconds": 10.87677779601654,
+  "ui_cpu_seconds": 6.791029364999999,
+  "retained_tool_bodies": 12,
+  "prepared_resources_reused": true,
+  "initial_prepared_widths": [
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57
+  ],
+  "final_prepared_widths": [
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57,
+    57
+  ]
+}

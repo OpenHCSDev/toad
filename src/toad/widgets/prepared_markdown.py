@@ -20,6 +20,7 @@ from textual.strip import Strip
 from textual.style import Style
 from textual.visual import RenderOptions, Visual
 from textual.worker import WorkerCancelled
+from textual.widget import Widget
 from textual.widgets import Label
 from textual.widgets._label import LabelVariant
 from textual.widgets._markdown import Markdown, MarkdownBlock
@@ -76,15 +77,23 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
             return False
         if self._body_viewport is not None and self in self._body_viewport.protected():
             return False
-        blocks = [child for child in self.children if isinstance(child, MarkdownBlock)]
+        blocks = self.reconstructible_children()
         if not blocks:
             return False
         async with self.lock:
             self.retire_measurement()
+            self.retire_body_resources()
             await self.remove_children(blocks)
-            self._prepared_fences.clear()
             self.refresh(layout=True)
         return True
+
+    def reconstructible_children(self) -> tuple[Widget, ...]:
+        """Native resources rebuilt from this document's original source."""
+        return tuple(child for child in self.children if isinstance(child, MarkdownBlock))
+
+    def retire_body_resources(self) -> None:
+        """Release reconstructible preparation with the native retirement."""
+        self._prepared_fences.clear()
 
     async def restore_body(self) -> None:
         if self._body_dormant and self.is_attached and not self._closing:

@@ -1,0 +1,6 @@
+{"starting_source_case": "current"}
+{"starting_source_case": "revision"}
+{"starting_source_case": "edge"}
+{"starting_source_case": "parked"}
+{"starting_source_case": "loader"}
+{"provider_calls": 0, "boundary": "actual source/Toad/native resources; not installed physical proof", "ordinary_retirement_restore": true, "paged_retirement_restore": true, "selection_loading_content_custody_preserved": true, "original_page_admission_cases": [{"cause": "current", "accepted": true, "native_page_count": 2, "read_disposition": "completed"}, {"cause": "revision", "accepted": false, "native_page_count": 1, "read_disposition": "completed"}, {"cause": "edge", "accepted": false, "native_page_count": 1, "read_disposition": "completed"}, {"cause": "parked", "accepted": false, "native_page_count": 1, "read_disposition": "completed"}, {"cause": "loader", "accepted": false, "native_page_count": 1, "read_disposition": "completed"}], "native_shutdown_clean": true}

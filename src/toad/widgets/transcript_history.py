@@ -28,7 +28,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
-from toad.transcript_filter import FilterSnapshot, TranscriptFilter
+from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from acp import schema as protocol
@@ -170,6 +170,10 @@ class JumpToLatest(Static, can_focus=True):
 
 
 class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
+    # A sibling/page mutation invalidates the outer Window, but unchanged
+    # retained bodies still own the same native scene. Textual bounds and
+    # invalidates this geometry on content/style/size/pruning changes.
+    CACHE_SUBTREE_GEOMETRY = True
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
@@ -411,18 +415,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if not self.state.accepts_publication:
             raise _PublicationRetired
 
-    @property
-    def filter_publication_available(self) -> bool:
-        if not self.state.accepts_publication:
-            return False
-        return self.screen.is_current
-
     def invalidate_projection(self) -> None:
         self._generation += 1
-
-    def filter_snapshot(self) -> FilterSnapshot:
-        return FilterSnapshot(self._generation, self.selected_categories,
-                              self.window, self.loader, self.screen)
 
     def projected_source(self, selected) -> ProjectedTranscriptSource:
         page = self.pages[0]
@@ -688,10 +682,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         viewport = self.window.content_region
         if not region.overlaps(viewport):
             return
-        # Markdown parsing mounts its children asynchronously. Until that first
-        # mount finishes, a page can look empty and trigger unnecessary reads
-        # of many older pages. The committed child layout will recheck edges.
-        if any(not child.is_mounted for child in self.walk_children()):
+        # Paging and paint share the original exposed-body readiness owner.
+        # A mounted body may still be restoring; hidden descendants do not
+        # belong to this viewport's foreground admission.
+        if not self.window.document_viewport.visible_bodies_ready:
             return
         if self._follow_source_tail and self.has_newer:
             self._request_page(False)
@@ -768,10 +762,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self.reserve_source_work().schedule(self, partial(self._load_page, older))
 
     async def _load_page(self, older: bool) -> None:
-        window, loader = self.window, self.loader
-        generation = self._generation
+        snapshot = self.source_snapshot()
+        window, loader = snapshot.window, snapshot.loader
         edge = self.pages[0] if older else self.pages[-1]
-        edge_range = (edge.start, edge.stop)
+        admission = edge.capture_admission()
         try:
             local = edge.start > 0 if older else edge.stop < len(edge.fragments)
             page = None
@@ -785,11 +779,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 ))
                 page, fragments = prepared.page, prepared.fragments
             async with window.history_lock:
-                if (not self.state.accepts_publication or self.window is not window or self.loader is not loader
-                        or not self.screen.is_current
-                        or generation != self._generation
-                        or (self.pages[0] if older else self.pages[-1]) is not edge
-                        or edge_range != (edge.start, edge.stop)):
+                if not snapshot.current(self):
+                    return
+                if (self.pages[0] if older else self.pages[-1]) is not edge:
+                    return
+                if edge.capture_admission() != admission:
                     return
                 # Source admission survives reader movement. Choose the current
                 # visible record after preparation, including a reversed reader.

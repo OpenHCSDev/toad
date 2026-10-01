@@ -1,0 +1,131 @@
+[
+  {
+    "ns": 297314334039745,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314354155686,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314366302918,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314697599087,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      },
+      {
+        "id": 140407854463120,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314714904436,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      },
+      {
+        "id": 140407854463120,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314737296187,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      },
+      {
+        "id": 140407854463120,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314773141473,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      },
+      {
+        "id": 140407854463120,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297314863925320,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      },
+      {
+        "id": 140407854463120,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 297315245072737,
+    "resources": [
+      {
+        "id": 140407729149328,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      },
+      {
+        "id": 140407854463120,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  }
+]

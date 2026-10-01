@@ -9,31 +9,12 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.widgets.message_filter import all_categories
+from toad.transcript_source_preparation import HistorySourceSnapshot
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from textual.screen import Screen
     from textual.worker import Worker
     from toad.transcript_preparation import PreparedPageSource
-    from toad.widgets.conversation import Window
-    from toad.widgets.message_filter import MessageCategory
     from toad.widgets.transcript_history import TranscriptHistory, ProjectedTranscriptHistory
-
-
-@dataclass(frozen=True)
-class FilterSnapshot:
-    """One publication identity, captured by the canonical history owner."""
-
-    generation: int
-    selected: frozenset[type[MessageCategory]]
-    window: Window
-    loader: Callable | None
-    screen: Screen
-
-    def current(self, owner: TranscriptHistory) -> bool:
-        if not owner.filter_publication_available:
-            return False
-        return self == owner.filter_snapshot()
 
 
 class FilterState(DeclaredFamily, affix="Filter"):
@@ -85,7 +66,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
     def scan_needed(self, owner: TranscriptHistory) -> bool: ...
 
     @abstractmethod
-    async def advance(self, filtering: TranscriptFilter, snapshot: FilterSnapshot) -> bool: ...
+    async def advance(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot) -> bool: ...
 
 
 class NoFilter(FilterState):
@@ -229,7 +210,7 @@ class Filtered(FilterState):
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):
     forced = False
 
-    def resume(self, filtering: TranscriptFilter, snapshot: FilterSnapshot, admitted: bool) -> None:
+    def resume(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot, admitted: bool) -> None:
         owner = filtering.owner
         if snapshot.current(owner) and admitted and filtering.has_older:
             # Committed painted height decides whether this batch fills the view.
@@ -347,7 +328,7 @@ class TranscriptFilter:
             raise _PublicationRetired
 
     async def scan_older(self) -> None:
-        snapshot = self.owner.filter_snapshot()
+        snapshot = self.owner.source_snapshot()
         admitted = False
         try:
             if snapshot.current(self.owner):

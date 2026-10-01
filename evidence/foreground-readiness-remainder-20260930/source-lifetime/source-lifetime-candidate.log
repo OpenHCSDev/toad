@@ -1,0 +1,31 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-foreground-readiness-remainder-20260930/tests/transcript_source_lifetime_pilot.py", line 149, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-foreground-readiness-remainder-20260930/tests/transcript_source_lifetime_pilot.py", line 127, in main
+    await asyncio.wait_for(task, 10)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/transcript_history.py", line 767, in _load_page
+    prepared = await self._reader().get(PageRequest(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ))
+    ^^
+  File "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/transcript_preparation.py", line 199, in get
+    result = await self.runtime.submit(TranscriptPageWork(self.scope, self.loader, self.through, request))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+asyncio.exceptions.CancelledError

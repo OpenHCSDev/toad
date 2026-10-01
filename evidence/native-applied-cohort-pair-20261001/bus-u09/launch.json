@@ -1,0 +1,16 @@
+{
+  "fixture": "/home/ts/wt/g460b/u09",
+  "prefix": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001",
+  "command": [
+    "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python",
+    "/home/ts/wt/comms-bus-projection-ownership-s14-20260930/evidence/s14-bus-projection/installed-bus-gate/applied-cohort-driver/tests/canonical_wire_conversation_installed_pilot.py"
+  ],
+  "root_id": "70e1f9e976784a79a48f22a4abc39851",
+  "activation_sha256": "f03e2370464094408d2a8cd3eb90966d55f8dcb6c75829e90cd86ab34ecfb043",
+  "driver_sha256": "1d6a5bd1831f8d52a2bd2d200a6d9ee0df5909c09766edab4f77c92b06d4af24",
+  "recorder_sha256": "74f1b48aece7d8f701734be6404f84356e8d527ec1ffe5e9bc7a88cde55386b0",
+  "native_inputs_replayed": 0,
+  "paid_calls": 0,
+  "public_effects": 0,
+  "display": ":1"
+}

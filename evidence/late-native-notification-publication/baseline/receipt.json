@@ -1,0 +1,24 @@
+{
+  "held": {
+    "response_receive_done": true,
+    "finished_receive_done": true,
+    "source_publish_done": true,
+    "saved_resources": 1,
+    "managed_busy": false
+  },
+  "final_resource_count": 2,
+  "final_resources": [
+    {
+      "id": 140369066038032,
+      "parent": "TranscriptFragmentView"
+    },
+    {
+      "id": 140369090180944,
+      "parent": "Contents"
+    }
+  ],
+  "duplicate_frames": 5,
+  "frames": 9,
+  "native_started": false,
+  "registered_histories": 1
+}

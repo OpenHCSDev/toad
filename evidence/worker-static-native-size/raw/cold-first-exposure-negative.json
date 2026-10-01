@@ -1,0 +1,12 @@
+{
+  "boundary": "actual source Toad/ToolCall/Contents/native compositor/worker",
+  "source": "/home/ts/wt/toad-worker-static-native-size-20260930/src/toad/widgets/worker_static.py",
+  "provider_calls": 0,
+  "full_map": 0,
+  "preparation_full_map": 0,
+  "preparation_requests": 10,
+  "elapsed_seconds": 10.74486961500952,
+  "ui_cpu_seconds": 5.381288167,
+  "retained_tool_bodies": 12,
+  "prepared_resources_reused": false
+}

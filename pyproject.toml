@@ -37,7 +37,7 @@ members = ["toad"]
 persistent-renderer = ["zmqruntime==0.2.24"]
 
 [tool.uv.sources]
-agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "970bc527f4ddd9b3bde5522dc671aea11fd27ece" }
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c" }
 
 [project.scripts]

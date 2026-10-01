@@ -1,0 +1,90 @@
+[
+  {
+    "ns": 298474152987166,
+    "resources": [
+      {
+        "id": 140266824085456,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474170414306,
+    "resources": [
+      {
+        "id": 140266824085456,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474183879414,
+    "resources": [
+      {
+        "id": 140266824085456,
+        "visible": true,
+        "parent": "Contents"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474261578946,
+    "resources": [
+      {
+        "id": 140266791016144,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474264171516,
+    "resources": [
+      {
+        "id": 140266791016144,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474303833570,
+    "resources": [
+      {
+        "id": 140266791016144,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474364954799,
+    "resources": [
+      {
+        "id": 140266791016144,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  },
+  {
+    "ns": 298474397804544,
+    "resources": [
+      {
+        "id": 140266791016144,
+        "visible": true,
+        "parent": "TranscriptFragmentView"
+      }
+    ],
+    "busy": false
+  }
+]
