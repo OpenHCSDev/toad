@@ -1,0 +1,11 @@
+{
+  "toad_paired_metadata_head": "a7087274f4a656968c84f9378ae8a87f9ee20820",
+  "reviewed_to_ad_source": "0dd9de96083126d37eb1534a62a91df9674ee120",
+  "complete_src_tree": "dcd3cf547be3f565555462aa03994028e13abfae",
+  "source_equal": true,
+  "source_changes": 0,
+  "metadata_numstat": "pyproject1/1, uv.lock2/2",
+  "normal_uv_lock": true,
+  "no_override": true,
+  "core": "50d77a17d3d998d403b0349a254f3f85d94517b8"
+}
