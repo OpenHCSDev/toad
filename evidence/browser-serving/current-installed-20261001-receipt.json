@@ -1,0 +1,100 @@
+{
+  "owner": "Kepler",
+  "scope": "Ordinary installed loopback browser serving/authentication/ACP startup/keyboard/settings/exact streamed delivery; no model turn",
+  "completed": true,
+  "process_exit_code": 0,
+  "source_contract": {
+    "owner": "Kepler",
+    "scope": "unchanged existing browser_serving_pilot installed default-selected runtime (not new defaultactivation)",
+    "source_branch": "feat/toad-web-completion-20260928 normalintegratedmain d0349869466fbb054fcb00a8377eda80c813b104",
+    "runtime": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001",
+    "toad_web_server_sha256": "ea1a59167972742d1fb799b92ef9bcd696451a478d1811973447c7a339bd1d40",
+    "pilot_sha256": "b0a62a12da95c36204c410da674c3efa35200113cff69cbebc49607adfee6454",
+    "no_provider_inputs": true,
+    "borrowed_tooldeps_only_parent": "$HOME/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages"
+  },
+  "runtime_activation": {
+    "stage": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001",
+    "pins": {
+      "agent-comms": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+      "batrachian-toad": "187f380ee1fa6358f16020ace38fa42e11f01670",
+      "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+    },
+    "sdk": "0.12.1",
+    "native_package": "$HOME/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "state": "staged-not-default",
+    "staging_receipt": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/staging-reader-geometry-254-20261001/verified.json"
+  },
+  "actual_gate_result": {
+    "boundary": "installed CLI + real aiohttp/vendor server + Chromium/Toad child; no mocks",
+    "gate": "Host/Origin/cookie/redirect/static/download-negative and zero unauthorized children passed",
+    "ports_independent": true,
+    "streamed_download": "real Textual child/driver, full content and prepared headers passed",
+    "proof": [
+      {
+        "entry": "serve",
+        "installed_child": true,
+        "browser_paint": true,
+        "browser_keyboard_response": true,
+        "frames": 45,
+        "actual_acp_session_ready": false,
+        "reload_after_second_port": true
+      },
+      {
+        "entry": "run",
+        "installed_child": true,
+        "browser_paint": true,
+        "browser_keyboard_response": true,
+        "frames": 43,
+        "actual_acp_session_ready": false
+      },
+      {
+        "entry": "acp",
+        "installed_child": true,
+        "browser_paint": true,
+        "browser_keyboard_response": true,
+        "frames": 252,
+        "actual_acp_session_ready": true
+      }
+    ],
+    "toad_import": "$HOME/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/lib/python3.14/site-packages/toad/web_server.py"
+  },
+  "cleanup": {
+    "owner": "Kepler",
+    "attempt": "kepler-browser-serving-current-20261001",
+    "remaining_attempt_processes": [],
+    "public_mutations": 0,
+    "providers": 0,
+    "replay": 0
+  },
+  "physically_reviewed": [
+    "acp-actual-browser.png",
+    "acp-settings-input.png",
+    "serve-actual-browser.png"
+  ],
+  "acp_initialize_and_session_new": true,
+  "acp_prompt_sent": false,
+  "raw_directory": "$HOME/.cache/agent-scratch/browser-serving-current-20261001",
+  "raw_hashes": {
+    "acp-settings-input.png": "213a948502333b4059ae1c8a510a37bcf43d091d768ab11a7d291bcb7f464314",
+    "contract.json": "57ac7a93d7c33569ba5d560319a2e803ebf95e8b1c7f92ad574f9b90b9b6997b",
+    "cleanup.json": "77525a02301cb278cc5e48d5fc2ffa94ab426d7111ffcff5aa779e7c3afd45fb",
+    "actual-acp-initialization.txt": "5a491a8fcf7039a010a5a9f932273cbb630c6856b1126a4f9add3c53891bba8f",
+    "serve-settings-input.png": "c8747afb7f49119955382b16c8a6930d9f458fe1effc2c639e87c49e0d606d54",
+    "serve-actual-browser.png": "2e57612be4334b8becbfbcc9cdaf68d51efbab3d11ede01cd4a19d54af6db13e",
+    "run-actual-browser.png": "f0fd7a9a9f2e49d1959a979c38d7bb4b5dfbb6c7e91731bf72f2f42b2caf0251",
+    "run-settings-input.png": "a5af588672b54eb956a3c4438718ae2631f0e26ed7a925083cac7355ebe70856",
+    "pilot.log": "c7b3632a92df6223a9943d3e68a8c2ff2f64eff433db8aefdce818f10d001198",
+    "acp-actual-browser.png": "23603301c06fb5401aba5d161756aa5acacc696b0274570a2cb18546ddd6c467"
+  },
+  "deletions": {
+    "production": 0
+  },
+  "limits": [
+    "Selected installed default runtime254 at launch; no later476/266 activation claim.",
+    "Existing realTextual delivery child establishes vendor WebDriver/route transport, not an absent productdownload action.",
+    "F2-to-settings keyboard acceptance; not full editor/focus/key matrix.",
+    "No provider/model turn, live session input, public-root mutation, ownerrestart or uncertain replay.",
+    "Old source-only staleAPI suspicion retracted after inspecting actualinstalledMessaging owner."
+  ]
+}
