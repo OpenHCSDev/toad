@@ -143,14 +143,14 @@ class ScrollTravelObservation:
     def relocated(self, native):
         lookahead = native["self"]
         self.emit("relocated", window=id(lookahead.viewport.window),
-                  position=native["position"], tracked_position=lookahead.position,
+                  compensation=native["compensation"], tracked_position=lookahead.position,
                   sampled_at=lookahead.sampled_at, predicted_rows=lookahead.travel_rows,
                   demand=type(lookahead.demand).__name__)
 
     def relocating(self, native):
         lookahead = native["self"]
         self.emit("relocating", window=id(lookahead.viewport.window),
-                  position=native["position"], tracked_position=lookahead.position,
+                  compensation=native["compensation"], tracked_position=lookahead.position,
                   sampled_at=lookahead.sampled_at)
 
     def start(self, code, offset):

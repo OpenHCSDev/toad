@@ -36,11 +36,13 @@ class WindowRestoration(ABC):
     def geometry(window: "HistoryWindow"):
         """Own native reflow and its compensation as one reader restoration."""
         restoring = window._restoring
+        previous = window.scroll_y
         window._restoring = True
         try:
             yield
         finally:
-            window.document_viewport.lookahead.relocated(window.scroll_y)
+            if not restoring:
+                window.document_viewport.lookahead.relocated(window.scroll_y - previous)
             window._restoring = restoring
 
     @abstractmethod
@@ -195,11 +197,21 @@ class HistoryWindow(VerticalScroll):
             # rejoins it once the current source has no unpublished newer rows.
             super()._check_anchor()
 
+    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
+        # Native size commit owns scrollbar clamping. Compensate that movement
+        # here, without treating unrelated Screen layouts as reader restoration.
+        with WindowRestoration.geometry(self):
+            changed = super()._size_updated(size, virtual_size, container_size, layout)
+        if changed:
+            self.document_viewport.request()
+        return changed
+
     def check_follow(self) -> bool:
         if self.history_anchor is not None or not self.follows_tail:
             return False
         previous = self.scroll_y
-        self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
+        with WindowRestoration.geometry(self):
+            self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
         return previous != self.scroll_y
 
     def history_mutating(self) -> bool:
