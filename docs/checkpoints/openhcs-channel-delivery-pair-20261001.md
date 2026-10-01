@@ -1,7 +1,7 @@
 # Openhcs channel delivery paired acceptance
 
-Arendt owns this metadata-only pairing of Core476 with the already accepted
-Toad264 production source b524171ec004d0d05aa6dada247141a04af20865.
+Arendt owns the paired receiver-readiness integration. Its initial metadata-only
+phase paired Core476 with accepted Toad264 productionb524171ec004d0d05aa6dada247141a04af20865; the receiving production scope is recorded below.
 Core sourcea2a47db2eaccb9c5b05257df74c53ee9a63f2658 owns grant acquisition,
 cancellation/new independent channel input and original drain readiness.
 Textual6b5895fa0a72aeec2aeaef7206d5debfa0c1803c / ACP0.12.1 / native593 remain.
@@ -74,3 +74,39 @@ mandatory before Ready/live claims. Preserve original262UNKNOWN/266frozen input,
 diagnostics, native journals/proofs and current owners. No public write/restart,
 provider call or replay accompanies this source checkpoint. Native admission476's
 completed acceptance remains separate and is not repeated.
+
+
+## READY: actual original external receiver gate and normal main integration
+
+Parent's second actual st/private-Xvfb/LinuxDriver capture passed the readiness
+scope in33.3136s on exact Core0a76958a/Toadf76f2f25/Textual6b/SDK0.12.1/native593.
+Arendt also inspected the raw receiver-open PNG: DM Session details visibly says
+Needs attention/Inbox unavailable, matching the original sidebar. Returning to
+#openhcs retains Waiting for recovery for all3originalfailedrecipients of266.
+This is the actual external user entrypoint, not App.run_test/Pilot.
+
+Full DM history loading is NOT established: the captured receiver frame still
+says Loading new thread and history. Archived/41MB Saved/End acceptance belongs
+to independently merged477/268 and remains recorded at its own actual strength.
+No new prompt, provider call, restart or original replay. The three original
+process identities, native journal/.input-proof files, input dispositions and
+wire marker match before/after exactly. The capture cleans all owned processes
+and records no cleanup errors. Failed physical01 and original UNKNOWN262/266
+sources are preserved; no result is retroactively reclassified NotSent.
+
+Sanitized current receiver proof: evidence/openhcs-channel-delivery/
+physical-original-dm02.json. Original PNGs/video/private hashes remain in parent's
+owned scratch; their hashes are recorded without publishing session content.
+
+Normal main1cef2a46 (accepted268 plus266) is integrated with no source conflict.
+The final normal pyproject/uv.lock pins CoreMAINcac7bdf337d9e4dba888ce7c2093ddcc55802bc3
+(native593); uv lock resolves. These are normal source integration and metadata
+changes after the exact f76 physical gate. Parent owns ONE combinedrelease69
+build and its changed-cohort acceptance, then the single canonical quiet batch.
+No repeated unchanged native/Pilot/capture was run by Arendt.
+
+267's own production against that integrated main: **16 deleted /33 added**,
+three existing producer/consumer files. Replace missed binding/ready read
+invalidation and dropped inflight work; delete loaded-config→Ready inference;
+retain one original observation/read resource without a new readiness authority.
+SourceReady and scoped external gate are complete; public activation is separate.
