@@ -1,0 +1,618 @@
+{
+  "state": "SCOPED INSTALLED PASS: native input paging, reader compensation and settled body demand; remaining warm/full performance open",
+  "implementation_commit": "be18026f",
+  "stage": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb",
+  "core": "d0773b22523e44428f10f0d9f1f961fd3fce8cac",
+  "textual": "efe905de3d37729e434fe33ff098a47dc18c83c6",
+  "native_manifest": "c4d4b5a2cbc2abc0a319f16744190b87af013990070a289b3792b4c4fd94bd3b",
+  "normal_packages": 69,
+  "installed_source_proof": {
+    "state": "installed-source-assets-native-trust-verified; continuous journey pending",
+    "prefix": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb",
+    "sources": [
+      {
+        "module": "agent_comms",
+        "head": "d0773b22523e44428f10f0d9f1f961fd3fce8cac",
+        "location": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb/lib/python3.14/site-packages/agent_comms",
+        "files": 324,
+        "python_files": 306,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "d0773b22523e44428f10f0d9f1f961fd3fce8cac",
+            "requested_revision": "d0773b22523e44428f10f0d9f1f961fd3fce8cac"
+          }
+        },
+        "inventory_sha256": "f18fcac0d96e894c558876e4ddf61b0b10bb4032cecc4165d55fbbed616818bf"
+      },
+      {
+        "module": "toad",
+        "head": "87c94564a693aa67250eddddb1dc71ef8edbedce",
+        "location": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb/lib/python3.14/site-packages/toad",
+        "files": 305,
+        "python_files": 274,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/toad.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "87c94564a693aa67250eddddb1dc71ef8edbedce",
+            "requested_revision": "87c94564a693aa67250eddddb1dc71ef8edbedce"
+          }
+        },
+        "inventory_sha256": "6ece9d47dc9c4f7f379695c6fadabeeddf7ce063f4f7e70c1f1abfc8967e1841"
+      },
+      {
+        "module": "textual",
+        "head": "efe905de3d37729e434fe33ff098a47dc18c83c6",
+        "location": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb/lib/python3.14/site-packages/textual",
+        "files": 266,
+        "python_files": 249,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "efe905de3d37729e434fe33ff098a47dc18c83c6",
+            "requested_revision": "efe905de3d37729e434fe33ff098a47dc18c83c6"
+          }
+        },
+        "inventory_sha256": "20b1a6ede161893324088788c55cec3cd3e13837fa54d824b8dff5f91a3e68a4"
+      },
+      {
+        "module": "textual_diff_view",
+        "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+        "location": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/.artifacts/p275fb/lib/python3.14/site-packages/textual_diff_view",
+        "files": 3,
+        "python_files": 2,
+        "byte_equal": true,
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+            "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+          }
+        },
+        "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+      }
+    ],
+    "native_package": "/home/ts/wt/comms-native17d-source-repair-20261001/stack/.pi-native-c4d4b5a2cbc2abc0/node_modules/@earendil-works/pi-coding-agent",
+    "native_cli": "/home/ts/wt/comms-native17d-source-repair-20261001/stack/.pi-native-c4d4b5a2cbc2abc0/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+    "native_manifest": "c4d4b5a2cbc2abc0a319f16744190b87af013990070a289b3792b4c4fd94bd3b",
+    "native_tree": "87f83824fdb6deda88e770c484247c1a28fb0997c804c25bbb2d7563eda314db",
+    "native_full_trust": true,
+    "sdk": "0.12.1",
+    "package_count": 69,
+    "packages": [
+      [
+        "Jinja2",
+        "3.1.6"
+      ],
+      [
+        "MarkupSafe",
+        "3.0.3"
+      ],
+      [
+        "Pygments",
+        "2.21.0"
+      ],
+      [
+        "agent-client-protocol",
+        "0.12.1"
+      ],
+      [
+        "agent-comms",
+        "0.1.0"
+      ],
+      [
+        "aiohappyeyeballs",
+        "2.7.1"
+      ],
+      [
+        "aiohttp",
+        "3.14.3"
+      ],
+      [
+        "aiohttp-jinja2",
+        "1.6"
+      ],
+      [
+        "aiosignal",
+        "1.4.0"
+      ],
+      [
+        "aiosqlite",
+        "0.22.1"
+      ],
+      [
+        "annotated-types",
+        "0.8.0"
+      ],
+      [
+        "anyio",
+        "4.14.2"
+      ],
+      [
+        "attrs",
+        "26.1.0"
+      ],
+      [
+        "bashlex",
+        "0.18"
+      ],
+      [
+        "batrachian-toad",
+        "0.6.20"
+      ],
+      [
+        "certifi",
+        "2026.7.22"
+      ],
+      [
+        "click",
+        "8.4.0"
+      ],
+      [
+        "format-currency",
+        "0.0.10"
+      ],
+      [
+        "frozenlist",
+        "1.8.0"
+      ],
+      [
+        "h11",
+        "0.16.0"
+      ],
+      [
+        "httpcore",
+        "1.0.9"
+      ],
+      [
+        "httpx",
+        "0.28.1"
+      ],
+      [
+        "idna",
+        "3.20"
+      ],
+      [
+        "jeepney",
+        "0.9.0"
+      ],
+      [
+        "linkify-it-py",
+        "2.2.0"
+      ],
+      [
+        "loguru",
+        "0.6.0"
+      ],
+      [
+        "markdown-it-py",
+        "4.2.0"
+      ],
+      [
+        "mdit-py-plugins",
+        "0.6.1"
+      ],
+      [
+        "mdurl",
+        "0.1.2"
+      ],
+      [
+        "metaclass-registry",
+        "0.2.1"
+      ],
+      [
+        "multidict",
+        "6.9.1"
+      ],
+      [
+        "nominal-refactor-audit",
+        "0.1.0"
+      ],
+      [
+        "notify_py",
+        "0.3.43"
+      ],
+      [
+        "packaging",
+        "26.2"
+      ],
+      [
+        "pathspec",
+        "1.1.1"
+      ],
+      [
+        "platformdirs",
+        "4.9.6"
+      ],
+      [
+        "propcache",
+        "0.5.4"
+      ],
+      [
+        "psutil",
+        "7.2.2"
+      ],
+      [
+        "pydantic",
+        "2.13.5"
+      ],
+      [
+        "pydantic_core",
+        "2.46.5"
+      ],
+      [
+        "pyperclip",
+        "1.11.0"
+      ],
+      [
+        "rich",
+        "15.0.0"
+      ],
+      [
+        "setproctitle",
+        "1.3.7"
+      ],
+      [
+        "textual",
+        "8.2.8"
+      ],
+      [
+        "textual-diff-view",
+        "0.1.5"
+      ],
+      [
+        "textual-serve",
+        "1.1.3"
+      ],
+      [
+        "textual-speedups",
+        "0.2.1"
+      ],
+      [
+        "tree-sitter",
+        "0.26.0"
+      ],
+      [
+        "tree-sitter-bash",
+        "0.25.1"
+      ],
+      [
+        "tree-sitter-css",
+        "0.25.0"
+      ],
+      [
+        "tree-sitter-go",
+        "0.25.0"
+      ],
+      [
+        "tree-sitter-html",
+        "0.23.2"
+      ],
+      [
+        "tree-sitter-java",
+        "0.23.5"
+      ],
+      [
+        "tree-sitter-javascript",
+        "0.25.0"
+      ],
+      [
+        "tree-sitter-json",
+        "0.24.8"
+      ],
+      [
+        "tree-sitter-markdown",
+        "0.5.1"
+      ],
+      [
+        "tree-sitter-python",
+        "0.25.0"
+      ],
+      [
+        "tree-sitter-regex",
+        "0.25.0"
+      ],
+      [
+        "tree-sitter-rust",
+        "0.24.2"
+      ],
+      [
+        "tree-sitter-sql",
+        "0.3.11"
+      ],
+      [
+        "tree-sitter-toml",
+        "0.7.0"
+      ],
+      [
+        "tree-sitter-xml",
+        "0.7.0"
+      ],
+      [
+        "tree-sitter-yaml",
+        "0.7.2"
+      ],
+      [
+        "typeguard",
+        "4.5.2"
+      ],
+      [
+        "typing-inspection",
+        "0.4.4"
+      ],
+      [
+        "typing_extensions",
+        "4.15.0"
+      ],
+      [
+        "watchdog",
+        "6.0.0"
+      ],
+      [
+        "xdg-base-dirs",
+        "6.0.3"
+      ],
+      [
+        "yarl",
+        "1.25.1"
+      ]
+    ],
+    "requirements_sha256": "ff80b2588db12db0a8f497b6e06ce6a8ae65f5f970d288b8458bf3f075c587dd",
+    "protected_old_prefix_files": 314,
+    "protected_old_prefix_files_unchanged": true,
+    "public_install_changed": false,
+    "new_native_build": false,
+    "source_overlay": false,
+    "dependency_bypass": false,
+    "journey_owners": [
+      "Heisenberg275 actual busy video/profile gate"
+    ],
+    "journey_assessment": "pending"
+  },
+  "actual_capture": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2069069,
+      "start_time": 35831482
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2069069,
+      "start_time": 35831482
+    },
+    "original_owner_alive": true
+  },
+  "completed": true,
+  "capture_completed": true,
+  "duration_seconds": 85.19302513805451,
+  "input_checks": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "recorder_returncode": 0,
+  "ffmpeg_capture_returncode": 255,
+  "ffmpeg_exit_meaning": "255 is recorder-accepted normal SIGINT; owned terminal exit0",
+  "profile": {
+    "sample_count": 1382,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.07444339000270703,
+    "ui_pid": 2162553
+  },
+  "phase_work": [
+    {
+      "phase": [
+        "input-held-up",
+        "input-held-up-done"
+      ],
+      "seconds": 5.954409439989831,
+      "ui_cpu_seconds": 5.139999999999999,
+      "ui_cpu_percent": 86.32258247946041,
+      "counts": {
+        "request": 154,
+        "full_admission": 149,
+        "page_extended": 16,
+        "relocated": 50,
+        "scroll": 85,
+        "sidebar_publication_done": 1
+      },
+      "last_5s": {
+        "request": 154,
+        "full_admission": 149,
+        "page_extended": 16,
+        "scroll": 85
+      }
+    },
+    {
+      "phase": [
+        "input-held-up-done",
+        "input-mid-history-idle-done"
+      ],
+      "seconds": 16.55940648599062,
+      "ui_cpu_seconds": 7.630000000000001,
+      "ui_cpu_percent": 46.076530619953296,
+      "counts": {
+        "request": 30,
+        "full_admission": 26,
+        "page_extended": 7,
+        "relocated": 22,
+        "scroll": 7,
+        "sidebar_publication_done": 14
+      },
+      "last_5s": {
+        "request": 0,
+        "full_admission": 0,
+        "page_extended": 0,
+        "scroll": 0
+      }
+    },
+    {
+      "phase": [
+        "input-held-down",
+        "input-held-down-done"
+      ],
+      "seconds": 5.822588472976349,
+      "ui_cpu_seconds": 4.800000000000001,
+      "ui_cpu_percent": 82.43756230201807,
+      "counts": {
+        "request": 199,
+        "full_admission": 188,
+        "page_extended": 18,
+        "relocated": 48,
+        "scroll": 125,
+        "sidebar_publication_done": 2
+      },
+      "last_5s": {
+        "request": 199,
+        "full_admission": 188,
+        "page_extended": 18,
+        "scroll": 125
+      }
+    },
+    {
+      "phase": [
+        "history-held-up-done",
+        "mid-history-idle-done"
+      ],
+      "seconds": 16.684000461013056,
+      "ui_cpu_seconds": 4.800000000000004,
+      "ui_cpu_percent": 28.770078322741472,
+      "counts": {
+        "request": 0,
+        "full_admission": 0,
+        "page_extended": 0,
+        "relocated": 0,
+        "scroll": 0,
+        "sidebar_publication_done": 16
+      },
+      "last_5s": {
+        "request": 0,
+        "full_admission": 0,
+        "page_extended": 0,
+        "scroll": 0
+      }
+    },
+    {
+      "phase": [
+        "mid-history-idle-done",
+        "end-done"
+      ],
+      "seconds": 16.66190710995579,
+      "ui_cpu_seconds": 5.299999999999997,
+      "ui_cpu_percent": 31.809083828304093,
+      "counts": {
+        "request": 26,
+        "full_admission": 26,
+        "page_extended": 1,
+        "relocated": 78,
+        "scroll": 1,
+        "sidebar_publication_done": 16
+      },
+      "last_5s": {
+        "request": 0,
+        "full_admission": 0,
+        "page_extended": 0,
+        "scroll": 0
+      }
+    }
+  ],
+  "physical_review": {
+    "mid_history": "Individually viewed phase-input-mid-history-idle-done.png: readable original chat/chrome/sidebar/prompt.",
+    "end": "Individually viewed phase-end-done.png: readable original chat/chrome/sidebar/prompt.",
+    "held_up": "Viewed eight 2fps frames between video10-14s: body progresses, including sparse tool spans; not a no-gap/frame-latency proof."
+  },
+  "prior_control_limits": "Prior same491 input-idle tail-five-seconds also had zero admissions. New capture has fewer first-idle admissions26 vs62, but live source and gesture sequence differ; no controlled causal speedup claim. No50ms/overallCPU/September27 comparison claim.",
+  "remaining": [
+    "Full current-source warm A/B/A with reader/draft/Undo and final membership custody; previous02 combined driver budget exhausted during B-open.",
+    "Growing lazy-end/void, continuous blank-frame and held-key latency comparison",
+    "Dormant strip residency, foreground styling/layout and native-goal/store-lock CPU costs",
+    "Cold PR159 startup and stationary sidebar jump under concurrent activity",
+    "TC1/T9/editor full scope; runtime lifecycle Arendt and compaction Sch own crossing semantics."
+  ],
+  "provider_inputs": 0,
+  "public_post_or_replay": false,
+  "public_owner_restart": false,
+  "global_install_changed": false,
+  "source_sanity": {
+    "native_reversal": "Existing original body native reversal PASS after source resume; outgoing demand rejected.",
+    "initial_reversal": "Preserved FAIL because old fixture generated travel while source suspended. Updated actual callback ordering without weakening assertion.",
+    "old_saved_seed_readiness": "Preserved FAIL at page.has_older for obsolete manually written journal seed; not a body/readiness product verdict."
+  },
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/receipt.json",
+      "bytes": 230675,
+      "sha256": "3e64c1549c373ba18299d53cf8fffb204228f740c25aab500ef1584896f78043"
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/terminal.mp4",
+      "bytes": 8300813,
+      "sha256": "eb993590b863cef5451dbfc919b3a5fa8b72a2245ce2fc8f742ead67c6dadcf6"
+    },
+    "cpu-profile.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/cpu-profile.json",
+      "bytes": 8200784,
+      "sha256": "43ccd0a5c7d08b9383f780785c748da5ded2a4e6fc63ce880fceb33d83b981e0"
+    },
+    "profile-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/profile-review.json",
+      "bytes": 142021,
+      "sha256": "5ca3b0b5ba4083c3d367ee9fcaad32924cf1644ba2aa305b49351aa4bb0a5ff9"
+    },
+    "scroll-travel.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/scroll-travel.jsonl",
+      "bytes": 661578,
+      "sha256": "aa701014a7421d721d147dbfbf83592a4d469ff59c71b06dfb521bba5977b6d3"
+    },
+    "phase-input-mid-history-idle-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/phase-input-mid-history-idle-done.png",
+      "bytes": 114271,
+      "sha256": "501a58527a290fa82d818b44f4b57ea58e4661a6fa01f7086615eb4c995415b7"
+    },
+    "phase-end-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/phase-end-done.png",
+      "bytes": 109939,
+      "sha256": "1a9aaed4a9d32af87bade7cb916a5b8f19c95a06f9acaafcb14b74dbd8c24bf4"
+    },
+    "input-up-contact-sheet.png": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/input-up-contact-sheet.png",
+      "bytes": 232978,
+      "sha256": "95e92cc41ad0f3126da70e5b80a67ea5c0a075e2a6fe1870aeefda20da8117f6"
+    },
+    "feedback-phase-work.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-native491-feedback-20261001-03/feedback-phase-work.json",
+      "bytes": 2490,
+      "sha256": "87771d2dc637e236e2939b388145ede622802de73725da3881f6db8591408b97"
+    }
+  },
+  "tested_toad_commit": "87c94564a693aa67250eddddb1dc71ef8edbedce"
+}

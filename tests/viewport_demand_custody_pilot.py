@@ -71,8 +71,10 @@ async def main():
             manager._restore_body = held_restoration
             manager.lookahead.accepts = observe_acceptance
             try:
-                window.scroll_relative(y=1, animate=False, immediate=True)
+                # The resumed viewport observes native travel at the scroll
+                # boundary; request() no longer samples parked geometry.
                 manager.resume_source()
+                window.scroll_relative(y=1, animate=False, immediate=True)
                 await asyncio.wait_for(entered.wait(), 10)
                 original_demand = manager.lookahead.demand
                 assert original_demand.rows(1) > 0, 'Initial native travel was not forward'

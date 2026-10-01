@@ -28,6 +28,8 @@ def main():
                         help="Bounded native diagnostic observation interval; no repeated attach/export")
     parser.add_argument("--wait-history-thread", help="Intended selected thread for visible history observation")
     parser.add_argument("--screen", action="store_true", help="Export through Textual's screenshot API")
+    parser.add_argument("--scroll-travel", action="store_true",
+                        help="Install bounded native scroll-travel observation in the owned UI")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.state or args.screen):
@@ -67,6 +69,13 @@ def main():
             tools = Path(__file__).resolve().parent
             script = Path(str(prefix) + "-remote.py")
             lines = ["import importlib.util as _capture_import"]
+            if args.scroll_travel:
+                lines.extend((
+                    f"_spec = _capture_import.spec_from_file_location('scroll_travel_observation', {str(tools / 'scroll_travel_observation.py')!r})",
+                    "_module = _capture_import.module_from_spec(_spec)",
+                    "_spec.loader.exec_module(_module)",
+                    f"_module.install(expected_pid={args.pid}, output={str(args.output_dir / 'scroll-travel.jsonl')!r})",
+                ))
             receipts = []
             for enabled, module, suffix, options in (
                 (args.state, "capture_state", "state",

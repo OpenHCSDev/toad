@@ -4,6 +4,7 @@ No original attachment, input, provider request or public owner operation. This
 uses the production CommsAgent directly: the existing test convenience factory
 imports unrelated pytest/model fixtures, absent from the immutable runtime.
 """
+import argparse
 import asyncio
 import hashlib
 import json
@@ -33,28 +34,35 @@ def fingerprint(path):
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
-async def run(root):
+async def run(root, stage_proof, original_python, peer_source):
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     runtime = Path(sys.executable).parent
     stage = runtime.parent
-    native = Path("/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent")
     public = Path("/var/tmp/agent-comms-live-20260927-wzjtqhza")
-    original_python = Path("/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python")
-    receipt = {"state": "PREPARING", "owner": "Heisenberg271", "fixture": str(root),
+    receipt = {"state": "PREPARING", "owner": "Heisenberg275", "fixture": str(root),
                "inputs": 0, "provider_requests": 0, "public_owner_operations": 0,
-               "python": sys.executable, "runtime": str(stage)}
+               "python": sys.executable, "runtime": str(stage),
+               "original_python": str(original_python)}
     started = time.monotonic()
     owner = None
     processes = None
     captured = None
+    peer_captured = None
     try:
-        verified = json.loads((WT / ".artifacts/staging-native-width-271-20261001/verified.json").read_text())
-        assert verified["native_full_tree_trust"] == "PASS"
-        assert verified["distribution_count"] == 69
-        assert verified["imports"] == "PASS"
-        assert all(item.get("byte_equal", item.get("certified_donor_all_files_equal", False))
-                   for item in verified["sources"])
-        receipt["pins"] = verified["pins"]
+        verified = json.loads(stage_proof.read_text())
+        activation = json.loads((stage / "activation.json").read_text())
+        assert Path(verified["prefix"]).resolve() == Path(sys.prefix).resolve()
+        assert Path(activation["stage"]).resolve() == Path(sys.prefix).resolve()
+        assert verified["native_full_trust"] is True
+        assert verified["package_count"] == 69
+        assert all(item["byte_equal"] is True for item in verified["sources"])
+        pins = {item["module"]: item["head"] for item in verified["sources"]}
+        assert all(pins[module] == head for module, head in activation["pins"].items())
+        native = Path(verified["native_package"])
+        assert native == Path(activation["native_package"])
+        receipt["pins"] = pins
+        receipt["stage_proof"] = str(stage_proof)
+        receipt["stage_proof_sha256"] = fingerprint(stage_proof)["sha256"]
         verify_native_package(native)
         captured = CurrentTypedCapture(public, original_python).read("nra-architecture")
         source = captured.require_current()
@@ -62,6 +70,15 @@ async def run(root):
         receipt["original_process"] = FieldCodec.encode(source.require_process())
         receipt["original_file"] = str(original)
         receipt["original_before"] = fingerprint(original)
+        peer_captured = CurrentTypedCapture(public, original_python).read(peer_source)
+        peer = peer_captured.source
+        peer_original = Path(peer.require_saved_session())
+        receipt["peer_source"] = {
+            "thread": peer.name, "file": str(peer_original),
+            "process": FieldCodec.encode(peer.require_process()),
+            "before": fingerprint(peer_original),
+        }
+        peer_captured.require_current()
         environment = dict(captured.retained.environment)
         for key in tuple(environment):
             if key.startswith(("AGENT_COMMS_", "TOAD_VIDEO_")) or key in (
@@ -70,18 +87,19 @@ async def run(root):
                 environment.pop(key)
         fork_environment = dict(environment, PI_CODING_AGENT_DIR=str(root / "native-forks"))
         children = []
-        for name in ("warm-a", "warm-b"):
+        for name, original_source, witness in (
+                ("warm-a", source, captured), ("warm-b", peer, peer_captured)):
             project = root / name
             project.mkdir(mode=0o700)
             identity = await ForkSessionHelper.run(
-                ForkSessionRequest(str(native), str(original), str(project)),
+                ForkSessionRequest(str(native), original_source.require_saved_session(), str(project)),
                 cwd=project, env=fork_environment)
             assert Path(identity.session_file).is_relative_to(root)
-            captured.require_current()
+            witness.require_current()
             children.append(Thread(name, frozenset(), str(project),
                 process_identity=ProcessIdentity.capture(os.getpid()),
-                session_file=identity.session_file, model=source.model,
-                thinking_level=source.thinking_level,
+                session_file=identity.session_file, model=original_source.model,
+                thinking_level=original_source.thinking_level,
                 task="Read-only acceptance. Do not resume inherited work or use tools."))
         service = Comms(root / "wire")
         root_id = service.messaging.initialize_private_initial_protocol()
@@ -113,9 +131,10 @@ async def run(root):
                             for thread in children]
         receipt["private_root_id"] = root_id
         captured.require_current()
+        peer_captured.require_current()
         processes = ProcessOwner(Registration(service.root / "registry.json"))
         argv = [str(runtime / "python"), str(WT / "tests/tools/record_installed_tui.py"),
-            "--owner", "Heisenberg271", "--journey", "warm_scroll", "--peer-thread", "warm-b",
+            "--owner", "Heisenberg275", "--journey", "warm_scroll", "--peer-thread", "warm-b",
             "--capture-state", "--profile", "--private-root", str(service.root),
             "--output", str(root / "physical01"), "--fit-window", "--width", "1280", "--height", "900",
             "--startup-wait", "10", "--max-duration", "120", "--finalize-seconds", "16",
@@ -129,6 +148,7 @@ async def run(root):
             code = await asyncio.to_thread(child.process.wait, timeout=165)
         receipt["recorder_exit"] = code
         assert fingerprint(original) == receipt["original_before"]
+        assert fingerprint(peer_original) == receipt["peer_source"]["before"]
         receipt["state"] = "SCOPED_PASS" if code == 0 else "FAILED_NO_REPLAY"
     except BaseException as error:
         receipt["state"] = "FAILED_NO_REPLAY"
@@ -149,6 +169,13 @@ async def run(root):
                     # The acquisition witness ended before private launch. A
                     # later authorized cutover is an observation, not lost custody.
                     receipt["original_observation_after_error"] = f"{type(error).__name__}: {error}"
+            if peer_captured is not None:
+                try:
+                    current = peer_captured.require_current()
+                    receipt["peer_source"]["after"] = fingerprint(Path(current.require_saved_session()))
+                    receipt["peer_source"]["process_after"] = FieldCodec.encode(current.require_process())
+                except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+                    receipt["peer_observation_after_error"] = f"{type(error).__name__}: {error}"
         finally:
             receipt["elapsed_seconds"] = time.monotonic() - started
             (root / "factory-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
@@ -156,4 +183,12 @@ async def run(root):
 
 
 if __name__ == "__main__":
-    asyncio.run(run(Path(sys.argv[1])))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("root", type=Path)
+    parser.add_argument("--stage-proof", required=True, type=Path)
+    parser.add_argument("--original-python", required=True, type=Path,
+                        help="Approved current producer interpreter for the original owner read")
+    parser.add_argument("--peer-source", default="nra-architecture",
+                        help="Original saved thread for the cold B fork, read through CurrentTypedCapture")
+    args = parser.parse_args()
+    asyncio.run(run(args.root, args.stage_proof, args.original_python, args.peer_source))

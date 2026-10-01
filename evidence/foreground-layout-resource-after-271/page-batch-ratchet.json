@@ -1,0 +1,42 @@
+{
+  "base": "ac62c8fdffe4b699cebd5d064b42ef3dbe006a9c",
+  "file": "src/toad/widgets/transcript_history.py",
+  "function": "TranscriptPageView.extend",
+  "file_before": {
+    "string_dispatch": 0,
+    "string_dispatch_arms": 0,
+    "type_switch": 0,
+    "type_switch_arms": 0,
+    "foreign_absence_probe": 10,
+    "long_boolean_chain": 4,
+    "boolean_chain_terms": 19
+  },
+  "file_after": {
+    "string_dispatch": 0,
+    "string_dispatch_arms": 0,
+    "type_switch": 0,
+    "type_switch_arms": 0,
+    "foreign_absence_probe": 10,
+    "long_boolean_chain": 4,
+    "boolean_chain_terms": 19
+  },
+  "function_before": {
+    "string_dispatch": 0,
+    "string_dispatch_arms": 0,
+    "type_switch": 0,
+    "type_switch_arms": 0,
+    "foreign_absence_probe": 0,
+    "long_boolean_chain": 0,
+    "boolean_chain_terms": 0
+  },
+  "function_after": {
+    "string_dispatch": 0,
+    "string_dispatch_arms": 0,
+    "type_switch": 0,
+    "type_switch_arms": 0,
+    "foreign_absence_probe": 0,
+    "long_boolean_chain": 0,
+    "boolean_chain_terms": 0
+  },
+  "result": "PASS"
+}

@@ -206,9 +206,9 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             if (position := window.prepare_history_layout()) is not None
         ]
         with ExitStack() as restoration:
-            # Every bound native window can be clamped by reflow, including
-            # ordinary resize with no source anchor. Only input samples travel.
-            for window in tuple(self.viewport_presentation.windows):
+            # Only an actual anchor transaction compensates source placement.
+            # Native resize/clamping is owned by HistoryWindow._size_updated.
+            for window, _position in anchors:
                 restoration.enter_context(WindowRestoration.geometry(window))
             if not anchors:
                 super()._refresh_layout(size, scroll)

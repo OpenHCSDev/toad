@@ -1,0 +1,268 @@
+{
+  "scope": "source actual Toad/native stationary counter; not physical acceptance",
+  "compact_records": false,
+  "input_paging_and_cadence": true,
+  "samples": [
+    {
+      "label": "before-single-pageup",
+      "seconds": 0.00017033301992341876,
+      "scroll_y": 89,
+      "maximum": 89,
+      "follows_tail": true,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          88,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "after-single-pageup",
+      "seconds": 0.9831837510573678,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "MovingPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-0",
+      "seconds": 1.119386304053478,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-1",
+      "seconds": 1.2616497470298782,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-2",
+      "seconds": 1.4157751360326074,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-3",
+      "seconds": 1.5778028210042976,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-4",
+      "seconds": 1.7352940850541927,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-5",
+      "seconds": 1.8938525500125252,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-6",
+      "seconds": 2.052034322055988,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-7",
+      "seconds": 2.214549591008108,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-8",
+      "seconds": 2.3699092980241403,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-9",
+      "seconds": 2.5370542950113304,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-10",
+      "seconds": 2.6854993460001424,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "stationary-11",
+      "seconds": 2.8432175390189514,
+      "scroll_y": 122.59580056598526,
+      "maximum": 145,
+      "follows_tail": false,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    },
+    {
+      "label": "after-input-pagedown",
+      "seconds": 3.748173078056425,
+      "scroll_y": 145,
+      "maximum": 145,
+      "follows_tail": true,
+      "demand": "StationaryPreparation",
+      "travel_rows": 0,
+      "body_evictions": 0,
+      "pages": [
+        [
+          84,
+          96
+        ]
+      ]
+    }
+  ],
+  "page_calls": [
+    {
+      "label": "extend",
+      "seconds": 0.6659695370472036,
+      "scroll_y": 70.9731662755751,
+      "maximum": 89,
+      "follows_tail": false,
+      "demand": "MovingPreparation",
+      "travel_rows": -18.754168696908703,
+      "body_evictions": 0,
+      "pages": [
+        [
+          88,
+          96
+        ]
+      ],
+      "older": true
+    }
+  ],
+  "agent_bound": false,
+  "exception": "None"
+}

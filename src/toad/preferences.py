@@ -205,6 +205,14 @@ class NotificationsSettings(SettingsGroup):
 
 class SidebarSettings(SettingsGroup):
     hide = BooleanSetting(title="Hide the sidebar when not in use?", default=False)
+    spinner_frames_per_second = IntegerSetting(
+        title="Busy sidebar animation frames per second",
+        default=30,
+        minimum=1,
+        maximum=60,
+        help="Animation cadence for busy threads. Frame stalls remain visible when the UI is occupied.",
+        effect=effects.sidebar_spinner_frames_per_second,
+    )
     show_stopped = BooleanSetting(
         title="Show stopped threads in Channels?",
         default=True,

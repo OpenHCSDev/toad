@@ -1,0 +1,224 @@
+{
+  "scope": "actual DEFAULT public bus, isolated st/Xvfb, no prompts/provider requests/restart; partial End-idle timeout remains FAIL",
+  "recording": "/home/ts/.cache/agent-scratch/perf275-default-busy-stationary-20261001-02",
+  "pins": {
+    "agent_comms": "50d77a17d3d998d403b0349a254f3f85d94517b8",
+    "toad": "a7087274f4a656968c84f9378ae8a87f9ee20820",
+    "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206"
+  },
+  "display": ":1161",
+  "ui": {
+    "pid": 1845712,
+    "start_ticks": 35063258
+  },
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1732901,
+      "start_time": 34742033
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1732901,
+      "start_time": 34742033
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "completed": false,
+  "failure": "TimeoutExpired: Command '('/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-core484-receiving-20261001/bin/python', '-c', \"import os,sys\\nfd=int(sys.argv[1]); error_fd=int(sys.argv[2]); go=os.read(fd,1); os.close(fd)\\nif go != b'G': sys.exit(126)\\nos.set_inheritable(error_fd, False)\\ntry: os.execvpe(sys.argv[3], sys.argv[3:], os.environ)\\nexcept OSError as error:\\n    os.write(error_fd, str(error.errno).encode()); os._exit(126)\\n\", '10', '13', 'xdotool', 'sleep', '15')' timed out after 10.183635658991989 seconds",
+  "profile": {
+    "sample_count": 2032,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.0662420770013705,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "phases": {
+    "stationary-loaded": {
+      "scroll_y": 112,
+      "maximum": 112,
+      "follows_tail": true,
+      "region": [
+        71,
+        3,
+        105,
+        29
+      ],
+      "body_evictions": 0,
+      "loaded_pages": 1,
+      "focus": "PromptTextArea"
+    },
+    "slightly-up": {
+      "scroll_y": 133.29971310155037,
+      "maximum": 159,
+      "follows_tail": false,
+      "region": [
+        71,
+        3,
+        105,
+        32
+      ],
+      "body_evictions": 0,
+      "loaded_pages": 1,
+      "focus": "Window"
+    },
+    "stationary-done": {
+      "scroll_y": 133.29971310155037,
+      "maximum": 162,
+      "follows_tail": false,
+      "region": [
+        71,
+        3,
+        105,
+        29
+      ],
+      "body_evictions": 0,
+      "loaded_pages": 1,
+      "focus": "Window"
+    },
+    "input-focused": {
+      "scroll_y": 133.29971310155037,
+      "maximum": 159,
+      "follows_tail": false,
+      "region": [
+        71,
+        3,
+        105,
+        32
+      ],
+      "body_evictions": 0,
+      "loaded_pages": 1,
+      "focus": "PromptTextArea"
+    },
+    "input-pageup": {
+      "scroll_y": 133.29971310155037,
+      "maximum": 159,
+      "follows_tail": false,
+      "region": [
+        71,
+        3,
+        105,
+        32
+      ],
+      "body_evictions": 0,
+      "loaded_pages": 1,
+      "focus": "PromptTextArea"
+    },
+    "input-pagedown": {
+      "scroll_y": 133.29971310155037,
+      "maximum": 162,
+      "follows_tail": false,
+      "region": [
+        71,
+        3,
+        105,
+        29
+      ],
+      "body_evictions": 0,
+      "loaded_pages": 1,
+      "focus": "PromptTextArea"
+    }
+  },
+  "physical_assessment": [
+    "Away-tail contact sheet at28.5..45.5s: readable original body and busy sidebar throughout sampled frames. Goal-unavailable bar appears/disappears; do not claim all-frame smoothness.",
+    "Reader remains133.299713 with same page0..20, zero evictions over15-second offset idle. Window height32->29 changes maximum159->162. This recording does not demonstrate idle load/unload cycling.",
+    "Input-focused PageUp/PageDown leave chat at133.299713; focus remainsPromptTextArea.",
+    "Held down/reverse UI CPU93.21/95.01percent, offset-idle38.43percent. Observer-inclusive phase bounds, not unprofiled rates.",
+    "Actual native journals are referenced by their original cursor/path; this capture issues no provider input. OriginalPID/start ticks unchanged.",
+    "End entered source destination work; final15-second idle did not finish within120s. No full journey PASS."
+  ],
+  "owning_handoff": "Arendt485 owns central terminal/goal publication. Goal-bar geometry oscillation is visible; do not hide it through local flags. Heisenberg275 owns native page admission/prompt paging/cadence/viewport.",
+  "next_install_boundary": "cf7/Text18 installed resource gate already completed. NewPrompt paging and typed spinner cadence are source-native verified; Mendel sole normal builder must refresh To ad pin once, then one affected installed journey.",
+  "kernel_cpu_phases": [
+    {
+      "label": "slightly-up",
+      "start": 28.458612467045896,
+      "stop": 45.52689433202613,
+      "ui": {
+        "pid": "1845712",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 6.5600000000000005,
+        "average_cpu_percent": 38.43386259902029
+      }
+    },
+    {
+      "label": "up",
+      "start": 62.5511317330529,
+      "stop": 68.62622241303325,
+      "ui": {
+        "pid": "1845712",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 4.389999999999997,
+        "average_cpu_percent": 72.26229584468025
+      }
+    },
+    {
+      "label": "down",
+      "start": 70.60107004904421,
+      "stop": 76.7590055540204,
+      "ui": {
+        "pid": "1845712",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 5.740000000000002,
+        "average_cpu_percent": 93.21305809977287
+      }
+    },
+    {
+      "label": "reverse",
+      "start": 78.4624204520369,
+      "stop": 84.64092427300056,
+      "ui": {
+        "pid": "1845712",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 5.8700000000000045,
+        "average_cpu_percent": 95.0068199372652
+      }
+    }
+  ],
+  "artifacts": {
+    "receipt.json": {
+      "bytes": 18969,
+      "sha256": "1c1dd31e790ac762f258c79661424bb448f2e656ffcaa3dbd5db246713ada906"
+    },
+    "cpu-profile.json": {
+      "bytes": 10553435,
+      "sha256": "66d2a43d67b7e9dff39b059ce7694c68248857ffd4227de07ac2bbab5fff93c3"
+    },
+    "terminal.mp4": {
+      "bytes": 7300792,
+      "sha256": "69200f004dc8190edaeae7113c9c2fee88d79f96763e6ca5f6569459edfe6ed2"
+    },
+    "phase-slightly-up.png": {
+      "bytes": 105255,
+      "sha256": "13baeb5d7f917ba5dd3ac1af758ccb1dd56aafe3177be7560f706b871e27a97e"
+    },
+    "phase-stationary-done.png": {
+      "bytes": 104524,
+      "sha256": "c20f1556c6bad751910bfc6dd3142102f092d80430c262621442f8a09ccd0136"
+    },
+    "away-tail-contact-sheet.png": {
+      "bytes": 494630,
+      "sha256": "e8f2d77ea5b692b6db37d39a1022a640f0a0514586f5cdd940103fdb9b01e827"
+    }
+  }
+}

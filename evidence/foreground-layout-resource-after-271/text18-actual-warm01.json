@@ -1,0 +1,210 @@
+{
+  "state": "PARTIAL_FAILED_COLD_B_READY_NO_REPLAY",
+  "raw": "/home/ts/.cache/agent-scratch/text18-original-warm-20261001-01",
+  "pins": {
+    "agent_comms": "0ea6dccbd39b1f8656e2fc2ad983046244d9312d",
+    "toad": "f8e1cedebdc1fb1c43a23475ecdbe69c8f218400",
+    "textual": "ba65da3dfe04fd93a486156684584e8bb60d2dc9",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "stage_proof": "evidence/text18-library-only-stage-20261001/source-proof.json",
+  "stage_proof_sha256": "faeb627657cf41566a93047db10fce8469a18d91c49b8ca4408fe8b5226cf4d7",
+  "factory_seconds": 105.88941201101989,
+  "recorder_exit": 1,
+  "error": "CalledProcessError: Command '['xdotool', 'exec', '--sync', '/home/ts/wt/toad-text18-library-pair-20261001/.artifacts/runtime-text18-library-only-20261001/bin/python', '/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/tests/tools/record_installed_tui.py', '--mark', 'b-open', '--wait-history-seconds', '10', '--wait-history-interval', '0.1', '--wait-history-thread', 'warm-b']' returned non-zero exit status 1.",
+  "original_before": {
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "original_after": {
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+  },
+  "original_process": {
+    "pid": 465576,
+    "start_time": 30187842
+  },
+  "original_process_after": {
+    "pid": 465576,
+    "start_time": 30187842
+  },
+  "inputs": 0,
+  "provider_requests": 0,
+  "public_owner_operations": 0,
+  "forks": [
+    {
+      "thread": "warm-a",
+      "session": "/home/ts/.cache/agent-scratch/text18-original-warm-20261001-01/native-forks/sessions/--home-ts-.cache-agent-scratch-text18-original-warm-20261001-01-warm-a--/2026-10-01T12-34-44-782Z_01a0f775-c1af-7453-929d-0a8238e48d26.jsonl",
+      "fingerprint": {
+        "bytes": 41270296,
+        "sha256": "460731f57100fd3e68b9bea3ff0c040d6be0f9d0630d1ec23e98e3f173e60c71"
+      }
+    },
+    {
+      "thread": "warm-b",
+      "session": "/home/ts/.cache/agent-scratch/text18-original-warm-20261001-01/native-forks/sessions/--home-ts-.cache-agent-scratch-text18-original-warm-20261001-01-warm-b--/2026-10-01T12-34-47-200Z_01a0f775-cb21-743a-bb27-4e9915e63b68.jsonl",
+      "fingerprint": {
+        "bytes": 41270296,
+        "sha256": "c7e732da2698794b9c9a2b5b3a740617a89ba4227be52c39ca8ba8c7c9ebb03f"
+      }
+    }
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 1372080,
+        "start_ticks": 33374265,
+        "returncode": 1
+      }
+    ]
+  },
+  "profiler_export": {
+    "started_monotonic": 333822.075866608,
+    "finished_monotonic": 333822.215965557,
+    "returncode": 0,
+    "remaining_owned_pids": [],
+    "bytes": 7440250
+  },
+  "samples": 1009,
+  "sampling_errors": 0,
+  "ui_kernel_cpu_observer_inclusive": [
+    {
+      "phase": "warm-start",
+      "cpu_seconds": 1.299999999999999,
+      "average_cpu_percent": 21.699001064210925,
+      "start": 11.217581333999988,
+      "end": 17.20864053600235
+    },
+    {
+      "phase": "draft",
+      "cpu_seconds": 0.6300000000000008,
+      "average_cpu_percent": 28.27749253862771,
+      "start": 17.20864053600235,
+      "end": 19.43656084802933
+    },
+    {
+      "phase": "focused",
+      "cpu_seconds": 0.4800000000000004,
+      "average_cpu_percent": 19.338669944179955,
+      "start": 19.43656084802933,
+      "end": 21.918634338013362
+    },
+    {
+      "phase": "up",
+      "cpu_seconds": 4.6,
+      "average_cpu_percent": 80.07314192701388,
+      "start": 21.918634338013362,
+      "end": 27.663382064027246
+    },
+    {
+      "phase": "up-done",
+      "cpu_seconds": 0.5299999999999994,
+      "average_cpu_percent": 38.66543064923622,
+      "start": 27.663382064027246,
+      "end": 29.034115536022
+    },
+    {
+      "phase": "down",
+      "cpu_seconds": 4.220000000000001,
+      "average_cpu_percent": 73.78095661860044,
+      "start": 29.034115536022,
+      "end": 34.753748613991775
+    },
+    {
+      "phase": "down-done",
+      "cpu_seconds": 0.28000000000000114,
+      "average_cpu_percent": 19.15038873562973,
+      "start": 34.753748613991775,
+      "end": 36.21585992601467
+    },
+    {
+      "phase": "reverse",
+      "cpu_seconds": 4.649999999999999,
+      "average_cpu_percent": 80.6247221543707,
+      "start": 36.21585992601467,
+      "end": 41.98332166200271
+    },
+    {
+      "phase": "reverse-done",
+      "cpu_seconds": 0.6499999999999986,
+      "average_cpu_percent": 44.27523629757261,
+      "start": 41.98332166200271,
+      "end": 43.4514109470183
+    },
+    {
+      "phase": "end",
+      "cpu_seconds": 1.25,
+      "average_cpu_percent": 46.13129225047839,
+      "start": 43.4514109470183,
+      "end": 46.16106840298744
+    },
+    {
+      "phase": "idle",
+      "cpu_seconds": 2.8000000000000007,
+      "average_cpu_percent": 16.852025905311912,
+      "start": 46.16106840298744,
+      "end": 62.776281409023795
+    },
+    {
+      "phase": "idle-done",
+      "cpu_seconds": 0.240000000000002,
+      "average_cpu_percent": 16.987753337352046,
+      "start": 62.776281409023795,
+      "end": 64.18906387197785
+    }
+  ],
+  "physical_review": {
+    "down": "Readable saved history/chrome/draft",
+    "end_15s_idle": "Readable saved history/chrome/draft",
+    "last_video_75s": "B selected; readable saved history; empty B draft",
+    "readiness": "10s original ready predicate timed out; no predicate-time census",
+    "A_return": "Unreached"
+  },
+  "limits": [
+    "No A/B/A success, Strip reuse, firstpaint or CPU gain claim",
+    "B visible paint does not waive native readiness predicate",
+    "No unchanged recapture",
+    "Original u05 remains unclassified, separate merged262/u09 proofs preserved"
+  ],
+  "artifact_hashes": {
+    "factory-receipt.json": {
+      "bytes": 4028,
+      "sha256": "6ef1798df4f5d204c2540ff67f446bf1dc76939b3b8e4a5045452276384b260a"
+    },
+    "physical01/receipt.json": {
+      "bytes": 18981,
+      "sha256": "ae7cda003d60e29a9d4731aa1e0f55255f0db5ed98973023b8afeaf060164e1f"
+    },
+    "physical01/events.jsonl": {
+      "bytes": 38812,
+      "sha256": "fa96e051c782730e47b912d346c9daf1605476e809997924b95f4f5e881f98b7"
+    },
+    "physical01/cpu-profile.json": {
+      "bytes": 7440250,
+      "sha256": "d9d0027e74046457cc47856169474be0ab463c723bdd2694693a93677e793596"
+    },
+    "physical01/profile-review.json": {
+      "bytes": 163429,
+      "sha256": "d4b17882685d7dd8ad280dbea16ec47eb11899c2950a2d0e3ba3c9cba1a4b519"
+    },
+    "physical01/phase-down-done.png": {
+      "bytes": 68819,
+      "sha256": "11a2c476381a6b44219fdcfa08d19fb16286b5ce040f9f6c60cea8d5f2e1fd35"
+    },
+    "physical01/phase-idle-done.png": {
+      "bytes": 67240,
+      "sha256": "f08ee80769c190ec0928f661187e8b5e1bea0eb953bbae519a0f2e3d4db361a8"
+    },
+    "physical01/last-before-cleanup.png": {
+      "bytes": 201083,
+      "sha256": "c54fd06f872767d09505bb53129eba1ea920e8c5484c098b6efb807c06bef11a"
+    },
+    "physical01/phase-b-open-state-error.json": {
+      "bytes": 991,
+      "sha256": "3e1b54b6ee66bc1fdda1a3894bae939a292094fb7874a22f4f9e45df8bccf85d"
+    }
+  }
+}

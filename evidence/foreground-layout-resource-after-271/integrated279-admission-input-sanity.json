@@ -1,0 +1,316 @@
+{
+  "source_head": "6cc72b2e24f47dccfbc98327ffc5d44e15736d59",
+  "scope": "Integrated original native Toad source sanity; not installed busy acceptance or performance Ready",
+  "merged_kepler_head": "8229c8b3fd4e546e5203e297b73ad805c2aa1571",
+  "kepler_production_fix": "f7dbb163",
+  "production_admission_diff": {
+    "files": 2,
+    "lines_added": 8,
+    "lines_deleted": 9
+  },
+  "original_discriminator": {
+    "page_extensions": 12,
+    "duplicate_pager_full_admissions": 12,
+    "artifact": "evidence/page-admission-regression-20261001/discriminator.json"
+  },
+  "integrated_events": {
+    "installed": 1,
+    "relocating": 26,
+    "relocated": 26,
+    "request": 71,
+    "observe": 69,
+    "full_admission": 63,
+    "history_page_up": 1,
+    "scroll": 40,
+    "page_extension": 1,
+    "fragment_budget": 1,
+    "page_extended": 1,
+    "history_page_down": 1
+  },
+  "full_admission_origins": {
+    "_trim_warm": 63
+  },
+  "duplicate_pager_full_admissions": 0,
+  "native_receipt": {
+    "scope": "source actual Toad/native stationary counter; not physical acceptance",
+    "compact_records": false,
+    "input_paging_and_cadence": true,
+    "samples": [
+      {
+        "label": "before-single-pageup",
+        "seconds": 0.008376370009500533,
+        "scroll_y": 89,
+        "maximum": 89,
+        "follows_tail": true,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            88,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "after-single-pageup",
+        "seconds": 1.0086891580140218,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "MovingPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-0",
+        "seconds": 1.1511509830015711,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-1",
+        "seconds": 1.2899354670080356,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-2",
+        "seconds": 1.4285997030092403,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-3",
+        "seconds": 1.5665194769972004,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-4",
+        "seconds": 1.706819724990055,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-5",
+        "seconds": 1.8440685070236214,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-6",
+        "seconds": 1.997045777970925,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-7",
+        "seconds": 2.139172127004713,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-8",
+        "seconds": 2.276223345019389,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-9",
+        "seconds": 2.4428424990037456,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-10",
+        "seconds": 2.5992670549894683,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "stationary-11",
+        "seconds": 2.769662539009005,
+        "scroll_y": 123.05670465396531,
+        "maximum": 145,
+        "follows_tail": false,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      },
+      {
+        "label": "after-input-pagedown",
+        "seconds": 3.6203204229823314,
+        "scroll_y": 145,
+        "maximum": 145,
+        "follows_tail": true,
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "body_evictions": 0,
+        "pages": [
+          [
+            84,
+            96
+          ]
+        ]
+      }
+    ],
+    "page_calls": [
+      {
+        "label": "extend",
+        "seconds": 0.6763976949732751,
+        "scroll_y": 72.02978406379044,
+        "maximum": 89,
+        "follows_tail": false,
+        "demand": "MovingPreparation",
+        "travel_rows": -20.78859845547878,
+        "body_evictions": 0,
+        "pages": [
+          [
+            88,
+            96
+          ]
+        ],
+        "older": true
+      }
+    ],
+    "agent_bound": false,
+    "exception": "None"
+  },
+  "raw_directory": "/home/ts/.cache/agent-scratch/perf275-integrated279-admission-input-sanity-20261001-01",
+  "raw_sha256": {
+    "receipt.json": "3740aa4aff5dbb3574c3d7859de22e07b696cbfba9039fd239d5f00b1ff914fb",
+    "scroll-travel.jsonl": "fad9c8096f35d6dfae03ddbb3f35236c83b71d8c4d1d923f73ac835cb72ff158"
+  },
+  "observer_time_ms": 10.667598,
+  "remaining": [
+    "Mendel ONE normal noneditable current Core1304/Text18efe/native17d paired prefix for pushed source",
+    "Installed busy input-focused paging, stationary middle history, video/profile/admission closure",
+    "Pre254 compatible installed control; geometry hypothesis unconfirmed and source unchanged",
+    "ColdPR159 30.846s wait and63.33% UI idle CPU causal classification",
+    "Left-sidebar stationary anchor jump discriminator; no speculative source patch",
+    "Whole warm/frame/velocity/void/focus/TC1/T9 scope remains in275/277"
+  ]
+}

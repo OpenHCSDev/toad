@@ -1,0 +1,189 @@
+{
+  "base": "2e6e219b",
+  "scope": "four affected production files and each changed qualified function; bounded same-run",
+  "files": {
+    "src/toad/widgets/prompt.py": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 3,
+        "long_boolean_chain": 1,
+        "boolean_chain_terms": 4
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 3,
+        "long_boolean_chain": 1,
+        "boolean_chain_terms": 4
+      }
+    },
+    "src/toad/preferences.py": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    },
+    "src/toad/setting_effects.py": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    },
+    "src/toad/sidebar_projection.py": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    }
+  },
+  "functions": {
+    "PromptTextArea.action_history_page_down": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    },
+    "PromptTextArea.action_history_page_up": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    },
+    "sidebar_spinner_frames_per_second": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    },
+    "SidebarProjection.mount": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    },
+    "SidebarProjection.update_animation_cadence": {
+      "before": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 0,
+        "long_boolean_chain": 0,
+        "boolean_chain_terms": 0
+      }
+    }
+  },
+  "passed": true
+}

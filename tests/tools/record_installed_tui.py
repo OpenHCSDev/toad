@@ -458,6 +458,14 @@ class WarmScrollJourney(ScrollJourney):
     review_artifacts = ("warm-scroll-review.json",)
 
     @classmethod
+    def opening_commands(cls, args):
+        return ()
+
+    @classmethod
+    def paging_commands(cls, args):
+        return ()
+
+    @classmethod
     def peer_click(cls, args):
         if not args.peer_thread:
             raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
@@ -482,8 +490,10 @@ class WarmScrollJourney(ScrollJourney):
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
         return "\n".join([
+            *cls.opening_commands(args),
             marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
             f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
+            *cls.paging_commands(args),
             scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
                           state="phase-draft-state.pickle"),
             marker + "switch-b", peer_click, peer_ready, marker + "return-a",
@@ -512,6 +522,181 @@ class WarmSourceJourney(WarmScrollJourney):
     def peer_click(cls, args):
         return native_click_command("phase-switch-b-state.pickle", target="peer_tab",
                                     original_state="phase-warm-start-state.pickle")
+
+
+class ScrollTravelRegressionJourney(ScrollJourney):
+    """Discriminate focused key delivery and native travel on one saved source."""
+
+    @classmethod
+    def input_commands(cls, args):
+        marker = marker_command()
+        return [marker + "input-held-up", "keydown Prior",
+                f"sleep {args.scroll_hold_seconds:g}", "keyup Prior",
+                marker + "input-held-up-done"]
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state or not args.scroll_travel:
+            raise ValueError("Travel regression requires native state and travel observation")
+        marker = marker_command()
+        ready = (marker + f"travel-start --wait-history-seconds {args.history_wait_seconds:g} "
+                 f"--wait-history-interval {args.history_wait_interval:g} "
+                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+        hold = f"sleep {args.scroll_hold_seconds:g}"
+        idle = f"sleep {args.scroll_idle_seconds:g}"
+        return "\n".join([
+            ready + " --require-editor-focus",
+            *cls.input_commands(args), marker + "before-history-focus",
+            native_click_command("phase-before-history-focus-state.pickle"),
+            marker + "history-held-up", "keydown Prior", hold, "keyup Prior",
+            marker + "history-held-up-done", idle, marker + "mid-history-idle-done",
+            "key End", idle, marker + "end-done", "",
+        ])
+
+
+class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
+    """Reject absent canonical routing while observing the actual busy source."""
+
+    review_artifacts = ("input-paging-review.json",)
+
+    @classmethod
+    def input_commands(cls, args):
+        return [*super().input_commands(args),
+                f"sleep {args.scroll_idle_seconds:g}",
+                marker_command() + "input-mid-history-idle-done",
+                *cls.down_commands(args)]
+
+    @classmethod
+    def down_commands(cls, args):
+        marker = marker_command()
+        return [marker + "input-held-down",
+                "keydown Next", f"sleep {args.scroll_hold_seconds:g}", "keyup Next",
+                marker + "input-held-down-done"]
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import NativePhase
+        initial, up, down = (NativePhase.read(output, name) for name in
+                            ("travel-start", "input-held-up-done", "input-held-down-done"))
+        phases = {event["label"]: event["seconds_since_capture_launch"] for event in receipt["events"]}
+        trace = [json.loads(line) for line in (output / "scroll-travel.jsonl").read_text().splitlines()]
+
+        def routed(action, begin, end):
+            start = receipt["capture_launch_monotonic"]
+            return any(event["event"] == action and event["window"] == initial.window
+                       and start + phases[begin] <= event["monotonic_ns"] / 1e9 < start + phases[end]
+                       for event in trace)
+
+        checks = {
+            "input_remains_focused": all(phase.focused_widget == phase.editor
+                                         for phase in (initial, up, down)),
+            "original_editor_window_and_mode": all(
+                (phase.editor, phase.window, phase.mode) == (initial.editor, initial.window, initial.mode)
+                for phase in (up, down)),
+            "draft_and_caret_preserved": all((phase.text, phase.selection) == (initial.text, initial.selection)
+                                            for phase in (up, down)),
+            "input_pageup_moves_history": up.scroll_y < initial.scroll_y or up.admits_before(initial),
+            "input_pagedown_moves_history": down.scroll_y > up.scroll_y or up.admits_before(down),
+            "input_pageup_reaches_original_window": routed("history_page_up", "input-held-up", "input-held-up-done"),
+            "input_pagedown_reaches_original_window": routed("history_page_down", "input-held-down", "input-held-down-done"),
+        }
+        result = {"checks": checks, "native_checks_passed": all(checks.values()),
+                  "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+                  "physical_assessment": "unreviewed; inspect the busy video and correlated profile"}
+        (output / "input-paging-review.json").write_text(json.dumps(result, indent=2) + "\n")
+        return result
+
+    @classmethod
+    def validate_review(cls, review):
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Installed input-focused history paging failed: " + ", ".join(failed))
+
+
+class InputWarmJourney(WarmScrollJourney):
+    """Use the original warm journey with focused paging and idle away from tail."""
+
+    review_artifacts = (*WarmScrollJourney.review_artifacts,
+                        *InputPagingAcceptanceJourney.review_artifacts)
+
+    @classmethod
+    def opening_commands(cls, args):
+        if not args.scroll_travel:
+            raise ValueError("Input warm acceptance requires original paging observation")
+        return (marker_command() + f"warm-ready --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                f"--wait-history-thread {shlex.quote(args.command[-1])}",)
+
+    @classmethod
+    def paging_commands(cls, args):
+        marker = marker_command()
+        return (marker + "travel-start --require-editor-focus",
+                *ScrollTravelRegressionJourney.input_commands(args),
+                f"sleep {args.scroll_idle_seconds:g}", marker + "input-mid-history-idle-done",
+                *InputPagingAcceptanceJourney.down_commands(args))
+
+    @classmethod
+    def review(cls, output, receipt):
+        return {"warm": super().review(output, receipt),
+                "input": InputPagingAcceptanceJourney.review(output, receipt)}
+
+    @classmethod
+    def validate_review(cls, review):
+        super().validate_review(review["warm"])
+        InputPagingAcceptanceJourney.validate_review(review["input"])
+
+
+class StationaryInputScrollJourney(ScrollJourney):
+    """Observe idle feedback and editor-focused paging on the existing bus."""
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Stationary/input scrolling requires native state capture")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        ready = (marker + f"stationary-start --wait-history-seconds {args.history_wait_seconds:g} "
+                 f"--wait-history-interval {args.history_wait_interval:g} "
+                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+        return "\n".join([
+            ready, settle, marker + "stationary-loaded",
+            native_click_command("phase-stationary-loaded-state.pickle"),
+            "key Prior", settle, marker + "slightly-up",
+            f"sleep {args.scroll_idle_seconds:g}", marker + "stationary-done",
+            native_click_command("phase-stationary-done-state.pickle", target="editor"),
+            marker + "input-focused", "key Prior", settle, marker + "input-pageup",
+            "key Next", settle, marker + "input-pagedown",
+            scroll_script(idle_seconds=args.scroll_idle_seconds,
+                          hold_seconds=args.scroll_hold_seconds,
+                          state="phase-input-pagedown-state.pickle"),
+            "",
+        ])
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import NativePhase
+
+        labels = ("stationary-loaded", "slightly-up", "stationary-done",
+                  "input-focused", "input-pageup", "input-pagedown", "idle-done")
+        phases = {label: NativePhase.read(output, label) for label in labels}
+        initial, offset, idle = (phases[label] for label in labels[:3])
+        result = {"checks": {
+            "loaded_before_pageup": initial.loaded_pages > 0 and initial.maximum > 0,
+            "stationary_away_from_tail": not offset.follows_tail and not idle.follows_tail,
+            "offset_reader": offset.scroll_y < offset.maximum and idle.scroll_y < idle.maximum,
+            "input_keeps_focus": all(phases[label].focused_widget == phases[label].editor
+                                     for label in ("input-focused", "input-pageup", "input-pagedown")),
+        }, "phases": {label: vars(phase) for label, phase in phases.items()},
+                  "scope": "Diagnostic coverage; frame smoothness and input paging remain observations"}
+        (output / "stationary-scroll-review.json").write_text(
+            json.dumps(result, default=str, indent=2) + "\n")
+        return result
+
+    @classmethod
+    def validate_review(cls, review):
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Stationary diagnostic missed its required coverage: " + ", ".join(failed))
 
 
 class SavedTabCloseJourney(PhysicalJourney):
@@ -919,7 +1104,8 @@ def review_recording(args):
 
 
 def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False,
-                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
+                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
+                         scroll_travel=False):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -933,7 +1119,8 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
-                       *(["--screen"] if screen else [])], env,
+                       *(["--screen"] if screen else []),
+                       *(["--scroll-travel"] if scroll_travel else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
     except (OSError, subprocess.SubprocessError, ValueError) as error:
@@ -1101,7 +1288,8 @@ def record(args):
                 if not args.capture_state:
                     return
                 receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
-                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True)
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True,
+                    scroll_travel=args.scroll_travel and name == "before")
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
@@ -1236,7 +1424,7 @@ def record(args):
 
 
 def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
-         image_only=False):
+         image_only=False, require_editor_focus=False):
     """A native xdotool exec marker; timestamps bracket actual input injection."""
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,39}", label):
         raise ValueError("Invalid phase label")
@@ -1296,6 +1484,12 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_histor
                     output, f"phase-{label}", identity, owner, os.environ.copy(), timeout=remaining)
         finally:
             owner.cleanup()
+    if require_editor_focus:
+        metadata = json.loads((output / f"phase-{label}-state.json").read_text())
+        focused = metadata["screen"]["focused"]
+        if focused is None or focused["class"] not in ("PromptTextArea", "ChannelTextArea"):
+            raise RuntimeError("The actual selected input is not keyboard focused")
+        event["verified_editor_focus"] = focused
     with (output / "events.jsonl").open("a") as target:
         target.write(json.dumps(event) + "\n")
     print(json.dumps(event), flush=True)
@@ -1354,13 +1548,15 @@ def main():
         marker.add_argument("--wait-history-seconds", type=float, default=0)
         marker.add_argument("--wait-history-interval", type=float, default=.1)
         marker.add_argument("--wait-history-thread")
+        marker.add_argument("--require-editor-focus", action="store_true")
         options = marker.parse_args(sys.argv[2:])
         if (not math.isfinite(options.wait_history_seconds) or options.wait_history_seconds < 0
                 or not math.isfinite(options.wait_history_interval) or options.wait_history_interval <= 0):
             marker.error("History budget must be nonnegative and observation interval positive")
         mark(options.label, wait_history_seconds=options.wait_history_seconds,
              wait_history_interval=options.wait_history_interval,
-             wait_history_thread=options.wait_history_thread, image_only=options.image_only)
+             wait_history_thread=options.wait_history_thread, image_only=options.image_only,
+             require_editor_focus=options.require_editor_focus)
         return
     if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
         profile_launch(sys.argv[2:])
@@ -1403,6 +1599,8 @@ def main():
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
     parser.add_argument("--capture-state", action="store_true",
                         help="Export loaded DTOs/SVG at before/after and physical phase markers using capture_live --sudo")
+    parser.add_argument("--scroll-travel", action="store_true",
+                        help="Record native observe travel/relocations for the owned UI (requires --capture-state)")
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
     parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
@@ -1425,6 +1623,8 @@ def main():
     parser.add_argument("--sheet-columns", type=int, default=4)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.scroll_travel and not args.capture_state:
+        parser.error("Scroll-travel observation requires --capture-state")
     if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
         parser.error("Scroll idle observation must be positive and shorter than capture duration")
     if not math.isfinite(args.scroll_hold_seconds) or not 0 < args.scroll_hold_seconds < args.max_duration:
