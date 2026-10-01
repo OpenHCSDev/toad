@@ -406,6 +406,7 @@ class DocumentViewport:
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
                 sequence = owners if active else ()
+                demand = self.lookahead.demand
                 ahead_owners = []
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:
@@ -414,10 +415,10 @@ class DocumentViewport:
                         sequence, min(visible_indexes), max(visible_indexes) + 1,
                         self.window.size.height,
                     )
-                    predicted = self.lookahead.demand.neighbors(
+                    predicted = demand.neighbors(
                         sequence, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
-                    ahead_owners = list(dict.fromkeys(self.lookahead.demand.body_order(runway, predicted)))
+                    ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
                 admitted = await self._trim_warm(required=required, ahead=ahead_owners)
                 warm = admitted if active else set()
                 retained = protected | warm | visible.keys()
@@ -437,7 +438,6 @@ class DocumentViewport:
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
                 if active:
-                    demand = self.lookahead.demand
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
                     ahead_owners = [owner for owner in ahead_owners if owner in admitted]

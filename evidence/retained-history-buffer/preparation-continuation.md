@@ -25,3 +25,21 @@ Workspace/SessionAdmission own behavior and resources. Extend those contracts
 and delete unnecessary consumers in place. Report concrete changed files,
 deleted lines, actual physical limits and next remaining cause. Ship useful
 code before the final performance target.
+
+## Concrete original-demand custody correction
+
+`DocumentViewport._reconcile` selected ahead bodies from the current demand,
+then awaited foreground restoration/retirement before capturing the demand
+used by the existing speculative `accepts` checks. A reversal during that
+await therefore authorized old-direction neighbors with the new demand.
+
+Capture the existing demand before selecting its neighbors and preserve that
+same reference through the admission. Same-direction updates retain their
+original demand; reversal already replaces it and stops speculative work.
+No added state, flag, cursor, store, worker or lifecycle mechanism. Native
+foreground-required bodies still restore; the pending viewport pass selects
+the new direction through the existing worker. This closes a declaration-owner
+bypass (BOUND-2) rather than introducing another revocation path.
+
+Actual changed-source physical acceptance is pending the single coordinated
+source capture; do not treat this source checkpoint as installed readiness.
