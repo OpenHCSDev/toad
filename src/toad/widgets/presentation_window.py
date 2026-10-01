@@ -108,6 +108,9 @@ class PreparationDemand(ABC):
     def neighbors(self, sequence, first: int, last: int, count: int):
         return ()
 
+    def body_order(self, runway, predicted):
+        return (*runway, *predicted)
+
 
 class StationaryPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
@@ -140,6 +143,14 @@ class MovingPreparation(PreparationDemand):
     def neighbors(self, sequence, first: int, last: int, count: int):
         return (tuple(reversed(sequence[max(0, first - count):first]))
                 if self.velocity < 0 else tuple(sequence[last:last + count]))
+
+    def edges(self, before, after):
+        return (before, None) if self.velocity < 0 else (None, after)
+
+    def body_order(self, runway, predicted):
+        # The measured incoming direction gets resource admission first. A
+        # reverse runway cannot consume the bound before fast forward travel.
+        return (*predicted, *runway)
 
 
 @dataclass(frozen=True)
@@ -227,7 +238,12 @@ class DirectionalPreparation:
                    ceil(min(viewport_rows * self.budget.reserve_batches, abs(self.travel_rows))))
 
     def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
-        return min(budget.item_limit(0), budget.admission_items + self.ahead_rows(viewport_rows))
+        # Rows and source fragments are different units. Use the original
+        # native body's measured extent for both page and body lookahead.
+        return min(budget.item_limit(0), max(
+            budget.admission_items,
+            ceil(self.ahead_rows(viewport_rows) / self.viewport.visible_body_rows),
+        ))
 
     def accepts(self, demand: PreparationDemand) -> bool:
         """Baseline runway survives idle; reversal revokes the original batch."""

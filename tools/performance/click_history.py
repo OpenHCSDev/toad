@@ -64,6 +64,22 @@ class OriginalTabTarget(NativeFocusTarget):
         return next(tab for tab in snapshot["metadata"]["navigation_targets"]["tabs"] if tab["name"] == mode)
 
 
+class PeerTabTarget(NativeFocusTarget):
+    """The sole other native tab in a two-session source fixture."""
+
+    @classmethod
+    def locate(cls, snapshot, args):
+        if args.original_state is None:
+            raise ValueError("Peer tab requires --original-state")
+        original = read_snapshot(args.original_state)
+        if original["metadata"]["pid"] != snapshot["metadata"]["pid"]:
+            raise ValueError("Original tab snapshot belongs to a different UI")
+        mode = original["metadata"]["current_mode"]
+        peer, = (tab for tab in snapshot["metadata"]["navigation_targets"]["tabs"]
+                 if tab["name"] != mode)
+        return peer
+
+
 class WidgetTarget(NativeFocusTarget):
     """Click a visible native control by class and optional Textual ID."""
 
