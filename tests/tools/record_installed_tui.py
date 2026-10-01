@@ -514,6 +514,30 @@ class WarmSourceJourney(WarmScrollJourney):
                                     original_state="phase-warm-start-state.pickle")
 
 
+class StationaryInputScrollJourney(ScrollJourney):
+    """Observe idle feedback and editor-focused paging on the existing bus."""
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Stationary/input scrolling requires native state capture")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        return "\n".join([
+            marker + "stationary-start",
+            native_click_command("phase-stationary-start-state.pickle"),
+            "key Prior", settle, marker + "slightly-up",
+            f"sleep {args.scroll_idle_seconds:g}", marker + "stationary-done",
+            native_click_command("phase-stationary-done-state.pickle", target="editor"),
+            marker + "input-focused", "key Prior", settle, marker + "input-pageup",
+            "key Next", settle, marker + "input-pagedown",
+            scroll_script(idle_seconds=args.scroll_idle_seconds,
+                          hold_seconds=args.scroll_hold_seconds,
+                          state="phase-input-pagedown-state.pickle"),
+            "",
+        ])
+
+
 class SavedTabCloseJourney(PhysicalJourney):
     @classmethod
     def script(cls, args):
