@@ -36,3 +36,18 @@ metadata and normal 69-package stage; Schrodinger and Einstein own the
 continuous Core nested-tool/native/context/Toad journey. Installed-source and
 full-trust checks prepare that journey and do not establish its acceptance.
 No public route, root, native package, default link or owner is changed.
+
+## Image-attribution receiving correction
+
+The original f117 cohort stays immutable; Einstein's mandatory SDK36
+changed-image control exposed its image-attribution failure. Schrodinger's
+normal stock11 build publishes Core
+`43df95f00f4e29f9086e2b5bb1e1f651ab5f67dc` with native manifest
+`0064a96bb79c21c13317a37f44173bd0acfb63d628e9f9b31cd3a374c2c25ae1`
+and full-tree commitment
+`cc9e86f72ba7b2c285b209b3fc96a2e8dcc4f182a528941712a5dbd7e457a9d1`.
+Only the existing native context/image fingerprint owner changes; the Core
+Python API and Toad production source remain the original cohort. The new
+normal69 prefix is `.artifacts/runtime-s2-s5-origin-context-0064-20261001`.
+Einstein's changed-image gate and the same shared continuous journey remain
+required. No old cohort or public route is changed by this receiving update.
