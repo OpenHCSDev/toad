@@ -1720,7 +1720,8 @@ def main():
     parser.add_argument("--height", type=int, default=800)
     parser.add_argument("--fit-window", action="store_true")
     parser.add_argument("--startup-wait", type=float, default=8)
-    parser.add_argument("--max-duration", type=float, default=45)
+    parser.add_argument("--max-duration", type=float, default=45,
+                        help="Finite observation budget in seconds; never a native turn deadline")
     parser.add_argument("--finalize-seconds", type=float, default=16,
                         help="Reserved within duration for profiler export and owned UI teardown")
     parser.add_argument("--tail-seconds", type=float, default=2)
@@ -1767,7 +1768,7 @@ def main():
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, interrupted)
     bounds = {"profile_rate": (10, 49), "fps": (1, 120), "width": (320, 1920), "height": (240, 1200),
-              "max_duration": (1, 120), "slowdown": (1, 16), "review_seconds": (.01, 15),
+              "slowdown": (1, 16), "review_seconds": (.01, 15),
               "review_fps": (.1, 60), "review_frames": (1, 96), "sheet_columns": (1, 8),
               "startup_wait": (0, 119), "tail_seconds": (0, 119), "review_start": (0, 119),
               "finalize_seconds": (ProfileProcess.export_seconds + 6, 30)}
@@ -1775,6 +1776,8 @@ def main():
         value = getattr(args, name)
         if not math.isfinite(value) or not low <= value <= high:
             parser.error(f"{name} must be finite and between {low} and {high}")
+    if not math.isfinite(args.max_duration) or args.max_duration < 1:
+        parser.error("max_duration must be finite and at least 1")
     if args.width % 2 or args.height % 2:
         parser.error("Capture dimensions must be even for yuv420p")
     if args.startup_wait + args.tail_seconds + args.finalize_seconds + 1 >= args.max_duration:

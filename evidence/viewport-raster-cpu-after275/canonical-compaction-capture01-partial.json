@@ -1,0 +1,105 @@
+{
+  "scope": "Partial real configured canonical-fork compaction + input-focused scrolling; NOT warm A/B/A, terminal native outcome, smooth-scroll or Ready proof",
+  "source": {
+    "toad_product": "10a8a38f86cf67f502c817d782d8242cacddc7f9",
+    "installed_receiving": "39ef5a65adb4de63f41fb0a2edb9220fe48291e7",
+    "core": "07934d583cd1175f17a8843d3e7feec5093c2fb5",
+    "textual": "55954718732586f5a89f6f664b78a9b1e6e01f6a",
+    "native": "5184ffa6d842fe23",
+    "public_live_native": "53b8c413d90aa6b1"
+  },
+  "original_request": {
+    "child": "compaction499-live-architecture-memory",
+    "owner_pid": 2497633,
+    "native_pid": 2521006,
+    "operation": "95fe2ad984974791b588623061e799f1",
+    "input": "acp:6c4e70f687744a6488eea7d105651881",
+    "disposition": "Unresolved; UI exit supplies no terminal native disposition",
+    "fresh_submissions": 1,
+    "replays": 0
+  },
+  "captures": {
+    "01": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-01/capture",
+    "02": "PREUI parser rejection of invocation600 by obsolete hard120 ceiling; no UI/input",
+    "03": "READONLY owned_fork/input_warm,600 invocation budget, no fresh-input; selected history readiness expired35s,0pages/metadata root null; original owner unchanged/cleanup[]"
+  },
+  "profile": {
+    "sample_count": 1977,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.07362960802041926
+  },
+  "phases": [
+    {
+      "label": "input-held-up",
+      "start_video_s": 27.137986142013688,
+      "end_video_s": 31.055920724000316,
+      "ui_cpu_s": 3.0100000000000016,
+      "ui_cpu_percent": 76.82619341933348
+    },
+    {
+      "label": "input-held-up-done",
+      "start_video_s": 31.055920724000316,
+      "end_video_s": 48.2356010209769,
+      "ui_cpu_s": 10.86,
+      "ui_cpu_percent": 63.21421477157073
+    },
+    {
+      "label": "input-held-down",
+      "start_video_s": 50.12161735398695,
+      "end_video_s": 54.40343731199391,
+      "ui_cpu_s": 3.3099999999999987,
+      "ui_cpu_percent": 77.30357727466635
+    },
+    {
+      "label": "up",
+      "start_video_s": 60.43770236597629,
+      "end_video_s": 64.98439696896821,
+      "ui_cpu_s": 2.9200000000000017,
+      "ui_cpu_percent": 64.22247929470602
+    },
+    {
+      "label": "down",
+      "start_video_s": 66.84870871098246,
+      "end_video_s": 71.02429576299619,
+      "ui_cpu_s": 3.3599999999999994,
+      "ui_cpu_percent": 80.46772724758787
+    },
+    {
+      "label": "reverse",
+      "start_video_s": 72.71783213398885,
+      "end_video_s": 76.95417330000782,
+      "ui_cpu_s": 2.509999999999998,
+      "ui_cpu_percent": 59.249241306000044
+    },
+    {
+      "label": "idle",
+      "start_video_s": 81.59388200496323,
+      "end_video_s": 98.526996777975,
+      "ui_cpu_s": 9.670000000000002,
+      "ui_cpu_percent": 57.1070362991467
+    }
+  ],
+  "physical_review": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-01/capture/phase-input-held-up-done.png",
+      "sha256": "8e3c0a028754c6d6275deb1dedb8fb8cf344be15ad8839afd699563e1dfc604a",
+      "assessment": "Historical body readable with editor-focused draft/queued original request. No global blank."
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-01/capture/phase-idle-done.png",
+      "sha256": "1e2cc40270838338f2fa6c49b139709a7430ba8c1e7e18763a50e6c084b38d03",
+      "assessment": "Compaction summary draft visible/readable, queue original request remains; old budget error historical, not new terminal outcome."
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-01/capture/input-up-contact-sheet.png",
+      "sha256": "156c39d9006d346f03391f4c266201f870b8d6f1510dba383be572fc6f37bc8a",
+      "assessment": "Eight samples at27..30.5s (2fps) show initially repeated body then historical source progression; coarse samples do not establish continuous animation/frame-rate."
+    }
+  ],
+  "remaining": [
+    "Warm A/B/A/draft undo after physical return not reached01; not executed03",
+    "Character-per-second original producer/publication-to-frame latency unmeasured; Sch owns original source timing, Heisen render consumer",
+    "Growing-end/blank gaps/animation interruption/full CPU/raster/TC1/T9 remain open"
+  ]
+}
