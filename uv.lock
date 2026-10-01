@@ -21,9 +21,10 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=6feb634ba184d94d763028406152fff07027cccc#6feb634ba184d94d763028406152fff07027cccc" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=970bc527f4ddd9b3bde5522dc671aea11fd27ece#970bc527f4ddd9b3bde5522dc671aea11fd27ece" }
 dependencies = [
     { name = "metaclass-registry" },
+    { name = "nominal-refactor-audit" },
 ]
 
 [package.optional-dependencies]
@@ -304,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=6feb634ba184d94d763028406152fff07027cccc" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=970bc527f4ddd9b3bde5522dc671aea11fd27ece" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -318,7 +319,7 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=2e49cb838af44d69aa5a6d76b2a1d74cfbe67347" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=6b5895fa0a72aeec2aeaef7206d5debfa0c1803c" },
     { name = "textual-diff-view", specifier = "==0.1.5" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
@@ -983,6 +984,11 @@ wheels = [
 ]
 
 [[package]]
+name = "nominal-refactor-audit"
+version = "0.1.0"
+source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor.git?subdirectory=skills%2Frefactor-audit&rev=d392c5e4cd189ce1203127a746337ad498a0330d#d392c5e4cd189ce1203127a746337ad498a0330d" }
+
+[[package]]
 name = "notify-py"
 version = "0.3.43"
 source = { registry = "https://pypi.org/simple" }
@@ -1543,7 +1549,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=2e49cb838af44d69aa5a6d76b2a1d74cfbe67347#2e49cb838af44d69aa5a6d76b2a1d74cfbe67347" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=6b5895fa0a72aeec2aeaef7206d5debfa0c1803c#6b5895fa0a72aeec2aeaef7206d5debfa0c1803c" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },

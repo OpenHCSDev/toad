@@ -1460,7 +1460,6 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             self.transcript.invalidate()
             return
         await self._clear_mcp_live()
-        self.submissions.reset()
         self._agent_activity_boundary.reset()
         await self.output.settle()
         self.transcript.retry()
@@ -1472,15 +1471,15 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             or message.session_id != self.agent.session_id
         ):
             return
-        self.submissions.publish_pending()
-        for started in message.update.starts:
-            if (
-                message.agent is not self.agent
-                or message.session_id != self.agent.session_id
-            ):
-                return
-            self.output.boundary()
-            await self.post(UserInput(started.text, native_id=started.native_id))
+        async with self.window.preserve_history(None):
+            for started in message.update.starts:
+                if (
+                    message.agent is not self.agent
+                    or message.session_id != self.agent.session_id
+                ):
+                    return
+                await self.present_started_input(started)
+            self.submissions.publish_pending()
 
     async def on_input_started(self, message: acp_messages.CommsUpdated):
         if (
@@ -1490,8 +1489,16 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         ):
             return
         if message.update.text is not None:
-            self.output.boundary()
-            await self.post(UserInput(message.update.text, native_id=message.update.native_id))
+            async with self.window.preserve_history(None):
+                await self.present_started_input(message.update)
+                self.submissions.publish_pending()
+
+    async def present_started_input(self, started) -> None:
+        from toad.widgets.committed_presentation import StartedInputClaim
+
+        self.output.boundary()
+        await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
+        self.submissions.native_input_presented(started)
 
     def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
         """Only a locally failed request may recover its own draft text."""

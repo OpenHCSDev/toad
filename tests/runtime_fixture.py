@@ -1,7 +1,7 @@
 """Test-owned daemons need explicit teardown; closing a UI deliberately leaves them running."""
 
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 import os
 from pathlib import Path
 
@@ -55,19 +55,26 @@ async def stop_test_children(attempt: str | None) -> None:
             continue
 
 
+@asynccontextmanager
+async def _cleanup_on_exit(callback, *args):
+    try:
+        yield
+    finally:
+        await callback(*args)
+
+
 class ToadApp(Application):
     CSS_PATH = Path(__file__).resolve().parents[1] / "src/toad/toad.tcss"
 
     @asynccontextmanager
     async def run_test(self, **kwargs):
         root = resolve_comms_route().observe_root()
-        try:
+        async with AsyncExitStack() as cleanup:
+            await cleanup.enter_async_context(_cleanup_on_exit(asyncio.to_thread, _clear_wire_locks, root))
+            await cleanup.enter_async_context(_cleanup_on_exit(stop_test_children, os.environ.get("TOAD_TEST_ATTEMPT")))
+            await cleanup.enter_async_context(_cleanup_on_exit(asyncio.to_thread, stop_test_owners, root))
             async with super().run_test(**kwargs) as pilot:
                 yield pilot
-        finally:
-            await asyncio.to_thread(stop_test_owners, root)
-            await stop_test_children(os.environ.get("TOAD_TEST_ATTEMPT"))
-            await asyncio.to_thread(_clear_wire_locks, root)
 
 
 def _clear_wire_locks(root: Path) -> None:
@@ -130,6 +137,25 @@ async def reveal_session_details(app, pilot, target=None):
         target.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
     return details
+
+
+async def wait_fork_dialog(app, pilot, *, seconds=20):
+    """Await the original mounted, focused and physically hittable dialog."""
+    from textual.widgets import Input
+    from toad.widgets.comms_fork_dialog import ForkDialog
+
+    async with asyncio.timeout(seconds):
+        while True:
+            dialog = app.screen
+            if isinstance(dialog, ForkDialog) and dialog.is_mounted and dialog.is_attached:
+                entry = dialog.query_one_optional('#fork-name', Input)
+                if (entry is not None and entry.is_mounted and entry.is_attached
+                        and dialog.focused is entry and app.focused is entry
+                        and entry.region.width > 0 and entry.region.height > 0
+                        and entry.region.offset in dialog.size.region
+                        and dialog.get_widget_at(*entry.region.offset)[0] is entry):
+                    return dialog
+            await pilot.pause(.02)
 
 
 def private_native_wire(root: Path):
