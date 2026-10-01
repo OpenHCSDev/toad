@@ -61,7 +61,7 @@ async def main():
                 {"type": "message", "id": "native-user-original", "message": {
                     "role": "user", "content": "FIRST_SAVED_NATIVE_USER"}},
                 {"type": "message", "id": "native-assistant-original", "message": {
-                    "role": "assistant", "content": "FIRST_SAVED_NATIVE_RESPONSE"}},
+                    "role": "assistant", "content": [{"type": "text", "text": "FIRST_SAVED_NATIVE_RESPONSE"}]}},
             )))
             installed = comms.registry.declare(replace(thread, session_file=str(source)))
             assert installed.incarnation == thread.incarnation

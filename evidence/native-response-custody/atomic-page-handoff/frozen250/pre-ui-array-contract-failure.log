@@ -1,0 +1,76 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 171, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/tests/response_source_custody_pilot.py", line 74, in main
+    await agent.get_thread_presentation())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/src/toad/acp/agent.py", line 373, in get_thread_presentation
+    presentation = await asyncio.to_thread(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+        read_thread_presentation, reader, thread
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-native-response-resource-custody-20260930/src/toad/owner_preparation.py", line 23, in read_thread_presentation
+    return comms.views.thread_presentation(name)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/history_views.py", line 314, in thread_presentation
+    read, sources = self.transcripts.capture_page_window(thread.name, source_limit=5)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/transcripts.py", line 313, in capture_page_window
+    NativeRuntimeInput.publication_revision(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.root,
+        ^^^^^^^^^^
+        NativeTranscript(Path(session_file)),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stable_thread_lookup(thread.created_at),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/native_runtime_input.py", line 115, in publication_revision
+    (owner_lookup, str(reader.path), reader.session_id),
+                                     ^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/native_transcript.py", line 88, in session_id
+    entry = NativeEntry.read(stream.readline())
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/native_entries.py", line 49, in read
+    return cls.from_wire(json.loads(raw))
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/pi_payloads.py", line 93, in from_wire
+    return FieldCodec.decode(cls, cls.normalize_wire(value))
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py", line 313, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py", line 502, in _decode
+    field.name: cls.decode(hints[field.name], data[key])
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py", line 313, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py", line 502, in _decode
+    field.name: cls.decode(hints[field.name], data[key])
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py", line 313, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/agent_comms/field_codec.py", line 457, in _decode
+    raise ValueError("Expected a JSON array.")
+ValueError: Expected a JSON array.

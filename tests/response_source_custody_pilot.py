@@ -29,11 +29,11 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root/'wire'),XDG_CONFIG_HOME=str(root/'config'),XDG_STATE_HOME=str(root/'state'),XDG_DATA_HOME=str(root/'data'))
         comms=Comms(root/'wire');comms.messaging.initialize_private_initial_protocol()
         source=root/'source.jsonl'
-        source.write_text(json.dumps({'type':'message','message':{'role':'assistant','content':'SAVED_PARENT_RESPONSE'}})+'\n')
+        source.write_text(json.dumps({'type':'message','message':{'role':'assistant','content':[{'type':'text','text':'SAVED_PARENT_RESPONSE'}]}})+'\n')
         comms.registry.declare(Thread('source',frozenset(),str(root),session_file=str(source)))
         comms.registry.declare(Thread('peer',frozenset(),str(root)))
         old_page=comms.transcripts.thread_transcript_page('source')
-        source.write_text(source.read_text()+json.dumps({'type':'message','message':{'role':'assistant','content':'SOURCE_RESPONSE_ONCE'}})+'\n')
+        source.write_text(source.read_text()+json.dumps({'type':'message','message':{'role':'assistant','content':[{'type':'text','text':'SOURCE_RESPONSE_ONCE'}]}})+'\n')
         app=ToadApp(project_dir=str(root))
         frames=[]
         display=app._display
@@ -142,7 +142,7 @@ async def main():
             # An active turn does not bar first paint or replacement of saved
             # resources when there is no anonymous live output to transfer.
             assert binding.receive(TurnState(ActiveTurn('next-turn',os.getpid(),phase=PublishingPhase())))
-            source.write_text(source.read_text()+json.dumps({'type':'message','message':{'role':'assistant','content':'SAVED_FOLLOWUP'}})+'\n')
+            source.write_text(source.read_text()+json.dumps({'type':'message','message':{'role':'assistant','content':[{'type':'text','text':'SAVED_FOLLOWUP'}]}})+'\n')
             page=await agent.get_transcript_page()
             # A same-source snapshot requests a checkpoint rather than a
             # second full history. Exercise initial saved admission separately

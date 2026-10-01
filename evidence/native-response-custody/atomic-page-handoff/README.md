@@ -35,7 +35,7 @@ source cohort. No body/text deduplication, new lifecycle flags, owner registry,
 codec, copied status or compatibility path is introduced. New claim cases
 inherit their declaration's coverage behavior without adding a consumer case.
 Relevant audit patterns: IDEN-5/6 (original owner/identity), TIME-1/3
-(delete the replaced custody definition), IMPL ownership at the declaration.
+(delete the replaced custody definition), IMPL-12/13 (shared retirement).
 
 ## Executed boundary
 
@@ -62,3 +62,26 @@ Remaining: normal frozen250 integration, installed native/ACP/LinuxDriver
 continuous original input/answer frame review. Source success is not a full
 bus/native release claim. PR254 retains performance, warm raster, reader,
 focus, TC1/T9 and resource scope. Kepler owns disjoint WorkerStatic PR256.
+
+## Frozen250 integration
+
+Normal merge 20c0e213 includes exact frozen250 85d45b51, including original
+StartedInputClaim/TranscriptInputClaim and input presentation consumers.
+Production delta against that freeze: four files, 58 added / 45 deleted lines.
+All page/projection coverage declarations and consumers are asynchronous and
+joined; one TranscriptPresentation definition owns accepted retirement. Five
+focused ownership/caller guards pass (source-receipt.json).
+
+The same continuous source counter passes with actual frozen Core970/Textual6b
+dependencies from runtime-source-publication-custody-20260930. Toad source is
+the worktree, not the immutable prefix; no prefix files were changed. Raw
+frames, source receipt and dependency pins are in frozen250/. The first
+pre-UI fixture failure is retained: old assistant content was a string; current
+native contract requires TextContent arrays. Only fixture records changed;
+no codec or production fallback was added.
+
+Queued coverage producers remain live in publish_committed and resume_source.
+The former follows accepted snapshot/checkpoint custody under the existing
+fence; the latter mounts no new rows. Their restoration/invalidation handler
+is retained. They do not substitute queued delivery for page admission.
+Installed native/ACP continuous ANSI/frame acceptance remains required.
