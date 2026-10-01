@@ -22,7 +22,7 @@ from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
 
 
-async def main(output, *, compact=False):
+async def main(output, *, compact=False, input_paging=False):
     output.mkdir(parents=True, exist_ok=False)
     with TemporaryDirectory(dir=output) as directory:
         root = Path(directory)
@@ -78,15 +78,57 @@ async def main(output, *, compact=False):
             sys.setprofile(trace)
             try:
                 samples.append(sample("before-single-pageup"))
+                if input_paging:
+                    editor = view.prompt.prompt_text_area
+                    editor.load_text("Original retained draft")
+                    document, undo = editor.document, editor.history
+                    assert await pilot.click(editor)
+                    await pilot.pause(.05)
+                    assert editor.has_focus
+                    editor.move_cursor((0, 9))
+                    selection = editor.selection
                 await pilot.press("pageup")
                 samples.append(sample("after-single-pageup"))
                 for index in range(12):
                     await pilot.pause(.1)
                     samples.append(sample(f"stationary-{index}"))
+                if input_paging:
+                    assert not view.window.follows_tail
+                    offset = view.window.scroll_y
+                    await pilot.press("pagedown")
+                    await pilot.pause(.25)
+                    samples.append(sample("after-input-pagedown"))
+                    assert view.window.scroll_y > offset
+                    assert editor.has_focus and editor.selection == selection
+                    assert editor.text == "Original retained draft"
+                    assert editor.document is document and editor.history is undo
+                    await pilot.press("left", "right")
+                    assert editor.selection == selection
+                    editor.history.checkpoint()
+                    await pilot.press("backspace")
+                    assert len(editor.text) == len("Original retained draft") - 1
+                    await pilot.press("ctrl+z")
+                    assert editor.text == "Original retained draft"
+                    projection = app.workspace_chrome.channels.roster.projection
+                    original_timer = projection.timer
+                    assert original_timer._interval == 1 / 30
+                    app.settings.sidebar.spinner_frames_per_second = 60
+                    await pilot.pause(.05)
+                    assert projection.timer is not original_timer
+                    assert original_timer._task is None and original_timer._callback is None
+                    assert projection.timer._interval == 1 / 60
+                    for invalid in (0, 61):
+                        try:
+                            type(app.settings.sidebar).spinner_frames_per_second.parse(invalid)
+                        except ValueError:
+                            pass
+                        else:
+                            raise AssertionError("Sidebar animation bound was not enforced")
             finally:
                 sys.setprofile(None)
             receipt = {"scope": "source actual Toad/native stationary counter; not physical acceptance",
                        "compact_records": compact,
+                       "input_paging_and_cadence": input_paging,
                        "samples": samples, "page_calls": calls,
                        "agent_bound": view.agent is not None,
                        "exception": str(app._exception)}
@@ -97,4 +139,5 @@ async def main(output, *, compact=False):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(Path(sys.argv[1]), compact="--compact" in sys.argv[2:]))
+    asyncio.run(main(Path(sys.argv[1]), compact="--compact" in sys.argv[2:],
+                     input_paging="--input" in sys.argv[2:]))

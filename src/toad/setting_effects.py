@@ -26,6 +26,10 @@ def column(app: ToadApp, value: bool) -> None:
     app.column = value
 
 
+def sidebar_spinner_frames_per_second(app: ToadApp, value: int) -> None:
+    app.workspace_chrome.channels.roster.projection.update_animation_cadence()
+
+
 def column_width(app: ToadApp, value: int) -> None:
     app.column_width = value
 

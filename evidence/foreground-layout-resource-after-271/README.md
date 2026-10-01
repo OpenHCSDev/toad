@@ -319,3 +319,44 @@ No capture has started before the exact normal prefix/stage-proof handoff.
 Native peer controls remain absent here; direct Mendel DM cannot be sent through
 this recovered session. The recipe and command are available to the builder
 through this existing worktree without another framework or build lane.
+
+## Busy DEFAULT source, input paging and animation checkpoint
+
+Actual default busy-public-bus recordings are preserved under
+`/home/ts/.cache/agent-scratch/perf275-default-busy-stationary-20261001-01`
+and `...-02`. The first completed97.89s but sent its initial PageUp before
+history was loaded, so it did not cover offset idle. The second waited for the
+original history writer, then captured15s away from tail: reader133.299713,
+maximum159->162, one unchanged admitted page and zero body evictions. Its
+contact sheet shows GoalUnavailable appearing/disappearing, changing the
+window height32->29. Arendt485 owns canonical terminal/goal publication; no
+local status/goal copy or error hiding is added. Both captures preserve the
+original PID/start ticks and report empty cleanup. Second run failed the120s
+budget during its finalEnd-idle; all raw samples remain. Its2032samples have
+zero reported errors; the first1783samples have one. These are sampled stack
+observations with approximate clock alignment, not exhaustive CPU attribution.
+Kernel UI CPU during offset-idle38.43%, heldDown93.21%, reverse95.01%.
+`default-busy-stationary02-assessment.json` and `default-busy-phase-stacks02.json`
+link exact raw source and physical phases. No smooth-scroll or CPU-fix claim.
+
+The live editor-focused PageUp and PageDown did not move the original chat.
+PromptTextArea now declares those two bindings and delegates to the existing
+Conversation Window actions, preserving focus and its original editor resources.
+ChannelTextArea inherits the contract; no channel caller switch or new focus
+flag. Arrow, Backspace, Delete, submission and Undo bindings are unchanged.
+The existing SidebarSettings declaration now owns spinner_frames_per_second,
+default30, bounds1..60. Its original setting effect replaces the original
+SidebarProjection timer and reads cadence from the setting, with no extra
+clock, copied setting, activity mirror or row registry (BOUND-6, TIME-7).
+
+`input-paging-cadence-candidate05/receipt.json` passes actual source Toad/native
+history: input PageUp releases tail, idle remainsstable, PageDown moves toward
+tail, editor/document/Undo/caret retained, ordinaryLeft/Right and Backspace+Undo,
+30->60FPS resource replacement and declaration parsing bounds. Candidate01..04
+logs preserve corrected fixture errors: pointer click reset the prior caret;
+Left/Right round-trip was attempted at the zero boundary; invalid internal
+assignment bypassed the external setting decoder. No production fallback added.
+Four affected files/five methods pass the bounded required dispatch/probe/chain
+ratchet. This new key/cadence delta is SOURCE verified, not installed yet.
+Mendel owns the single normal immutable package refresh; one affected physical
+journey follows. No duplicate candidate capture or builder is launched here.
