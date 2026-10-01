@@ -1,0 +1,35 @@
+{
+  "source": "38fd39a3d9cd42c52cc264cd3468a2bc60f37bd8",
+  "stage": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001",
+  "donor": "/home/ts/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001",
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--python",
+      "/home/ts/wt/toad-foreground-layout-resource-followup-20261001/.artifacts/runtime-height-contract-264-20261001/bin/python",
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/bin/python",
+      "--requirement",
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/staging-retained-end-266-20261001/requirements.txt"
+    ],
+    [
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/bin/python",
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/staging-retained-end-266-20261001/verify.py"
+    ],
+    [
+      "uv",
+      "pip",
+      "check",
+      "--python",
+      "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/bin/python"
+    ]
+  ],
+  "public_effects": 0
+}
