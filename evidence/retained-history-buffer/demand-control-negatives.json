@@ -1,0 +1,22 @@
+{
+  "scope": "Harness controls corrected before claiming native counter result; no provider, public input or installed readiness",
+  "negative_runs": [
+    {
+      "run": "green01",
+      "failure": "No initial native forward sample; source control admission did not prove the initial demand."
+    },
+    {
+      "run": "green02",
+      "failure": "Wrong harness method HeadlessDriver.send_event; actual API is send_message."
+    },
+    {
+      "run": "green03",
+      "failure": "Stationary demand replaced initial motion; native negative travel not proven."
+    },
+    {
+      "run": "green04",
+      "failure": "Held restoration before visible native body completed; keyboard reversal timed out."
+    }
+  ],
+  "working_control": "Hold after original visible restoration completes, then send native PageUp through actual driver."
+}
