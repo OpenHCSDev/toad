@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.thread_execution import ConversationPreparation
+from agent_comms.presentation import ThreadView
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -140,8 +142,17 @@ def linked_target(name: str) -> NavigationTarget:
 
 
 def person_target(person) -> NavigationTarget:
-    """A runnable native owner opens a session; stopped peers open retained DMs."""
-    name = person.thread.name
-    if person.status.active:
-        return ThreadTarget(name)
-    return DirectTarget(name)
+    """The original receiving declaration selects session or canonical bus history."""
+    return person.thread.execution.prepare_conversation(PersonConversationPreparation(person))
+
+
+@dataclass(frozen=True)
+class PersonConversationPreparation(ConversationPreparation):
+    person: ThreadView
+
+    def external(self) -> NavigationTarget:
+        return DirectTarget(self.person.thread.name)
+
+    def native(self) -> NavigationTarget:
+        name = self.person.thread.name
+        return ThreadTarget(name) if self.person.status.active else DirectTarget(name)

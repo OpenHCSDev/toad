@@ -86,13 +86,13 @@ class ThreadContext(TargetContext, declared_name="dm"):
         return self.comms.registry.require(self.subject)
 
     def can_run(self, action: type[ThreadAction]) -> bool:
-        return action.available(self.comms.registry.status(self.subject), self.thread().pid)
+        return action.available(self.thread(), self.comms.registry.status(self.subject))
 
     def available_actions(self) -> tuple[type[ThreadAction], ...]:
         snapshot = self.comms.registry.snapshot()
         name = snapshot.aliases.get(self.subject, self.subject)
         thread = snapshot.threads[name]
-        return ThreadAction.available_menu(snapshot.statuses[name], thread.pid)
+        return ThreadAction.available_menu(thread, snapshot.statuses[name])
 
     def pin_target(self, member: str | None) -> ThreadContext:
         if member is not None:
