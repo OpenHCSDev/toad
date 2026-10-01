@@ -1,16 +1,18 @@
 {
-  "source_parent": "b1003321181fe0e4d3114978c7c64bd7139f0cb1",
+  "source_parent": "8a2ac3deeff438f6e6d1b338b466102fb31f1c07",
   "core": "970bc527f4ddd9b3bde5522dc671aea11fd27ece",
   "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
   "sdk": "0.12.1",
   "native": "593b978a717ae8f6",
   "audit_collector": "d392c5e4cd189ce1203127a746337ad498a0330d",
-  "normal_lock_packages_including_dev_and_platform_alternatives": 99,
   "metadata_hashes": {
     "pyproject.toml": "523880cec4faac2d03cac31e461c1b3cc8c709ce5407c69e9fa063674f6b5725",
     "uv.lock": "0359ad530930134b918ff4b6d60c0bfebf9931f24d73a3998c5b39b9fca57b07"
   },
-  "source_union": "251 idle submission reset remains deleted; 252 original settlement retry retained",
-  "state": "SOURCE-METADATA-FROZEN-AWAITING-NORMAL-INSTALL-AND-JOINT-GATES",
-  "scope": "No public defaults or native original changed; old c075/ea8 failed candidate retained. Installed distribution count must be derived from actual normal install, not this development/platform lock count."
+  "next_prefix": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930",
+  "source_union": "253/main +251214 input/mounted modal control +2526d58 source pivot and shared member custody +25562d6 joined fixture cleanup",
+  "previous_rejected_prefix": "/home/ts/.local/share/agent-comms/runtime-native-source-queue-cohort-20260930",
+  "public_install_unchanged": true,
+  "state": "SOURCE-FROZEN-AWAITING-NORMAL-INSTALL-AND-SAME-COHORT-ACTUAL-GATES",
+  "scope": "Critical source corrections only; original254 full performance remains separate. Package count must be read after normal install. No overrides, prefix mutation or readiness from source controls."
 }
