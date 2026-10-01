@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
 from textual.message import Message
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.transcript_events import TranscriptEvent, UserTranscript
+from agent_comms.acp_extension import InputStartedUpdate
 
 from toad.widgets.presentation_window import protected_presentations
 
@@ -51,6 +52,9 @@ class CommitClaim(ABC):
     def required_sequences(self) -> frozenset[int]:
         return frozenset()
 
+    def represents_input(self, input_id: str) -> bool:
+        return False
+
     @abstractmethod
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         pass
@@ -77,14 +81,38 @@ class SequenceClaim(CommitClaim):
         return self.sequence is not None and self.sequence in evidence.sequences
 
 
-@dataclass(frozen=True)
 class NativeInputClaim(CommitClaim):
     """An original started input retires only against its saved native identity."""
 
-    native_id: str | None
+    @property
+    @abstractmethod
+    def native_id(self) -> str | None: ...
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.native_id in evidence.native_inputs
+
+
+@dataclass(frozen=True)
+class StartedInputClaim(NativeInputClaim):
+    """The original native start receipt owns request and journal identity."""
+
+    source: InputStartedUpdate
+
+    @property
+    def native_id(self):
+        return self.source.native_id
+
+    def represents_input(self, input_id: str) -> bool:
+        return self.source.input_id == input_id
+
+
+@dataclass(frozen=True)
+class TranscriptInputClaim(NativeInputClaim):
+    source: UserTranscript
+
+    @property
+    def native_id(self):
+        return self.source.native_id
 
 
 class CommitParticipant:

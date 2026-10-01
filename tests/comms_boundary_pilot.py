@@ -107,8 +107,8 @@ async def main():
                 }
                 agent._receive_comms_response(response, cursor_token, queue_token)
                 await pilot.pause()
-                assert len(view.queue_projection.items) == 2
-                assert view.queued_prompts == ["same text", "same text"]
+                assert len(view.submissions.queue_projection.items) == 2
+                assert [row.text for row in view.submissions.queued_inputs] == ["same text", "same text"]
                 assert app.screen.coordination_root == str(comms.root)
                 assert agent.coordination is app.coordination_facts[app.screen]
 
@@ -129,8 +129,8 @@ async def main():
                 await producer.inputs.emit_queue_state("pilot", client=pipe)
                 for update in notifications:
                     await deliver(update)
-                assert len(view.queue_projection.items) == 1
-                assert view.queue_projection.items[0].input_id == "b" * 32
+                assert len(view.submissions.queue_projection.items) == 1
+                assert view.submissions.queue_projection.items[0].input_id == "b" * 32
                 count = len(view.query(UserInput))
                 for update in notifications:
                     await deliver(update)

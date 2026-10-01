@@ -139,6 +139,25 @@ async def reveal_session_details(app, pilot, target=None):
     return details
 
 
+async def wait_fork_dialog(app, pilot, *, seconds=20):
+    """Await the original mounted, focused and physically hittable dialog."""
+    from textual.widgets import Input
+    from toad.widgets.comms_fork_dialog import ForkDialog
+
+    async with asyncio.timeout(seconds):
+        while True:
+            dialog = app.screen
+            if isinstance(dialog, ForkDialog) and dialog.is_mounted and dialog.is_attached:
+                entry = dialog.query_one_optional('#fork-name', Input)
+                if (entry is not None and entry.is_mounted and entry.is_attached
+                        and dialog.focused is entry and app.focused is entry
+                        and entry.region.width > 0 and entry.region.height > 0
+                        and entry.region.offset in dialog.size.region
+                        and dialog.get_widget_at(*entry.region.offset)[0] is entry):
+                    return dialog
+            await pilot.pause(.02)
+
+
 def private_native_wire(root: Path):
     """Declare the real current native route on a disposable test-owned wire."""
     from agent_comms.native_package import verify_native_package

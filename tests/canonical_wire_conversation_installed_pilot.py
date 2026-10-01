@@ -236,7 +236,10 @@ async def cold_source_acceptance(app, pilot, comms, original, response, receipt,
     assert native_id is not None
 
     def user_bodies():
-        return [body for body in cold.contents.query(UserInput) if body.native_id == native_id]
+        from toad.widgets.committed_presentation import NativeInputClaim
+        return [body for body in cold.contents.query(UserInput)
+                if isinstance(body.commit_claim, NativeInputClaim)
+                and body.commit_claim.native_id == native_id]
 
     with app._context():
         receipt['cold_before_scroll'] = {
@@ -266,7 +269,7 @@ async def cold_source_acceptance(app, pilot, comms, original, response, receipt,
     with app._context():
         body = user_bodies()[0]
         receipt['cold_after_scroll'] = {
-            'native_id': body.native_id, 'mounted_user_count': len(user_bodies()),
+            'native_id': body.commit_claim.native_id, 'mounted_user_count': len(user_bodies()),
             'region': str(body.region), 'painted': original_user_painted(),
             'original_resource': original_observation(cold, original.reference, OutgoingMessage),
         }
