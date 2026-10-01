@@ -161,3 +161,31 @@ and rebuilds the resource. Placement also owns screen constraints, overlays,
 fixed positioning and clipping. Intrinsic arrangement reuse must preserve those
 contracts; ignoring region/clip is not an accepted optimization. Sch confirms
 no ordinary saved-load admission change in this exact installed Core0ea.
+
+## Code-bearing intrinsic geometry checkpoint
+
+Textual draft18 source `7246be6efad463aacb54f6a2880e57c04c9fb571` is now
+pinned by this working version. Versus its frozen ba65 predecessor:41production
+lines deleted,246added across the compositor, original placement processor and
+Widget geometry contract. The existing single bounded cache holds intrinsic
+body geometry and original clip constraints; it projects those resources through
+current native placement. Scroll-owning viewports retain culling/exact geometry.
+The shared record ancestor owns membership and retirement, and all consumers
+migrate. Original placement declarations own rank before visible culling;
+scrollbar virtual geometry follows its container-relative producer contract.
+
+Source native PageDown0→20 now retains the SAME body resource with ZERO native
+body arrangement calls. Nine continuous visible-scene comparisons against the
+uncached full native producer pass, including reverse, nested scroll/fixed child,
+End/repeated bottom, resize/content invalidation, constraints and overlays. Ten
+retirement/custody/budget controls pass; all three production files and31changed
+functions pass dispatch/probe/chain ratchets. This is concrete source operation
+elimination, not installed CPU or latency improvement. See Text18's committed
+`evidence/native-subtree-retirement/reprojection-ratchet.json` and closure06.
+
+The existing ba65 prefix and actual failed coldB capture stay frozen. No heavy
+build or capture follows before parent/Mendel resolve headroom. Next affected
+gate is ONE normally packaged current-cohort copied41MB physical A/B/A + held
+Up/Down/reverse/End/fifteen-second idle + draft/Undo with same-run profile and
+the new failure-time scene/readiness census. Zero prompt/provider/public-owner
+operations; all earlier raw failures retained. Full275 scope remains active.
