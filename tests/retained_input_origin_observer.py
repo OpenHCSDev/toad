@@ -150,7 +150,17 @@ async def _open_actual_s2_ingress(owner, subject, output):
     }
     previous = {key: os.environ.get(key) for key in environment}
     os.environ.update(environment)
+
+    def phase(name):
+        (output / 'driver-resource-custody.json').write_text(json.dumps({
+            'phase': name, 'original_root': str(owner._comms.root),
+            'original_subject': FieldCodec.encode(subject.incarnation),
+            'core': __import__('agent_comms').__file__, 'toad': __import__('toad').__file__,
+            'new_owner_declared': False, 'original_inputs_retried': 0,
+        }, indent=2))
+
     try:
+        phase('before_actual_toad_constructor')
         definition = AgentDefinition.decode({
             'name': 'Original S2/S5 fixture', 'identity': 'original-s2-s5',
             'short_name': 's2-s5', 'protocol': 'acp',
@@ -158,15 +168,19 @@ async def _open_actual_s2_ingress(owner, subject, output):
         })
         app = ToadApp(agent_data=definition, project_dir=subject.worktree,
                       agent_session_id=subject.name)
+        phase('before_actual_toad_run_test')
         async with app.run_test(headless=True, size=(160, 44)) as pilot:
+            phase('actual_toad_run_test_yielded_before_saved_view_ready')
             await until(pilot, lambda: app.selected_session is not None)
             await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None)
+            phase('actual_original_view_before_acp_attachment_settlement')
             await until(pilot, view.agent.session.settled.is_set)
             assert view.agent.session.connected
             await until(pilot, lambda: view.agent.queue_attachment.scope is not None)
             observer = ActualS2Ingress(app, pilot, owner._comms, subject, output)
+            phase('actual_acp_attached_original_queue_scope')
             observer.persist('same_original_owner_actual_toad_acp_attached')
             try:
                 yield observer
