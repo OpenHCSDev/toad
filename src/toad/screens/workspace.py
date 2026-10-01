@@ -194,6 +194,8 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                      for target in window.history_geometry_targets())
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
+        from toad.widgets.history_anchor import WindowRestoration
+
         # Keep the last committed geometry: reading virtual_region here can
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
@@ -203,26 +205,27 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             for window in tracked
             if (position := window.prepare_history_layout()) is not None
         ]
-        if not anchors:
-            super()._refresh_layout(size, scroll)
-            for window in tracked:
-                window.finish_history_layout()
-            return
-        # Screen normally paints from inside _refresh_layout. Do not expose the
-        # prepend/eviction coordinates before compensating for their height.
-        with self.app.batch_update(), ExitStack() as restoration:
-            # Native reflow may clamp the old offset before compensation. That
-            # geometry belongs to this same reader operation, not user travel.
-            for window, position in anchors:
-                restoration.enter_context(position.geometry(window))
-            super()._refresh_layout(size, scroll)
-            changed = False
-            for window, position in anchors:
-                changed |= window.restore_history_layout(position)
-            if changed:
-                super()._refresh_layout(size, scroll=True)
-            for window in tracked:
-                window.finish_history_layout()
+        with ExitStack() as restoration:
+            # Every bound native window can be clamped by reflow, including
+            # ordinary resize with no source anchor. Only input samples travel.
+            for window in tuple(self.viewport_presentation.windows):
+                restoration.enter_context(WindowRestoration.geometry(window))
+            if not anchors:
+                super()._refresh_layout(size, scroll)
+                for window in tracked:
+                    window.finish_history_layout()
+                return
+            # Screen normally paints from inside _refresh_layout. Do not expose
+            # prepend/eviction coordinates before compensating for their height.
+            with self.app.batch_update():
+                super()._refresh_layout(size, scroll)
+                changed = False
+                for window, position in anchors:
+                    changed |= window.restore_history_layout(position)
+                if changed:
+                    super()._refresh_layout(size, scroll=True)
+                for window in tracked:
+                    window.finish_history_layout()
 
     def _screen_resized(self, size: Size) -> None:
         if cast("ToadApp", self.app)._atomic_mode_switch and self.is_mounted:

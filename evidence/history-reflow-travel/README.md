@@ -56,3 +56,53 @@ case only implements _restore and inherits geometry custody (IMPL-4/IMPL-13).
 The original native _restoring resource scope is reused, not a source-state copy
 (IDEN-5, TIME-1). Two production files:17 added/5 deleted. Bounded per-file
 measures unchanged except code_lines +3/+6. All remaining full254 plans preserved.
+
+## Completed physical source checkpoint and whole-window continuation
+
+Physical source production2f22cd39 (normal main/docs integration a054c59a,
+ZERO production difference) completed65.281176s in one existing SourceCapture.
+Raw protected path:
+/home/ts/.cache/agent-scratch/history-reflow-254-20261001-candidate01
+Actual isolated st/LinuxDriver, held Up4s/Down4s/reverse4s, End and15idle,
+714 GIL samples/0errors. Exact native journal41,270,331B SHAfc5a6209 remains
+unchanged; no public root read, provider, native input or owner starts. Runtime
+selection unchanged and recorder/caller cleanup[]/0. Encoder255 is retained
+normal SIGINT completion, not a claimed application exit status.
+
+Personally inspected Down/reverse/idle PNGs: body readable. The original end
+marker is BEFORE End key by ScrollJourney.actions; final idle native y107=max107,
+follows_tail=True, stationary demand and no pending work.145 widgets<=320 and
+111466 source bytes<=64MiB. Whole Kepler260 source/proof normally integrated,
+including actual ProfileTrace join in restoration-physical-comparison.json.
+UI Up/Down/reverse74.1/75.9/77.9%, idle5.7%; preceding directional01 used
+80.6/76.4/80.1%, idle5.6%. Loaded source ranges differ and instrumentation is
+included: NO isolated CPU improvement or full reader smoothness claim. Mixed
+signs in scroll-demand.json report inherited demand at native scroll changes;
+without _restoring/new-sample facts they do NOT refute the original source
+counter or prove each change is new user motion. Original raw/proofs preserved.
+
+The no-anchor family boundary remained: ordinary native terminal resize127->70
+clamped outside restoration, sampled=True, changed stationary demand to moving.
+Unanchored observation is preserved including its runner exit1: a legitimate
+idle expiry also violated the earlier strict trim-demand assertion before the
+resize assertion. The recorded resize/clamp sample remains original data, not
+an asserted complete negative journey. The final source counter isolates those
+geometry operations with the existing configurable scroll_idle_seconds=5 and
+retains strict trim/resize/new-native-input assertions.
+
+WindowRestoration.geometry is shared independently of a policy instance.
+Workspace now enters its scope for EVERY already-registered native window for
+both anchored and ordinary reflow. It uses the existing resource registration;
+no added window roster, cursor, state flag or timer. Native PageDown afterward
+still produces original input samples outside restoration (29 sampled native
+changes in the completed control). Trim/resize samples are all geometry, original
+demand unchanged, marker/revision preserved, native revision4 remains stable.
+Exact whole-window source counter exits0. Per-file measures unchanged except
+code_lines; no broad audit/CPU/native/default readiness is inferred.
+
+This last whole-window extension is source-tested; the preceding physical gate
+certifies the recorded2f22 product, NOT this subsequently extended product.
+One coherent affected installed gate remains before whole254 readiness. All
+CPU/warm/focus/TC1/T9/growing-end lifetime requirements remain in original PR254.
+Critical258 source freeze7026/6b8 and Sch's replacement bus gate are independent;
+this continuation does not alter or delay that reviewed release.

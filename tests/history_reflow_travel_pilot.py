@@ -32,7 +32,8 @@ async def main():
             # Retain this small original body cohort to isolate native extent
             # compensation from the separately tested resource admission bound.
             window.document_viewport.budget = replace(
-                window.document_viewport.budget, minimum_widgets=1000)
+                window.document_viewport.budget, minimum_widgets=1000,
+                scroll_idle_seconds=5)
             histories = []
             for index in range(3):
                 cursor = TranscriptCursor(f'saved-{index}', 1)
@@ -76,22 +77,51 @@ async def main():
             await pilot.pause()
             after = dict(y=window.scroll_y, maximum=window.max_scroll_y,
                          marker_y=marker.region.y, revision=window.scroll_revision)
-            receipt = dict(before=before, after=after, changes=changes,
-                           samples=samples, demand_before=demand_before,
-                           demand_after=repr(viewport.lookahead.demand),
-                           same_demand=viewport.lookahead.demand is original_demand,
+            trim_changes, trim_samples = changes[:], samples[:]
+            trim_demand = repr(viewport.lookahead.demand)
+            trim_same_demand = viewport.lookahead.demand is original_demand
+            changes.clear()
+            samples.clear()
+            # Ordinary native resize also reflows the original window, without
+            # an active prepend/trim anchor. Its clamp is geometry, not input.
+            await pilot.resize_terminal(120, 195)
+            await pilot.pause()
+            resize = dict(y=window.scroll_y, maximum=window.max_scroll_y,
+                          revision=window.scroll_revision, changes=changes[:],
+                          samples=samples[:], demand_before=trim_demand,
+                          demand_after=repr(viewport.lookahead.demand))
+            await pilot.resize_terminal(120, 35)
+            await pilot.pause()
+            changes.clear()
+            samples.clear()
+            window.focus(scroll_visible=False)
+            await pilot.press('pagedown')
+            await pilot.wait_for_scheduled_animations()
+            await pilot.pause()
+            input_control = dict(changes=changes[:], samples=samples[:])
+            receipt = dict(before=before, after=after, changes=trim_changes,
+                           samples=trim_samples, demand_before=demand_before,
+                           demand_after=trim_demand, resize=resize,
+                           input_control=input_control,
+                           same_demand=trim_same_demand,
                            source_resources=[id(item) for item in histories[1:]],
                            remaining_histories=len(window.histories),
                            agent_bound=view.agent is not None)
             (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
             print(json.dumps(receipt), flush=True)
-            assert changes, 'The native clamp/compensation boundary was not exercised'
-            assert all(item['restoring'] for item in changes), receipt
+            assert trim_changes, 'The native clamp/compensation boundary was not exercised'
+            assert all(item['restoring'] for item in trim_changes), receipt
             assert after['revision'] == before['revision'], receipt
             assert after['marker_y'] == before['marker_y'], receipt
             assert receipt['same_demand'], receipt
             assert receipt['demand_after'] == demand_before, receipt
             assert not receipt['agent_bound'], 'This source counter must not start ACP/native'
+            assert resize['changes'], 'Native resize did not clamp this saved reader'
+            assert all(item['restoring'] for item in resize['changes']), receipt
+            assert not any(item['sampled'] for item in resize['samples']), receipt
+            assert resize['demand_after'] == resize['demand_before'], receipt
+            assert any(item['sampled'] and not item['restoring']
+                       for item in input_control['samples']), receipt
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
 

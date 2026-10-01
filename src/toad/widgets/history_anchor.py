@@ -31,8 +31,9 @@ class WindowRestoration(ABC):
         with self.geometry(window):
             self._restore(window)
 
+    @staticmethod
     @contextmanager
-    def geometry(self, window: "HistoryWindow"):
+    def geometry(window: "HistoryWindow"):
         """Own native reflow and its compensation as one reader restoration."""
         restoring = window._restoring
         window._restoring = True
