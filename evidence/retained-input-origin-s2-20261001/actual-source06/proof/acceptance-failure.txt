@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-retained-input-origin-s2-20261001/tests/l0a_native_installed_pilot.py", line 310, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-retained-input-origin-s2-20261001/tests/retained_input_origin_native_pilot.py", line 66, in acceptance
+    _, facts = terminal.compaction_material(owner, None, None)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/comms-retained-task-facts-s2-20261001/src/agent_comms/input_disposition.py", line 105, in compaction_material
+    rows = self.compaction_rows(owner, pending_input_key, queue)
+  File "/home/ts/wt/comms-retained-task-facts-s2-20261001/src/agent_comms/input_disposition.py", line 75, in compaction_rows
+    assert owner.active_turn is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
