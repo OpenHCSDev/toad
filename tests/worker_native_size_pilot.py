@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import traceback
 from tempfile import TemporaryDirectory
 from time import perf_counter, process_time
 
@@ -174,4 +175,10 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except BaseException:
+        output = Path(os.environ['WORKER_SIZE_OUTPUT'])
+        output.mkdir(parents=True, exist_ok=True)
+        (output / 'failure.txt').write_text(traceback.format_exc())
+        raise
