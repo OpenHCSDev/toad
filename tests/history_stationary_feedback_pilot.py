@@ -22,7 +22,7 @@ from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
 
 
-async def main(output, *, compact=False, input_paging=False):
+async def main(output, *, compact=False, input_paging=False, scroll_trace=False):
     output.mkdir(parents=True, exist_ok=False)
     with TemporaryDirectory(dir=output) as directory:
         root = Path(directory)
@@ -76,6 +76,14 @@ async def main(output, *, compact=False, input_paging=False):
                                  {"older": frame.f_locals["older"]})
 
             sys.setprofile(trace)
+            observation = None
+            if scroll_trace:
+                import importlib.util
+                path = Path(__file__).resolve().parents[1] / "tools/performance/scroll_travel_observation.py"
+                spec = importlib.util.spec_from_file_location("scroll_travel_observation", path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                observation = module.install(expected_pid=os.getpid(), output=output / "scroll-travel.jsonl")
             try:
                 samples.append(sample("before-single-pageup"))
                 if input_paging:
@@ -126,6 +134,8 @@ async def main(output, *, compact=False, input_paging=False):
                             raise AssertionError("Sidebar animation bound was not enforced")
             finally:
                 sys.setprofile(None)
+                if observation is not None:
+                    observation.close()
             receipt = {"scope": "source actual Toad/native stationary counter; not physical acceptance",
                        "compact_records": compact,
                        "input_paging_and_cadence": input_paging,
@@ -140,4 +150,4 @@ async def main(output, *, compact=False, input_paging=False):
 
 if __name__ == "__main__":
     asyncio.run(main(Path(sys.argv[1]), compact="--compact" in sys.argv[2:],
-                     input_paging="--input" in sys.argv[2:]))
+                     input_paging="--input" in sys.argv[2:], scroll_trace="--scroll-trace" in sys.argv[2:]))

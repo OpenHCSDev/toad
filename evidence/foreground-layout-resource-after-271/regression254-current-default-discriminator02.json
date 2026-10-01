@@ -1,0 +1,156 @@
+{
+  "scope": "Current busy-default #254 discriminator; not before/after or smooth-scroll acceptance",
+  "outcome": "Near-zero observed held-PageUp travel NOT confirmed. Stop geometry/relocation hypothesis patch for this workload.",
+  "production_edits": false,
+  "pre254_comparison": "Not executed; needs compatible declared pre254 8ea96a37 paired installed prefix from normal builder.",
+  "root": "/home/ts/.cache/agent-scratch/perf275-default-travel-regression-20261001-02",
+  "capture_completed": true,
+  "duration_seconds": 45.3925231199828,
+  "source_pins": {
+    "toad": "a7087274f4a656968c84f9378ae8a87f9ee20820",
+    "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+    "agent_comms": "50d77a17d3d998d403b0349a254f3f85d94517b8"
+  },
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1732901,
+      "start_time": 34742033
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 1732901,
+      "start_time": 34742033
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "phases": [
+    {
+      "phase": "input-held-up",
+      "video_start_seconds": 7.4612626059679314,
+      "video_end_seconds": 13.306770836003125,
+      "native_events": {
+        "relocating": 1,
+        "relocated": 1,
+        "request": 1,
+        "observe": 1,
+        "editor_page_up": 91
+      },
+      "absolute_observed_travel": 0,
+      "nonzero_observations": 0,
+      "absolute_nonrestoring_scroll_travel": 0,
+      "ui_cpu": {
+        "pid": "1923456",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 2.5900000000000007,
+        "average_cpu_percent": 44.307524651015804
+      }
+    },
+    {
+      "phase": "history-held-up",
+      "video_start_seconds": 15.501250876986887,
+      "video_end_seconds": 21.340718175983056,
+      "native_events": {
+        "history_page_up": 92,
+        "scroll": 58,
+        "request": 200,
+        "observe": 177,
+        "relocating": 90,
+        "relocated": 90
+      },
+      "absolute_observed_travel": 478.0,
+      "nonzero_observations": 35,
+      "absolute_nonrestoring_scroll_travel": 478.0,
+      "ui_cpu": {
+        "pid": "1923456",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 4.99,
+        "average_cpu_percent": 85.45300015393191
+      }
+    },
+    {
+      "phase": "history-held-up-done",
+      "video_start_seconds": 21.340718175983056,
+      "video_end_seconds": 37.9474437229801,
+      "native_events": {
+        "relocating": 17,
+        "relocated": 17,
+        "request": 25,
+        "observe": 22,
+        "scroll": 3
+      },
+      "absolute_observed_travel": 0,
+      "nonzero_observations": 0,
+      "absolute_nonrestoring_scroll_travel": 0,
+      "ui_cpu": {
+        "pid": "1923456",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+        "cpu_seconds": 6.480000000000002,
+        "average_cpu_percent": 39.02033535546547
+      }
+    }
+  ],
+  "profile": {
+    "sample_count": 764,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.06491424648906105,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "observer_total_ns": 381354037,
+  "physical_review": "Mid-history-idle-done PNG individually inspected: body/chrome readable; reader away from tail. No claim of no frozen frames or stable top source offset.",
+  "limits": [
+    "Current input focus routes 91 PageUp actions to TextArea and zero chat movement; original window-focused 92 actions observe 478 rows exactly.",
+    "Counters are local native function events, not profiler sample or B/E stack-event counts.",
+    "Request/relocation counts are not A/E reconciliation/admitted-set counts. Broader scope deferred.",
+    "Current source-only paging/cadence fix 888d is not in this installed default.",
+    "No concurrent provider input generated; observes actual existing public bus."
+  ],
+  "raw": {
+    "scroll-travel.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default-travel-regression-20261001-02/scroll-travel.jsonl",
+      "sha256": "59aae6efd49c47906fdbf9b0890176484f9e64747ffd6aecef9767348d3a7545",
+      "bytes": 210137
+    },
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default-travel-regression-20261001-02/receipt.json",
+      "sha256": "6de1643d9d2303f281c04b3bcd2fbe694c2df5c4065abd5be2605d81f16e725b",
+      "bytes": 158438
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default-travel-regression-20261001-02/events.jsonl",
+      "sha256": "d63513e3d9c23df6dc56d6b1e38542730949fa0e2739cb3cc596f68b33aecbdc",
+      "bytes": 21180
+    },
+    "profile-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default-travel-regression-20261001-02/profile-review.json",
+      "sha256": "6f28537c48e55a87c235e49e16c2780e92b1ceb9c8eb711c14ed0fa1155cc7e8",
+      "bytes": 89145
+    },
+    "phase-mid-history-idle-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/perf275-default-travel-regression-20261001-02/phase-mid-history-idle-done.png",
+      "sha256": "3785174faa0d3d72707a8ffd7aa539ff70e66c6b05272ab4915a2af144ce296a",
+      "bytes": 126718
+    }
+  }
+}

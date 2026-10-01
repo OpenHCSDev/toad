@@ -360,3 +360,40 @@ Four affected files/five methods pass the bounded required dispatch/probe/chain
 ratchet. This new key/cadence delta is SOURCE verified, not installed yet.
 Mendel owns the single normal immutable package refresh; one affected physical
 journey follows. No duplicate candidate capture or builder is launched here.
+
+## Regressions-first: current default travel discriminator
+
+`regression254-current-default-discriminator02.json` joins native local monitoring
+with the existing physical recorder's monotonic phases and same-run kernel CPU.
+The 45.393-second busy original-history capture completed without public input,
+owner changes or cleanup residue. Raw recording/profile/trace stay under the
+receipt's named scratch root; failed attempt01 remains protected.
+
+Held input-focused PageUp delivered 91 editor actions and zero chat travel.
+After physically focusing the original history, 92 PageUp actions produced
+478 absolute scroll rows and exactly 478 observed lookahead rows. This does not
+confirm near-zero travel from #254 in this workload. No geometry/relocation
+production patch is authorized by this discriminator. The actual idle phase
+has zero observed travel but 17 relocation calls; that does not establish body
+admission oscillation or source-anchor stability.
+
+CPU including observation: 85.45% while history PageUp was held, 39.02% during
+mid-history idle. Native trace observation accumulated 381.35ms over the capture;
+764 profiler samples report zero sampling errors, clock alignment uncertainty
+is approximately 64.91ms plus scheduler/sampling limits. No smooth-scroll,
+frozen-frame absence or pre254 speed claim is made. Comparison against installed
+8ea96a37 still requires its declared compatible paired prefix from the normal
+builder; source-only native counter evidence is distinct.
+
+Method grants, requiring parent relay because native peer controls are absent:
+Einstein: MeasuredViewportBody retained_widget_count and original child-change
+invalidation only. Kepler: DocumentViewport per-pass admission result and the
+TranscriptHistory edge-loader consumer only. Heisenberg: history_anchor
+WindowRestoration.geometry, presentation_window DirectionalPreparation.relocated,
+and WorkspaceScreen._refresh_layout. Shared methods require direct agreement.
+Broader A-E work and the untracked viewport_observation draft remain parked.
+
+The independent input paging/cadence production checkpoint remains 888d7cb8;
+its original source native editor/draft/undo/cadence check passed. It is not in
+this default and needs Mendel's single normal immutable restage and affected
+installed journey. No second builder or unchanged default recapture is planned.

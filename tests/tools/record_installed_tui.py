@@ -514,6 +514,30 @@ class WarmSourceJourney(WarmScrollJourney):
                                     original_state="phase-warm-start-state.pickle")
 
 
+class ScrollTravelRegressionJourney(ScrollJourney):
+    """Discriminate focused key delivery and native travel on one saved source."""
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state or not args.scroll_travel:
+            raise ValueError("Travel regression requires native state and travel observation")
+        marker = marker_command()
+        ready = (marker + f"travel-start --wait-history-seconds {args.history_wait_seconds:g} "
+                 f"--wait-history-interval {args.history_wait_interval:g} "
+                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+        hold = f"sleep {args.scroll_hold_seconds:g}"
+        idle = f"sleep {args.scroll_idle_seconds:g}"
+        return "\n".join([
+            ready + " --require-editor-focus",
+            marker + "input-held-up", "keydown Prior", hold, "keyup Prior",
+            marker + "input-held-up-done",
+            native_click_command("phase-input-held-up-done-state.pickle"),
+            marker + "history-held-up", "keydown Prior", hold, "keyup Prior",
+            marker + "history-held-up-done", idle, marker + "mid-history-idle-done",
+            "key End", "sleep 2", marker + "end-done", "",
+        ])
+
+
 class StationaryInputScrollJourney(ScrollJourney):
     """Observe idle feedback and editor-focused paging on the existing bus."""
 
@@ -972,7 +996,8 @@ def review_recording(args):
 
 
 def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False,
-                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
+                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
+                         scroll_travel=False):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -986,7 +1011,8 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
-                       *(["--screen"] if screen else [])], env,
+                       *(["--screen"] if screen else []),
+                       *(["--scroll-travel"] if scroll_travel else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
     except (OSError, subprocess.SubprocessError, ValueError) as error:
@@ -1154,7 +1180,8 @@ def record(args):
                 if not args.capture_state:
                     return
                 receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
-                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True)
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True,
+                    scroll_travel=args.scroll_travel and name == "before")
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
@@ -1289,7 +1316,7 @@ def record(args):
 
 
 def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
-         image_only=False):
+         image_only=False, require_editor_focus=False):
     """A native xdotool exec marker; timestamps bracket actual input injection."""
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,39}", label):
         raise ValueError("Invalid phase label")
@@ -1349,6 +1376,12 @@ def mark(label, *, wait_history_seconds=0, wait_history_interval=.1, wait_histor
                     output, f"phase-{label}", identity, owner, os.environ.copy(), timeout=remaining)
         finally:
             owner.cleanup()
+    if require_editor_focus:
+        metadata = json.loads((output / f"phase-{label}-state.json").read_text())
+        focused = metadata["screen"]["focused"]
+        if focused is None or focused["class"] not in ("PromptTextArea", "ChannelTextArea"):
+            raise RuntimeError("The actual selected input is not keyboard focused")
+        event["verified_editor_focus"] = focused
     with (output / "events.jsonl").open("a") as target:
         target.write(json.dumps(event) + "\n")
     print(json.dumps(event), flush=True)
@@ -1407,13 +1440,15 @@ def main():
         marker.add_argument("--wait-history-seconds", type=float, default=0)
         marker.add_argument("--wait-history-interval", type=float, default=.1)
         marker.add_argument("--wait-history-thread")
+        marker.add_argument("--require-editor-focus", action="store_true")
         options = marker.parse_args(sys.argv[2:])
         if (not math.isfinite(options.wait_history_seconds) or options.wait_history_seconds < 0
                 or not math.isfinite(options.wait_history_interval) or options.wait_history_interval <= 0):
             marker.error("History budget must be nonnegative and observation interval positive")
         mark(options.label, wait_history_seconds=options.wait_history_seconds,
              wait_history_interval=options.wait_history_interval,
-             wait_history_thread=options.wait_history_thread, image_only=options.image_only)
+             wait_history_thread=options.wait_history_thread, image_only=options.image_only,
+             require_editor_focus=options.require_editor_focus)
         return
     if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
         profile_launch(sys.argv[2:])
@@ -1456,6 +1491,8 @@ def main():
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
     parser.add_argument("--capture-state", action="store_true",
                         help="Export loaded DTOs/SVG at before/after and physical phase markers using capture_live --sudo")
+    parser.add_argument("--scroll-travel", action="store_true",
+                        help="Record native observe travel/relocations for the owned UI (requires --capture-state)")
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
     parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
@@ -1478,6 +1515,8 @@ def main():
     parser.add_argument("--sheet-columns", type=int, default=4)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.scroll_travel and not args.capture_state:
+        parser.error("Scroll-travel observation requires --capture-state")
     if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
         parser.error("Scroll idle observation must be positive and shorter than capture duration")
     if not math.isfinite(args.scroll_hold_seconds) or not 0 < args.scroll_hold_seconds < args.max_duration:
