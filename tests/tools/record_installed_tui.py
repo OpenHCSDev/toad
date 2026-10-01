@@ -550,7 +550,7 @@ class ScrollTravelRegressionJourney(ScrollJourney):
             native_click_command("phase-before-history-focus-state.pickle"),
             marker + "history-held-up", "keydown Prior", hold, "keyup Prior",
             marker + "history-held-up-done", idle, marker + "mid-history-idle-done",
-            "key End", "sleep 2", marker + "end-done", "",
+            "key End", idle, marker + "end-done", "",
         ])
 
 
@@ -561,7 +561,10 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
 
     @classmethod
     def input_commands(cls, args):
-        return [*super().input_commands(args), *cls.down_commands(args)]
+        return [*super().input_commands(args),
+                f"sleep {args.scroll_idle_seconds:g}",
+                marker_command() + "input-mid-history-idle-done",
+                *cls.down_commands(args)]
 
     @classmethod
     def down_commands(cls, args):

@@ -1,3 +1,7 @@
+## Current execution and ownership
+
+Read existing owners and all consumers, implement one coherent nominal change through those owners with deletion, then validate last. No test-first or discriminator-first design and no duplicate classes. Current native491 normal69 restaging and physical/profile validation belong to Heisenberg; the closed Mendel build is historical. See [semantic-viewport-feedback-owner.md](semantic-viewport-feedback-owner.md) for the source-based repair and declaration search. Runtime lifecycle belongs to Arendt; compaction to Schrodinger. The historical measurements below remain preserved.
+
 # Whole foreground layout/resource continuation after PR271
 
 Integration owner: Heisenberg (`01a0ee64-8b4f-7921-a359-2357a04a19e1`).
