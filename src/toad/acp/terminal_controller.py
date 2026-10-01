@@ -1,7 +1,8 @@
 """ACP terminal requests address operational executions, never mounted widgets."""
-from weakref import ref
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.child_process import join_retirement
+import asyncio
 
 class TerminalSessionRetired(RuntimeError):
     pass
@@ -10,24 +11,29 @@ class TerminalControllerState(DeclaredFamily, affix="TerminalControllerState"):
     @abstractmethod
     def require_create(self): ...
 
+    def owns_projection(self, executions, terminal_id, execution):
+        return False
+
 class OpenTerminalControllerState(TerminalControllerState):
     def require_create(self):
         pass
+
+    def owns_projection(self, executions, terminal_id, execution):
+        return executions.get(terminal_id) is execution
 
 class RetiredTerminalControllerState(TerminalControllerState):
     def require_create(self):
         raise TerminalSessionRetired("ACP terminal session is retired")
 
 from toad.terminal_execution import Command, TerminalExecution, ToolState
-from toad.widgets.terminal_tool import TerminalTool
 
 
 class TerminalController:
-    def __init__(self) -> None:
+    def __init__(self, owner) -> None:
+        self.owner = owner
         self.executions: dict[str, TerminalExecution] = {}
         self.state = OpenTerminalControllerState()
         self._next_id = 0
-        self._target = lambda: None
 
     async def create(self, command: Command, output_byte_limit: int | None) -> str:
         state = self.state
@@ -36,38 +42,32 @@ class TerminalController:
         terminal_id = f"terminal-{self._next_id}"
         execution = TerminalExecution(command, output_byte_limit)
         self.executions[terminal_id] = execution
-        target = self._target()
+        target = self.owner.surface.target
         width, height = target.get_terminal_dimensions() if target is not None else (80, 24)
         try:
             await execution.start(width, height)
             if self.state is state:
-                await self._present(terminal_id, execution)
+                self.owner.surface.publish_terminal(self, terminal_id, execution)
             if self.state is not state:
                 raise TerminalSessionRetired("ACP terminal session retired during creation")
             return terminal_id
         except BaseException as error:
-            await execution.close()
-            self.executions.pop(terminal_id, None)
+            await self.retire(terminal_id)
             if self.state is not state:
                 raise TerminalSessionRetired("ACP terminal session retired during creation") from error
             raise
 
-    async def _present(self, terminal_id: str, execution: TerminalExecution) -> None:
-        target = self._target()
-        if target is None or target._closing or target.query_one_optional(f"#{terminal_id}"):
-            return
-        terminal = TerminalTool(execution, id=terminal_id)
-        await target.post(terminal)
-        if self._target() is not target:
-            await terminal.remove()
-
     async def attach(self, target) -> None:
-        self._target = ref(target)
+        binding = self.owner.surface
+        if not binding.owns(target):
+            return
         for terminal_id, execution in tuple(self.executions.items()):
-            await self._present(terminal_id, execution)
+            binding.publish_terminal(self, terminal_id, execution)
+
+    def owns_projection(self, terminal_id, execution):
+        return self.state.owns_projection(self.executions, terminal_id, execution)
 
     def detach(self) -> None:
-        self._target = lambda: None
         for execution in self.executions.values():
             execution.detach()
 
@@ -84,17 +84,24 @@ class TerminalController:
         self.require(terminal_id).kill()
 
     async def release(self, terminal_id: str) -> None:
-        execution = self.executions.pop(terminal_id)
+        execution = self.require(terminal_id)
+        await join_retirement(asyncio.create_task(self._release(terminal_id, execution)))
+
+    async def _release(self, terminal_id, execution):
         await execution.close()
+        # Address membership retires only after the original resource joins.
+        self.executions.pop(terminal_id, None)
 
     async def retire(self, terminal_id) -> None:
-        execution = self.executions.pop(terminal_id, None)
+        execution = self.executions.get(terminal_id)
         if execution is not None:
-            await execution.close()
+            await join_retirement(asyncio.create_task(self._release(terminal_id, execution)))
 
     async def close(self) -> None:
         self.state = RetiredTerminalControllerState()
         self.detach()
-        for execution in tuple(self.executions.values()):
-            await execution.close()
-        self.executions.clear()
+        await join_retirement(asyncio.create_task(self._close()))
+
+    async def _close(self):
+        for terminal_id, execution in tuple(self.executions.items()):
+            await self._release(terminal_id, execution)

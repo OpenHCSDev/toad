@@ -21,7 +21,9 @@ from weakref import ref
 
 from acp import schema as protocol
 from textual.content import Content
-from agent_comms.child_process import STOP_GRACE_SECONDS, ChildOutcome, ExitedOutcome, SignaledOutcome
+from agent_comms.child_process import (
+    STOP_GRACE_SECONDS, ChildOutcome, ExitedOutcome, SignaledOutcome, join_retirement,
+)
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad import ansi
@@ -171,8 +173,20 @@ class PtyProcess:
     process: Process
     master: FileIO
 
+    @classmethod
+    async def acquire(cls, command, shell_command, master, slave, custody):
+        process = await asyncio.create_subprocess_shell(
+            shell_command, stdin=slave.fileno(), stdout=slave.fileno(), stderr=slave.fileno(),
+            env=os.environ | command.env, cwd=command.cwd, start_new_session=True,
+        )
+        acquired = cls(process, master)
+        # Register before returning the resource, including when the waiting
+        # caller was cancelled while the original spawn was still in flight.
+        custody.push_async_callback(acquired.close)
+        return acquired
+
     def resize(self, width, height):
-        with suppress(OSError):
+        with suppress(OSError, ValueError):
             fcntl.ioctl(self.master.fileno(), termios.TIOCSWINSZ,
                         struct.pack("HHHH", height, width, 0, 0))
 
@@ -195,7 +209,7 @@ class PtyProcess:
 
     async def close(self):
         self.kill()
-        await self.process.wait()
+        await join_retirement(asyncio.create_task(self.process.wait()))
 
 
 class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
@@ -219,6 +233,9 @@ class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
 
     async def wait(self) -> TerminalCompletion:
         raise RuntimeError("Terminal execution has not started")
+
+    async def custody(self) -> PtyProcess:
+        raise RuntimeError("Terminal execution has no acquired PTY")
 
     @abstractmethod
     def start(self, execution) -> ActiveTerminalOperation: ...
@@ -256,13 +273,10 @@ class ActiveTerminalOperation(TerminalOperation):
         raise RuntimeError("Terminal execution already started")
 
     def settle_startup(self, task):
-        if self.ready.done():
-            return
-        if task.cancelled():
+        # A cancelled task may never enter run(), so its original cancellation
+        # must settle the startup waiter too. Entered failures settle in run().
+        if task.cancelled() and not self.ready.done():
             self.ready.cancel()
-        else:
-            error = task.exception()
-            self.ready.set_exception(error or RuntimeError("Terminal ended before PTY acquisition"))
 
     def outcome(self):
         if not self.task.done():
@@ -295,18 +309,23 @@ class ActiveTerminalOperation(TerminalOperation):
         # Cancellation of an ACP waiter is not command cancellation.
         return await asyncio.shield(self.task)
 
+    async def custody(self):
+        return await asyncio.shield(self.ready)
+
     async def close(self):
+        await join_retirement(asyncio.create_task(self.retire_task()))
+
+    async def retire_task(self):
         self.kill()
+        joined = asyncio.gather(self.task, return_exceptions=True)
         try:
             async with asyncio.timeout(STOP_GRACE_SECONDS):
-                await asyncio.shield(self.task)
+                await asyncio.shield(joined)
         except TimeoutError:
             self.task.cancel()
-        except BaseException:
-            # The original task owns startup/run failure. Closing still joins
-            # custody and must not replace the caller's original exception.
-            pass
-        await asyncio.gather(self.task, return_exceptions=True)
+        # Original execution failure belongs to task/outcome; joining does not
+        # consume a second success/failure state or suppress cleanup failure.
+        await joined
 
 
 class TerminalExecution:
@@ -365,6 +384,10 @@ class TerminalExecution:
     async def wait_for_exit(self):
         return await self._operation.wait()
 
+    async def custody(self) -> PtyProcess:
+        """Observe the SAME original acquired resource, never a copied PID/status."""
+        return await self._operation.custody()
+
     async def start(self, width=0, height=0):
         self.state.update_size(width or 80, height or 24)
         operation = self._operation.start(self)
@@ -383,17 +406,15 @@ class TerminalExecution:
                 run_command = (command.command if " " in command.command
                                else f"{command.command} {shlex.join(command.args)}")
                 shell_command = shlex.join([os.environ.get("SHELL", "sh"), "-c", run_command])
-                spawn = asyncio.create_task(asyncio.create_subprocess_shell(
-                    shell_command, stdin=slave, stdout=slave, stderr=slave,
-                    env=os.environ | command.env, cwd=command.cwd, start_new_session=True))
+                spawn = asyncio.create_task(PtyProcess.acquire(
+                    command, shell_command, master_file, slave_file, custody))
                 try:
-                    process = await asyncio.shield(spawn)
+                    acquired = await asyncio.shield(spawn)
                 except asyncio.CancelledError:
-                    process = await spawn
-                    await PtyProcess(process, master_file).close()
+                    # The same acquisition registers its retirement before the
+                    # outer scope releases PTY descriptors. No lost spawn handle.
+                    await join_retirement(spawn)
                     raise
-                acquired = PtyProcess(process, master_file)
-                custody.push_async_callback(acquired.close)
                 acquired.resize(self.state.width, self.state.height)
                 slave_file.close()
                 reader = asyncio.StreamReader(128 * 1024)
@@ -410,7 +431,7 @@ class TerminalExecution:
                         self.project()
                     if not data:
                         break
-                return TerminalCompletion.capture(await process.wait())
+                return TerminalCompletion.capture(await acquired.process.wait())
         except BaseException as error:
             if not ready.done():
                 ready.set_exception(error)

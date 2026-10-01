@@ -17,7 +17,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
 
     def __init__(self, agent) -> None:
         super().__init__(agent)
-        self.terminals = TerminalController()
+        self.terminals = TerminalController(self)
 
     @abstractmethod
     def start_operation(self, operation): ...
@@ -26,9 +26,14 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         if self.surface.owns(target):
             self.start_operation(self.terminals.attach(target))
 
+    def owns_terminal_projection(self, binding, projection):
+        if self.surface is not binding or self.terminals is not projection.controller:
+            return False
+        return self.terminals.owns_projection(projection.terminal_id, projection.execution)
+
     def replace_terminal_session(self):
         previous = self.terminals
-        self.terminals = TerminalController()
+        self.terminals = TerminalController(self)
         if previous.executions:
             self.start_operation(previous.close())
         self.start_terminal_presentation(self.surface.target)

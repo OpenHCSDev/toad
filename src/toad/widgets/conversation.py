@@ -1363,6 +1363,11 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     async def watch_busy_count(self, _busy: int) -> None:
         self._sync_throbber()
 
+    @on(acp_messages.TerminalProjection)
+    async def on_terminal_projection(self, message: acp_messages.TerminalProjection):
+        message.stop()
+        await message.binding.present_terminal(message, self)
+
     @on(acp_messages.UpdateStatusLine)
     async def on_update_status_line(self, message: acp_messages.UpdateStatusLine):
         # The shared widget can receive a queued status message after its
