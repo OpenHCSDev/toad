@@ -541,14 +541,11 @@ class TranscriptPresentation:
 
     async def refresh_revealed(self, agent) -> None:
         """Validate the retained reader after its first completed display."""
-        generation = self.generation
-        page = await agent.get_transcript_page()
-        view = self.view
-        if (view is None or view.agent is not agent or generation != self.generation
-                or not view.is_attached):
+        publication = self.capture(CanonicalSourcePublication)
+        if publication is None or publication.agent is not agent:
             return
-        await self.snapshot(page)
-        if generation != self.generation or view.agent is not agent:
+        await publication.publish()
+        if not publication.current():
             return
         for history in self.histories:
             if history.state.reports_coverage:

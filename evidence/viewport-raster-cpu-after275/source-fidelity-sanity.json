@@ -1,0 +1,19 @@
+{
+  "order": "Existing-source/consumer reasoning -> coherent existing-owner implementation/deletion -> bounded final source sanity; installed real configured gate still pending",
+  "source_base": "545d8c0f",
+  "existing_guards": "tests/guards/test_transcript_publication.py",
+  "passed": [
+    "test_publication_loaders_use_captured_actor",
+    "test_root_custody_deleted",
+    "test_source_operation_flags_deleted",
+    "test_native_page_coverage_is_joined",
+    "test_accepted_retirement_has_one_owner",
+    "test_publication_cases_inherit_original_application_join"
+  ],
+  "invocation": "Existing six source-only guard functions via runpy using frozen .artifacts/runtime-viewport284-damage-20261001/bin/python; no import overlay/native/provider/UI launch",
+  "pytest_attempt": "Frozen production-only prefix has no pytest; failed before collection. No dependency or installed package mutated. Existing guard functions then executed directly.",
+  "ast_query": "scene-owner-query.py; 523 product modules,76 selected declarations,139 lexical references; obsolete Conversation method zero declarations/references. Not dynamic execution-source proof.",
+  "syntax": "Changed publication/workspace sources AST parse and git diff --check passed",
+  "paper_pdf_checksums_recomputed": true,
+  "limits": "NOT READY: new source not installed-qualified; single Sch499 canonical application fork actual configured provider/native/ACP/Toad auto-compaction + distinct fresh reply physical/profile gate required"
+}
