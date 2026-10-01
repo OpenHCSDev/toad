@@ -7,6 +7,7 @@ same root. It declares no new owner and never manufactures an author witness.
 
 import asyncio
 import base64
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 import json
@@ -137,7 +138,7 @@ class ActualS2Ingress:
 
 
 @asynccontextmanager
-async def actual_s2_ingress(owner, subject, output):
+async def _open_actual_s2_ingress(owner, subject, output):
     """Open one real client on the caller's original native/ACP fixture."""
     output = Path(output) / 'toad-ingress'
     output.mkdir(mode=0o700)
@@ -179,3 +180,66 @@ async def actual_s2_ingress(owner, subject, output):
                 os.environ.pop(key, None)
             else:
                 os.environ[key] = value
+
+
+@dataclass
+class IsolatedS2Ingress:
+    """One actual UI loop resource; original backend stays on the caller's loop."""
+
+    observer: ActualS2Ingress
+    loop: object
+
+    async def run(self, operation):
+        return await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(operation, self.loop))
+
+    async def queue_followup(self, text):
+        return await self.run(self.observer.queue_followup(text))
+
+    async def submit(self, text, *, image=None, while_running=None):
+        caller = asyncio.get_running_loop()
+
+        async def callback(observer, original):
+            return await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(
+                while_running(self, original), caller))
+
+        return await self.run(self.observer.submit(text, image=image,
+            while_running=callback if while_running is not None else None))
+
+
+@asynccontextmanager
+async def actual_s2_ingress(owner, subject, output):
+    """Give the real client its own loop, as the normal client/owner processes do.
+
+    The production spawn fence holds the wire lock until its UI-loop subprocess
+    launch completes. Co-locating a synchronous backend observer on that loop
+    creates a fixture-only deadlock. Separate loop custody preserves both normal
+    production paths and all original lock/identity admission rules.
+    """
+    ready = Future()
+
+    async def serve():
+        try:
+            async with _open_actual_s2_ingress(owner, subject, output) as observer:
+                close = asyncio.Event()
+                ready.set_result((observer, asyncio.get_running_loop(), close))
+                await close.wait()
+        except BaseException as error:
+            if not ready.done():
+                ready.set_exception(error)
+            raise
+
+    # This is a test-owned application resource, not another semantic owner,
+    # process registry or provider. The executor and application are joined.
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix='actual-s2-toad') as executor:
+        finished = executor.submit(lambda: asyncio.run(serve()))
+        observer = loop = close = None
+        try:
+            observer, loop, close = await asyncio.shield(asyncio.wrap_future(ready))
+            yield IsolatedS2Ingress(observer, loop)
+        finally:
+            if loop is None:
+                # Startup still owns the live application: acquire its original
+                # resource before retirement rather than abandon the thread.
+                observer, loop, close = await asyncio.shield(asyncio.wrap_future(ready))
+            loop.call_soon_threadsafe(close.set)
+            await asyncio.shield(asyncio.wrap_future(finished))
