@@ -46,3 +46,11 @@ independent native widget-cost measurement.
 
 The affected immutable installed original-history journey remains pending. No READY, live activation, total CPU gain, Strip reuse,
 whole-frame gap closure or final latency claim is made from these counters.
+
+The existing PR266 raw profile also places the original _load_page and
+_extend_and_trim stacks in physical Up/Down/reverse phases. The bounded derived
+query is retained in existing-266-phase-stacks.json with original video clock and
+kernel counter references. Its stack transition counts are neither call counts
+nor weighted CPU observations. They support the causal source-path investigation
+without establishing which function dominates CPU. No additional capture or
+sampling process was launched for this read-only query.
