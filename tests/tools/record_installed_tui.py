@@ -383,14 +383,14 @@ class ArchiveJourney(PhysicalJourney):
     """Open retained sessions using original native controls, without input."""
 
     @classmethod
-    def script(cls, args):
+    def opening_commands(cls, args):
         if not args.capture_state:
             raise ValueError("Archive controls require native state capture")
         if not 0 <= args.archive_index < 111:
             raise ValueError("Archive index must be within the retained 111-row fixture")
         marker = marker_command()
         state = lambda label: str(args.output.resolve() / f"phase-{label}-state.pickle")
-        return "\n".join((
+        return (
             "key ctrl+g", "sleep 2", marker + "archive-feed",
             native_click_command(state("archive-feed"), target="widget", name="Button#historical-sessions"),
             "sleep 1", marker + "archive-modal",
@@ -399,9 +399,27 @@ class ArchiveJourney(PhysicalJourney):
             "key Home", *("key Down" for _ in range(args.archive_index)), "key Return",
             "sleep 3", marker + "archive-native",
             native_click_command(state("archive-native"), target="widget", name="HistoryWindow#saved-window"),
-            "sleep .2", marker + "archive-focused", "key End", "sleep 1",
-            marker + "archive-end", "key Escape", "sleep 1", marker + "archive-return",
-        )) + "\n"
+            "sleep .2", marker + "archive-focused",
+        )
+
+    @classmethod
+    def script(cls, args):
+        marker = marker_command()
+        return "\n".join((*cls.opening_commands(args), "key End", "sleep 1",
+                          marker + "archive-end", "key Escape", "sleep 1",
+                          marker + "archive-return")) + "\n"
+
+
+class ArchiveScrollJourney(ArchiveJourney):
+    """Hold the original gestures on the selected certified Saved history."""
+
+    @classmethod
+    def script(cls, args):
+        marker = marker_command()
+        return "\n".join((*cls.opening_commands(args),
+                          scroll_gestures(idle_seconds=args.scroll_idle_seconds,
+                                          hold_seconds=args.scroll_hold_seconds),
+                          "key Escape", "sleep 1", marker + "archive-return")) + "\n"
 
 
 class ScrollJourney(PhysicalJourney):
@@ -1280,10 +1298,14 @@ def phase_evidence(output, event):
 
 
 def scroll_script(*, idle_seconds: float = 4, hold_seconds: float = 4, state="before-state.pickle"):
+    return "\n".join((native_click_command(state), marker_command() + "focused", "sleep 1",
+                      scroll_gestures(idle_seconds=idle_seconds, hold_seconds=hold_seconds)))
+
+
+def scroll_gestures(*, idle_seconds: float = 4, hold_seconds: float = 4):
     marker = marker_command()
     hold = f"sleep {hold_seconds:g}"
     return "\n".join([
-        native_click_command(state), marker + "focused", "sleep 1",
         marker + "up", "keydown Prior", hold, "keyup Prior", marker + "up-done",
         marker + "down", "keydown Next", hold, "keyup Next", marker + "down-done",
         marker + "reverse", "keydown Prior", hold, "keyup Prior", marker + "reverse-done",
