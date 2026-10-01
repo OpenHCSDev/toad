@@ -14,6 +14,8 @@ Proposed prefix: `/home/ts/.local/share/agent-comms/runtime-native-publication-j
 
 Before testing, freeze exact source/dependency/native manifests and verify package Git bytes, dependency resolution, full native trust and existing RuntimeSelection private-root admission. Package readiness does not establish application readiness.
 
+Package source is frozen at Toad `66098518c4850e8e0bf83ed983383538f993c4ef`. One normal build installed 69 distributions. Full source comparison passed for 304 Core files, 304 Toad files and 266 Textual files; native593 full trust passed. The existing RuntimeSelection private admission probe exited 0 with empty owned cleanup, zero owner starts and no input/provider effects. Exact immutable activation digest: `7c887479390742c051bea1c05adf142fbdcb10b1e39ae1bac9a67a8d24d4b093`. See the `package/` receipts. Both actual application gates are still required.
+
 ## Actual acceptance
 
 Schrodinger owns one fresh isolated continuous hot sender/recipient DM + IRC journey: original Processing/Responded, original canonical execution completion, one source/presentation per original identity, 31-second observation, physical A/B/A immediate distinct sends, cold reopen and owned shutdown. Einstein owns the existing continuous installed native/fork/queue gate in a separate private fixture using the same prefix. These can run in parallel within the authorized bounded fleet.

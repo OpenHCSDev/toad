@@ -1,0 +1,21 @@
+{
+  "toad": "66098518c4850e8e0bf83ed983383538f993c4ef",
+  "core": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+  "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+  "sdk": "0.12.1",
+  "audit": "d392c5e4cd189ce1203127a746337ad498a0330d",
+  "native_manifest": "593b978a717ae8f6ab4300a1a107b615c8ced52e767ef4cad0596f827041a218",
+  "prefix": "/home/ts/.local/share/agent-comms/runtime-native-publication-joined-20261001",
+  "graph": "69 normal noneditable distributions",
+  "source_equivalence": {
+    "toad_a37_src_equal": true,
+    "core_reviewed_da15_src_stack_config_equal": true
+  },
+  "metadata_sha256": {
+    "pyproject.toml": "01776e1120eee99436433010561cf270ab0fb15fa6f29555961765bf43fa8efd",
+    "uv.lock": "39a8322434dd8ba08083cda11329e0e4aa4eed8d481cb037e05c7f03d16c8245"
+  },
+  "source_recorder_sha256": "74f1b48aece7d8f701734be6404f84356e8d527ec1ffe5e9bc7a88cde55386b0",
+  "source_recorder_boundary": "existing committed5b016SourceCapture measurement custody; no product overlay/ordinaryCLIclaim",
+  "public_effects": 0
+}
