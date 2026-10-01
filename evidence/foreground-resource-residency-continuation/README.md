@@ -107,3 +107,16 @@ Toad sourcepin/lock3added/3deleted. Current private archive fixture is valid for
 SavedHistoryWindow only; actual current-agentA/B requires existing authorized
 source fixture/capture mechanism, no archived-fact owner promotion. Entire
 original fullscope above remains active.
+
+
+## Next measurement declaration closure
+
+Textual17 source4e9016/nativeDiff2 source8fa7/Toad d9d2221e: sharedoriginal
+width+heightmethodpolicy deletes widthidentityboolean and duplicated checks;
+annotationproducer now invalidates width/height on changed numbers. Native
+ToolContent puremargin hook declares original dependency. ProductionTextual
+25added22deleted,NativeDiff4added1deleted,Toad2declarationlines+paired pins.
+[Exactinstalled receiving control](../native-width-contract/README.md) passes
+10originalflow resources1arrangement for8heights, dynamicnumber extent,unknown
+width/relative/style/member/hooks/resize. No original41MB CPU/warmclaim. All
+originalscopeabove persists; currentagentfixturecapability gap recorded there.

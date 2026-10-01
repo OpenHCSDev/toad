@@ -1,0 +1,14 @@
+[
+  {
+    "kind": "VerticalGroup",
+    "calls": 1,
+    "equal_placements": true,
+    "relative_height_rejected": true
+  },
+  {
+    "kind": "HorizontalGroup",
+    "calls": 1,
+    "equal_placements": true,
+    "relative_height_rejected": true
+  }
+]
