@@ -18,10 +18,14 @@ class ScrollTravelObservation:
         from toad.widgets.presentation_window import DirectionalPreparation
         from toad.widgets.viewport_body import DocumentViewport
         from toad.widgets.transcript_history import TranscriptHistory
+        from toad.sidebar_projection import SidebarProjection
+        from toad.widgets.sidebar_viewport import SidebarViewport
+        from textual.widget import Widget
 
         self.stream = path.open("x", buffering=1)
         self.written = 0
         self.observer_ns = 0
+        self.sidebar_viewport_type = SidebarViewport
         self.starts = {
             DocumentViewport.request.__code__: self.request,
             HistoryWindow.watch_scroll_y.__code__: self.scroll,
@@ -33,11 +37,14 @@ class ScrollTravelObservation:
             DocumentViewport.admission.__code__: self.full_admission,
             TranscriptHistory._resource_fragment_budget.__code__: self.fragment_budget,
             TranscriptHistory._extend_and_trim.__code__: self.page_extension,
+            SidebarProjection.rebuild.__code__: self.sidebar_publishing,
+            Widget.watch_scroll_y.__code__: self.sidebar_scroll,
         }
         self.returns = {
             DirectionalPreparation.observe.__code__: self.observed,
             DirectionalPreparation.relocated.__code__: self.relocated,
             TranscriptHistory._extend_and_trim.__code__: self.page_extended,
+            SidebarProjection.rebuild.__code__: self.sidebar_published,
         }
         self.tool = sys.monitoring.PROFILER_ID
 
@@ -71,6 +78,42 @@ class ScrollTravelObservation:
         self.emit("page_extended", history=id(native["self"]),
                   window=id(native["self"].window), local=native["local"],
                   older=native["older"])
+
+    def sidebar_scene(self, projection):
+        sidebar = projection.sidebar
+        if not sidebar.accepts_publication():
+            return {"sidebar": id(sidebar), "publication_revoked": True}
+        viewport, _ = sidebar.navigation.scroll_containers
+        compositor = sidebar.screen._compositor
+        mapping = (compositor._visible_map if compositor._visible_map is not None
+                   else compositor._full_map)
+        geometry = mapping.get(viewport)
+        top = None
+        if geometry is not None:
+            bounds = geometry.region.intersection(geometry.clip)
+            visible = []
+            for row in projection.rows:
+                position = mapping.get(row)
+                if position is not None and position.region.intersection(position.clip).overlaps(bounds):
+                    visible.append((position.region.y, id(row), row.target_name))
+            if visible:
+                y, identity, target = min(visible)
+                top = {"object_id": identity, "target": target, "offset": y - bounds.y}
+        return {"sidebar": id(sidebar), "viewport": id(viewport),
+                "scroll_y": viewport.scroll_y, "top": top,
+                "map_invalidated": compositor._full_map_invalidated}
+
+    def sidebar_publishing(self, native):
+        self.emit("sidebar_publication_start", **self.sidebar_scene(native["self"]))
+
+    def sidebar_published(self, native):
+        self.emit("sidebar_publication_done", **self.sidebar_scene(native["self"]))
+
+    def sidebar_scroll(self, native):
+        viewport = native["self"]
+        if isinstance(viewport, self.sidebar_viewport_type):
+            self.emit("sidebar_scroll", viewport=id(viewport),
+                      old=native["old_value"], new=native["new_value"])
 
     def scroll(self, native):
         window = native["self"]

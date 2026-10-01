@@ -458,6 +458,14 @@ class WarmScrollJourney(ScrollJourney):
     review_artifacts = ("warm-scroll-review.json",)
 
     @classmethod
+    def opening_commands(cls, args):
+        return ()
+
+    @classmethod
+    def paging_commands(cls, args):
+        return ()
+
+    @classmethod
     def peer_click(cls, args):
         if not args.peer_thread:
             raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
@@ -482,8 +490,10 @@ class WarmScrollJourney(ScrollJourney):
         marker = marker_command()
         settle = f"sleep {args.navigation_settle_seconds:g}"
         return "\n".join([
+            *cls.opening_commands(args),
             marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
             f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
+            *cls.paging_commands(args),
             scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
                           state="phase-draft-state.pickle"),
             marker + "switch-b", peer_click, peer_ready, marker + "return-a",
@@ -551,8 +561,12 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
 
     @classmethod
     def input_commands(cls, args):
+        return [*super().input_commands(args), *cls.down_commands(args)]
+
+    @classmethod
+    def down_commands(cls, args):
         marker = marker_command()
-        return [*super().input_commands(args), marker + "input-held-down",
+        return [marker + "input-held-down",
                 "keydown Next", f"sleep {args.scroll_hold_seconds:g}", "keyup Next",
                 marker + "input-held-down-done"]
 
@@ -594,6 +608,39 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
         failed = [name for name, passed in review["checks"].items() if not passed]
         if failed:
             raise RuntimeError("Installed input-focused history paging failed: " + ", ".join(failed))
+
+
+class InputWarmJourney(WarmScrollJourney):
+    """Use the original warm journey with focused paging and idle away from tail."""
+
+    review_artifacts = (*WarmScrollJourney.review_artifacts,
+                        *InputPagingAcceptanceJourney.review_artifacts)
+
+    @classmethod
+    def opening_commands(cls, args):
+        if not args.scroll_travel:
+            raise ValueError("Input warm acceptance requires original paging observation")
+        return (marker_command() + f"warm-ready --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                f"--wait-history-thread {shlex.quote(args.command[-1])}",)
+
+    @classmethod
+    def paging_commands(cls, args):
+        marker = marker_command()
+        return (marker + "travel-start --require-editor-focus",
+                *ScrollTravelRegressionJourney.input_commands(args),
+                f"sleep {args.scroll_idle_seconds:g}", marker + "input-mid-history-idle-done",
+                *InputPagingAcceptanceJourney.down_commands(args))
+
+    @classmethod
+    def review(cls, output, receipt):
+        return {"warm": super().review(output, receipt),
+                "input": InputPagingAcceptanceJourney.review(output, receipt)}
+
+    @classmethod
+    def validate_review(cls, review):
+        super().validate_review(review["warm"])
+        InputPagingAcceptanceJourney.validate_review(review["input"])
 
 
 class StationaryInputScrollJourney(ScrollJourney):
