@@ -1,0 +1,32 @@
+{
+  "crop_pixels": [
+    500,
+    70,
+    735,
+    640
+  ],
+  "source_geometry": "original before-state native Window and original click-target TIOCGWINSZ mapping",
+  "sheets": [
+    {
+      "phase": "up",
+      "video_start_seconds": 20.351733937044628,
+      "video_duration_seconds": 4.8,
+      "sampling_fps": 4,
+      "artifact": "body-up-contact-sheet.png"
+    },
+    {
+      "phase": "down",
+      "video_start_seconds": 27.305976661038585,
+      "video_duration_seconds": 4.8,
+      "sampling_fps": 4,
+      "artifact": "body-down-contact-sheet.png"
+    },
+    {
+      "phase": "reverse",
+      "video_start_seconds": 34.21043934300542,
+      "video_duration_seconds": 4.8,
+      "sampling_fps": 4,
+      "artifact": "body-reverse-contact-sheet.png"
+    }
+  ]
+}

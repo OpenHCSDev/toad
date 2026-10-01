@@ -451,6 +451,8 @@ class SavedTabCloseJourney(PhysicalJourney):
 class CaptureTarget(DeclaredFamily, affix="Capture"):
     """Own launch authorization and original native-owner preservation proof."""
 
+    purpose = "installed TUI physical interaction video review"
+
     @classmethod
     @abstractmethod
     def admit(cls, args, command, env): ...
@@ -475,7 +477,7 @@ class PrivateCapture(CaptureTarget):
                            Path(env["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]))
 
     @classmethod
-    def admit(cls, args, command, env):
+    def admit_root(cls, args, env):
         from agent_comms.active_route import read_active_route
         if args.private_root is None:
             raise ValueError("Private capture requires an existing matched --private-root")
@@ -487,6 +489,11 @@ class PrivateCapture(CaptureTarget):
         active = read_active_route()
         if active is not None and root == active.root.resolve():
             raise ValueError("Private capture refuses the owner's active bus")
+        return root
+
+    @classmethod
+    def admit(cls, args, command, env):
+        root = cls.admit_root(args, env)
         if Path(command[0]).name != "toad":
             raise ValueError("Private capture requires installed toad acp; toad-comms clears private pins")
         selection = RuntimeSelection.from_environment(command, env)
@@ -498,6 +505,33 @@ class PrivateCapture(CaptureTarget):
 
     def observe(self):
         return {"root": str(self.root), "mode": self.declared_name}
+
+
+@dataclass(frozen=True)
+class SourceCapture(PrivateCapture):
+    """Capture an explicitly selected persistent source application journey.
+
+    Same private route and process custody as installed captures; this never
+    represents an installed-package acceptance result.
+    """
+
+    source: Path
+    purpose = "source Toad physical interaction video review"
+
+    @classmethod
+    def admit(cls, args, command, env):
+        root = cls.admit_root(args, env)
+        selection = RuntimeSelection.from_environment(command, env)
+        if len(command) != 2 or Path(command[0]).resolve() != (selection.bin_directory / 'python').resolve():
+            raise ValueError('Source capture requires the selected runtime Python and one source entrypoint')
+        source = Path(command[1]).resolve()
+        if not source.is_file() or not source.is_relative_to(Path.home() / 'wt'):
+            raise ValueError('Source capture requires an existing persistent worktree entrypoint')
+        return cls(root, selection, source)
+
+    def observe(self):
+        return {**super().observe(), 'source': str(self.source), 'source_sha256': digest(self.source),
+                'boundary': 'source application journey; not installed readiness'}
 
 
 @dataclass(frozen=True)
@@ -852,7 +886,7 @@ def record(args):
         raise ValueError("Run recorder with the selected installed runtime's Python")
     output.mkdir(parents=True, exist_ok=False)
     receipt = {
-        "owner": args.owner, "purpose": "installed TUI physical interaction video review",
+        "owner": args.owner, "purpose": target.purpose,
         "output": str(output), "command": command, "terminal_command": ["st", "-e", *command],
         "fps": args.fps, "screen": [args.width, args.height],
         "profiling_requested": args.profile,

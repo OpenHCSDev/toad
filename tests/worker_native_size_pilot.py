@@ -6,12 +6,18 @@ The full-map counter observes native execution without replacing its methods.
 from __future__ import annotations
 
 import asyncio
+from contextlib import nullcontext
+import hashlib
 import json
 import os
 from pathlib import Path
 import sys
+import traceback
 from tempfile import TemporaryDirectory
 from time import perf_counter, process_time
+
+if os.environ.get('WORKER_SIZE_PHYSICAL') == '1':
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 
 from acp.schema import ToolCall as ACPToolCall
 from agent_comms.comms import Comms
@@ -24,19 +30,26 @@ from toad.widgets.worker_static import WorkerStatic
 async def main():
     output = Path(os.environ['WORKER_SIZE_OUTPUT']).resolve()
     output.mkdir(parents=True, exist_ok=False)
-    with TemporaryDirectory(dir=output) as directory:
+    physical = os.environ.get('WORKER_SIZE_PHYSICAL') == '1'
+    directory_owner = (nullcontext(os.environ['WORKER_SIZE_ROOT']) if physical
+                       else TemporaryDirectory(dir=output))
+    with directory_owner as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'),
                           XDG_CONFIG_HOME=str(root / 'config'),
                           XDG_STATE_HOME=str(root / 'state'),
                           XDG_DATA_HOME=str(root / 'data'))
         comms = Comms(root / 'wire')
-        comms.messaging.initialize_private_initial_protocol()
+        if physical:
+            from agent_comms.active_route import resolve_comms_route
+            assert resolve_comms_route().observe_root() == comms.root
+        else:
+            comms.messaging.initialize_private_initial_protocol()
         app = ToadApp(project_dir=str(root))
         receipt = {'boundary': 'actual source Toad/ToolCall/Contents/native compositor/worker',
                    'source': str(Path(sys.modules['toad.widgets.worker_static'].__file__).resolve()),
                    'provider_calls': 0}
-        async with app.run_test(size=(110, 35)) as pilot:
+        async with app.run_test(size=(110, 35), headless=not physical) as pilot:
             await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
             tools = []
@@ -71,6 +84,18 @@ async def main():
                 tool.scroll_visible(animate=False, immediate=True)
                 await pilot.pause()
                 await ready()
+            if physical:
+                view.window.jump_to_latest()
+                await pilot.pause()
+                await ready()
+                receipt.update(physical_driver=type(app._driver).__name__,
+                               retained_tool_bodies=len(bodies), ready=True,
+                               source_sha256=hashlib.sha256(
+                                   Path(sys.modules['toad.widgets.worker_static'].__file__).read_bytes()).hexdigest())
+                (output / 'physical-ready.json').write_text(json.dumps(receipt, indent=2) + '\n')
+                while app.is_running:
+                    await asyncio.sleep(.05)
+                return
             scene = app.screen._compositor
             assert any(body not in scene.visible_widgets for body in bodies)
             prepared = tuple(body._prepared for body in bodies)
@@ -154,4 +179,10 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except BaseException:
+        output = Path(os.environ['WORKER_SIZE_OUTPUT'])
+        output.mkdir(parents=True, exist_ok=True)
+        (output / 'failure.txt').write_text(traceback.format_exc())
+        raise
