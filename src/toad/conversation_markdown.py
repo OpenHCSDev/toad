@@ -298,12 +298,12 @@ class ConversationMarkdown(Markdown):
 
     def _make_parser(self) -> _ThreadLocalPathParser:
         from toad.project_path_owner import ProjectPathOwner
-        return _ThreadLocalPathParser(self.query_ancestor(ProjectPathOwner).project_root.resolve())
+        return _ThreadLocalPathParser(ProjectPathOwner.containing(self).project_root.resolve())
 
     async def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
         screen = self.screen
         from toad.project_path_owner import ProjectPathOwner
-        root = self.query_ancestor(ProjectPathOwner).project_root.resolve()
+        root = ProjectPathOwner.containing(self).project_root.resolve()
         if event.href.startswith("toad-file:"):
             path = Path(unquote(event.href.removeprefix("toad-file:")))
         elif event.href.startswith("toad-file-search:"):
