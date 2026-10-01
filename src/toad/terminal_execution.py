@@ -1,10 +1,10 @@
-"""Operational terminal execution; optional widgets do not own ACP processes."""
+"""Original PTY custody and nominal outcomes; mounted views are projections."""
 from __future__ import annotations
 
 import asyncio
-from asyncio.subprocess import Process
+from abc import abstractmethod
 from collections import deque
-from contextlib import suppress
+from contextlib import AsyncExitStack, suppress
 from dataclasses import dataclass
 import codecs
 import fcntl
@@ -14,10 +14,18 @@ import shlex
 import signal
 import struct
 import termios
+from io import FileIO
 from typing import Mapping
 from weakref import ref
 
-from agent_comms.child_process import STOP_GRACE_SECONDS
+from acp import schema as protocol
+from textual.content import Content
+from agent_comms.child_process import (
+    AttachedChild, TerminalChildStdio, ChildOutcome, ExitedOutcome, SignaledOutcome,
+    join_retirement,
+)
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.mro_dispatch import MroDispatch, handles
 from toad import ansi
 from toad.shell_read import shell_read
 
@@ -39,256 +47,396 @@ class Command:
         return command_str
 
 
-@dataclass
-class ToolState:
-    """Current state of the terminal."""
+class TerminalOutcome(DeclaredFamily, affix="TerminalOutcome"):
+    finished = False
+    successful = False
 
-    output: str
-    truncated: bool
-    return_code: int | None = None
-    signal: str | None = None
+    def exit_status(self) -> protocol.TerminalExitStatus | None:
+        return None  # Official ACP absence, never an internal lifecycle field.
+
+    def present(self, terminal, command) -> None:
+        pass
+
+
+class RunningTerminalOutcome(TerminalOutcome):
+    """The original execution task has not returned a completion witness."""
+
+
+class UnstartedTerminalOutcome(TerminalOutcome):
+    """The original execution has not acquired a job yet."""
+
+
+class RetiredTerminalOutcome(TerminalOutcome):
+    """Acquisition was revoked before any command could start."""
+    finished = True
+
+
+class TerminalCompletion(TerminalOutcome):
+    finished = True
+
+    @abstractmethod
+    def wait_response(self) -> protocol.WaitForTerminalExitResponse: ...
+
+    def present(self, terminal, command) -> None:
+        terminal.finalize()
+        terminal.set_class(self.successful, "-success")
+        terminal.set_class(not self.successful, "-error")
+        if not self.successful:
+            terminal.border_title = Content(f"{command} [{self.label}]")
 
     @property
-    def finished(self) -> bool:
-        """Whether this execution ended normally or by a signal."""
-        return self.return_code is not None or self.signal is not None
+    @abstractmethod
+    def label(self) -> str: ...
 
     @classmethod
-    def capture(cls, output: str, truncated: bool, return_code: int | None) -> ToolState:
-        """Decode the operating system's negative signal return code once."""
-        if return_code is not None and return_code < 0:
-            return cls(output, truncated, signal=signal.Signals(-return_code).name)
-        return cls(output, truncated, return_code=return_code)
+    def capture(cls, original: ChildOutcome) -> TerminalCompletion:
+        # Existing child owner decodes the operating system once. The
+        # terminal projection retains that ORIGINAL rich value, never scalars.
+        return _TerminalCompletionDecoder(original).completion
+
+
+@dataclass(frozen=True)
+class ExitedTerminalOutcome(TerminalCompletion):
+    original: ExitedOutcome
+
+    @property
+    def successful(self) -> bool:
+        return self.original.successful
+
+    @property
+    def label(self) -> str:
+        return str(self.original.code)
+
+    def exit_status(self):
+        return protocol.TerminalExitStatus(exit_code=self.original.code)
+
+    def wait_response(self):
+        return protocol.WaitForTerminalExitResponse(exit_code=self.original.code)
+
+
+@dataclass(frozen=True)
+class SignaledTerminalOutcome(TerminalCompletion):
+    original: SignaledOutcome
+
+    @property
+    def label(self) -> str:
+        return signal.Signals(self.original.signal_number).name
+
+    def exit_status(self):
+        return protocol.TerminalExitStatus(signal=self.label)
+
+    def wait_response(self):
+        return protocol.WaitForTerminalExitResponse(signal=self.label)
+
+
+class _TerminalCompletionDecoder(MroDispatch):
+    """Typed original POSIX members enter the terminal family at acquisition."""
+    completion: TerminalCompletion
+
+    def __init__(self, original):
+        self.dispatch_sync(original)
+
+    @handles(ExitedOutcome)
+    def exited(self, original):
+        self.completion = ExitedTerminalOutcome(original)
+
+    @handles(SignaledOutcome)
+    def signaled(self, original):
+        self.completion = SignaledTerminalOutcome(original)
+
+
+@dataclass(frozen=True)
+class FailedTerminalOutcome(TerminalOutcome):
+    error: BaseException
+    finished = True
+
+    def present(self, terminal, command):
+        terminal.finalize()
+        terminal.set_class(True, "-error")
+        terminal.border_title = Content(f"{command} [{self.error}]")
+
+
+@dataclass(frozen=True)
+class ToolState:
+    output: str
+    truncated: bool
+    outcome: TerminalOutcome
+
+    def response(self):
+        return protocol.TerminalOutputResponse(output=self.output, truncated=self.truncated,
+                                               exit_status=self.outcome.exit_status())
+
+
+@dataclass(frozen=True)
+class PtyProcess:
+    """Complete acquired handles, scoped by the execution's AsyncExitStack."""
+    child: AttachedChild
+    master: FileIO
+
+    @classmethod
+    async def acquire(cls, command, shell_command, master, slave, custody):
+        child = await AttachedChild.start(
+            shell_command, stdio=TerminalChildStdio(slave),
+            env=os.environ | command.env, cwd=command.cwd,
+        )
+        acquired = cls(child, master)
+        # Register before returning the resource, including when the waiting
+        # caller was cancelled while the original spawn was still in flight.
+        custody.push_async_callback(acquired.close)
+        return acquired
+
+    def resize(self, width, height):
+        with suppress(OSError, ValueError):
+            fcntl.ioctl(self.master.fileno(), termios.TIOCSWINSZ,
+                        struct.pack("HHHH", height, width, 0, 0))
+
+    async def write(self, data: bytes) -> int:
+        # Nonblocking owned FD is consumed on this loop, not by a delayed
+        # thread that could write to an unrelated reused descriptor.
+        try:
+            return os.write(self.master.fileno(), data)
+        except (OSError, ValueError):
+            return 0
+
+    def kill(self) -> None:
+        self.child.force()
+
+    async def close(self):
+        await self.child.stop()
+
+
+class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
+    def retire(self) -> TerminalOperation:
+        return self
+
+    @abstractmethod
+    def outcome(self) -> TerminalOutcome: ...
+
+    def kill(self) -> None:
+        pass
+
+    def resize(self, width, height):
+        pass
+
+    async def write(self, data):
+        return 0
+
+    async def close(self):
+        pass
+
+    async def wait(self) -> TerminalCompletion:
+        raise RuntimeError("Terminal execution has not started")
+
+    async def custody(self) -> PtyProcess:
+        raise RuntimeError("Terminal execution has no acquired PTY")
+
+    @abstractmethod
+    def start(self, execution) -> ActiveTerminalOperation: ...
+
+
+class NewTerminalOperation(TerminalOperation):
+    def outcome(self):
+        return UnstartedTerminalOutcome()
+
+    def retire(self):
+        return RetiredTerminalOperation()
+
+    def start(self, execution):
+        ready = asyncio.get_running_loop().create_future()
+        task = asyncio.create_task(execution.run(ready), name=f"Terminal {execution.command}")
+        operation = ActiveTerminalOperation(task, ready)
+        task.add_done_callback(operation.settle_startup)
+        return operation
+
+
+class RetiredTerminalOperation(TerminalOperation):
+    def outcome(self):
+        return RetiredTerminalOutcome()
+
+    def start(self, execution):
+        raise RuntimeError("Terminal execution was retired before startup")
+
+
+@dataclass(frozen=True)
+class ActiveTerminalOperation(TerminalOperation):
+    task: asyncio.Task[TerminalCompletion]
+    ready: asyncio.Future[PtyProcess]
+
+    def start(self, execution):
+        raise RuntimeError("Terminal execution already started")
+
+    def settle_startup(self, task):
+        # A cancelled task may never enter run(), so its original cancellation
+        # must settle the startup waiter too. Entered failures settle in run().
+        if task.cancelled() and not self.ready.done():
+            self.ready.cancel()
+
+    def outcome(self):
+        if not self.task.done():
+            return RunningTerminalOutcome()
+        if self.task.cancelled():
+            return FailedTerminalOutcome(asyncio.CancelledError())
+        try:
+            return self.task.result()
+        except BaseException as error:
+            return FailedTerminalOutcome(error)
+
+    def resize(self, width, height):
+        if self.ready.done() and not self.task.done():
+            self.ready.result().resize(width, height)
+
+    async def write(self, data):
+        if self.ready.done() and not self.task.done():
+            return await self.ready.result().write(data)
+        return 0
+
+    def kill(self) -> None:
+        if self.task.done():
+            return
+        if not self.ready.done():
+            self.task.cancel()
+            return
+        self.ready.result().kill()
+
+    async def wait(self):
+        # Cancellation of an ACP waiter is not command cancellation.
+        return await asyncio.shield(self.task)
+
+    async def custody(self):
+        return await asyncio.shield(self.ready)
+
+    async def close(self):
+        await join_retirement(asyncio.create_task(self.retire_task()))
+
+    async def retire_task(self):
+        if self.task.done():
+            await asyncio.gather(self.task, return_exceptions=True)
+            return
+        if not self.ready.done():
+            self.task.cancel()
+        else:
+            await self.ready.result().close()
+        # Original execution failure belongs to task/outcome; joining does not
+        # consume a second success/failure state or suppress cleanup failure.
+        await asyncio.gather(self.task, return_exceptions=True)
 
 
 class TerminalExecution:
-    """The original command, ANSI model, bounded ACP output and process lifecycle."""
-
-    def __init__(self, command: Command, output_byte_limit: int | None = None) -> None:
+    """One ANSI/output owner and one acquired operation, independent of views."""
+    def __init__(self, command: Command, output_byte_limit: int | None = None):
         self._command = command
         self._output_byte_limit = output_byte_limit
-        self._command_task: asyncio.Task | None = None
         self._output: deque[bytes] = deque()
-        self._process: Process | None = None
         self._bytes_read = 0
         self._output_bytes_count = 0
-        self._shell_fd: int | None = None
-        self._return_code: int | None = None
-        self._released = False
-        self._ready_event = asyncio.Event()
-        self._exit_event = asyncio.Event()
-        self._startup_error: Exception | None = None
+        self._operation: TerminalOperation = NewTerminalOperation()
         self.state = ansi.TerminalState(self.write_stdin)
         self._view = lambda: None
 
     @property
-    def command(self) -> Command:
+    def command(self):
         return self._command
 
-    def attach(self, terminal) -> None:
+    @property
+    def outcome(self):
+        return self._operation.outcome()
+
+    @property
+    def tool_state(self):
+        output, truncated = self.get_output()
+        return ToolState(output, truncated, self.outcome)
+
+    def attach(self, terminal):
         self._view = ref(terminal)
         terminal.set_state(self.state)
         terminal.set_write_to_stdin(self.write_stdin)
         self.project()
 
-    def detach(self, terminal=None) -> None:
+    def detach(self, terminal=None):
         if terminal is None or self._view() is terminal:
             self._view = lambda: None
 
-    def update_size(self, width: int, height: int) -> None:
-        self.state.update_size(width, height)
-        if self._shell_fd is not None:
-            with suppress(OSError):
-                self.resize_pty(self._shell_fd, width, height)
-
-    def project(self) -> None:
+    def project(self):
         if (terminal := self._view()) is not None and terminal.is_attached:
             terminal.present_execution()
 
-    async def close(self) -> None:
+    def update_size(self, width, height):
+        self.state.update_size(width, height)
+        self._operation.resize(width, height)
+
+    async def close(self):
         self.detach()
-        self.kill()
-        if self._command_task is not None:
-            try:
-                async with asyncio.timeout(STOP_GRACE_SECONDS):
-                    await asyncio.shield(self._command_task)
-            except TimeoutError:
-                self._command_task.cancel()
-                await asyncio.gather(self._command_task, return_exceptions=True)
-        if self._process is not None:
-            await self._process.wait()
+        # Active acquisition already revokes another start. Only a never-started
+        # operation needs retirement; retain the SAME active task while joining.
+        self._operation = self._operation.retire()
+        await self._operation.close()
 
-    @property
-    def return_code(self) -> int | None:
-        """The command return code, or `None` if not yet set."""
-        return self._return_code
+    def kill(self) -> None:
+        self._operation.kill()
 
-    @property
-    def released(self) -> bool:
-        """Has the terminal been released?"""
-        return self._released
+    async def wait_for_exit(self):
+        return await self._operation.wait()
 
-    @property
-    def tool_state(self) -> ToolState:
-        """Get the current terminal state."""
-        output, truncated = self.get_output()
-        return ToolState.capture(output, truncated, self.return_code)
+    async def custody(self) -> PtyProcess:
+        """Observe the SAME original acquired resource, never a copied PID/status."""
+        return await self._operation.custody()
 
-    @staticmethod
-    def resize_pty(fd: int, columns: int, rows: int) -> None:
-        """Resize the pseudo terminal.
-
-        Args:
-            fd: File descriptor.
-            columns: Columns (width).
-            rows: Rows (height).
-        """
-        # Pack the dimensions into the format expected by TIOCSWINSZ
-        size = struct.pack("HHHH", rows, columns, 0, 0)
-        fcntl.ioctl(fd, termios.TIOCSWINSZ, size)
-
-    async def wait_for_exit(self) -> tuple[int | None, str | None]:
-        """Wait for the terminal process to exit."""
-        if self._process is None or self._command_task is None:
-            return None, None
-        # await self._task
-        await self._exit_event.wait()
-        state = self.tool_state
-        return state.return_code, state.signal
-
-    def kill(self) -> bool:
-        """Kill the terminal process.
-
-        Returns:
-            Returns `True` if the process was killed, or `False` if there
-                was no running process.
-        """
-        if self.return_code is not None:
-            return False
-        if self._process is None:
-            return False
-        try:
-            os.killpg(self._process.pid, signal.SIGKILL)
-        except Exception:
-            return False
-        return True
-
-    def release(self) -> None:
-        """Release the terminal (may no longer be used from ACP)."""
-        self._released = True
-
-    async def start(self, width: int = 0, height: int = 0) -> None:
-        assert self._command is not None
-
+    async def start(self, width=0, height=0):
         self.state.update_size(width or 80, height or 24)
-        self._command_task = asyncio.create_task(
-            self.run(), name=f"Terminal {self._command}"
-        )
-        await self._ready_event.wait()
-        if self._startup_error is not None:
-            raise self._startup_error
+        operation = self._operation.start(self)
+        self._operation = operation
+        await asyncio.shield(operation.ready)
 
-    async def run(self) -> None:
+    async def run(self, ready):
         try:
-            await self._run()
-        except Exception as error:
-            self._startup_error = error
-        finally:
-            self._ready_event.set()
-            self._exit_event.set()
-            self.project()
-
-    async def _run(self) -> None:
-        self._command_task = asyncio.current_task()
-
-        assert self._command is not None
-        master, slave = pty.openpty()
-        self._shell_fd = master
-
-        flags = fcntl.fcntl(master, fcntl.F_GETFL)
-        fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-        command = self._command
-        environment = os.environ | command.env
-
-        if " " in command.command:
-            run_command = command.command
-        else:
-            run_command = f"{command.command} {shlex.join(command.args)}"
-
-        shell = os.environ.get("SHELL", "sh")
-        run_command = shlex.join([shell, "-c", run_command])
-
-        try:
-            process = self._process = await asyncio.create_subprocess_shell(
-                run_command,
-                stdin=slave,
-                stdout=slave,
-                stderr=slave,
-                env=environment,
-                cwd=command.cwd,
-                start_new_session=True,
-            )
-        except Exception as error:
-            self._ready_event.set()
-            os.close(slave)
-            os.close(master)
-            self._shell_fd = None
+            async with AsyncExitStack() as custody:
+                master, slave = pty.openpty()
+                master_file = custody.enter_context(os.fdopen(master, "rb", 0))
+                slave_file = custody.enter_context(os.fdopen(slave, "wb", 0))
+                flags = fcntl.fcntl(master, fcntl.F_GETFL)
+                fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+                command = self.command
+                run_command = (command.command if " " in command.command
+                               else f"{command.command} {shlex.join(command.args)}")
+                shell_command = (os.environ.get("SHELL", "sh"), "-c", run_command)
+                spawn = asyncio.create_task(PtyProcess.acquire(
+                    command, shell_command, master_file, slave_file, custody))
+                try:
+                    acquired = await asyncio.shield(spawn)
+                except asyncio.CancelledError:
+                    # The same acquisition registers its retirement before the
+                    # outer scope releases PTY descriptors. No lost spawn handle.
+                    await join_retirement(spawn)
+                    raise
+                acquired.resize(self.state.width, self.state.height)
+                slave_file.close()
+                reader = asyncio.StreamReader(128 * 1024)
+                protocol = asyncio.StreamReaderProtocol(reader)
+                transport, _ = await asyncio.get_running_loop().connect_read_pipe(lambda: protocol, master_file)
+                custody.callback(transport.close)
+                ready.set_result(acquired)
+                decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+                while True:
+                    data = await shell_read(reader, 128 * 1024)
+                    self._record_output(data)  # Preserve partial UTF-8 bytes too.
+                    if decoded := decoder.decode(data, final=not data):
+                        await self.state.write(decoded)
+                        self.project()
+                    if not data:
+                        break
+                return TerminalCompletion.capture(await acquired.child.wait())
+        except BaseException as error:
+            if not ready.done():
+                ready.set_exception(error)
             raise
-
-        self._ready_event.set()
-
-        self.resize_pty(
-            master,
-            self.state.width,
-            self.state.height,
-        )
-
-        os.close(slave)
-
-        BUFFER_SIZE = 64 * 1024 * 2
-        reader = asyncio.StreamReader(BUFFER_SIZE)
-        protocol = asyncio.StreamReaderProtocol(reader)
-
-        loop = asyncio.get_event_loop()
-        transport, _ = await loop.connect_read_pipe(
-            lambda: protocol, os.fdopen(master, "rb", 0)
-        )
-        # Create write transport
-        writer_protocol = asyncio.BaseProtocol()
-        write_transport, _ = await loop.connect_write_pipe(
-            lambda: writer_protocol,
-            os.fdopen(os.dup(master), "wb", 0),
-        )
-        self.writer = write_transport
-
-        unicode_decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
-        try:
-            while True:
-                data = await shell_read(reader, BUFFER_SIZE)
-                if process_data := unicode_decoder.decode(data, final=not data):
-                    self._record_output(data)
-                    await self.state.write(process_data)
-                    self.project()
-                if not data:
-                    break
         finally:
-            transport.close()
-            write_transport.close()
-            self._shell_fd = None
+            self.state.show_cursor = False
+            # The task's result becomes authoritative only after this returns.
+            asyncio.get_running_loop().call_soon(self.project)
 
-        self._return_code = await process.wait()
-        self.state.show_cursor = False
-        self.project()
-
-    async def write_stdin(self, text: str | bytes, hide_echo: bool = False) -> int:
-        if self._shell_fd is None:
-            return 0
-        text_bytes = text.encode("utf-8", "ignore") if isinstance(text, str) else text
-        try:
-            return await asyncio.to_thread(os.write, self._shell_fd, text_bytes)
-        except OSError:
-            return 0
+    async def write_stdin(self, text: str | bytes, hide_echo=False):
+        data = text.encode("utf-8", "ignore") if isinstance(text, str) else text
+        return await self._operation.write(data)
 
     def _record_output(self, data: bytes) -> None:
         """Keep a record of the bytes left.
@@ -337,7 +485,7 @@ class TerminalExecution:
             and len(output_bytes) > self._output_byte_limit
         ):
             truncated = True
-            output_bytes = output_bytes[-self._output_byte_limit :]
+            output_bytes = output_bytes[len(output_bytes) - self._output_byte_limit :]
             # Must start on a utf-8 boundary
             # Discard initial bytes that aren't a utf-8 continuation byte.
             for offset, byte_value in enumerate(output_bytes):
@@ -345,6 +493,8 @@ class TerminalExecution:
                     if offset:
                         output_bytes = output_bytes[offset:]
                     break
+            else:
+                output_bytes = b""  # No complete leading code point fits the bound.
 
         output = output_bytes.decode("utf-8", "replace")
         return output, truncated

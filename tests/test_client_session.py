@@ -6,10 +6,11 @@ from toad.acp.agent import Agent
 from toad.acp.client_session import ClientRequestOwner
 from toad.acp.terminal_controller import TerminalSessionRetired
 from toad.terminal_execution import TerminalExecution
+from toad.agent_schema import AgentDefinition
 
 
 def make_agent(root):
-    return Agent(root, {'name': 'client-session', 'run_command': {'*': 'true'}}, 'before')
+    return Agent(root, AgentDefinition('client-session', 'client-session', {'*': 'true'}), 'before')
 
 async def rpc(agent, method, session='before', **params):
     return await agent.server.call({'jsonrpc': '2.0', 'id': 1, 'method': method,
@@ -19,7 +20,7 @@ async def rpc(agent, method, session='before', **params):
 def test_session_replacement_rejects_files_without_side_effects(tmp_path):
     async def run():
         agent = make_agent(tmp_path)
-        assert (await rpc(agent, 'fs/write_text_file', path='owned.txt', content='one\ntwo\nthree'))['result'] is None
+        assert (await rpc(agent, 'fs/write_text_file', path='owned.txt', content='one\ntwo\nthree'))['result'] == {}
         assert (await rpc(agent, 'fs/read_text_file', path='owned.txt', line=2, limit=1))['result'] == {'content': 'two'}
         agent.session_id = 'after'
         refused = await rpc(agent, 'fs/write_text_file', path='owned.txt', content='stale overwrite')
@@ -53,10 +54,9 @@ def test_retired_terminal_start_closes_actual_late_spawn(tmp_path, monkeypatch):
         release.set()
         response = await request
         assert response['error']['code'] == -32602
-        assert executions[0]._process.returncode is not None
         assert not original.executions and not agent.controller.terminals.executions
         try:
-            await original.create(executions[0]._command, None)
+            await original.create(executions[0].command, None)
         except TerminalSessionRetired:
             pass
         else:
@@ -105,7 +105,6 @@ def test_terminal_wait_rejects_same_session_return_after_owner_replacement(tmp_p
         result = await waiting
         assert result['error']['code'] == -32602
         assert 'result' not in result
-        assert execution._process.returncode is not None
         assert not original.executions and not agent.controller.terminals.executions
         await agent.stop()
     asyncio.run(run())

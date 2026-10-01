@@ -13,7 +13,7 @@ import time
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any, Iterator, Mapping
-from agent_comms.child_process import AttachedChild
+from agent_comms.child_process import AttachedChild, ChildStdio, StreamingChildStdio
 from .shell_command import ShellCommand
 from toad.comms_root import RouteSelection
 
@@ -91,7 +91,7 @@ def preflight(
 async def admitted_spawn(
     command: str, *, root: str | None = None, env: dict[str, str] | None = None,
     cwd: str | Path | None = None, pass_fds: tuple[int, ...] = (),
-    input_enabled: bool = True, limit: int = 65536,
+    stdio: ChildStdio = StreamingChildStdio(),
     selection: RouteSelection | None = None,
 ) -> AttachedChild:
     """Hold the core wire lock until the asynchronous ACP spawn settles.
@@ -169,7 +169,7 @@ async def admitted_spawn(
                     AttachedChild.start(
                         ShellCommand.current().argv(command), env=child_env,
                         cwd=child_cwd, pass_fds=pass_fds,
-                        input_enabled=input_enabled, limit=limit,
+                        stdio=stdio,
                     ), loop
                 )
                 process = future.result()

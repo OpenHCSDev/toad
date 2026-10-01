@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.child_process import StreamingChildStdio
 from toad import jsonrpc
 from toad.agent import LogAgentFail
 from toad.acp.wire_message import IncomingWireMessage
@@ -192,7 +193,7 @@ class AgentProcess:
                 env=env,
                 selection=self.route_selection,
                 cwd=self.cwd or str(agent.project_root_path.resolve()),
-                limit=10 * 1024 * 1024,
+                stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
         except Exception as error:
             agent.session.failed()

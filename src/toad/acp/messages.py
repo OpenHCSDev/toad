@@ -24,10 +24,23 @@ if TYPE_CHECKING:
     from textual.content import Content
     from toad.acp.agent import Model
     from acp.schema import SessionMode
+    from toad.acp.agent_controller import SurfaceBinding
+    from toad.acp.terminal_controller import TerminalController
+    from toad.terminal_execution import TerminalExecution
 
 
 class AgentMessage(Message):
     """Base class for agent messages."""
+
+
+@dataclass
+class TerminalProjection(AgentMessage):
+    """A queued rendering request retains its original acquisition and binding."""
+
+    binding: SurfaceBinding
+    controller: TerminalController
+    terminal_id: str
+    execution: TerminalExecution
 
 
 class InputDispositionsChanged(AgentMessage):

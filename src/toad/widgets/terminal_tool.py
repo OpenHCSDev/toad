@@ -30,9 +30,4 @@ class TerminalTool(Terminal):
 
     def present_execution(self) -> None:
         self.project_state(None, None)
-        if (return_code := self.execution.return_code) is not None:
-            self.finalize()
-            self.set_class(return_code == 0, "-success")
-            self.set_class(return_code != 0, "-error")
-            if return_code:
-                self.border_title = Content(f"{self.execution.command} [{return_code}]")
+        self.execution.outcome.present(self, self.execution.command)
