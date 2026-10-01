@@ -1,0 +1,31 @@
+{
+  "owner": "Mendel sole Core484 normal69 paired builder",
+  "source_owners": [
+    "Arendt484"
+  ],
+  "journey_owner": "parent (accepted affected484 controls; unchanged paired UI receipt)",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-core484-receiving-20261001",
+  "core": "50d77a17d3d998d403b0349a254f3f85d94517b8",
+  "toad": "a7087274f4a656968c84f9378ae8a87f9ee20820",
+  "toad_source25d": "25d8e60207c457cc480dff6ed1c5cf1e0fa77193",
+  "toad_src_tree": "dcd3cf547be3f565555462aa03994028e13abfae",
+  "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "sdk": "0.12.1",
+  "native": "/home/ts/wt/comms-retained-task-facts-s2-20261001/stack/.pi-native-0064a96bb79c21c1/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "0064a96bb79c21c13317a37f44173bd0acfb63d628e9f9b31cd3a374c2c25ae1",
+  "donor": "/home/ts/wt/toad-s2-s5-context-pair-20261001/evidence/s2-s5-final-cohort-stage-20261001/requirements.txt",
+  "donor_sha256": "0a346912849cfd980c5f1c46654f1fa769380f0a002354e05ba8b18b0dedd021",
+  "requirements_sha256": "1f193cedb9b25e1fa30b0a4d3fdde95bf82669032faa2fb4d1640d60643c708f",
+  "protected_files": 22666,
+  "link_mode": "hardlink",
+  "public_changes": false,
+  "new_native_build": false,
+  "fixture_not_launched": true,
+  "stage_budget_bytes": 262144000,
+  "created_utc": "2026-10-01T15:53:39.020179+00:00",
+  "available_before_install": 10308325376,
+  "state": "Core484 normal69 package; unchanged accepted Toad/Textual/native cohort",
+  "quota_exclusive_bytes": 262144000,
+  "home_free_before": 9418358784
+}

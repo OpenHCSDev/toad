@@ -1,0 +1,31 @@
+{
+  "components": {
+    "core_vcs": {
+      "path": "/home/ts/.cache/uv/git-v1/checkouts/3749cf90a90c59f5/50d77a17",
+      "allocated_unique_bytes": 165109760,
+      "last_link_and_directory_bytes": 142008320
+    },
+    "toad_vcs": {
+      "path": "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/a7087274",
+      "allocated_unique_bytes": 131006464,
+      "last_link_and_directory_bytes": 85405696
+    },
+    "runtime": {
+      "path": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-core484-receiving-20261001",
+      "allocated_unique_bytes": 74153984,
+      "last_link_and_directory_bytes": 14090240
+    },
+    "evidence": {
+      "path": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/staging-core484-receiving-20261001",
+      "allocated_unique_bytes": 5488640,
+      "last_link_and_directory_bytes": 5488640
+    }
+  },
+  "selected_paths_hardlink_deduplicated_allocated_bytes": 375758848,
+  "exclusive_last_link_and_directory_bytes": 246992896,
+  "quota_bytes": 262144000,
+  "quota_pass": true,
+  "home_free_now": 9147400192,
+  "note": "Retained package/build footprints, no continuous disk peak claim. Shared UV cache payloads may exist outside selected paths; package inventories preserved. No new worktree/native build/public action/provider.",
+  "native_builds": 0
+}
