@@ -1,0 +1,106 @@
+# Whole foreground layout/resource continuation after PR271
+
+Integration owner: Heisenberg (`01a0ee64-8b4f-7921-a359-2357a04a19e1`).
+Base: actual main `083245d035314eead6fe10d22be4751e9e1cf045`.
+Normal merge through main after PR271 lands; no hidden feature-stack base,
+rebase or copied implementation. Kepler is a read-only profile/frame helper,
+not another integration owner. Parent owns the single receiving package.
+
+## Accepted checkpoint and exact limits
+
+PR271 head `405a9d340c7b52ed3c4d96f390b5554a11acb6a9` contains the
+two-line pure `ToolContent.process_layout` height declaration and pins the
+merged native Textual/native-diff owners. Its actual installed native control
+admits ten original tool/diff flows: one arrangement for eight equal layouts
+with different available heights. Unknown hooks, relative geometry, padding,
+member changes, numbers mutation and wide/narrow/wide remain controlled.
+
+One original-source SDK-fork physical A/B/A journey passes all sixteen native
+checks, retaining twenty-eight ready bodies, reader position, draft and Undo.
+Both fork journals are 41,270,305 bytes; the acquired original is 41,270,257
+bytes. Original PID/birth/hash unchanged; no input/provider/public operation;
+owned cleanup empty. Actual st/Xvfb footage and raw profiler are retained at:
+
+`/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-warm01`.
+
+The tested pair is Core cac7 / Toad d9d / Textual 4e9016 / native-diff 8fa7 /
+SDK 0.12.1 / native593. Later main274 requires Core f8ae stdio declarations;
+that union is normally integrated in271, not claimed physically tested here.
+Parent receives one newer S2/274/271 package. No parallel package or old gate.
+
+Readable Down/idle/A-return PNGs and twelve 6fps return frames do not exclude
+33ms gaps or prove sub50ms firstpaint/terminal Strip reuse. UI kernel CPU
+Up82.06%, Down74.24%, reverse79.31%, idle15.84% includes DTO/profiler work;
+there is no overall CPU-improvement claim. Original75s archive timeout and
+every RED/UNKNOWN artifact remain protected. Originalu05 native events once
+but failure-frame/source/resource census absent: paint remains unclassified;
+no original replay and no response-text/count dedup.
+
+## Full receiving scope, unchanged
+
+All original plans from271/269/266/264/254/253/249/248/245/242/239/236/227/224/217,
+TC1/T9/T4 and tracing200 remain active. Preserve their acceptance/deletion
+requirements and raw evidence; partial checkpoint shipping closes none below.
+
+- Global foreground source-read, preparation, layout, publication and paint CPU.
+  Join physical phases to original ProfileTrace exec/sampling-ready monotonic
+  bounds and kernel CPU. Compressed B/E transitions are not calls, samples,
+  durations or CPU. Separate diagnostic cost and worker waiting from UI work.
+- Warm A/B/A prepared native resources and actual terminal Strip/raster output,
+  coldB, completed firstpaint, reader position, draft and Undo. Keep original
+  bounded tree/render/editor custody, validation and invalidation; no parallel
+  cache/renderer/catalog/scheduler or semantic-state copy.
+- Configurable three-viewport spatial baseline under the original native-widget
+  and render-byte budget; measured velocity/direction/reversal/idle lookahead;
+  destination-only End burst. Primary blank-void acceptance is repeated/held
+  PageDown into growing lazy end, then reverse/idle. End, repeated bottom wheel,
+  viewport resize and stationary shrink are separate checks.
+- Actual editor click/Tab/tab return: printable insertion must retain Backspace,
+  Delete, Left/Right, caret and Undo during loading, active turn and postcancel.
+  One native focus/editor owner; no mirrored editable/loading flags.
+- Whole Workspace/Session/Conversation/HistoryView bound/loading/shown/detached
+  lifecycle; capture/park/final-dispose/source advance and same-open-view recovery.
+  Preserve saved/live/projected resource custody through source replacement,
+  worker join and retirement. Sidebar placement/resize handle, parent-child and
+  unique channel-tab navigation identity remain in the actual whole journey.
+- Full TC1 below pre129 foreign probes; global T9 ownership closure; T4
+  `Conversation.is_untouched` and tracing200 typed original state contract.
+  Native edge/source admission, streaming/body lifecycle and original measured
+  resources own their validity. Delete replaced definitions and all consumers;
+  no local predicate wrappers, compatibility readers or mirrored status catalog.
+
+## Method ownership and first causal investigation
+
+Heisenberg owns DocumentViewport admission/retention/readiness, TranscriptHistory
+`_extend_and_trim`/page/fragment resource lifetime, existing workspace/native
+geometry/layout and Conversation read/bind/viewport/warm methods. Sch owns
+canonical T5/source publication; directly coordinate crossings before edits.
+Kepler's input/editor consumer and Arendt's terminal custody methods retain
+their integration owners; grant disjoint methods explicitly. Native
+outcome/UNKNOWN dispositions stay with backend owners.
+
+The completed same-run trace identifies actual stacks worth investigating,
+not causal CPU weights: 22.560s reflow_visible→recursive arrangement→scroll
+offset;37.016s viewport request→worker/reconcile;65.457s coldB recursive
+arrangement/box model;70.971s warmA recursive arrangement;48.097s idle
+check_mouse→hover→compositor visible-map arrangement. Trace the original
+invalidation/layout resource owner and all callers before extending its proof.
+Measure necessary versus repeated preparation/layout work on representative
+native resources, then delete replaced work through the existing mechanism.
+
+Use the regularly reread authoritative refactor-audit.skill/NRA catalog;
+record declaration owners, all consumers/deletions and new-case edit count.
+Bounded per-file/per-function StringDispatch/TypeSwitch subject-and-arm ratchets
+are required. No broad ceremonial rerun, new timer, release-state flag,
+renderer, proof mirror or independent seen list.
+
+## Next affected installed gate
+
+Only a meaningful source correction warrants another bounded continuous actual
+installed A/B/A+held Up/Down/reverse/End/idle+draft/Undo recording/profile.
+Use the single received exact coherent package, original typed capture route
+and existing st recorder. Check actual frames, source/native identities,
+foreground gaps and resource final disposition. No provider calls are needed
+for saved-history work. Preserve original owners/journals and all uncertain
+inputs. Source tests and resource counts prepare this gate; they do not replace
+the affected installed user entrypoint or prove whole CPU/readiness.
