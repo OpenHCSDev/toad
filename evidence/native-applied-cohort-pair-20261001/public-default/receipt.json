@@ -1,0 +1,962 @@
+{
+  "owner": "Schrodinger",
+  "scope": "Ordinary published default read-only saved startup, physical channel/participant opening and A/B/A returns; no overall performance claim",
+  "result": "PASS",
+  "command": [
+    "toad-comms",
+    "nra-architecture"
+  ],
+  "ordinary_default_prefix": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin",
+  "source_pins": {
+    "Core": "e191bcf44c292dfedc5b8b62b2b503f06de3ae7b",
+    "Toad": "1edd96c0cfa011a69782cdeb67138ceea98e227b",
+    "Textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+    "ACP_SDK": "0.12.1",
+    "native_manifest": "593b978a717ae8f6ab4300a1a107b615c8ced52e767ef4cad0596f827041a218"
+  },
+  "startup_observe": {
+    "exit_code": 0,
+    "duration_seconds": 19.48468845296884,
+    "receipt_path": "/home/ts/.cache/agent-scratch/public-default-applied-cohort-20261001-observe02/receipt.json",
+    "sha256": "6e67877e48b2751088ca629141565d4e77eb55ecab7488c4fc127ce4f6489d23"
+  },
+  "physical_navigation": {
+    "exit_code": 0,
+    "duration_seconds": 31.497696765,
+    "ui_identity": {
+      "pid": 490134,
+      "start_ticks": 30271617
+    },
+    "display": ":7769",
+    "receipt_path": "/home/ts/.cache/agent-scratch/public-default-applied-cohort-20261001-nav01/receipt.json",
+    "sha256": "91d5828e4b416b5cbe0d5f57eb062b985e41ae6b5940337e9edcadc94d403451",
+    "events": [
+      {
+        "label": "channel-open",
+        "seconds_since_capture_launch": 11.981906532018911
+      },
+      {
+        "label": "peer-open",
+        "seconds_since_capture_launch": 17.582677925005555
+      },
+      {
+        "label": "return-a",
+        "seconds_since_capture_launch": 20.863697852008045
+      },
+      {
+        "label": "return-b",
+        "seconds_since_capture_launch": 24.091566310962662
+      },
+      {
+        "label": "final-a",
+        "seconds_since_capture_launch": 27.33482573396759
+      }
+    ]
+  },
+  "originals_before": {
+    "time": 1790827125.2967777,
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "owners": {
+      "nra-architecture": {
+        "pid": 465576,
+        "start_time": 30187842
+      },
+      "openhcs-pr159-viewer-bind-owner": {
+        "pid": 465797,
+        "start_time": 30188834
+      }
+    },
+    "input_sha256": "55fbc4663b5c5acbc15458da2eca4dbc47aedf784ddf235860d3e137144995e8",
+    "native_source": {
+      "path": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    "baseline_limitation": "Hashes read during readonly navigation; initial saved cursor separately retained. Cutover input SHA supplied by original operator proof."
+  },
+  "originals_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "owners": {
+      "nra-architecture": {
+        "pid": 465576,
+        "start_time": 30187842
+      },
+      "openhcs-pr159-viewer-bind-owner": {
+        "pid": 465797,
+        "start_time": 30188834
+      }
+    },
+    "input_sha256": "55fbc4663b5c5acbc15458da2eca4dbc47aedf784ddf235860d3e137144995e8",
+    "native_source": {
+      "path": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    "acp_logs": [
+      {
+        "path": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-09-30T23_57_59_388371.txt",
+        "bytes": 58827,
+        "sha256": "be70c90e1ad5150222cfab21d6fe6429877d3ccf90dc5f1ac8e15a373365f6c4",
+        "methods": [
+          "session/update",
+          "session/update",
+          "session/update",
+          "session/update"
+        ],
+        "rpc_error_lines": 0
+      },
+      {
+        "path": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-09-30T23_58_11_780096.txt",
+        "bytes": 37911,
+        "sha256": "ce0de5c1c8992f51debcf5a7093c7f8112428230fbaafcf941921cb98d71058a",
+        "methods": [
+          "session/update",
+          "session/update",
+          "session/update",
+          "session/update"
+        ],
+        "rpc_error_lines": 0
+      },
+      {
+        "path": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-09-30T23_54_44_874748.txt",
+        "bytes": 58827,
+        "sha256": "c18c60fac45599284b25827253ace39c173ff92b242ce3e93c1f965a5002f075",
+        "methods": [
+          "session/update",
+          "session/update",
+          "session/update",
+          "session/update"
+        ],
+        "rpc_error_lines": 0
+      }
+    ]
+  },
+  "original_native_file_unchanged": true,
+  "original_owner_bindings_unchanged": true,
+  "protected_input_sha_unchanged": true,
+  "acp": [
+    {
+      "path": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-09-30T23_57_59_388371.txt",
+      "bytes": 58827,
+      "sha256": "be70c90e1ad5150222cfab21d6fe6429877d3ccf90dc5f1ac8e15a373365f6c4",
+      "methods": [
+        "initialize",
+        "session/load",
+        "session/update",
+        "session/update",
+        "session/update",
+        "session/update"
+      ],
+      "rpc_error_lines": 0,
+      "successful_saved_load": true,
+      "prompt_requests": 0,
+      "rpc_errors": 0
+    },
+    {
+      "path": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-09-30T23_58_11_780096.txt",
+      "bytes": 37911,
+      "sha256": "ce0de5c1c8992f51debcf5a7093c7f8112428230fbaafcf941921cb98d71058a",
+      "methods": [
+        "initialize",
+        "session/load",
+        "session/update",
+        "session/update",
+        "session/update",
+        "session/update"
+      ],
+      "rpc_error_lines": 0,
+      "successful_saved_load": true,
+      "prompt_requests": 0,
+      "rpc_errors": 0
+    },
+    {
+      "path": "/home/ts/.local/state/toad/logs/Agent_Comms_2026-09-30T23_54_44_874748.txt",
+      "bytes": 58827,
+      "sha256": "c18c60fac45599284b25827253ace39c173ff92b242ce3e93c1f965a5002f075",
+      "methods": [
+        "initialize",
+        "session/load",
+        "session/update",
+        "session/update",
+        "session/update",
+        "session/update"
+      ],
+      "rpc_error_lines": 0,
+      "successful_saved_load": true,
+      "prompt_requests": 0,
+      "rpc_errors": 0
+    }
+  ],
+  "phases": [
+    {
+      "phase": "before",
+      "mode": "session-1",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "df7022d85ac642533a84a2195d46016066eb6ca5d8e8e28aa9974079603aa95e"
+    },
+    {
+      "phase": "phase-channel-open",
+      "mode": "comms-1",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "comms-1",
+          "thread": null,
+          "cursor": [],
+          "live_resource_count": 0,
+          "drafts": [
+            {
+              "object_id": 140224110453360,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "ab37a77b86e45f51d2b725b362896f33c701bfdc342e0686e73088e142aa16cf"
+    },
+    {
+      "phase": "phase-peer-open",
+      "mode": "session-2",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "comms-1",
+          "thread": null,
+          "cursor": [],
+          "live_resource_count": 0,
+          "drafts": [
+            {
+              "object_id": 140224110453360,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "session-2",
+          "thread": "openhcs-pr159-viewer-bind-owner",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl",
+              "offset": 42357366,
+              "receipt_seq": 254
+            }
+          ],
+          "live_resource_count": 9,
+          "drafts": [
+            {
+              "object_id": 140224108682192,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "d671e4a3ec19b79edd6bab51d4c022ce0fa84bf6238a5487699d4879c85a9232"
+    },
+    {
+      "phase": "phase-return-a",
+      "mode": "session-1",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "comms-1",
+          "thread": null,
+          "cursor": [],
+          "live_resource_count": 0,
+          "drafts": [
+            {
+              "object_id": 140224110453360,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "session-2",
+          "thread": "openhcs-pr159-viewer-bind-owner",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl",
+              "offset": 42357366,
+              "receipt_seq": 254
+            }
+          ],
+          "live_resource_count": 9,
+          "drafts": [
+            {
+              "object_id": 140224108682192,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "205fb4dbf0dfa16f7f3a0ffe0cba4b26daae2664fe8ce7f8a3b8336ba7bfc539"
+    },
+    {
+      "phase": "phase-return-b",
+      "mode": "session-2",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "comms-1",
+          "thread": null,
+          "cursor": [],
+          "live_resource_count": 0,
+          "drafts": [
+            {
+              "object_id": 140224110453360,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "session-2",
+          "thread": "openhcs-pr159-viewer-bind-owner",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl",
+              "offset": 42357366,
+              "receipt_seq": 254
+            }
+          ],
+          "live_resource_count": 9,
+          "drafts": [
+            {
+              "object_id": 140224108682192,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "480e6a6a053ab1c27d8a3caddce6f0827d046239b69284a607d1fbdd9b1f61c1"
+    },
+    {
+      "phase": "phase-final-a",
+      "mode": "session-1",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "comms-1",
+          "thread": null,
+          "cursor": [],
+          "live_resource_count": 0,
+          "drafts": [
+            {
+              "object_id": 140224110453360,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "session-2",
+          "thread": "openhcs-pr159-viewer-bind-owner",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl",
+              "offset": 42357366,
+              "receipt_seq": 254
+            }
+          ],
+          "live_resource_count": 9,
+          "drafts": [
+            {
+              "object_id": 140224108682192,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "30b278c7abd82485e50f30348c1d101e03ba54e36e96dce9de5c93e5ec1ed476"
+    },
+    {
+      "phase": "after",
+      "mode": "session-1",
+      "source_modules": {
+        "toad": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/toad/__init__.py",
+        "textual": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/textual/__init__.py",
+        "agent_comms": "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/lib/python3.14/site-packages/agent_comms/__init__.py"
+      },
+      "batch_count": 0,
+      "atomic_mode_switch": false,
+      "views": [
+        {
+          "mode": "session-1",
+          "thread": "nra-architecture",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+              "offset": 41270257,
+              "receipt_seq": 259
+            }
+          ],
+          "live_resource_count": 12,
+          "drafts": [
+            {
+              "object_id": 140224816077136,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "comms-1",
+          "thread": null,
+          "cursor": [],
+          "live_resource_count": 0,
+          "drafts": [
+            {
+              "object_id": 140224110453360,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "mode": "session-2",
+          "thread": "openhcs-pr159-viewer-bind-owner",
+          "cursor": [
+            {
+              "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl",
+              "offset": 42357366,
+              "receipt_seq": 254
+            }
+          ],
+          "live_resource_count": 9,
+          "drafts": [
+            {
+              "object_id": 140224108682192,
+              "lines": [
+                ""
+              ],
+              "selection": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "native_capture_sha256": "2fbb4b472a4737b93ad33291e6f6168bdb5b3b768978e3463f4f73737e71ce36"
+    }
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 490118,
+        "start_ticks": 30271530,
+        "returncode": 0
+      },
+      {
+        "pid": 490131,
+        "start_ticks": 30271602,
+        "returncode": 0
+      },
+      {
+        "pid": 490133,
+        "start_ticks": 30271611,
+        "returncode": 0
+      },
+      {
+        "pid": 490134,
+        "start_ticks": 30271617,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 490140,
+        "start_ticks": 30271673,
+        "returncode": 0
+      },
+      {
+        "pid": 490141,
+        "start_ticks": 30271683,
+        "returncode": 0
+      },
+      {
+        "pid": 490142,
+        "start_ticks": 30271691,
+        "returncode": 0
+      },
+      {
+        "pid": 490143,
+        "start_ticks": 30271700,
+        "returncode": 255
+      },
+      {
+        "pid": 490385,
+        "start_ticks": 30272502,
+        "returncode": 0
+      },
+      {
+        "pid": 490389,
+        "start_ticks": 30272530,
+        "returncode": 0
+      },
+      {
+        "pid": 490395,
+        "start_ticks": 30272568,
+        "returncode": 0
+      },
+      {
+        "pid": 490428,
+        "start_ticks": 30272645,
+        "returncode": 0
+      },
+      {
+        "pid": 490473,
+        "start_ticks": 30272857,
+        "returncode": 0
+      },
+      {
+        "pid": 490486,
+        "start_ticks": 30272993,
+        "returncode": 0
+      },
+      {
+        "pid": 490495,
+        "start_ticks": 30273070,
+        "returncode": 0
+      },
+      {
+        "pid": 490620,
+        "start_ticks": 30273382,
+        "returncode": 0
+      },
+      {
+        "pid": 490700,
+        "start_ticks": 30273519,
+        "returncode": 0
+      },
+      {
+        "pid": 490706,
+        "start_ticks": 30273599,
+        "returncode": 0
+      },
+      {
+        "pid": 490720,
+        "start_ticks": 30273712,
+        "returncode": 0
+      },
+      {
+        "pid": 490733,
+        "start_ticks": 30273840,
+        "returncode": 0
+      },
+      {
+        "pid": 490747,
+        "start_ticks": 30273924,
+        "returncode": 0
+      },
+      {
+        "pid": 490749,
+        "start_ticks": 30274036,
+        "returncode": 0
+      },
+      {
+        "pid": 490772,
+        "start_ticks": 30274168,
+        "returncode": 0
+      },
+      {
+        "pid": 490778,
+        "start_ticks": 30274251,
+        "returncode": 0
+      },
+      {
+        "pid": 490872,
+        "start_ticks": 30274361,
+        "returncode": 0
+      },
+      {
+        "pid": 490991,
+        "start_ticks": 30274794,
+        "returncode": 0
+      },
+      {
+        "pid": 490996,
+        "start_ticks": 30274821,
+        "returncode": 0
+      },
+      {
+        "pid": 491001,
+        "start_ticks": 30274871,
+        "returncode": 0
+      },
+      {
+        "pid": 491012,
+        "start_ticks": 30274941,
+        "returncode": 0
+      },
+      {
+        "pid": 491153,
+        "start_ticks": 30275156,
+        "returncode": 0
+      }
+    ]
+  },
+  "physical_images_personally_reviewed": [
+    "phase-peer-open.png",
+    "phase-final-a.png"
+  ],
+  "limitations": [
+    "Original historical UNKNOWN notices remain visible; no uncertain input retried.",
+    "No input was sent; paid native provider gate remains the separate previously accepted installed34 proof.",
+    "No warm-cache latency/CPU target claim.",
+    "u05 failure-time resource census was not recorded, so missing/duplicate paint remains unclassified; later original u07 red and corrected u09 proof are separate.",
+    "Snapshot native hash baseline was read during readonly navigation; protected input hash also matches the original pre-cutover operator receipt."
+  ]
+}
