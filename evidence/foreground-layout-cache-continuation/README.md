@@ -11,7 +11,7 @@ remain with their original owners. No competing implementations or coordinator.
 PR264 scoped ready source is 129ab7ac67909c3a7e5f078c93a6312740da63c4, byte-identical
 to installed b524171ec004d0d05aa6dada247141a04af20865. Three production files,
 5 added/2 deleted: shared native resource-cache policy and prepared code height
-declaration. Native Stream 24 equal-height arrangements become one, and real
+declaration. Native Stream 24 arrangements with equal placements become one, and real
 style invalidation/relative-height rejection pass. Actual installed original
 41MB A/B/A, draft/Undo, held Up/Down/reverse/End/15s idle passed all16 checks in
 90.6565s. Personally reviewed frames are readable. Neither total CPU nor every
@@ -61,3 +61,26 @@ until parent publication/retirement. Scratch, source, journals, histories and
 unreviewed proof remain persistent. One meaningful production checkpoint then
 one affected actual installed journey; final50ms/full-CPU targets do not hold a
 useful accepted checkpoint. Full scope stays open rather than reduced on release.
+
+## New bounded source-admission reproducer
+
+The actual native Toad/Pilot fixed-page probe performed Up/Down/reverse/End with
+no Agent or provider. Original TranscriptPageView._body created213 native bodies
+for80 original source fragments; native body_evictions stayed0. Recorded settled
+steps included211 widgets versus the existing300 bound. This is an admission
+mechanism observation, not a claim all transient peaks were below the bound or
+that80 simultaneously materialized bodies would fit. Existing page.trim removes
+whole native fragments independently of the body-resource working set.
+
+The actual41MB264 raw source projection, reconstructed from its original typed
+page values, confirms nonconsecutive repeated identical CommittedIntervals and
+admitted-range overlap. DTO body membership alone does not prove destruction or
+new allocation and cannot attribute each body to a page/index. The existing
+A/B/A retained12 bodies compares idle-before-tab-switch with Areturn, not initial
+startup with the entire history excursion. Those12 are correctly retained.
+
+Source-bound admission and native tree lifetime are the next production target;
+no cache or policy patch has been invented from the ID deltas. The reproducer
+and baseline receipt are committed; the small raw log/private fixture is owned
+under this worktree .artifacts/source-admission-baseline01. No original journals
+or input dispositions were changed. No new physical capture is justified yet.
