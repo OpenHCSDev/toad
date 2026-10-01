@@ -94,3 +94,16 @@ four-consumer actual Toad control reduces mount-induced arrangements4→0 and
 preserves auto/fixed/prepared/padded wide/narrow/wide behavior. Baseline padding
 failure is retained; no CPU/readiness claim before the affected installed gate.
 [Source/resource evidence](../native-diff-lifecycle/README.md) is committed here.
+
+
+## Original native flow admission checkpoint
+
+Textual16 source6e34622ce:6production lines added/0deleted, existing native
+VerticalGroup/HorizontalGroup cache admission, conservative proof unchanged.
+[Installed69-pair control](../native-flow-measurement/README.md) verifies four
+originaldiffscrollers8equalarrangements→1each, native flow/relative/customhook/
+padding/membership correctness. Counters are not overallCPU or physicalwarm proof.
+Toad sourcepin/lock3added/3deleted. Current private archive fixture is valid for
+SavedHistoryWindow only; actual current-agentA/B requires existing authorized
+source fixture/capture mechanism, no archived-fact owner promotion. Entire
+original fullscope above remains active.

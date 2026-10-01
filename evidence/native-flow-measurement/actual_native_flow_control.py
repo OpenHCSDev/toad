@@ -86,6 +86,25 @@ async def main():
   unknown=ContextFlow(Static('unknown native layout hook'))
   await auto.mount(unknown);await pilot.pause()
   assert arrangement_depends_on_available_height(unknown)
+  family=[]
+  for Flow in (VerticalGroup,HorizontalGroup):
+   owner=Flow(Static('first original native row'),Static('second original native row'))
+   await auto.mount(owner);await pilot.pause()
+   assert not arrangement_depends_on_available_height(owner)
+   flow_calls=[];native_arranger=owner.layout.arrange
+   def counted(*args,_original=native_arranger,**kwargs):
+    flow_calls.append(args[2].height);return _original(*args,**kwargs)
+   owner.layout.arrange=counted;owner._arrangement_cache.clear()
+   layouts=[owner.arrange(Size(owner.size.width,height)) for height in range(80,88)]
+   del owner.layout.arrange
+   placements=[tuple((p.widget,p.region) for p in layout.placements) for layout in layouts]
+   assert all(p==placements[0] for p in placements)
+   assert len(flow_calls)==(1 if owner.CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT else 8)
+   owner.displayed_children[0].styles.height='1fr';await pilot.pause()
+   assert arrangement_depends_on_available_height(owner)
+   family.append(dict(kind=Flow.__name__,calls=len(flow_calls),equal_placements=True,relative_height_rejected=True))
+   await owner.remove();await pilot.pause()
+  (root/'family.json').write_text(json.dumps(family,indent=2)+'\n')
   (root/'invalidation.json').write_text(json.dumps(dict(padding_invalidated=True,relative_geometry_changed=True,membership_added=True,membership_retired=True,unknown_hook_dependent=True,textual_path=__import__('textual').__file__,agent_bound=False,app_exception=str(app._exception)),indent=2)+'\n')
   for record in native_flows:
    expected=1 if record['cache_policy'] and not record['dependent'] else 8
