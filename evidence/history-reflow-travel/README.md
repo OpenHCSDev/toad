@@ -120,3 +120,37 @@ The prior physical proof boundaries remain unchanged, not retroactively upgraded
 Kepler is sole next physical capturer after whole original-demand async counter
 and the actual two-workspace-source helper; Heisenberg retains restoration and
 whole254 integration. Parent cutover does not wait on this performance scope.
+
+## Whole current source physical and immutable installed stage
+
+The final whole-window and original-demand graph has now completed one SOURCE
+physical warm journey: captured e3609a30 is byte-identical across src/tests/tools
+and pyproject to 187f380e. `../retained-history-buffer/warm-physical-source.md`
+records the exact 87.826s/16-check result, protected journal, readable reviewed
+frames, prepared body/reader/editor/draft/Undo retention and honest CPU limits.
+This completes the earlier pending SOURCE gate; it does not upgrade earlier
+physical sources or certify the installed entrypoint.
+
+The current whole four-file production delta from main8ea96a37 deletes30 lines
+and adds66. Native geometry custody is inherited at WindowRestoration; native
+body density and demand admission stay with DocumentViewport and
+DirectionalPreparation/PreparationDemand. No new rendering authority, state
+mirror, window registry, timer or clamp. Existing T4/session-admission guard
+functions pass10/10 against current paired dependencies. Pytest is absent in
+the runtime, so the original assertion functions were invoked directly rather
+than modifying its packages.
+
+A normal noneditable 69-distribution immutable stage installs187f380e at:
+`/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001`.
+Only the Toad Git pin changes from the original frozen requirements. Coree191,
+Textual6b, SDK0.12.1 and native593 retain their original exact identities. All
+304 Toad/304 Core/266 Textual original files match; full native-tree trust,
+imports and pip check pass. Activation metadata is600/staged-not-default.
+Requirements/build/byte verification and guards are preserved in installed-stage.
+
+Kepler owns the one pending affected installed physical warm journey using the
+existing ExistingThreadCapture, ordinary `/home/ts/bin/toad-comms` and this stage
+selection, two already-running protected original agents, no Enter/provider,
+fork, owner restart or source mutation. It will run after the named native472
+resource slot release. Parent owns activation. Full CPU, brief gaps, warm raster
+firstpaint, focus and all inherited TC1/T9/lifetime scope remain open.

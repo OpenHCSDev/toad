@@ -1,0 +1,24 @@
+{
+  "source": "187f380ee1fa6358f16020ace38fa42e11f01670",
+  "stage": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001",
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--python",
+      "/home/ts/.local/share/agent-comms/runtime-native-applied-cohort-20261001/bin/python",
+      "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/runtime-reader-geometry-254-20261001/bin/python",
+      "--requirement",
+      "/home/ts/wt/toad-foreground-readiness-remainder-20260930/.artifacts/staging-reader-geometry-254-20261001/requirements.txt"
+    ]
+  ],
+  "donor_requirements": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/evidence/native-applied-cohort-pair-20261001/package/paired-requirements.txt",
+  "public_effects": 0
+}

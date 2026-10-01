@@ -65,3 +65,14 @@ so hidden-view reads cannot be mislabeled as the selected view's demand.
 WarmSourceJourney extends the existing WarmScrollJourney peer-click hook,
 using the captured native peer tab rather than starting an ACP owner. All
 scroll, End/idle, A/B/A, draft and Undo checks remain in the same journey.
+
+## Completed source gate and receiving installed boundary
+
+The single coordinated source warm journey completed at byte-identical e360/
+187 source:16/16 checks, original native41MB unchanged, readable reviewed moving/
+idle/A-return frames and physical Undo. See warm-physical-source.md for precise
+CPU and frame-review limits. There is no new SOURCE recapture. Existing native
+Window/Workspace geometry and demand reversal controls remain preserved. The
+immutable installed UI-only stage and one pending ordinary entrypoint journey
+are documented in ../history-reflow-travel/README.md. Full remaining performance
+and workspace acceptance stays with Heisenberg; installed recording with Kepler.
