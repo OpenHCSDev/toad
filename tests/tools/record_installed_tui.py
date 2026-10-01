@@ -394,11 +394,24 @@ class WarmScrollJourney(ScrollJourney):
     review_artifacts = ("warm-scroll-review.json",)
 
     @classmethod
+    def peer_click(cls, args):
+        if not args.peer_thread:
+            raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
+        return native_click_command("phase-switch-b-state.pickle", target="thread", name=args.peer_thread)
+
+    @classmethod
+    def peer_ready(cls, args):
+        if not args.peer_thread:
+            raise ValueError("Warm scrolling requires the intended peer identity")
+        return (marker_command() + f"b-open --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                f"--wait-history-thread {shlex.quote(args.peer_thread)}")
+
+    @classmethod
     def script(cls, args):
         if not args.capture_state:
             raise ValueError("Warm scrolling requires --capture-state")
-        if not args.peer_thread:
-            raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
+        peer_click, peer_ready = cls.peer_click(args), cls.peer_ready(args)
         state_home = Path(os.environ["XDG_STATE_HOME"]).resolve()
         if not state_home.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
             raise ValueError("Warm draft editing requires a copied private UI state under agent scratch")
@@ -409,11 +422,7 @@ class WarmScrollJourney(ScrollJourney):
             f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
             scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
                           state="phase-draft-state.pickle"),
-            marker + "switch-b", native_click_command("phase-switch-b-state.pickle", target="thread",
-                                                     name=args.peer_thread),
-            marker + f"b-open --wait-history-seconds {args.history_wait_seconds:g} "
-                     f"--wait-history-interval {args.history_wait_interval:g} "
-                     f"--wait-history-thread {shlex.quote(args.peer_thread)}", marker + "return-a",
+            marker + "switch-b", peer_click, peer_ready, marker + "return-a",
             native_click_command("phase-return-a-state.pickle", target="original_tab",
                                  original_state="phase-warm-start-state.pickle"), settle, marker + "a-return",
             native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
@@ -430,6 +439,15 @@ class WarmScrollJourney(ScrollJourney):
         failed = [name for name, passed in review["checks"].items() if not passed]
         if failed:
             raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
+
+
+class WarmSourceJourney(WarmScrollJourney):
+    """Use the same physical journey with two real source workspace tabs."""
+
+    @classmethod
+    def peer_click(cls, args):
+        return native_click_command("phase-switch-b-state.pickle", target="peer_tab",
+                                    original_state="phase-warm-start-state.pickle")
 
 
 class SavedTabCloseJourney(PhysicalJourney):

@@ -276,6 +276,14 @@ class DocumentViewport:
             else:
                 pending.extend(reversed(node.children))
 
+    @property
+    def visible_body_rows(self) -> float:
+        """Measured native density, derived from the current viewport owners."""
+        visible = self.window.screen._compositor.visible_widgets
+        rows = [owner.measured_rows for owner in self.body_roots()
+                if owner in visible and owner.measured_rows]
+        return sum(rows) / len(rows) if rows else max(1, self.window.size.height)
+
     async def _trim_warm(self, *, required=(), ahead=()):
         # Select the bounded materialized working set BEFORE restoring a body.
         # A dormant body carries its last native cost with its measured extent.
@@ -398,22 +406,19 @@ class DocumentViewport:
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
                 sequence = owners if active else ()
+                demand = self.lookahead.demand
                 ahead_owners = []
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:
-                    ahead = self.lookahead.ahead_rows(self.window.size.height)
-                    heights = [sequence[index].measured_rows for index in visible_indexes
-                               if sequence[index].measured_rows]
-                    extent = max(1, sum(heights) / len(heights)) if heights else self.window.size.height
-                    count = min(self.budget.item_limit(0), int(ahead / max(1, extent)) + bool(ahead))
+                    count = self.lookahead.admission(self.budget, self.window.size.height)
                     runway = self.budget.runway(
                         sequence, min(visible_indexes), max(visible_indexes) + 1,
                         self.window.size.height,
                     )
-                    predicted = self.lookahead.demand.neighbors(
+                    predicted = demand.neighbors(
                         sequence, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
-                    ahead_owners = list(dict.fromkeys((*runway, *predicted)))
+                    ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
                 admitted = await self._trim_warm(required=required, ahead=ahead_owners)
                 warm = admitted if active else set()
                 retained = protected | warm | visible.keys()
@@ -433,9 +438,8 @@ class DocumentViewport:
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
                 if active:
-                    demand = self.lookahead.demand
                     # Do not materialize a runway body that cannot be retained.
-                    # Nearest bodies on both sides precede directional extras.
+                    # The original demand owns incoming direction priority.
                     ahead_owners = [owner for owner in ahead_owners if owner in admitted]
                     for first in range(0, len(ahead_owners), self.budget.admission_items):
                         if not self.lookahead.accepts(demand):

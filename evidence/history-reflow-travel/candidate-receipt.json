@@ -1,0 +1,57 @@
+{
+  "before": {
+    "y": 254,
+    "maximum": 357,
+    "marker_y": 3,
+    "revision": 4
+  },
+  "after": {
+    "y": 127,
+    "maximum": 230,
+    "marker_y": 3,
+    "revision": 4
+  },
+  "changes": [
+    {
+      "old": 254,
+      "new": 230,
+      "restoring": true,
+      "revision": 4
+    },
+    {
+      "old": 230,
+      "new": 127,
+      "restoring": true,
+      "revision": 4
+    }
+  ],
+  "samples": [
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-515.0)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-515.0)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-515.0)"
+    }
+  ],
+  "demand_before": "MovingPreparation(velocity=-515.0)",
+  "demand_after": "MovingPreparation(velocity=-515.0)",
+  "same_demand": true,
+  "source_resources": [
+    140037338621712,
+    140036798047056
+  ],
+  "remaining_histories": 2,
+  "agent_bound": false
+}

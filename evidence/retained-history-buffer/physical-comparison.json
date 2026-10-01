@@ -1,0 +1,596 @@
+{
+  "boundary": "Source application and original immutable journal, not installed ACP/default readiness",
+  "selected_runtime": {
+    "stage": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930",
+    "pins": {
+      "agent-comms": "970bc527f4ddd9b3bde5522dc671aea11fd27ece",
+      "batrachian-toad": "85d45b512cac88bdf5dd8870f41e53768ab3c009",
+      "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "b7b59c580be334710ac3e35d3df190efe2a4afd2f38d97198b3d87d834ceadcf"
+  },
+  "runs": [
+    {
+      "name": "baseline01",
+      "path": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline01",
+      "receipt": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline01/capture/receipt.json",
+      "receipt_sha256": "b043ac72dee2969950606b32a97127d00bf4b09b69874ed089430a3fa8b5bddd",
+      "completed": false,
+      "error": "CalledProcessError: Command '['/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/bin/python', '/home/ts/wt/toad-retained-history-buffer-20260930/tests/tools/record_installed_tui.py', '--runtime-probe']' returned non-zero exit status 1.",
+      "duration_seconds": null,
+      "cleanup": [],
+      "cleanup_errors": []
+    },
+    {
+      "name": "baseline02",
+      "path": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02",
+      "receipt": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02/capture/receipt.json",
+      "receipt_sha256": "d00426a1cd26d166e8d12ee6b3fea417cee1c2331c4ea80bc9bbecfd513d7846",
+      "completed": true,
+      "error": null,
+      "duration_seconds": 65.65327668102691,
+      "cleanup": [],
+      "cleanup_errors": [],
+      "runtime_unchanged": true,
+      "samples": 674,
+      "sampling_errors": 0,
+      "source": {
+        "before": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "after": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "unchanged": true
+      },
+      "phases": [
+        {
+          "label": "up",
+          "video_start_seconds": 22.222964162006974,
+          "video_end_seconds": 27.88701022299938,
+          "ui_cpu_seconds": 4.54,
+          "ui_average_cpu_percent": 80.15471539446733,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02/capture/phase-up-done-state.json",
+          "windows": [
+            {
+              "y": 105.97300489776404,
+              "maximum": 374,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "ready_rows": {
+                    "before": 89,
+                    "after": 260
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 1,
+                "pending": false,
+                "outer_owner_count": 24,
+                "outer_materialized_widgets": 300,
+                "outer_materialized_source_bytes": 88670,
+                "registered": 24,
+                "dormant": 0,
+                "visible": 3,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "down",
+          "video_start_seconds": 29.24082232901128,
+          "video_end_seconds": 34.96197470603511,
+          "ui_cpu_seconds": 4.529999999999999,
+          "ui_average_cpu_percent": 79.17985226529709,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02/capture/phase-down-done-state.json",
+          "windows": [
+            {
+              "y": 306,
+              "maximum": 476,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "ready_rows": {
+                    "before": 268,
+                    "after": 159
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 2,
+                "pending": false,
+                "outer_owner_count": 28,
+                "outer_materialized_widgets": 311,
+                "outer_materialized_source_bytes": 130251,
+                "registered": 28,
+                "dormant": 0,
+                "visible": 1,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "reverse",
+          "video_start_seconds": 36.32967876800103,
+          "video_end_seconds": 41.938548729987815,
+          "ui_cpu_seconds": 4.5699999999999985,
+          "ui_average_cpu_percent": 81.47808793879052,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02/capture/phase-reverse-done-state.json",
+          "windows": [
+            {
+              "y": 121,
+              "maximum": 238,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "ready_rows": {
+                    "before": 119,
+                    "after": 107
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 16,
+                "pending": false,
+                "outer_owner_count": 38,
+                "outer_materialized_widgets": 292,
+                "outer_materialized_source_bytes": 58854,
+                "registered": 38,
+                "dormant": 0,
+                "visible": 11,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "end",
+          "video_start_seconds": 43.225860092032235,
+          "video_end_seconds": 45.72463486302877,
+          "ui_cpu_seconds": 1.1600000000000001,
+          "ui_average_cpu_percent": 46.42275140057469,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02/capture/phase-idle-state.json",
+          "windows": [
+            {
+              "y": 107,
+              "maximum": 107,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "ready_rows": {
+                    "before": 99,
+                    "after": 0
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 16,
+                "pending": false,
+                "outer_owner_count": 28,
+                "outer_materialized_widgets": 145,
+                "outer_materialized_source_bytes": 111165,
+                "registered": 28,
+                "dormant": 0,
+                "visible": 6,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "idle",
+          "video_start_seconds": 45.72463486302877,
+          "video_end_seconds": 62.191000385035295,
+          "ui_cpu_seconds": 0.9500000000000028,
+          "ui_average_cpu_percent": 5.769336279644541,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-baseline02/capture/phase-idle-done-state.json",
+          "windows": [
+            {
+              "y": 107,
+              "maximum": 107,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "ready_rows": {
+                    "before": 99,
+                    "after": 0
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 16,
+                "pending": false,
+                "outer_owner_count": 28,
+                "outer_materialized_widgets": 145,
+                "outer_materialized_source_bytes": 111165,
+                "registered": 28,
+                "dormant": 0,
+                "visible": 6,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "candidate01",
+      "path": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01",
+      "receipt": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01/capture/receipt.json",
+      "receipt_sha256": "55225f646e023a0213d0281f248378039f323b51dbefc5d527f02199a990d5bb",
+      "completed": true,
+      "error": null,
+      "duration_seconds": 66.64539207902271,
+      "cleanup": [],
+      "cleanup_errors": [],
+      "runtime_unchanged": true,
+      "samples": 734,
+      "sampling_errors": 0,
+      "source": {
+        "before": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "after": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "unchanged": true
+      },
+      "phases": [
+        {
+          "label": "up",
+          "video_start_seconds": 22.71436972601805,
+          "video_end_seconds": 28.49143086001277,
+          "ui_cpu_seconds": 4.54,
+          "ui_average_cpu_percent": 78.5866705353814,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01/capture/phase-up-done-state.json",
+          "windows": [
+            {
+              "y": 118.34929217822398,
+              "maximum": 400,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "measured_body_rows": 74.0,
+                  "admitted_items": 4,
+                  "ready_rows": {
+                    "before": 93,
+                    "after": 263
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 3,
+                "pending": false,
+                "outer_owner_count": 25,
+                "outer_materialized_widgets": 230,
+                "outer_materialized_source_bytes": 88898,
+                "registered": 25,
+                "dormant": 0,
+                "visible": 1,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "down",
+          "video_start_seconds": 29.863140142988414,
+          "video_end_seconds": 35.69317050999962,
+          "ui_cpu_seconds": 4.640000000000001,
+          "ui_average_cpu_percent": 79.58792163854064,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01/capture/phase-down-done-state.json",
+          "windows": [
+            {
+              "y": 145,
+              "maximum": 254,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "measured_body_rows": 81.0,
+                  "admitted_items": 4,
+                  "ready_rows": {
+                    "before": 103,
+                    "after": 100
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 3,
+                "pending": false,
+                "outer_owner_count": 39,
+                "outer_materialized_widgets": 203,
+                "outer_materialized_source_bytes": 151926,
+                "registered": 39,
+                "dormant": 0,
+                "visible": 1,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "reverse",
+          "video_start_seconds": 37.018271886976436,
+          "video_end_seconds": 42.72044324298622,
+          "ui_cpu_seconds": 4.739999999999998,
+          "ui_average_cpu_percent": 83.1262286603206,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01/capture/phase-reverse-done-state.json",
+          "windows": [
+            {
+              "y": 98.62220755444659,
+              "maximum": 220,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "measured_body_rows": 2.1176470588235294,
+                  "admitted_items": 24,
+                  "ready_rows": {
+                    "before": 97,
+                    "after": 117
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 13,
+                "pending": false,
+                "outer_owner_count": 37,
+                "outer_materialized_widgets": 269,
+                "outer_materialized_source_bytes": 55633,
+                "registered": 37,
+                "dormant": 0,
+                "visible": 17,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "end",
+          "video_start_seconds": 44.07530708797276,
+          "video_end_seconds": 46.58626547199674,
+          "ui_cpu_seconds": 1.1099999999999994,
+          "ui_average_cpu_percent": 44.2062284688745,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01/capture/phase-idle-state.json",
+          "windows": [
+            {
+              "y": 107,
+              "maximum": 107,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "measured_body_rows": 6.5,
+                  "admitted_items": 15,
+                  "ready_rows": {
+                    "before": 99,
+                    "after": 0
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 13,
+                "pending": false,
+                "outer_owner_count": 28,
+                "outer_materialized_widgets": 145,
+                "outer_materialized_source_bytes": 111165,
+                "registered": 28,
+                "dormant": 0,
+                "visible": 6,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        },
+        {
+          "label": "idle",
+          "video_start_seconds": 46.58626547199674,
+          "video_end_seconds": 63.1209218960139,
+          "ui_cpu_seconds": 0.9399999999999977,
+          "ui_average_cpu_percent": 5.685028922854516,
+          "state_file": "/home/ts/.cache/agent-scratch/retained-history-buffer-257-20261001-candidate01/capture/phase-idle-done-state.json",
+          "windows": [
+            {
+              "y": 107,
+              "maximum": 107,
+              "resources": {
+                "budget": {
+                  "max_items": 24,
+                  "admission_items": 4,
+                  "reserve_batches": 4,
+                  "minimum_widgets": 300,
+                  "widgets_per_row": 10,
+                  "buffer_viewports": 3,
+                  "lookahead_seconds": 0.3,
+                  "scroll_idle_seconds": 0.2
+                },
+                "runway": {
+                  "requested_rows": 96,
+                  "baseline_rows": 96,
+                  "measured_body_rows": 6.5,
+                  "admitted_items": 15,
+                  "ready_rows": {
+                    "before": 99,
+                    "after": 0
+                  },
+                  "demand": "StationaryPreparation",
+                  "travel_rows": 0,
+                  "foreground_delivery_seconds": 0.0
+                },
+                "widget_limit": 320,
+                "source_byte_limit": 67108864,
+                "body_evictions": 13,
+                "pending": false,
+                "outer_owner_count": 28,
+                "outer_materialized_widgets": 145,
+                "outer_materialized_source_bytes": 111165,
+                "registered": 28,
+                "dormant": 0,
+                "visible": 6,
+                "visible_dormant": 0,
+                "reconciling": false,
+                "suspended": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

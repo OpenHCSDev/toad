@@ -1,0 +1,973 @@
+{
+  "scope": "Read-only retained original native-source physical comparison; not installed ACP readiness",
+  "limits": [
+    "Travel observations lack restoration scope and are not user-action counts or proof of failed compensation.",
+    "Compressed Chrome stack transitions are not samples, calls, durations or CPU attribution.",
+    "Loaded page ranges and observer cost differ; kernel CPU differences are not an isolated effect estimate.",
+    "End marker captures before key End; idle and idle-done confirm the destination."
+  ],
+  "runs": {
+    "baseline": {
+      "raw": "/home/ts/.cache/agent-scratch/retained-history-buffer-260-20261001-directional01",
+      "duration_seconds": 65.67670404003002,
+      "completed": true,
+      "capture_completed": true,
+      "encoder_capture_returncode": 255,
+      "runtime_unchanged": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": [],
+      "gil_samples": 649,
+      "sampling_errors": 0,
+      "retained_source": {
+        "before": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "after": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "unchanged": true
+      },
+      "phase_metrics": [
+        {
+          "phase": "up",
+          "video_interval_seconds": [
+            22.32520561700221,
+            28.006667766021565
+          ],
+          "native_changes": 104,
+          "loader_requests": 11,
+          "moving_negative": 73,
+          "moving_positive": 27,
+          "moving_travel_min": -29261.55381204739,
+          "moving_travel_max": 13155.043610387156,
+          "ui_cpu_percent": 80.61305135669221
+        },
+        {
+          "phase": "down",
+          "video_interval_seconds": [
+            29.368801454023924,
+            35.01350890501635
+          ],
+          "native_changes": 156,
+          "loader_requests": 2,
+          "moving_negative": 38,
+          "moving_positive": 117,
+          "moving_travel_min": -97922.51420672143,
+          "moving_travel_max": 11528.861893319912,
+          "ui_cpu_percent": 76.35470991932868
+        },
+        {
+          "phase": "reverse",
+          "video_interval_seconds": [
+            36.25091623101616,
+            41.95957026199903
+          ],
+          "native_changes": 173,
+          "loader_requests": 3,
+          "moving_negative": 132,
+          "moving_positive": 37,
+          "moving_travel_min": -23482.000623462456,
+          "moving_travel_max": 13473.106302314509,
+          "ui_cpu_percent": 80.05389668382433
+        },
+        {
+          "phase": "end",
+          "video_interval_seconds": [
+            43.273353013035376,
+            45.768097966036294
+          ],
+          "native_changes": 1,
+          "loader_requests": 1,
+          "moving_negative": 0,
+          "moving_positive": 1,
+          "moving_travel_min": 185.58943521737422,
+          "moving_travel_max": 185.58943521737422,
+          "ui_cpu_percent": 40.08425786359861
+        },
+        {
+          "phase": "idle",
+          "video_interval_seconds": [
+            45.768097966036294,
+            62.20395053504035
+          ],
+          "native_changes": 0,
+          "loader_requests": 0,
+          "moving_negative": 0,
+          "moving_positive": 0,
+          "moving_travel_min": null,
+          "moving_travel_max": null,
+          "ui_cpu_percent": 5.597519180325368
+        }
+      ],
+      "native_phase_states": {
+        "down-done": {
+          "scroll_y": 274,
+          "maximum": 476,
+          "follows_tail": false,
+          "restoring": false,
+          "history_lock_held": false,
+          "resources": {
+            "widget_limit": 320,
+            "source_byte_limit": 67108864,
+            "outer_materialized_widgets": 311,
+            "outer_materialized_source_bytes": 130251,
+            "pending": false,
+            "runway": {
+              "requested_rows": 96,
+              "baseline_rows": 96,
+              "measured_body_rows": 79.0,
+              "admitted_items": 4,
+              "ready_rows": {
+                "before": 268,
+                "after": 159
+              },
+              "demand": "StationaryPreparation",
+              "travel_rows": 0,
+              "foreground_delivery_seconds": 0.0
+            }
+          }
+        },
+        "reverse-done": {
+          "scroll_y": 114.27370985508384,
+          "maximum": 238,
+          "follows_tail": false,
+          "restoring": false,
+          "history_lock_held": false,
+          "resources": {
+            "widget_limit": 320,
+            "source_byte_limit": 67108864,
+            "outer_materialized_widgets": 292,
+            "outer_materialized_source_bytes": 58854,
+            "pending": false,
+            "runway": {
+              "requested_rows": 96,
+              "baseline_rows": 96,
+              "measured_body_rows": 3.4285714285714284,
+              "admitted_items": 24,
+              "ready_rows": {
+                "before": 113,
+                "after": 107
+              },
+              "demand": "StationaryPreparation",
+              "travel_rows": 0,
+              "foreground_delivery_seconds": 0.0
+            }
+          }
+        },
+        "idle-done": {
+          "scroll_y": 107,
+          "maximum": 107,
+          "follows_tail": true,
+          "restoring": false,
+          "history_lock_held": false,
+          "resources": {
+            "widget_limit": 320,
+            "source_byte_limit": 67108864,
+            "outer_materialized_widgets": 145,
+            "outer_materialized_source_bytes": 111165,
+            "pending": false,
+            "runway": {
+              "requested_rows": 96,
+              "baseline_rows": 96,
+              "measured_body_rows": 6.5,
+              "admitted_items": 15,
+              "ready_rows": {
+                "before": 99,
+                "after": 0
+              },
+              "demand": "StationaryPreparation",
+              "travel_rows": 0,
+              "foreground_delivery_seconds": 0.0
+            }
+          }
+        }
+      },
+      "observed_stack_transition_groups": {
+        "up": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 24
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 15
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 11
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 8
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 6
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 6
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 6
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 5
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 5
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          }
+        ],
+        "down": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 29
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 15
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 13
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 13
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 12
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 11
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 9
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 7
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 7
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 7
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 4
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          }
+        ],
+        "reverse": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 29
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 15
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 13
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 13
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 10
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 9
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 7
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 7
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 5
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 4
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          }
+        ],
+        "idle": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-retained-history-buffer-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 2
+          }
+        ]
+      },
+      "profile_join": "/home/ts/.cache/agent-scratch/retained-history-buffer-260-20261001-directional01/capture/foreground-cost-stacks.json"
+    },
+    "changed_restoration": {
+      "raw": "/home/ts/.cache/agent-scratch/history-reflow-254-20261001-candidate01",
+      "duration_seconds": 65.28117593401112,
+      "completed": true,
+      "capture_completed": true,
+      "encoder_capture_returncode": 255,
+      "runtime_unchanged": true,
+      "cleanup_remaining": [],
+      "cleanup_errors": [],
+      "gil_samples": 714,
+      "sampling_errors": 0,
+      "retained_source": {
+        "before": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "after": {
+          "path": "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-warm-scroll-236-01/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-warm-scroll-236-01-project--/2026-09-30T12-41-27-530Z_01a0f255-8aeb-754e-9e82-dc119cf460b0.jsonl",
+          "bytes": 41270331,
+          "sha256": "fc5a6209efae51c1cb82833b1e296ebeeefe9e28b180f5a02d70a2d0928084e0"
+        },
+        "unchanged": true
+      },
+      "phase_metrics": [
+        {
+          "phase": "up",
+          "video_interval_seconds": [
+            22.17103034403408,
+            27.840755092038307
+          ],
+          "native_changes": 116,
+          "loader_requests": 11,
+          "moving_negative": 66,
+          "moving_positive": 44,
+          "moving_travel_min": -30518.937863275463,
+          "moving_travel_max": 31556.638827021237,
+          "ui_cpu_percent": 74.0776701986886
+        },
+        {
+          "phase": "down",
+          "video_interval_seconds": [
+            29.18513040902326,
+            34.83489457902033
+          ],
+          "native_changes": 159,
+          "loader_requests": 2,
+          "moving_negative": 17,
+          "moving_positive": 137,
+          "moving_travel_min": -9498.945477796435,
+          "moving_travel_max": 6414.88133676995,
+          "ui_cpu_percent": 75.93237294366972
+        },
+        {
+          "phase": "reverse",
+          "video_interval_seconds": [
+            36.10393974301405,
+            41.7272253340343
+          ],
+          "native_changes": 200,
+          "loader_requests": 1,
+          "moving_negative": 114,
+          "moving_positive": 85,
+          "moving_travel_min": -89898.1656961475,
+          "moving_travel_max": 64999.54096937087,
+          "ui_cpu_percent": 77.89040640216398
+        },
+        {
+          "phase": "end",
+          "video_interval_seconds": [
+            43.00933148001786,
+            45.47502421500394
+          ],
+          "native_changes": 1,
+          "loader_requests": 1,
+          "moving_negative": 0,
+          "moving_positive": 1,
+          "moving_travel_min": 367.5,
+          "moving_travel_max": 367.5,
+          "ui_cpu_percent": 49.07343006819675
+        },
+        {
+          "phase": "idle",
+          "video_interval_seconds": [
+            45.47502421500394,
+            61.85868455999298
+          ],
+          "native_changes": 0,
+          "loader_requests": 0,
+          "moving_negative": 0,
+          "moving_positive": 0,
+          "moving_travel_min": null,
+          "moving_travel_max": null,
+          "ui_cpu_percent": 5.737423629436371
+        }
+      ],
+      "native_phase_states": {
+        "down-done": {
+          "scroll_y": 150,
+          "maximum": 176,
+          "follows_tail": false,
+          "restoring": false,
+          "history_lock_held": false,
+          "resources": {
+            "widget_limit": 320,
+            "source_byte_limit": 67108864,
+            "outer_materialized_widgets": 176,
+            "outer_materialized_source_bytes": 86077,
+            "pending": false,
+            "runway": {
+              "requested_rows": 96,
+              "baseline_rows": 96,
+              "measured_body_rows": 5.428571428571429,
+              "admitted_items": 18,
+              "ready_rows": {
+                "before": 144,
+                "after": 25
+              },
+              "demand": "StationaryPreparation",
+              "travel_rows": 0,
+              "foreground_delivery_seconds": 0.0
+            }
+          }
+        },
+        "reverse-done": {
+          "scroll_y": 169,
+          "maximum": 414,
+          "follows_tail": false,
+          "restoring": false,
+          "history_lock_held": false,
+          "resources": {
+            "widget_limit": 320,
+            "source_byte_limit": 67108864,
+            "outer_materialized_widgets": 154,
+            "outer_materialized_source_bytes": 90775,
+            "pending": false,
+            "runway": {
+              "requested_rows": 96,
+              "baseline_rows": 96,
+              "measured_body_rows": 38.5,
+              "admitted_items": 4,
+              "ready_rows": {
+                "before": 111,
+                "after": 179
+              },
+              "demand": "StationaryPreparation",
+              "travel_rows": 0,
+              "foreground_delivery_seconds": 0.0
+            }
+          }
+        },
+        "idle-done": {
+          "scroll_y": 107,
+          "maximum": 107,
+          "follows_tail": true,
+          "restoring": false,
+          "history_lock_held": false,
+          "resources": {
+            "widget_limit": 320,
+            "source_byte_limit": 67108864,
+            "outer_materialized_widgets": 145,
+            "outer_materialized_source_bytes": 111466,
+            "pending": false,
+            "runway": {
+              "requested_rows": 96,
+              "baseline_rows": 96,
+              "measured_body_rows": 6.5,
+              "admitted_items": 15,
+              "ready_rows": {
+                "before": 99,
+                "after": 0
+              },
+              "demand": "StationaryPreparation",
+              "travel_rows": 0,
+              "foreground_delivery_seconds": 0.0
+            }
+          }
+        }
+      },
+      "observed_stack_transition_groups": {
+        "up": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 24
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 15
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 13
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 12
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 10
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 8
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 6
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 5
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 4
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 4
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 1
+          }
+        ],
+        "down": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 36
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 17
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 15
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 12
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 12
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 10
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 10
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 8
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 8
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 7
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 5
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 4
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 1
+          }
+        ],
+        "reverse": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 56
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 26
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 23
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 19
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 17
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 15
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 13
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 12
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 11
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 10
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 9
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 5
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 4
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 2
+          },
+          {
+            "function": "get_content_height",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/widget.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_refresh_layout",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 1
+          },
+          {
+            "function": "_reconcile",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/widgets/viewport_body.py",
+            "stack_presence_transition_groups": 1
+          }
+        ],
+        "idle": [
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/wt/toad-foreground-readiness-remainder-20260930/src/toad/screens/workspace.py",
+            "stack_presence_transition_groups": 3
+          },
+          {
+            "function": "_on_timer_update",
+            "filename": "/home/ts/.local/share/agent-comms/runtime-source-publication-custody-20260930/lib/python3.14/site-packages/textual/screen.py",
+            "stack_presence_transition_groups": 3
+          }
+        ]
+      },
+      "profile_join": "/home/ts/.cache/agent-scratch/history-reflow-254-20261001-candidate01/capture/foreground-cost-stacks.json"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "before": {
+    "y": 254,
+    "maximum": 357,
+    "marker_y": 3,
+    "revision": 4
+  },
+  "after": {
+    "y": 127,
+    "maximum": 230,
+    "marker_y": 3,
+    "revision": 4
+  },
+  "changes": [
+    {
+      "old": 254,
+      "new": 230,
+      "restoring": false,
+      "revision": 4
+    },
+    {
+      "old": 230,
+      "new": 127,
+      "restoring": true,
+      "revision": 4
+    }
+  ],
+  "samples": [
+    {
+      "position": 230,
+      "restoring": false,
+      "sampled": true,
+      "demand": "MovingPreparation(velocity=-255.31153567956434)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-255.31153567956434)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-255.31153567956434)"
+    },
+    {
+      "position": 127,
+      "restoring": false,
+      "sampled": false,
+      "demand": "MovingPreparation(velocity=-255.31153567956434)"
+    }
+  ],
+  "demand_before": "MovingPreparation(velocity=-534.0034166942731)",
+  "demand_after": "MovingPreparation(velocity=-255.31153567956434)",
+  "same_demand": true,
+  "source_resources": [
+    140286742746512,
+    140286586781392
+  ],
+  "remaining_histories": 2,
+  "native_started": false
+}

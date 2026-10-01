@@ -1,0 +1,9 @@
+{
+  "source": "187f380ee1fa6358f16020ace38fa42e11f01670",
+  "dependencies": "runtime-native-applied-cohort-20261001/bin/python",
+  "command": "PYTHONPATH=$PWD/src timeout 30 <runtime>/bin/python: runpy.run_path on original tests/guards/test_t4.py and test_session_admission.py, invoke each test_ function",
+  "result": "PASS",
+  "passed": 10,
+  "runner_disposition": "pytest invocation exited1: No module named pytest; original guard functions invoked directly, no dependency mutation",
+  "scope": "existing ownership/deletion guards; not physical installed acceptance"
+}
