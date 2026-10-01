@@ -164,9 +164,9 @@ no ordinary saved-load admission change in this exact installed Core0ea.
 
 ## Code-bearing intrinsic geometry checkpoint
 
-Textual draft18 source `7246be6efad463aacb54f6a2880e57c04c9fb571` is now
-pinned by this working version. Versus its frozen ba65 predecessor:41production
-lines deleted,246added across the compositor, original placement processor and
+Textual draft18 source `efe905de3d37729e434fe33ff098a47dc18c83c6` is now
+pinned by this working version. Versus its frozen ba65 predecessor:42production
+lines deleted,243added across the compositor, original placement processor and
 Widget geometry contract. The existing single bounded cache holds intrinsic
 body geometry and original clip constraints; it projects those resources through
 current native placement. Scroll-owning viewports retain culling/exact geometry.
@@ -175,13 +175,20 @@ migrate. Original placement declarations own rank before visible culling;
 scrollbar virtual geometry follows its container-relative producer contract.
 
 Source native PageDown0→20 now retains the SAME body resource with ZERO native
-body arrangement calls. Nine continuous visible-scene comparisons against the
+body arrangement calls. Ten continuous visible-scene comparisons against the
 uncached full native producer pass, including reverse, nested scroll/fixed child,
 End/repeated bottom, resize/content invalidation, constraints and overlays. Ten
 retirement/custody/budget controls pass; all three production files and31changed
 functions pass dispatch/probe/chain ratchets. This is concrete source operation
 elimination, not installed CPU or latency improvement. See Text18's committed
-`evidence/native-subtree-retirement/reprojection-ratchet.json` and closure06.
+`evidence/native-subtree-retirement/reprojection-ratchet.json` and closure10.
+
+Kepler's source review found effective complete/culling coverage missing from
+the intermediate key. The resource owner now resolves it BEFORE lookup and
+uses the existing visibility dimension; actual nested culled-to-complete
+requests produce distinct resources. Original-pose restoration also retains
+the native MapGeometry object. The seven-field replica is deleted and replaced
+by original geometry plus clip constraints, with no extra projection store.
 
 The existing ba65 prefix and actual failed coldB capture stay frozen. No heavy
 build or capture follows before parent/Mendel resolve headroom. Next affected
