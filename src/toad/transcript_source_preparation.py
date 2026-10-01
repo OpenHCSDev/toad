@@ -1,9 +1,37 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
 from textual.worker import WorkerCancelled
 from textual.message import Message
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
 from toad.widgets.committed_presentation import TranscriptCoverage
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from textual.screen import Screen
+    from toad.widgets.conversation import Window
+    from toad.widgets.message_filter import MessageCategory
+    from toad.widgets.transcript_history import TranscriptHistory
+
+
+@dataclass(frozen=True)
+class HistorySourceSnapshot:
+    """One original source/view identity for page and filter publication."""
+
+    generation: int
+    selected: frozenset[type[MessageCategory]]
+    window: Window
+    loader: Callable | None
+    screen: Screen
+
+    def current(self, owner: TranscriptHistory) -> bool:
+        if not owner.source_publication_available:
+            return False
+        return self == owner.source_snapshot()
 
 
 class TranscriptSourceWorkFinished(Message):
@@ -30,6 +58,16 @@ class TranscriptSourcePreparation:
     @property
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
+
+    @property
+    def source_publication_available(self) -> bool:
+        if not self.state.accepts_publication:
+            return False
+        return self.screen.is_current
+
+    def source_snapshot(self) -> HistorySourceSnapshot:
+        return HistorySourceSnapshot(self._generation, self.selected_categories,
+                                     self.window, self.loader, self.screen)
 
     @property
     def blocks_visible_read(self) -> bool:

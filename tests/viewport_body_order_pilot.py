@@ -338,17 +338,28 @@ async def readiness_journey():
                 view = app.selected_session.conversation
                 viewport = view.window.document_viewport
                 await viewport.suspend_source()
-                fragment = HeldFragment(TranscriptFragment((AssistantTranscript('NATIVE_BODY_READY'),)))
+                service = Comms(root / 'wire')
+                journal = root / 'edge-source.jsonl'
+                journal.write_text(''.join(json.dumps({'type': 'message', 'message': {
+                    'role': 'assistant', 'content': f'NATIVE_BODY_READY_{index}'
+                }}) + '\n' for index in range(4)))
+                service.registry.declare(Thread('edge-source', frozenset(), str(root), session_file=str(journal)))
+                page = service.transcripts.thread_transcript_page('edge-source', max_messages=1)
+                assert page.has_older
+                fragment = HeldFragment(TranscriptFragment(page.events))
+
+                async def load_page(**bounds):
+                    return await asyncio.to_thread(service.transcripts.thread_transcript_page,
+                                                   'edge-source', max_messages=1, **bounds)
 
                 class HeldPage(TranscriptPageView):
                     def _body(self, source):
                         assert source == fragment.fragment
                         return fragment
 
-                cursor = TranscriptCursor('', 0)
-                page = TranscriptPage(fragment.fragment.events, cursor, cursor, False, False)
-                history = TranscriptHistory(page, fragments=(fragment.fragment,))
+                history = TranscriptHistory(page, load_page, fragments=(fragment.fragment,))
                 history.pages[0] = HeldPage(page, fragments=(fragment.fragment,))
+                setup_work = history.reserve_source_work()
                 mounting = asyncio.ensure_future(view.contents.mount(history))
                 operations.append(mounting)
                 await asyncio.wait_for(entered.wait(), 5)
@@ -397,6 +408,13 @@ async def readiness_journey():
                 assert child.is_mounted and not child.body_ready
                 assert not viewport.visible_bodies_ready
                 assert not await fragment.retire_body()
+                # Original source work completes while a mounted visible body
+                # still awaits parsing. Mount completion cannot admit paging.
+                history.finish_source_work(setup_work)
+                view.window.release_anchor()
+                history._check_edges()
+                assert history.state.accepts_source_work, 'Paging started while the visible body was restoring'
+                setup_work = history.reserve_source_work()
                 release.set()
                 await asyncio.wait_for(restoring_child, 5)
                 await pilot.pause()
@@ -412,6 +430,19 @@ async def readiness_journey():
                             if name == 'walk_children')
                 profile.dump_stats(str(evidence / 'readiness.prof'))
                 assert walks == 0
+                edge_profile = cProfile.Profile()
+                history.finish_source_work(setup_work)
+                # A ready tail may now admit its real original older page.
+                view.window.anchor()
+                edge_profile.enable()
+                for _ in range(100):
+                    history._check_edges()
+                edge_profile.disable()
+                edge_walks = sum(row[1] for (_, _, name), row in pstats.Stats(edge_profile).stats.items()
+                                 if name == 'walk_children')
+                edge_profile.dump_stats(str(evidence / 'edge-readiness.prof'))
+                print(json.dumps({'profiled_edge_subtree_walks': edge_walks}), flush=True)
+                assert edge_walks == 0, 'Paging readiness expanded hidden native body descendants'
 
                 assert await fragment.retire_body()
                 assert not fragment.body_ready and not fragment.children
@@ -430,9 +461,9 @@ async def readiness_journey():
                 assert 'NATIVE_BODY_READY' in paint
                 (evidence / 'restored.svg').write_text(app.export_screenshot())
                 receipt = dict(initial_native_mount_joined=True, later_pending_mount_not_yet_visible=True,
-                               visible_nested_restore_blocks_frame=True,
+                               visible_nested_restore_blocks_frame=True, visible_nested_restore_blocks_paging=True,
                                retirement_preserves_pending_nested_mount=True, restored_native_body_painted=True,
-                               profiled_frame_subtree_walks=walks, provider_calls=0,
+                               profiled_frame_subtree_walks=walks, profiled_edge_subtree_walks=edge_walks, provider_calls=0,
                                boundary='Actual Toad native widgets/Pilot; source scope, not installed physical CPU acceptance')
                 (evidence / 'readiness-receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
                 assert app._exception is None

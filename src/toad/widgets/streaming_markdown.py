@@ -63,22 +63,20 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         if self._stream is not None or self._content_lock.locked():
             return False
         async with self._content_lock:
-            if self._paged is not None:
-                if (self._body_dormant or self._body_measurement is None or self.loading
-                        or not self.is_attached or self._body_viewport is None
-                        or self in self._body_viewport.protected()):
-                    return False
-                # Synthetic message paging has one immutable source page. Keep
-                # its admitted source range, never the retired pager widgets.
-                page = self._paged.pages[0]
-                self._dormant_page_range = page.start, page.stop
-                self.retire_measurement()
-                pager, self._paged = self._paged, None
-                await pager.remove()
-                self._prepared_fences.clear()
-                self.refresh(layout=True)
-                return True
             return await super().retire_body()
+
+    def reconstructible_children(self) -> tuple[Widget, ...]:
+        return ((self._paged,) if self._paged is not None
+                else super().reconstructible_children())
+
+    def retire_body_resources(self) -> None:
+        if self._paged is not None:
+            # One immutable synthetic source page owns its admitted range.
+            # Retain that reconstruction resource, never its removed widgets.
+            page = self._paged.pages[0]
+            self._dormant_page_range = page.start, page.stop
+            self._paged = None
+        super().retire_body_resources()
 
     def update(self, markdown: str) -> AwaitComplete:
         return AwaitComplete(self._update_content(markdown, append=False))

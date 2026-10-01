@@ -19,6 +19,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     from toad.widgets.prompt import PromptTextArea
     from toad.widgets.comms_sidebar import ThreadRow
     from toad.widgets.session_tabs import SessionLabel
+    from toad.widgets.tool_call import ToolCall
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -248,9 +249,10 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             record = {"kind": child_kind, "id": child_data.get("_id")}
                             if child_kind == "TranscriptHistory":
                                 record["pages"] = tuple((page.page, page.start, page.stop) for page in tuple(child_data.get("pages", ())))
-                            elif child_kind == "ToolCall":
-                                record["tool_call"] = dict(child_data.get("_reactive_tool_call") or {})
-                                record["expanded"] = child_data.get("_reactive_expanded", False)
+                            elif isinstance(child, ToolCall):
+                                assert child.tool_call is not None
+                                record["tool_call"] = child.tool_call.call.model_dump(mode="json", by_alias=True)
+                                record["expanded"] = child.expanded
                             else:
                                 record["text"] = next((child_data[key] for key in ("_markdown", "content", "source", "text", "_text", "_source")
                                                        if isinstance(child_data.get(key), str)), None)

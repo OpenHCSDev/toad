@@ -63,10 +63,20 @@ class TranscriptPublication(ABC):
         return await self.read_bound(page)
 
     async def read_bound(self, page: TranscriptPage) -> TranscriptPage:
+        from agent_comms.coordination_errors import StaleRevision
+
+        # The known native cut and its applied original resources meet here,
+        # before native/outcome bounding or asynchronous render preparation.
+        if not await self.capture_application():
+            raise StaleRevision("Transcript application retired before source capture")
         bound = self.source_bound(page.after)
         if bound != page.after:
             self.owner.dirty = self.owner.checkpoint_required = True
             page = await self.agent.get_transcript_page(through=bound)
+            # This bounded read retains the cut's original cohort. A newly
+            # settled anonymous body cannot become evidence for an older prefix.
+            if not await self.application_current():
+                raise StaleRevision("Transcript application retired during bounded read")
         return page
 
     def current(self) -> bool:
@@ -80,8 +90,56 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
+    async def publish(self) -> None:
+        """Join original UI application before capturing source-transfer custody.
+
+        Ordered ACP ingress can already report a settled source while its
+        original body messages are still queued on the Conversation. Only that
+        native pump can certify that those effects have applied. Reads and
+        preparation start after the join, with the same actor and generation.
+        """
+        if not self.current():
+            return
+        view = self.owner.view
+        pump = view.task
+        if asyncio.current_task() is pump:
+            # A snapshot notification itself runs on this pump. Its existing
+            # source worker must perform the join; waiting here blocks the very
+            # messages whose resource custody the source needs to capture.
+            self.owner.source_requests.submit(self)
+            return
+        if await self.capture_application():
+            await self.publish_applied()
+
+    async def capture_application(self) -> bool:
+        """Capture the original applied cohort once its source cut is known."""
+        if not await self.application_current():
+            return False
+        self.captured = self.owner.view.turns.owner.captured_snapshot(tuple(self.contents.children))
+        return True
+
+    async def application_current(self) -> bool:
+        """The original native pump attests applied effects at this source cut."""
+        if not self.current():
+            return False
+        view = self.owner.view
+        pump = view.task
+        applied = asyncio.get_running_loop().create_future()
+
+        def complete() -> None:
+            if not applied.done():
+                applied.set_result(None)
+
+        if not view.call_later(complete):
+            return False
+        try:
+            await asyncio.wait((applied, pump), return_when=asyncio.FIRST_COMPLETED)
+            return applied.done() and self.current()
+        finally:
+            applied.cancel()
+
     @abstractmethod
-    async def publish(self) -> None: ...
+    async def publish_applied(self) -> None: ...
 
 
 class SnapshotPublication(TranscriptPublication):
@@ -103,7 +161,12 @@ class SnapshotPublication(TranscriptPublication):
             self.owner.require_checkpoint()
         return False
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
+        # The original supplied page is already known at the inherited join.
+        await self.publish_page()
+
+    async def publish_page(self) -> None:
+        """Admit this operation's known cut and original applied resource cohort."""
         from toad.render_tasks import TranscriptRenderTask
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
@@ -170,7 +233,7 @@ class SnapshotPublication(TranscriptPublication):
 class HandlingPublication(TranscriptPublication):
     """Render original recipient outcomes on existing original source bodies."""
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         from toad.widgets.wire_message_handling import WireMessageHandling
 
         if self.agent is None:
@@ -194,12 +257,18 @@ class CanonicalSourcePublication(TranscriptPublication):
     async def read_page(self) -> TranscriptPage:
         return await self.read_source_page()
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         if self.agent is None or not self.agent.transcript_ready:
             return
         page = await self.read_page()
         if self.current():
-            await self.owner.snapshot(page)
+            # Keep this read's original cohort through saved-page admission.
+            # Snapshot notifications obtain their cut at their own boundary;
+            # this source read already joined the same pump in read_bound.
+            snapshot = SnapshotPublication(self.owner, self.owner.view,
+                                           self.window, self.contents, page)
+            snapshot.captured = self.captured
+            await snapshot.publish_page()
             await self.owner.publish(HandlingPublication)
 
 
@@ -210,18 +279,15 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 
     async def read_page(self) -> TranscriptPage:
         identity = self.presentation.read_identity
-        bound = self.source_bound(identity.page_bound)
-        if bound != identity.page_bound:
-            self.owner.dirty = self.owner.checkpoint_required = True
-            return await self.agent.get_transcript_page(through=bound)
-        return await self.agent.get_transcript_page(read_identity=identity)
+        page = await self.agent.get_transcript_page(read_identity=identity)
+        return await self.read_bound(page)
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         if self.agent is None:
             return
         await self.agent.observe_thread_presentation(self.presentation)
         if self.current():
-            await super().publish()
+            await super().publish_applied()
 
 
 class SourcePublicationRequests:
@@ -236,6 +302,10 @@ class SourcePublicationRequests:
         publication = self.owner.capture(kind, *args)
         if publication is None:
             return
+        self.submit(publication)
+
+    def submit(self, publication: TranscriptPublication) -> None:
+        """Keep the original operation when its caller is the native UI pump."""
         if self.pending.full():
             self.pending.get_nowait()
         self.pending.put_nowait(publication)
@@ -296,7 +366,7 @@ class CheckpointPublication(TranscriptPublication):
                           if child is not history and isinstance(child, CommitParticipant))
         return self.plan.ready(history) and self.plan.permits(view, potential)
 
-    async def publish(self) -> None:
+    async def publish_applied(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
         from agent_comms.coordination_errors import StaleRevision
 

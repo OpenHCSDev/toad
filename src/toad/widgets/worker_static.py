@@ -9,6 +9,7 @@ from typing import cast
 from rich.console import RenderableType
 from rich.cells import cell_len
 from rich.protocol import is_renderable
+from textual import events
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.selection import Selection
@@ -69,6 +70,10 @@ class WorkerStatic(Static):
         self.call_after_refresh(self._request_preparation)
 
     def _layout_changed(self, _screen: Screen) -> None:
+        if self.styles.is_auto_width:
+            self._request_preparation()
+
+    def on_resize(self, _event: events.Resize) -> None:
         self._request_preparation()
 
     def notify_style_update(self) -> None:
@@ -102,7 +107,8 @@ class WorkerStatic(Static):
         auto_width = self.styles.is_auto_width
         parent = self.parent
         width = (parent.scrollable_content_region.width
-                 if auto_width and isinstance(parent, Widget) else self.size.width)
+                 if auto_width and isinstance(parent, Widget)
+                 else max(0, self.outer_size.width - self.styles.gutter.width))
         width = max(1, width or app.size.width)
         presentation = RichPresentation(
             app.console_options.update(width=width, height=None, highlight=False),

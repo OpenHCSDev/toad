@@ -2,6 +2,7 @@
 
 from abc import abstractmethod
 from dataclasses import dataclass
+from functools import partial
 from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -171,7 +172,7 @@ class WorkingTranscript(SuspendedTranscript):
             owner.finish_source_work(self)
 
     def schedule(self, owner, work):
-        return owner.run_worker(self.execute(owner, work))
+        return owner.run_worker(partial(self.execute, owner, work))
 
 
 class DetachedTranscript(SuspendedTranscript):
