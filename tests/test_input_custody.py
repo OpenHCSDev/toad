@@ -7,11 +7,12 @@ from agent_comms.acp_extension import QueuePromptRequest
 from toad import jsonrpc
 from toad.acp.agent import Agent
 from toad.acp import agent_controller
+from toad.agent_schema import AgentDefinition
 
 
 def test_pending_prompt_build_rejects_session_return_without_dispatch(tmp_path, monkeypatch):
     async def run():
-        agent = Agent(tmp_path, {'name': 'input-custody', 'run_command': {'*': 'true'}}, 'A')
+        agent = Agent(tmp_path, AgentDefinition('input-custody', 'input-custody', {'*': 'true'}), 'A')
         entered, release = threading.Event(), threading.Event()
         real_build = agent_controller.build_prompt
         def pending_build(project, text):
