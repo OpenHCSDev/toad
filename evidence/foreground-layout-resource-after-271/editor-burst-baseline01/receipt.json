@@ -1,0 +1,25 @@
+{
+  "scope": "actual source Toad/native driver focus counter; not physical acceptance",
+  "deletion": {
+    "began_ns": 342621061219256,
+    "keys": [
+      "x",
+      "backspace"
+    ],
+    "actual_text": "",
+    "focused_after": "PromptTextArea"
+  },
+  "arrows": {
+    "began_ns": 342621354254294,
+    "keys": [
+      "x",
+      "left",
+      "y"
+    ],
+    "actual_text": "xy",
+    "focused_after": "PromptTextArea"
+  },
+  "trace": [],
+  "agent_bound": false,
+  "exception": "None"
+}

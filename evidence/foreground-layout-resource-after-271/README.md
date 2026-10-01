@@ -245,3 +245,26 @@ the original read/process/admission witness; no old-format reader or carry adapt
 is introduced. The argument is recorded in the factory receipt. Existing raw
 ba65 command/receipt remains unchanged. No capture was started for this caller
 closure; normal builder/cohort pins and the sole physical slot remain parent-owned.
+
+## Native editor key burst counter
+
+`tests/editor_key_burst_pilot.py` sends real native driver Key events into the
+actual Toad application. It binds no Agent, sends no provider input and changes
+no public source. Baseline03 uses the current public476 dependencies with owned
+Toad source. `x, Backspace` passes (empty editor). `x, Left, y` produces `xy`
+instead of `yx`, both from history focus and with the editor already focused.
+This is a demonstrated source key-ordering defect, not proof that physical
+Backspace always fails or that focus transfer alone causes the user's symptom.
+
+The original consumer trace shows TextArea's x/y insertions preceding the
+original `action_cursor_left`; Left bubbles through ancestors to App binding
+resolution after y. The existing focused-widget binding chain is the authority
+to investigate. No binding flags, editable-state copy or workaround is added.
+Baseline01's attempted instance observer did not attach to the native decorated
+handler; its empty trace cannot classify consumption. Baseline02 corrected that
+with a bounded Python call observer; Baseline03 adds the already-focused control.
+All three negatives remain. No unchanged physical capture is requested for this
+counter. Physical typing/deletion/arrows/undo, active/post-cancel and A/B/A remain
+part of the full receiving275 workflow. Native peer controls were not exposed
+in this recovered session, so shared prompt edits and the sole Mendel build are
+not started through another control path.
