@@ -1,0 +1,1007 @@
+{
+  "recording": "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture",
+  "ui_pid": 762392,
+  "selection": {
+    "functions": [],
+    "sources": [
+      "viewport_body.py",
+      "transcript_history.py"
+    ]
+  },
+  "profile": "cpu-profile.json",
+  "alignment_nominal_uncertainty_seconds": 0.07390314150601626,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant",
+    "Matching stack groups are observed transitions, not sample counts, calls or CPU time",
+    "No observed match does not prove work was absent; async await parents may be missing",
+    "Complete matching stacks supplement the capped recorder preview; raw source remains authoritative"
+  ],
+  "phases": [
+    {
+      "label": "up",
+      "video_start_seconds": 29.56456591701135,
+      "video_end_seconds": 35.310423363989685,
+      "kernel_cpu": [
+        {
+          "pid": "762392",
+          "cpu_seconds": 5.34,
+          "average_cpu_percent": 92.93652077651579
+        },
+        {
+          "pid": "762617",
+          "cpu_seconds": 0.6200000000000001,
+          "average_cpu_percent": 10.79038256206738
+        },
+        {
+          "pid": "762601",
+          "cpu_seconds": 0.27,
+          "average_cpu_percent": 4.6990375673519225
+        },
+        {
+          "pid": "762391",
+          "cpu_seconds": 0.06,
+          "average_cpu_percent": 1.0442305705226493
+        },
+        {
+          "pid": "762575",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17403842842044173
+        },
+        {
+          "pid": "762589",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17403842842044173
+        },
+        {
+          "pid": "762425",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-up.png",
+          "state_capture": {
+            "started_seconds": 29.837784603994805,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 207904768,
+              "started_ns": 1790836054348692746,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-up-state": "complete"
+              },
+              "finished_ns": 1790836054481111610
+            },
+            "finished_seconds": 30.156497011019383
+          },
+          "native_state": "phase-up-state.pickle",
+          "native_metadata": "phase-up-state.json"
+        },
+        "end": {
+          "screenshot": "phase-up-done.png",
+          "state_capture": {
+            "started_seconds": 35.60217334900517,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 226574336,
+              "started_ns": 1790836060117420611,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-up-done-state": "complete"
+              },
+              "finished_ns": 1790836060281984977
+            },
+            "finished_seconds": 35.978904685005546
+          },
+          "native_state": "phase-up-done-state.pickle",
+          "native_metadata": "phase-up-done-state.json"
+        }
+      },
+      "observed_stack_groups": 126,
+      "matching_stack_groups": 19,
+      "matched_frames": [
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_load_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 822,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 844,
+          "stack_presence_transition_groups": 9
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "extend",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 347,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_check_edges",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 703,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 143,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_request_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 771,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 853,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "__init__",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 185,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "extend",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 346,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_body",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 313,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "on_mount",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 193,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "register",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 261,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 451,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 327,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "transcript_blocks",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 132,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "tool_start",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 119,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "compose",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 250,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "tool",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 114,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_request_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 770,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": []
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 36.79029978404287,
+      "video_end_seconds": 42.507939084025566,
+      "kernel_cpu": [
+        {
+          "pid": "762392",
+          "cpu_seconds": 4.98,
+          "average_cpu_percent": 87.09888362518906
+        },
+        {
+          "pid": "762391",
+          "cpu_seconds": 0.08000000000000002,
+          "average_cpu_percent": 1.3991788534166918
+        },
+        {
+          "pid": "762575",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3497947133541732
+        },
+        {
+          "pid": "762617",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.3497947133541732
+        },
+        {
+          "pid": "762589",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.1748973566770866
+        },
+        {
+          "pid": "762425",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.17489735667708647
+        },
+        {
+          "pid": "762601",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-down.png",
+          "state_capture": {
+            "started_seconds": 37.059931294003036,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 228663296,
+              "started_ns": 1790836061578221261,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-down-state": "complete"
+              },
+              "finished_ns": 1790836061710697584
+            },
+            "finished_seconds": 37.375811684993096
+          },
+          "native_state": "phase-down-state.pickle",
+          "native_metadata": "phase-down-state.json"
+        },
+        "end": {
+          "screenshot": "phase-down-done.png",
+          "state_capture": {
+            "started_seconds": 42.802201679034624,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 231202816,
+              "started_ns": 1790836067322849282,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-down-done-state": "complete"
+              },
+              "finished_ns": 1790836067555658070
+            },
+            "finished_seconds": 43.22374945099
+          },
+          "native_state": "phase-down-done-state.pickle",
+          "native_metadata": "phase-down-done-state.json"
+        }
+      },
+      "observed_stack_groups": 117,
+      "matching_stack_groups": 31,
+      "matched_frames": [
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 143,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "extend",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 347,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_load_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 822,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 844,
+          "stack_presence_transition_groups": 12
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 327,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_check_edges",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 705,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_request_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 771,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 425,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 298,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_trim_warm",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 297,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "selected_categories",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 563,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 324,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 403,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_settle",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 344,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "prepare_adjacent",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 339,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": []
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 44.0290639490122,
+      "video_end_seconds": 49.804499611025676,
+      "kernel_cpu": [
+        {
+          "pid": "762392",
+          "cpu_seconds": 5.039999999999999,
+          "average_cpu_percent": 87.26614397506619
+        },
+        {
+          "pid": "762391",
+          "cpu_seconds": 0.09999999999999998,
+          "average_cpu_percent": 1.7314711106163925
+        },
+        {
+          "pid": "762575",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.17314711106163944
+        },
+        {
+          "pid": "762601",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762425",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762617",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762589",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-reverse.png",
+          "state_capture": {
+            "started_seconds": 44.313698453013785,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 232435712,
+              "started_ns": 1790836068829929299,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-reverse-state": "complete"
+              },
+              "finished_ns": 1790836068962815929
+            },
+            "finished_seconds": 44.612314756028354
+          },
+          "native_state": "phase-reverse-state.pickle",
+          "native_metadata": "phase-reverse-state.json"
+        },
+        "end": {
+          "screenshot": "phase-reverse-done.png",
+          "state_capture": {
+            "started_seconds": 50.08762879302958,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 233279488,
+              "started_ns": 1790836074604297589,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-reverse-done-state": "complete"
+              },
+              "finished_ns": 1790836074768942276
+            },
+            "finished_seconds": 50.46344824100379
+          },
+          "native_state": "phase-reverse-done-state.pickle",
+          "native_metadata": "phase-reverse-done-state.json"
+        }
+      },
+      "observed_stack_groups": 104,
+      "matching_stack_groups": 18,
+      "matched_frames": [
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_load_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 822,
+          "stack_presence_transition_groups": 7
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "get_content_height",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 143,
+          "stack_presence_transition_groups": 6
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "extend",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 347,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_check_edges",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 703,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 844,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_request_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 771,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "request",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 327,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 425,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 853,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "transcript_blocks",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 132,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "compose",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 250,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "retained_widget_count",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 105,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_trim_warm",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 300,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_reconcile",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 451,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "prepare",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 200,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "visible_bodies_ready",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 396,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 396,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 298,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_trim_warm",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 297,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "tool_end",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 125,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": []
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 51.26578653900651,
+      "video_end_seconds": 54.088337025023066,
+      "kernel_cpu": [
+        {
+          "pid": "762392",
+          "cpu_seconds": 1.9499999999999993,
+          "average_cpu_percent": 69.0864524712903
+        },
+        {
+          "pid": "762391",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.35428949985277125
+        },
+        {
+          "pid": "762601",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762575",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762425",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762617",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "762589",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-end.png",
+          "state_capture": {
+            "started_seconds": 51.553384066035505,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 235819008,
+              "started_ns": 1790836076072325277,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-end-state": "complete"
+              },
+              "finished_ns": 1790836076405157163
+            },
+            "finished_seconds": 52.05670109402854
+          },
+          "native_state": "phase-end-state.pickle",
+          "native_metadata": "phase-end-state.json"
+        },
+        "end": {
+          "screenshot": "phase-idle.png",
+          "state_capture": {
+            "started_seconds": 54.37717376003275,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 236748800,
+              "started_ns": 1790836078890377561,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-idle-state": "complete"
+              },
+              "finished_ns": 1790836079022790734
+            },
+            "finished_seconds": 54.697187732032035
+          },
+          "native_state": "phase-idle-state.pickle",
+          "native_metadata": "phase-idle-state.json"
+        }
+      },
+      "observed_stack_groups": 35,
+      "matching_stack_groups": 1,
+      "matched_frames": [
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "extend",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 347,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_check_edges",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 703,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_load_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 822,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_extend_and_trim",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 844,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "_request_page",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+          "line": 771,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": []
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 54.088337025023066,
+      "video_end_seconds": 70.67465785500826,
+      "kernel_cpu": [
+        {
+          "pid": "762392",
+          "cpu_seconds": 3.719999999999999,
+          "average_cpu_percent": 22.42812036575877
+        },
+        {
+          "pid": "762575",
+          "cpu_seconds": 0.04999999999999993,
+          "average_cpu_percent": 0.30145323072256375
+        },
+        {
+          "pid": "762589",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.12058129228902578
+        },
+        {
+          "pid": "762601",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.06029064614451289
+        },
+        {
+          "pid": "762617",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.06029064614451289
+        },
+        {
+          "pid": "762425",
+          "cpu_seconds": 0.009999999999999995,
+          "average_cpu_percent": 0.06029064614451281
+        },
+        {
+          "pid": "762391",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-idle.png",
+          "state_capture": {
+            "started_seconds": 54.37717376003275,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 236748800,
+              "started_ns": 1790836078890377561,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-idle-state": "complete"
+              },
+              "finished_ns": 1790836079022790734
+            },
+            "finished_seconds": 54.697187732032035
+          },
+          "native_state": "phase-idle-state.pickle",
+          "native_metadata": "phase-idle-state.json"
+        },
+        "end": {
+          "screenshot": "phase-idle-done.png",
+          "state_capture": {
+            "started_seconds": 71.07060873199953,
+            "manifest": {
+              "pid": 762392,
+              "created": 1790836022.68,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 237256704,
+              "started_ns": 1790836095594378901,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/viewport-preparation-266-20261001-installed01/capture/phase-idle-done-state": "complete"
+              },
+              "finished_ns": 1790836095727108773
+            },
+            "finished_seconds": 71.38171485601924
+          },
+          "native_state": "phase-idle-done-state.pickle",
+          "native_metadata": "phase-idle-done-state.json"
+        }
+      },
+      "observed_stack_groups": 69,
+      "matching_stack_groups": 2,
+      "matched_frames": [
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "visible_bodies_ready",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 396,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 396,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "body_ready",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 97,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 762392,
+          "tid": 140563888613248,
+          "function": "prepare",
+          "filename": "/home/ts/wt/toad-foreground-layout-cache-followup-20261001/.artifacts/runtime-retained-end-266-20261001/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 205,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": []
+    }
+  ]
+}

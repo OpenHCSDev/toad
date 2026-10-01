@@ -1,0 +1,17 @@
+{
+  "src/toad/widgets/viewport_body.py": {
+    "affected_methods_equal_installed_f39": [
+      "_trim_warm",
+      "admission"
+    ]
+  },
+  "src/toad/widgets/transcript_history.py": {
+    "affected_methods_equal_installed_f39": [
+      "_extend_and_trim",
+      "_resource_fragment_budget"
+    ]
+  },
+  "integrated_main": "1cef2a46e342964c1bbf65dad05a266d0637e346",
+  "shared_history_query": "Mendel268 changed original Window ancestry lookup to HistoryWindow; Window inherits HistoryWindow, so original conversation resolves the same owner. Archived viewer gains its declared capability. This source relation is not a new installed268 proof.",
+  "installed_gate": "resource-admission-installed-receipt.json"
+}
