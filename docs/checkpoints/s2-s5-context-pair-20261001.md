@@ -51,3 +51,24 @@ Python API and Toad production source remain the original cohort. The new
 normal69 prefix is `.artifacts/runtime-s2-s5-origin-context-0064-20261001`.
 Einstein's changed-image gate and the same shared continuous journey remain
 required. No old cohort or public route is changed by this receiving update.
+
+## Final reviewed source union and receiving freeze
+
+Parent granted one final normal69 stage after reviewing Core475
+`0ea6dccbd39b1f8656e2fc2ad983046244d9312d`. The receiving branch
+normally incorporates Einstein270 source `466d3c77` (274 ChildStdio/ACP
+maintenance+272 original human origin) and Heisenberg271 source
+`405a9d340c7b52ed3c4d96f390b5554a11acb6a9`. The sole conflict was
+receiving pyproject pins; no production source was manually rewritten.
+
+Final native stays reviewed0064. Textual is
+`4e9016c1a8f3592eb652efc39ada493a41ee9206`, and TextualDiffView is
+`8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9`. Core/native pin+uvlock and
+this normal stage belong solely to Mendel. Einstein/Kepler own ONE shared
+controlled native/ACP/UI receiving journey with changed-image/followup,
+manifest/CLI, cross-audience/goal named-state/selected-commit controls.
+No paid repeat, uncertain replay, public publication or old-prefix change.
+
+Heisenberg retains the full275 performance/resource followup; prior warm
+receipts remain scoped to their original immutable cohorts. This source union
+and eventual package proof do not substitute for final receiving acceptance.

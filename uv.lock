@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=43df95f00f4e29f9086e2b5bb1e1f651ab5f67dc#43df95f00f4e29f9086e2b5bb1e1f651ab5f67dc" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=0ea6dccbd39b1f8656e2fc2ad983046244d9312d#0ea6dccbd39b1f8656e2fc2ad983046244d9312d" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "nominal-refactor-audit" },
@@ -305,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=43df95f00f4e29f9086e2b5bb1e1f651ab5f67dc" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=0ea6dccbd39b1f8656e2fc2ad983046244d9312d" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -319,8 +319,8 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=6b5895fa0a72aeec2aeaef7206d5debfa0c1803c" },
-    { name = "textual-diff-view", specifier = "==0.1.5" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=4e9016c1a8f3592eb652efc39ada493a41ee9206" },
+    { name = "textual-diff-view", git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
     { name = "typeguard", specifier = "==4.5.2" },
@@ -1549,7 +1549,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=6b5895fa0a72aeec2aeaef7206d5debfa0c1803c#6b5895fa0a72aeec2aeaef7206d5debfa0c1803c" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=4e9016c1a8f3592eb652efc39ada493a41ee9206#4e9016c1a8f3592eb652efc39ada493a41ee9206" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
@@ -1599,13 +1599,9 @@ wheels = [
 [[package]]
 name = "textual-diff-view"
 version = "0.1.5"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9#8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 dependencies = [
     { name = "textual" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/76/55/bb5d51487b195bee04c71d42bc5b3e6bca0ba9477cf9b6f12c7f498a0bd7/textual_diff_view-0.1.5.tar.gz", hash = "sha256:e28151c45d4207fb7b50b57fce2bc249e880c2a496b21bf7d8560a92e59caecb", size = 38405, upload-time = "2026-04-30T08:43:12.809Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2d/b3/891eb302e7bb037b308cd2960ba0f762fa1e95f574c1ed810b23c86326a1/textual_diff_view-0.1.5-py3-none-any.whl", hash = "sha256:2e9c7c7f37d195688d0df56f7056e9580e4f40c3583834b12366199b77798f35", size = 25542, upload-time = "2026-04-30T08:43:15.455Z" },
 ]
 
 [[package]]

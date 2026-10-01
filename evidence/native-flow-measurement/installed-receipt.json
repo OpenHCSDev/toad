@@ -1,0 +1,37 @@
+{
+  "states": [
+    {
+      "phase": "wide-mounted",
+      "auto_split": true,
+      "fixed_split": false,
+      "width": 65,
+      "patch_split": true,
+      "padded_split": false,
+      "padded_width": 21
+    },
+    {
+      "phase": "narrow",
+      "auto_split": false,
+      "fixed_split": false,
+      "width": 15,
+      "patch_split": false,
+      "padded_split": false,
+      "padded_width": 0
+    },
+    {
+      "phase": "wide-return",
+      "auto_split": true,
+      "fixed_split": false,
+      "width": 65,
+      "patch_split": true,
+      "padded_split": false,
+      "padded_width": 21
+    }
+  ],
+  "all_native_arrangements": 39,
+  "native_diff_mount_arrangements": 0,
+  "native_diff_mount_stacks": [],
+  "agent_bound": false,
+  "exception": "None",
+  "boundary": "Actual native Toad/library mount and committed Resize control; no Agent/provider or public root; not saved41MB installed readiness"
+}

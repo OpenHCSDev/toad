@@ -1,0 +1,30 @@
+{
+  "source": "d9d2221e912549ed2ed4ba778f6e1c39908e1cd8",
+  "stage": "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001",
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-flow-271-20261001/bin/python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001/bin/python",
+      "--requirement",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/staging-native-width-271-20261001/requirements.txt"
+    ],
+    [
+      "uv",
+      "pip",
+      "check",
+      "--python",
+      "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001/bin/python"
+    ]
+  ],
+  "public_effects": 0
+}
