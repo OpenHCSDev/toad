@@ -1,0 +1,960 @@
+{
+  "boundary": "actual native Toad/Pilot source-admission diagnostic; no Agent/provider or public root; not saved41MB physical acceptance",
+  "agent_bound": false,
+  "constructor_calls": 119,
+  "distinct_source_fragments": 80,
+  "reconstructed_source_fragments": {
+    "76": 3,
+    "77": 3,
+    "78": 3,
+    "79": 3,
+    "74": 3,
+    "75": 3,
+    "56": 2,
+    "57": 2,
+    "58": 2,
+    "52": 2,
+    "53": 2,
+    "54": 2,
+    "55": 2,
+    "48": 2,
+    "49": 2,
+    "50": 2,
+    "51": 2,
+    "44": 2,
+    "45": 2,
+    "46": 2,
+    "47": 2,
+    "40": 2,
+    "41": 2,
+    "42": 2,
+    "43": 2,
+    "38": 2,
+    "39": 2,
+    "4": 2,
+    "5": 2,
+    "0": 2,
+    "1": 2,
+    "2": 2,
+    "3": 2
+  },
+  "native_body_evictions": 12,
+  "source_fragments": 80,
+  "states": [
+    {
+      "phase": "up",
+      "step": 0,
+      "range": [
+        [
+          48,
+          80
+        ]
+      ],
+      "fragment_count": 32,
+      "widgets": 131,
+      "widget_bound": 300,
+      "y": 91.25701936099688,
+      "maximum": 102,
+      "native_body_evictions": 0,
+      "constructs": 32
+    },
+    {
+      "phase": "up",
+      "step": 1,
+      "range": [
+        [
+          44,
+          80
+        ]
+      ],
+      "fragment_count": 36,
+      "widgets": 147,
+      "widget_bound": 300,
+      "y": 92.33358921571553,
+      "maximum": 118,
+      "native_body_evictions": 0,
+      "constructs": 36
+    },
+    {
+      "phase": "up",
+      "step": 2,
+      "range": [
+        [
+          40,
+          80
+        ]
+      ],
+      "fragment_count": 40,
+      "widgets": 163,
+      "widget_bound": 300,
+      "y": 93.72219043607629,
+      "maximum": 134,
+      "native_body_evictions": 0,
+      "constructs": 40
+    },
+    {
+      "phase": "up",
+      "step": 3,
+      "range": [
+        [
+          36,
+          80
+        ]
+      ],
+      "fragment_count": 44,
+      "widgets": 179,
+      "widget_bound": 300,
+      "y": 93.36690026602591,
+      "maximum": 150,
+      "native_body_evictions": 0,
+      "constructs": 44
+    },
+    {
+      "phase": "up",
+      "step": 4,
+      "range": [
+        [
+          32,
+          80
+        ]
+      ],
+      "fragment_count": 48,
+      "widgets": 195,
+      "widget_bound": 300,
+      "y": 91.81813039562542,
+      "maximum": 166,
+      "native_body_evictions": 0,
+      "constructs": 48
+    },
+    {
+      "phase": "up",
+      "step": 5,
+      "range": [
+        [
+          28,
+          80
+        ]
+      ],
+      "fragment_count": 52,
+      "widgets": 211,
+      "widget_bound": 300,
+      "y": 93.64122345177609,
+      "maximum": 182,
+      "native_body_evictions": 0,
+      "constructs": 52
+    },
+    {
+      "phase": "up",
+      "step": 6,
+      "range": [
+        [
+          24,
+          80
+        ]
+      ],
+      "fragment_count": 56,
+      "widgets": 227,
+      "widget_bound": 300,
+      "y": 92.4675738753806,
+      "maximum": 198,
+      "native_body_evictions": 0,
+      "constructs": 56
+    },
+    {
+      "phase": "up",
+      "step": 7,
+      "range": [
+        [
+          20,
+          80
+        ]
+      ],
+      "fragment_count": 60,
+      "widgets": 243,
+      "widget_bound": 300,
+      "y": 93.54129736016853,
+      "maximum": 214,
+      "native_body_evictions": 0,
+      "constructs": 60
+    },
+    {
+      "phase": "up",
+      "step": 8,
+      "range": [
+        [
+          16,
+          80
+        ]
+      ],
+      "fragment_count": 64,
+      "widgets": 259,
+      "widget_bound": 300,
+      "y": 93.8094444087402,
+      "maximum": 230,
+      "native_body_evictions": 0,
+      "constructs": 64
+    },
+    {
+      "phase": "up",
+      "step": 9,
+      "range": [
+        [
+          12,
+          80
+        ]
+      ],
+      "fragment_count": 68,
+      "widgets": 275,
+      "widget_bound": 300,
+      "y": 92.94470007107145,
+      "maximum": 246,
+      "native_body_evictions": 0,
+      "constructs": 68
+    },
+    {
+      "phase": "up",
+      "step": 10,
+      "range": [
+        [
+          8,
+          80
+        ]
+      ],
+      "fragment_count": 72,
+      "widgets": 291,
+      "widget_bound": 300,
+      "y": 94.19355400618053,
+      "maximum": 262,
+      "native_body_evictions": 0,
+      "constructs": 72
+    },
+    {
+      "phase": "up",
+      "step": 11,
+      "range": [
+        [
+          4,
+          78
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 92.60318563351592,
+      "maximum": 271,
+      "native_body_evictions": 1,
+      "constructs": 76
+    },
+    {
+      "phase": "up",
+      "step": 12,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 91.30073176857212,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "up",
+      "step": 13,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 64,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "up",
+      "step": 14,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 37,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "down",
+      "step": 0,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 64,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "down",
+      "step": 1,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 91,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "down",
+      "step": 2,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 118,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "down",
+      "step": 3,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 145,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "down",
+      "step": 4,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 172,
+      "maximum": 270,
+      "native_body_evictions": 4,
+      "constructs": 80
+    },
+    {
+      "phase": "down",
+      "step": 5,
+      "range": [
+        [
+          4,
+          78
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 177.32101180341016,
+      "maximum": 271,
+      "native_body_evictions": 7,
+      "constructs": 84
+    },
+    {
+      "phase": "down",
+      "step": 6,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 183.83576604206178,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 7,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 211,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 8,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 238,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 9,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 265,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 10,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 270,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 11,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 270,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 12,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 270,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 13,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 270,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "down",
+      "step": 14,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 270,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 0,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 243,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 1,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 216,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 2,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 189,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 3,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 162,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 4,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 135,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 5,
+      "range": [
+        [
+          6,
+          80
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 108,
+      "maximum": 270,
+      "native_body_evictions": 8,
+      "constructs": 86
+    },
+    {
+      "phase": "reverse",
+      "step": 6,
+      "range": [
+        [
+          2,
+          76
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 97.07357133938905,
+      "maximum": 271,
+      "native_body_evictions": 11,
+      "constructs": 90
+    },
+    {
+      "phase": "reverse",
+      "step": 7,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 85.78659490070112,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 8,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 59,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 9,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 32,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 10,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 5,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 11,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 0,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 12,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 0,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 13,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 0,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "reverse",
+      "step": 14,
+      "range": [
+        [
+          0,
+          74
+        ]
+      ],
+      "fragment_count": 74,
+      "widgets": 299,
+      "widget_bound": 300,
+      "y": 0,
+      "maximum": 270,
+      "native_body_evictions": 12,
+      "constructs": 92
+    },
+    {
+      "phase": "end",
+      "step": 0,
+      "range": [
+        [
+          38,
+          80
+        ]
+      ],
+      "fragment_count": 42,
+      "widgets": 171,
+      "widget_bound": 300,
+      "y": 142,
+      "maximum": 142,
+      "native_body_evictions": 12,
+      "constructs": 119
+    }
+  ],
+  "end_before": {
+    "constructs": 92,
+    "pages": [
+      139844100597200
+    ],
+    "bodies": [
+      139844070414352,
+      139844100507600,
+      139844145731280,
+      139843651799952,
+      139843651808272,
+      139843651809232,
+      139843651797392,
+      139843651803152,
+      139843652989520,
+      139843653491344,
+      139843653493904,
+      139843653497104,
+      139843652978960,
+      139843652992080,
+      139843653486224,
+      139843653488784,
+      139843652981520,
+      139843652984080,
+      139843652984400,
+      139843652986960,
+      139843655848080,
+      139843654328528,
+      139843654333648,
+      139843654336208,
+      139843655858320,
+      139843654323408,
+      139843654320848,
+      139843654325968,
+      139843655400528,
+      139843655852880,
+      139843655853200,
+      139843655855760,
+      139843656771664,
+      139843655391888,
+      139843655397968,
+      139843656768784,
+      139843656314512,
+      139844100510160,
+      139843656768464,
+      139843655389328,
+      139843656769104,
+      139843656317072,
+      139843656774224,
+      139843655386448,
+      139843656762384,
+      139843656764624,
+      139843656764944,
+      139843656762704,
+      139844100509840,
+      139844128461264,
+      139844128460944,
+      139843656311952,
+      139844069610896,
+      139844080952464,
+      139844128472464,
+      139844100593040,
+      139844069155664,
+      139844069618576,
+      139844069621136,
+      139844070417232,
+      139844069160784,
+      139844069608336,
+      139844069613456,
+      139844069616016,
+      139844069147344,
+      139844069149264,
+      139844069158224,
+      139844069605776,
+      139844069149584,
+      139844069149904,
+      139844069152144,
+      139844069153104,
+      139844135036048,
+      139844100598800
+    ]
+  },
+  "end_after": {
+    "constructs": 119,
+    "pages": [
+      139844100597200
+    ],
+    "bodies": [
+      139844080952464,
+      139844069621136,
+      139844069610896,
+      139844100593040,
+      139844070416272,
+      139843656313872,
+      139843656769104,
+      139843656776144,
+      139843656769744,
+      139843656767504,
+      139843655392848,
+      139843655390928,
+      139843655396368,
+      139843655397648,
+      139843655855760,
+      139843655852240,
+      139843655847760,
+      139843655857680,
+      139843652989520,
+      139843652983120,
+      139843652978000,
+      139844070417232,
+      139844069160784,
+      139844069608336,
+      139844069613456,
+      139844069616016,
+      139844069147344,
+      139844069149264,
+      139844069158224,
+      139844069605776,
+      139844069149584,
+      139844069149904,
+      139844069152144,
+      139844069153104,
+      139844135036048,
+      139844100598800,
+      139843656310032,
+      139844070415312,
+      139844080949264,
+      139844080947984,
+      139844080948624,
+      139844135036368
+    ]
+  },
+  "exception": "None"
+}
