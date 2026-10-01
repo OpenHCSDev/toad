@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--wait-history-thread", help="Intended selected thread for visible history observation")
     parser.add_argument("--screen", action="store_true", help="Export through Textual's screenshot API")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
+    parser.add_argument('--widget-cost', action='store_true',
+                        help='Count original subtree-walk invocations in the recorder-owned UI')
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.state or args.screen):
         parser.error("Choose --profile-seconds, --state, or --screen")
@@ -67,6 +69,20 @@ def main():
             tools = Path(__file__).resolve().parent
             script = Path(str(prefix) + "-remote.py")
             lines = ["import importlib.util as _capture_import"]
+            if args.widget_cost:
+                lines.extend((
+                    f"_spec = _capture_import.spec_from_file_location('widget_cost_observation', {str(tools / 'widget_cost_observation.py')!r})",
+                    "_module = _capture_import.module_from_spec(_spec)",
+                    "_spec.loader.exec_module(_module)",
+                    "import sys as _capture_sys",
+                    "_capture_sys.modules['widget_cost_observation'] = _module",
+                    f"_module.checkpoint = _module.install(expected_pid={args.pid}, output={str(args.output_dir / 'widget-cost.jsonl')!r})",
+                ))
+            lines.extend((
+                "import sys as _capture_sys",
+                "if 'widget_cost_observation' in _capture_sys.modules:",
+                f"    _capture_sys.modules['widget_cost_observation'].checkpoint({args.name!r})",
+            ))
             receipts = []
             for enabled, module, suffix, options in (
                 (args.state, "capture_state", "state",

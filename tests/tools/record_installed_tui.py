@@ -400,6 +400,27 @@ class ObserveJourney(PhysicalJourney):
         return ""
 
 
+class WidgetCostJourney(PhysicalJourney):
+    """Original loaded busy view, input paging and input-focused mid-history idle."""
+
+    @classmethod
+    def script(cls, args):
+        marker = marker_command()
+        return '\n'.join([
+            marker + f'cost-ready --wait-history-seconds {args.history_wait_seconds:g} '
+                f'--wait-history-thread {shlex.quote(args.command[-1])}',
+            native_click_command('phase-cost-ready-state.pickle', target='editor'),
+            marker+'input-held-up', 'keydown Prior', f'sleep {args.scroll_hold_seconds:g}',
+            'keyup Prior', marker+'input-held-up-done',
+            native_click_command('phase-input-held-up-done-state.pickle'),
+            marker+'history-held-up', 'keydown Prior', f'sleep {args.scroll_hold_seconds:g}',
+            'keyup Prior', marker+'history-held-up-done',
+            native_click_command('phase-history-held-up-done-state.pickle', target='editor'),
+            marker+'cost-idle-start', f'sleep {args.scroll_idle_seconds:g}',
+            marker+'cost-idle-done', '',
+        ])
+
+
 class ArchiveJourney(PhysicalJourney):
     """Open retained sessions using original native controls, without input."""
 
@@ -919,7 +940,8 @@ def review_recording(args):
 
 
 def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False,
-                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None):
+                         wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
+                         widget_cost=False):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -933,7 +955,8 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
                        "--state", "--sudo", "--wait-history-seconds", str(wait_history_seconds),
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
-                       *(["--screen"] if screen else [])], env,
+                       *(["--screen"] if screen else []),
+                       *(["--widget-cost"] if widget_cost else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
     except (OSError, subprocess.SubprocessError, ValueError) as error:
@@ -1101,7 +1124,8 @@ def record(args):
                 if not args.capture_state:
                     return
                 receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
-                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True)
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True,
+                    widget_cost=args.widget_cost and name == 'before')
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
@@ -1403,6 +1427,7 @@ def main():
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
     parser.add_argument("--capture-state", action="store_true",
                         help="Export loaded DTOs/SVG at before/after and physical phase markers using capture_live --sudo")
+    parser.add_argument('--widget-cost', action='store_true', help='Count subtree-walk invocations in the owned UI')
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
     parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
