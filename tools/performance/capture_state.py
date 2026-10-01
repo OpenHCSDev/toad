@@ -92,6 +92,9 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             await asyncio.sleep(wait_interval)
                 except Exception:
                     write_json(prefix + "-error.json", {"error": traceback.format_exc()})
+                    # Preserve the original resource/scene census at failure.
+                    # The error still fails the marker; no predicate is relaxed.
+                    capture(expected_pid=expected_pid, output_prefix=prefix + "-failure")
 
             asyncio.create_task(wait_and_capture(), name="toad-authorized-visible-history-wait")
             return

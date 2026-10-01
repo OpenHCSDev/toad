@@ -46,7 +46,16 @@ class SidebarProjection:
         return [row for row in self.thread_rows if row.has_open_view()]
 
     def mount(self) -> None:
-        self.timer = self.sidebar.set_interval(.18, self.animate, pause=True)
+        self.timer = self.sidebar.set_interval(
+            1 / self.sidebar.app.settings.sidebar.spinner_frames_per_second,
+            self.animate, pause=True,
+        )
+
+    def update_animation_cadence(self) -> None:
+        if self.timer is not None:
+            self.timer.stop()
+            self.mount()
+            self.sync_spinner()
 
     def pause_spinner(self) -> None:
         if self.timer is not None:
@@ -168,4 +177,3 @@ class SidebarProjection:
         if widest != self.horizontal_width:
             self.horizontal_width = widest
             panel.styles.min_width = widest
-

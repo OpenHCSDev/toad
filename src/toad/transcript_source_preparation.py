@@ -151,7 +151,10 @@ class TranscriptSourcePreparation:
         if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
             self._prefetch_worker.cancel()
 
-        if not rounds or not (any(edges) or lookahead.travel_rows):
+        # Transport completion does not exhaust the current page's local
+        # admission. Its unmounted leaves still need the stationary runway;
+        # the original reader skips absent transport edges itself.
+        if not rounds:
             return
 
         async def prepare() -> None:

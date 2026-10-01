@@ -141,8 +141,14 @@ class MeasuredViewportBody(ViewportBody):
                 self._body_measurement_stale = True
             return self._body_measurement.rows
         height = super().get_content_height(container, viewport, width)
+        measurement = self._body_measurement
+        # Layout measures extent. Admission measures native resource custody
+        # through retained_widget_count when its NodeList revision changes.
+        # A height calculation must not traverse the materialized descendants.
         self._body_measurement = BodyMeasurement(
-            width, height, self.retained_widget_count, self._nodes._updates,
+            width, height,
+            measurement.widgets if measurement is not None else 1,
+            measurement.nodes_revision if measurement is not None else None,
         )
         self._body_measurement_stale = False
         return height
@@ -216,6 +222,11 @@ class WindowMembership:
         self.presentation = window.screen.viewport_presentation
         self.presentation.windows.add(window)
 
+    def bind(self, presentation):
+        self.retire()
+        self.presentation = presentation
+        self.presentation.windows.add(self.window())
+
     def retire(self):
         window = self.window()
         self.presentation.windows.discard(window)
@@ -234,13 +245,13 @@ class DocumentViewport:
         self._window = ref(window)
         self.owners = WeakSet()
         self._warm = OrderedDict()
+        self.admitted_bodies = set()
         self.body_evictions = 0
         self._pending = False
         self._running = False
         self._worker = None
         self._suspended = False
-        window.watch(window, "scroll_y", self.request, init=False)
-        window.screen.screen_layout_refresh_signal.subscribe(window, self.request)
+        window.watch(window, "scroll_y", self.scroll_changed, init=False)
         self.membership = WindowMembership(window)
 
     @property
@@ -263,6 +274,7 @@ class DocumentViewport:
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
+        self.admitted_bodies.discard(owner)
 
     def body_roots(self):
         """Native document order, stopping at each registered body boundary.
@@ -301,7 +313,8 @@ class DocumentViewport:
         )
 
     async def _trim_warm(self, *, required=(), ahead=()):
-        admitted = self.admission(required=required, ahead=ahead)
+        self.admitted_bodies = self.admission(required=required, ahead=ahead)
+        admitted = self.admitted_bodies
         for key in tuple(self._warm):
             if key() not in admitted:
                 self._warm.pop(key)
@@ -321,13 +334,21 @@ class DocumentViewport:
         if self._suspended or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
-        if not self.window._restoring and self.lookahead.observe(self.window.scroll_y):
-            self._schedule_settle()
-            for history in tuple(self.window.histories):
-                history.prepare_scroll()
         if not self._running:
             self._running = True
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
+
+    def scroll_changed(self, *_args) -> None:
+        # Native scroll is the demand producer. Screen-wide layout (including
+        # this working set's own pruning) is not another scroll or admission.
+        if (self._suspended or not self.window.is_attached
+                or self.window._closing or self.window._restoring):
+            return
+        if self.lookahead.observe(self.window.scroll_y):
+            self._schedule_settle()
+            for history in tuple(self.window.histories):
+                history.prepare_scroll()
+        self.request()
 
     def destination(self) -> None:
         self.lookahead.observe(self.window.scroll_y)
@@ -373,6 +394,7 @@ class DocumentViewport:
         await self.suspend_source()
         self._warm.clear()
         self.owners.clear()
+        self.admitted_bodies.clear()
 
     def protected(self) -> set[Widget]:
         screen = self.window.screen
@@ -438,11 +460,15 @@ class DocumentViewport:
                         anchor = next((item for item in owners if item in visible and item.is_attached), owner)
                         started = monotonic()
                         await self._restore_body(owner, anchor)
+                        protected = self.protected()
                         if owner in visible:
                             self.lookahead.delivered(monotonic() - started)
-                    if (not wanted and not owner.body_dormant and owner not in self.protected()
+                    if (not wanted and not owner.body_dormant and owner not in protected
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
+                        # Focus/selection may change across an awaited mutation;
+                        # reuse the captured protection between those boundaries.
+                        protected = self.protected()
                 if active:
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
