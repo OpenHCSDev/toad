@@ -8,7 +8,7 @@ Toad258 source checkpoint `a37b031a4031cb262ef046d0765bdff97f0b6f6d` supplies th
 
 ## Packaging lane
 
-Create one fresh immutable normal installation after the parent publishes the merged Core470/471 pin. Keep reviewed Textual `6b5895fa0a72aeec2aeaef7206d5debfa0c1803c`, SDK 0.12.1, audit `d392c5e4cd189ce1203127a746337ad498a0330d` and native manifest `593b978a717ae8f6ab4300a1a107b615c8ced52e767ef4cad0596f827041a218`. Use the committed pyproject/uv.lock normal dependency graph; no URL overrides, editable installations or driver packages in the product prefix.
+The parent published merged Core470/471 pin `e191bcf44c292dfedc5b8b62b2b503f06de3ae7b`. Its `src`, `stack` and pyproject bytes equal reviewed Core470 `da15ac2f5bb8a66f23a735117bc5e768232270cd`. Toad258 was integrated normally with current main; product source remains byte-identical to a37. Normal uv resolution changes only the three Core pin lines in pyproject/lock (99-package complete lock graph). Keep reviewed Textual `6b5895fa0a72aeec2aeaef7206d5debfa0c1803c`, SDK 0.12.1, audit `d392c5e4cd189ce1203127a746337ad498a0330d` and native manifest `593b978a717ae8f6ab4300a1a107b615c8ced52e767ef4cad0596f827041a218`. Use the committed pyproject/uv.lock normal dependency graph; no URL overrides, editable installations or driver packages in the product prefix.
 
 Proposed prefix: `/home/ts/.local/share/agent-comms/runtime-native-publication-joined-20261001`. Never mutate an existing prefix. Build evidence is persistent under `/home/ts/.cache/agent-scratch/native-publication-joined-stage-20261001`.
 
