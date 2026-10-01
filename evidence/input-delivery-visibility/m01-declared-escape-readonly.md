@@ -68,3 +68,40 @@ his original entrypoint main guard. That failure is proved; its causal relation
 to the empty modal is not. Heisenberg owns the concrete modal lifecycle trace.
 No production bindings, focus state, timeout, oracle or installed source were
 changed for this review. The original Escape failure remains open separately.
+
+## Original M01 recheck — 2026-10-01
+
+The accepted row → ContextMenu → ForkDialog route and failed Escape are retained
+as separate observations. Readonly replay of the original 132 ANSI packets finds
+the menu caption in packets 127–130 (one-based numbering), and no dialog caption.
+The observer records ANSI, session, submissions, queue and chat geometry; it has
+no focused widget, modal mounted state, binding namespace or key-dispatch field.
+The teardown stack artifact contains only a profiler permission-denied message,
+so it supplies no stalled modal task stack.
+
+Frozen Textual `app.py:4123` forwards a non-priority key to the original focused
+widget or current screen. `screen.py:434` derives bindings from that focus and,
+when focus is absent, includes the current screen itself. The modal boundary at
+`screen.py:468` retains the ForkDialog namespace. `app.py:3968` invokes its
+declared cancel action. Consequently, absent focus alone does not explain this
+failure; screen-stack publication alone does not certify mounting or paint.
+No retained event proves a wrong target, suppressed binding or completed cancel.
+
+The same independent entrypoint defect is also present in **M01 itself**:
+`/home/ts/wt/g458g/menu-control.py:35` runs the acceptance at import time without
+a main guard. Original `wrapper.log:311` and `:722` show renderer spawn importing
+that script, followed by fixture-directory `FileExistsError` at lines 329 and
+740. This is a concrete driver lifecycle defect owned by Einstein. These child
+failures do not prove the cause of the Escape failure.
+
+Disposition: Heisenberg retains product modal lifecycle/focus ownership; Kepler
+completed the bounded original-artifact trace; Einstein owns the entrypoint.
+The missing original key/pump receipt prevents a causal product fix from this
+capture. No new binding, focus copy, provider call, capture, timeout change or
+production edit was made. Queue/fork-submit acceptance is not blocked by this
+separately tracked negative.
+
+Original input-frames SHA256:
+`93322845c1fb0989a92a2b9c588f297acffc98fc588cd29891f5eee39e138186`.
+Original Escape failure SHA256:
+`de4723505cbd07fe7192be082ada2498c9fa3d2604a44ac3d73d487300a6e3c8`.
