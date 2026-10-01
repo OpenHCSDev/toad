@@ -342,9 +342,11 @@ class TranscriptPageView(VerticalGroup):
         start = max(0, self.start - self.batch_size) if older else self.stop
         stop = self.start if older else min(len(self.fragments), self.stop + self.batch_size)
         before = self.children[0] if older and self.children else None
-        for index in range(start, stop):
-            body = self._body(self.fragments[index])
-            await self.mount(body, before=before)
+        if start < stop:
+            await self.mount_all(
+                (self._body(fragment) for fragment in self.fragments[start:stop]),
+                before=before,
+            )
         if older:
             self.start = start
         else:

@@ -1,0 +1,55 @@
+{
+  "boundary": "CurrentTypedCapture authenticated e191 producer, strict installed0ea target; READONLY",
+  "process": {
+    "pid": 465576,
+    "start_time": 30187842
+  },
+  "file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+  "bytes": 41270257,
+  "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c",
+  "model": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "stage": "/home/ts/wt/toad-text18-library-pair-20261001/.artifacts/runtime-text18-library-only-20261001",
+  "packages": {
+    "agent_comms": {
+      "agent-comms": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "0ea6dccbd39b1f8656e2fc2ad983046244d9312d",
+          "requested_revision": "0ea6dccbd39b1f8656e2fc2ad983046244d9312d"
+        }
+      }
+    },
+    "toad": {
+      "batrachian-toad": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "f8e1cedebdc1fb1c43a23475ecdbe69c8f218400",
+          "requested_revision": "f8e1cedebdc1fb1c43a23475ecdbe69c8f218400"
+        }
+      }
+    },
+    "textual": {
+      "textual": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "ba65da3dfe04fd93a486156684584e8bb60d2dc9",
+          "requested_revision": "ba65da3dfe04fd93a486156684584e8bb60d2dc9"
+        }
+      }
+    },
+    "textual_diff_view": {
+      "textual-diff-view": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1379 @@
+{
+  "scope": "actual source Toad/native driver focus counter; not physical acceptance",
+  "deletion": {
+    "began_ns": 342932735765079,
+    "keys": [
+      "x",
+      "backspace"
+    ],
+    "editor_focused_at_start": false,
+    "actual_text": "",
+    "focused_after": "PromptTextArea"
+  },
+  "arrows": {
+    "began_ns": 342933061127064,
+    "keys": [
+      "x",
+      "left",
+      "y"
+    ],
+    "editor_focused_at_start": false,
+    "actual_text": "xy",
+    "focused_after": "PromptTextArea"
+  },
+  "focused_arrows": {
+    "began_ns": 342933369539868,
+    "keys": [
+      "x",
+      "left",
+      "y"
+    ],
+    "editor_focused_at_start": true,
+    "actual_text": "xy",
+    "focused_after": "PromptTextArea"
+  },
+  "trace": [
+    {
+      "at_ns": 342932738450595,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "Window",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932738655052,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "Window",
+      "key": "backspace",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932742485267,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Window",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932742601958,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Window",
+      "key": "backspace",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932750451123,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/conversation.py",
+      "method": "on_key",
+      "owner": "Conversation",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932750891528,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Conversation",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932750993320,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/conversation.py",
+      "method": "on_key",
+      "owner": "Conversation",
+      "key": "backspace",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932751029599,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Conversation",
+      "key": "backspace",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932751249966,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "on_key",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932751332092,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932761326661,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Vertical",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": true,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932779042293,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Center",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932788936773,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "MainScreen",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932790656189,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Container",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932791299107,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Horizontal",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932791733770,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "WorkspaceScreen",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932792228367,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/app.py",
+      "method": "_on_key",
+      "owner": "ToadApp",
+      "key": "backspace",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932792529948,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "action_delete_left",
+      "owner": "PromptTextArea",
+      "key": null,
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342932792546149,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "action_delete_left",
+      "owner": "PromptTextArea",
+      "key": null,
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933064186548,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "Window",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933064378842,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "Window",
+      "key": "left",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933064541951,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "Window",
+      "key": "y",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933078568607,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Window",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933078682503,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Window",
+      "key": "left",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933078764398,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Window",
+      "key": "y",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933078918900,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/conversation.py",
+      "method": "on_key",
+      "owner": "Conversation",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079297888,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Conversation",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079382669,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/conversation.py",
+      "method": "on_key",
+      "owner": "Conversation",
+      "key": "left",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079409460,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Conversation",
+      "key": "left",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079479933,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/conversation.py",
+      "method": "on_key",
+      "owner": "Conversation",
+      "key": "y",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079774371,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Conversation",
+      "key": "y",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079940475,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "on_key",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933079988857,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933080845409,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "on_key",
+      "owner": "PromptTextArea",
+      "key": "y",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933080886417,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "y",
+      "focused_before": "Window",
+      "window_focused": true,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933090174698,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Vertical",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": true,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933097447743,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Center",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933106866551,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "MainScreen",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933107474763,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Container",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933108390678,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Horizontal",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933108889773,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "WorkspaceScreen",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933109403827,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/app.py",
+      "method": "_on_key",
+      "owner": "ToadApp",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933109686312,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "action_cursor_left",
+      "owner": "PromptTextArea",
+      "key": null,
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933374753102,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933375299937,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "PromptTextArea",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933375761451,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_forward_event",
+      "owner": "PromptTextArea",
+      "key": "y",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933395160161,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "on_key",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933395271342,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "x",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "",
+      "editor_selection_before": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933396704306,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "on_key",
+      "owner": "PromptTextArea",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933396781903,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933396840904,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933397023059,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/prompt.py",
+      "method": "on_key",
+      "owner": "PromptTextArea",
+      "key": "y",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933397091850,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "_on_key",
+      "owner": "PromptTextArea",
+      "key": "y",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "x",
+      "editor_selection_before": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933401958056,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "HorizontalGroup",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933402650487,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "PromptContainer",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933407197589,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Prompt",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933408235285,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Vertical",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933408900194,
+      "consumer": "/home/ts/wt/toad-foreground-layout-resource-after-271-20261001/src/toad/widgets/conversation.py",
+      "method": "on_key",
+      "owner": "Conversation",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933408954006,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Conversation",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933409729284,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Vertical",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933410261612,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Center",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933410788650,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "MainScreen",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933411387815,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Container",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933411876711,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "Horizontal",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933412371118,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widget.py",
+      "method": "_on_key",
+      "owner": "WorkspaceScreen",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933412882135,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/app.py",
+      "method": "_on_key",
+      "owner": "ToadApp",
+      "key": "left",
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "at_ns": 342933413318983,
+      "consumer": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/runtime-openhcs-recovery-cohort-20261001/lib/python3.14/site-packages/textual/widgets/_text_area.py",
+      "method": "action_cursor_left",
+      "owner": "PromptTextArea",
+      "key": null,
+      "focused_before": "PromptTextArea",
+      "window_focused": false,
+      "editor_text_before": "xy",
+      "editor_selection_before": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    }
+  ],
+  "agent_bound": false,
+  "exception": "None"
+}
