@@ -1,0 +1,215 @@
+{
+  "state": "SCOPED_INSTALLED_PASS",
+  "tested_runtime": {
+    "agent_comms": "cac7bdf337d9e4dba888ce7c2093ddcc55802bc3",
+    "toad": "d9d2221e912549ed2ed4ba778f6e1c39908e1cd8",
+    "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "tested_product_toad": "d9d2221e",
+  "tested_recorder": "7f3bd469",
+  "raw": "/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-warm01",
+  "source_original": {
+    "before": {
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    "after": {
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    "process_before": {
+      "pid": 465576,
+      "start_time": 30187842
+    },
+    "process_after": {
+      "pid": 465576,
+      "start_time": 30187842
+    }
+  },
+  "sdk_forks": [
+    {
+      "thread": "warm-a",
+      "session": "/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-warm01/native-forks/sessions/--home-ts-.cache-agent-scratch-viewport-native-width-271-20261001-warm01-warm-a--/2026-10-01T11-05-01-464Z_01a0f723-9d18-715a-b8ae-e6e998a0435d.jsonl",
+      "fingerprint": {
+        "bytes": 41270305,
+        "sha256": "0be64b1ac81eca6c5d7a6fdc27f76b7cf5c8a6ba7210123ee1364fcc38806442"
+      }
+    },
+    {
+      "thread": "warm-b",
+      "session": "/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-warm01/native-forks/sessions/--home-ts-.cache-agent-scratch-viewport-native-width-271-20261001-warm01-warm-b--/2026-10-01T11-05-04-013Z_01a0f723-a70e-771e-b67e-d82471863543.jsonl",
+      "fingerprint": {
+        "bytes": 41270305,
+        "sha256": "7c96edada3c56cbdf4a326d256a909a5f4483a04c86591f5bacf4ec48de9ca7a"
+      }
+    }
+  ],
+  "provider_requests": 0,
+  "inputs": 0,
+  "capture_seconds": 83.26044171198737,
+  "factory_seconds": 115.71420222701272,
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "retained_ready_body_count": 28,
+  "profile_export": {
+    "started_monotonic": 328445.612213521,
+    "finished_monotonic": 328445.880282839,
+    "returncode": 0,
+    "remaining_owned_pids": [],
+    "bytes": 8100543
+  },
+  "profile_launch": {
+    "terminal_pid": 1225750,
+    "terminal_start_ticks": 32836192,
+    "ui_pid": 1225751,
+    "ui_start_ticks": 32836197,
+    "profiler_command": [
+      "/home/ts/.local/bin/py-spy",
+      "record",
+      "--pid",
+      "1225751",
+      "--format",
+      "chrometrace",
+      "--subprocesses",
+      "--full-filenames",
+      "--rate",
+      "25",
+      "--duration",
+      "120",
+      "--output",
+      "/home/ts/.cache/agent-scratch/viewport-native-width-271-20261001-warm01/physical01/cpu-profile.json"
+    ],
+    "sampling": "consistent",
+    "threads": "all",
+    "profiler_exec_monotonic": 328361.986358082
+  },
+  "profile_sampling_ready_monotonic": 328362.041707583,
+  "capture_launch_monotonic": 328362.351767982,
+  "finish_deadline_monotonic": 328482.351767982,
+  "export_before_finish_deadline": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "recorder_exit": 0,
+    "capture_exit": 255
+  },
+  "physical_review": {
+    "readable": [
+      "phase-down-done.png",
+      "phase-idle-done.png",
+      "phase-a-return.png"
+    ],
+    "sampled_return_frames": {
+      "file": "return-a-frames.png",
+      "start_seconds": 71.5,
+      "end_seconds": 73.5,
+      "fps": 6,
+      "body_blank_observed": false
+    },
+    "limits": "6 fps sampled frames cannot exclude 33 ms gaps or prove every first paint; both SDK forks preserve original native content so equal text alone does not certify participant identity."
+  },
+  "kernel_cpu_phases": [
+    {
+      "label": "up",
+      "video_start": 21.62539314798778,
+      "video_end": 27.29218706698157,
+      "UI_kernel_cpu_seconds": 4.65,
+      "UI_kernel_cpu_percent": 82.0569808338057,
+      "qualifier": "includes profiling and DTO exports; not pure input latency or improvement"
+    },
+    {
+      "label": "down",
+      "video_start": 28.696999506966677,
+      "video_end": 34.583213074016385,
+      "UI_kernel_cpu_seconds": 4.370000000000001,
+      "UI_kernel_cpu_percent": 74.24127497620402,
+      "qualifier": "includes profiling and DTO exports; not pure input latency or improvement"
+    },
+    {
+      "label": "reverse",
+      "video_start": 35.94522188499104,
+      "video_end": 41.707537329988554,
+      "UI_kernel_cpu_seconds": 4.57,
+      "UI_kernel_cpu_percent": 79.30839683494581,
+      "qualifier": "includes profiling and DTO exports; not pure input latency or improvement"
+    },
+    {
+      "label": "idle",
+      "video_start": 45.688116828969214,
+      "video_end": 62.23173517500982,
+      "UI_kernel_cpu_seconds": 2.6199999999999974,
+      "UI_kernel_cpu_percent": 15.8369224023295,
+      "qualifier": "includes profiling and DTO exports; not pure input latency or improvement"
+    },
+    {
+      "label": "return-a",
+      "video_start": 70.76227774500148,
+      "video_end": 75.24665491800988,
+      "UI_kernel_cpu_seconds": 1.3200000000000003,
+      "UI_kernel_cpu_percent": 29.435525806016503,
+      "qualifier": "includes profiling and DTO exports; not pure input latency or improvement"
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 13333621,
+      "sha256": "1eb29f3782039506aa0cff21c3e17ebc02786f1e43d47c23689dbca80edfc184"
+    },
+    "cpu-profile.json": {
+      "bytes": 8100543,
+      "sha256": "67d184584b090171db92255d0a0071b6f50027cf24b1950502bd583d2e04dc7d"
+    },
+    "profile-review.json": {
+      "bytes": 219580,
+      "sha256": "40cc3935281bbead29245e7a7c99168796eef04b553cf7ace0c85a1089a6c757"
+    },
+    "phase-down-done.png": {
+      "bytes": 74442,
+      "sha256": "990440b8db8b2c329ea0a41365f22eff8a4892525fc78d483b74e7a4b90ccbed"
+    },
+    "phase-idle-done.png": {
+      "bytes": 67240,
+      "sha256": "53d57ed3eaee5047724bf26dfc6b99d4e500667feac521127be3f70050de5785"
+    },
+    "phase-a-return.png": {
+      "bytes": 67037,
+      "sha256": "c95cd32861ade71c9e9b36ded5e112294d6a27ec37bcbc9181bda698e2f3e0de"
+    },
+    "return-a-frames.png": {
+      "bytes": 312014,
+      "sha256": "ce2b465531016975225514ec5f941892cb01fcb3e34eab60f13a4d477d724c54"
+    },
+    "warm-scroll-review.json": {
+      "bytes": 83660,
+      "sha256": "a5303be035a32865ec02959ef84a14fec8b543a7e643de37d1ac755bfcbb2342"
+    },
+    "receipt.json": {
+      "bytes": 437985,
+      "sha256": "99227914e3e35d9463cd4e88e315cd9eaa22bfb33dce468f3c2c893f997bc773"
+    }
+  },
+  "current_main_integration": {
+    "head": "da09a5bad744f88073ee3bb21d159807c37e28b9",
+    "merged_main": "083245d0",
+    "core_pin": "f8ae4f5217561b6b8a2def4cafc2dfda583fcdfe",
+    "boundary": "main274 changes original ACP stdio ABI/core pin after tested cac7 capture. Owned ToolContent product bytes are identical; this current merged pair is not claimed physically tested."
+  },
+  "remaining": "Full CPU/warm/firstpaint/33ms gaps/focus/TC1/T9/bounded lifetime scope remains PR271. Original u05 source/wire/native identities once, failed scene/resource count absent, still unclassified; no replay."
+}

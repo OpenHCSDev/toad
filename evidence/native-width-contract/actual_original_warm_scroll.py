@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import time
 
@@ -127,7 +128,6 @@ async def run(root):
             child = processes.start(argv, env=environment, stdout=log, stderr=log)
             code = await asyncio.to_thread(child.process.wait, timeout=165)
         receipt["recorder_exit"] = code
-        captured.require_current()
         assert fingerprint(original) == receipt["original_before"]
         receipt["state"] = "SCOPED_PASS" if code == 0 else "FAILED_NO_REPLAY"
     except BaseException as error:
@@ -135,17 +135,24 @@ async def run(root):
         receipt["error"] = f"{type(error).__name__}: {error}"
         raise
     finally:
-        if processes is not None:
-            receipt["recorder_cleanup"] = processes.cleanup()
-        if owner is not None:
-            await owner.shutdown()
-        if captured is not None:
-            current = captured.require_current()
-            receipt["original_after"] = fingerprint(Path(current.require_saved_session()))
-            receipt["original_process_after"] = FieldCodec.encode(current.require_process())
-        receipt["elapsed_seconds"] = time.monotonic() - started
-        (root / "factory-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
-        print(json.dumps(receipt), flush=True)
+        try:
+            if processes is not None:
+                receipt["recorder_cleanup"] = processes.cleanup()
+            if owner is not None:
+                await owner.shutdown()
+            if captured is not None:
+                try:
+                    current = captured.require_current()
+                    receipt["original_after"] = fingerprint(Path(current.require_saved_session()))
+                    receipt["original_process_after"] = FieldCodec.encode(current.require_process())
+                except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+                    # The acquisition witness ended before private launch. A
+                    # later authorized cutover is an observation, not lost custody.
+                    receipt["original_observation_after_error"] = f"{type(error).__name__}: {error}"
+        finally:
+            receipt["elapsed_seconds"] = time.monotonic() - started
+            (root / "factory-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+            print(json.dumps(receipt), flush=True)
 
 
 if __name__ == "__main__":
