@@ -1,0 +1,33 @@
+{
+  "boundary": "Installed original Toad/ACP schema/native diff+tool layout control; not original41MB physicalCPU/current-agentwarmReady",
+  "result": "PASS",
+  "toad_source": "d9d2221e912549ed2ed4ba778f6e1c39908e1cd8",
+  "textual_source": "4e9016c1a8f3592eb652efc39ada493a41ee9206",
+  "native_diff_source": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "core_source": "cac7bdf337d9e4dba888ce7c2093ddcc55802bc3",
+  "native_package": "593b978a717ae8f6",
+  "sdk": "0.12.1",
+  "distributions": 69,
+  "all_original_native_flows": 10,
+  "arrangements_per_flow": 1,
+  "available_heights": 8,
+  "prior16_four_flows_reused": true,
+  "prior16_six_conservative_flows_arranged_each": 8,
+  "number_geometry_before": [
+    3,
+    1
+  ],
+  "number_geometry_after": [
+    9,
+    6
+  ],
+  "unknown_width_context_preserved": true,
+  "relative_style_member_invalidation": "PASS",
+  "auto_fixed_prepared_padded_resize": "PASS",
+  "app_exception": null,
+  "native_owner_operations": 0,
+  "provider_calls": 0,
+  "public_effects": 0,
+  "replays": 0,
+  "overall_cpu_claim": false
+}

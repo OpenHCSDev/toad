@@ -1,0 +1,102 @@
+{
+  "result": "PASS",
+  "baseline": "5d7015de",
+  "changed_functions": [
+    {
+      "function": "OwnedProcess.stop",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "ownership": "existing process resource and recorder mechanism"
+    },
+    {
+      "function": "ProfileProcess.stop",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "ownership": "existing process resource and recorder mechanism"
+    },
+    {
+      "function": "ProfileProcess.export",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "ownership": "existing process resource and recorder mechanism"
+    },
+    {
+      "function": "ProcessOwner.start",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "ownership": "existing process resource and recorder mechanism"
+    },
+    {
+      "function": "record",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "ownership": "existing process resource and recorder mechanism"
+    },
+    {
+      "function": "main",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0
+      },
+      "ownership": "existing process resource and recorder mechanism"
+    }
+  ]
+}

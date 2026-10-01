@@ -1,0 +1,44 @@
+{
+  "state": "STAGED-SOURCE-TRUST-PASS",
+  "source": "ba4d12c5bcec864eac316c0ece148ce548363f65",
+  "stage": "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-diff-271-20261001",
+  "distribution_count": 69,
+  "unchanged_67_donor_distributions": true,
+  "sources": [
+    {
+      "module": "agent_comms",
+      "files": 308,
+      "certified_donor_all_files_equal": true
+    },
+    {
+      "module": "textual",
+      "files": 266,
+      "certified_donor_all_files_equal": true
+    },
+    {
+      "module": "toad",
+      "files": 305,
+      "git_source": "ba4d12c5bcec864eac316c0ece148ce548363f65",
+      "byte_equal": true
+    },
+    {
+      "module": "textual_diff_view",
+      "files": 3,
+      "git_source": "aa4a78e249ea3691934029704b656301d75baeea",
+      "byte_equal": true
+    }
+  ],
+  "pins": {
+    "agent_comms": "cac7bdf337d9e4dba888ce7c2093ddcc55802bc3",
+    "toad": "ba4d12c5bcec864eac316c0ece148ce548363f65",
+    "textual": "6b5895fa0a72aeec2aeaef7206d5debfa0c1803c",
+    "textual_diff_view": "aa4a78e249ea3691934029704b656301d75baeea"
+  },
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+  "native_full_tree_trust": "PASS",
+  "sdk": "0.12.1",
+  "imports": "PASS",
+  "installed_affected_ui": "PENDING",
+  "public_effects": 0,
+  "native_owner_operations": 0
+}

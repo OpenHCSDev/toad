@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/native-diff-mount.py", line 44, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/native-diff-mount.py", line 30, in main
+    await view.post(auto);await view.post(fixed);await view.post(patch);await view.post(padded);await pilot.pause()
+                                                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/src/toad/widgets/conversation.py", line 1936, in post
+    await self.contents.mount(widget)
+          ~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/src/toad/widgets/conversation.py", line 253, in mount
+    for widget in admitted_blocks(widgets):
+                  ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/src/toad/block_navigation.py", line 153, in admitted_blocks
+    raise TypeError("Conversation contents require nominal blocks")
+TypeError: Conversation contents require nominal blocks

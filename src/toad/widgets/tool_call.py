@@ -25,8 +25,10 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 
 class ToolContent(containers.VerticalGroup):
+    @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
 
