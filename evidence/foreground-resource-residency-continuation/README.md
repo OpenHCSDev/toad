@@ -82,3 +82,15 @@ Protect original266/264/254 and every earlier RED, UNKNOWN and interrupted
 proof. No global install or public mutation from this worktree. Once coherent
 source changes warrant it, use one bounded actual affected installed workflow
 with exact declared current pair; additional paid providers are not authorized.
+
+
+## New code-bearing native geometry progress
+
+DRAFT textual-diff-view#1 aa4a78e changes the original native DiffView owner:
+remove premature mount-time full scene acquisition, use existing committed
+Resize geometry minus declared gutter. Toad's normal source pin/lock select
+this owner for every ordinary, permission and prepared patch consumer. Native
+four-consumer actual To ad control reduces mount-induced arrangements4→0 and
+preserves auto/fixed/prepared/padded wide/narrow/wide behavior. Baseline padding
+failure is retained; no CPU/readiness claim before the affected installed gate.
+[Source/resource evidence](../native-diff-lifecycle/README.md) is committed here.
