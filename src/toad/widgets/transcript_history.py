@@ -866,6 +866,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(set(self.fragment_views) & protected)),
                 self._visible_fragment_budget(),
+                self._resource_fragment_budget(protected),
             )
             excess = self.fragment_count - limit
             trim_older = self._follow_source_tail or not older
@@ -918,6 +919,16 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     excess -= remove_count
             await self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
+
+    def _resource_fragment_budget(self, protected: set[Widget]) -> int:
+        """Native fragments retain the same window-wide working-set lease."""
+        viewport = self.window.document_viewport
+        visible = self.screen._compositor.visible_widgets
+        endpoints = viewport.protected()
+        required = tuple(owner for owner in viewport.body_roots()
+                         if owner in visible or owner in protected or owner in endpoints)
+        admitted = viewport.admission(required=required)
+        return len(set(self.fragment_views) & admitted)
 
 
 class ProjectedTranscriptHistory(TranscriptHistory):

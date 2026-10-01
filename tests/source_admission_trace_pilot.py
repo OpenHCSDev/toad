@@ -1,4 +1,4 @@
-import asyncio,json,os
+import argparse,asyncio,json,os
 from collections import Counter
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -8,7 +8,7 @@ from agent_comms.transcripts import TranscriptCursor,TranscriptPage
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory,TranscriptPageView
 
-async def main():
+async def main(*, rich=False):
  out=Path(os.environ['SOURCE_ADMISSION_EVIDENCE']); out.mkdir(exist_ok=False)
  with TemporaryDirectory(dir=out) as directory:
   root=Path(directory)
@@ -20,7 +20,7 @@ async def main():
    view=app.selected_session.conversation
    await view.transcript.suspend()
    cursor=TranscriptCursor('owned-fixed-page',1)
-   events=tuple(AssistantTranscript(f'Record {i}.') for i in range(80))
+   events=tuple(AssistantTranscript(f'Record {i}.\n\n' + ('\n'.join(f'- item {j}' for j in range(20)) if rich else '')) for i in range(30 if rich else 80))
    history=TranscriptHistory(TranscriptPage(events,cursor,cursor,False,False))
    page=history.pages[0]; constructed=[]
    original=TranscriptPageView._body
@@ -48,4 +48,6 @@ async def main():
    TranscriptPageView._body=original
   await asyncio.get_running_loop().shutdown_default_executor()
 
-if __name__=='__main__': asyncio.run(main())
+if __name__=='__main__':
+ parser=argparse.ArgumentParser();parser.add_argument('--rich',action='store_true')
+ asyncio.run(main(rich=parser.parse_args().rich))
