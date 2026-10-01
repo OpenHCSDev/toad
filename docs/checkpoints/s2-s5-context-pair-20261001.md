@@ -4,7 +4,8 @@ Parent owns only the Toad dependency pin and normal package pairing for Core475
 and473. Schrodinger owns the single native assembly; Einstein owns the context
 observer/inspection contribution. No Toad production change belongs here.
 
-The tested native stock recipe produces manifest4519164ef97bb5ec for Core449e423b.
+The tested native stock recipe produces manifest4519164ef97bb5ec for Core449e423b. Receiving Core3f4456c5 adds the selected-root CLI correction
+without changing that native manifest.
 Its native package stays in the original persistent475 worktree. Build through
 normal dependency resolution with the existing69-package donor; do not bypass
 the dependency contract or shadow installed source.
