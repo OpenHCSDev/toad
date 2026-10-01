@@ -1,0 +1,15 @@
+{
+  "paths": [
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-performance275-core484-text18-20261001",
+    "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/0bd0e446",
+    "/home/ts/.cache/uv/git-v1/checkouts/3749cf90a90c59f5/50d77a17"
+  ],
+  "allocated_union_bytes": 370917376,
+  "exclusive_bytes": 241827840,
+  "home_free": 8555950080,
+  "after_build_copy_retirement_exclusive_bytes": 14123008,
+  "home_free_after": 8781139968,
+  "exclusive_budget_bytes": 241172480,
+  "measured_before_release_over_budget_bytes": 655360,
+  "peak_not_measured": true
+}

@@ -1,0 +1,23 @@
+{
+  "owner": "Mendel performance275 paired builder",
+  "at_epoch": 1790872120.8408456,
+  "paths": [
+    {
+      "path": "/home/ts/.cache/uv/git-v1/checkouts/e0d6980a492da0bf/0bd0e446",
+      "head": "0bd0e446b760c144405e711b9015a87a77d60154",
+      "exclusive_blocks_removed": 85659648,
+      "complete_commit_archive_readable": true
+    },
+    {
+      "path": "/home/ts/.cache/uv/git-v1/checkouts/3749cf90a90c59f5/50d77a17",
+      "head": "50d77a17d3d998d403b0349a254f3f85d94517b8",
+      "exclusive_blocks_removed": 142045184,
+      "complete_commit_archive_readable": true
+    }
+  ],
+  "process_refs": [],
+  "free_before": 8553340928,
+  "exclusive_reclaimed_bytes": 227704832,
+  "free_after": 8781058048,
+  "native_and_prefix_unchanged": true
+}

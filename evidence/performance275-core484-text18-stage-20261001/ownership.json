@@ -1,0 +1,32 @@
+{
+  "owner": "Mendel sole performance275 normal69 paired builder",
+  "source_owners": [
+    "Arendt484"
+  ],
+  "journey_owner": "Heisen actual recording/profiling",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-performance275-core484-text18-20261001",
+  "core": "50d77a17d3d998d403b0349a254f3f85d94517b8",
+  "toad": "0bd0e446b760c144405e711b9015a87a77d60154",
+  "toad_source25d": "25d8e60207c457cc480dff6ed1c5cf1e0fa77193",
+  "toad_src_tree": "bc88378c48d5645a2420f8678103f8826eabf9a6",
+  "textual": "efe905de3d37729e434fe33ff098a47dc18c83c6",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "sdk": "0.12.1",
+  "native": "/home/ts/wt/comms-retained-task-facts-s2-20261001/stack/.pi-native-0064a96bb79c21c1/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "0064a96bb79c21c13317a37f44173bd0acfb63d628e9f9b31cd3a374c2c25ae1",
+  "donor": "/home/ts/wt/toad-s2-s5-context-pair-20261001/evidence/s2-s5-final-cohort-stage-20261001/requirements.txt",
+  "donor_sha256": "0a346912849cfd980c5f1c46654f1fa769380f0a002354e05ba8b18b0dedd021",
+  "requirements_sha256": "049bd366291d84861f4d079e1b90c515bb2d85fdd675245434ce6a0b09c14f09",
+  "protected_files": 22666,
+  "link_mode": "hardlink",
+  "public_changes": false,
+  "new_native_build": false,
+  "fixture_not_launched": true,
+  "stage_budget_bytes": 241172480,
+  "created_utc": "2026-10-01T16:26:14.817914+00:00",
+  "available_before_install": 10308325376,
+  "state": "performance candidate package; actual journey pending",
+  "quota_exclusive_bytes": 241172480,
+  "home_free_before": 8865423360,
+  "reviewed_toad": "cf7f15bf2c5b3e5faaf887da6f3338ef20971fae"
+}
