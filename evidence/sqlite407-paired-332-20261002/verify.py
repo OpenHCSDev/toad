@@ -1,7 +1,8 @@
 from pathlib import Path
 import hashlib, io, json, subprocess, tarfile, importlib, importlib.metadata as md, sys, os
-wt=Path('/home/ts/wt/toad-command-source-closure-20261002')
-out=wt/'evidence/sqlite407-paired-332-20261002'; prefix=wt/'.artifacts/runtime-command297-merged-20261002'
+wt=Path(sys.argv[1]) if len(sys.argv) == 4 else Path('/home/ts/wt/toad-command-source-closure-20261002')
+out=Path(sys.argv[2]) if len(sys.argv) == 4 else wt/'evidence/sqlite407-paired-332-20261002'
+prefix=Path(sys.argv[3]) if len(sys.argv) == 4 else wt/'.artifacts/runtime-command297-merged-20261002'
 owner=json.loads((out/'ownership.json').read_text()); assert Path(sys.prefix)==prefix
 sources=[]
 for name,repo,head,dist in [
