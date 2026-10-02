@@ -2,11 +2,15 @@
 from __future__ import annotations
 import asyncio
 from abc import abstractmethod
+from functools import cached_property
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
 from textual import containers
 from textual.widget import Widget
+from toad.block_navigation import ConversationBlock, ChildBlockCursor
+from toad.widgets.conversation import CategorizedMount
+from toad.widgets.message_filter import CategorizedBlock, apply_block_filter
 from toad.message_viewport import AcknowledgementViewport
 from toad.channel_preparation import ChannelHistoryReader, HistoryReadResult
 from toad.screens.session_view import SessionView
@@ -46,7 +50,7 @@ class MarkdownMessageStyle(WireMessageStyle):
         return IrcMessageStyle()
 
 
-class MountedMessageHistory(TranscriptSourcePreparation, containers.VerticalGroup):
+class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, CategorizedMount, containers.VerticalGroup):
     """Own the real row window, asynchronous page publication and its paint witnesses."""
     def __init__(self, view):
         super().__init__(source_state=LiveTranscript())
@@ -80,8 +84,19 @@ class MountedMessageHistory(TranscriptSourcePreparation, containers.VerticalGrou
     def restore_reader_admissions(self, admissions) -> None:
         """Retained wire rows have no unmounted local fragment admission."""
 
+    @property
+    def message_category(self):
+        return None
+
+    @cached_property
+    def block_cursor(self):
+        return ChildBlockCursor(self)
+
     def projection_changed(self) -> None:
-        """Wire history has no native transcript-category projection."""
+        for _, widget in self.rows:
+            apply_block_filter(widget, self.view.visible_categories)
+        self._scroll_changed()
+
 
     @property
     def window(self):

@@ -24,7 +24,7 @@ async def until(condition):
             await asyncio.sleep(.01)
 
 
-async def pending_read(chat, pilot, send):
+async def pending_read(chat, pilot, body):
     """Control original read completion, never its decoded result or UI state."""
     history = chat.message_history
     reader = history.reader
@@ -43,8 +43,13 @@ async def pending_read(chat, pilot, send):
             await until(entered.is_set)
             assert not history.state.accepts_source_work
             assert not chat.window.history_lock.locked()
-            receipt = send()
-            await asyncio.wait_for(history.paint_receipt(receipt), 2)
+            chat.prompt.text = body
+            chat.prompt.prompt_text_area.focus()
+            await pilot.press('enter')
+            await until(lambda: any(m.body == body for m, _ in history.rows)
+                        and not chat._human_admission_blocked)
+            receipt = next(m for m, _ in history.rows if m.body == body)
+            assert not release.is_set()
             await pilot.pause()
             assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
             widget = next(w for m, w in history.rows if m.view_key == receipt.view_key)
@@ -85,8 +90,7 @@ async def main():
             # Tail replacement started from the original initial source. An
             # already-painted later receipt survives its older read watermark.
             history.reader.restart()
-            await pending_read(chat, pilot, lambda: comms.messaging.send(
-                'edge-reader', '#edge', 'RECEIPT-DURING-TAIL-READ'))
+            await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
 
             # Actual earlier pages evict the original tail. A send from that
             # reader position restarts the source and rejects the older read.
@@ -100,8 +104,7 @@ async def main():
                 history.finish_source_work(operation)
             assert history.has_newer
             history.reader.restart()
-            await pending_read(chat, pilot, lambda: comms.messaging.send(
-                'edge-reader', '#edge', 'RECEIPT-REVOKES-ORIGINAL-READ'))
+            await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
             await until(lambda: history.checkpoint_available)
             assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
 
