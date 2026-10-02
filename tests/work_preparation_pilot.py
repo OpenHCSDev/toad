@@ -7,7 +7,7 @@ from typing import ClassVar
 
 from agent_comms.transcript_events import AssistantTranscript
 from toad.render_backend import Renderer
-from toad.render_tasks import MarkdownSyntaxRenderTask, TranscriptRenderTask
+from toad.render_tasks import MarkdownRenderTask, TranscriptRenderTask
 from toad.work_preparation import (
     ContentAddressedWork, PreparationRuntime, PreparedRenderer, ReusableWork, ThreadWork,
 )
@@ -62,7 +62,7 @@ async def main():
     await asyncio.gather(renderer.submit(task), renderer.submit(task))
     await renderer.submit(task)
     assert backend.calls == 1
-    fresh = MarkdownSyntaxRenderTask("unchanged text")
+    fresh = MarkdownRenderTask("unchanged text", False, False)
     await renderer.submit(fresh)
     await renderer.submit(fresh)
     assert backend.calls == 2, "Pure Markdown syntax was not reused"
