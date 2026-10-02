@@ -564,24 +564,6 @@ class ConversationSessionBinding(containers.Vertical):
         for history in self.contents.query(TranscriptHistory):
             history.state.resume_if_parked(history)
 
-    async def present_retained_native_session(self) -> None:
-        """Bring a returning native source into the atomic first frame."""
-        agent = self.agent
-        if agent is None or not agent.ready:
-            return
-        self.refresh_native_projection()
-        page, _ = await asyncio.gather(
-            agent.get_transcript_page(),
-            self.delivery_observation.refresh(),
-        )
-        if self.agent is not agent:
-            return
-        await self.transcript.snapshot(page)
-        if self.agent is not agent:
-            return
-        await self.query(ThreadLoading).remove()
-        self.remove_class("-initial-loading")
-
     def refresh_native_projection(self) -> None:
         """Publish bound owner facts and invalidate its existing read resource."""
         agent = self.agent
@@ -591,6 +573,7 @@ class ConversationSessionBinding(containers.Vertical):
         self.turns.bound()
         self.submissions.publish_pending()
         self.goal_observation.invalidate()
+        self.delivery_observation.invalidate()
 
 
 

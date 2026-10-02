@@ -136,6 +136,9 @@ class WorkspaceSessions:
         if self.source.shown(destination):
             return destination
         await self.retire()
+        # The preceding frame certifies the departing source. Revoke it before
+        # LoadingWorkspaceSource admits any destination preparation callbacks.
+        self.app.workspace_screen.frame_presentation.begin()
         self.source = LoadingWorkspaceSource(destination)
         destination.display = True
         await self.app.workspace_chrome.select(destination)

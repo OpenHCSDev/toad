@@ -255,7 +255,7 @@ class CommsRow(ThreadStatusRow):
 
     @property
     def selected(self) -> bool:
-        sidebar = self._sidebar()
+        sidebar = self.sidebar_owner()
         return sidebar is not None and sidebar.selected == self.target_name
 
     def set_label(self, label: str) -> None:
@@ -263,7 +263,7 @@ class CommsRow(ThreadStatusRow):
             self._label = label
             self.update(label)
 
-    def _sidebar(self):
+    def sidebar_owner(self):
         parent = self.parent
         while parent is not None and not isinstance(parent, TargetTree):
             parent = parent.parent
@@ -272,17 +272,17 @@ class CommsRow(ThreadStatusRow):
     # Row-level actions delegate to the sidebar so keys work even when
     # scrollable ancestors would otherwise consume them.
     def action_cursor_down(self) -> None:
-        sidebar = self._sidebar()
+        sidebar = self.sidebar_owner()
         if sidebar is not None:
             sidebar.action_cursor_down()
 
     def action_cursor_up(self) -> None:
-        sidebar = self._sidebar()
+        sidebar = self.sidebar_owner()
         if sidebar is not None:
             sidebar.action_cursor_up()
 
     def action_open_selected(self) -> None:
-        if sidebar := self._sidebar():
+        if sidebar := self.sidebar_owner():
             sidebar.navigation.remember(self)
         screen = self.app.selected_session
         if isinstance(screen, NavigationOwner):
@@ -298,7 +298,7 @@ class CommsRow(ThreadStatusRow):
 
     def on_focus(self) -> None:
         """Keep the sidebar cursor in sync with keyboard focus."""
-        sidebar = self._sidebar()
+        sidebar = self.sidebar_owner()
         if sidebar is not None:
             rows = sidebar._ordered_rows()
             if self in rows:
@@ -317,7 +317,7 @@ class ThreadRow(CommsRow):
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
             super().action_open_selected()
         else:
-            if sidebar := self._sidebar():
+            if sidebar := self.sidebar_owner():
                 sidebar.navigation.remember(self)
             self.app.select_session(self.mode_name)
 

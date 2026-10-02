@@ -62,7 +62,7 @@ async def main():
             assert history.pages[-1].page.events == tail, (
                 [len(page.page.events) for page in history.pages], history.pages[0].page.before,
                 history.filter.before)
-            assert history.widget_count < history.widget_limit
+            assert history.window.document_viewport.materialized_widget_count < history.window.document_viewport.budget.widget_limit(history.window.size.height)
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "OLDER_ROUTED_MESSAGE" in frame, "The older result was mounted but not painted"
@@ -85,11 +85,11 @@ async def main():
             except TimeoutError:
                 raise AssertionError({"sparse_reads": len(calls),
                                       "raw_fragments": sparse.fragment_count,
-                                      "mounted_widgets": sparse.widget_count,
+                                      "mounted_widgets": sparse.window.document_viewport.materialized_widget_count,
                                       "scroll": conversation.window.max_scroll_y,
                                       "older": sparse.has_older}) from None
             assert len(calls) <= 3, "Sparse scan repeated a bounded page"
-            assert sparse.widget_count < sparse.widget_limit, "Hidden fragments mounted to fill the view"
+            assert sparse.window.document_viewport.materialized_widget_count < sparse.window.document_viewport.budget.widget_limit(sparse.window.size.height), "Hidden fragments mounted to fill the view"
             assert sparse.filter.overlay is not None and sparse.filter.overlay.display
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())

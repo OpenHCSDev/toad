@@ -502,12 +502,10 @@ class TranscriptPresentation:
 
         view = self.view
         history = next(iter(self.histories), None)
-        if history is None:
-            await view.present_retained_native_session()
-            return
         source = view.query_ancestor(SessionView)
         publication = self.capture(CanonicalSourcePublication)
-        await self.reveal_retained(history)
+        if history is not None:
+            await self.reveal_retained(history)
         view.refresh_native_projection()
 
         def refresh_after_paint() -> None:

@@ -43,16 +43,18 @@ class WorkspaceLayoutSnapshot:
     scroll_pending: bool
     widgets: frozenset[Widget]
     style: ViewStyleRevision
+    geometry_revision: int
 
     @classmethod
     def capture(cls, screen, *, include_scroll=True):
         return cls(screen.is_attached, screen.stack_updates, screen._size,
                    screen._layout_required, screen._scroll_required if include_scroll else False,
-                   frozenset(screen._layout_widgets), screen._style_revision())
+                   frozenset(screen._layout_widgets), screen._style_revision(), screen._geometry_revision)
 
     @classmethod
     def ready(cls, screen, size):
-        return cls(True, True, size, False, False, frozenset(), screen._style_revision())
+        return cls(True, True, size, False, False, frozenset(), screen._style_revision(),
+                   screen._geometry_revision)
 
 
 class WorkspaceLayout(DeclaredFamily, affix="WorkspaceLayout"):

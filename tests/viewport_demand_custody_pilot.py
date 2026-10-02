@@ -50,13 +50,13 @@ async def main():
             assert await required.retire_body(), 'Original visible body did not retire'
             await pilot.pause(.1)
             entered, release = asyncio.Event(), asyncio.Event()
-            restoration = manager._restore_body
+            restoration = manager._restore_bodies
             accepts = manager.lookahead.accepts
             observations = []
             original_demand = None
 
-            async def held_restoration(owner, anchor):
-                await restoration(owner, anchor)
+            async def held_restoration(owners, anchor):
+                await restoration(owners, anchor)
                 if not entered.is_set():
                     entered.set()
                     await release.wait()
@@ -68,7 +68,7 @@ async def main():
                                          accepted=accepted))
                 return accepted
 
-            manager._restore_body = held_restoration
+            manager._restore_bodies = held_restoration
             manager.lookahead.accepts = observe_acceptance
             try:
                 # The resumed viewport observes native travel at the scroll
@@ -102,7 +102,7 @@ async def main():
                 assert not first['accepted'], 'Reversal admitted the outgoing preparation batch'
             finally:
                 release.set()
-                manager._restore_body = restoration
+                manager._restore_bodies = restoration
                 manager.lookahead.accepts = accepts
             assert app._exception is None
 

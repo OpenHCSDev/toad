@@ -87,7 +87,7 @@ async def main():
             await pilot.pause()
             assert view.window.max_scroll_y > filtered.prefetch_distance, (
                 view.window.max_scroll_y, filtered.prefetch_distance,
-                filtered.fragment_count, filtered.widget_count,
+                filtered.fragment_count, filtered.window.document_viewport.materialized_widget_count,
                 filtered.pages[-1].start, filtered.pages[-1].stop,
                 filtered.filter.before, filtered_calls)
             view.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))

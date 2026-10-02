@@ -21,11 +21,13 @@ class ScrollTravelObservation:
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.sidebar_viewport import SidebarViewport
         from textual.widget import Widget
+        from textual._animator import Animator
 
         self.stream = path.open("x", buffering=1)
         self.written = 0
         self.observer_ns = 0
         self.sidebar_viewport_type = SidebarViewport
+        self.history_window_type = HistoryWindow
         self.starts = {
             DocumentViewport.request.__code__: self.request,
             HistoryWindow.watch_scroll_y.__code__: self.scroll,
@@ -39,12 +41,15 @@ class ScrollTravelObservation:
             TranscriptHistory._extend_and_trim.__code__: self.page_extension,
             SidebarProjection.rebuild.__code__: self.sidebar_publishing,
             Widget.watch_scroll_y.__code__: self.sidebar_scroll,
+            Animator.force_stop_animation.__code__: self.animation_stopping,
+            Animator.transform_running_animation.__code__: self.animation_transforming,
         }
         self.returns = {
             DirectionalPreparation.observe.__code__: self.observed,
             DirectionalPreparation.relocated.__code__: self.relocated,
             TranscriptHistory._extend_and_trim.__code__: self.page_extended,
             SidebarProjection.rebuild.__code__: self.sidebar_published,
+            Animator.transform_running_animation.__code__: self.animation_transformed,
         }
         self.tool = sys.monitoring.PROFILER_ID
 
@@ -114,6 +119,32 @@ class ScrollTravelObservation:
         if isinstance(viewport, self.sidebar_viewport_type):
             self.emit("sidebar_scroll", viewport=id(viewport),
                       old=native["old_value"], new=native["new_value"])
+
+    def animation_event(self, event, native):
+        window, attribute = native["obj"], native["attribute"]
+        if not isinstance(window, self.history_window_type) or attribute not in ("scroll_x", "scroll_y"):
+            return
+        # These are the original numeric scroll animation's owned operands,
+        # recorded only in the authorized diagnostic artifact, never retained
+        # as product state or another animation registry.
+        animation = native["self"]._animations.get((id(window), attribute))
+        facts = {} if animation is None else {
+            "identity": id(animation), "start_time": animation.start_time,
+            "duration": animation.duration, "start": animation.start_value,
+            "end": animation.end_value, "final": animation.final_value,
+        }
+        caller = sys._getframe(3).f_back.f_code
+        self.emit(event, window=id(window), attribute=attribute, animation=facts,
+                  caller=caller.co_name, caller_source=caller.co_filename)
+
+    def animation_stopping(self, native):
+        self.animation_event("animation_stopping", native)
+
+    def animation_transforming(self, native):
+        self.animation_event("animation_transforming", native)
+
+    def animation_transformed(self, native):
+        self.animation_event("animation_transformed", native)
 
     def scroll(self, native):
         window = native["self"]

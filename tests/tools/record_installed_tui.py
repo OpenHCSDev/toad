@@ -264,6 +264,12 @@ def runtime_probe():
         root = route.observe_root()
         result["route"] = {"root": str(root), "wire_root_id": route.wire_root_id,
                            "native_package": str(route.native_package.resolve())}
+        from agent_comms.private_nk_entrypoint import private_nk_from_environment
+        launch = private_nk_from_environment()
+        if launch is not None:
+            result["native_launch"] = {"root": str(launch.validated_root),
+                "wire_root_id": launch.wire_root_id,
+                "native_package": str(launch.native_package.resolve())}
     for name in ("toad", "textual", "agent_comms"):
         spec = importlib.util.find_spec(name)
         if spec is None or spec.origin is None:
@@ -359,22 +365,27 @@ class RuntimeSelection:
         probe = owner.run([str(self.bin_directory / "python"), str(Path(__file__).resolve()),
                            "--runtime-probe"], env, stdout=subprocess.PIPE, text=True, timeout=15)
         result["observed"] = json.loads(probe.stdout)
-        route = result["observed"].get("route")
-        if route is not None:
+        launch = result["observed"].get("native_launch")
+        if launch is not None:
             native = result.get("activation", {}).get("native_package")
-            if not native or Path(native).resolve() != Path(route["native_package"]):
-                raise ValueError("Candidate activation and private route native packages must match")
+            if not native or Path(native).resolve() != Path(launch["native_package"]):
+                raise ValueError("Candidate activation and actual ACP native launch must match")
         return result
 
 
 class PhysicalJourney(DeclaredFamily, affix="Journey"):
-    """Declare bounded physical journeys that never submit native inputs."""
+    """Declare bounded physical journeys; submission needs its original capability."""
 
     review_artifacts = ()
 
     @classmethod
     @abstractmethod
     def script(cls, args): ...
+
+    @classmethod
+    def authorize(cls, target, args):
+        if args.fresh_input is not None:
+            raise ValueError("This physical journey does not submit native inputs")
 
     @classmethod
     def actions(cls, args):
@@ -466,6 +477,22 @@ class WarmScrollJourney(ScrollJourney):
         return ()
 
     @classmethod
+    def history_commands(cls, args):
+        return (scroll_script(idle_seconds=args.scroll_idle_seconds,
+                              hold_seconds=args.scroll_hold_seconds,
+                              state="phase-draft-state.pickle"),)
+
+    @classmethod
+    def closing_commands(cls, args):
+        return ()
+
+    @classmethod
+    def ready_command(cls, args, label, thread):
+        return (marker_command() + f"{label} --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                f"--wait-history-thread {shlex.quote(thread)}")
+
+    @classmethod
     def peer_click(cls, args):
         if not args.peer_thread:
             raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
@@ -475,9 +502,7 @@ class WarmScrollJourney(ScrollJourney):
     def peer_ready(cls, args):
         if not args.peer_thread:
             raise ValueError("Warm scrolling requires the intended peer identity")
-        return (marker_command() + f"b-open --wait-history-seconds {args.history_wait_seconds:g} "
-                f"--wait-history-interval {args.history_wait_interval:g} "
-                f"--wait-history-thread {shlex.quote(args.peer_thread)}")
+        return cls.ready_command(args, "b-open", args.peer_thread)
 
     @classmethod
     def script(cls, args):
@@ -494,13 +519,12 @@ class WarmScrollJourney(ScrollJourney):
             marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
             f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
             *cls.paging_commands(args),
-            scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
-                          state="phase-draft-state.pickle"),
+            *cls.history_commands(args),
             marker + "switch-b", peer_click, peer_ready, marker + "return-a",
             native_click_command("phase-return-a-state.pickle", target="original_tab",
                                  original_state="phase-warm-start-state.pickle"), settle, marker + "a-return",
             native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
-            marker + "undo", "",
+            marker + "undo", *cls.closing_commands(args), "",
         ])
 
     @classmethod
@@ -513,6 +537,34 @@ class WarmScrollJourney(ScrollJourney):
         failed = [name for name, passed in review["checks"].items() if not passed]
         if failed:
             raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
+
+
+class RetainedLifetimeJourney(WarmScrollJourney):
+    """Original saved view custody through scroll, actual A/B/A and End.
+
+    This qualifies source/application lifetime, not paging velocity or FPS.
+    """
+
+    review_artifacts = ("retained-lifetime-review.json",)
+
+    @classmethod
+    def opening_commands(cls, args):
+        return (cls.ready_command(args, "warm-ready", args.command[-1]),)
+
+    @classmethod
+    def history_commands(cls, args):
+        return (native_click_command("phase-draft-state.pickle"), "key Prior",
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "reader-before-return")
+
+    @classmethod
+    def closing_commands(cls, args):
+        return (native_click_command("phase-undo-state.pickle"), "key End",
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "lifetime-end")
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import review_retained_lifetime
+        return review_retained_lifetime(output, receipt, suffix=cls.draft_suffix)
 
 
 class WarmSourceJourney(WarmScrollJourney):
@@ -623,9 +675,7 @@ class InputWarmJourney(WarmScrollJourney):
     def opening_commands(cls, args):
         if not args.scroll_travel:
             raise ValueError("Input warm acceptance requires original paging observation")
-        return (marker_command() + f"warm-ready --wait-history-seconds {args.history_wait_seconds:g} "
-                f"--wait-history-interval {args.history_wait_interval:g} "
-                f"--wait-history-thread {shlex.quote(args.command[-1])}",)
+        return (cls.ready_command(args, "warm-ready", args.command[-1]),)
 
     @classmethod
     def paging_commands(cls, args):
@@ -644,6 +694,25 @@ class InputWarmJourney(WarmScrollJourney):
     def validate_review(cls, review):
         super().validate_review(review["warm"])
         InputPagingAcceptanceJourney.validate_review(review["input"])
+
+
+class ForkCompactionJourney(InputWarmJourney):
+    """One fresh configured input on the authorized fork, then original warm paging."""
+
+    @classmethod
+    def authorize(cls, target, args):
+        target.authorize_input()
+        if not args.fresh_input or "\n" in args.fresh_input or len(args.fresh_input) > 512:
+            raise ValueError("Fork compaction requires one explicit bounded fresh input")
+
+    @classmethod
+    def opening_commands(cls, args):
+        marker = marker_command()
+        click = native_click_command("phase-fork-submit-ready-state.pickle", target="editor")
+        return (*super().opening_commands(args), marker + "fork-submit-ready",
+                click + " --empty", "type --clearmodifiers --delay 30 " + shlex.quote(args.fresh_input),
+                marker + "fork-input --require-editor-focus", "key Return",
+                marker + "fork-submitted")
 
 
 class StationaryInputScrollJourney(ScrollJourney):
@@ -720,6 +789,10 @@ class CaptureTarget(DeclaredFamily, affix="Capture"):
 
     purpose = "installed TUI physical interaction video review"
 
+    @property
+    def root(self):
+        return self.route.root
+
     @classmethod
     @abstractmethod
     def admit(cls, args, command, env): ...
@@ -731,10 +804,13 @@ class CaptureTarget(DeclaredFamily, affix="Capture"):
     @abstractmethod
     def observe(self): ...
 
+    def authorize_input(self):
+        raise ValueError("This capture has no configured-provider input authority")
+
 
 @dataclass(frozen=True)
 class PrivateCapture(CaptureTarget):
-    root: Path
+    route: ActiveRoute
     selection: RuntimeSelection
 
     @classmethod
@@ -761,14 +837,19 @@ class PrivateCapture(CaptureTarget):
     @classmethod
     def admit(cls, args, command, env):
         root = cls.admit_root(args, env)
-        if Path(command[0]).name != "toad":
-            raise ValueError("Private capture requires installed toad acp; toad-comms clears private pins")
         selection = RuntimeSelection.from_environment(command, env)
+        cls.require_acp_command(command, selection)
+        route = cls.read_route(env)
+        if route.observe_root() != root:
+            raise ValueError("Private launch route does not name its admitted root")
+        return cls(route, selection)
+
+    @staticmethod
+    def require_acp_command(command, selection):
         expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
         if (len(command) < 4 or command[1:3] != ["acp", expected_acp]
                 or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve()):
-            raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
-        return cls(root, selection)
+            raise ValueError("Capture requires selected installed toad acp and its paired Python ACP command")
 
     def observe(self):
         return {"root": str(self.root), "mode": self.declared_name}
@@ -794,7 +875,10 @@ class SourceCapture(PrivateCapture):
         source = Path(command[1]).resolve()
         if not source.is_file() or not source.is_relative_to(Path.home() / 'wt'):
             raise ValueError('Source capture requires an existing persistent worktree entrypoint')
-        return cls(root, selection, source)
+        route = cls.read_route(env)
+        if route.observe_root() != root:
+            raise ValueError("Source launch route does not name its admitted root")
+        return cls(route, selection, source)
 
     def observe(self):
         return {**super().observe(), 'source': str(self.source), 'source_sha256': digest(self.source),
@@ -810,10 +894,6 @@ class ExistingThreadCapture(CaptureTarget):
     identity: ProcessIdentity
     selection: RuntimeSelection
 
-    @property
-    def root(self):
-        return self.route.root
-
     @classmethod
     def read_route(cls, env):
         from agent_comms.active_route import read_active_route
@@ -824,23 +904,36 @@ class ExistingThreadCapture(CaptureTarget):
 
     @classmethod
     def admit(cls, args, command, env):
-        from agent_comms.registration import Registration
         if args.private_root is not None:
             raise ValueError("Existing-thread capture derives its root from the canonical active route")
         if len(command) != 2 or Path(command[0]).name != "toad-comms":
             raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
         # Match the real default launcher's environment, not a copied private
         # route or thread identity that would redirect its retained history.
-        for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
-                    "AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID", "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
+        for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"):
             env.pop(key, None)
+        cls.attachment_environment(env)
         route = cls.read_route(env)
+        _, thread = cls.capture_owner(route, command[1])
+        return cls(route, thread.name, thread.require_process(), RuntimeSelection.from_environment(command, env))
+
+    @staticmethod
+    def attachment_environment(env):
+        """The ACP client attaches; it never adopts its worker's process role."""
+        for key in ("AGENT_COMMS_THREAD", "AGENT_COMMS_MANAGED", "PI_AGENT_ID",
+                    "PI_PARENT_ID", "PI_TASK", "PI_WORKTREE", "PI_PROMPT"):
+            env.pop(key, None)
+
+    @staticmethod
+    def capture_owner(route, name):
+        from agent_comms.registration import Registration
         route.observe_root()
-        thread = Registration(route.root / "registry.json").require(command[1])
+        snapshot = Registration(route.root / "registry.json").snapshot()
+        thread = snapshot.require_active(name)
         identity = thread.process_identity
         if identity is None or not identity.alive():
             raise ValueError("Existing-thread capture requires an already running owner; it must not start one")
-        return cls(route, thread.name, identity, RuntimeSelection.from_environment(command, env))
+        return snapshot, thread
 
     def observe(self):
         from agent_comms.registration import Registration
@@ -852,6 +945,56 @@ class ExistingThreadCapture(CaptureTarget):
             raise ValueError("Existing-thread capture's original native owner changed or exited")
         return {"root": str(self.root), "mode": self.declared_name, "name": self.name,
                 "identity": FieldCodec.encode(self.identity), "original_owner_alive": True}
+
+
+@dataclass(frozen=True)
+class OwnedForkCapture(ExistingThreadCapture, PrivateCapture):
+    """Authorized canonical fork: original-root custody and its actual ACP launch."""
+
+    purpose = "configured-provider canonical application fork physical journey"
+
+    def authorize_input(self):
+        self.observe()
+
+    @classmethod
+    def admit(cls, args, command, env):
+        from agent_comms.owner_launch import RetainedOwnerLaunch, RestartEnvironment
+        from agent_comms.private_nk_entrypoint import PrivateNkLaunch
+
+        if args.private_root is not None or not args.fork_thread or not args.fork_parent:
+            raise ValueError("Owned fork requires explicit registered child/parent, never a private fixture root")
+        route = cls.read_route(env)
+        snapshot, thread = cls.capture_owner(route, args.fork_thread)
+        parent = snapshot.require_active(args.fork_parent)
+        if thread.parent != parent.name or thread.name == parent.name:
+            raise ValueError("Selected thread is not the authorized original parent's canonical fork")
+        selection = RuntimeSelection.from_environment(command, env)
+        cls.require_acp_command(command, selection)
+        if command[3:] != [thread.worktree, "--session", thread.name]:
+            raise ValueError("Owned fork ACP must select the actual child and its original worktree")
+        retained = RetainedOwnerLaunch.capture(thread, snapshot)
+        runtime = RestartEnvironment.inherit(retained.environment)
+        if runtime.root is None:
+            raise ValueError("Retained child has no explicit native launch root")
+        launch = PrivateNkLaunch.from_environment(Path(runtime.root), retained.environment)
+        if launch is None:
+            raise ValueError("Retained child has no configured native launch")
+        launch.validate()
+        if launch.validated_root.resolve() != route.observe_root() or launch.wire_root_id != route.wire_root_id:
+            raise ValueError("Retained child launch does not belong to the original active root")
+        # Provider credentials/settings come from the actual retained process.
+        # Only the recorder's isolated UI resource locations remain local.
+        capture_environment = {key: value for key, value in env.items()
+            if key.startswith("TOAD_VIDEO_") or key in ("XDG_CONFIG_HOME", "XDG_STATE_HOME",
+                                                       "XDG_DATA_HOME", "AGENT_COMMS_RUNTIME_ROOT")}
+        env.clear()
+        env.update(retained.environment)
+        env.update(capture_environment)
+        for key in ("DISPLAY", "NO_COLOR", "PYTHONPATH"):
+            env.pop(key, None)
+        cls.attachment_environment(env)
+        launch.apply_environment(env)
+        return cls(route=route, name=thread.name, identity=retained.process, selection=selection)
 
 
 def cpu_snapshot(root_pid):
@@ -1145,8 +1288,9 @@ def record(args):
     env.pop("DISPLAY", None)
     env.pop("NO_COLOR", None)
     env.pop("PYTHONPATH", None)  # The installed toad-comms launcher also clears it.
-    script = args.journey.actions(args)
     target = args.capture_target.admit(args, command, env)
+    args.journey.authorize(target, args)
+    script = args.journey.actions(args)
     private_root = target.root
     selection = target.selection
     env["TOAD_VIDEO_CAPTURE_TARGET"] = target.declared_name
@@ -1568,6 +1712,9 @@ def main():
     parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
     parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
+    parser.add_argument("--fork-thread", help="Explicit canonical child for owned-fork capture")
+    parser.add_argument("--fork-parent", help="Original registered parent of the authorized child")
+    parser.add_argument("--fresh-input", help="One new configured-provider input for the owned fork journey")
     parser.add_argument("--actions", type=Path,
                         help="Optional retained script; must match the selected journey, which runs automatically")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
@@ -1611,7 +1758,8 @@ def main():
     parser.add_argument("--height", type=int, default=800)
     parser.add_argument("--fit-window", action="store_true")
     parser.add_argument("--startup-wait", type=float, default=8)
-    parser.add_argument("--max-duration", type=float, default=45)
+    parser.add_argument("--max-duration", type=float, default=45,
+                        help="Finite observation budget in seconds; never a native turn deadline")
     parser.add_argument("--finalize-seconds", type=float, default=16,
                         help="Reserved within duration for profiler export and owned UI teardown")
     parser.add_argument("--tail-seconds", type=float, default=2)
@@ -1658,7 +1806,7 @@ def main():
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, interrupted)
     bounds = {"profile_rate": (10, 49), "fps": (1, 120), "width": (320, 1920), "height": (240, 1200),
-              "max_duration": (1, 120), "slowdown": (1, 16), "review_seconds": (.01, 15),
+              "slowdown": (1, 16), "review_seconds": (.01, 15),
               "review_fps": (.1, 60), "review_frames": (1, 96), "sheet_columns": (1, 8),
               "startup_wait": (0, 119), "tail_seconds": (0, 119), "review_start": (0, 119),
               "finalize_seconds": (ProfileProcess.export_seconds + 6, 30)}
@@ -1666,6 +1814,8 @@ def main():
         value = getattr(args, name)
         if not math.isfinite(value) or not low <= value <= high:
             parser.error(f"{name} must be finite and between {low} and {high}")
+    if not math.isfinite(args.max_duration) or args.max_duration < 1:
+        parser.error("max_duration must be finite and at least 1")
     if args.width % 2 or args.height % 2:
         parser.error("Capture dimensions must be even for yuv420p")
     if args.startup_wait + args.tail_seconds + args.finalize_seconds + 1 >= args.max_duration:

@@ -65,6 +65,39 @@ class NativePhase:
                 and other.oldest_admitted.contains(self.oldest_admitted))
 
 
+def review_retained_lifetime(output, receipt, *, suffix):
+    """Review the saved-view lifetime variant without claiming scroll performance."""
+    labels = ("warm-start", "draft", "reader-before-return", "b-open",
+              "a-return", "undo", "lifetime-end")
+    phases = {label: NativePhase.read(output, label) for label in labels}
+    original, drafted, reader, peer, returned, undone, ended = (phases[label] for label in labels)
+    same = (original, drafted, reader, returned, undone, ended)
+    checks = {
+        "original_saved_history_loaded": original.loaded_pages > 0,
+        "peer_saved_history_loaded": peer.loaded_pages > 0,
+        "peer_selected": peer.mode != original.mode,
+        "source_view_retained": all(phase.mode == original.mode for phase in same),
+        "editor_retained": all(phase.editor == original.editor for phase in same),
+        "history_window_retained": all(phase.window == original.window for phase in same),
+        "draft_typed": drafted.text == original.text + suffix,
+        "draft_retained_on_return": returned.text == drafted.text,
+        "undo_restored_original_draft": undone.text == original.text,
+        "returned_saved_body_ready": any(body.ready and body.visible for body in returned.bodies),
+        "end_saved_body_ready": any(body.ready and body.visible for body in ended.bodies),
+    }
+    result = {
+        "checks": checks, "native_checks_passed": all(checks.values()),
+        "phases": {label: asdict(phase) for label, phase in phases.items()},
+        "physical_assessment": "unreviewed; inspect actual A/B/A and End PNGs/video",
+        "scope": "saved application/source/resource lifetime, not warm raster/FPS/reader qualification",
+        "events": [{"label": event["label"], "video_seconds": event["seconds_since_capture_launch"],
+                    "screenshot": event.get("screenshot")}
+                   for event in receipt["events"]],
+    }
+    (output / "retained-lifetime-review.json").write_text(json.dumps(result, indent=2) + "\n")
+    return result
+
+
 def review_warm_return(output, receipt, *, suffix):
     """Check actual draft/Undo and resource reuse, keeping physical review separate."""
     labels = ("warm-start", "draft", "focused", "up-done", "down-done", "reverse-done",

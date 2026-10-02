@@ -26,7 +26,7 @@ async def main():
             history = TranscriptHistory(page)
             await view.post(history)
             await pilot.pause()
-            peak = history.widget_count
+            peak = history.window.document_viewport.materialized_widget_count
             for _ in range(10):
                 before = history.pages[0].start
                 view.window.scroll_home(animate=False, immediate=True)
@@ -36,12 +36,12 @@ async def main():
                             await pilot.pause(.02)
                 except TimeoutError:
                     raise AssertionError((before, [(p.start, p.stop) for p in history.pages],
-                        (not history.state.accepts_source_work), history.widget_count, history.widget_limit,
+                        (not history.state.accepts_source_work), history.window.document_viewport.materialized_widget_count, history.window.document_viewport.budget.widget_limit(history.window.size.height),
                         history.window.scroll_y, history.window.max_scroll_y,
                         history.window.follows_tail, history.region)) from None
-                peak = max(peak, history.widget_count)
-                assert history.widget_count <= history.widget_limit
-            print({"peak_history_widgets": peak, "widget_budget": history.widget_limit,
+                peak = max(peak, history.window.document_viewport.materialized_widget_count)
+                assert history.window.document_viewport.materialized_widget_count <= history.window.document_viewport.budget.widget_limit(history.window.size.height)
+            print({"peak_history_widgets": peak, "widget_budget": history.window.document_viewport.budget.widget_limit(history.window.size.height),
                    "retained_fragments": history.fragment_count})
             assert history.has_newer and history.has_older
         # Cancelling a UI worker does not stop its already-running to_thread

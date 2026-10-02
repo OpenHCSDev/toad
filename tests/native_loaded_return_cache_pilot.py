@@ -103,7 +103,6 @@ async def click_session(app, pilot, source):
         (native, "activate", "native_activate"),
         (viewport, "suspend_source", "viewport_suspend_source"),
         (conversation, "release_native_session", "conversation_release"),
-        (conversation, "present_retained_native_session", "conversation_present_retained"),
         (Agent, "get_transcript_page", "native_page_read"),
         (GoalObservation, "read", "goal_read"),
         (TranscriptPresentation, "snapshot", "transcript_snapshot"),

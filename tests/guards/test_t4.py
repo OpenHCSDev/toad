@@ -187,3 +187,20 @@ def test_widget_action_availability_has_no_case_catalog():
                    {'action_selection_up', 'action_selection_down', 'action_select', 'action_select_kind'})
         assert not any(isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in retired
                        for node in ast.walk(tree)), relative
+
+
+def test_history_layout_producers_do_not_wait_for_their_own_paint():
+    """Native frame admission consumes the resources these transactions build."""
+    for path in (*ROOT.rglob('*.py'), *(ROOT.parents[1] / 'tools').rglob('*.py')):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Name, ast.Attribute)):
+                name = node.id if isinstance(node, ast.Name) else node.attr
+                assert name != 'history_paint_ready', (path, node.lineno)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                assert node.name != '_restore_body', (path, node.lineno)
+                if node.name in {'preserve_history', '_restore_bodies'}:
+                    assert not any(isinstance(call, ast.Call)
+                                   and isinstance(call.func, ast.Attribute)
+                                   and call.func.attr == 'call_after_refresh'
+                                   for call in ast.walk(node)), (path, node.lineno)
