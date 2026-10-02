@@ -97,6 +97,12 @@ class TranscriptPublication(ABC):
             # The original backend read lost its source. Every publication
             # declines it here; only a new observation can admit another read.
             return
+        except (OSError, ValueError) as error:
+            self.report_failure(error)
+
+    def report_failure(self, error: Exception) -> None:
+        """Keep genuine read/preparation failures distinct from retirement."""
+        raise error
 
     async def capture_application(self) -> bool:
         """Capture the original applied cohort once its source cut is known."""
@@ -358,12 +364,12 @@ class CheckpointPublication(CanonicalSourcePublication):
         return self.plan.ready(history) and self.plan.permits(view, potential)
 
     async def publish_applied(self) -> None:
-        try:
-            if self.admitted():
-                await super().publish_applied()
-        except (OSError, ValueError) as error:
-            if self.current():
-                self.owner.view.notify(str(error), title="Committed history", severity="error")
+        if self.admitted():
+            await super().publish_applied()
+
+    def report_failure(self, error: Exception) -> None:
+        if self.current():
+            self.owner.view.notify(str(error), title="Committed history", severity="error")
 
     async def publish_source_page(self, page: TranscriptPage) -> None:
         from toad.widgets.committed_presentation import (
