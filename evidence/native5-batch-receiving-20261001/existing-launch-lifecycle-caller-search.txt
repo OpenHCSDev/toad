@@ -1,0 +1,38 @@
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/selected_turn.py:205:        with request.native_failures():
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/selected_turn.py:263:        with request.native_failures():
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/selected_tool_broker.py:349:class OwnerToolSocket(ABC, Generic[Call]):
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/selected_request.py:16:class SelectedRequest:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/selected_request.py:39:    def native_failures(self):
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/private_send_admission.py:46:class PrivateSendAdmission:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/coordinated_runtime.py:29:class SelectedExecution:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/assignment_states.py:184:        return observation.pending_notification(ordinary, blocked_by_prior=blocked_by_prior)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/input_drain.py:31:from .activity import StoppedDrainDiagnostic, UnavailableDrainDiagnostic
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/input_drain.py:251:                        UnavailableDrainDiagnostic(owner, type(error).__name__, str(error)),
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/input_drain.py:491:    async def finish_turn_inputs(
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/selected_participant.py:147:            comms.agents.finish_turn(lease)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/turn_runner.py:416:    def finish_turn_stream(
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/turn_runner.py:424:        return self.comms.agents.finish_turn(lease)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/turn_runner.py:442:        terminal_fence = self.finish_turn_stream(session_id, thread_name, turn_id, lease)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/turn_runner.py:496:                await self.inputs.finish_turn_inputs(session_id, inbox)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:67:class UnavailableDrainDiagnostic(DrainDiagnostic):
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:90:    def source_diagnostic(self) -> DrainDiagnostic | None: ...
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:93:    def pending_notification(self, notification: MessageNotification) -> MessageNotification: ...
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:103:    def source_diagnostic(self):
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:106:    def pending_notification(self, notification: MessageNotification) -> MessageNotification:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:117:    def source_diagnostic(self):
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:120:    def pending_notification(self, notification: MessageNotification) -> MessageNotification:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:177:                   readiness=DrainReadiness.acquire(event.diagnostic, owner))
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/activity.py:182:                        self.readiness.source_diagnostic())
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/tracked_turn.py:132:class TrackedTurnSession(TurnSession, MroDispatch):
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/tracked_turn.py:230:            await self.open_tools(custody)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/tracked_turn.py:265:    async def open_tools(self, custody: AsyncExitStack) -> None:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/tracked_turn.py:271:            await self.tool_socket.start()
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/owned_turn.py:230:            self.runner.inputs.finish_turn_inputs, self.session_id, self.backend_inbox
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:42:    def pending_notification(self, notification: MessageNotification, *, blocked_by_prior: bool) -> MessageNotification: ...
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:52:    def pending_notification(self, notification: MessageNotification, *, blocked_by_prior: bool) -> MessageNotification:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:71:    def pending_notification(self, notification: MessageNotification, *, blocked_by_prior: bool) -> MessageNotification:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:86:    def pending_notification(self, notification: MessageNotification, *, blocked_by_prior: bool) -> MessageNotification:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:95:        return self.activity.readiness.pending_notification(notification)
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:146:        self.activity.emit(replace(activity, diagnostic=current.readiness.source_diagnostic()))
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:157:            if current.readiness.source_diagnostic() == diagnostic:
+.artifacts/runtime-native5-batch490-20261001/lib/python3.14/site-packages/agent_comms/agent_activity.py:182:    def finish_turn(self, lease: TurnLeaseFence) -> FinishedTurnFence | None:

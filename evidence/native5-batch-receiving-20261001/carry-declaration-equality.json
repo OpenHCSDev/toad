@@ -1,0 +1,16 @@
+{
+  "state": "receiving artifact declaration EXACTLY equals reviewed installed full495 carry target",
+  "original_plan": "/home/ts/wt/comms-native-schema5-preserved-carry-20261001/.artifacts/native-schema5-carry/full490-controls14/originals/native/reviewed-carry.json",
+  "original_plan_sha256": "f62c03060a45979b1cccd14b345900f54832fc4d5abd0cfb6c1a9a5f74970428",
+  "receiving_declaration_sha256": "a34c213c0d67197e42dace85379d6e1c8133eacc51662656daf3e994889d606c",
+  "release": [
+    9,
+    3,
+    3,
+    5
+  ],
+  "all_declared_ddl_columns_metadata_equal": true,
+  "public_mutations": 0,
+  "provider_calls": 0,
+  "new_schema_owner": false
+}

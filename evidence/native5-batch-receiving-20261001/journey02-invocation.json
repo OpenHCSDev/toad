@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-batch490-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/native5-batch-release-20261001/shared_bus_restart_native.py",
+    "--stage",
+    "/home/ts/wt/b289c02",
+    "--package",
+    "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "--owners",
+    "1",
+    "--collective",
+    "--configured-owner",
+    "nra-architecture"
+  ],
+  "purpose": "first native/provider dispatched mixedroute journey; short durable fixture after retained pre-spawn01 transport refusal",
+  "original_replays": false,
+  "public_mutations": false,
+  "new_provider": false,
+  "model_override": false,
+  "original_sources": 3,
+  "late_originals": 1,
+  "fixture_budget_bytes": 67108864,
+  "driver_source": "Coremainb283 tests/shared_bus_restart_native.py byte identical",
+  "preserved_pre_spawn_attempt": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/mixedroute-native5-batch01"
+}

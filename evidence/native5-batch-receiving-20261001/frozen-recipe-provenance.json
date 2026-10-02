@@ -1,0 +1,11 @@
+{
+  "source": "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/staging-critical-compaction501-20261001",
+  "source_sha256": {
+    "requirements.txt": "d1d6c64dd88e84f0521dd94667aceb05a456f74c24731fe28f594724d34bae9e",
+    "verify.py": "5e8a6118dcd10c54907272ca0e51139669d9ea66eb9af657af4ef911a7feae5e",
+    "ownership.json": "02d359bef34efbefc8835d70be0dac95793a36f1dbbe29b672fb191c0d12d723",
+    "protected-before.json": "000063bf906ceb4a233f2f47ac91289be3c23be9bcaa9b4f702a80d44737119c"
+  },
+  "adaptations": "owned WT/prefix, exact Core/Toad heads, release ownership descriptions; native constant/SDK/whole source+assets+directURL verification unchanged",
+  "public_mutations": 0
+}

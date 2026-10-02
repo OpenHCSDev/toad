@@ -1,0 +1,24 @@
+{
+  "drivers": {
+    "shared_bus_restart_native.py": {
+      "source": "tests/shared_bus_restart_native.py",
+      "core": "b28349027052a57c50b17952a11dcfae2e71f31e",
+      "sha256": "d1dd1a971635dc047f856e18a4610cb735997ec402d809ecc232ea77fdaf5b52"
+    },
+    "compaction_loopback.py": {
+      "source": "tests/compaction_loopback.py",
+      "core": "b28349027052a57c50b17952a11dcfae2e71f31e",
+      "sha256": "5644181215d87674068fb9e20def7301a615e92c9d8913941c526ea3522dcedc"
+    }
+  },
+  "production_overlay": false,
+  "driver_changes": false,
+  "owner": "Singer289",
+  "authorization": "Tristan standing configured Pro-account affected-entrypath gate; one installed mixedroute batch; original nra-architecture SolOFF configuration; no new provider/model override",
+  "budget": {
+    "fresh_private_fixture_bytes": 67108864,
+    "original_sources": 3,
+    "late_originals": 1,
+    "owned_worker_count": 1
+  }
+}
