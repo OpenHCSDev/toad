@@ -121,3 +121,39 @@ were read. Changed driver source is parsed, not executed at this checkpoint.
 The shared adaptive preparation/admission controller remains unfinished, so338
 is draft and has no new installed, End or performance acceptance claim. Final
 sanity and the joined actual saved-session/channel workflow follow that batch.
+
+## Paging lifetime and independent receipt publication
+
+The existing TranscriptSourcePreparation now owns source admission, scroll/layout
+observation, edge scheduling, destination requests, completion and retirement
+for both native TranscriptHistory and the actual MountedMessageHistory widget.
+The wire controller's mutex, edge_scheduled/edge_on_resume fields and separate
+observer/edge waiter algorithm are deleted. Native transcript fragment decoding,
+prepared-page reads and body warming remain TranscriptHistory behavior; wire
+pages remain original MessagePage reads, not synthetic transcript fragments.
+Wire edge demand uses the original measured viewport lookahead.
+
+Source reads, catalog reads, roster work and agent metadata run outside
+HistoryWindow.history_lock. The original WorkingTranscript controls source I/O
+admission only. An already-existing send receipt takes the native publication
+lock directly while that source operation remains admitted; no receipt waiter,
+completion queue, new generation or seen-message store is introduced.
+
+HistoryReadRequest is an original immutable operation identity. The reader owns
+that identity, revision and watermark; follow intent stays the original native
+window observation captured in the read result. Publication rechecks identity,
+current logical view, root and follow intent under the native lock and advances
+the reader there, before roster/agent-info awaits. Restart rejects an old result
+even if both initial requests contain equal fields. A tail replacement preserves
+actual mounted receipt rows newer than its original read watermark. End enters
+through the same Window destination and shared source admission as native
+history; wire source decoding remains its leaf behavior.
+
+The former mock page/edge-flag matrix is replaced by one existing application
+journey controlling completion of the original real read. It covers receipt
+paint and typing during source admission, late-tail retention, restart rejection,
+shared End and completed reader I/O. Other driver consumers use the original
+source admission instead of the deleted mutex/edge flags. This checkpoint is
+source implementation, not installed qualification: affected sanity and the
+changed installed IRC/DM/receipt/End journey remain required. The fixed row cap
+and full shared body-preparation/trim policy are still unfinished scope338.

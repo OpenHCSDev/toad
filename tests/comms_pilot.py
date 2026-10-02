@@ -791,15 +791,15 @@ async def main() -> None:
                 f"long history {index:03}"
                 for index in range(240 - len(long_chat.message_history.rows), 240)
             ]
-            assert "long history 239" in long_chat.message_history.rows[-1][1].source
+            assert "long history 239" in long_chat.message_history.rows[-1][0].body
             previous_oldest = long_chat.message_history.rows[0][0].seq
-            long_chat.message_history.edge_scheduled = True
+            operation = long_chat.message_history.reserve_source_work()
             long_chat.window.scroll_home(animate=False)
             await pilot.pause()
             anchor = long_chat.message_history.rows[0][1]
             anchor_y = anchor.region.y
-            long_chat.message_history.edge_scheduled = False
-            long_chat.message_history.on_scroll(long_chat.window.scroll_y)
+            long_chat.message_history.finish_source_work(operation)
+            long_chat.message_history._scroll_changed(long_chat.window.scroll_y)
             for _ in range(10):
                 if long_chat.message_history.rows[0][0].seq < previous_oldest:
                     break

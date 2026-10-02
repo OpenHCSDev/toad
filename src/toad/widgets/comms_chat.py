@@ -123,7 +123,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
-                    yield HistoryLoading("Loading messages…", id="history-loading")
+                    yield self.message_history
                     yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
@@ -163,12 +163,11 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self.agent_ready = True
         self.prepare_prompt()
         self.window.anchor()
-        self.watch(self.window, "scroll_y", self.message_history.on_scroll, init=False)
         self.set_interval(COMMS_REFRESH_INTERVAL, self._refresh)
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
         # remaining control mounts rather than waiting for another empty
-        # history frame. _refresh_lock still serializes page mutations.
+        # history frame. The original pager admits its asynchronous source read.
         self.run_worker(self._refresh(), group="comms-initial-history")
 
     def prepare_prompt(self) -> None:
@@ -213,17 +212,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
         direction = ("User" if message.sender_role is ThreadRole.USER else
                      "Outbound" if message.sender == self._me else "Inbound")
         return self.message_history.style.block(message, direction=direction)
-
-    async def on_unmount(self) -> None:
-        await self.message_history.retire()
-
-
-
-
-
-
-
-
 
     def _refresh_notifications(self) -> None:
         """One bounded batch for the painted window; independent of bus revision."""
@@ -294,85 +282,88 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self.display = False
             return
         self._refresh_notifications()
-        if self.message_history.lock.locked():
-            return
-        async with self.message_history.lock:
+        await self.message_history.execute_source_work(self._refresh_source)
+
+    async def _refresh_source(self) -> None:
+        from toad.comms_root import root_is_current
+        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+
+        try:
+            comms = self.message_history.reader.comms
+            catalog = await asyncio.to_thread(comms.channels.catalog.read)
+            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                return
+            read_only = self.conversation_kind.read_only(catalog, self.target)
+            if read_only:
+                self.prompt.prompt_text_area.disabled = True
+                self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
+                self.status = "Read-only saved view"
+            show_loading = self.message_history.reader.source.loading
+            if show_loading:
+                self.on_work_started()
             try:
-                comms = self.message_history.reader.comms
-                catalog = await asyncio.to_thread(comms.channels.catalog.read)
-                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
-                    return
-                read_only = self.conversation_kind.read_only(catalog, self.target)
-                if read_only:
-                    self.prompt.prompt_text_area.disabled = True
-                    self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
-                    self.status = "Read-only saved view"
-                show_loading = self.message_history.reader.source.loading
+                reader = self.message_history.reader
+                read = await reader.read(self.message_history.follows_tail)
+            finally:
                 if show_loading:
-                    self.on_work_started()
-                try:
-                    reader = self.message_history.reader
-                    read = await reader.read(self.message_history.follows_tail)
-                finally:
-                    if show_loading:
-                        self.on_work_finished()
-                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
-                    return
-                if reader is not self.message_history.reader or not reader.current(read, self.message_history.follows_tail):
-                    return
-                if not root_is_current(comms.root):
-                    self.display = False
-                    return
-                self.update_slash_commands()
-                revision = read.revision
-                if reader.source.matches_revision(revision):
-                    self.call_after_refresh(self.message_history.mark_visible)
-                    if self.message_history.edge_on_resume:
-                        self.call_after_refresh(self.message_history.on_scroll)
-                    return
-                # Show the bounded tail before computing roster/sort metadata,
-                # which can scan a much larger coordination history.
-                follow = await self.message_history.publish(read)
-                await self.conversation_kind.update_roster(self, comms)
-                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
-                    return
-                if not root_is_current(comms.root):
-                    self.display = False
-                    return
+                    self.on_work_finished()
+            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                return
+            if reader is not self.message_history.reader or not reader.current(read, self.message_history.follows_tail):
+                return
+            if not root_is_current(comms.root):
+                self.display = False
+                return
+            self.update_slash_commands()
+            revision = read.revision
+            if reader.source.matches_revision(revision):
                 self.call_after_refresh(self.message_history.mark_visible)
-            except Exception as error:
-                message = f"Wire error: {error}"
-                if message != self.status:
-                    self.flash(message, style="error")
-                self.status = message
                 return
-
-            reader.accept(read, follow)
-
-            target = self.target
-            info = await self.conversation_kind.agent_info(comms, target)
-            if not self.is_attached or self.target != target:
+            # Show the bounded tail before computing roster/sort metadata,
+            # which can scan a much larger coordination history.
+            if not await self.message_history.publish(read):
                 return
-            if self._unknown_send is not None:
-                root_id, sequence, message_id = self._unknown_send
-                self.status = (
-                    f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
-                    "inspect the bus, do not retry"
-                )
-            elif self._human_admission_blocked:
-                self.status = self._send_block_reason
-            elif info is not None:
-                self.status = " · ".join(
-                    value
-                    for value in (info.model or "", info.context_label)
-                    if value
-                )
-            else:
-                self.status = "Read-only saved view" if read_only else ""
-            if follow and self.window.follows_tail:
-                self.window.anchor()
+            follow = read.follow_tail
+            await self.conversation_kind.update_roster(self, comms)
+            if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                return
+            if not root_is_current(comms.root):
+                self.display = False
+                return
+            self.call_after_refresh(self.message_history.mark_visible)
+        except (CoordinationReadUnavailable, StaleRevision):
+            raise
+        except Exception as error:
+            message = f"Wire error: {error}"
+            if message != self.status:
+                self.flash(message, style="error")
+            self.status = message
+            return
+
+        target = self.target
+        info = await self.conversation_kind.agent_info(comms, target)
+        if not self.is_attached or self.target != target:
+            return
+        if self._unknown_send is not None:
+            root_id, sequence, message_id = self._unknown_send
+            self.status = (
+                f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
+                "inspect the bus, do not retry"
+            )
+        elif self._human_admission_blocked:
+            self.status = self._send_block_reason
+        elif info is not None:
+            self.status = " · ".join(
+                value
+                for value in (info.model or "", info.context_label)
+                if value
+            )
+        else:
+            self.status = "Read-only saved view" if read_only else ""
+        if follow and self.window.follows_tail:
+            self.window.anchor()
         if self.message_history.has_newer or (self.message_history.has_older and self.window.max_scroll_y == 0):
-            self.call_after_refresh(self.message_history.on_scroll)
+            self.call_after_refresh(self.message_history._scroll_changed)
 
     def command_target_context(self):
         from toad.target_commands import TargetContext

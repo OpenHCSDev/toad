@@ -33,11 +33,11 @@ async def main():
             owner = app.selected_mode
             first = await channel_target('#one').open(NavigationContext(app, owner, root, 'peer'))
             chat = app.screen.query_one(CommsChatView)
-            await until(lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading) and not chat.message_history.lock.locked())
+            await until(lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading) and chat.message_history.state.accepts_source_work)
             await channel_target('#two').open(NavigationContext(app, owner, root, 'peer'))
             await pilot.pause()
             # Mark current page loaded before instrumenting the hidden reader.
-            await until(lambda: not chat.message_history.lock.locked() and not chat.message_history.ack_inflight)
+            await until(lambda: chat.message_history.state.accepts_source_work and not chat.message_history.ack_inflight)
             comms.messaging.send('peer', '#one', 'ARRIVED-WHILE-HIDDEN')
             with patch('toad.comms_root.root_is_current', side_effect=AssertionError('hidden route check')):
                 # Exercise the real hidden callback, not a mocked visibility test.

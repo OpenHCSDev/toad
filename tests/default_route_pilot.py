@@ -162,7 +162,8 @@ async def main() -> None:
                 assert current_root() == second
                 assert app.coordination_access.service.root == second  # app cache invalidated
                 view.message_history.has_newer = True
-                await view.message_history.load_edge()
+                await view.message_history.execute_source_work(
+                    lambda: view.message_history._load_page(False))
                 assert all(
                     "LATE-OLD-EDGE" not in str(message) for message, _ in view.message_history.rows
                 )

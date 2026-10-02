@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import partial
 from typing import TYPE_CHECKING
 
 from textual.worker import WorkerCancelled
 from textual.message import Message
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
-from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
-from toad.widgets.committed_presentation import TranscriptCoverage
+from toad.transcript_preparation import PreparedPageSource
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -23,10 +23,9 @@ class HistorySourceSnapshot:
     """One original source/view identity for page and filter publication."""
 
     generation: int
-    selected: frozenset[type[MessageCategory]]
     window: Window
-    loader: Callable | None
     screen: Screen
+    source: object
 
     def current(self, owner: TranscriptHistory) -> bool:
         if not owner.source_publication_available:
@@ -45,14 +44,13 @@ class TranscriptSourceWorkFinished(Message):
 class TranscriptSourcePreparation:
     """Shared source preparation; native widget and operational session stay separate."""
 
-    def __init__(self, *args, source_state: TranscriptState, loader, through, **kwargs):
-        self.loader = loader
-        self.through = through
+    def __init__(self, *args, source_state: TranscriptState, **kwargs):
         self._source_state = source_state
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
         self._prefetch_worker = None
         self._prefetch_intent = None
+        self._check_pending = False
         super().__init__(*args, **kwargs)
 
     @property
@@ -66,8 +64,8 @@ class TranscriptSourcePreparation:
         return self.screen.is_current
 
     def source_snapshot(self) -> HistorySourceSnapshot:
-        return HistorySourceSnapshot(self._generation, self.selected_categories,
-                                     self.window, self.loader, self.screen)
+        return HistorySourceSnapshot(self._generation, self.window, self.screen,
+                                     self.source_identity)
 
     @property
     def blocks_visible_read(self) -> bool:
@@ -75,9 +73,57 @@ class TranscriptSourcePreparation:
         return self.is_attached and (self.has_newer or not self.checkpoint_available)
 
     def reserve_source_work(self) -> WorkingTranscript:
-        operation = self._source_state.reserve()
+        operation = self._source_state.reserve(self)
         self._source_state = operation
         return operation
+
+    async def execute_source_work(self, work):
+        """Acquire source I/O without borrowing the native publication fence."""
+        if self.state.accepts_source_work:
+            return await self.reserve_source_work().execute(self, work)
+
+    def observe_source(self) -> None:
+        self.window.histories.add(self)
+        self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
+        self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
+        self._scroll_changed()
+        self.prepare_scroll()
+
+    async def on_unmount(self) -> None:
+        self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
+        self._generation += 1
+        self._prefetch_intent = None
+        self.window.histories.discard(self)
+        if self._page_buffer is not None:
+            self._page_buffer.close()
+        await self.close_source_reader()
+
+    async def close_source_reader(self) -> None:
+        """Native prepared-page scope is closed by the common lifetime."""
+
+    def _layout_changed(self, _screen) -> None:
+        self._scroll_changed()
+        self.prepare_scroll()
+
+    def on_resize(self) -> None:
+        if self.is_mounted:
+            self._scroll_changed()
+
+    def _scroll_changed(self, _y: float = 0) -> None:
+        if self.state.accepts_source_work and not self._check_pending:
+            self._check_pending = True
+            self.call_after_refresh(self._check_edges)
+
+    def _request_page(self, older: bool) -> None:
+        if self.state.accepts_source_work:
+            self.reserve_source_work().schedule(self, partial(self._load_page, older))
+
+    def request_latest(self) -> None:
+        self.window.document_viewport.destination()
+        if self._prefetch_worker is not None:
+            self._prefetch_worker.cancel()
+        self._prefetch_intent = None
+        self.state.request_latest(self)
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
         """Keep the original read until the shared observer supplies relief.
@@ -105,7 +151,10 @@ class TranscriptSourcePreparation:
             operation.pending_request.apply(self)
             if self.state.accepts_publication:
                 self.window.check_follow()
-                self._scroll_changed()
+                # Only actual source-window progress rearms paging. Empty,
+                # duplicate or refused reads cannot start a callback spin.
+                if operation.window_before != self.paging_window():
+                    self._scroll_changed()
                 self.post_message(TranscriptSourceWorkFinished(self))
 
     async def retire_source(self, *, parked: bool = False) -> None:
@@ -128,78 +177,15 @@ class TranscriptSourcePreparation:
         self._source_state = self._source_state.resume()
         self._prefetch_intent = None
         self.window.histories.add(self)
-        if self._source_state.reports_coverage:
-            self.post_message(TranscriptCoverage(tuple(self.coverage_events), self))
+        self.report_source_coverage()
         self.window.check_follow()
         self._scroll_changed()
         self.prepare_scroll()
 
 
-    def _reader(self) -> PreparedPageSource:
-        assert self.loader is not None
-        reader = self._page_buffer
-        if reader is None or reader.loader is not self.loader or reader.through != self.through:
-            if reader is not None:
-                reader.close()
-            self._page_buffer = reader = TranscriptPageBuffer(
-                self.loader, self.through, self.app.preparation,
-            )
-            self._prefetch_intent = None
-        return reader
-
-
     def prepare_scroll(self) -> None:
-        if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
-                or not self.selected_categories):
-            return
-        reader = self._reader()
-        edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
-                 self.pages[-1].page.after if self.pages[-1].page.has_newer else None)
-        lookahead = self.window.document_viewport.lookahead
-        demand = lookahead.demand
-        edges = demand.edges(*edges)
-        rows = max(1, self.window.size.height)
-        rounds = min(self.budget.reserve_batches,
-                     1 + lookahead.ahead_rows(rows) // rows)
-        pages = tuple(dict.fromkeys((self.pages[0], self.pages[-1])))
-        admissions = tuple(page.capture_admission() for page in pages)
-        intent = edges, rounds, self.selected_categories, demand, admissions
-        if intent == self._prefetch_intent:
-            return
-        self._prefetch_intent = intent
-        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
-            self._prefetch_worker.cancel()
-
-        # Transport completion does not exhaust the current page's local
-        # admission. Its unmounted leaves still need the stationary runway;
-        # the original reader skips absent transport edges itself.
-        if not rounds:
-            return
-
-        async def prepare() -> None:
-            # Reader replacement and source retirement both revoke this exact
-            # intent. One owned snapshot identity is the publication fence.
-            current = lambda: (self._prefetch_intent is intent
-                               and demand is lookahead.demand)
-            from toad.render_tasks import TranscriptBodyPreparation
-            preparation = TranscriptBodyPreparation(
-                self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
-            )
-            # The source page already owns these unmounted leaves. Prepare its
-            # actual neighboring range, never another paging cursor or list.
-            count = lookahead.admission(self.budget, rows)
-            for page in pages:
-                await page.prepare_adjacent(preparation, demand, count, current)
-            async for prepared in reader.prefetch(*edges, current, rounds=rounds):
-                # A fetched page is not mounted yet. Warm the actual incoming
-                # edge in the same syntax/fence cache used by its future body.
-                fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
-                await preparation.prepare_fragments(
-                    fragments, current, batch_size=self.budget.admission_items,
-                )
-
-        self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
-
+        """Measured viewport demand admits source-specific edge reads."""
+        self._scroll_changed()
 
     @property
     def prefetch_distance(self) -> int:
