@@ -1,0 +1,13 @@
+{
+  "private_process": {
+    "pid": 3107558,
+    "start_time": 39097833
+  },
+  "private_process_alive": false,
+  "public_process": {
+    "pid": 3085175,
+    "start_time": 39028411
+  },
+  "public_process_alive": true,
+  "native_input_rows": 0
+}
