@@ -61,6 +61,9 @@ class ViewportBody:
     def retained_paint_bytes(self) -> int:
         return 0
 
+    def release_paint(self) -> None:
+        """Release a prepared paint resource at working-set eviction."""
+
     @property
     def measured_rows(self) -> int:
         raise NotImplementedError
@@ -114,6 +117,9 @@ class BodyMeasurement(ABC):
 
     async def materialize(self, body):
         await body.start_materialization(self).materialize(body)
+
+    def released(self):
+        return self
 
     async def retire(self, body):
         return False
@@ -225,6 +231,9 @@ class RenderedBody(BodyMeasurement):
             crop, selection=selection,
             selection_style=body.selection_style if selection is not None else None)
 
+    def released(self):
+        return MeasuredBody(self.width, self.rows, self.widgets)
+
     async def restore(self, body):
         if not self.ready(body):
             body.invalidate_body()
@@ -270,6 +279,9 @@ class MeasuredViewportBody(ViewportBody):
     @property
     def retained_paint_bytes(self):
         return self._body_measurement.paint_bytes
+
+    def release_paint(self):
+        self._body_measurement = self._body_measurement.released()
 
     def begin_body_materialization(self):
         self._body_measurement = self._body_measurement.updating()
@@ -588,6 +600,9 @@ class DocumentViewport:
         admitted = self.admitted_bodies
         for key in tuple(self._warm):
             if key() not in admitted:
+                owner = key()
+                if owner is not None:
+                    owner.release_paint()
                 self._warm.pop(key)
                 self.body_evictions += 1
         for owner in reversed(ahead):
@@ -739,10 +754,16 @@ class DocumentViewport:
                     wanted = owner in retained
                     if (not wanted and not owner.body_dormant and owner not in protected
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
-                        await owner.retire_body()
+                        if await owner.retire_body():
+                            key = ref(owner)
+                            self._warm[key] = key
+                            self._warm.move_to_end(key)
                         # Focus/selection may change across an awaited mutation;
                         # reuse the captured protection between those boundaries.
                         protected = self.protected()
+                # Capturing rows changes the original body resource cost.
+                # The same warm LRU admits or releases that paint resource.
+                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
                 if active:
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
