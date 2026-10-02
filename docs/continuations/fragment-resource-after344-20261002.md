@@ -16,6 +16,13 @@ native widgets derive it and the copied field/import/calculations are deleted.
 Changing the immutable fragment makes a new resource with a fresh measurement.
 This changes resource work, not message/source/turn authority or widget geometry.
 
+The same foreground batch removes per-tool TypeAdapter compilation from saved
+tool publication. Existing jsonrpc.value_schema owns the declaration validator
+cache; the saved tool consumer now reuses it with the same strict annotation
+decode. Reading the actual SDK ruled out model assignment: its content hook
+silently skips invalid items, even with strict=True. That prototype was rejected
+before publication. No new cache or payload/validation type was created.
+
 Existing NRA parsed the eight explicit producer/resource/admission consumer
 files before editing (19 selected sites), with dynamic resolution source-read.
 No new type, pool, cache catalog, mirror, clock or scan tool. This is published
@@ -29,3 +36,22 @@ velocity/reversal/idle, growingEnd/PageDown void/End, focus/draft/Undo,
 busy/sidebar/channel paint, uninterrupted lazy animation, TC1/T9/T4.
 Retain original profile/video/UNKNOWN and use existing owners. Current candidate
 prefix is borrowed by Kepler; no environment or native copy is created here.
+
+## Final source sanity and actual dependency
+
+The actual existing RenderProcessPool delivered two source fragments with their
+already measured costs through normal process serialization. A new immutable
+source correctly recomputed its cost. The strict SDK field decoder retained
+valid content, reused its existing validator and rejected malformed content.
+These are source process/schema checks, not installed application or CPU proof.
+The tool declaration/consumer pass parsed280 modules: all Toad production plus
+the pinned SDK and Pydantic owner modules. The only other TypeAdapter factory is
+the original shared value_schema; no new independent compiler path.
+
+The attempted source native-page sanity stopped BEFORE fragment admission:
+current main343 calls LocalRoute.admit_client, absent in the frozen borrowed
+Core7dd package. Preserve .artifacts/fragment-resource-after344/native-mount.log.
+Do not add a fallback or rerun the mismatched pair. Current main declares
+Core992; the final changed installed workflow needs that matching pair and
+the existing holder's borrower release. Shared344 installed02 remains frozen
+and accepted only for its actual lifetime scope. No new public capture/input.

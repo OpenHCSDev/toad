@@ -33,7 +33,7 @@ from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTr
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from acp import schema as protocol
 from toad.acp.status import ToolCallStatus
-from pydantic import TypeAdapter
+from toad.jsonrpc import value_schema
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageBuffer,
@@ -121,7 +121,11 @@ class TranscriptBlockConsumer(MroDispatch):
     def tool_end(self, event: ToolEndTranscript):
         tool = self.tool(event)
         tool.status = "completed" if event.ok else "failed"
-        tool.content = TypeAdapter(protocol.ToolCall.model_fields["content"].annotation).validate_python(tool_result_content(event.tool_call_id, event.text, event.diff), strict=True)
+        # Reuse the existing declaration-owned validator cache. Keep strict
+        # field decoding: the SDK model's assignment hook drops invalid items.
+        tool.content = value_schema(protocol.ToolCall.model_fields["content"].annotation).validate_python(
+            tool_result_content(event.tool_call_id, event.text, event.diff), strict=True,
+        )
 
 
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
