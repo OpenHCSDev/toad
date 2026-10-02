@@ -89,7 +89,6 @@ class WireMarkdownMessage(ConversationBlock, VerticalGroup):
             f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
             if isinstance(message, HistoricalMessage) else direction
         )
-        self.source = message.body
 
     def compose(self) -> ComposeResult:
         yield MessageDivider(self.direction, clock=MessageClock.recorded(self.message.timestamp))

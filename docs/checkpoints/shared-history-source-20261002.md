@@ -48,3 +48,112 @@ This2-production-file checkpoint deletes the second envelope constructor and
 compose algorithm. The channel paging/controller migration is still active;
 this is not a claim that scrolling or End is fixed. Batch sanity and the single
 changed installed journey follow the completed history family.
+
+## U3 amendment: application state and native resources
+
+Read every file in plans/ui_interface_abstractoin/toad-headless-ui.zip
+(README andU1-U8). U3 applies to this controller change: application source
+state belongs to the existing headless owner; widgets reference it and paint.
+Moving MountedMessageHistory wholesale into a Widget is insufficient if it
+leaves source selection, watermark, publication or phase authority there.
+Native children, measured extent, source-admission resources, prepared rows,
+anchors and focus remain legitimate frontend resources. Backend turn, goal,
+input disposition, message handling and original coverage stay backend-owned.
+
+Einstein ownsU1 event/publication extraction; Heisenberg retains Window/frame/
+anchor/viewport; parent ownsU7 harness/integration. This contribution keeps
+its existing338 family/context and coordinates their original hooks directly.
+No new frontend, application store, event codec or mirror is introduced here.
+Existing TranscriptPresentation, CoordinationTranscriptReader, AgentController,
+TranscriptSourcePreparation and PreparedPageSource are the owners being read
+for source/read/application versus native admission custody.
+
+The first envelope after-map parses276/276 Toad production modules with no
+omissions and finds one constructor/compose owner, two leaf body/ack methods
+and all8 source/import uses. Output: .artifacts/shared-history-source338/
+envelope-owner-after.json. Actual dynamic dispatch/paint is not proven by AST;
+it belongs to the completed family's joined installed journey.
+
+The envelope checkpoint also deletes the unused source-text assignment rather
+than keeping one consolidated mirror of Message.body. Native BlockContent/
+selection/export consumers use the leaf clipboard/prompt methods, which read
+the original message; neither wire body is a MarkdownBlockContent. Historical
+identity routing and message timestamps remain original-message projections.
+
+Wire page publication now uses HistoryWindow.protect_history, shared with
+native transcript publication, instead of choosing a transport edge as its
+reader anchor. One original visible/clip and selection/focus acquisition owns
+both anchors and protected rows. Wire trimming stops at a protected boundary,
+so it cannot remove the active reader/selection/focus to meet its old cap.
+The cap and source preparation/controller replacement remain pending; this
+checkpoint does not claim that the whole duplicated paging policy is gone.
+
+
+## Headless source progression checkpoint
+
+ChannelHistoryReader now owns the logical source request and all actual page I/O,
+including edge reads. HistoryReadRequest owns the common source/context,
+revision read, external page boundary and transition. Its initial member reads
+the latest bounded source; its incremental member owns revision reuse, scanned
+high-water progression and original display-scope changes. These members carry
+those different algorithms rather than labeling a caller switch.
+
+Deleted the native controller's initialized, poll_cursor, revision and
+display_identity fields, request reconstruction and separate read_page
+algorithm. Deleted the App-wide reader import, field and shutdown consumer.
+A view holds one late-bound source-reader resource and closes its actual I/O
+on unmount. It paints original pages; its mounted rows, edge availability,
+anchors and read-receipt witnesses remain native resources. Receipt paint no
+longer writes a fake revision invalidation; the original bus append participates
+in HistoryViews.revision already. A discarded source projection restarts through
+its original request owner.
+
+Direct production consumers and existing physical/contract driver references
+are migrated together. No forwarding properties, old constructor, registry or
+source adapter remain. Scan watermark remains distinct from the mounted edge;
+scrolling back must not change which original bus rows were scanned.
+
+The before/after source evidence uses the existing NRA Package loader over all
+276 production modules with zero omissions: .artifacts/shared-history-source338/
+reader-owner-before.json and reader-owner-after.json. AST does not resolve
+arbitrary dynamic attributes; all source/control call sites identified here
+were read. Changed driver source is parsed, not executed at this checkpoint.
+The shared adaptive preparation/admission controller remains unfinished, so338
+is draft and has no new installed, End or performance acceptance claim. Final
+sanity and the joined actual saved-session/channel workflow follow that batch.
+
+## Paging lifetime and independent receipt publication
+
+The existing TranscriptSourcePreparation now owns source admission, scroll/layout
+observation, edge scheduling, destination requests, completion and retirement
+for both native TranscriptHistory and the actual MountedMessageHistory widget.
+The wire controller's mutex, edge_scheduled/edge_on_resume fields and separate
+observer/edge waiter algorithm are deleted. Native transcript fragment decoding,
+prepared-page reads and body warming remain TranscriptHistory behavior; wire
+pages remain original MessagePage reads, not synthetic transcript fragments.
+Wire edge demand uses the original measured viewport lookahead.
+
+Source reads, catalog reads, roster work and agent metadata run outside
+HistoryWindow.history_lock. The original WorkingTranscript controls source I/O
+admission only. An already-existing send receipt takes the native publication
+lock directly while that source operation remains admitted; no receipt waiter,
+completion queue, new generation or seen-message store is introduced.
+
+HistoryReadRequest is an original immutable operation identity. The reader owns
+that identity, revision and watermark; follow intent stays the original native
+window observation captured in the read result. Publication rechecks identity,
+current logical view, root and follow intent under the native lock and advances
+the reader there, before roster/agent-info awaits. Restart rejects an old result
+even if both initial requests contain equal fields. A tail replacement preserves
+actual mounted receipt rows newer than its original read watermark. End enters
+through the same Window destination and shared source admission as native
+history; wire source decoding remains its leaf behavior.
+
+The former mock page/edge-flag matrix is replaced by one existing application
+journey controlling completion of the original real read. It covers receipt
+paint and typing during source admission, late-tail retention, restart rejection,
+shared End and completed reader I/O. Other driver consumers use the original
+source admission instead of the deleted mutex/edge flags. This checkpoint is
+source implementation, not installed qualification: affected sanity and the
+changed installed IRC/DM/receipt/End journey remain required. The fixed row cap
+and full shared body-preparation/trim policy are still unfinished scope338.

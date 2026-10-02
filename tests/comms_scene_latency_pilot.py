@@ -30,7 +30,7 @@ class SceneProbe(ToadApp):
                 and screen is self.screen and getattr(screen, "target", None) == self.target):
             chat = screen.query_one_optional(CommsChatView)
             sidebar = screen.query_one_optional(CommsSidebar)
-            if (chat is not None and chat.message_history.initialized and chat.message_history.rows
+            if (chat is not None and (chat.message_history.reader is not None and not chat.message_history.reader.source.loading) and chat.message_history.rows
                     and sidebar is not None and sidebar.navigation.ready.is_set()
                     and chat.prompt.agent_ready):
                 self.pending.set_result(time.perf_counter())

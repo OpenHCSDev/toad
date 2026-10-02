@@ -22,7 +22,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     async def execute(self, owner, work):
         raise RuntimeError("The transcript source has no admitted operation")
 
-    def reserve(self) -> "WorkingTranscript":
+    def reserve(self, owner) -> "WorkingTranscript":
         raise RuntimeError("The transcript source cannot admit another operation")
 
     def request_latest(self, owner) -> None:
@@ -82,8 +82,8 @@ class LiveTranscript(TranscriptState):
     reports_coverage = True
     accepts_source_work = True
 
-    def reserve(self) -> "WorkingTranscript":
-        return WorkingTranscript(self)
+    def reserve(self, owner) -> "WorkingTranscript":
+        return WorkingTranscript(self, owner.paging_window())
 
     def request_latest(self, owner) -> None:
         owner.reserve_source_work().schedule(owner, owner._jump_latest)
@@ -137,8 +137,9 @@ class LatestViewportRequest(ViewportRequest):
 class WorkingTranscript(SuspendedTranscript):
     """One admitted source mutation; its identity owns completion custody."""
 
-    def __init__(self, source: TranscriptState):
+    def __init__(self, source: TranscriptState, window_before):
         super().__init__(source)
+        self.window_before = window_before
         # The inherited source snapshot stays immutable. Only this operation's
         # bounded pending resource changes, never a second history-level flag.
         self.pending_request: ViewportRequest = IdleViewportRequest()
@@ -177,6 +178,9 @@ class WorkingTranscript(SuspendedTranscript):
             except StaleRevision:
                 # This admitted mutation declined its original read. Keep the
                 # committed source; a new request owns any later advance.
+                return False
+            except (OSError, ValueError) as error:
+                owner.source_failed(error)
                 return False
 
     def schedule(self, owner, work):
