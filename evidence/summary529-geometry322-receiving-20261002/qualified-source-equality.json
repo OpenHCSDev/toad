@@ -1,0 +1,10 @@
+{
+  "core_qualified": "761864c828b08eccd157445f1e5476276bcec0b3",
+  "core_merged": "d6e196a86c88cc1259be986703668ab1e1a58c1c",
+  "all_src_stack_config_tools_diff_bytes": 0,
+  "to_ad_qualified": "a179420105c362ec8337a68427d82f11abd69b62",
+  "to_ad_receiving": "3fc4710abf0d0101b50f72d2c4f1c0075e01231c",
+  "to_ad_src_diff_bytes": 0,
+  "native_rebuilt": false,
+  "qualification_repeated": false
+}
