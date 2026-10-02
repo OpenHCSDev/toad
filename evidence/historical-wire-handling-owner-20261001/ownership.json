@@ -1,0 +1,12 @@
+{
+  "owner": "Mendel Toad290",
+  "budget_exclusive_bytes": 67108864,
+  "wheel": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/build-merged-81cb5/batrachian_toad-0.6.20-py3-none-any.whl",
+  "wheel_sha256": "b7bd6d0a9f515851c9dff61f9887b29f0b17b495f662751508632718a3e7397e",
+  "source_commit": "81cb5dd279ee232055f3d2d5dc3a34864829312d",
+  "fixture": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed03",
+  "native_build": false,
+  "public_mutations": false,
+  "provider_calls": 0,
+  "requirements_sha256": "af22d7991f89ea6a2270efd9503091c544d2a026b5ed6af207c082a07a2f9b86"
+}

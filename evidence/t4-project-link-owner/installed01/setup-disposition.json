@@ -1,0 +1,1 @@
+{"state":"failed before UI/input", "cause":"History attach requires an original bus.jsonl; initial source only declared threads+journals, no bus message", "correction":"Existing historical_views_pilot original Messaging.send creates source bus before attach", "provider_calls":0}

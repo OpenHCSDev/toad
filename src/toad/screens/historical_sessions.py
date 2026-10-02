@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms import HistoricalThread
+from agent_comms import HistoricalMessage, HistoricalThread
+from agent_comms.presentation import MessageNotification
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup
@@ -19,6 +20,7 @@ from toad.screens.workspace import WorkspaceScreen
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.wire_message_handling import WireMessageHandling
 
 
 class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
@@ -88,6 +90,7 @@ class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
         if event.value is Select.BLANK:
             return
         self._selection_generation += 1
+        self.workers.cancel_group(self, "historical-handling")
         generation = self._selection_generation
         item = self.threads[event.value]
         content = self.query_one("#saved-content", VerticalGroup)
@@ -127,6 +130,54 @@ class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
 
     def action_focus_prompt(self) -> None:
         self.query_one(HistoryWindow).jump_to_latest()
+
+    @on(WireMessageHandling.Requested)
+    def request_message_handling(self, message: WireMessageHandling.Requested) -> None:
+        message.stop()
+        index = self.query_one("#saved-identity", Select).value
+        self.run_worker(partial(self.publish_handling, self.threads[index],
+                                self._selection_generation),
+                        group="historical-handling", exclusive=True)
+
+    async def publish_handling(self, item: HistoricalThread, generation: int) -> None:
+        """Read the selected archive, never today's-name live notification."""
+        if generation != self._selection_generation or not self.is_attached:
+            return
+        content = self.query_one("#saved-content", VerticalGroup)
+        bodies = WireMessageHandling.within(content)
+        references = WireMessageHandling.references_in(bodies)
+        if not references:
+            return
+
+        def read():
+            item.source.validate()
+            # Source-only Comms reads admit no protocol initialization, claim
+            # or historical execution; the original frozen registry owns joins.
+            original = Comms(Path(item.source.root), private_initial_writes=False,
+                             private_claim_writes=False)
+            order = self.comms.bus.history.sources().index(item.source)
+            messages = tuple(HistoricalMessage.project(message, item.source, order,
+                                                       item.source.provenance)
+                             for message in original.bus.log.messages_for_references(references))
+            results = {}
+            for start in range(0, len(messages), MessageNotification.window_limit):
+                results.update(original.views.message_notifications(
+                    messages[start:start + MessageNotification.window_limit]))
+            item.source.validate()
+            return results
+
+        try:
+            results = await asyncio.to_thread(read)
+        except (OSError, ValueError) as error:
+            if generation == self._selection_generation and self.is_attached:
+                for body in bodies:
+                    if body.is_attached:
+                        body.show_notification_error(error)
+            return
+        if generation == self._selection_generation and self.is_attached:
+            for body in bodies:
+                if body.is_attached:
+                    body.show_notifications(results)
 
     def action_close(self) -> None:
         self.dismiss()

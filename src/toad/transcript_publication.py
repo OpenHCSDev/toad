@@ -238,10 +238,8 @@ class HandlingPublication(TranscriptPublication):
 
         if self.agent is None:
             return
-        bodies = tuple(body for body in self.contents.walk_children()
-                       if isinstance(body, WireMessageHandling) and body.handling_references)
-        references = tuple(dict.fromkeys(reference for body in bodies
-                                         for reference in body.handling_references))
+        bodies = WireMessageHandling.within(self.contents)
+        references = WireMessageHandling.references_in(bodies)
         if not references:
             return
         results = await self.agent.get_message_notifications(references)
