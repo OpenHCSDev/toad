@@ -10,6 +10,7 @@ from types import SimpleNamespace
 
 from textual.app import App, ComposeResult
 from textual.signal import Signal
+from toad.core.events import CoreEventStream
 from toad.sidebar_preparation import prepare_thread_presentation, ThreadRowInput
 from toad.session_tracker import ExactUnread
 from toad.render_choices import LocalRenderer
@@ -133,9 +134,7 @@ class FixtureApp(App):
         self.coordination_access = SimpleNamespace(service=SimpleNamespace(root=Path(source.root)))
         self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={})
         self.coordination_observed = Signal(self, "fixture-observed")
-        self.open_tabs_changed = Signal(self, "fixture-tabs")
-        self.mode_change_signal = Signal(self, "fixture-mode")
-        self.thread_actions_changed = Signal(self, "fixture-actions")
+        self.events = CoreEventStream(self)
         self.opened = []
 
     def compose(self) -> ComposeResult:

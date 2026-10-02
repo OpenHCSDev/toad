@@ -1,4 +1,3 @@
-from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
 from toad.core_event_carrier import CoreEventReceiver

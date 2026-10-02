@@ -1,5 +1,26 @@
 {
-  "removed_consumers_remaining": [],
+  "removed_consumers_remaining": [
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 46,
+      "reference": "app.open_tabs_changed"
+    },
+    {
+      "path": "tests/relationship_poll_reflow_pilot.py",
+      "line": 47,
+      "reference": "app.thread_actions_changed"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 136,
+      "reference": "self.open_tabs_changed"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 138,
+      "reference": "self.thread_actions_changed"
+    }
+  ],
   "current_consumers": [
     {
       "path": "src/toad/thread_actions.py",
@@ -43,12 +64,12 @@
     },
     {
       "path": "src/toad/screens/main.py",
-      "line": 522,
+      "line": 523,
       "reference": "core_events.SidebarLayoutChanged"
     },
     {
       "path": "src/toad/screens/main.py",
-      "line": 514,
+      "line": 515,
       "reference": "self.observe_core"
     },
     {
@@ -228,5 +249,5 @@
     }
   ],
   "omissions": [],
-  "limits": "lexical exact original signal and selected event references, source-reviewed; not dynamic dispatch proof"
+  "limits": "lexical exact original signal and selected event references; not dynamic dispatch proof"
 }

@@ -87,3 +87,13 @@ After this coherent family change, codec-sanity.json records13 wire cases with n
 Review found a bound receiver lifetime leak in the new subscription itself: a strong bound callback defeated the original weak surface target. Subscription now uses Python WeakMethod for borrowed bound receivers, while a standalone callable belongs to the subscription resource. Expiry closes the original membership; there is no ready/closed mirror. subscription-lifetime-sanity.json confirms receiver collection, expiry cleanup and standalone listener lifetime. No provider, backend, default or public input changed.
 
 Remaining U1: six App signals, TabOrder publication and other application intents; direct native-handler fixtures still need the original generic carrier/publisher rather than treating a data event as a Textual message. U2 transitive native/service dependencies remain. No U1-ready or installed claim.
+
+## Navigation/layout caller closure
+
+Original App owns selection, open-tab invalidation, thread actions and sidebar layout; TabOrder owns visited history. Their four App Signal declarations and TabOrder Signal are deleted with the original32 production AST sites and affected fixture sites migrated. Five declared data members carry only the original transition mode or invalidation. No sessions/layout/roster/history snapshot is copied. TabOrder no longer accepts a Textual MessagePump merely to construct its Signal.
+
+The SAME CoreEventMessage terminates native broadcast observations at their original subscriber (`bubble=False`). ACP plan events retain native parent propagation. This prevents independently subscribed descendants from also delivering the same observation to subscribed ancestors. Repeated resource acquisition derives membership from original subscriptions; `_sidebar_layout_watch` is deleted. No new carrier, registry, semantic state or ready flag. Existing activity/sidebar/relationship/recovery/tabs/native-shell consumers own their unchanged operations. Source methods claimed by Heisenberg344 and Lovelace309 remain untouched.
+
+The first after-AST source checkpoint correctly found4 obsolete fixture sites in two files; navigation-signals-incomplete-checkpoint.json preserves that result. Those fixture declarations/unsubscribe sites now use the original stream/subscription resources. navigation-signals-after.json records zero old navigation/layout signal consumers across production/tests, with zero parse omissions and explicit lexical-only limits.
+
+Preference changes and transient coordination-relief callback admission remain unfinished App signal consumers. Remaining application intents and direct native-handler fixtures remain U1 work too. Source contract checks are not installed acceptance; no whole U1-ready claim.
