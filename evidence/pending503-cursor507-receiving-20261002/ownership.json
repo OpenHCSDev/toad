@@ -1,0 +1,14 @@
+{
+  "owner": "Kepler503507 receiving; Singer cursor; Arendt lifecycle",
+  "core": "ad7bf20bc5a30ee7728d4b6f22794ae1cbf49a94",
+  "toad": "758882bebe4c9aa552543e0b9c0412a856d0e4f3",
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-pending503-cursor507-candidate-20261002",
+  "state": "installed original readonly relation pending; whole live publication NOT qualified",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "private_fixtures": [],
+  "protected_existing_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
+  "allocation_budget_mib": 100
+}
