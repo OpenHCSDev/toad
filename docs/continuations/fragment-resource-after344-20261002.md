@@ -34,8 +34,11 @@ behavior. No stream, publication custody, pager or source lifecycle is changed.
 Existing NRA parsed all278 Toad production modules and found all17 related call
 sites before this batch. An initial Python3.11 parse rejected modern syntax;
 Python3.14 parsed every declared module. AST names do not prove dynamic binding.
-The published continuation change is awaiting the final combined process check
-and matching installed application path; it is not a performance result.
+The combined original worker/preparation check delivered30 fragments covering
+context, user, split Markdown and joined tool start/end. Their presentation
+matches the original native replacement path, with prepared measurements still
+present after serialization. Publication reused warmup through the existing
+PreparationRuntime (one cache hit). It is not an installed performance result.
 
 Existing NRA parsed the eight explicit producer/resource/admission consumer
 files before editing (19 selected sites), with dynamic resolution source-read.
@@ -69,3 +72,22 @@ Do not add a fallback or rerun the mismatched pair. Current main declares
 Core992; the final changed installed workflow needs that matching pair and
 the existing holder's borrower release. Shared344 installed02 remains frozen
 and accepted only for its actual lifetime scope. No new public capture/input.
+
+Source evidence is retained at .artifacts/fragment-resource-after344: resource
+before/worker-delivery, tool-validator-before/tool-validator, continuation-before,
+continuation-after and continuation-delivery. The continuation source pass parsed
+278/278 production modules,17 selected sites before/16 after; the native replacement
+call is gone. No parser omission is represented as zero; modern syntax failed on
+Python3.11 before the complete3.14 pass. Process/schema check scripts and logs stay
+with the original artifacts. No new environment, native copy or public input was
+created. Old Core7dd cannot supply the main343 client admission contract; no
+fallback is added. Matching Core3c48 dependencies are temporarily borrowed for
+one private source application admission check, separate from installed readiness.
+That check completed successfully: older and newer admission each mounted four
+original fragments once; an already complete range mounted none. The original
+order, prior children, native mount completion and publication fence were retained,
+with no Agent or application exception. The borrowed interpreter was released
+immediately after terminal exit0. The first mismatched7dd failure remains intact.
+The source batch deletes20 production lines and adds37 across four existing
+files. The installed saved-history workflow remains the next qualification;
+no main-thread CPU, motion or live-performance improvement is claimed here.
