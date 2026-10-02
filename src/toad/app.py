@@ -5,7 +5,6 @@ from toad.comms_root import CoordinationAccess, implicit_root, root_is_current, 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
-import ast
 import json
 import os
 from functools import cached_property, partial
@@ -17,6 +16,7 @@ from weakref import WeakKeyDictionary
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
 from rich import terminal_theme
 from textual import events, on, work
+from textual.actions import ActionError, parse as parse_action
 from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
@@ -634,39 +634,17 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         """Offer copy-path on right-click without activating a file link."""
         if event_name == "click" and isinstance(event, events.Click) and event.button == 3:
             action = event.style.meta.get("@click")
-            if isinstance(action, str) and action.startswith("link(") and action.endswith(")"):
+            if isinstance(action, str):
                 try:
-                    href = ast.literal_eval(action[5:-1])
-                except SyntaxError, ValueError:
-                    href = None
-                path = None
-                if isinstance(href, str) and href.startswith("toad-file:"):
-                    path = Path(href.removeprefix("toad-file:")).expanduser().resolve()
-                elif isinstance(href, str) and href.startswith("toad-file-search:"):
-                    from urllib.parse import unquote
-
-                    from toad.conversation_markdown import _file_lookup_notice, _unique_project_file
-
-                    name = unquote(href.removeprefix("toad-file-search:"))
-                    root = Path(default_namespace.screen.project_path)
-                    path, status = await asyncio.to_thread(_unique_project_file, root, name)
-                    if path is None:
-                        event.stop()
-                        self.notify(_file_lookup_notice(name, root, status),
-                                    title="File preview", severity="warning")
-                        return True
-                if path is not None:
-                    from toad.widgets.comms_menu import show_target_menu
-
-                    full_path = str(path)
-                    event.stop()
-                    event.prevent_default()
-                    show_target_menu(
-                        self.screen, event.screen_offset, full_path,
-                        [("copy_path", "Copy full path")],
-                        {"copy_path": lambda: self.copy_to_clipboard(full_path)},
-                    )
-                    return True
+                    parsed = parse_action(action)
+                except ActionError:
+                    return await super()._broker_event(event_name, event, default_namespace)
+                match parsed:
+                    case ("", "link", (str() as href,)):
+                        from toad.project_path_owner import ProjectPathOwner
+                        link = ProjectPathOwner.link_from(default_namespace, href)
+                        if await link.copy_menu(default_namespace, event):
+                            return True
         return await super()._broker_event(event_name, event, default_namespace)
 
     def _set_mouse_over(self, widget, hover_widget) -> None:

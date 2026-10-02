@@ -1,0 +1,18 @@
+{
+  "state": "failed",
+  "prefix": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001",
+  "pins": {
+    "agent_comms": "9954cdd73dff20e590aebf15467a170f0a69e799",
+    "toad": "9f81f3c71577dfcc2480231497969587d0f46e7a",
+    "textual": "5fbf5c76e5b67da56335a7ff422bfbfb9cf4f1ca"
+  },
+  "checks": [
+    "root-0-direct-native-clipboard-exact",
+    "root-0-deferred-native-clipboard-exact"
+  ],
+  "provider_calls": 0,
+  "public_mutations": 0,
+  "error": "TimeoutError()",
+  "elapsed_seconds": 18.21029052895028,
+  "sdk": "0.12.1"
+}
