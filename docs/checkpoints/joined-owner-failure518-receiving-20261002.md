@@ -23,3 +23,11 @@ The existing `ReviewedRetainedSummaryCohort` authenticated its original route, a
 The exact operator manifest, source/target declarations, typed plan, runtime member and parent command are copied into `evidence/joined-owner-failure518-receiving-20261002/operator-preparation`. The live command operands remain at `.artifacts/joined-owner-failure518-20261002/operator-preparation`. Parent execution uses the existing frozen `execute_retained_summary_foundation.py`; the normal publisher must freshly admit the complete idle audience. Current sends and manual reservations prohibit execution now. If source defaults/route change before execution, the existing original-admission fence rejects this plan. Newly qualified backend changes require their matching receiver and operator preparation, not edits to this frozen candidate.
 
 This is preparation only. It does not repeat the actual c601→48d ABI journey, historical carry or provider checks. Singer521 integration remains in the separate unfrozen520/522 lane.
+
+## Parent publication completed
+
+The first attempt refused the exact existing public Toad client before receipt creation or owner retirement. Parent then closed that same window through normal SIGINT and admitted a fresh publication; no force kill or native input was used. Both refusal and normal-close records remain in the evidence directory.
+
+The frozen publisher completed the nineteen-owner batch in45.078 seconds. Its final phase is `retained-batch-launched-configurations-verified-public-ui-pending`. Runtime installation reports `runtime/preserve`, zero copied bytes and no retired runtime files; the existing goal ledger reports `goal/preserve`. All five default links now name the qualified joined518 target. The original publication receipt, close receipt and hash-bound closure are retained beside the preparation plan. No historical carry, input replay or further restart was performed.
+
+Parent's ordinary-default saved-helper physical capture is running on these same epochs. Public UI acceptance remains pending that capture's result; the publication receipt proves the completed retained launch/configuration phase only. Singer521/Einstein520 remain separate from this installed release.

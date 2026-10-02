@@ -1,0 +1,27 @@
+{
+  "state": "PUBLISHED; parent ordinary-default UI observation ongoing",
+  "phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "seconds": 45.07772898674011,
+  "owners": 19,
+  "links": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/toad"
+  },
+  "runtime_installation": "PreserveRuntimeInstallation",
+  "native_version": 6,
+  "historical_carry": false,
+  "copied_runtime_bytes": 0,
+  "goal_classification": "goal/preserve",
+  "receipts_sha256": {
+    "publication-receipt.json": "a8ded3508e1743c06b37ed8cd0b3dc26be2cbc7dd437e584030d54d2374d279d",
+    "client-refusal-and-normal-close.json": "16ffefee82ea450ea1e6b254e9b5d21466fd1dd99732db144d8877d56d2859f6"
+  },
+  "prepublication_refusal": "Exact public Toad3615800/start40750362; normal SIGINT exit, no force. Parent original tool stderr not reconstructed.",
+  "input_replays": 0,
+  "provider_calls_by_this_owner": 0,
+  "further_restart_by_this_owner": false,
+  "ui_assessment": "Parent currently inspecting same ordinary default saved-helper capture; no completed UI claim from this publication receipt."
+}
