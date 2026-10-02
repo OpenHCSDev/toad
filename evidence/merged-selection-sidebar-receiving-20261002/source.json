@@ -1,0 +1,48 @@
+{
+  "prefix": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002",
+  "fixture": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01",
+  "public_source_process": {
+    "pid": 3085175,
+    "start_time": 39028411
+  },
+  "public_source_interpreter": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-certified508-corrected-candidate-20261002/bin/python",
+  "root_id": "2f2c57a2224d4d0080b01cc289e819f9",
+  "settings_hashes": {
+    "/home/ts/.pi/agent/auth.json": "37ba06ac86a59912521d31462ae4575478f376c910176a3a9b59172d7132bcdd",
+    "/home/ts/.pi/agent/settings.json": "3ed1351864b5628126d34624e95a031e69cbdda8c546d04cf059c933e8de91c9"
+  },
+  "native_prompts": 0,
+  "public_inputs": 0,
+  "private_reopen": {
+    "thread": "selection302",
+    "pid": 3130639,
+    "launched": true
+  },
+  "private_peer": {
+    "name": "selection302-peer",
+    "process": {
+      "pid": 3130701,
+      "start_time": 39171038
+    },
+    "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-41-09-448Z_01a0faea-8848-777c-b399-ceb27a371dad.jsonl"
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3130702,
+        "start_ticks": 39171039,
+        "returncode": 1
+      }
+    ]
+  },
+  "private_owners_alive": {
+    "selection302": false,
+    "user": false,
+    "selection302-peer": false
+  },
+  "native_input_rows": 0,
+  "settings_unchanged": true
+}

@@ -1,0 +1,34 @@
+{
+  "checks": {
+    "same_original_agent_after_selector_and_return": true,
+    "same_original_session_after_selector_and_return": true,
+    "acknowledged_configured_model_preserved": true,
+    "configured_thinking_preserved": true,
+    "accepted_label_preserved": true
+  },
+  "before": {
+    "agent_object_id": 140638223741488,
+    "session_id": "selection302",
+    "model": "openai-codex/gpt-6.1-sol",
+    "thinking": "high",
+    "mode": null,
+    "rendered_label": "openai-codex/gpt-6.1-sol \u00b7 high"
+  },
+  "after": {
+    "agent_object_id": 140638223741488,
+    "session_id": "selection302",
+    "model": "openai-codex/gpt-6.1-sol",
+    "thinking": "high",
+    "mode": null,
+    "rendered_label": "openai-codex/gpt-6.1-sol \u00b7 high"
+  },
+  "returned": {
+    "agent_object_id": 140638223741488,
+    "session_id": "selection302",
+    "model": "openai-codex/gpt-6.1-sol",
+    "thinking": "high",
+    "mode": null,
+    "rendered_label": "openai-codex/gpt-6.1-sol \u00b7 high"
+  },
+  "scope": "Actual click/filter/Enter/cancel on same configured model; no provider prompt"
+}

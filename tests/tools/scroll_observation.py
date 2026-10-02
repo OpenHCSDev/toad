@@ -29,6 +29,7 @@ class NativePhase:
     focused_widget: int | None
     loaded_pages: int
     oldest_admitted: TranscriptCursor | None
+    newest_admitted: TranscriptCursor | None
     scroll_y: float
     maximum: float
     follows_tail: bool
@@ -51,6 +52,7 @@ class NativePhase:
         return cls(label, mode, draft["object_id"], "\n".join(draft["lines"]), draft["selection"],
                    window["object_id"], focused["object_id"] if focused is not None else None,
                    len(pages), pages[0].before if pages else None,
+                   pages[-1].after if pages else None,
                    window["scroll_y"], window["maximum"],
                    window["follows_tail"], bodies)
 
@@ -63,6 +65,13 @@ class NativePhase:
             return False
         return (self.oldest_admitted != other.oldest_admitted
                 and other.oldest_admitted.contains(self.oldest_admitted))
+
+    def admits_after(self, other: "NativePhase") -> bool:
+        """Newer admission extends the original page end, not its oldest edge."""
+        if self.newest_admitted is None or other.newest_admitted is None:
+            return False
+        return (self.newest_admitted != other.newest_admitted
+                and self.newest_admitted.contains(other.newest_admitted))
 
 
 def review_retained_lifetime(output, receipt, *, suffix):
@@ -117,7 +126,7 @@ def review_warm_return(output, receipt, *, suffix):
         "scroll_keys_focus_history": all(phase.focused_widget == phase.window
                                           for phase in (focused, up, down, reversed_scroll)),
         "held_page_up_admitted_older_source": up.admits_before(focused),
-        "held_page_down_admitted_newer_source": up.admits_before(down),
+        "held_page_down_admitted_newer_source": down.admits_after(up),
         "reverse_page_up_admitted_older_source": reversed_scroll.admits_before(down),
         "draft_typed": drafted.text == initial.text + suffix,
         "peer_selected": peer.mode != initial.mode,
