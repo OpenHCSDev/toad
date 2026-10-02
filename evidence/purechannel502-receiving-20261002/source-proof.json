@@ -1,5 +1,5 @@
 {
-  "state": "installed-source-assets-native-trust-verified; continuous journey pending",
+  "state": "Installed source/assets/native trust verified and actual configured3owner PURECHANNEL gate02 accepted; inactive, parent activation only",
   "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
   "sources": [
     {
@@ -366,5 +366,5 @@
   "journey_owners": [
     "Singer502 manyowner pure-channel acceptance; parent default activation"
   ],
-  "journey_assessment": "pending"
+  "journey_assessment": "PASS21.120s for original wave;3 extra broadcast TRIAGE reservations preserved UNKNOWN and tracked"
 }

@@ -6,7 +6,7 @@
   "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
   "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
   "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
-  "state": "Final502+merged performance installed source/assets/directURLs/native verified, normal69 pipcheck PASS; inactive, Singer purechannel manyowner gate pending.",
+  "state": "Qualified final502+performance receiving checkpoint; actual configured3owner PURECHANNEL gate02 PASS; inactive, parent alone activates",
   "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
   "private_fixtures": [
     "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/mixedroute-native5-batch01",

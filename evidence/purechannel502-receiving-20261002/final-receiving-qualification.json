@@ -1,0 +1,47 @@
+{
+  "scope": "Accepted original input wave; not all broadcast followup reservations",
+  "raw_receipt": "/home/ts/wt/p502c02/receipt.json",
+  "raw_sha256": "fdcbeb69000563179e1a208b978f8babc56d426fce5f01c91523fa680db6698b",
+  "elapsed_seconds": 21.120126006018836,
+  "accepted_original_wire_sequences": [
+    1
+  ],
+  "recipient_originals": 3,
+  "original_triage_inputs": 3,
+  "original_full_inputs": 3,
+  "canonical_receipts": [
+    {
+      "kind": "publication_receipts",
+      "execution_id": "wirev1a652a6b408cbbe795a7d80d9999380e3329a1f2e6b874f1d37f79b7c5b9d8022",
+      "exact_target": "#openhcs",
+      "seq": 2,
+      "message_id": "67f009e01478",
+      "received_at_ms": 1790908632757
+    },
+    {
+      "kind": "publication_receipts",
+      "execution_id": "wirev1f62002742c62d0a27e5714482faabec8684c911f0a27533e42059e026cbd5f0e",
+      "exact_target": "#openhcs",
+      "seq": 4,
+      "message_id": "6c7d9b025108",
+      "received_at_ms": 1790908634358
+    },
+    {
+      "kind": "publication_receipts",
+      "execution_id": "wirev1b8aedb753381198cb7b40f8b89a4e3cd023ad64f86971f4f1c3bd186f0824443",
+      "exact_target": "#openhcs",
+      "seq": 3,
+      "message_id": "08d64049e37d",
+      "received_at_ms": 1790908633963
+    }
+  ],
+  "actual_acp_facts": 25,
+  "accepted_all_native_source_proofs_and_cursors": true,
+  "actual_overlap": true,
+  "all_private_workers_retired": true,
+  "configured_sources_unchanged": true,
+  "public_inputs_or_replay": false,
+  "remaining_gap": "Singer reports3 additional TRIAGE reservations from agent broadcast reply wave at post-acceptance cleanup; exact UNKNOWN extras preserved. No false ONLY6TOTALINPUTS claim. Singer owns exact count/proof recording; lifecycle/broadcast followup separate, no replay.",
+  "performance_acceptance": "Existing parent-approved qualified03 exact-source-equal physical proof reused; no new recording",
+  "activation": "Package qualified for parent review/cutover; NOT activated by packager"
+}
