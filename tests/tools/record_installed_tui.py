@@ -1263,6 +1263,9 @@ def frame_review(output, receipt, *, window_seconds):
         return {"available": False, "reason": "This capture has no original driver frame trace"}
     source = max(traces, key=lambda path: path.stat().st_mtime_ns)
     trace = json.loads(source.read_text())
+    if not any(event["event"] == "frame_enqueued" for event in trace):
+        return {"available": False, "trace": source.name,
+                "reason": "No original driver enqueue events; exports do not establish frame observation"}
     origin = round(receipt["capture_launch_monotonic"] * 1e9)
     events = phase_events(output)
     actions = [{"action": before["label"],
@@ -1550,13 +1553,21 @@ def record(args):
                 if not args.capture_state:
                     return
                 receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
-                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True,
-                    scroll_travel=args.scroll_travel and name == "before",
-                    install_frame_trace=name == "before")
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining(),
+                    screen=name != "observers",
+                    scroll_travel=args.scroll_travel and name == "observers",
+                    install_frame_trace=name == "observers",
+                    frames_only=name == "observers")
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
             capture_state("before")
+            if args.capture_state:
+                capture_state("observers")
+                setup = receipt["state_captures"]["observers"]
+                if "error" in setup or any(
+                        status != "complete" for status in setup["manifest"]["receipts"].values()):
+                    raise RuntimeError("Native observer acquisition did not complete: " + str(setup))
             receipt["terminal_processes"] = {str(identity.pid): {"start_ticks": identity.start_time,
                 "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
                 for group in (transferred_terminal or terminal, transferred_program)
@@ -1605,7 +1616,7 @@ def record(args):
                 receipt["driver_finished_seconds"] = time.monotonic() - started
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
-                time.sleep(max(0, remaining() - 1))
+                time.sleep(min(args.tail_seconds, remaining()))
             if not transferred_program.child.identity.alive():
                 raise RuntimeError(f"Installed terminal exited during recording: {terminal.process.returncode}")
             screenshot("after.png")

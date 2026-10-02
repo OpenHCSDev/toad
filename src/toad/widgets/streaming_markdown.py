@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from dataclasses import replace
+from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 from markdown_it import MarkdownIt
@@ -59,13 +60,17 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         else:
             await super().prepare_body()
 
-    async def retire_body(self) -> bool:
-        if self._stream is not None or self._content_lock.locked():
-            return False
+    @asynccontextmanager
+    async def retirement_custody(self):
         async with self._content_lock:
-            return await super().retire_body()
+            async with super().retirement_custody() as can_commit:
+                # append_fragment may acquire its stream while preparation
+                # awaits, before its first content mutation changes the body.
+                yield can_commit and self._stream is None
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
+        if self._stream is not None or self._content_lock.locked():
+            return ()
         return ((self._paged,) if self._paged is not None
                 else super().reconstructible_children())
 

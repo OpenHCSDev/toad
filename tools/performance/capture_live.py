@@ -88,19 +88,13 @@ def main():
                     "    _capture_sys.modules[_spec.name] = _module",
                     "    _spec.loader.exec_module(_module)",
                 ))
-            if args.scroll_travel:
-                lines.extend((
-                    f"_spec = _capture_import.spec_from_file_location('scroll_travel_observation', {str(tools / 'scroll_travel_observation.py')!r})",
-                    "_module = _capture_import.module_from_spec(_spec)",
-                    "_spec.loader.exec_module(_module)",
-                    f"_module.install(expected_pid={args.pid}, output={str(args.output_dir / 'scroll-travel.jsonl')!r})",
-                ))
             receipts = []
             for enabled, module, suffix, options in (
                 (args.state, "capture_state", "state",
                  f", wait_history_seconds={args.wait_history_seconds!r}, wait_interval={args.wait_history_interval!r}"
                  f", wait_history_thread={args.wait_history_thread!r}"
                  f", frame_trace={args.frame_trace!r}, install_frame_trace={args.install_frame_trace!r}"
+                 f", scroll_travel_output={(str(args.output_dir / 'scroll-travel.jsonl') if args.scroll_travel else None)!r}"
                  f", frames_only={args.frames_only!r}"),
                 (args.screen, "capture_screen", "screen", ""),
             ):

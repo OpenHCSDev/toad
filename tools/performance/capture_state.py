@@ -2,7 +2,7 @@
 
 def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1,
             wait_history_thread=None, frame_trace=False, install_frame_trace=False,
-            frames_only=False):
+            frames_only=False, scroll_travel_output=None):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -42,10 +42,33 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     break
         if app is None:
             raise RuntimeError("No application context")
+        if install_frame_trace or scroll_travel_output is not None:
+            async def acquire_and_capture():
+                try:
+                    await app._mounted_event.wait()
+                    if scroll_travel_output is not None:
+                        import importlib.util
+                        from pathlib import Path
+                        spec = importlib.util.spec_from_file_location(
+                            "scroll_travel_observation", Path(__file__).with_name("scroll_travel_observation.py"))
+                        observer = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(observer)
+                        observer.install(expected_pid=expected_pid, output=scroll_travel_output)
+                    if install_frame_trace:
+                        from sidebar_validation_driver import ValidationDriver
+                        await ValidationDriver.observe_application_frames(app).wait()
+                    capture(expected_pid=expected_pid, output_prefix=output_prefix,
+                            wait_history_seconds=wait_history_seconds, wait_interval=wait_interval,
+                            wait_history_thread=wait_history_thread, frame_trace=frame_trace,
+                            frames_only=frames_only)
+                except Exception:
+                    write_json(prefix + "-error.json", {"error": traceback.format_exc()})
+
+            app.run_worker(acquire_and_capture(), name="capture-observer-acquisition",
+                           group="capture-observer-acquisition")
+            return
         if frame_trace:
             from sidebar_validation_driver import ValidationDriver, record, records
-            if install_frame_trace:
-                ValidationDriver.observe_application_frames(app)
             if frames_only:
                 record("frame_trace_exported", pid=expected_pid, capacity=records.maxlen)
                 write_json(prefix + "-frames.json", list(records.copy()))
