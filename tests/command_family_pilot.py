@@ -159,8 +159,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     (evidence / "provider-requests.json").write_text(json.dumps(requests, indent=2))
     # Native owns the coordination envelope. Check the original command as one
     # exact payload line, not equality with the entire composed provider input.
-    assert sum(str(message.get("content")).splitlines().count("/external ORIGINAL_ARGUMENT_297")
-               for message in requests[-1]["messages"]) == 1
+    assert sum(block["text"].splitlines().count("/external ORIGINAL_ARGUMENT_297")
+               for block in requests[-1]["messages"][-1]["content"]) == 1
     await until(pilot, lambda: comms.registry.require("beta").active_turn is None)
     native = Path(comms.registry.require("beta").session_file)
     assert "ORIGINAL_ARGUMENT_297" in native.read_text()
