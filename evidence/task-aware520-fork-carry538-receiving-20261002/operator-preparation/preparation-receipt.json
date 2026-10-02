@@ -1,0 +1,30 @@
+{
+  "state": "SOURCE/OPERATOR READY; PARENT ORIGINAL STOPPED MATCHED CARRY NOT ACQUIRED OR EXECUTED",
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-manifest.json",
+  "operator_manifest_sha256": "ddcfbb302ae2a4f1b7de64093c71c4a13ddc4b94df20dc5f8a255a58e1fd29b5",
+  "operator_members": 51,
+  "source_core": "cca41ab52a90e0353ad3340ca63a01a6b3bc0abc",
+  "target_core": "399fef69a02429237647109ef16e49d6455a6e45",
+  "runtime_member": "CarryNativeRuntimeInstallation",
+  "optional_strategy_default": false,
+  "original_stopped_carry_plan_present": false,
+  "native_version": 6,
+  "whole_schema_equal": false,
+  "declared_new_members_start_empty": [
+    "native_fork_creation"
+  ],
+  "plan_sha256": "a5a9d5f1277e469a9e53fb235a6bc505d367381427a358e2177abf9fb8bdaafd",
+  "source_proof_sha256": "5a85bf4c37a2e9ab51ad4e1123ab9b4b4dce29cfebcfbc431cc13e6cdf8c43e6",
+  "declaration_relation_sha256": "6daad64edb161ea0f9a39fb34016f6b2cc1c5b21c3fd3880225125274856e47c",
+  "commands": {
+    "native_carry_prepare": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-freeze/native_schema_carry.py --root /var/tmp/agent-comms-live-20260927-wzjtqhza --candidate /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/native-carry-candidate --original-declaration /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/original-declaration.json --original-python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002/bin/python --plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/reviewed-native-carry.json",
+    "bind_reviewed_runtime": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/bind_carry.py --carry-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/reviewed-native-carry.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/runtime-installation.json",
+    "parent_execute_once": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/operator-preparation/publication-receipt.json --execute"
+  },
+  "execution_condition": "Parent alone acquires/reviews exact original stopped matched source via existing owner/kernel custody. Carry candidate/hashes must match originals at installed stopped boundary; existing publisher validates all original settings and refuses drift. Do not execute without that review. No original input retry/reset/retroproof or public operation by receiving owner.",
+  "public_stops": 0,
+  "public_starts": 0,
+  "public_writes": 0
+}

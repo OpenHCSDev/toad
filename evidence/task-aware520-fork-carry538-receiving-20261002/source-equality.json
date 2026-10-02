@@ -1,0 +1,22 @@
+{
+  "core": {
+    "qualified": "96ab15203a24494ad75dccd0e25f4bb05181b87a",
+    "installed": "399fef69a02429237647109ef16e49d6455a6e45",
+    "paths": [
+      "src",
+      "stack",
+      "pyproject.toml",
+      "uv.lock"
+    ],
+    "zero_diff": true
+  },
+  "toad": {
+    "qualified": "64220f10a1489071cc4914b90e8fc244a73de211",
+    "installed": "e043896706c0075675bb3f7ea1273373bf83741d",
+    "paths": [
+      "src",
+      "tools"
+    ],
+    "zero_diff": true
+  }
+}

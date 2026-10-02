@@ -1,0 +1,8 @@
+{
+  "owner": "Existing CompactionPolicy.settingDefinitions",
+  "source": "399fef69a02429237647109ef16e49d6455a6e45",
+  "path": "stack/native-compaction-policy.mjs",
+  "declaration": "taskAware: Object.freeze({ default: false, choices: [false, true] }),",
+  "configured_settings_modified": false,
+  "default_off": true
+}

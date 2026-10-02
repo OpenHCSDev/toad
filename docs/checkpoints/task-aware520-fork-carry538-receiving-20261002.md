@@ -8,4 +8,14 @@ The existing declared NativeSchema carry owns the complete original stopped sour
 
 Public333 live-wave completed with fresh replies visible, but boundaries CompactionJournalError/Outcome uncertain remains owned by Mendel. This receiving does not claim to repair historical blocked or UNKNOWN proofs.
 
-Installed source/assets/dependencies and authentic schema/operator preparation are pending. Keep original raw failures and qualified native journals intact.
+Installed receiving source/assets/dependencies and authentic schema/operator preparation are complete. Public stopped matched plan remains parent-owned and has not been acquired. Keep original raw failures and qualified native journals intact.
+
+## Frozen installed receiving source
+
+Draft334 pins Core399fef69, Toad e0438967 source equal accepted332, Text28 merged3dd98997, SDK0.12.1 and existing native9f12. Normal69 installation reused retired327; privileged cwd/executable/argv/environment/FD/maps borrower census had zero references and zero permission gaps. All four full Git inventories/directURLs and native manifests/assets/full-tree trust passed. Current333 and rollback3307950 existing regular files are byte unchanged. No new environment, native build, provider input or public write.
+
+Core src/stack/package declarations equal qualified96ab; Toad src/tools equal accepted merged332. Receiving changes only three dependency lines. Existing CompactionPolicy default remains taskAware=false; configured settings were not changed.
+
+All51 authentic merged399f cutover files are frozen. Authentic source333 and target declarations both Native6; runtime/coordinator/binding/goal/metadata unchanged, compaction declarations add only native_fork_creation. Existing declaration owner requires that member empty; original rows and uncertain dispositions are not reconstructed. Separate5to6 and6to6 installed operator receipts and configured202216.596s native compaction/progress/once-answer receipt are retained.
+
+READY means the installed source and operator operands are reviewable. No actual public stopped matched plan exists yet. Parent owns original stopped acquisition/review, serialization of the existing CarryNativeRuntimeInstallation, ONE public execution, and actual public verification. Exact existing preparation/binding/execution commands are in operator-preparation/preparation-receipt.json. Source proof is the activation staging_receipt; READY is separate. No claim this checkpoint fixes historical blocked/UNKNOWN failures or completes S3/S4.

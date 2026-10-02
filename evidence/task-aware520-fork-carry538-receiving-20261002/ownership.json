@@ -1,0 +1,13 @@
+{
+  "owner": "Schrodinger",
+  "purpose": "receive merged520/538 with accepted332/Text28; optional OFF; parent stopped matched carry only",
+  "core": "399fef69a02429237647109ef16e49d6455a6e45",
+  "toad": "e043896706c0075675bb3f7ea1273373bf83741d",
+  "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "9f12ddf4e22d6d7a14074eb2ec22ba2f7ab376faa9a1f3b2320a0caf7d7ae3a2",
+  "native_tree": "d8ceeee18889e372ff72b4d068750fb06e2688762bcb95a098892761a5fd548a",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "optional_strategy_default": false
+}

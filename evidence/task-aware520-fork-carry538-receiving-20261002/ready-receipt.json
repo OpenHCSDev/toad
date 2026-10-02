@@ -1,0 +1,53 @@
+{
+  "state": "READY installed receiving source/assets/operators; NOT public carry/activation readiness",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "pins": {
+    "core": "399fef69a02429237647109ef16e49d6455a6e45",
+    "toad": "e043896706c0075675bb3f7ea1273373bf83741d",
+    "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "sdk": "0.12.1",
+  "normal_package_count": 69,
+  "native_manifest": "9f12ddf4e22d6d7a14074eb2ec22ba2f7ab376faa9a1f3b2320a0caf7d7ae3a2",
+  "native_tree": "d8ceeee18889e372ff72b4d068750fb06e2688762bcb95a098892761a5fd548a",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+  "default_strategy_off": true,
+  "native_build": false,
+  "new_environment": false,
+  "provider_calls": 0,
+  "public_effects": 0,
+  "original_inputs_replayed": false,
+  "protected_current333_rollback330_regular_files_unchanged": 7950,
+  "operator_members": 51,
+  "frozen_artifacts": {
+    "source-proof.json": "5a85bf4c37a2e9ab51ad4e1123ab9b4b4dce29cfebcfbc431cc13e6cdf8c43e6",
+    "ownership.json": "59f191be7baf17cf98af6c7df95443fb2a385ad6311859222165db3e2daed6c3",
+    "operator-manifest.json": "ddcfbb302ae2a4f1b7de64093c71c4a13ddc4b94df20dc5f8a255a58e1fd29b5",
+    "requirements.txt": "7f8cf59e5efeb07a76a3f50be2b53a7816196545bbd7f4e97236139b03998044",
+    "source-equality.json": "c9f7c1e07eef308679c956bf00384b8841336ebb3b0b5a116a0f380b1193d739",
+    "optional-policy-source.json": "d926453b821d57d0583b1d12dc52a518fbbad98cadf7780be723d8c4324b922d",
+    "original-declaration.json": "00e24dc955504a59bd470d449dd281e2f983940bd6e65c0dda678ad470e3f288",
+    "target-declaration.json": "97110417427ede82ae91fa16a76855537d1ca2f1a9b88dffdd80ce848a17d57b",
+    "operator-preparation/preparation-receipt.json": "c84641ab165c5b3c7aa67dae77980d99ad6063d9f672f8b96c2fa90c3ca00aca",
+    "operator-preparation/review-plan.json": "a5a9d5f1277e469a9e53fb235a6bc505d367381427a358e2177abf9fb8bdaafd",
+    "operator-preparation/declaration-relation.json": "6daad64edb161ea0f9a39fb34016f6b2cc1c5b21c3fd3880225125274856e47c",
+    "prepare_operator.py": "f502a18057a4ea9643378443006f42358f9a2b1922410c5236cc376ed570ad68",
+    "bind_carry.py": "3523dfaf263b27d3856bc73f8cf8cf525d7739c848c1f3ebaa6cacfa9b0b3ffe",
+    "verify.py": "f84cf467e0738cba0e5976aa464b56e9ebb6e9d871f5c827973a44d0f4098723"
+  },
+  "activation_sha256": "bb409eee8e24c84b79e39c764ff37659f5a279d8cc99c12e503e889c53ea1280",
+  "actual_source_gates": {
+    "520-READY.json": "f4cbc2678d8aafe64f2243460aebb2491af4614e8fadcdddd54b9caa4045625c",
+    "520-installed-source.json": "2b0ea4bf456b6822d645709e20204aee73a85aef4eb88866ae8a5ffa6d602250",
+    "538-receipt.json": "606885aced309e92fd7b8bf65d2f9fd6189c9bef3514cdeefa554cd44def18c0",
+    "538-READY.md": "b8c03dd50b7bb047798368e411d684ca2182266558451364713fda6a137f805c",
+    "538-native5-receipt.json": "498a2afeb56ea9797cdb75822624f95e3a28c05a954cc07f34262f1f6ccf238c"
+  },
+  "source_target_whole_schema_equal": false,
+  "new_declared_journal_member": "native_fork_creation",
+  "new_member_required_empty": true,
+  "original_stopped_matched_carry_acquired": false,
+  "remaining_activation_owner": "Parent acquires/reviews authentic original stopped matched NativeSchemaCarryPlan and binds existing CarryNativeRuntimeInstallation; then sole existing publisher and actual public acceptance. Frozen commands are preparation operands, not evidence of stopped acquisition/execution.",
+  "limitations": "S3/S4 comparative/default activation unfinished; optional strategy remainsOFF. Historical201 and public333 boundaries CompactionJournalError/Outcome uncertain unchanged; Mendel owns that original failure. No531/29/30 unqualified performance code included."
+}
