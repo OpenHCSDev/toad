@@ -22,3 +22,9 @@ The ONE normal package is installed at `.artifacts/runtime-native5-goal513-514-2
 The original goal declaration and existing `RuntimeInstallation.goal_schema` contract are included in the handoff. Sch and Mendel received the exact prefix for their single preserving carry/goal/native/ACP/UI journey. This is packaged source, not yet installed workflow Ready or public activation.
 
 Core #513/#514 merged at `a8a3ba05d789ef46c08570543b2bed96a80b3a9c`. Installed Core9ccc is its ancestor and all `src`, `tools`, `stack`, `pyproject.toml` and `uv.lock` bytes are unchanged. Keep the existing qualified package. The affected goal journey remains Sch’s next check; its result will be added without rebuilding this source.
+
+## Affected installed workflow complete
+
+Sch’s same immutable9ccc/f07f/Text238/native5184 package passed the actual61.582s goal/native/ACP/physical journey: SetGoal, completion and fresh Send+GOAL514_DONE; all original492facts/rowids preserved; completed generation and succeeded attempt retain usage. Actual edit/save/channel/A-B-A/clear were exercised; both owned native workers and recorder closed. The exact source receipt is retained as `affected-goal-ready-receipt.json`, SHA256 `bc11090cdd3fcdd6a176b75443c08469e8b096f76709f8b7fd46928219d9835e`. Sch published original proof commit1a4ce073.
+
+#312 is Ready for the parent’s preserving publication. Source/pins/prefix unchanged; no rebuild or repeated gate. This closes the affected goal path, not the broader performance work or Native6 qualification.
