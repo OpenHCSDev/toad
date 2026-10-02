@@ -20,3 +20,5 @@ Frozen Core source/carry: `9ccc04c8ca5df864fdf9018211629bf3f2bd25d2` (Mendel #51
 The ONE normal package is installed at `.artifacts/runtime-native5-goal513-514-20261002`: Core9ccc, receiving Toadf07f (current merged frontend), Textual238/SDK12/native5184. All 69 packages are compatible; all four source/assets inventories and direct Git URLs match, full native trust passes, and 5,686 checked files from the protected prior prefixes remain unchanged. No native build, dependency bypass, source overlay or public mutation occurred.
 
 The original goal declaration and existing `RuntimeInstallation.goal_schema` contract are included in the handoff. Sch and Mendel received the exact prefix for their single preserving carry/goal/native/ACP/UI journey. This is packaged source, not yet installed workflow Ready or public activation.
+
+Core #513/#514 merged at `a8a3ba05d789ef46c08570543b2bed96a80b3a9c`. Installed Core9ccc is its ancestor and all `src`, `tools`, `stack`, `pyproject.toml` and `uv.lock` bytes are unchanged. Keep the existing qualified package. The affected goal journey remains Sch’s next check; its result will be added without rebuilding this source.
