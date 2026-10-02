@@ -233,9 +233,10 @@ class ProcessOwner:
         try:
             deadline = time.monotonic() + timeout
             while True:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    raise subprocess.TimeoutExpired(argv, timeout)
+                # Observation may outlast the command. Let its original
+                # process/pipe owner report completion even after that delay;
+                # a deadline alone cannot turn an exited child into a timeout.
+                remaining = max(0, deadline - time.monotonic())
                 try:
                     out, err = owned.process.communicate(
                         timeout=min(remaining, observation_interval) if observe else remaining)
