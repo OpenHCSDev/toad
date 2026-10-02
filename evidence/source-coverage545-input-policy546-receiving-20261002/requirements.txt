@@ -1,5 +1,5 @@
 agent-client-protocol==0.12.1
-agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@c2a68017f7d3280e6a30789cd7c5d907b12f959a
+agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@732e86708de477ab0406775529bf878f0f3e7ea6
 aiohappyeyeballs==2.7.1
 aiohttp==3.14.3
 aiohttp-jinja2==1.6
@@ -9,7 +9,7 @@ annotated-types==0.8.0
 anyio==4.14.2
 attrs==26.1.0
 bashlex==0.18
-batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@4d1dbe4883a09c66e7108b83dd03f9a6d2840340
+batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@08375dbedb3622094f9e5e8920b9f20bb41850fd
 certifi==2026.7.22
 click==8.4.0
 format-currency==0.0.10
