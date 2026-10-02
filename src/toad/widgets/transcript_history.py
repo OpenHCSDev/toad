@@ -44,7 +44,7 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
-from toad.widgets.presentation_window import PresentationBudget, protected_presentations
+from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
 from toad.work_preparation import retained_bytes
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage, TranscriptInputClaim
@@ -387,6 +387,18 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
         return tuple(child for page in self.pages for child in page.children)
+
+    def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
+        """Retain the original source ranges that a returning reader needs."""
+        return tuple(page.capture_admission() for page in self.pages)
+
+    def restore_reader_admissions(self, admissions) -> None:
+        for page in self.pages:
+            for admission in admissions:
+                page.restore_admission(admission)
+
+    def projection_changed(self) -> None:
+        self.filter.changed()
 
     def _require_publication(self) -> None:
         if not self.state.accepts_publication:
@@ -749,22 +761,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     return
                 # Source admission survives reader movement. Choose the current
                 # visible record after preparation, including a reversed reader.
-                visible = self.screen._compositor.visible_widgets
-                viewport = self.window.content_region
-                retained = [fragment for page in self.pages for fragment in page.children
-                            if fragment in visible and visible[fragment][0].overlaps(viewport)]
-                anchor = (retained[0 if older else -1] if retained else
-                          edge.children[0 if older else -1] if edge.children else edge)
-                # Visibility is already known by the compositor. Looking up
-                # each off-screen fragment's region rebuilds the full map on
-                # the scroll path immediately before mounting another page.
-                protected = {anchor, *retained}
-                # Native selection may extend beyond the viewport. Keep those
-                # fragment owners until the reader releases the selection.
-                endpoints = set(self.screen.selections)
-                if self.screen.focused is not None:
-                    endpoints.add(self.screen.focused)
-                protected.update(protected_presentations(self.fragment_views, endpoints))
+                anchor, protected = window.protect_history(
+                    self.fragment_views, older=older,
+                    fallback=edge.children[0 if older else -1] if edge.children else edge,
+                )
                 # Filling a short tail is not a user scroll. Keep its anchor
                 # active through layout, including a concurrent tab activation;
                 # otherwise the first frame paints the old position and live

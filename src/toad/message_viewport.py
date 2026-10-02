@@ -8,7 +8,7 @@ from agent_comms.messages import Message
 from textual.geometry import Region
 from textual.widget import Widget
 
-from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
+from toad.widgets.irc_message import WireMarkdownMessage
 
 
 @dataclass(frozen=True)
@@ -36,13 +36,13 @@ class MessageViewport(ABC):
 
 class AcknowledgementViewport(MessageViewport):
     def painted_widget(self, widget: Widget) -> Widget:
-        if isinstance(widget, (IRCMessage, WireMarkdownMessage)):
+        if isinstance(widget, WireMarkdownMessage):
             return widget.read_ack_widget()
         return widget
 
 
 class NotificationViewport(MessageViewport):
     def painted_widget(self, widget: Widget) -> Widget | None:
-        if isinstance(widget, (IRCMessage, WireMarkdownMessage)) and widget.is_attached:
+        if isinstance(widget, WireMarkdownMessage) and widget.is_attached:
             return widget
         return None

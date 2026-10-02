@@ -1,0 +1,57 @@
+{
+  "state": "READY merged545/546 exact installed source and original preserve-only operator; NOT PUBLISHED",
+  "installed_core": "732e86708de477ab0406775529bf878f0f3e7ea6",
+  "installed_toad": "08375dbedb3622094f9e5e8920b9f20bb41850fd",
+  "textual": "6405228dc99ec5471c0bf8c10ddae5854971be45",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-sidebar-owner308-20261002",
+  "native_manifest": "960296fdddafb01cbbeb75639f7a6a89fa36fd828b3ff5307b108abc20e7c447",
+  "native_tree": "01de56aa9550de0fe8bf93b5df8815429cba26c64b676704a9653ebf831e0e9d",
+  "source_proof_sha256": "c7b372b4f3aad144078f6cbc7a1d10f7da14073f86b238ead547db121fce6589",
+  "activation_sha256": "d8b6b1ac18bb78407d5149f27c4bff389767bb87e3d16991a7e835640de96e08",
+  "operator_source": "0dd0aa3c8d614a33d29cd6027a44cf186d54f45b",
+  "operator_members": 51,
+  "operator_manifest_sha256": "b2b44a008ef6507058dcf69ff2e8c3c673f6624f71e444ac14d9f24b50990404",
+  "preparation_receipt_sha256": "c4f701bc98c74aa53b4956afd0f9dd12b82585af591054c9cfa3b7d73b0ba28c",
+  "review_plan_sha256": "744654365dc64c201343226b3436571fa1f86ba9f764b225c8ad14e4d7682ee1",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "schema_relation_sha256": "d4685753c419feb040cfba10a90932e6dcd1bbff07d800289853e34ec3fa791f",
+  "actual_original540_receipt_sha256": "16e18dab78356dc9de62e8f97da947581325da80b6783d0a07ab6154d7fccd69",
+  "actual_original540_status": "SCOPED_INSTALLED_ORIGINAL_SOURCE_COVERAGE_PASS",
+  "actual_original540_elapsed_seconds": 2.454081420029979,
+  "actual_original540_source_bytes": 41932752,
+  "original_input_remains_NotSent_unresolved": true,
+  "original_source_proof_store_bytes_unchanged": true,
+  "whole_declared_schema_equal": true,
+  "product_equal": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/qualified-source-gates/527-functional02.json",
+      "sha256": "c252dd77978643a4e57b2bf3b10daac80f9e597f6d0bd4578972019bd48fb0cc"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/qualified-source-gates/527-prefix-capability.json",
+      "sha256": "975316e05be79dbee4162a62cc3bfdd30339c8fe93c7e9ed793a9f6988b7a687"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/qualified-source-gates/331-scoped05.json",
+      "sha256": "c7f085267e774929e07d87759c780bec136125fe690ba059bbd48f4f99f4ad9e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/qualified-source-gates/545546-original540-floor.json",
+      "sha256": "16e18dab78356dc9de62e8f97da947581325da80b6783d0a07ab6154d7fccd69"
+    }
+  ],
+  "scope": "Original540 authenticated running-source snapshot: original0d9 NotSent/originalincarnation/full215 input document/41.9MBsource accepted, all bytes unchanged. No stopped-carry/new provider/fork/prompt/readiness or live public delivery claim. Existing527functional02 +331/Text29scoped05 retained; no speed/cache/smoothness/144Hz/Undo/normalexit/fullwarm claim. 544 measurements only.",
+  "protected334_333_336_files_unchanged": 8544,
+  "public_effects": 0,
+  "new_environment": false,
+  "new_native_build": false,
+  "provider_repeated": false,
+  "parent_execute_once": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-sidebar-owner308-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-preparation/publication-receipt.json --execute",
+  "preflight": "Parent alone: fresh actual original audience idle/client0, user334 closed normally. Existing operator verifies exact source/current route+five links/artifacts and original audience before admission. Preserve only; no manual stop/carry/reset/input replay. Existing publication receipt requires disposition, never repeat. If336 publishes first, this334 source-bound preparation must be recaptured before use.",
+  "old_c2_operands_archived": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/qualified-c2-original-operands",
+  "qualification_repeated": false
+}
