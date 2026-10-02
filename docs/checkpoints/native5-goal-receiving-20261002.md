@@ -14,3 +14,5 @@ all original failed/UNKNOWN evidence and the protected native package.
 Stage once after the complete source contract closes. Native6 packaging is a
 separate source contract and follows this Native5 stage without another provider
 gate or a change to the live runtime.
+
+Frozen Core source/carry: `9ccc04c8ca5df864fdf9018211629bf3f2bd25d2` (Mendel #514, including #513). The existing preserving installation consumes its authenticated original goal declaration; no ledger is repaired by an ordinary reader. Normal uv resolution updates only the three embedded Core pins.
