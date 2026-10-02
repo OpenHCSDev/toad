@@ -6,7 +6,7 @@ from agent_comms.comms import Comms, wire
 from agent_comms.presentation import WireRevision
 from toad.preferences import SidebarSettings
 from toad.settings import PreferenceChange
-from toad.session_tracker import SessionDetails
+from toad.core.events import SessionChangedEvent
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.comms_root import current_root
 
@@ -52,7 +52,7 @@ class SidebarObservation:
             return
         service = app.coordination_access.service
         self.service = service if root == service.root else wire(root)
-        app.session_update_signal.subscribe(self.sidebar, self.session_updated)
+        self.sidebar.subscribe_core(app.session_tracker.events)
         app.session_selected_signal.subscribe(self.sidebar, self.sidebar.navigation.mode_changed)
         app.thread_actions_changed.subscribe(self.sidebar, self.actions_changed)
         app.settings_changed_signal.subscribe(self.sidebar, self.settings_changed)
@@ -97,7 +97,7 @@ class SidebarObservation:
             self.sidebar.navigation.reset()
             self.sidebar.projection.sync_spinner()
 
-    async def session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
+    async def session_updated(self, event: SessionChangedEvent) -> None:
         if not self.accepts_observation():
             return
         # Session routes/title changes are local projection facts. The wire's

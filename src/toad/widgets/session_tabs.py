@@ -15,8 +15,11 @@ from textual.renderables.bar import Bar
 from textual.widget import Widget
 
 from toad import messages
+from agent_comms.mro_dispatch import handles
+from toad.core.events import SessionChangedEvent
+from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
-from toad.session_tracker import OpenTab, SessionDetails
+from toad.session_tracker import OpenTab
 from toad.sidebar_preparation import PreparedTab, TabRosterWork
 from toad.widgets.activity_spinner import FRAMES, animated_label
 
@@ -120,7 +123,7 @@ class Underline(Widget):
         self.post_message(self.Clicked(event.screen_offset))
 
 
-class SessionsTabs(Widget):
+class SessionsTabs(CoreEventReceiver, Widget):
 
     ALLOW_SELECT = False
     app: getters.app[ToadApp] = getters.app(ToadApp)
@@ -178,9 +181,7 @@ class SessionsTabs(Widget):
         # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.current_session = self.app.selected_mode
         self.app.session_selected_signal.subscribe(self, self.handle_mode_change)
-        self.app.session_update_signal.subscribe(
-            self, self.handle_session_update_signal
-        )
+        self.subscribe_core(self.app.session_tracker.events)
         self.app.open_tabs_changed.subscribe(self, self._tabs_changed)
         self.call_later(self._sync_tabs)
         self.update_underline(self.current_session, animate=False)
@@ -254,9 +255,8 @@ class SessionsTabs(Widget):
                 yield SessionTabClose(session.mode_name)
         yield Underline()
 
-    async def handle_session_update_signal(
-        self, update: tuple[str, SessionDetails | None]
-    ) -> None:
+    @handles(SessionChangedEvent)
+    async def handle_session_update(self, event: SessionChangedEvent) -> None:
         if self.screen.is_active:
             await self._sync_tabs()
 

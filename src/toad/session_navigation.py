@@ -122,7 +122,6 @@ class SessionAdmissions(MroDispatch):
 
     async def new(self, factory: Callable[[], MainScreen], *, title: str = "New Session") -> SessionDetails:
         details = self.app.session_tracker.new_session(title=title)
-        self.app.session_update_signal.publish((details.mode_name, details))
         await self.admit(NativeSessionAdmission(details, factory))
         return details
 

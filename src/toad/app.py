@@ -295,10 +295,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self.clipboard_transport = Clipboard.for_platform()
         self.terminal_attention = TerminalAttention(self)
 
-        self.session_update_signal: Signal[tuple[str, SessionDetails | None]] = Signal(
-            self, "session_update"
-        )
-        self._session_tracker = SessionTracker(self.session_update_signal)
+        self._session_tracker = SessionTracker()
         self.session_navigation = SessionAdmissions(self, agent_session_id)
         self.thread_navigation = ThreadNavigator(self)
         self._sidebar_snapshot = None

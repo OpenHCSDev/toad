@@ -30,6 +30,9 @@ from textual.widgets import Static
 
 
 from toad import messages
+from agent_comms.mro_dispatch import handles
+from toad.core.events import SessionChangedEvent
+from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner
 from toad.sidebar_preparation import ThreadRowInput
 from toad.widgets.session_sidebar import ThreadStatusRow
@@ -441,7 +444,7 @@ class CoordinationStatus(Static):
         )
 
 
-class CommsSidebar(SidebarVisibilityObserver, TargetTree):
+class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     """One shared channel hierarchy; source, paint and reader intent have owners."""
     DEFAULT_CSS = """
     CommsSidebar { height: auto; padding: 0 0 1 0; }
@@ -483,6 +486,10 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     async def on_unmount(self) -> None:
         await self.observation.close()
+
+    @handles(SessionChangedEvent)
+    async def session_changed(self, event: SessionChangedEvent) -> None:
+        await self.observation.session_updated(event)
 
     def sidebar_visibility_changed(self) -> None:
         self.projection.sync_spinner()

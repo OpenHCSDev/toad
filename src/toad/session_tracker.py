@@ -4,8 +4,7 @@ from time import time
 from operator import attrgetter
 from typing import Iterable, Literal, Sequence
 
-from textual.signal import Signal
-from textual.widget import Widget
+from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.presentation import CoordinationSnapshot
 
 
@@ -96,12 +95,6 @@ class SidebarState:
     channel_scroll_y: float = 0
     panel_scroll_y: float = 0
 
-    def restore_scroll(self, channel: Widget, panels: Widget) -> bool:
-        before = channel.scroll_y, panels.scroll_y
-        channel.scroll_to(y=self.channel_scroll_y, animate=False, immediate=True)
-        panels.scroll_to(y=self.panel_scroll_y, animate=False, immediate=True)
-        return before != (channel.scroll_y, panels.scroll_y)
-
 
 @dataclass
 class SessionDetails:
@@ -128,10 +121,10 @@ class SessionDetails:
 class SessionTracker:
     """Tracks concurrent agent settings"""
 
-    def __init__(self, signal: Signal[tuple[str, SessionDetails | None]]) -> None:
+    def __init__(self) -> None:
         self.sessions: dict[str, SessionDetails] = {}
         self._session_index = 0
-        self.signal = signal
+        self.events = CoreEventStream()
 
     @property
     def session_count(self) -> int:
@@ -144,12 +137,13 @@ class SessionTracker:
             index=self._session_index, mode_name=mode_name, title=title
         )
         self.sessions[mode_name] = session_meta
+        self.events.publish(SessionChangedEvent(mode_name))
         return session_meta
 
     def close_session(self, mode_name: str) -> None:
         if mode_name in self.sessions:
             del self.sessions[mode_name]
-            self.signal.publish((mode_name, None))
+            self.events.publish(SessionClosedEvent(mode_name))
 
     def get_session(self, mode_name: str) -> SessionDetails | None:
         return self.sessions.get(mode_name, None)
@@ -175,7 +169,7 @@ class SessionTracker:
             session_details.title, session_details.subtitle, session_details.path,
         )
         if after != before:
-            self.signal.publish((mode_name, session_details))
+            self.events.publish(SessionChangedEvent(mode_name))
         return session_details
 
     @property
