@@ -43,7 +43,8 @@ async def main():
                     await pilot.pause(.02)
             group = next(item for item in sidebar.query(ChannelGroup)
                          if item.row.target_name == '#team')
-            assert group._view.members == ('beta',)
+            assert next(view for view in sidebar.projection.snapshot.wire.channels
+                        if view.channel.name == '#team').members == ('beta',)
             assert not group.expanded and not group.member_container.children
             prepared, newer_prepared = asyncio.Event(), asyncio.Event()
             release, release_newer = asyncio.Event(), asyncio.Event()
@@ -75,11 +76,12 @@ async def main():
                     # call uses the same member-reconciliation entrypoint as
                     # its native callback without blocking Pilot.pause on it.
                     group.expanded = True
+                    sidebar.navigation.state.expanded[group.row.target_name] = True
                     group.disclosure.update('▾', layout=False)
                     tasks.append(asyncio.create_task(finished_disclosure()))
                     async with asyncio.timeout(5):
                         await prepared.wait()
-                    original = group._snapshot
+                    original = sidebar.projection.snapshot
                     newer = replace(original, wire=replace(
                         original.wire,
                         unread={**original.wire.unread, 'beta': 1},
@@ -87,7 +89,7 @@ async def main():
                     ))
                     view = next(item for item in newer.wire.channels
                                 if item.channel.name == '#team')
-                    tasks.append(asyncio.create_task(group.update_members(view, newer)))
+                    tasks.append(asyncio.create_task(sidebar.projection.publish(newer)))
                     await asyncio.sleep(0)
                     release.set()
                     async with asyncio.timeout(5):
@@ -127,14 +129,12 @@ async def main():
                     requests.append(len(work.rows))
                 return await submit(work)
 
-            metadata_only = replace(group._snapshot, wire=replace(
-                group._snapshot.wire, channels=tuple(
+            metadata_only = replace(sidebar.projection.snapshot, wire=replace(
+                sidebar.projection.snapshot.wire, channels=tuple(
                     replace(view, last_activity=view.last_activity + 1)
-                    for view in group._snapshot.wire.channels)))
-            current_view = next(view for view in metadata_only.wire.channels
-                                if view.channel.name == '#team')
+                    for view in sidebar.projection.snapshot.wire.channels)))
             with patch.object(app.preparation, 'submit', count_rows):
-                await group.update_members(current_view, metadata_only)
+                await sidebar.projection.publish(metadata_only)
             assert requests == [], requests
             assert group.member_container.children[0]._thread_presentation is reused
             # Real disclosure clicks may change reader intent while preparation
@@ -160,12 +160,12 @@ async def main():
                 try:
                     # Source reconciliation runs independently of the widget's
                     # message pump; the real collapse click remains deliverable.
-                    changed = replace(group._snapshot, wire=replace(
-                        group._snapshot.wire,
-                        unread={**group._snapshot.wire.unread, 'beta': 2},
-                        thread_unread={**group._snapshot.wire.thread_unread, 'beta': 2},
+                    changed = replace(sidebar.projection.snapshot, wire=replace(
+                        sidebar.projection.snapshot.wire,
+                        unread={**sidebar.projection.snapshot.wire.unread, 'beta': 2},
+                        thread_unread={**sidebar.projection.snapshot.wire.thread_unread, 'beta': 2},
                     ))
-                    clicks.append(asyncio.create_task(group.update_members(group._view, changed)))
+                    clicks.append(asyncio.create_task(sidebar.projection.publish(changed)))
                     async with asyncio.timeout(5):
                         await preparing.wait()
                     clicks.append(asyncio.create_task(pilot.click(group.disclosure)))

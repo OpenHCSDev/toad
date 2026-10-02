@@ -1,0 +1,126 @@
+{
+  "scope": "SCOPED single sidebar source/disclosure lifetime + atomic native row styling + goal-source invalidation. Not whole CPU/FPS/144Hz readiness.",
+  "toad_installed": "4bb730c08eedf8f6eb1709e53d497c826b65ba3a",
+  "ready_production_byte_equal_to_installed": true,
+  "core": "ad7bf20bc5a30ee7728d4b6f22794ae1cbf49a94",
+  "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-sidebar-owner308-20261002/source-proof.json",
+  "activation": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-sidebar-owner308-20261002/activation.json",
+  "package_count": 69,
+  "native_full_trust": true,
+  "raw": "/home/ts/.cache/agent-scratch/sidebar-owner308-public-20261002-01/capture",
+  "raw_receipt_sha256": "6c00e27288af32d86c81536a285562316eab2893edcdb0cf89020ac693861f7e",
+  "seconds": 105.8561024700175,
+  "original_recorder_completed": false,
+  "original_operator_exit": 1,
+  "original_ffmpeg_exit": 255,
+  "independent_ui_exit_proved": false,
+  "original_warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": false,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "corrected_offline_warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "ready_body_ids_retained": 18,
+  "observer_correction": {
+    "owner": "NativePhase consumes original TranscriptPageAdmission from captured page/start/stop across all paging/return consumers",
+    "original_error": "Discarded native start/stop and compared only prepared page endpoints",
+    "actual_original_down_admission": "Same immutable committed interval nativeoffset41270257/receipts238\u2192269, start0 stop3\u21928; six newer remote/local page extensions during down gesture",
+    "unchanged_state_does_not_pass": true,
+    "old_raw_and_red_receipt_preserved": true,
+    "new_capture": false,
+    "production_scroll_code_changed_for_predicate": false
+  },
+  "physical_assessment": {
+    "mid_history_15s_idle": "original body/sidebar/chrome readable",
+    "End_idle": "original body/sidebar/chrome readable",
+    "A_return": "original A selected/body/draft/footer readable; source/window/editor/reader +18ready resources retained",
+    "down_video_frames": "56.343\u201360.254s source content progresses in contact sheet; initial observer/export interval static, no smoothness claim",
+    "sidebar_many_reply_or_compaction_qualification": false
+  },
+  "cpu_percent": {
+    "input-held-up": 80.46,
+    "input-held-up-done": 31.22,
+    "input-held-down": 78.95,
+    "up": 73.83,
+    "down": 87.21,
+    "reverse": 77.05,
+    "idle": 22.66
+  },
+  "cpu_causal_before_after_or_overall_gain_proved": false,
+  "profile": {
+    "samples_reported": 1741,
+    "sampling_errors_reported": 0,
+    "quality": "no reported sampling errors",
+    "clock_uncertainty_seconds": 0.08432139449636453,
+    "scope": "all threads + subprocesses, not GIL-only; Chrome transition groups are not CPU/durations/call counts",
+    "main_thread_observed": "sidebar publication + native compositor arrange/reflow/partial rendering",
+    "other_threads": "read_thread_presentation; not UI-loop attribution"
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3084740,
+      "start_time": 39027138
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3084740,
+      "start_time": 39027138
+    },
+    "original_owner_alive": true
+  },
+  "remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "runtime_unchanged": true,
+  "native_inputs_provider_calls_replays_owner_restarts": 0,
+  "production_added": 30,
+  "production_deleted": 37,
+  "unfinished": "Full CPU/raster/warm/cold firstpaint/runway/growingEnd/void/focus/sidebar busy/animation/source-lifetime/TC1/T9/T4 scope remains in308; Text22 active. No input-to-paint percentiles or144Hz proof."
+}

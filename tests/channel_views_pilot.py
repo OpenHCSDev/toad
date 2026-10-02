@@ -236,11 +236,13 @@ async def main():
             views = {view.channel.name: view for view in wire(root / "wire").views.channel_views()}
             assert views["#engineering"].pinned_members == {"api-agent"}
             assert not views["#any"].pinned_members
+            presented = next(view for view in sidebar.projection.snapshot.wire.channels
+                             if view.channel.name == "#engineering")
             assert engineering_group.member_container.children[0].thread_name == "api-agent", {
                 "stored": views["#engineering"].members,
-                "presented": engineering_group._view.members,
+                "presented": presented.members,
                 "rows": tuple(row.thread_name for row in engineering_group.member_container.children),
-                "pins": engineering_group._view.pinned_members,
+                "pins": presented.pinned_members,
             }
             assert engineering_group.member_container.children[0].render().plain.startswith("* ")
             await app.select_session(owner)

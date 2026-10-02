@@ -16,16 +16,27 @@ def test_member_source_updates_share_disclosure_custody():
     from toad.widgets.sidebar_tree import SidebarGroup
     from toad.widgets.thread_comms import RelationshipRows
 
-    for owner, method in ((ChannelGroup, 'update_members'), (RelationshipRows, 'update_group')):
-        assert owner._sync_members is SidebarGroup._sync_members
-        function = ast.parse(inspect.getsource(owner).strip())
-        update = next(node for node in function.body[0].body
-                      if isinstance(node, ast.AsyncFunctionDef) and node.name == method)
-        assert len(update.body) == 1 and isinstance(update.body[0], ast.AsyncWith)
-        assert ast.unparse(update.body[0].items[0].context_expr) == 'self.member_lock'
-        assert not {'_lock', '_sync_lock'} & {
-            node.attr for node in ast.walk(function) if isinstance(node, ast.Attribute)
-        }
+    assert RelationshipRows._sync_members is SidebarGroup._sync_members
+    function = ast.parse(inspect.getsource(RelationshipRows).strip())
+    update = next(node for node in function.body[0].body
+                  if isinstance(node, ast.AsyncFunctionDef) and node.name == 'update_group')
+    assert len(update.body) == 1 and isinstance(update.body[0], ast.AsyncWith)
+    assert ast.unparse(update.body[0].items[0].context_expr) == 'self.member_lock'
+
+    channel = ast.parse(inspect.getsource(ChannelGroup).strip())
+    methods = {node.name: node for node in channel.body[0].body
+               if isinstance(node, ast.AsyncFunctionDef)}
+    assert 'update_members' not in methods
+    assert any(isinstance(node, ast.AsyncWith)
+               and ast.unparse(node.items[0].context_expr).endswith('.projection.lock')
+               for node in ast.walk(methods['_sync_members']))
+    for method in ('_sync_members', 'present'):
+        assert any(isinstance(node, ast.Await)
+                   and ast.unparse(node.value) == 'super()._sync_members()'
+                   for node in ast.walk(methods[method]))
+    assert not {'_view', '_snapshot', '_unread', '_channel_active', '_lock', '_sync_lock'} & {
+        node.attr for node in ast.walk(channel) if isinstance(node, ast.Attribute)
+    }
 
 
 def test_channel_row_order_has_no_stored_copy():

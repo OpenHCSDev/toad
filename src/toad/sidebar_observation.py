@@ -9,7 +9,6 @@ from toad.settings import PreferenceChange
 from toad.session_tracker import SessionDetails
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.comms_root import current_root
-from toad.widgets.comms_sidebar import ChannelGroup
 
 @dataclass(frozen=True)
 class SidebarReadIdentity:
@@ -97,8 +96,6 @@ class SidebarObservation:
             self.identity = None
             self.sidebar.navigation.reset()
             self.sidebar.projection.paint = None
-            for group in self.sidebar.query(ChannelGroup):
-                group._snapshot = None
             self.sidebar.projection.sync_spinner()
 
     async def session_updated(self, update: tuple[str, SessionDetails | None]) -> None:

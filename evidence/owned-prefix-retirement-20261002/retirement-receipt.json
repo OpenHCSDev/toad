@@ -1,0 +1,27 @@
+{
+  "owner": "Kepler",
+  "state": "OWNED_OBSOLETE_PREFIXES_REMOVED",
+  "removed_paths": [
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged504-295-20261002",
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged297-504-295-20261002",
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-certified508-candidate-20261002"
+  ],
+  "directory_entry_allocated_bytes": 308219904,
+  "last_link_file_allocated_bytes_released": 73003008,
+  "removed_directory_allocated_bytes": 6328320,
+  "free_space_delta_bytes_concurrent_host": 79269888,
+  "borrowers_before_delete": 0,
+  "privileged_proc_exe_cwd_maps_fds_environ_cmdline_registry_errors": 0,
+  "pth_files_checked": 81,
+  "Sch304_protected_scope_not_using_removed_prefixes": true,
+  "kept_prefixes": [
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-certified508-corrected-candidate-20261002",
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-pending503-cursor507-candidate-20261002"
+  ],
+  "native5184_untouched": true,
+  "source_and_all_original_fixture_UNKNOWN_proofs_sessions_unchanged": true,
+  "historical_source_inventory_sha_negative_control_receipts_retained": true,
+  "no_other_worktree_modified": true,
+  "note": "du bytes include wheel hardlinks shared with retained installs/cache; actual final-link file blocks reported separately. Filesystem delta may include other concurrent work."
+}
