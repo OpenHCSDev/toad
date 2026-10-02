@@ -5,9 +5,9 @@ Heisenberg reuses the same checkout, normally integrated current main4464a9ed.
 qualification. This continuation carries all unfinished scope from
 foreground-style-after331-20261002.md and its linked plans: CPU/144Hz, raster,
 firstpaint, runway/velocity/growing-end/void, editor/focus, sidebar/busy/animation,
-Session/Workspace and TC1/T9/T4. Parent owns Window/frame/anchor/viewport; Kepler
-owns channel-controller/shared history contributions and native layout. This
-change owns pure RenderTask/runtime preparation only.
+Session/Workspace and TC1/T9/T4. Heisenberg owns Window/frame/anchor/viewport and
+render preparation; Kepler owns channel-controller/shared history contributions
+and native layout. Parent owns harness/live integration.
 
 The current MarkdownSyntaxRenderTask returns tokens to the UI, which submits the
 same graph to TokenRenderTask for highlighting. PreparationRuntime independently
@@ -23,7 +23,7 @@ then batch proportionate final checks and the affected installed application pat
 Work in progress; no speed or readiness claim before that validation. Original335
 movie and writer evidence remain available; no unchanged capture is requested.
 
-## Published implementation, not Ready
+## Published implementation
 
 The existing task is now MarkdownRenderTask(source,ansi,dark). Its execute method
 calls the original pure parser and prepare_tokens in the same process and returns
@@ -111,3 +111,39 @@ resource and use protect_history. The current published hook batch is reviewable
 working progress, not full cross-view/lazy-animation qualification. Joined final
 checks and installed IRC/DM motion follow the completed family; do not repeat
 unchanged335 recording or claim its earlier qualification covered this source.
+
+## Scoped installed qualification and remaining work
+
+Exact installed e00ef752/Core7dd5c14c/Text81ecfccd/native9f12 completed the
+108.814s public original saved-history journey. Sixteen warm checks and seven
+input-focused paging checks passed from original phase resources;18 ready body
+identities, reader/draft/Undo survived actual A/B/A. Original owner unchanged;
+cleanup empty. Source/asset/directURL/native proof is linked in
+../checkpoints/whole-markdown339-installed-scoped.json. No provider input.
+
+Raw receipt stays FALSE: before-state ERROR was ScreenStackError before App mount,
+not application failure. Both state and screenshot exporters now acquire the
+existing mount event. This tooling correction was not in the recorded run; it
+will be exercised in the next changed workflow, without repeating this capture.
+Transferred terminal custody does not prove a normal application exit.
+
+Merged340 --review-recording processed the original failed capture, six48-frame
+0.8s sheets/slowclips and original profile/writer links. Actual input-UP motion
+21.4425–22.2425s was viewed DURING; reverse64.7854–65.5854s was encoded alive and
+reviewed AFTER (viewing lifetime not proved). Readable body/chrome, repeated
+positions then discrete advances; no smoothness/uninterrupted-animation claim.
+Marker-start review sheets precede key injection and are not alone held-key proof.
+
+Exact native key windows: inputUP writer median21.29/p95164.47/max198.84ms;
+inputDown19.85/178.84/192.37; reverse15.61/35.00/139.83. Prior335 inputUP
+19.57/163.64/366.42 and reverse15.27/25.24/124.91 had different workload; no
+causal performance gain. UI marked inputUP84.98%, Down75.35%, reverse71.25%,
+mid-history wait29.95%, End-idle22.15%; these include state exports.1300 GIL
+samples, zero errors, approximate alignment±61.75ms. Native writer receipts
+are not changed pixels or terminal input-to-paint.
+
+Qualified scope: one pure worker request replaces two; native history owner and
+reader/filter hooks preserve the exercised saved-history workflow. Full remaining
+scope above stays active, including338 channel controller and actual IRC/busy
+qualification. Next source work remains whole-frame/body admission and animation
+through existing owners, not another unchanged recording or semantic widget copy.

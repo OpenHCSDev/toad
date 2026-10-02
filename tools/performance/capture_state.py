@@ -42,7 +42,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     break
         if app is None:
             raise RuntimeError("No application context")
-        if install_frame_trace or scroll_travel_output is not None:
+        if not app._mounted_event.is_set() or install_frame_trace or scroll_travel_output is not None:
             async def acquire_and_capture():
                 try:
                     await app._mounted_event.wait()
@@ -64,8 +64,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 except Exception:
                     write_json(prefix + "-error.json", {"error": traceback.format_exc()})
 
-            app.run_worker(acquire_and_capture(), name="capture-observer-acquisition",
-                           group="capture-observer-acquisition")
+            app.run_worker(acquire_and_capture(), name="capture-mount-acquisition",
+                           group="capture-mount-acquisition")
             return
         if frame_trace:
             from sidebar_validation_driver import ValidationDriver, record, records
