@@ -1,0 +1,408 @@
+{
+  "owner": "Einstein288 obsolete first trial only",
+  "target": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001",
+  "preserve": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-uri-20261001",
+  "phase": "audited-not-removed",
+  "process_refs": [],
+  "unreadable_foreign_process_entries": 333,
+  "launcher_refs": [],
+  "borrowed_pth_refs": [],
+  "other_installed_activation_refs": [],
+  "exclusive_file_allocated_bytes": 19701760,
+  "file_count": 3861,
+  "headroom_before_bytes": 6504095744,
+  "source_proof_retained": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/staging-project-link-20261001/source-proof.json",
+  "positive_negative_evidence_retained": "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner",
+  "native_deleted": false,
+  "worktree_deleted": false,
+  "lsof_shared_inode_aliases": [
+    {
+      "pid": 764232,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/.cache/agent-scratch/mendel-archived-source-477-20261001/installed03/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/.cache/agent-scratch/mendel-archived-source-477-20261001/installed03/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/.cache/agent-scratch/mendel-archived-source-477-20261001/installed03/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/.cache/agent-scratch/mendel-archived-source-477-20261001/installed03/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459662,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459665,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459676,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459770,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459887,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459899,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459901,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459915,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459917,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2459928,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460023,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460118,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460181,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460200,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460233,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460236,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2460246,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469758,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469758,
+      "trial_file": "lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469758,
+      "trial_file": "lib/python3.14/site-packages/setproctitle/_setproctitle.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/setproctitle/_setproctitle.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/setproctitle/_setproctitle.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/setproctitle/_setproctitle.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/setproctitle/_setproctitle.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/setproctitle/_setproctitle.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469758,
+      "trial_file": "lib/python3.14/site-packages/tree_sitter/_binding.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/tree_sitter/_binding.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/tree_sitter/_binding.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/tree_sitter/_binding.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/tree_sitter/_binding.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/tree_sitter/_binding.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469772,
+      "trial_file": "lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469775,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469802,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469802,
+      "trial_file": "lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469901,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2469901,
+      "trial_file": "lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2470069,
+      "trial_file": "lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 45,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/textual_speedups/textual_speedups.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2470097,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2471224,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2474152,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2497633,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-performance284-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-performance284-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-performance284-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-performance284-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2644125,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-operation-observation-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-operation-observation-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-operation-observation-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-compaction499-operation-observation-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    },
+    {
+      "pid": 2666618,
+      "trial_file": "lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+      "hardlinks": 63,
+      "actual_mapped_paths": [
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so",
+        "/home/ts/wt/toad-receiving-reader493-scroll275-20261001/.artifacts/runtime-evidence498-20261001/lib/python3.14/site-packages/pydantic_core/_pydantic_core.cpython-314-x86_64-linux-gnu.so"
+      ]
+    }
+  ],
+  "lsof_exact_trial_path_borrowers": []
+}

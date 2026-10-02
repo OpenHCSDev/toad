@@ -1,0 +1,23 @@
+{
+  "phase": "completed",
+  "removed_paths": [
+    "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001"
+  ],
+  "available_before_bytes": 6492393472,
+  "available_after_bytes": 6513790976,
+  "observed_df_delta_bytes": 21397504,
+  "exclusive_allocated_bytes_before": 19701760,
+  "interpretation": "Small owned trial retirement; observed df delta includes concurrent host writes. Not a GiB-scale claim.",
+  "protected_receipts_sha256": {
+    "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/staging-project-link-20261001/source-proof.json": "52833c3b4a58bea9557017bb2704bcbd7fe7d3dbb539dfce19c65072590d1187",
+    "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-uri-20261001/activation.json": "d5afdb23b386305f2102c3eab3773e035418dfae5190d9c027e9f78ddcf1b157",
+    "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/receipt.json": "068803ad28b14dc8e09a06d82a089e5b0e448036c286c0865f4cd7e8dfc20e88",
+    "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed02/terminal-error.txt": "2af47f10311e252080daec9e0819813fd473bf496ab152e2811749a800605dc8"
+  },
+  "qualified_uri_prefix_preserved": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-uri-20261001",
+  "shared_mapped_library_paths_preserved": 7,
+  "native_source_history_unknown_deleted": false,
+  "worktrees_removed": 0,
+  "audit": "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/retirement-20261001/audit.json",
+  "remaining_owned_envs": "Qualified URI prefix protected. Other old firstUI/source and capture leaves retained; no further known eligible owned env identified in this bounded task."
+}

@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001",
+  "pins": {
+    "agent_comms": "9954cdd73dff20e590aebf15467a170f0a69e799",
+    "toad": "9f81f3c71577dfcc2480231497969587d0f46e7a",
+    "textual": "5fbf5c76e5b67da56335a7ff422bfbfb9cf4f1ca"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-combined474-global491-native-20261001/stack/.pi-native-53b8c413d90aa6b1/node_modules/@earendil-works/pi-coding-agent",
+  "state": "normal69 installed source/directURLs/assets/fulltrust verified; parent activation and default gate sole owner",
+  "staging_receipt": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/staging-project-link-20261001/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/bin/python",
+    "toad": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-combined474-global491-native-20261001/stack/.pi-native-53b8c413d90aa6b1/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "53b8c413d90aa6b1b8fe17fad35d2261cb7fe8c53eaa852f6ac4a073016fd9f6",
+  "native_tree": "5a023e9f2713c1902db3cc947543f8fad191532b849e1d12899a0489184e8ce3",
+  "native_configuration_note": "Merged498 evidence resource checkpoint with retained494 compaction with existing493/275/18 with unchanged combined53b8 native package; production route admission via existing runtime operator. No default or root changes performed."
+}
