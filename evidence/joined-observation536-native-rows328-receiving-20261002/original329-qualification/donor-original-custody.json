@@ -1,0 +1,22 @@
+{
+  "owner": "Schrodinger",
+  "purpose": "Reuse old324 completed69 environment for next536 receiving; current327 androllback326 immutable",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "handoff_original": "/home/ts/.cache/agent-scratch/dedicated-worktree-cleanup-20261001/closed-485-487-retirement-after327-20261002/handoff324.json",
+  "handoff_sha256": "d418730a15b5a720787e8f61c1186d4cfa5e8f0b4eea255c1c22d72402b00dea",
+  "old_metadata_sha256": {
+    "ready-receipt.json": "845ee33595efdc9d091ff57449afec252f407b60b1e1358bb506949de748c07a",
+    "operator-manifest.json": "10b46363fc9208fb653395d5f0214946a3499a801a762058409fb2bb5dee5ca0",
+    "activation.json": "3a1d293c8dcb9371bbabaefb04e0d6ce953c849ef1d632dee88051a3cb909fd8",
+    "agent_comms-inventory.json": "1925d5a44816e4d21cc35fc1d2d043e66703b599e2c1d4828671b560b371d8e0",
+    "requirements.txt": "e151f6becdbbdea6672d8d83d6aba87ddd4c77f5ed1316e20a0695751cffc922",
+    "source-proof.json": "a2e90c6a0879854563b679a8cce16dd4abd712e29df16c9c72181ec56e15caa4",
+    "textual-inventory.json": "97dfd8188dd446a40ec8953ffbb9175641424f4c768ed7cd27a49ee0677e2512",
+    "toad-inventory.json": "1dc260631c79e9205ed0e3d00eeb593e47721e35c1f893ae5a72a9677f4598d0",
+    "textual_diff_view-inventory.json": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396",
+    "ownership.json": "9b5b0656afacdb81345e8a12d5f1937102d7ba6407d1d61f7c779019f8797c2d"
+  },
+  "package_mutated": true,
+  "source_freeze": "8f0e4d92e93000c4c7b7bf83e4da56544c10eb66",
+  "mutation_scope": "Normal declared dependency install into handed-over retired324environment; originalmetadata retained, no new environment; private receivingReady, not public"
+}

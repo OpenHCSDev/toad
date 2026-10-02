@@ -1,0 +1,304 @@
+{
+  "qualification": "Scoped direct native-strip retention and canonical registered-body queries; not full smoothness/CPU/144Hz acceptance.",
+  "source": "3f1d7e2763b5a9bb6253dcaf5d535aa4348256b1",
+  "core": "457b1047855752f4d069ee1d39b01e30603efa41",
+  "textual": "06c004708e29393f5212d4cda03f69577064312f",
+  "native": "00c2",
+  "public_epoch": "327, NOT536",
+  "capture": "/home/ts/.cache/agent-scratch/direct-native-rows328-current327-public-20261002-01/capture",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-direct-native-rows328-20261002/source-proof.json",
+  "production_deleted": 21,
+  "production_added": 16,
+  "source_owner": "MeasuredViewportBody shared retirement -> PreparedRichContent original captured rows; DocumentViewport.owners sole outer-body membership",
+  "removed_work": [
+    "Retirement Rich wrapping/rerender and renderer IPC",
+    "DOM-order traversal for unordered geometry/count/density queries",
+    "Admission ancestor-root reclassification",
+    "Unused protected-set recomputation after restore"
+  ],
+  "source_mapping": {
+    "on_mount": "sole register caller; excludes nested ViewportBody",
+    "register": "sole owners.add producer",
+    "discard": "owners.discard+warm removal",
+    "body_roots": "retained only for ordered runway",
+    "ast_retirement_calls": {
+      "retire_native_body": [
+        "self.reconstructible_children",
+        "self._resolved_paint_state",
+        "tuple",
+        "compositor.render_subtree_strips",
+        "PreparedRichContent",
+        "self.finish_native_retirement",
+        "BodyMeasurement.retire",
+        "BodyMeasurement.retire",
+        "self._body_viewport.protected",
+        "BodyMeasurement.retire",
+        "any",
+        "BodyMeasurement.retire",
+        "compositor.published_geometry",
+        "BodyMeasurement.retire",
+        "tuple",
+        "self.walk_children",
+        "isinstance"
+      ],
+      "finish_native_retirement": [
+        "RenderedBody",
+        "self.app.preparation.run_thread",
+        "rendered.ready",
+        "self.retirement_custody",
+        "self.retire_body_resources",
+        "self.refresh",
+        "self.remove_children",
+        "rendered.ready",
+        "self._body_viewport.protected"
+      ]
+    },
+    "omissions": "AST proves static direct calls only; inherited runtime behavior checked by installed three-body family and live journey"
+  },
+  "body_family": {
+    "fragment_arrangements": 0,
+    "profiled_100_reflows_seconds": 0.32249964599031955,
+    "fragments": 4,
+    "native_cache_capacity": 64,
+    "live_body_boxes_in_original_viewport_layout": 4,
+    "provider_calls": 0,
+    "boundary": "actual saved source/Toad widgets/native compositor, source only",
+    "source_update_painted": true,
+    "style_invalidated": true,
+    "resize_invalidated": true,
+    "cohort_captured_before_preparation_and_pruning": 3,
+    "cohort_capture_whole_scene_arrangements": 0,
+    "rendered_family_reentry": [
+      {
+        "body": "TranscriptFragmentView",
+        "rendered_lines": 10,
+        "nonblank_lines": 4,
+        "reentry_ms": 0.14206900959834456,
+        "rebuild_calls": {},
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "PreparedConversationMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.2565670292824507,
+        "rebuild_calls": {},
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "StreamingMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.15499402070418,
+        "rebuild_calls": {},
+        "real_style_change_rebuilt_once": true
+      }
+    ],
+    "inflight_stream_blocks_captured_retirement_commit": true,
+    "offscreen_warm_admission_keeps_rows_not_controls": true,
+    "stationary_admission_preserves_rendered_resource": true,
+    "native_input_materialized_original_body": true,
+    "retirement_and_restore_invalidated": true,
+    "final_disposal_releases_scene": true
+  },
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 114.87395482097054,
+  "native_warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true
+  },
+  "native_input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "writer_exact_key_phases": [
+    {
+      "action": "held-Prior-0",
+      "intervals": {
+        "count": 74,
+        "median_ms": 23.04,
+        "p95_ms": 173.26,
+        "p99_ms": 199.19,
+        "max_ms": 302.09
+      },
+      "writer_receipts": 75
+    },
+    {
+      "action": "held-Next-1",
+      "intervals": {
+        "count": 96,
+        "median_ms": 19.66,
+        "p95_ms": 166.52,
+        "p99_ms": 188.18,
+        "max_ms": 192.74
+      },
+      "writer_receipts": 97
+    },
+    {
+      "action": "held-Prior-2",
+      "intervals": {
+        "count": 139,
+        "median_ms": 17.62,
+        "p95_ms": 105.87,
+        "p99_ms": 141.32,
+        "max_ms": 243.65
+      },
+      "writer_receipts": 140
+    },
+    {
+      "action": "held-Next-3",
+      "intervals": {
+        "count": 111,
+        "median_ms": 17.18,
+        "p95_ms": 154.32,
+        "p99_ms": 174.31,
+        "max_ms": 188.78
+      },
+      "writer_receipts": 112
+    },
+    {
+      "action": "held-Prior-4",
+      "intervals": {
+        "count": 153,
+        "median_ms": 16.44,
+        "p95_ms": 97.31,
+        "p99_ms": 170.89,
+        "max_ms": 279.64
+      },
+      "writer_receipts": 154
+    }
+  ],
+  "writer_events": 994,
+  "unmatched_writer_events": 0,
+  "exact_key_windows": [
+    {
+      "action": "held-Prior-0",
+      "start_ns": 428106757845272,
+      "end_ns": 428110914678127
+    },
+    {
+      "action": "held-Next-1",
+      "start_ns": 428131085631398,
+      "end_ns": 428135223830091
+    },
+    {
+      "action": "held-Prior-2",
+      "start_ns": 428142112605032,
+      "end_ns": 428146238406420
+    },
+    {
+      "action": "held-Next-3",
+      "start_ns": 428149834697778,
+      "end_ns": 428153959071212
+    },
+    {
+      "action": "held-Prior-4",
+      "start_ns": 428157306198898,
+      "end_ns": 428161439653713
+    }
+  ],
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4190294,
+      "start_time": 42597351
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4190294,
+      "start_time": 42597351
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "motion_during": {
+    "review_started_ns": 428152311583032,
+    "recorder_alive_before": true,
+    "ui_alive_before": true,
+    "source_interval": [
+      21,
+      22
+    ],
+    "review_timing": "during_run",
+    "encoding_finished_ns": 428154009620562,
+    "review_finished_ns": 428186453341160,
+    "recorder_alive_after": true,
+    "ui_alive_after": true,
+    "observation": "60 consecutive timed frames: body and chrome readable; content advances in discrete steps with repeated positions, no empty viewport in this interval. Not continuous/smooth motion or pixel latency proof."
+  },
+  "motion_after": {
+    "source_seconds": [
+      65,
+      73
+    ],
+    "assessment": "60 consecutive frames each: readable advancing body/chrome with repeated positions and discrete page steps. No blank viewport in inspected intervals."
+  },
+  "cpu_marker_spans": [
+    {
+      "label": "input-held-up",
+      "percent": 90.26193725291571
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "percent": 21.197780387885288
+    },
+    {
+      "label": "input-held-down",
+      "percent": 77.79721247926871
+    },
+    {
+      "label": "idle",
+      "percent": 26.07096306587287
+    }
+  ],
+  "remaining": [
+    "Foreground native reflow/add_widget/layout work; Kepler native/Heisen viewport ownership",
+    "Full CPU/144Hz motion/input-to-pixel target and all full continuation scope",
+    "Prior pending up-done remote entry/acquisition unresolved; preserve prior failure"
+  ],
+  "limits": [
+    "Exact key spans exclude diagnostic export tails, but CPU marker spans include exports/waits",
+    "Native writer receipt is not terminal presentation or pixel latency",
+    "Recorded60fps is not application frame rate",
+    "Public workload and state differ between recordings; no causal totalCPU improvement claim",
+    "Only inputUp21\u201322s consecutive-frame sheet inspected DURING; Down65/Reverse73 sheets inspected AFTER",
+    "No provider inputs, original input replay, public posting or owner restart",
+    "No536/default activation claim"
+  ],
+  "normal_main_integration": {
+    "main": "4232d469",
+    "merge": "63701bdd",
+    "production_byte_equal_to_tested": "3f1d7e2763b5a9bb6253dcaf5d535aa4348256b1",
+    "dependency_delta": "Core8f0e4d92 from qualified329 main; physical gate used currentpublic327 Core457. No536/publicactivation claim; parent combined receiving owns newdefault path."
+  }
+}

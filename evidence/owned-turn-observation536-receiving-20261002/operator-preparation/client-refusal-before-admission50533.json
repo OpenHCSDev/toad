@@ -1,0 +1,23 @@
+{
+  "state": "NOT ADMITTED, publication receipt absent; current public327 unchanged",
+  "observed_at": 1790952804.6844516,
+  "parent_report_original": "329publisher50533TERMINAL1 refused BEFOREreceipt/admission/mutations: require_no_clients exactProcess55431/42808580. publication-receiptABSENT. Heis ownchanged328capture55321 hadstarted duringmergegap BEFOREnotice, sourcecurrent327/EcandidateCore457. Leaveclient/capturefinish normally; no publicstops/pins/links occurred (guardbeforeO_EXCL receipt/sourcecode reviewed). Preserve refusal rawdata inpreparation note; doNOTreadbacknonexistentpublication. Current327/rollback326protected. OnceHeisactualterminalemptycleanup, parentfreshread-onlyoriginalcohort/client/idle check thenoneADMITTEDoriginalpublishercommand. No retryuncertainoperation. No neednewpackage/gates/merge.",
+  "tool_session": 50533,
+  "tool_exit_code": 1,
+  "guard": "require_no_clients",
+  "client_identity": {
+    "pid": 55431,
+    "start_time": 42808580
+  },
+  "capture_owner": "Heisenberg",
+  "capture_recorder_pid": 55321,
+  "capture_source": "current327/EcandidateCore457",
+  "publication_receipt_exists": false,
+  "source_of_terminal_and_mutation_facts": "Parent explicit actual-tool/source review report; not independently reconstructed stderr",
+  "original_tool_stderr_copy_available_in_this_thread": false,
+  "ready_sha256": "296f1a49d8675ff87131af1dfaa82dd90e1603c2d961bc38fdea79ba45df1ccb",
+  "preparation_sha256": "ca1ade0288a81bc1a1e9516d72a98a23815752894f6fa6adb3866f3426844857",
+  "readback_run": false,
+  "public_actions_from_this_note": 0,
+  "next_action": "Capture owner normal completion/emptycleanup; parent fresh originalcohort/client/idle readonly check; originaloneusepublisher only when admitted. No input/provider replay, package rebuild, sourcegate repeat or capture interruption."
+}
