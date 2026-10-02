@@ -123,10 +123,12 @@ class MarkdownSyntaxRenderTask(ReusableRenderTask[list[Token]]):
         from toad.conversation_markdown import parse_markdown_syntax
         return parse_markdown_syntax(self.source)
 
-    async def prepare_body(self, renderer, ansi: bool, dark: bool) -> None:
-        """Warm the same grammar and highlighted rows used by native delivery."""
+    async def prepare_body(self, renderer, ansi: bool, dark: bool) -> PreparedMarkdown:
+        """Prepare pure syntax and fence rows before project-link delivery."""
         tokens = await renderer.submit(self)
-        await renderer.submit(TokenRenderTask(tuple(tokens), ansi, dark))
+        if not any(token.type in {"fence", "code_block"} for token in tokens):
+            return PreparedMarkdown(tokens, {})
+        return await renderer.submit(TokenRenderTask(tuple(tokens), ansi, dark))
 
     def accept_result(self, result: object) -> list[Token]:
         if not isinstance(result, list) or not all(isinstance(token, Token) for token in result):

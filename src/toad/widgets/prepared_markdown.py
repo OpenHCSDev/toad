@@ -31,7 +31,7 @@ from textual.widgets._markdown import Markdown, MarkdownBlock
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
 from toad.markdown_preparation import FenceKey, PreparedFence
-from toad.render_tasks import MarkdownSyntaxRenderTask, TokenRenderTask
+from toad.render_tasks import MarkdownSyntaxRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
 
@@ -111,21 +111,14 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
                     if use_thread else parser.parse(markdown))
 
         parent = self.parent
-        # Pure grammar preparation shares the existing application byte budget.
-        # Each delivery materializes independent tokens before fresh project
-        # file-link resolution, so neither filesystem nor mutable token state leaks.
-        prepared_tokens = await self.app.render_processes.submit(MarkdownSyntaxRenderTask(markdown))
-        tokens = await asyncio.to_thread(parser.resolve_tokens, prepared_tokens)
-        if self._preparation_closed or self._pruning or not self.is_attached:
-            return None
-        if not any(token.type in {"fence", "code_block"} for token in tokens):
-            self._prepared_fences = {}
-            return tokens
-
+        # Runway and delivery use the same pure preparation key. Filesystem
+        # links are resolved only in each independent delivered token resource,
+        # after highlighting; they never become reusable renderer inputs.
         while not self._preparation_closed and self.is_attached and not self._pruning:
             theme = (self.app.native_ansi_color, self.app.current_theme.dark)
-            task = TokenRenderTask(tuple(tokens), *theme)
-            request = self.app.render_processes.submit(task)
+            request = MarkdownSyntaxRenderTask(markdown).prepare_body(
+                self.app.render_processes, *theme,
+            )
             worker = self.run_worker(request, group="markdown-preparation", exit_on_error=False)
             try:
                 prepared = await worker.wait()
@@ -136,7 +129,10 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
             if (self._preparation_closed or not self.is_attached or self._pruning
                     or self.parent is not parent):
                 return None
-            tokens = prepared.tokens
+            tokens = await asyncio.to_thread(parser.resolve_tokens, prepared.tokens)
+            if (self._preparation_closed or not self.is_attached or self._pruning
+                    or self.parent is not parent):
+                return None
             if theme != (self.app.native_ansi_color, self.app.current_theme.dark):
                 continue
             self._prepared_fences = prepared.fences
