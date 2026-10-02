@@ -28,3 +28,11 @@ Parent executed the prepared publisher once, session88926 terminal0,44.680s. Raw
 The complete stored Thread comparison at this later observation differs for `compaction499-live-architecture-memory` in only canonical `turn_generation`34→35 and `last_finished_turn_id`124d6d732048b6a080e0e721e7787de1→dc6987ad2fa834d8f76857e6b82e122e. Configuration, session/model/thinking/tags/worktree/goal and birth fields are unchanged for all19. The publisher already verified exact originals during retained launch; this readback does not infer what triggered the subsequent turn progression. No receipt or source state was restored.
 
 Schema equality877→d6 means whole schema declarations only, not product source equality: the target contains qualified521/529 changes. The recorded761→d6 qualification equality is separate and unchanged. Raw publisher receipt is untouched. Readback performed no provider/input, stop/start or second publication. Parent's ordinary default physical run remains a distinct pending qualification.
+
+## Ordinary default startup/display closed
+
+Parent's ordinary saved-helper observation completed, exec84947 terminal0,45.659117s. The raw capture return is255, distinct from the parent executor's0, and is preserved together with `assessment=unreviewed` and deferred review. Capture completed; runtime stayed unchanged; original helper3964185/start41851994 remained alive before and after; owned cleanup has no remaining processes or errors.
+
+Parent viewed `before.png` while the receipt's completed flag was still false. A simultaneous recorder PID check was not established, so this is not claimed as during-motion inspection. The image showed actual saved history, Ready sidebar, Session details, focused editor and collapsed coordination. Two historical372 get_state timeout messages remain visible history. The closure author did not separately inspect the running terminal.
+
+`operator-preparation/default-history-closure.json` now records the final scoped publication and default display result. Original raw capture and publisher receipts are archived unchanged. This closes ordinary installed startup/display, not a fresh public channel/compaction input or overall smoothness/CPU. Original529 private configured162s native qualification remains separate. No provider/input replay, repeated publisher or additional run.

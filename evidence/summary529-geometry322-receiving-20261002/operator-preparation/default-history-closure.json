@@ -1,0 +1,80 @@
+{
+  "state": "Published and actual ordinary default saved-history startup/display qualified; scoped final closure",
+  "publisher": {
+    "session": 88926,
+    "terminal_code": 0,
+    "duration_seconds": 44.67993092536926,
+    "receipt_sha256": "ae909987b1238880ce929e9c2d686d0b5d976389c9395bd2a37243f185a37cb4",
+    "raw_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+    "five_links_target": true,
+    "original_root_id_preserved_native_ad533": true,
+    "owners_same_birth_new_process_identity_alive": 19,
+    "configuration_preserved": true,
+    "post_launch_turn_progress": [
+      {
+        "name": "compaction499-live-architecture-memory",
+        "changed_fields": [
+          "turn_generation",
+          "last_finished_turn_id"
+        ],
+        "before": {
+          "turn_generation": 34,
+          "last_finished_turn_id": "124d6d732048b6a080e0e721e7787de1"
+        },
+        "after": {
+          "turn_generation": 35,
+          "last_finished_turn_id": "dc6987ad2fa834d8f76857e6b82e122e"
+        }
+      }
+    ]
+  },
+  "default_observation": {
+    "parent_exec_session": 84947,
+    "parent_exec_terminal_code": 0,
+    "raw_receipt_path": "/home/ts/.cache/agent-scratch/324-default-history-20261002/capture/receipt.json",
+    "raw_receipt_sha256": "3c9d3f6f7618679537b843835f5e7be4e913cd0937a2b43d40f279dcc0c099ba",
+    "completed": true,
+    "capture_completed": true,
+    "duration_seconds": 45.65911732398672,
+    "raw_capture_returncode": 255,
+    "raw_assessment": "unreviewed",
+    "raw_review_timing": "deferred",
+    "runtime_unchanged": true,
+    "original_owner": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "openhcs-helper",
+      "identity": {
+        "pid": 3964185,
+        "start_time": 41851994
+      },
+      "original_owner_alive": true
+    },
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "parent_visual_observation": "Parent viewed before.png while receipt completed was still False; no simultaneous recorder PID verification and no during-motion claim. Saved history, Ready sidebar, Session details, focused editor and collapsed coordination were visible. Two historical372 get_state timeout messages remain preserved.",
+    "closure_author_visual_inspection": false,
+    "artifacts": {
+      "before.png": {
+        "bytes": 115435,
+        "sha256": "123e274330e6e2311d7f6e9f6b168827b28c717bd4575dd632eaf982da937deb"
+      },
+      "after.png": {
+        "bytes": 115435,
+        "sha256": "123e274330e6e2311d7f6e9f6b168827b28c717bd4575dd632eaf982da937deb"
+      },
+      "terminal.mp4": {
+        "bytes": 5612020,
+        "sha256": "c958df2dc1a2d3e972049fe609dc7b1598a26d7abf1e1b64272964c31bc94619"
+      }
+    }
+  },
+  "scope": "Ordinary installed saved-helper startup/display only. No fresh public channel or compaction input; no performance smoothness/CPU claim. Original529 configured private native162s and322 physical107s qualifications remain separate.",
+  "no_input_replay": true,
+  "no_publication_repeat": true,
+  "raw_receipts_modified": false,
+  "schema_equality_is_not_product_equality": true,
+  "remaining": "530 peer/preflight latency and optional520/S4/performance follow-ups are not claimed closed."
+}
