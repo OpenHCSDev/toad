@@ -1,0 +1,28 @@
+{
+  "core": {
+    "accepted_source": "ad73aefe4666678977de73a82ab9fc9528e98eec",
+    "merged": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+    "production_and_native_stack_diff": "",
+    "selected_backend_changed_files_from_current5c": [],
+    "only_current5c_production_changes": [
+      "src/agent_comms/cli_commands.py",
+      "src/agent_comms/turn_context.py",
+      "src/agent_comms/wire_log.py"
+    ],
+    "qualified_installed_cli_queries": 6
+  },
+  "toad": {
+    "accepted_installed_source": "0a999fdc8ef2cc4452f7a3ade4b1a566d77fa80d",
+    "receiving": "dc6c484ce78428eb3d0fe8c7ddda1c56f4f8f1fa",
+    "production_diff": "",
+    "physical_seconds": 113.50401202199282,
+    "physical_completed": true
+  },
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "affected_journeys_not_repeated": true,
+  "503_excluded": true,
+  "503_artifacts_protected": true,
+  "parent_remaining": "public default saved startup/UI after activation"
+}
