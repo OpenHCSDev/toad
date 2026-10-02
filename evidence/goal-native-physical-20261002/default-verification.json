@@ -1,0 +1,274 @@
+{
+  "assessment": "scoped default saved-helper read-only PASS",
+  "duration_seconds": 19.694841024989728,
+  "source": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/.local/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/agent-comms-acp",
+        "sha256": "fbbdf0efed6105c69db7c8b23a3a559130800c27e1dea8d0b86b6056dada2044"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/toad",
+        "sha256": "72382f44641c344c4fc5d7377ddc759aeb7168e8a1e37243f0d640affe96bbbc"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/agent-comms-acp",
+        "sha256": "fbbdf0efed6105c69db7c8b23a3a559130800c27e1dea8d0b86b6056dada2044"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/activation.json",
+    "activation_sha256": "ae070395003a16cbee2e26c03c8807407bbcd47593d0eb9963f16c3e072d1906",
+    "activation": {
+      "stage": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002",
+      "pins": {
+        "agent_comms": "9ccc04c8ca5df864fdf9018211629bf3f2bd25d2",
+        "toad": "f07f6eb26647a5a828bc5966aa81df6a69a5048f",
+        "textual": "23822923a02b75a1fad10751d97dc009c36b598b"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+      "state": "normal69 installed source/directURLs/assets/fulltrust verified; parent activation and default gate sole owner",
+      "staging_receipt": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/native5-goal-receiving-20261002/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+      "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+      "native_configuration_note": "Native5 goal513 declared schema and514 preserving carry plus merged308 frontend; Sch/Mendel sole affected goal path. Goal and Native5 carry required before publication; parent sole publisher; no native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "ac6ffaaa08269a53fccccc52876a0662f3b87000542f8a03aa87af0f658ddbfa",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "f07f6eb26647a5a828bc5966aa81df6a69a5048f",
+              "requested_revision": "f07f6eb26647a5a828bc5966aa81df6a69a5048f"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "752128329286f1ff06d56cb1a739a1c6881a66c57613744b574076b24feae26d",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "23822923a02b75a1fad10751d97dc009c36b598b",
+              "requested_revision": "23822923a02b75a1fad10751d97dc009c36b598b"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "43d74c0a32c8b7889873d486d1faf4cb54b5b18d251db92b5ace0ddd982b4422",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9ccc04c8ca5df864fdf9018211629bf3f2bd25d2",
+              "requested_revision": "9ccc04c8ca5df864fdf9018211629bf3f2bd25d2"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3481867,
+      "start_time": 40247643
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3481867,
+      "start_time": 40247643
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3488083,
+        "start_ticks": 40270274,
+        "returncode": 0
+      },
+      {
+        "pid": 3488173,
+        "start_ticks": 40270457,
+        "returncode": 0
+      },
+      {
+        "pid": 3488175,
+        "start_ticks": 40270465,
+        "returncode": 0
+      },
+      {
+        "pid": 3488176,
+        "start_ticks": 40270470,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3488183,
+        "start_ticks": 40270538,
+        "returncode": 0
+      },
+      {
+        "pid": 3488184,
+        "start_ticks": 40270549,
+        "returncode": 0
+      },
+      {
+        "pid": 3488185,
+        "start_ticks": 40270558,
+        "returncode": 0
+      },
+      {
+        "pid": 3488186,
+        "start_ticks": 40270568,
+        "returncode": 255
+      },
+      {
+        "pid": 3488205,
+        "start_ticks": 40270670,
+        "returncode": 0
+      },
+      {
+        "pid": 3488213,
+        "start_ticks": 40270693,
+        "returncode": 0
+      },
+      {
+        "pid": 3488223,
+        "start_ticks": 40270739,
+        "returncode": 0
+      },
+      {
+        "pid": 3488423,
+        "start_ticks": 40271237,
+        "returncode": 0
+      },
+      {
+        "pid": 3488515,
+        "start_ticks": 40271650,
+        "returncode": 0
+      },
+      {
+        "pid": 3488544,
+        "start_ticks": 40271803,
+        "returncode": 0
+      },
+      {
+        "pid": 3488636,
+        "start_ticks": 40272217,
+        "returncode": 0
+      },
+      {
+        "pid": 3488727,
+        "start_ticks": 40272470,
+        "returncode": 0
+      },
+      {
+        "pid": 3488733,
+        "start_ticks": 40272497,
+        "returncode": 0
+      },
+      {
+        "pid": 3488739,
+        "start_ticks": 40272587,
+        "returncode": 0
+      },
+      {
+        "pid": 3488753,
+        "start_ticks": 40272770,
+        "returncode": 0
+      },
+      {
+        "pid": 3488767,
+        "start_ticks": 40273008,
+        "returncode": 0
+      }
+    ]
+  },
+  "raw_receipt": "/home/ts/.cache/agent-scratch/goal514-native-physical-20261002/default-capture01/receipt.json",
+  "raw_sha256": "7b600ac4dcab5e4fc15bde2300a903f6be04c6e49b929431148a1d60a6cdfeb3",
+  "raw_capture_returncode": 255,
+  "returncode_limit": "Raw255 is recorder terminal teardown; not relabeled exit0. Driver completed and owned cleanup has no errors.",
+  "visual_inspection": {
+    "during_run": [
+      "phase-default-loaded.png",
+      "phase-default-ready.png"
+    ],
+    "after_run": [
+      "phase-default-idle.png"
+    ],
+    "observations": [
+      "Saved helper history readable",
+      "Ready status and empty editor visible",
+      "No helper goal bar",
+      "No Inbox unavailable or unsupported goal error",
+      "Notification status changes from unchecked to canonical participant outcomes"
+    ],
+    "initial_blank": "before.png is early startup before saved history; loaded frame readable"
+  },
+  "limits": [
+    "No provider/input/tool mutation in this default check",
+    "Blocked original agent-comms-ux goal was not restored or changed",
+    "Actual goal/tool/edit/clear acceptance is original private capture04, not re-executed here"
+  ]
+}
