@@ -56,23 +56,26 @@ class AgentProcess:
         self.env = os.environ.copy()
         self.cwd = str(self.agent.project_root_path.resolve())
         self.route_selection = RouteSelection.for_child(self.env, self.cwd)
-        try:
-            self.custody.enter_context(self.route_selection.route.admit_client())
-            await asyncio.to_thread(
-                preflight,
-                (self.agent.coordination.wire_root if self.agent.coordination else None),
-                ingress_root=self.route_selection.root,
-                cwd=self.cwd,
-            )
-        except Exception as error:
-            self.custody.close()
-            self.agent.session.failed()
-            self.agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
-            return
-        self.disposition = ActiveProcessDisposition()
-        self.agent.controller.replace_terminal_session()
-        self.retirement = None
-        self.runner = asyncio.create_task(self.run())
+        with ExitStack() as acquisition:
+            try:
+                acquisition.enter_context(self.route_selection.route.admit_client())
+                await asyncio.to_thread(
+                    preflight,
+                    (self.agent.coordination.wire_root if self.agent.coordination else None),
+                    ingress_root=self.route_selection.root,
+                    cwd=self.cwd,
+                )
+            except Exception as error:
+                self.agent.session.failed()
+                self.agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
+                return
+            self.disposition = ActiveProcessDisposition()
+            self.agent.controller.replace_terminal_session()
+            self.retirement = None
+            self.runner = asyncio.create_task(self.run())
+            # No await can cancel between task creation and resource transfer.
+            # Cancelled/failed preflight owns no runner and closes acquisition.
+            self.custody.enter_context(acquisition.pop_all())
 
     def send(self, request):
         if self.process is None:
