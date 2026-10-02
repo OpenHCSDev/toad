@@ -1,0 +1,140 @@
+{
+  "state": "published working source; installed startup/paging/A-B-A partial evidence; full journey not qualified",
+  "production_source": {
+    "core": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+    "toad": "7e529b33dfb8582483cbf49e668f90cd5330d69d",
+    "textual": "bf58038114017e266e78761744e6a7868c1006de",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "source_contract": "Accepted CommitEvidence ends covered native display synchronously. AsyncExitStack joins accepted/provisional native retirement after source/history tree locks release. Page coverage joins on original Conversation pump outside mount. Actual prior body worker completes before the next original worker writes.",
+  "declarations_and_consumers": "Parsed all src/toad Python files without omissions. One TranscriptPresentation retirement implementation; snapshot/checkpoint/coverage all migrated, including two provisional rollbacks. Native LiveOutput owns stream association transfer and Native AwaitRemove owns Prune completion. No new owner class, lock, cache, registry or status flag.",
+  "source_checks": {
+    "covered_output_lock_cancellation": "PASS; both source/tree locks available while output held; accepted page survives; old history/stream gone",
+    "provisional_mount_and_accepted_prune_cancellation_installed": "PASS",
+    "earlier_fixture_failures": "Preserved retirement-join.log and retirement-join-canonical.log; obsolete fixture encoding produced empty page, before publication.",
+    "existing_lifetime_pilot": "FAIL preserved: assertion requires rebuilt MarkdownParagraph on retained-strip reentry; not claimed as baseline failure or acceptance"
+  },
+  "installed_source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-restore-retirement331-native29-20261002/source-proof.json",
+  "raw_capture_receipt": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-03/capture/receipt.json",
+  "raw_completed": false,
+  "raw_capture_completed": false,
+  "unified_supervisor": {
+    "session": 88407,
+    "exit_code": 1,
+    "recorder_exception": "TimeoutExpired: Command '['xdotool', 'sleep', '1']' timed out after 6.697752320964355 seconds",
+    "all_owned_processes_closed": true,
+    "actual_terminal_program_exit_code": "not captured; transferred identity is not an exit verdict"
+  },
+  "native_inputs": 0,
+  "settings_unchanged": true,
+  "public_witness": {
+    "public_source_process": {
+      "pid": 283015,
+      "start_time": 43650306
+    },
+    "same_process_alive": true,
+    "owned_wrapper_recorder_ui_private_owners_closed": true,
+    "owned_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 359664,
+          "start_ticks": 43944157,
+          "returncode": 1
+        }
+      ]
+    },
+    "settings_unchanged": true,
+    "native_input_rows": 0,
+    "scope": "Original helper ProcessIdentity only. No original input, public owner mutation or application-exit verdict."
+  },
+  "physical_scope": {
+    "required_exports_complete_through": "A-return",
+    "not_exported": [
+      "undo",
+      "after"
+    ],
+    "input_focused_paging": {
+      "checks": {
+        "input_remains_focused": true,
+        "original_editor_window_and_mode": true,
+        "draft_and_caret_preserved": true,
+        "input_pageup_moves_history": true,
+        "input_pagedown_moves_history": true,
+        "input_pageup_reaches_original_window": true,
+        "input_pagedown_reaches_original_window": true
+      },
+      "native_checks_passed": true,
+      "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+      "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+    },
+    "during_moving_frame_review": {
+      "reviewed_during_recording": true,
+      "review_monotonic": 439640.765321577,
+      "recorder_pid": 359664,
+      "ui_pid": 359695,
+      "confirmed_alive_before_review": true,
+      "frames": [
+        {
+          "path": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-03/capture/during-input-up-29-frames.png",
+          "seconds": [
+            29,
+            30
+          ],
+          "count": 60,
+          "finding": "Readable body; repeated positions followed by discrete movement, not smoothness acceptance."
+        },
+        {
+          "path": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-03/capture/during-input-down-60-frames.png",
+          "seconds": [
+            60,
+            61
+          ],
+          "count": 60,
+          "finding": "Readable source progression; repeated positions and discrete jumps, not smoothness acceptance."
+        }
+      ],
+      "other_frame": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-03/capture/phase-draft.png",
+      "other_finding": "Saved history available, Ready, original draft visible; previous Loading-thread startup blocker passed.",
+      "limitations": [
+        "Consecutive timed images are not continuous playback.",
+        "Exact keydown/keyup monotonic windows will be aligned with the original recorder origin after final receipt.",
+        "No CPU or terminal latency gain claim."
+      ]
+    },
+    "body_result": "Previous warm-ready35s startup failure passed; A load, input paging/reversal/End/idle, B actual opening and A actual return have readable source/body exports. Final undo and normal application exit are not qualified."
+  },
+  "native_writer_key_window_ms": {
+    "input_up": {
+      "median": 18.45,
+      "p95": 225.6,
+      "max": 491.95
+    },
+    "input_down": {
+      "median": 16.47,
+      "p95": 103.51,
+      "max": 500.74
+    },
+    "history_reverse": {
+      "median": 16.11,
+      "p95": 94.75,
+      "max": 303.15
+    }
+  },
+  "measurement_limits": [
+    "Writer flush is not changed body pixels or terminal presentation FPS.",
+    "CPU phase boundaries include diagnostic exports/observation overhead; no causal speed comparison.",
+    "Profiler1366GILsamples/errors1; midpoint alignment uncertainty nominal0.0769seconds, partial sampling.",
+    "Consecutive moving frames reviewed during run show discrete steps; no smoothness/144Hz acceptance.",
+    "Raw false receipt is unchanged; no new recording."
+  ],
+  "remaining": [
+    "Final full warm/draft undo/application-exit closure not reached due recorder observation/command wait failure.",
+    "Foreground native Markdown mounting/style/layout remains active source lead.",
+    "Full original CPU/raster/cold/warm/velocity/runway/growingEnd/void/focus/sidebar/animation/TC1T9T4 scope stays active in PR331/Text29."
+  ]
+}
