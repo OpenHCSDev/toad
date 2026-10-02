@@ -52,6 +52,9 @@ async def main():
 
             async def settle():
                 async with asyncio.timeout(10):
+                    published = asyncio.Event()
+                    app.screen.frame_presentation.defer(window, published.set)
+                    await published.wait()
                     while (viewport._pending or viewport._running
                            or not viewport.visible_bodies_ready):
                         await pilot.pause(.02)

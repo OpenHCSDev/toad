@@ -753,7 +753,12 @@ class DocumentViewport:
 
     def resume_source(self) -> None:
         self._suspended = False
-        self.request()
+        # Resume restores the native geometry target declaration as well as
+        # source custody. Reconciliation consumes that publication; it must
+        # not capture from the departing/parked scene or manufacture its boxes.
+        if self.geometry_targets():
+            self.window.refresh(layout=True)
+        self.window.screen.frame_presentation.defer(self.window, self.request)
 
     async def close(self) -> None:
         """Release this working set before its window's final retirement."""
