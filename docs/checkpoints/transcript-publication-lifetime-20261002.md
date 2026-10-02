@@ -96,4 +96,31 @@ Receipts and final wrapper/log are committed in
 installed App family, not the physical native/ACP A/B/A user journey.
 Heisenberg owns that sole readonly journey on the same completed canonical501
 child. No new provider call, message, compaction, replay or public activation
-was performed here. Full release readiness remains pending that physical gate.
+was performed here. At this checkpoint the physical gate was still pending;
+the final qualification below completes this source lifetime scope.
+
+## Final physical qualification
+
+READY for the scoped source lifetime checkpoint. Readonly03 completed the
+missing A/B/A and End path with11/11 original lifetime checks on the exact
+c972 candidate. Schrodinger personally reviewed B-open, A-return and End PNGs:
+B showed the correct readable agent-comms-ux history; A showed the correct
+canonical501 saved request and retained draft; End showed the exact original
+compaction501 acknowledgement and Ready. Original editor/window, draft and undo
+remained owned by that source.
+
+Original owner2644125/start37571603 and native source42,145,087B/
+SHAe600d879 were unchanged before/after this readonly run. Operator/capture
+exit0, cleanup remainingPIDs/errors empty. Native input was not sent. The
+committed receipt is `physical03-qualification.json` beside the installed-family
+evidence; original raw recording and failures remain private and protected.
+
+The preceding02 B-timeout remains preserved: its lock holder was not captured
+and remains UNKNOWN. Source review established that history_lock serializes
+resource work and is not the universal native publication fence; existing
+history_mutating() derives that distinct native tree lock. The physical
+observer deleted only its independently maintained serialization-unlocked
+readiness rule; native tree, visible body, current frame and FrameFlush writer
+conditions remain. No product change or timer increase was made for that
+observer correction. This qualifies source lifetime, not284/full CPU or warm
+raster performance. Parent owns publication/default activation.
