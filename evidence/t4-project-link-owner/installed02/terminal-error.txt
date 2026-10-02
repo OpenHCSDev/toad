@@ -1,0 +1,49 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/app.py", line 2212, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/file_path_preview_pilot.py", line 366, in encoded_historical_journey
+    assert hrefs == [direct, deferred, "toad-file:" + quote(str(path.parent / "plain.py"))], hrefs
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['toad-file-search:25.md', 'toad-file-search:report%20space%20%2350%25.md', 'toad-file:/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed02/old%20root%20%23A%25/nested/plain.py']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/file_path_preview_pilot.py", line 409, in <module>
+    asyncio.run(encoded_historical_journey(Path(sys.argv[2])) if sys.argv[1:2] == ["--installed-owner"] else main())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/file_path_preview_pilot.py", line 352, in encoded_historical_journey
+    async with app.run_test(headless=False, size=None) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/app.py", line 2220, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 644, in _pre_process
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/toad/widgets/wire_message_handling.py", line 24, in on_mount
+    self.query_ancestor(Conversation).transcript.request_handling()
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/textual/dom.py", line 1764, in query_ancestor
+    raise NoMatches(f"No ancestor matches {selector!r} on {self!r}")
+textual.css.query.NoMatches: No ancestor matches <class 'toad.widgets.conversation.Conversation'> on OutgoingMessage(classes='block')

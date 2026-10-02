@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/file_path_preview_pilot.py", line 410, in <module>
+    asyncio.run(encoded_historical_journey(Path(sys.argv[2])) if sys.argv[1:2] == ["--installed-owner"] else main())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/tests/file_path_preview_pilot.py", line 309, in encoded_historical_journey
+    old.messaging.send(user, "#source", "Saved source bus anchor outside tested conversations")
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/agent_comms/messaging.py", line 50, in send
+    return self.send_message(
+           ~~~~~~~~~~~~~~~~~^
+        sender, target, body, type, notice=notice, claims=claims, releases=releases
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).message_id
+    ^
+  File "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-20261001/lib/python3.14/site-packages/agent_comms/messaging.py", line 72, in send_message
+    raise RelationViolationError(
+        "Human messages require the explicit user-message operation."
+    )
+agent_comms.errors.RelationViolationError: Human messages require the explicit user-message operation.
