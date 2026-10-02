@@ -69,6 +69,7 @@ async def main():
                 await pilot.pause()
                 conversation = app.selected_session.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
+                agent.attach_surface(conversation)
                 conversation.agent_ready = True
                 await conversation.goal_observation.refresh()
                 await pilot.pause()
@@ -99,7 +100,7 @@ async def main():
                     current = comms.registry.require(session).goal
                     assert current.id == original.id and current.text == objective
                     assert conversation.goal_display.snapshot == current
-                    conversation.post_message(CommsUpdated(GoalChangedUpdate(original, None)))
+                    agent.events.publish(CommsUpdated(GoalChangedUpdate(original, None), session_id=agent.session_id))
                     await pilot.pause()
                     assert conversation.goal_display.snapshot == current, (
                         "Old notification must not overwrite the canonical snapshot"
@@ -165,7 +166,7 @@ async def main():
                 await asyncio.gather(first, pause, clear)
                 assert reads >= 2, reads
                 assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
-                conversation.post_message(CommsUpdated(GoalChangedUpdate(original, None)))
+                agent.events.publish(CommsUpdated(GoalChangedUpdate(original, None), session_id=agent.session_id))
                 await pilot.pause()
                 assert conversation.goal_display.snapshot is None
         finally:

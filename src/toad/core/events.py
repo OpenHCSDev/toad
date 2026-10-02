@@ -22,6 +22,10 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
 
+    def can_replace(self, event: CoreEvent) -> bool:
+        """Only declared coalescing invalidations replace queued publications."""
+        return False
+
 
 @dataclass(frozen=True)
 class Update(CoreEvent):
@@ -140,6 +144,11 @@ class SessionSubtitleChanged(CoreEvent):
 @dataclass(frozen=True)
 class SessionPathChanged(CoreEvent):
     path: str
+
+
+@dataclass(frozen=True)
+class ThreadActivityChanged(CoreEvent):
+    """Invalidate feedback from the original observation resource."""
 
 
 @dataclass(frozen=True)

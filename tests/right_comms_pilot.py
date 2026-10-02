@@ -1,3 +1,5 @@
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 """Isolated, typed fixture for the right Comms tree; no new core service needed."""
 
 import asyncio
@@ -17,7 +19,8 @@ from toad.sidebar_layout import SidebarLayout
 from toad.work_preparation import PreparationRuntime
 from toad.session_tracker import SidebarState
 from toad.navigation_target import ThreadTarget
-from toad.widgets.comms_sidebar import CommsRow, SelectTarget
+from toad.widgets.comms_sidebar import CommsRow
+from toad.core.input_events import SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.sidebar_tree import TargetTree
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
@@ -121,7 +124,7 @@ class ReferenceTree(TargetTree):
         self.selected = row.target_name
 
 
-class FixtureApp(App):
+class FixtureApp(CoreEventReceiver, App):
     CSS = "Screen { layout: horizontal; } #reference { width: 40; }"
 
     def __init__(self, source):
@@ -150,8 +153,9 @@ class FixtureApp(App):
         finally:
             await self.preparation.aclose()
 
-    def on_select_target(self, event: SelectTarget):
-        self.opened.append((event.target.name, event.target.declared_name))
+    @handles(SelectTarget)
+    def on_select_target(self, event: CoreEventMessage):
+        self.opened.append((event.event.target.name, event.event.target.declared_name))
 
 
 async def main():

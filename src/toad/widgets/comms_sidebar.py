@@ -12,6 +12,7 @@ acts through ``agent_comms`` operations.
 """
 
 from __future__ import annotations
+from toad.core.input_events import SelectTarget
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
@@ -201,15 +202,7 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class SelectTarget(Message):
-    """User picked a view target: a channel, a DM peer, or the session."""
-
-    def __init__(self, target: NavigationTarget) -> None:
-        self.target = target
-        super().__init__()
-
-
-class CommsRow(ThreadStatusRow):
+class CommsRow(CoreEventReceiver, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
 
     mode_name: str | None = None
@@ -302,7 +295,7 @@ class CommsRow(ThreadStatusRow):
                 group="sidebar-open",
             )
         else:
-            self.post_message(SelectTarget(self.target))
+            self.publish_core(SelectTarget(self.target))
 
     def on_focus(self) -> None:
         """Keep the sidebar cursor in sync with keyboard focus."""

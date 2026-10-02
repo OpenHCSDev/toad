@@ -43,6 +43,3 @@ class Flash(Message):
     content: str | Content
     style: Literal["default", "warning", "success", "error"]
     duration: float | None = None
-
-
-

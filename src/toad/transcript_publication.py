@@ -695,7 +695,7 @@ class TranscriptPresentation:
             except WorkerCancelled:
                 pass
 
-    def covered(self, message) -> AwaitComplete:
+    def covered(self, coverage, history) -> AwaitComplete:
         from toad.widgets.conversation import Contents
         from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
@@ -711,20 +711,19 @@ class TranscriptPresentation:
         contents = view.query_one_optional(Contents)
         if (
             contents is not None
-            and message.history is not None
-            and message.history.is_attached
-            and message.history.parent is contents
+            and history.is_attached
+            and history.parent is contents
         ):
             candidates = retirement_candidates(
                 contents.children,
                 CommitEvidence(
                     frozenset(),
-                    frozenset(message.sequences) | message.history.covered_sequences(
+                    frozenset(coverage.sequences) | history.covered_sequences(
                         frozenset(sequence for child in contents.children
                                   if isinstance(child, CommitParticipant)
                                   for sequence in child.commit_claim.required_sequences)),
-                    message.history,
-                    message.native_inputs,
+                    history,
+                    coverage.native_inputs,
                 ),
             )
             protected = protected_blocks(view, candidates)

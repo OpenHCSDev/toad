@@ -28,6 +28,11 @@ class CoreEventMessage(Message):
     def publisher(self) -> object:
         return self.subscription.stream.publisher
 
+    def can_replace(self, message: Message) -> bool:
+        return (isinstance(message, CoreEventMessage)
+                and self.subscription is message.subscription
+                and self.event.can_replace(message.event))
+
 
 class CoreEventReceiver(MroDispatch):
     """Consume declared events inside the native message-pump lifetime."""

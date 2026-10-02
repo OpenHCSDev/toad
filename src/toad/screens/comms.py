@@ -16,8 +16,9 @@ from textual.widgets import Button, Static
 from toad import messages
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.irc_message import SelectHistoricalIdentity
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.core.input_events import SelectHistoricalIdentity
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar
@@ -146,16 +147,16 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         )
 
 
-    @on(SelectHistoricalIdentity)
-    async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
+    @handles(SelectHistoricalIdentity)
+    async def select_historical_identity(self, event: CoreEventMessage) -> None:
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
         comms = self.app.coordination_access.service
-        threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
+        threads = await asyncio.to_thread(comms.views.historical_threads, event.event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
             return
-        self.app.push_screen(HistoricalSessions(comms, threads, name=event.name, source=event.source))
+        self.app.push_screen(HistoricalSessions(comms, threads, name=event.event.name, source=event.event.source))
 
     @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
@@ -260,9 +261,9 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     def navigation_context(self) -> NavigationContext:
         return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
 
-    @on(SelectTarget)
-    async def on_select_target(self, event: SelectTarget) -> None:
-        await self.open_sidebar_target(event.target)
+    @handles(SelectTarget)
+    async def on_select_target(self, event: CoreEventMessage) -> None:
+        await self.open_sidebar_target(event.event.target)
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:

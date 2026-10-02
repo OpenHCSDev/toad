@@ -9,7 +9,6 @@ from collections.abc import Awaitable, Callable
 from toad.screens.session_view import SessionView
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.coordination_errors import CoordinationReadUnavailable
-from textual.message import Message
 from textual.widgets import Static
 
 
@@ -21,17 +20,6 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
     ObservedThreadActivity.-working { color: $accent; }
     ObservedThreadActivity.-unavailable { color: $warning; }
     """
-
-    class Changed(Message):
-        def __init__(self, observation, read, presentation: ThreadPresentation | None, unavailable: bool):
-            super().__init__()
-            self.observation, self.read = observation, read
-            self.presentation = presentation
-            self.unavailable = unavailable
-
-        @property
-        def current(self) -> bool:
-            return self.read is self.observation.read
 
     def __init__(self, read: Callable[[], Awaitable[ThreadPresentation | None]]):
         super().__init__("", markup=False)
@@ -122,4 +110,4 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
         self.update("\n".join(lines))
         self.set_class(bool(presentation and presentation.busy), "-working")
         self.set_class(unavailable or bool(presentation and presentation.attention), "-unavailable")
-        self.post_message(self.Changed(self, self.read, presentation, unavailable))
+        self.publish_core(core_events.ThreadActivityChanged())

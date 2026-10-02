@@ -32,7 +32,8 @@ from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
 from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.footer import Footer
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
@@ -41,7 +42,8 @@ from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.session_tracker import SidebarState
@@ -434,10 +436,10 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         if target and self.id is not None:
             await self.open_sidebar_target(DirectTarget(target))
 
-    @on(SelectTarget)
-    async def on_comms_select_target(self, event: SelectTarget) -> None:
+    @handles(SelectTarget)
+    async def on_comms_select_target(self, event: CoreEventMessage) -> None:
         """Open channels and DMs through Toad's native session modes."""
-        await self.open_sidebar_target(event.target)
+        await self.open_sidebar_target(event.event.target)
 
     def action_session_previous(self) -> None:
         if self.id is not None:

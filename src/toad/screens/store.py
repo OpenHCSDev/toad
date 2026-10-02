@@ -1,10 +1,9 @@
-from toad.core import session_requests
+from toad.core import session_requests, input_events
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.mro_dispatch import handles
 from toad.preferences import LauncherSettings
 from contextlib import suppress
-from dataclasses import dataclass
 from itertools import zip_longest
 from pathlib import Path
 from random import shuffle
@@ -19,7 +18,6 @@ from textual import on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.message import Message
 from textual.reactive import reactive
 from textual import containers
 from textual import widgets
@@ -53,12 +51,7 @@ QR = """\
 ▀▀▀▀▀▀▀ ▀▀▀  ▀   ▀▀▀▀▀▀▀▀"""
 
 
-@dataclass
-class ChangeDirectory(Message):
-    path: str
-
-
-class DirectoryDisplay(containers.HorizontalGroup):
+class DirectoryDisplay(CoreEventReceiver, containers.HorizontalGroup):
 
     BINDINGS = [("escape", "dismiss", "Dismiss")]
 
@@ -114,7 +107,7 @@ class DirectoryDisplay(containers.HorizontalGroup):
             )
             return
         self.condensed_path.path = format_path(path, directory=True)
-        self.post_message(ChangeDirectory(str(path)))
+        self.publish_core(input_events.ChangeDirectory(str(path)))
 
     def action_dismiss(self) -> None:
         self.edit = False
@@ -160,7 +153,7 @@ class AgentItem(containers.VerticalGroup):
         yield widgets.Static(agent.description, id="description")
 
 
-class LauncherGridSelect(GridSelect):
+class LauncherGridSelect(CoreEventReceiver, GridSelect):
 
     HELP = """\
 ## Launcher
@@ -196,7 +189,7 @@ Your favorite agents.
             return
         agent_item = self.children[self.highlighted]
         assert isinstance(agent_item, LauncherItem)
-        self.post_message(StoreScreen.OpenAgentDetails(agent_item._agent.identity))
+        self.publish_core(input_events.OpenAgentDetails(agent_item._agent.identity))
 
     def action_remove(self) -> None:
         agents = self.app.settings.launcher.agents.splitlines()
@@ -371,10 +364,6 @@ class StoreScreen(CoreEventReceiver, Screen):
 
     app = getters.app(ToadApp)
 
-    @dataclass
-    class OpenAgentDetails(Message):
-        identity: str
-
     def __init__(
         self, name: str | None = None, id: str | None = None, classes: str | None = None
     ):
@@ -499,11 +488,11 @@ class StoreScreen(CoreEventReceiver, Screen):
         assert isinstance(event.widget, AgentItem)
         await self.show_agent(event.widget.agent)
 
-    @on(OpenAgentDetails)
+    @handles(input_events.OpenAgentDetails)
     @work
-    async def open_agent_detail(self, message: OpenAgentDetails) -> None:
+    async def open_agent_detail(self, message: CoreEventMessage) -> None:
         try:
-            agent = self._agents[message.identity]
+            agent = self._agents[message.event.identity]
         except KeyError:
             return
         await self.show_agent(agent)
@@ -524,9 +513,9 @@ class StoreScreen(CoreEventReceiver, Screen):
         if modal_response is not None:
             self.app.session_navigation.events.publish(modal_response)
 
-    @on(ChangeDirectory)
-    def on_change_directory(self, event: ChangeDirectory) -> None:
-        self.project_dir = Path(event.path)
+    @handles(input_events.ChangeDirectory)
+    def on_change_directory(self, event: CoreEventMessage) -> None:
+        self.project_dir = Path(event.event.path)
         self.app.project_dir = self.project_dir
 
     @work

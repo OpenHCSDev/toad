@@ -5,11 +5,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from textual.worker import WorkerCancelled
-from textual.message import Message
 from toad.core_event_carrier import CoreEventReceiver
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
-from toad.widgets.committed_presentation import TranscriptCoverage
+from toad.core.source_events import TranscriptCoverage, TranscriptSourceWorkFinished
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -33,14 +32,6 @@ class HistorySourceSnapshot:
         if not owner.source_publication_available:
             return False
         return self == owner.source_snapshot()
-
-
-class TranscriptSourceWorkFinished(Message):
-    """The original pager released its admitted mutation resource."""
-
-    def __init__(self, history):
-        super().__init__()
-        self.history = history
 
 
 class TranscriptSourcePreparation(CoreEventReceiver):
@@ -107,7 +98,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             if self.state.accepts_publication:
                 self.window.check_follow()
                 self._scroll_changed()
-                self.post_message(TranscriptSourceWorkFinished(self))
+                self.publish_core(TranscriptSourceWorkFinished())
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
@@ -130,7 +121,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._prefetch_intent = None
         self.window.histories.add(self)
         if self._source_state.reports_coverage:
-            self.post_message(TranscriptCoverage(tuple(self.coverage_events), self))
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
         self.window.check_follow()
         self._scroll_changed()
         self.prepare_scroll()

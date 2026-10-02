@@ -197,14 +197,6 @@ See on-screen instructions for details.
     def queue_supported(self) -> bool:
         return not self.simple_input and self.query_ancestor(Prompt).queue_supported
 
-    class Submitted(Message):
-        def __init__(self, markdown: str) -> None:
-            self.markdown = markdown
-            super().__init__()
-
-    class RequestShellMode(Message):
-        pass
-
     class CancelShell(Message):
         pass
 
@@ -746,11 +738,6 @@ class Prompt(containers.VerticalGroup):
         """Called when there is may be new files"""
         if not self.simple_input:
             self.path_search.invalidate_paths()
-
-    @on(PromptTextArea.RequestShellMode)
-    def on_request_shell_mode(self, event: PromptTextArea.RequestShellMode):
-        self.shell_mode = True
-        self.update_prompt()
 
     @on(TextArea.Changed)
     def on_text_area_changed(self, event: TextArea.Changed) -> None:

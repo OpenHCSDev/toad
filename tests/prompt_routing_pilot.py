@@ -69,7 +69,7 @@ async def main():
             assert not prompt.shell_mode and prompt.text == "!"
             assert not prompt.path_search.is_open
             prompt.text = ""
-            area.post_message(area.RequestShellMode())
+            prompt.shell_mode = True  # Original programmatic shell mode, not a dead message API.
             await pilot.pause()
             assert prompt.shell_mode and not prompt.text
             await pilot.press("p", "w", "d", "enter")
@@ -79,7 +79,7 @@ async def main():
             await pilot.press(*"open", "space", *"again", "enter")
             await pilot.pause()
             assert captured[-1].body == "open again" and not captured[-1].shell
-    print("prompt routing: command prefixes remain agent input; explicit shell is one-shot")
+    print("prompt routing: command prefixes remain agent input; programmatic shell mode is one-shot")
 
 
 if __name__ == "__main__":

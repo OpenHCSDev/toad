@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import Literal
 
 from toad.input_history import InputHistory
+from toad.navigation_target import NavigationTarget
+from toad.goal_interaction import GoalInteraction
 from .events import CoreEvent
 
 
@@ -47,3 +49,29 @@ class ProviderLogin(CoreEvent):
 @dataclass(frozen=True)
 class ProjectDirectoryUpdated(CoreEvent):
     """The original filesystem watcher invalidated its project presentation."""
+
+
+@dataclass(frozen=True)
+class ChangeDirectory(CoreEvent):
+    path: str
+
+
+@dataclass(frozen=True)
+class OpenAgentDetails(CoreEvent):
+    identity: str
+
+
+@dataclass(frozen=True)
+class SelectTarget(CoreEvent):
+    target: NavigationTarget
+
+
+@dataclass(frozen=True)
+class SelectHistoricalIdentity(CoreEvent):
+    name: str
+    source: str
+
+
+@dataclass(frozen=True)
+class GoalControlActivated(CoreEvent):
+    action: type[GoalInteraction]

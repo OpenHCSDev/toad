@@ -70,7 +70,8 @@ from toad.widgets.terminal_tool import TerminalTool
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
-from toad.directory_watcher import DirectoryChanged, DirectoryWatcher
+from toad.directory_watcher import DirectoryWatcher
+from toad.core.source_events import DirectoryChanged, CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested
 from toad.format_path import format_path
 from toad.input_history import InputHistories
 from toad.widgets.flash import Flash
@@ -92,7 +93,7 @@ from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNav
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
-from toad.shell import CurrentWorkingDirectoryChanged, Shell
+from toad.shell import Shell
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
     InputDeliveryBar,
@@ -882,8 +883,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.navigation.index = -1
             self.flash("Command interrupted", style="success")
 
-    @on(DirectoryChanged)
-    def on_directory_changed(self, event: DirectoryChanged) -> None:
+    @handles(DirectoryChanged)
+    def on_directory_changed(self, event: CoreEventMessage) -> None:
         event.stop()
         if self.turns.owner.accepts_prompt:
             self.publish_core(input_events.ProjectDirectoryUpdated())
@@ -980,16 +981,17 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             raise ValueError("Agent attachment changed")
         return presentation
 
-    @on(ObservedThreadActivity.Changed)
+    @handles(core_events.ThreadActivityChanged)
     async def on_observed_thread_activity(
-        self, event: ObservedThreadActivity.Changed
+        self, event: CoreEventMessage
     ) -> None:
         event.stop()
-        if not event.current or event.unavailable:
+        observation = event.publisher
+        if observation.unavailable:
             return
-        if event.presentation is not None:
+        if observation.presentation is not None:
             from toad.transcript_publication import ObservedSourcePublication
-            self.transcript.source_requests.request(ObservedSourcePublication, event.presentation)
+            self.transcript.source_requests.request(ObservedSourcePublication, observation.presentation)
 
 
     @handles(AgentReady)
@@ -1301,12 +1303,12 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.window.focus(scroll_visible=False)
         await event.menu.remove()
 
-    @on(CurrentWorkingDirectoryChanged)
+    @handles(CurrentWorkingDirectoryChanged)
     def on_current_working_directory_changed(
-        self, event: CurrentWorkingDirectoryChanged
+        self, event: CoreEventMessage
     ) -> None:
         if self._shell is None or self._shell.pending_directory is None:
-            self.working_directory = str(Path(event.path).resolve().absolute())
+            self.working_directory = str(Path(event.event.path).resolve().absolute())
 
     def _sync_throbber(self) -> None:
         if (throbber := self.query_one_optional("#throbber", ObservedThrobber)) is not None:
@@ -1475,18 +1477,20 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             style="error",
         )
 
-    async def on_transcript_coverage(self, message) -> None:
+    @handles(TranscriptCoverage)
+    async def on_transcript_coverage(self, message: CoreEventMessage) -> None:
         message.stop()
-        await self.transcript.covered(message)
+        await self.transcript.covered(message.event, message.publisher)
 
-    @on(WireMessageHandling.Requested)
-    def request_message_handling(self, message: WireMessageHandling.Requested) -> None:
+    @handles(MessageHandlingRequested)
+    def request_message_handling(self, message: CoreEventMessage) -> None:
         message.stop()
         self.transcript.request_handling()
 
-    def on_transcript_source_work_finished(self, message) -> None:
+    @handles(TranscriptSourceWorkFinished)
+    def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
         message.stop()
-        self.transcript.source_work_finished(message.history)
+        self.transcript.source_work_finished(message.publisher)
 
     def on_worker_state_changed(self, message) -> None:
         if message.worker is self.transcript.worker and message.worker.is_finished:
@@ -1724,10 +1728,10 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     async def _open_tabs_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
 
-    @on(GoalControl.Activated)
-    async def on_goal_control(self, event: GoalControl.Activated):
+    @handles(input_events.GoalControlActivated)
+    async def on_goal_control(self, event: CoreEventMessage):
         event.stop()
-        await self.goal_controls.activate(event.action)
+        await self.goal_controls.activate(event.event.action)
 
     @work(group="context-compaction")
     async def compact_context(self, instructions: str | None) -> None:
