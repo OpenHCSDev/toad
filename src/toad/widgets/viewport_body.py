@@ -600,7 +600,12 @@ class DocumentViewport:
         self.owners.add(owner)
         key = ref(owner)
         self._warm[key] = key
-        self.request()
+        # Declare custody before layout so its live box is a geometry target.
+        # Preparation consumes the committed frame, not a partially mounted
+        # tree whose geometry query would manufacture a full-scene layout.
+        # The existing frame owner batches this window's initial callbacks and
+        # the native message pump revokes them when the window is retired.
+        self.window.screen.frame_presentation.defer(self.window, self.request)
 
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)

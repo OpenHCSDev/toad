@@ -40,3 +40,15 @@ then ONE changed actual installed ownterminal/busy savedhistory motion/profile
 path with inspection DURING. Parent publishes global runtime; Sch source/
 compaction and Arendt lifecycle stay separate. No newpublicinput/replay or
 originalownerrestart by performance lane.
+
+## Current source change — not yet validated
+
+DocumentViewport.register still immediately owns the body/working-set entry,
+so originallayout can include the livebox. It now defers preparation to that
+window through EXISTING FramePresentation instead of starting a worker from
+partial mount custody. PendingFrame owns deduplication/publication; already
+PresentedFrame uses originalnativeafter-refresh; closing thewindow revokes
+callbacks through its existingmessagepump. No new flag/timer/registry/
+geometry copy or frame-gate bypass. Original scroll/source/interaction demand
+producers remain direct. One existing registration consumer family changed;
+source checks follow the complete pairednativecapture batch, not first.
