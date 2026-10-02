@@ -64,6 +64,7 @@ from toad.acp.status import StopReason, EndTurnStopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.core.events import AgentFail, AgentReady
 from toad.agent import AgentBase
+from toad.widgets.terminal_tool import TerminalTool
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
@@ -1315,8 +1316,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     async def watch_busy_count(self, _busy: int) -> None:
         self._sync_throbber()
 
-    @on(acp_messages.TerminalProjection)
-    async def on_terminal_projection(self, message: acp_messages.TerminalProjection):
+    @on(TerminalTool.Projection)
+    async def on_terminal_projection(self, message: TerminalTool.Projection):
         message.stop()
         await message.binding.present_terminal(message, self)
 

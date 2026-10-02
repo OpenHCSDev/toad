@@ -45,29 +45,8 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
         return self.target is target and target is not None
 
     def publish_terminal(self, controller, terminal_id, execution):
-        return self.post(messages.TerminalProjection(self, controller, terminal_id, execution))
-
-    def owns_terminal(self, projection, target):
-        """Same original surface, controller lifetime and acquired address."""
-        if not self.owns(target):
-            return False
-        return projection.controller.owner.owns_terminal_projection(self, projection)
-
-    async def present_terminal(self, projection, target):
-        if not self.owns_terminal(projection, target):
-            return
-        from toad.widgets.terminal_tool import TerminalTool
-
-        if existing := target.query_one_optional(f"#{projection.terminal_id}", TerminalTool):
-            if existing.execution is projection.execution:
-                return  # Reuse the original bounded rendering resource.
-            await existing.remove()  # A replaced ACP controller may reuse its address.
-            if not self.owns_terminal(projection, target):
-                return
-        terminal = TerminalTool(projection.execution, id=projection.terminal_id)
-        await target.post(terminal)
-        if not self.owns_terminal(projection, target):
-            await terminal.remove()
+        """An absent frontend does not acquire native projection work."""
+        return False
 
     @abstractmethod
     def post(self, message) -> bool: ...
@@ -101,6 +80,31 @@ class AttachedSurfaceBinding(SurfaceBinding):
         # The original MessagePump owns admission while closing/closed.
         return target.post_message(message) if target is not None else False
 
+    def publish_terminal(self, controller, terminal_id, execution):
+        from toad.widgets.terminal_tool import TerminalTool
+        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))
+
+    def owns_terminal(self, projection, target):
+        """Same original surface, controller lifetime and acquired address."""
+        if not self.owns(target):
+            return False
+        return projection.controller.owner.owns_terminal_projection(self, projection)
+
+    async def present_terminal(self, projection, target):
+        if not self.owns_terminal(projection, target):
+            return
+        from toad.widgets.terminal_tool import TerminalTool
+
+        if existing := target.query_one_optional(f"#{projection.terminal_id}", TerminalTool):
+            if existing.execution is projection.execution:
+                return  # Reuse the original bounded rendering resource.
+            await existing.remove()  # A replaced ACP controller may reuse its address.
+            if not self.owns_terminal(projection, target):
+                return
+        terminal = TerminalTool(projection.execution, id=projection.terminal_id)
+        await target.post(terminal)
+        if not self.owns_terminal(projection, target):
+            await terminal.remove()
 
 class ValidationOwner(DeclaredFamily, affix="ValidationOwner"):
     @abstractmethod
