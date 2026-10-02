@@ -191,7 +191,7 @@ def test_widget_action_availability_has_no_case_catalog():
 
 def test_history_layout_producers_do_not_wait_for_their_own_paint():
     """Native frame admission consumes the resources these transactions build."""
-    for path in ROOT.rglob('*.py'):
+    for path in (*ROOT.rglob('*.py'), *(ROOT.parents[1] / 'tools').rglob('*.py')):
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
             if isinstance(node, (ast.Name, ast.Attribute)):

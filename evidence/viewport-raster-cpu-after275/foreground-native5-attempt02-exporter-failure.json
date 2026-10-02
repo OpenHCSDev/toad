@@ -1,0 +1,205 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/compaction501-foreground284-native5-readonly-20261002-02",
+  "runtime": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin",
+    "launcher": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/toad",
+    "launcher_sha256": "9ce5773f08910def1eeaef95578c4887862c49f624fcd8a1c5c5b6558b8c5795",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/toad",
+        "sha256": "9ce5773f08910def1eeaef95578c4887862c49f624fcd8a1c5c5b6558b8c5795"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-batch490-20261001/bin/agent-comms-acp",
+        "sha256": "42f6cbd01bb3c9f7785c513093404a969c82659dee7bbb0561c2054875e1a076"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/toad",
+        "sha256": "9ce5773f08910def1eeaef95578c4887862c49f624fcd8a1c5c5b6558b8c5795"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/agent-comms-acp",
+        "sha256": "4dc8fccf47315a8e71ff318eaad599771ed989f92ebe88329672a227032613ac"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/activation.json",
+    "activation_sha256": "eabe719cfe14f681ee210a33b7d38262406407cd2f4463e0d0134a31002ca40f",
+    "activation": {
+      "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002",
+      "pins": {
+        "agent_comms": "b28349027052a57c50b17952a11dcfae2e71f31e",
+        "toad": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+        "textual": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+      "state": "normal69 installed source/directURLs/assets/fulltrust verified; performance candidate not activated, public cohort already Native5, changed candidate physical gate pending",
+      "staging_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-foreground-native5-20261002/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+      "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+      "native_configuration_note": "Coreb283/Native5/native5184 matched live ABI; Toad284 sole viewport body budget/native cardinality and original source lifetime; Text19 intrinsic placement and NodeList custody cardinality. Candidate only; no public root/route mutation or owner startup; actual installed changed foreground gate pending original2820093 epoch witness."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "738bf0dc45834e81822d7ee884afd105418b289ef39f1802b2a5e835b895539a",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+              "requested_revision": "862ea5f113a83950d05acd7cd3c96400c4f9927f"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "2d36d87ab2f84254f612aa81c0a80ceca876ccba8369de77a2963329216d704c",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb",
+              "requested_revision": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "b3717306e7423221e6c143a0c1c568ab099076018dfc7ef4c124ca37a0577eb0",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "b28349027052a57c50b17952a11dcfae2e71f31e",
+              "requested_revision": "b28349027052a57c50b17952a11dcfae2e71f31e"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "duration": null,
+  "error": "CalledProcessError: Command '['xdotool', 'exec', '--sync', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py', '--mark', 'warm-ready', '--wait-history-seconds', '35', '--wait-history-interval', '0.1', '--wait-history-thread', 'compaction501-live-architecture-memory']' returned non-zero exit status 1.",
+  "original_before": {
+    "pid": 2820093,
+    "start_ticks": 38162851,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 381930.746566453
+  },
+  "original_after": {
+    "pid": 2820093,
+    "start_ticks": 38162851,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 381946.216485849
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2828126,
+        "start_ticks": 38193224,
+        "returncode": 0
+      },
+      {
+        "pid": 2828130,
+        "start_ticks": 38193431,
+        "returncode": 0
+      },
+      {
+        "pid": 2828132,
+        "start_ticks": 38193440,
+        "returncode": 0
+      },
+      {
+        "pid": 2828133,
+        "start_ticks": 38193490,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2828134,
+        "start_ticks": 38193495,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2828139,
+        "start_ticks": 38193502,
+        "returncode": 0
+      },
+      {
+        "pid": 2828140,
+        "start_ticks": 38193513,
+        "returncode": 0
+      },
+      {
+        "pid": 2828142,
+        "start_ticks": 38193523,
+        "returncode": 0
+      },
+      {
+        "pid": 2828143,
+        "start_ticks": 38193533,
+        "returncode": 255
+      },
+      {
+        "pid": 2828172,
+        "start_ticks": 38193635,
+        "returncode": 0
+      },
+      {
+        "pid": 2828177,
+        "start_ticks": 38193657,
+        "returncode": 0
+      },
+      {
+        "pid": 2828184,
+        "start_ticks": 38193698,
+        "returncode": 1
+      }
+    ]
+  },
+  "scope": "Missed diagnostic exporter consumer, no product fatal/scroll outcome; no fresh input. Corrected observer needs one new named capture; installed production frozen."
+}

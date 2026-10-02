@@ -309,8 +309,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                             if node.history_anchor is not None else None)
                         window["layout_ready"] = (node.history_layout_ready.is_set()
                                                   if node.history_layout_ready is not None else None)
-                        window["paint_ready"] = (node.history_paint_ready.is_set()
-                                                 if node.history_paint_ready is not None else None)
                         manager = data.get("document_viewport")
                         if manager is not None:
                             visible = visible_regions
