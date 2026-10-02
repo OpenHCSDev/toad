@@ -345,8 +345,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                 "body_evictions": manager.body_evictions,
                                 "pending": manager._pending,
                                 "outer_owner_count": len(outer),
-                                "outer_materialized_widgets": sum(1 + len(body.walk_children())
-                                                                   for body in outer if not body.body_dormant),
+                                "outer_materialized_widgets": sum(body.materialized_widget_count
+                                                                   for body in outer),
                                 "outer_materialized_source_bytes": sum(body.retained_source_bytes
                                                                         for body in outer if not body.body_dormant),
                                 "registered": len(owners),
@@ -359,7 +359,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                             "dormant": body.body_dormant, "visible": body in visible,
                                             "measured_rows": body.measured_rows,
                                             "retained_widget_count": body.retained_widget_count,
-                                            "native_widget_count": 1 + len(body.walk_children()),
+                                            "native_widget_count": body.materialized_widget_count,
                                             "retained_source_bytes": body.retained_source_bytes,
                                             "measurement": (asdict(body._body_measurement)
                                                             if body._body_measurement is not None else None)}

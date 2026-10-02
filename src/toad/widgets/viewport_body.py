@@ -58,17 +58,16 @@ class ViewportBody:
     @property
     def materialized_widget_count(self) -> int:
         """Current native custody, including children still awaiting removal."""
-        return 1 + len(self.walk_children())
+        return 1 + self.descendant_count
 
 
 @dataclass(frozen=True)
 class BodyMeasurement:
-    """The native body's measured extent and last materialized resource cost."""
+    """Native measured extent and captured dormant reconstruction cost."""
 
     width: int
     rows: int
     widgets: int = 1
-    nodes_revision: int | None = None
 
 
 class MeasuredViewportBody(ViewportBody):
@@ -104,33 +103,13 @@ class MeasuredViewportBody(ViewportBody):
     def retained_widget_count(self) -> int:
         if self._body_dormant:
             return self._body_measurement.widgets
-        # NodeList propagates descendant custody changes to this native owner.
-        # Layout/style/scroll alone do not change the count. Keep the measured
-        # cost with its original extent, not another viewport resource catalog.
-        measurement = self._body_measurement
-        if measurement is not None and measurement.nodes_revision == self._nodes._updates:
-            return measurement.widgets
-        widgets = 1 + len(self.walk_children())
-        if measurement is not None:
-            self._body_measurement = replace(
-                measurement, widgets=widgets, nodes_revision=self._nodes._updates,
-            )
-        return widgets
-
-    @property
-    def materialized_widget_count(self) -> int:
-        # A dormant body keeps its reconstruction reservation. Its native
-        # children may still be pruning or may include retained fixed widgets.
-        # Count that custody without overwriting the restore reservation.
-        return (super().materialized_widget_count if self._body_dormant
-                else self.retained_widget_count)
+        return self.materialized_widget_count
 
     def retire_measurement(self) -> None:
         # This cost belongs to the reconstructible body, not a second viewport
         # counter. Keep it with the extent when the measured native tree retires.
         self._body_measurement = replace(
             self._body_measurement, widgets=self.retained_widget_count,
-            nodes_revision=self._nodes._updates,
         )
         self._body_dormant = True
 
@@ -142,13 +121,11 @@ class MeasuredViewportBody(ViewportBody):
             return self._body_measurement.rows
         height = super().get_content_height(container, viewport, width)
         measurement = self._body_measurement
-        # Layout measures extent. Admission measures native resource custody
-        # through retained_widget_count when its NodeList revision changes.
-        # A height calculation must not traverse the materialized descendants.
+        # Layout owns extent. Live custody comes directly from native child
+        # mutations; only retirement captures a reconstruction reservation.
         self._body_measurement = BodyMeasurement(
             width, height,
             measurement.widgets if measurement is not None else 1,
-            measurement.nodes_revision if measurement is not None else None,
         )
         self._body_measurement_stale = False
         return height
