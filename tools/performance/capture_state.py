@@ -45,7 +45,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
         if frame_trace:
             from sidebar_validation_driver import ValidationDriver, record, records
             if install_frame_trace:
-                ValidationDriver.observe_frames(app._driver)
+                ValidationDriver.observe_application_frames(app)
             if frames_only:
                 record("frame_trace_exported", pid=expected_pid, capacity=records.maxlen)
                 write_json(prefix + "-frames.json", list(records.copy()))

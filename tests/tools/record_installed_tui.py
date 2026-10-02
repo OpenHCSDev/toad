@@ -1235,6 +1235,12 @@ def artifacts(output, args, env, owner, *, start, seconds, label=None, consecuti
                                   "-update", "1", str(sheet)], env, timeout=60)
 
 
+def phase_events(output):
+    """Decode the original physical phase producer for live and final review."""
+    path = output / "events.jsonl"
+    return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
 def frame_review(output, receipt, *, window_seconds):
     """Use the original observer/analysis and recording's monotonic origin."""
     tools = Path(__file__).resolve().parents[2] / "tools/performance"
@@ -1247,7 +1253,7 @@ def frame_review(output, receipt, *, window_seconds):
     source = max(traces, key=lambda path: path.stat().st_mtime_ns)
     trace = json.loads(source.read_text())
     origin = round(receipt["capture_launch_monotonic"] * 1e9)
-    events = receipt["events"]
+    events = phase_events(output)
     actions = [{"action": before["label"],
                 "start_ns": origin + round(before["seconds_since_capture_launch"] * 1e9),
                 "end_ns": origin + round(after["seconds_since_capture_launch"] * 1e9)}
@@ -1273,10 +1279,15 @@ def live_review(output, args, env, owner, label):
     source interval and encoding overhead; the operator must inspect it then.
     """
     started = time.monotonic()
-    info = owner.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+    info = owner.run(["ffprobe", "-v", "error", "-select_streams", "v:0",
+                      "-show_packets", "-show_entries", "format=duration:packet=pts_time,flags",
                       "-of", "json", str(output / "terminal.mp4")], env,
                      stdout=subprocess.PIPE, text=True, timeout=5)
-    duration = float(json.loads(info.stdout)["format"]["duration"])
+    metadata = json.loads(info.stdout)
+    # A running fragmented MP4 may advertise the unfinished current GOP. The
+    # last acquired keyframe starts that GOP; earlier packets are complete.
+    duration = max(float(packet["pts_time"]) for packet in metadata["packets"]
+                   if "K" in packet["flags"])
     seconds = min(duration, args.review_frames / args.fps)
     if seconds <= 0:
         raise RuntimeError("Live recording has no finalized video frames yet")
@@ -1615,8 +1626,7 @@ def record(args):
             duration = float(receipt["video"]["format"]["duration"])
             if args.review_start >= duration:
                 raise ValueError(f"Review start {args.review_start}s is outside the {duration}s recording")
-            events_path = output / "events.jsonl"
-            events = [json.loads(line) for line in events_path.read_text().splitlines()] if events_path.exists() else []
+            events = phase_events(output)
             receipt["events"] = events
             receipt["frame_review"] = frame_review(
                 output, receipt, window_seconds=args.frame_window_seconds)

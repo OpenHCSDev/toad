@@ -327,6 +327,19 @@ def install_observer():
 
 
 class ValidationDriver(LinuxDriver):
+    @classmethod
+    def observe_application_frames(cls, app):
+        """Attach at the native app message lifecycle, after driver acquisition.
+
+        App builds its driver before processing messages. Remote inspection may
+        arrive earlier; its first native callback derives that acquired driver.
+        No startup delay, readiness polling, or copied installed-state flag.
+        """
+        def acquired():
+            cls.observe_frames(app._driver)
+            record("frame_observer_attached", driver=type(app._driver).__name__)
+        app.call_next(acquired)
+
     @staticmethod
     def observe_frames(driver):
         """Observe the original writer on an existing driver, without loop probes.
