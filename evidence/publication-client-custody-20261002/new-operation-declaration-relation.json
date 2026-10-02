@@ -1,0 +1,9 @@
+{
+  "whole_declared_schema_equal": true,
+  "product_equal": false,
+  "source_core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "target_core": "71e15bbabf8a2b720d4e34fc33f9f35c8916b34d",
+  "original_stores_opened": false,
+  "carry_reset_required": false,
+  "runtime_member": "PreserveRuntimeInstallation"
+}
