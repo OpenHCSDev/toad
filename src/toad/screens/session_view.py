@@ -62,9 +62,17 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
 
     async def prepare_presentation(self) -> None:
         """Restore source-bound rich presentation for the selected logical view."""
+        from toad.widgets.history_anchor import HistoryWindow
+
+        for window in self.query(HistoryWindow):
+            window.document_viewport.resume_source()
 
     async def retire_presentation(self) -> None:
         """Release rich presentation without stopping its operational sources."""
+        from toad.widgets.history_anchor import HistoryWindow
+
+        for window in self.query(HistoryWindow):
+            await window.document_viewport.suspend_source()
 
     async def close_presentation(self) -> None:
         """Views without retained operational sources need no domain finalization."""

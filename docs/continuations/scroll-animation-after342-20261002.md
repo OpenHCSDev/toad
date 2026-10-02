@@ -43,3 +43,27 @@ Qualification docs/checkpoints/native-animation32-installed-scoped.json at11dd6e
 No new viewport production in this continuation; metadata pins native32 and full
 remaining scope stays with Heisenberg. Next work is the remaining real native
 mount/style/layout/frame cost; no unchanged recording or parallel resource state.
+
+## Published next lifetime batch, not Ready
+
+Source read with Kepler338 found channel CommsScreen inherits empty SessionView
+presentation hooks, while NativeSessionSurface alone suspends DocumentViewport.
+BoundWorkspaceSource hides the logical view before retirement; the physical
+WorkspaceScreen remains current. DocumentViewport.accepts_frame owns actual
+suspension. A hidden channel therefore remained a frame member and its reader
+could await native layout no longer promised by that presentation.
+
+The existing SessionView.prepare_presentation/retire_presentation now resume/
+suspend its actual native HistoryWindows. MainScreen calls those base hooks;
+NativeSessionSurface's duplicate viewport calls are removed. CommsScreen derives
+the same behavior without a separate controller/state. The existing reader
+wait also consumes DocumentViewport.accepts_frame so a mutation completing
+after retirement does not create a fresh wait for an unpromised hidden frame.
+Source controller/read request identities remain Kepler338; no source/history/
+turn/goal mirrors or new registry. Existing native tree custody supplies windows.
+
+This new production batch has not had final installed validation yet. The
+previous native32 qualification remains frozen/source-equal; its Ready status
+does not qualify these new SessionView changes. Batch final sanity and the
+changed installed channel/native switch lifecycle last, then publish scoped
+result. No repeat of the unchanged native32 recording.
