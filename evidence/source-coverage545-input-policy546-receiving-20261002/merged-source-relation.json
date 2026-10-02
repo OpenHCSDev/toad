@@ -1,0 +1,19 @@
+{
+  "qualified_core": "c2a68017f7d3280e6a30789cd7c5d907b12f959a",
+  "merged_core": "732e86708de477ab0406775529bf878f0f3e7ea6",
+  "core_paths": [
+    "src",
+    "stack",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "core_byte_equal": true,
+  "qualified_toad": "4d1dbe4883a09c66e7108b83dd03f9a6d2840340",
+  "installed_toad": "08375dbedb3622094f9e5e8920b9f20bb41850fd",
+  "toad_src_byte_equal": true,
+  "changes": "Core/Toad Git dependency pin only, qualified original receipt unchanged",
+  "new_environment": false,
+  "new_native_build": false,
+  "provider_repeated": false,
+  "public_effects": 0
+}

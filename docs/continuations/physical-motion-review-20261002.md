@@ -13,7 +13,7 @@ smoothness. No new recorder, runtime observer, environment or worktree.
 
 ## Implemented and verified
 
-26 harness lines deleted. The existing PhysicalJourney owns one marker-based
+24 harness lines deleted. The existing PhysicalJourney owns one marker-based
 review interval operation for both capture and retained review. Existing review
 encoding now emits consecutive source frames and slowed clips, and retained
 review selects the recorded journey, actual recording FPS, original CPU phases
