@@ -1,5 +1,5 @@
 {
-  "state": "NORMAL_PAIRED_INSTALL_VERIFIED; AR_ENDT_SOLE_INSTALLED_USER_JOURNEY_PENDING",
+  "state": "SCOPED_READY_NORMAL_PAIRED_INSTALL_AND_CHANGED_CONFIGURED_NATIVE_ACP_JOURNEY_QUALIFIED",
   "receiving_pr": 310,
   "pins": {
     "core": "ca4bcfa5efdcde807a4da26309222760939aefc1",
@@ -24,5 +24,12 @@
   "protected_old_prefix_unchanged": true,
   "activation_sha256": "c1d4e3748309df0f0ea33ca50e84a92ad9d7dd9ae28d52a743913ea058e7cffc",
   "gate_owner": "Arendt509",
-  "publication_owner": "parent"
+  "publication_owner": "parent",
+  "core_ready_head": "74eb10f01eb8d626e569b2e04ac7967815e8bf34",
+  "installed_core_production_equal_to_ready": true,
+  "qualified_native_acp_receipt": "configured509-qualified01.json",
+  "qualified_frontend_source": "f207f9a4ab927ce46d091e061ded9d0ef6aceb11",
+  "frontend_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/sidebar-prompt-actions-20261002/ready-receipt.json",
+  "raw_driver_timeout_preserved": true,
+  "qualification_limits": "Native5 channel batch/native/ACP source and receipt closure; no Native6, complete compaction/performance or combined physical-TUI claim."
 }
