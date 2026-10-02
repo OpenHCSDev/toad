@@ -113,3 +113,19 @@ batch still needs joined native resource/observer checks and one instrumented
 installed motion/profile run on the newly approved public ABI. All clients from
 public01 are verified closed by process cmdline/executable/environment scans;
 no provider attempt or original owner was restarted.
+
+
+The joined native custody check now passes with optional geometry LRU empty:
+all three bodies paint complete nonblank retained lines without reentry rebuild;
+the actual viewport worker retires offscreen admitted native controls while
+retaining their rows. Source/style/resize, original MouseDown materialization
+and final disposal remain covered in that same original check. These are
+private native resource checks, not live performance qualification.
+
+Source reading corrected an additional observer mistake: native Load runs
+before driver construction and flushes call_next callbacks. The observer now
+waits on the original App mounted completion in an original Worker. A native
+LinuxDriver check records actual enqueue/writer completion after pre-Load
+installation, with no timing delay or polling. The original public01 receipt
+remains negative and unchanged. Native6 current public ABI must be matched for
+the one joined live recording; old Core9ccc is used only by this private check.
