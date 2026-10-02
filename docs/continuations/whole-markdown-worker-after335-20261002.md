@@ -112,7 +112,10 @@ working progress, not full cross-view/lazy-animation qualification. Joined final
 checks and installed IRC/DM motion follow the completed family; do not repeat
 unchanged335 recording or claim its earlier qualification covered this source.
 
-## Scoped installed qualification and remaining work
+## Scoped Ready: worker and native-resource checkpoint
+
+This checkpoint is ready for review and shipment at the stated installed scope.
+The complete performance and channel-controller assignment remains active.
 
 Exact installed e00ef752/Core7dd5c14c/Text81ecfccd/native9f12 completed the
 108.814s public original saved-history journey. Sixteen warm checks and seven
