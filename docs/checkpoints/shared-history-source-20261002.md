@@ -222,3 +222,20 @@ lifetime and33868e5; it does not establish held-I/O receipt/End acceptance. The
 remaining affected check borrows that immutable prefix without an environment,
 source overlay, provider input or public mutation. No full338 Ready, smoothness
 or prepared-wire-body policy claim is made.
+
+Physical installed-import run01 retained22.832s of readable st footage and
+unchanged runtime identity, with one canonical input141. Its before/after
+snapshots show the source advancing from9 to120 mounted rows. The recorder's
+stationary journey then sent Ctrl+Q before this fixture had completed; exit1
+therefore cannot qualify End or establish an application deadlock. Raw:
+~/.cache/agent-scratch/kepler338-held-reader-physical-installed01; private
+originals: .artifacts/history-lifetime338/physical-installed01. No rerun of
+these originals is authorized or performed.
+
+The existing physical journey family now waits for this fixture's immutable
+outcome before the recorder quits. This is fixture completion custody, not
+another backend/UI state owner. Failure captures the existing native exporter
+before retirement at any scenario step. Original8s application assertions and
+the40s recorder budget remain unchanged; there is no fixed extra settling
+delay or weaker End assertion. One corrected affected check uses fresh private
+originals. Normal launcher acceptance remains the separate qualified34402 path.
