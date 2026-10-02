@@ -1,0 +1,142 @@
+{
+  "qualification": "scoped installed physical first-End busy/release accepted by source contract and original captured facts",
+  "raw_receipt": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/receipt.json",
+  "raw_receipt_sha256": "9cee7f4ea014bf68c6cdf7cd8bd8cd64f9bc88d23a3dfb9b0fcc86772807efcf",
+  "raw_completed": false,
+  "raw_capture_completed": true,
+  "invalid_original_assertion": "Required LatestViewportRequest after first End. LiveTranscript.request_latest reserves WorkingTranscript.schedule(_jump_latest). Its pending slot stays IdleViewportRequest until a second End.",
+  "source": {
+    "core": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+    "toad": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+    "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+    "source_proof": "/home/ts/wt/toad-command-source-closure-20261002/evidence/sqlite407-paired-332-20261002/source-proof.json"
+  },
+  "phases": {
+    "reader": {
+      "original_pickle": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-reader-state.pickle",
+      "sha256": "ac7e31526ea2f6f2d7b51f83b3dda246ecd98a8b249ee9e6959486c4c8d91398",
+      "session_id": "resource436",
+      "agent_object_id": 140695694109936,
+      "histories": [
+        {
+          "state": "LiveTranscript",
+          "pending_request": null,
+          "generation": 0,
+          "has_newer": true,
+          "native_file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/native-forks/sessions/--home-ts-wt-toad-viewport-raster-cpu-continuation-20261001-.artifacts-sqlite537-native-copy02-project--/2026-10-02T16-50-34-478Z_01a0fd86-556e-7199-8443-d189efa21613.jsonl",
+          "native_offset": 42932727
+        }
+      ],
+      "windows": [
+        {
+          "object_id": 140695706415696,
+          "scroll_y": 100.0,
+          "maximum": 409
+        }
+      ]
+    },
+    "busy-end": {
+      "original_pickle": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-busy-end-state.pickle",
+      "sha256": "0a377c4dce957e94b34ec772b1be594846ee1f9c3749b078105d0b60886ec3e1",
+      "session_id": "resource436",
+      "agent_object_id": 140695694109936,
+      "histories": [
+        {
+          "state": "WorkingTranscript",
+          "pending_request": "IdleViewportRequest",
+          "generation": 5,
+          "has_newer": true,
+          "native_file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/native-forks/sessions/--home-ts-wt-toad-viewport-raster-cpu-continuation-20261001-.artifacts-sqlite537-native-copy02-project--/2026-10-02T16-50-34-478Z_01a0fd86-556e-7199-8443-d189efa21613.jsonl",
+          "native_offset": 42932727
+        }
+      ],
+      "windows": [
+        {
+          "object_id": 140695706415696,
+          "scroll_y": 409,
+          "maximum": 409
+        }
+      ]
+    },
+    "settled-end": {
+      "original_pickle": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-settled-end-state.pickle",
+      "sha256": "91c4b408276da465cdec3b42630d04046adbd4df62f25e2489aa7340247bdabc",
+      "session_id": "resource436",
+      "agent_object_id": 140695694109936,
+      "histories": [
+        {
+          "state": "LiveTranscript",
+          "pending_request": null,
+          "generation": 8,
+          "has_newer": false,
+          "native_file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/native-forks/sessions/--home-ts-wt-toad-viewport-raster-cpu-continuation-20261001-.artifacts-sqlite537-native-copy02-project--/2026-10-02T16-50-34-478Z_01a0fd86-556e-7199-8443-d189efa21613.jsonl",
+          "native_offset": 42932727
+        }
+      ],
+      "windows": [
+        {
+          "object_id": 140695706415696,
+          "scroll_y": 138,
+          "maximum": 138
+        }
+      ]
+    }
+  },
+  "sql_resource": [
+    {
+      "phase": "exclusive-acquired",
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+      "monotonic_ns": 435503655240545
+    },
+    {
+      "phase": "exclusive-released",
+      "monotonic_ns": 435512102536743
+    }
+  ],
+  "sql_exclusion_seconds": 8.447296198,
+  "application_terminal_exit": {
+    "pid": 252963,
+    "start_ticks": 43548045,
+    "returncode": 0
+  },
+  "required_exports": {
+    "before": {
+      "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/before-state": "complete",
+      "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/before-screen": "complete"
+    },
+    "observers": {
+      "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/observers-state": "complete"
+    },
+    "after": {
+      "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/after-state": "complete",
+      "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/after-screen": "complete"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "fixture_children_retired": true
+  },
+  "native_inputs": [],
+  "donor": {
+    "path": "/home/ts/wt/p530/wire/native-sessions/e55ca7a900386a9d1220392835c339a3/session.jsonl",
+    "bytes": 42932701,
+    "sha256": "cebfdbab98f3e5270fa23fb9d90983364abccf5ba4834f74544d3c43feb2cb0b",
+    "expected_sha256": "cebfdbab98f3e5270fa23fb9d90983364abccf5ba4834f74544d3c43feb2cb0b"
+  },
+  "physical_review": {
+    "parent_during_run": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/parent-during-pageup.png",
+    "parent_moving_interval_seconds": [
+      14,
+      15
+    ],
+    "findings": "Saved body remained visible while SQL unavailable; latest native body and Ready appeared after release. PageUp discrete, not smoothness acceptance.",
+    "heisenberg": "Before PNG viewed while UI live; later busy/released PNGs and moving sheet inspected while recorder finishing, UI had exited. Do not claim contemporaneous held-key watching by Heisenberg."
+  },
+  "limits": [
+    "No captured WorkingTranscript object id: source/window/native identity and state are recorded; literal operation-id comparison not claimed.",
+    "No second-End queued subrequest, source revocation or complete handling-flow qualification.",
+    "No speed, busy public fanout, 331/Text29 or 144Hz qualification.",
+    "Original failed receipts are unchanged; this is a separate semantic closure, not renamed raw success."
+  ]
+}
