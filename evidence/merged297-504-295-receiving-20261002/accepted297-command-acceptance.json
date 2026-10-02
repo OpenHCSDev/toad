@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "driver": "LinuxDriver",
+  "display": ":1",
+  "elapsed_seconds": 10.717003490019124,
+  "events": [
+    {
+      "phase": "01-saved-native",
+      "seconds": 0.5508617220330052,
+      "mode": "session-1",
+      "requests": 2
+    },
+    {
+      "phase": "02-local-collision-newcase",
+      "seconds": 2.6656479529920034,
+      "mode": "session-1",
+      "requests": 2
+    },
+    {
+      "phase": "03-pointer-menu",
+      "seconds": 4.034523281035945,
+      "mode": "comms-1",
+      "requests": 2
+    },
+    {
+      "phase": "04-channel-original-target",
+      "seconds": 5.779176562034991,
+      "mode": "comms-1",
+      "requests": 2
+    },
+    {
+      "phase": "05-native-return-hot-publication",
+      "seconds": 6.558634112996515,
+      "mode": "session-1",
+      "requests": 2
+    },
+    {
+      "phase": "06-original-forwarded-native-response",
+      "seconds": 10.716434272006154,
+      "mode": "session-1",
+      "requests": 3
+    }
+  ],
+  "provider_requests": 3,
+  "provider": "isolated localhost only",
+  "controlled_advertisement": "real ACP SDK JSON-RPC source publication; not Pi getCommands output",
+  "native_session": "/home/ts/.cache/agent-scratch/c297/08/application/pi/sessions/--home-ts-.cache-agent-scratch-c297-08-application-project--/2026-10-02T03-25-18-376Z_01a0faa5-16a7-76d2-8d42-eb425cbeda1e.jsonl",
+  "physical_keyboard_and_pointer": true
+}
