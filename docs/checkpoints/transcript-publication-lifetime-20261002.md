@@ -67,3 +67,33 @@ StaleRevision handling consumes genuine certified backend read failure at the
 separate original pager/preparation operation boundary. They never consume
 publication application's local expiration, which is no longer encoded as
 StaleRevision. No outcome/turn/input/cursor authority is changed.
+
+## Installed affected-family qualification
+
+Reviewed production is `fff8015fe54eacf4e9d965eb90c91194222237a4`:
+74 deleted / 64 added lines in one production file, no new class/state store.
+Seven source controls passed in5.69s with the exact declared Textuale36 source;
+the required installed debt ratchet exited0 with no positive debt.
+
+Parent normally merged this source with main290 into receiver292
+`c97255e80fd8a32dff312a44c24cddc01b12d29e`. The one69 installed candidate
+uses Core0f63/Textuale36/native5184. Parent verified all source/assets/native
+trust before checks. The affected installed family then passed against that
+exact prefix, without a product source overlay. Original FIFO application,
+held certified journal read across application invalidation, fresh read once,
+actual cropped paint, cancellation and source-close all passed.
+
+The installed source differs fromfff only in Mendel's already-reviewed
+HandlingPublication original-reference owner calls. The wrapper's first
+preflight incorrectly comparedfff full bytes instead of the integratedc972
+file; its later first App run lacked the standard multiprocessing main guard.
+Both owned-driver failures are preserved under `.artifacts/installed-publication-family`.
+The wrapper was corrected, not the installed package or assertions about source
+identity. Product source bytes remain the exact receiving Git source.
+
+Receipts and final wrapper/log are committed in
+`evidence/transcript-publication-lifetime-20261002`. They prove the affected
+installed App family, not the physical native/ACP A/B/A user journey.
+Heisenberg owns that sole readonly journey on the same completed canonical501
+child. No new provider call, message, compaction, replay or public activation
+was performed here. Full release readiness remains pending that physical gate.
