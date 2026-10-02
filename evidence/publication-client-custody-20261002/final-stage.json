@@ -1,0 +1,23 @@
+{
+  "state": "Final normal merged-source stage, not343 physicalReady/public activation",
+  "core": "71e15bbabf8a2b720d4e34fc33f9f35c8916b34d",
+  "toad": "f9b1bbcda6969111ec89d1c49e8ae13f88deab55",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "core_source_equal_qualified548": true,
+  "core_main_548_merged": true,
+  "309_final_member": "2809b0516d7b055b7f97d57794800f12a5c4442e",
+  "native_manifest": "960296fdddafb01cbbeb75639f7a6a89fa36fd828b3ff5307b108abc20e7c447",
+  "source_proof": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/source-proof.json",
+  "source_proof_sha256": "886c9635baf5732031bbf041e9490d0f546b8da87bd45bf7ea4acec2f7721b05",
+  "activation_sha256": "8497bd68089766b2ef3eb5997a6359526d9f1778ed06a4f5520e6ea1e80c15fd",
+  "normal_installed_packages": 69,
+  "new_environment": false,
+  "new_native": false,
+  "public_effects": 0,
+  "inherited_lifetime_gate": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/lifetime-recovery-receipt.json",
+  "physical_owner": "Lovelace sole changed309 return-selection retention; no provider/unchanged547 repeat",
+  "new_operator_manifest": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/operator-manifest.json",
+  "canonical_bootstrap_deployment_pending": true,
+  "failed337_operation_repeated": false,
+  "scope": "Source/assets/native trust exact; previous lifetime gate applies to unchanged548/343 lifetime production. Changed309/Text32 physical path remains separately qualified."
+}

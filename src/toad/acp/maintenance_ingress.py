@@ -111,8 +111,6 @@ async def admitted_spawn(
     ingress_root = selection.root
     if configured_root(child_env, child_cwd) != ingress_root:
         raise ValueError("ACP child environment conflicts with its selected route")
-    from toad.comms_root import selected_write
-
     process_ready: concurrent.futures.Future[AttachedChild] = concurrent.futures.Future()
     decision: concurrent.futures.Future[bool] = concurrent.futures.Future()
 
@@ -133,7 +131,7 @@ async def admitted_spawn(
             # Route SH precedes the maintenance/bus lock, matching the core
             # publisher's route EX -> private-root preflight ordering. Hold it
             # through the actual spawn and settlement, not just UI preflight.
-            with selected_write(ingress_root, implicit=selection.implicit), admission(
+            with selection.route.admit_client(), admission(
                 root, ingress_root=ingress_root, cwd=child_cwd
             ):
                 from agent_comms.private_nk_entrypoint import (
