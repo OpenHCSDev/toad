@@ -1,6 +1,7 @@
 """Transcript publication states and the single Textual lifecycle boundary."""
 
 from abc import abstractmethod
+from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
 from typing import ClassVar, TYPE_CHECKING
@@ -160,16 +161,23 @@ class WorkingTranscript(SuspendedTranscript):
                 PruningTranscript, ClosingTranscript, DetachedTranscript)
 
     async def execute(self, owner, work):
-        from agent_comms.coordination_errors import StaleRevision
+        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
-        try:
-            return await work()
-        except StaleRevision:
-            # This admitted mutation declined its original read. Keep the
-            # already committed source; a new request owns any later advance.
-            return False
-        finally:
-            owner.finish_source_work(self)
+        with ExitStack() as completion:
+            completion.callback(owner.finish_source_work, self)
+            try:
+                return await work()
+            except CoordinationReadUnavailable:
+                # The same admission remains suspended until the existing
+                # observer resumes it. Settling it here would schedule another
+                # edge read on the next frame before storage is available.
+                owner.defer_source_work(self, work)
+                completion.pop_all()
+                return False
+            except StaleRevision:
+                # This admitted mutation declined its original read. Keep the
+                # committed source; a new request owns any later advance.
+                return False
 
     def schedule(self, owner, work):
         return owner.run_worker(partial(self.execute, owner, work))

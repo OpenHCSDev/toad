@@ -79,6 +79,22 @@ class TranscriptSourcePreparation:
         self._source_state = operation
         return operation
 
+    def defer_source_work(self, operation: WorkingTranscript, work) -> None:
+        """Keep the original read until the shared observer supplies relief.
+
+        This signal subscription is an operation resource. Its original source
+        snapshot rejects a replaced, parked or retired pager before admission.
+        """
+        snapshot = self.source_snapshot()
+
+        def resume(_event) -> None:
+            self.app.coordination_observed.unsubscribe(self)
+            if snapshot.current(self) and self._source_state is operation:
+                operation.schedule(self, work)
+
+        self.app.coordination_observed.unsubscribe(self)
+        self.app.coordination_observed.subscribe(self, resume)
+
     def finish_source_work(self, operation: WorkingTranscript) -> None:
         # Retirement or replacement revokes this exact admission. A cancelled
         # old operation cannot publish again or settle a newer source's work.
@@ -92,6 +108,7 @@ class TranscriptSourcePreparation:
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
+        self.app.coordination_observed.unsubscribe(self)
         source = self._source_state.retirement_source()
         self._source_state = (ParkedSourceTranscript(source) if parked
                               else RetiredSourceTranscript(source))
