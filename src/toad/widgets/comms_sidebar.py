@@ -37,7 +37,6 @@ from toad.widgets.session_sort import SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget, person_target
-from toad.sidebar_snapshot import SidebarSnapshot
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -69,14 +68,10 @@ class ChannelGroup(SidebarGroup):
 
     def __init__(self, row: CommsRow, *, expanded: bool):
         row.add_class("channel-header")
-        self._view: ChannelView | None = None
-        self._snapshot: SidebarSnapshot | None = None
         self._members: dict[str, ThreadRow] = {}
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
         self.unread_badge.display = False
-        self._unread = 0
-        self._channel_active = False
         super().__init__(row, expanded=expanded,
                          controls=(self.unread_badge, self.sort_control),
                          disclosure_type=ChannelDisclosure)
@@ -86,17 +81,17 @@ class ChannelGroup(SidebarGroup):
             self.toggle_members()
         await self._sync_members()
 
-    async def update_members(self, view: ChannelView, snapshot: SidebarSnapshot) -> None:
-        async with self.member_lock:
-            self._view, self._snapshot = view, snapshot
-            self.sort_control.update_order(view.channel.order)
-            await self._reconcile_members()
+    async def _sync_members(self) -> None:
+        # Disclosure and route/source publication share the original snapshot
+        # lifetime. Keep that source until its prepared rows have been admitted.
+        if self.is_attached:
+            async with self.query_ancestor(CommsSidebar).projection.lock:
+                await super()._sync_members()
 
     def update_unread(self, unread: int) -> None:
-        if unread != self._unread:
+        if unread != self.row.unread:
             label = f"({unread})"
-            width_changed = len(label) != len(f"({self._unread})")
-            self._unread = unread
+            width_changed = len(label) != len(f"({self.row.unread})")
             self.row.unread = unread
             # ASCII digits have fixed cell widths. A count change within the
             # same digit range is paint-only; visibility still owns its layout.
@@ -110,9 +105,7 @@ class ChannelGroup(SidebarGroup):
             for name in channel_view.members
             if (person := all_people.get(name)) is not None
         )
-        if active != self._channel_active:
-            self._channel_active = active
-            self.row.set_class(active, "-channel-active")
+        self.row.set_class(active, "-channel-active")
 
     def toggle_members(self) -> None:
         super().toggle_members()
@@ -124,12 +117,18 @@ class ChannelGroup(SidebarGroup):
             self.query_ancestor(CommsSidebar).navigation.apply(force=True)
 
     async def _reconcile_members(self) -> None:
-        if not self.is_mounted or self._view is None or self._snapshot is None:
+        if not self.is_attached or self._pruning or self._closing:
             return
-        wanted = tuple(name for name in self._view.members
-                       if name in self._snapshot.all_people) if self.expanded else ()
+        sidebar = self.query_ancestor(CommsSidebar)
+        snapshot = sidebar.projection.snapshot
+        if not self.is_mounted or snapshot is None:
+            return
+        view = next(view for view in snapshot.wire.channels
+                    if view.channel.name == self.row.target_name)
+        self.sort_control.update_order(view.channel.order)
+        wanted = tuple(name for name in view.members
+                       if name in snapshot.all_people) if self.expanded else ()
         app = cast("ToadApp", self.app)
-        view, snapshot = self._view, self._snapshot
         inputs = {name: ThreadRowInput(
             snapshot.all_people[name],
             unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
@@ -137,24 +136,23 @@ class ChannelGroup(SidebarGroup):
             action_status=app.thread_actions.pending.get(name),
         ) for name in wanted}
         prepared_rows = await self.prepare_thread_rows(inputs, self._members)
-        if (not self.is_attached or self._pruning or self._closing
-                or self._view is not view or self._snapshot is not snapshot):
+        if not self.is_attached or self._pruning or self._closing:
             return
         # A tab may close while immutable row text is being prepared. The
         # shared roster survives that close; project live view routes only
         # after the await, rather than restoring a retired mode from a DTO.
-        current = self.query_ancestor(CommsSidebar).observation.project(snapshot.wire)
+        current = sidebar.observation.project(snapshot.wire)
         modes = {name: mode for mode, name in current.session_threads.items()}
 
         def create(name):
-            person = self._snapshot.all_people[name]
+            person = snapshot.all_people[name]
             return ThreadRow(person_target(person), name)
 
         def update(name, row):
             # The thread is the row identity. Opening/closing one of its
             # views changes navigation, not its content widget or geometry.
             row.mode_name = modes.get(name)
-            row.target = person_target(self._snapshot.all_people[name])
+            row.target = person_target(snapshot.all_people[name])
             row.apply_thread_preparation(prepared_rows[name])
             row.current = row.mode_name == app.selected_mode
 
@@ -162,8 +160,7 @@ class ChannelGroup(SidebarGroup):
             wanted if self.expanded else (), self._members, create, update)
 
 
-    async def present(self, view: ChannelView,
-                               snapshot: SidebarSnapshot) -> None:
+    async def present(self, view: ChannelView) -> None:
         row = self.row
         sidebar = self.query_ancestor(CommsSidebar)
         if row.is_attached:
@@ -176,7 +173,9 @@ class ChannelGroup(SidebarGroup):
                 # owns the layout change, not repainting an unchanged arrow
                 # on every wire snapshot (which reflows the transcript too).
                 group.disclosure.update("▾" if expanded else "▸", layout=False)
-            await group.update_members(view, snapshot)
+            # Projection publication already owns its lock. The shared base
+            # owns member retirement/mount serialization inside that lifetime.
+            await super()._sync_members()
 
 
 def _comms_root() -> Path:
