@@ -32,3 +32,19 @@ Evidence remains in the owned native checkout's
 Read semantics, implement the related family, then batch affected sanity and
 one joined installed saved-session IRC/DM/End/return workflow. Current source
 findings explain different mechanisms, not measured latency attribution.
+
+## First implemented family
+
+WireMarkdownMessage now owns the original message envelope: initialization,
+historical direction, source text, divider and notification composition.
+IRCMessage inherits that work and renders its compact body through the existing
+compose_body hook. Source-specific acknowledgement targets remain leaf methods,
+so a divider still cannot authorize a read. Both viewport consumers admit the
+existing ancestor and call that leaf behavior, deleting their repeated type
+rosters. Compact CSS/default classes/focus and both clipboard forms remain
+explicit on their original leaves. No new widget type or stored source fact.
+
+This2-production-file checkpoint deletes the second envelope constructor and
+compose algorithm. The channel paging/controller migration is still active;
+this is not a claim that scrolling or End is fixed. Batch sanity and the single
+changed installed journey follow the completed history family.
