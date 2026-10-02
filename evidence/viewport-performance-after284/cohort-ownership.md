@@ -1,0 +1,13 @@
+# One admitted restoration cohort, existing demand custody
+
+Heisenberg295/21 source census: DocumentViewport._reconcile and _restore_bodies are the only product restoration producers. Original ViewportBody implementations retain their existing prepare_body/restore_body hooks. DirectionalPreparation owns the actual PreparationDemand identity; HistoryWindow owns history_lock/preserve_history and compensated layout. Original native NodeList, Styles, compositor and Animator own child count, CSS, arrangement and animation. No competing declaration/type/state has been added.
+
+Actual03 scroll stacks resolve native Compose -> mount -> App._register -> Stylesheet.apply -> replace_rules -> property descriptor -> Styles._mark_updated -> DOMNode._style_rules_updated. Arrangement samples pass Workspace/Screen reflow. Idle store locks include worker-thread viewer_snapshot/activity readers, so cross-thread wait samples are not all UI CPU. Profiles identify paths, not a CPU saving.
+
+A proposed raw complete-style installation was withdrawn by source analysis BEFORE validation/commit: LayoutProperty owns per-widget layout construction; StringEnumProperty/OverflowProperty own display custody and scrollbar housekeeping; inherited CSS refresh and all notify_style_update consumers must remain intact. No unsafe shortcut or compatibility branch is retained.
+
+The concrete producer duplication is within the existing viewport: _reconcile prepares an admitted ahead batch concurrently, then individually acquires history_lock and completes stale-body preserve_history/layout for each member. The foreground already uses the cohort owner. The same admitted ahead batch now uses that original shared algorithm and one original lock/compensation transaction. This deletes the caller's separate per-body restore loop. PreparationBudget still bounds each batch and the original live-cost admission reruns after completion.
+
+All restoration callers now supply the existing demand, including foreground. _restore_bodies checks original DirectionalPreparation.accepts after lock acquisition and between awaited native body restores; reversal/settlement/source departure can revoke the remaining cohort without a second validity flag, registry or copied position. No new paint wait, clock, scheduler, cache or readiness mirror. The original native anchor and active animation compensation remain the same transaction. Patterns IMPL-13/IDEN-1: batching inherits one original algorithm, not another publication decision.
+
+Native final sanity will run once after this coherent source/caller migration, followed by one changed-pair installed real original-history A/B/A/input-held/reverse/idle/End gate. No unchanged03 recapture or full CPU/readiness claim. Full295/21 scope remains.

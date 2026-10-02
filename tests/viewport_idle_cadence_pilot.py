@@ -70,7 +70,7 @@ async def main():
                               if body not in app.screen._compositor.visible_widgets)
             assert await background.retire_body()
             await background.prepare_body()
-            await manager._restore_bodies((background,), foreground)
+            await manager._restore_bodies((background,), foreground, manager.lookahead.demand)
             assert background.body_ready
             background_delivery = lookahead.delivery_seconds
             (scratch / "receipt.json").write_text(json.dumps({
