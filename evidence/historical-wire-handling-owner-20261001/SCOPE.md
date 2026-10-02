@@ -19,3 +19,13 @@ Patterns: BOUND-7 (consumer assumes another concrete owner's capabilities), BOUN
 ## Acceptance
 
 Source-first owner/caller closure, then focused sanity and one installed real saved-historical view on isolated LinuxDriver/Xvfb with actual incoming/outgoing handling resources. Verify correct source, visible results/error distinction, detach/selection replacement, native saved source preserved, owned cleanup. No providers/public mutation/replays; existing path/link/viewport behavior unchanged. Passing source checks alone is not installed acceptance.
+
+## Working source checkpoint
+
+Widget mount publishes the declared WireMessageHandling.Requested native Message. Conversation stops that request and schedules its ORIGINAL TranscriptPresentation handling publication. HistoricalSessions stops it, batches resident original-reference resources through the same WireMessageHandling capability, and resolves the selected HistorySource with Comms's existing source-only initialization/claim permissions disabled. Its existing selection generation and native resource attachment fence publish both results and read failures; replacement cancels the owned worker. Native incoming/outgoing constructors retain their ORIGINAL immutable events/reference declarations; no copied source or selected status is added to rows, page/fragment constructors, projected history or a new catalog.
+
+HandlingPublication's original reference batching is moved onto the existing WireMessageHandling capability and reused; its application/source-current/resource fence is unchanged. Original event source is REQUIRED by WireTextTranscript, so the nullable handling reference branch is deleted. No current source/cursor/coverage/retirement method changes.
+
+Archive attach preserves bus/registry/routes and certified delivery source, not coordination.sqlite3/runtime assignment records. Historical projection reads ORIGINAL archived registry/audience/reference, never today's registry or status. No retained assignment means the canonical UnrecordedNotificationSource projection; unsupported original read errors render the existing MessageNotifications unavailable view. The read error branch does not switch readers, invent receipt or suppress the failing ancestor lookup; that lookup is deleted.
+
+Source production diff: 12 deleted / 76 added across four existing files. Growth supplies the previously missing historical source publication and native request contract. Focused and installed acceptance pending.
