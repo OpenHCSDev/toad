@@ -21,6 +21,7 @@ from textual.strip import Strip
 from textual.style import Style
 from textual.visual import RenderOptions, Visual
 from textual.worker import WorkerCancelled
+from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.widgets import Label
 from textual.widgets._label import LabelVariant
@@ -31,13 +32,12 @@ from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdo
 from toad.markdown_preparation import FenceKey, PreparedFence
 from toad.render_tasks import MarkdownSyntaxRenderTask, TokenRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
-from toad.widgets.viewport_body import ViewportBody, MeasuredViewportBody
+from toad.widgets.viewport_body import MeasuredViewportBody
 
 
 class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
-    @property
-    def body_ready(self) -> bool:
-        return super().body_ready and not self.loading
+    def native_body_ready(self) -> bool:
+        return super().native_body_ready() and not self.loading
 
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately
@@ -53,40 +53,12 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
     ) -> None:
         self._prepared_fences: dict[FenceKey, PreparedFence] = {}
         self._preparation_closed = False
-        self._body_viewport = None
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
                          parser_factory=factory, open_links=open_links)
 
     def on_mount(self) -> None:
         self._preparation_closed = False
-        from toad.widgets.history_anchor import HistoryWindow
-        from toad.screens.workspace import WorkspaceScreen
-
-        if isinstance(self.screen, WorkspaceScreen):
-            ancestors = self.ancestors
-            if any(isinstance(node, ViewportBody) for node in ancestors):
-                return  # The outer source owner retires/restores this entire body.
-            window = next((node for node in ancestors if isinstance(node, HistoryWindow)), None)
-            if window is not None:
-                self._body_viewport = window.document_viewport
-                self._body_viewport.register(self)
-
-    async def retire_body(self) -> bool:
-        if (self._body_dormant or self._body_measurement is None or self.loading
-                or self.lock.is_locked or not self.is_attached):
-            return False
-        if self._body_viewport is not None and self in self._body_viewport.protected():
-            return False
-        blocks = self.reconstructible_children()
-        if not blocks:
-            return False
-        async with self.lock:
-            self.retire_measurement()
-            self.retire_body_resources()
-            await self.remove_children(blocks)
-            self.refresh(layout=True)
-        return True
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         """Native resources rebuilt from this document's original source."""
@@ -96,16 +68,30 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         """Release reconstructible preparation with the native retirement."""
         self._prepared_fences.clear()
 
-    async def restore_body(self) -> None:
-        if self._body_dormant and self.is_attached and not self._closing:
-            self._body_restoring = True
-            try:
-                await self.update(self.source)
-                if self.is_attached:
-                    self._body_dormant = False
-                    self.refresh(layout=True)
-            finally:
-                self._body_restoring = False
+    async def materialize_native_body(self) -> None:
+        await self.update(self.source)
+
+    def update(self, markdown: str) -> AwaitComplete:
+        self.begin_body_materialization()
+        operation = super().update(markdown)
+
+        async def publish():
+            await operation
+            if self.is_attached:
+                self.native_body_committed()
+
+        return AwaitComplete(publish())
+
+    def append(self, markdown: str) -> AwaitComplete:
+        self.begin_body_materialization()
+        operation = super().append(markdown)
+
+        async def publish():
+            await operation
+            if self.is_attached:
+                self.native_body_committed()
+
+        return AwaitComplete(publish())
 
     async def prepare_body(self) -> None:
         # Results live only in PreparationRuntime's bounded cache. Fresh file
@@ -119,9 +105,6 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         self.workers.cancel_node(self)
 
     def on_unmount(self) -> None:
-        if self._body_viewport is not None:
-            self._body_viewport.discard(self)
-            self._body_viewport = None
         self._cancel_preparation()
         self._prepared_fences.clear()
 

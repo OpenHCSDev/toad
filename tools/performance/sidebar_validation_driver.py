@@ -327,13 +327,54 @@ def install_observer():
 
 
 class ValidationDriver(LinuxDriver):
+    @classmethod
+    def observe_application_frames(cls, app):
+        """Attach through the app's original mounted lifetime.
+
+        Load is dispatched before App builds its driver, so call_next alone
+        does not establish acquisition. Native App mount completes after that
+        acquisition; the existing worker waits on that original completion.
+        No startup delay, readiness polling, or copied installed-state flag.
+        """
+        async def acquired():
+            await app._mounted_event.wait()
+            cls.observe_frames(app._driver)
+            record("frame_observer_attached", driver=type(app._driver).__name__)
+        app.run_worker(acquired(), name="frame-delivery-observer", group="frame-delivery-observer")
+
+    @staticmethod
+    def observe_frames(driver):
+        """Observe the original writer on an existing driver, without loop probes.
+
+        The installed capture and this diagnostic driver share the same events
+        and monotonic clock. A writer receipt is not an emulator paint receipt;
+        even cursor-only or empty flushes can pass this boundary.
+        """
+        original_flush = driver.flush
+        ui_thread = threading.get_ident()
+        frame = 0
+
+        def observed_flush():
+            nonlocal frame
+            result = original_flush()
+            if threading.get_ident() == ui_thread and driver._writer_thread:
+                frame += 1
+                selected_frame = frame
+                mode = driver._app.current_mode
+                record("frame_enqueued", frame=selected_frame, mode=mode)
+                driver.call_after_flush(
+                    lambda: record("frame_flushed", frame=selected_frame, mode=mode))
+            return result
+
+        driver.flush = observed_flush
+
     def __init__(self, *args, **kwargs):
         self._ui_thread = threading.get_ident()
-        self._frame = 0
         self._running_observer = True
         self._previous_tick = time.monotonic_ns()
         self._gc_started = None
         super().__init__(*args, **kwargs)
+        self.observe_frames(self)
         self._asyncio_log_handler = None
         self._diagnostic_tree_logged = False
         self._focused_profiler = None
@@ -506,16 +547,6 @@ class ValidationDriver(LinuxDriver):
             "atomic_mode_switch": app._atomic_mode_switch, "pending_mode_switch": app._pending_mode_switch,
             "screens": screens}, indent=2))
         Path(os.environ["TOAD_VALIDATION_TRACE"]).write_text(json.dumps(list(records)))
-
-    def flush(self):
-        result = super().flush()
-        if threading.get_ident() == self._ui_thread and self._writer_thread:
-            self._frame += 1
-            frame = self._frame
-            mode = self._app.current_mode
-            record("frame_enqueued", frame=frame, mode=mode)
-            self.call_after_flush(lambda: record("frame_flushed", frame=frame, mode=mode))
-        return result
 
     def _snapshot(self):
         from agent_comms.transcript_events import TranscriptCodec

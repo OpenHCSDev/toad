@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import Hashable, Mapping
 from copy import deepcopy
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass, replace
 from enum import Enum
 from hashlib import sha256
 from pathlib import Path
@@ -166,13 +166,14 @@ class RendererWork(PreparationWork[ResultT]):
 @dataclass(frozen=True)
 class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     task: RenderTask[ResultT]
+    scope: PreparationScope | None = None
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
         # Tasks such as path-aware Markdown read external state not represented
         # by their text. Their declaration opts out of both retention and sharing.
         if self.task.reusable_inputs() is None:
-            return WorkKey(type(self), object())
-        return await super().identity(runtime)
+            return WorkKey(type(self), object(), self.scope)
+        return replace(await super().identity(runtime), scope=self.scope)
 
     @property
     def inputs(self) -> object:

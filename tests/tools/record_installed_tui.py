@@ -226,10 +226,23 @@ class ProcessOwner:
         self.children.append(owned)
         return owned
 
-    def run(self, argv, env, *, timeout=30, stdout=subprocess.DEVNULL, **kwargs):
+    def run(self, argv, env, *, timeout=30, stdout=subprocess.DEVNULL,
+            observe=None, observation_interval=1, **kwargs):
         owned = self.start(argv, env=env, stdout=stdout, **kwargs)
         try:
-            out, err = owned.process.communicate(timeout=timeout)
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                try:
+                    out, err = owned.process.communicate(
+                        timeout=min(remaining, observation_interval) if observe else remaining)
+                    break
+                except subprocess.TimeoutExpired:
+                    if observe is None or time.monotonic() >= deadline:
+                        raise
+                    observe()
             if owned.text:
                 out = out.decode() if out is not None else None
                 err = err.decode() if err is not None else None
@@ -1204,26 +1217,97 @@ def profile_review(output, receipt, rate):
     return result
 
 
-def artifacts(output, args, env, owner, *, start, seconds, label=None):
+def artifacts(output, args, env, owner, *, start, seconds, label=None, consecutive=False):
     video = output / "terminal.mp4"
     common = ["ffmpeg", "-nostdin", "-y", "-loglevel", "warning", "-threads", "1",
               "-filter_threads", "1", "-filter_complex_threads", "1"]
     interval = ["-ss", str(start), "-t", str(seconds), "-i", str(video)]
     slow = output / (f"{label}-slow.mp4" if label else "slow.mp4")
     sheet = output / (f"{label}-frames.png" if label else "frames.png")
-    owner.run(common + interval + [
-        "-vf", f"setpts={args.slowdown}*(PTS-STARTPTS)", "-r", str(args.fps),
-        "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-threads", "1",
-        str(slow),
-    ], env, timeout=60)
-    frames = min(args.review_frames, max(1, math.ceil(seconds * args.review_fps)))
+    if not consecutive:
+        owner.run(common + interval + [
+            "-vf", f"setpts={args.slowdown}*(PTS-STARTPTS)", "-r", str(args.fps),
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-threads", "1",
+            str(slow),
+        ], env, timeout=60)
+    fps = args.fps if consecutive else args.review_fps
+    frames = min(args.review_frames, max(1, math.ceil(seconds * fps)))
     rows = math.ceil(frames / args.sheet_columns)
     # Input seeking resets PTS. Add the source offset before drawing timestamps.
     stamp = r"drawtext=text='%{pts\:hms}':fontsize=14:fontcolor=white:box=1:boxcolor=black:x=4:y=4"
-    filters = (f"fps={args.review_fps},settb=AVTB,setpts=PTS+{start}/TB,{stamp},"
+    filters = (f"fps={fps},settb=AVTB,setpts=PTS+{start}/TB,{stamp},"
                f"scale=640:-2,tile={args.sheet_columns}x{rows}:nb_frames={frames}")
     owner.run(common + interval + ["-vf", filters, "-frames:v", "1", "-threads", "1",
                                   "-update", "1", str(sheet)], env, timeout=60)
+
+
+def phase_events(output):
+    """Decode the original physical phase producer for live and final review."""
+    path = output / "events.jsonl"
+    return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+def frame_review(output, receipt, *, window_seconds):
+    """Use the original observer/analysis and recording's monotonic origin."""
+    tools = Path(__file__).resolve().parents[2] / "tools/performance"
+    spec = importlib.util.spec_from_file_location("analyze_trace", tools / "analyze_trace.py")
+    analysis = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(analysis)
+    traces = list(output.glob("*-state-frames.json"))
+    if not traces:
+        return {"available": False, "reason": "This capture has no original driver frame trace"}
+    source = max(traces, key=lambda path: path.stat().st_mtime_ns)
+    trace = json.loads(source.read_text())
+    origin = round(receipt["capture_launch_monotonic"] * 1e9)
+    events = phase_events(output)
+    actions = [{"action": before["label"],
+                "start_ns": origin + round(before["seconds_since_capture_launch"] * 1e9),
+                "end_ns": origin + round(after["seconds_since_capture_launch"] * 1e9)}
+               for before, after in zip(events, events[1:])]
+    delivery = analysis.frame_delivery(
+        trace, actions, origin_ns=origin,
+        end_ns=trace[-1]["ns"] if trace else origin,
+        window_seconds=window_seconds)
+    delivery["trace_source"] = source.name
+    delivery["trace_limit"] = 100000
+    delivery["trace_limit_reached"] = len(trace) == 100000
+    delivery["first_observed_ns"] = trace[0]["ns"] if trace else None
+    analysis.write_frame_timeline(output / "frame-delivery.json", delivery)
+    return {"available": True, "trace": source.name,
+            "artifacts": ["frame-delivery.json", "frame-delivery.svg"],
+            "intervals": delivery["intervals"], "scope": delivery["scope"]}
+
+
+def live_review(output, args, env, owner, label):
+    """Expose consecutive finalized video frames while the same UI is running.
+
+    Encoding a sheet does not attest that somebody watched it. Record the
+    source interval and encoding overhead; the operator must inspect it then.
+    """
+    started = time.monotonic()
+    info = owner.run(["ffprobe", "-v", "error", "-select_streams", "v:0",
+                      "-show_packets", "-show_entries", "format=duration:packet=pts_time,flags",
+                      "-of", "json", str(output / "terminal.mp4")], env,
+                     stdout=subprocess.PIPE, text=True, timeout=5)
+    metadata = json.loads(info.stdout)
+    # A running fragmented MP4 may advertise the unfinished current GOP. The
+    # last acquired keyframe starts that GOP; earlier packets are complete.
+    duration = max(float(packet["pts_time"]) for packet in metadata["packets"]
+                   if "K" in packet["flags"])
+    seconds = min(duration, args.review_frames / args.fps)
+    if seconds <= 0:
+        raise RuntimeError("Live recording has no finalized video frames yet")
+    start = duration - seconds
+    artifacts(output, args, env, owner, start=start, seconds=seconds,
+              label=label, consecutive=True)
+    result = {"event": "live_review_available", "label": label,
+              "source_start_seconds": start, "source_end_seconds": duration,
+              "encoding_started_monotonic": started,
+              "encoding_finished_monotonic": time.monotonic(),
+              "frames": str(output / f"{label}-frames.png"),
+              "assessment": "unreviewed; inspect consecutive frames now, not after the run"}
+    print(json.dumps(result), flush=True)
+    return result
 
 
 def review_recording(args):
@@ -1259,7 +1343,7 @@ def review_recording(args):
 
 def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=False,
                          wait_history_seconds=0, wait_history_interval=.1, wait_history_thread=None,
-                         scroll_travel=False):
+                         scroll_travel=False, install_frame_trace=False, frames_only=False):
     """Use the existing live exporter for the exact owned UI launch identity."""
     if not identity.alive():
         raise RuntimeError("UI identity exited before state capture")
@@ -1274,6 +1358,9 @@ def capture_loaded_state(output, name, identity, owner, env, *, timeout, screen=
                        "--wait-history-interval", str(wait_history_interval),
                        *(["--wait-history-thread", wait_history_thread] if wait_history_thread else []),
                        *(["--screen"] if screen else []),
+                       *(["--frame-trace"] if env.get("TOAD_VIDEO_FRAME_TRACE") == "1" else []),
+                       *(["--install-frame-trace"] if install_frame_trace else []),
+                       *(["--frames-only"] if frames_only else []),
                        *(["--scroll-travel"] if scroll_travel else [])], env,
                       stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
         observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
@@ -1305,6 +1392,8 @@ def record(args):
     private_root = target.root
     selection = target.selection
     env["TOAD_VIDEO_CAPTURE_TARGET"] = target.declared_name
+    if args.capture_state:
+        env["TOAD_VIDEO_FRAME_TRACE"] = "1"
     selection.apply_environment(env)
     if selection.bin_directory.parent.resolve() != Path(sys.prefix).resolve():
         raise ValueError("Run recorder with the selected installed runtime's Python")
@@ -1426,7 +1515,9 @@ def record(args):
                 "ffmpeg", "-nostdin", "-y", "-loglevel", "warning", "-threads", "1", "-f", "x11grab",
                 "-framerate", str(args.fps), "-video_size", f"{args.width}x{args.height}",
                 "-i", env["DISPLAY"], "-t", str(args.max_duration), "-c:v", "libx264", "-preset", "ultrafast",
-                "-crf", "26", "-threads", "1", "-r", str(args.fps), "-fps_mode", "cfr", "-pix_fmt", "yuv420p", str(output / "terminal.mp4"),
+                "-crf", "26", "-threads", "1", "-r", str(args.fps), "-fps_mode", "cfr", "-pix_fmt", "yuv420p",
+                "-g", str(args.fps), "-movflags", "+frag_keyframe+empty_moov+default_base_moof",
+                str(output / "terminal.mp4"),
             ], stderr=stack.enter_context((output / "capture.log").open("w")))
             started = time.monotonic()
             finish_deadline = started + args.max_duration
@@ -1455,7 +1546,8 @@ def record(args):
                     return
                 receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
                     output, name, transferred_program.child.identity, owner, env, timeout=remaining(), screen=True,
-                    scroll_travel=args.scroll_travel and name == "before")
+                    scroll_travel=args.scroll_travel and name == "before",
+                    install_frame_trace=name == "before")
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
@@ -1471,12 +1563,40 @@ def record(args):
                 # the real236 run. Each line is a checked native CLI invocation;
                 # held keys remain in the owned X server between invocations.
                 with (output / "driver.log").open("w") as log:
-                    for line in script.splitlines():
+                    for action_number, line in enumerate(script.splitlines()):
                         action_argv = shlex.split(line, comments=True)
                         if action_argv:
-                            owner.run(["xdotool", *action_argv], env, stdout=log,
-                                      stderr=subprocess.STDOUT,
-                                      timeout=max(.1, remaining() - args.tail_seconds - 1))
+                            reviews = receipt.setdefault("live_reviews", [])
+
+                            def observe():
+                                label = f"live-{action_number}-{len(reviews)}"
+                                try:
+                                    reviews.append(live_review(output, args, env, owner, label))
+                                    if args.capture_state:
+                                        capture_loaded_state(
+                                            output, label, transferred_program.child.identity, owner, env,
+                                            timeout=remaining(), frames_only=True)
+                                        receipt["live_frame_delivery"] = frame_review(
+                                            output, receipt, window_seconds=args.frame_window_seconds)
+                                except (OSError, subprocess.SubprocessError, ValueError, KeyError, RuntimeError) as error:
+                                    reviews.append({"label": label, "error": f"{type(error).__name__}: {error}",
+                                                    "assessment": "unreviewed"})
+                                    print(json.dumps(reviews[-1]), flush=True)
+
+                            begin = time.monotonic_ns()
+                            log.write(json.dumps({"event": "driver_command_started", "ns": begin,
+                                                  "argv": action_argv}) + "\n")
+                            log.flush()
+                            try:
+                                owner.run(["xdotool", *action_argv], env, stdout=log,
+                                          stderr=subprocess.STDOUT,
+                                          observe=observe, observation_interval=args.live_review_interval,
+                                          timeout=max(.1, remaining() - args.tail_seconds - 1))
+                            finally:
+                                log.write(json.dumps({"event": "driver_command_finished",
+                                                      "ns": time.monotonic_ns(), "begin_ns": begin,
+                                                      "argv": action_argv}) + "\n")
+                                log.flush()
                 receipt["driver_finished_seconds"] = time.monotonic() - started
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
@@ -1512,9 +1632,10 @@ def record(args):
             duration = float(receipt["video"]["format"]["duration"])
             if args.review_start >= duration:
                 raise ValueError(f"Review start {args.review_start}s is outside the {duration}s recording")
-            events_path = output / "events.jsonl"
-            events = [json.loads(line) for line in events_path.read_text().splitlines()] if events_path.exists() else []
+            events = phase_events(output)
             receipt["events"] = events
+            receipt["frame_review"] = frame_review(
+                output, receipt, window_seconds=args.frame_window_seconds)
             if args.profile:
                 receipt["profile_review"] = profile_review(output, receipt, args.profile_rate)
             receipt["journey_review"] = args.journey.review(output, receipt)
@@ -1539,6 +1660,8 @@ def record(args):
                 names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
             names.extend(args.journey.review_artifacts)
             names.extend(path.name for path in output.glob("*-click-target.json"))
+            names.extend(path.name for path in output.glob("live-*-frames.png"))
+            names.extend(receipt["frame_review"].get("artifacts", ()))
             names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
             receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
                                          "sha256": digest(output / name)} for name in names}
@@ -1776,6 +1899,10 @@ def main():
     parser.add_argument("--profile-threads", type=ThreadSampling.decode, default=AllThreadSampling,
                         help="Thread selection: " + ", ".join(ThreadSampling.names()))
     parser.add_argument("--fps", type=int, default=60)
+    parser.add_argument("--frame-window-seconds", type=float, default=1,
+                        help="Rolling rate window for original native writer receipts")
+    parser.add_argument("--live-review-interval", type=float, default=1,
+                        help="Expose consecutive finalized video frames during long driver commands; encoding is not visual approval")
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=800)
     parser.add_argument("--fit-window", action="store_true")
@@ -1827,15 +1954,19 @@ def main():
         raise InterruptedError(f"Recorder interrupted by signal {signum}")
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, interrupted)
-    bounds = {"profile_rate": (10, 49), "fps": (1, 120), "width": (320, 1920), "height": (240, 1200),
+    bounds = {"profile_rate": (10, 49), "width": (320, 1920), "height": (240, 1200),
               "slowdown": (1, 16), "review_seconds": (.01, 15),
-              "review_fps": (.1, 60), "review_frames": (1, 96), "sheet_columns": (1, 8),
+              "review_frames": (1, 96), "sheet_columns": (1, 8),
               "startup_wait": (0, 119), "tail_seconds": (0, 119), "review_start": (0, 119),
               "finalize_seconds": (ProfileProcess.export_seconds + 6, 30)}
     for name, (low, high) in bounds.items():
         value = getattr(args, name)
         if not math.isfinite(value) or not low <= value <= high:
             parser.error(f"{name} must be finite and between {low} and {high}")
+    for name in ("fps", "review_fps", "frame_window_seconds", "live_review_interval"):
+        value = getattr(args, name)
+        if not math.isfinite(value) or value <= 0:
+            parser.error(f"{name} must be positive and finite")
     if not math.isfinite(args.max_duration) or args.max_duration < 1:
         parser.error("max_duration must be finite and at least 1")
     if args.width % 2 or args.height % 2:

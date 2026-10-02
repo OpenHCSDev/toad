@@ -15,6 +15,7 @@ from pygments.lexers import get_lexer_for_filename
 from rich.text import Text
 from textual.render import measure
 from textual.strip import Strip
+from textual.geometry import Region
 from textual.widget import _Styled
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
@@ -61,6 +62,27 @@ class SyntaxSource(RichSource):
 class PreparedRichContent:
     width: int
     lines: tuple[Strip, ...]
+
+    @property
+    def text(self) -> str:
+        return "\n".join(line.text for line in self.lines)
+
+    def render_lines(self, crop: Region, *, selection=None, selection_style=None) -> list[Strip]:
+        """Crop original prepared rows without rebuilding a native subtree."""
+        result = []
+        for y in crop.line_range:
+            strip = self.lines[y] if 0 <= y < len(self.lines) else Strip.blank(self.width)
+            span = selection.get_span(y) if selection is not None else None
+            if span is not None:
+                from rich.cells import cell_len
+                first, last = span
+                first = cell_len(strip.text[:first])
+                last = strip.cell_length if last == -1 else cell_len(strip.text[:last])
+                strip = Strip.join((strip.crop(0, first),
+                                    strip.crop(first, last).apply_style(selection_style),
+                                    strip.crop(last, strip.cell_length)))
+            result.append(strip.apply_offsets(0, y).crop(crop.x, crop.right))
+        return result
 
 
 @dataclass(frozen=True)

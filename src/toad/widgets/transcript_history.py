@@ -179,49 +179,21 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         super().__init__()
         self.fragment = fragment
         self._retained_bytes = retained_bytes(fragment)
-        self._body_viewport = None
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
         self.add_class(f"-message-{self._message_category.declared_name}")
         self.set_class(not any(event.routed for event in fragment.events), "-unrouted")
         self.set_categories(all_categories() if selected is None else selected)
 
-    def on_mount(self) -> None:
-        from toad.widgets.history_anchor import HistoryWindow
-        window = self.query_ancestor(HistoryWindow)
-        self._body_viewport = window.document_viewport
-        self._body_viewport.register(self)
-
-    def on_unmount(self) -> None:
-        if self._body_viewport is not None:
-            self._body_viewport.discard(self)
-
     @property
     def retained_source_bytes(self) -> int:
         return self._retained_bytes
 
-    async def retire_body(self) -> bool:
-        if not self.body_ready or self._body_measurement is None:
-            return False
-        # Pruning replaces the whole materialization, including hidden bodies.
-        # Join their original readiness here, not on every viewport frame.
-        if any(not child.body_ready for child in self.walk_children()
-               if isinstance(child, ViewportBody)):
-            return False
-        self.retire_measurement()
-        await self.remove_children()
-        self.refresh(layout=True)
-        return True
+    def reconstructible_children(self) -> tuple[Widget, ...]:
+        return tuple(self.children)
 
-    async def restore_body(self) -> None:
-        if self._body_dormant:
-            self._body_restoring = True
-            try:
-                await self.recompose()
-                self._body_dormant = False
-                self.refresh(layout=True)
-            finally:
-                self._body_restoring = False
+    async def materialize_native_body(self) -> None:
+        await self.recompose()
 
     async def prepare_body(self) -> None:
         from toad.render_tasks import TranscriptBodyPreparation
@@ -258,6 +230,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         Updating Markdown itself preserves the outer scene, subscriptions and
         styles instead of destroying and reconstructing the entire fragment.
         """
+        self.begin_body_materialization()
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
@@ -278,8 +251,10 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             leaf = self.children[-1]
             if isinstance(leaf, (AgentResponse, AgentThought)):
                 await leaf.update(new_events[0].text)
+                self.native_body_committed()
                 return
         await self.recompose()
+        self.native_body_committed()
 
 
 @dataclass(frozen=True)

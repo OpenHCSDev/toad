@@ -11,6 +11,12 @@ from functools import partial
 from weakref import WeakSet, ref
 from time import monotonic
 from dataclasses import dataclass, replace
+from abc import ABC, abstractmethod
+from textual.strip import Strip, StripRenderable
+from rich.style import Style as RichStyle
+from toad.rich_preparation import PreparedRichContent, RenderableSource, RichPresentation
+from toad.render_tasks import RichRenderTask
+from toad.work_preparation import PreparationScope, RenderPreparation, retained_bytes
 import asyncio
 from toad.widgets.presentation_window import (
     DirectionalPreparation, PreparationDemand, PresentationBudget,
@@ -19,7 +25,9 @@ from toad.widgets.presentation_window import (
 from textual.widget import Widget
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
+from textual._paint_state import PaintState
 from textual.worker import WorkerCancelled
+from textual.worker import Worker
 
 
 class ViewportBody:
@@ -51,6 +59,13 @@ class ViewportBody:
         return 0
 
     @property
+    def retained_paint_bytes(self) -> int:
+        return 0
+
+    def release_paint(self) -> None:
+        """Release a prepared paint resource at working-set eviction."""
+
+    @property
     def measured_rows(self) -> int:
         raise NotImplementedError
 
@@ -65,73 +80,395 @@ class ViewportBody:
 
 
 @dataclass(frozen=True)
-class BodyMeasurement:
-    """Native measured extent and captured dormant reconstruction cost."""
+class BodyMeasurement(ABC):
+    """One body's extent, native custody and prepared paint resource."""
 
-    width: int
-    rows: int
+    width: int = 0
+    rows: int = 0
     widgets: int = 1
+
+    @property
+    @abstractmethod
+    def dormant(self) -> bool: ...
+
+    @abstractmethod
+    def ready(self, body) -> bool: ...
+
+    @abstractmethod
+    def cost(self, body) -> int: ...
+
+    @property
+    def paint_bytes(self) -> int:
+        return 0
+
+    @abstractmethod
+    def height(self, body, width, measure) -> int: ...
+
+    @abstractmethod
+    def render(self, body, crop, render_live) -> list[Strip]: ...
+
+    @abstractmethod
+    async def restore(self, body) -> None: ...
+
+    def invalidated(self):
+        return MeasuredBody(self.width, self.rows, self.widgets)
+
+    def updating(self):
+        return MeasuredBody(self.width, self.rows, self.widgets)
+
+    async def materialize(self, body):
+        await body.start_materialization(self).materialize(body)
+
+    def released(self):
+        return self
+
+    def style_updated(self, body):
+        return self
+
+    def resized(self, size):
+        return self
+
+    async def retire(self, body):
+        return False
+
+
+@dataclass(frozen=True)
+class LiveBody(BodyMeasurement):
+    def invalidated(self):
+        # The original native tree still carries its pixels. Replace the
+        # captured lifetime so an in-flight retirement cannot publish old rows.
+        return replace(self)
+
+    @property
+    def dormant(self):
+        return False
+
+    def ready(self, body):
+        return body.native_body_ready()
+
+    def cost(self, body):
+        return body.materialized_widget_count
+
+    def height(self, body, width, measure):
+        height = measure()
+        if (width, height) != (self.width, self.rows):
+            body._body_measurement = replace(self, width=width, rows=height)
+        return height
+
+    def render(self, body, crop, render_live):
+        return render_live(crop)
+
+    async def restore(self, body):
+        return
+
+    async def materialize(self, body):
+        return
+
+    async def retire(self, body):
+        return await body.retire_native_body(self)
+
+
+@dataclass(frozen=True)
+class MeasuredBody(BodyMeasurement):
+    @property
+    def dormant(self):
+        return True
+
+    def ready(self, body):
+        return False
+
+    def cost(self, body):
+        return self.widgets
+
+    def height(self, body, width, measure):
+        return self.rows
+
+    def render(self, body, crop, render_live):
+        # This state has extent but no pixels; the original frame owner waits
+        # for reconstruction. It must not treat measurement as paint coverage.
+        return render_live(crop)
+
+    async def restore(self, body):
+        await body.materialize_body()
+
+
+@dataclass(frozen=True, kw_only=True)
+class MaterializingBody(MeasuredBody):
+    """The original native worker, not a copied restoring flag."""
+
+    worker: Worker
+
+    def invalidated(self):
+        return self
+
+    def updating(self):
+        return self
+
+    async def materialize(self, body):
+        await self.worker.wait()
+
+
+@dataclass(frozen=True, kw_only=True)
+class RenderedBody(BodyMeasurement):
+    content: PreparedRichContent
+    resource_bytes: int
+    style_revision: int
+    paint_state: PaintState
+
+    @property
+    def dormant(self):
+        return True
+
+    def ready(self, body):
+        # Screen commits sizes only for its current layout/exposed widgets.
+        # An offscreen widget's last committed size is not a new width demand.
+        # Measurement and actual size commits invalidate this resource below.
+        return (body.native_body_ready() and self.style_revision == body._subtree_style_revision
+                and self.paint_state == body._resolved_paint_state())
+
+    def style_updated(self, body):
+        return self if self.ready(body) else self.invalidated()
+
+    def resized(self, size):
+        return self if size.width == self.content.width else self.invalidated()
+
+    def cost(self, body):
+        return body.materialized_widget_count
+
+    @property
+    def paint_bytes(self):
+        return self.resource_bytes
+
+    def height(self, body, width, measure):
+        if width != self.width:
+            body.invalidate_body()
+        return self.rows
+
+    def render(self, body, crop, render_live):
+        selection = body.text_selection
+        return self.content.render_lines(
+            crop, selection=selection,
+            selection_style=body.selection_style if selection is not None else None)
+
+    def released(self):
+        return MeasuredBody(self.width, self.rows, self.widgets)
+
+    async def restore(self, body):
+        if not self.ready(body):
+            body.invalidate_body()
+            await body.materialize_body()
 
 
 class MeasuredViewportBody(ViewportBody):
-    """Shared native extent and restoration state for body-owning widgets."""
+    """The body owns Live, Rendered and Measured behavior, not copied flags."""
 
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+    CACHE_SUBTREE_GEOMETRY = True
 
     def __init__(self, *args, **kwargs):
-        self._body_dormant = False
-        self._body_restoring = False
-        self._body_measurement = None
-        self._body_measurement_stale = False
+        self._body_measurement = LiveBody()
+        self._body_scope = PreparationScope()
+        self._body_viewport = None
         super().__init__(*args, **kwargs)
 
     @property
-    def body_dormant(self) -> bool:
-        return self._body_dormant
+    def body_dormant(self):
+        return self._body_measurement.dormant
 
     @property
-    def body_measurement_stale(self) -> bool:
-        return self._body_measurement_stale
+    def body_measurement_stale(self):
+        return not self._body_measurement.ready(self)
 
     @property
-    def body_ready(self) -> bool:
-        return self.is_mounted and not self._body_dormant and not self._body_restoring
+    def body_ready(self):
+        return self._body_measurement.ready(self)
+
+    def native_body_ready(self):
+        return self.is_mounted and not self._closing
 
     @property
-    def measured_rows(self) -> int:
-        return self._body_measurement.rows if self._body_measurement is not None else 0
+    def measured_rows(self):
+        return self._body_measurement.rows
 
     @property
-    def retained_widget_count(self) -> int:
-        if self._body_dormant:
-            return self._body_measurement.widgets
-        return self.materialized_widget_count
+    def retained_widget_count(self):
+        return self._body_measurement.cost(self)
 
-    def retire_measurement(self) -> None:
-        # This cost belongs to the reconstructible body, not a second viewport
-        # counter. Keep it with the extent when the measured native tree retires.
-        self._body_measurement = replace(
-            self._body_measurement, widgets=self.retained_widget_count,
+    @property
+    def retained_paint_bytes(self):
+        return self._body_measurement.paint_bytes
+
+    def release_paint(self):
+        self._body_measurement = self._body_measurement.released()
+
+    def begin_body_materialization(self):
+        self._body_measurement = self._body_measurement.updating()
+
+    def invalidate_body(self):
+        self._body_measurement = self._body_measurement.invalidated()
+        if self._body_viewport is not None:
+            self._body_viewport.request()
+
+    def _update_body_measurement(self, measurement):
+        if measurement is self._body_measurement:
+            return
+        self._body_measurement = measurement
+        if self._body_viewport is not None:
+            self._body_viewport.request()
+
+    def native_body_committed(self):
+        previous = self._body_measurement
+        self._body_measurement = LiveBody(previous.width, previous.rows, previous.widgets)
+        self.refresh(layout=True)
+
+    def notify_style_update(self):
+        super().notify_style_update()
+        # Notification is not a rule mutation. Retained rows depend on the
+        # original subtree rule epoch and inherited native paint values.
+        self._update_body_measurement(self._body_measurement.style_updated(self))
+
+    def _size_updated(self, size, virtual_size, container_size, layout=True):
+        changed = super()._size_updated(size, virtual_size, container_size, layout)
+        self._update_body_measurement(self._body_measurement.resized(size))
+        return changed
+
+    @property
+    def selection_style(self):
+        from textual.style import Style
+        return Style.from_styles(self.screen.get_component_styles('screen--selection')).rich_style
+
+    def render_lines(self, crop):
+        return self._body_measurement.render(self, crop, super().render_lines)
+
+    def get_selection(self, selection):
+        if self.body_dormant and self.body_ready:
+            return selection.extract(self._body_measurement.content.text), '\n'
+        return super().get_selection(selection)
+
+    async def prepare_input(self, event):
+        # Native controls are actual resources, not pixels. Restore them at
+        # interaction, retaining read-only rows for ordinary scroll/reentry.
+        if self.body_dormant:
+            await self.materialize_body()
+            # Native input routing must select its target after the new scene
+            # commits, outside the mutation lock; no synthetic event replay.
+            painted = asyncio.Event()
+            self.screen.call_after_refresh(painted.set)
+            await painted.wait()
+
+    async def materialize_body(self):
+        if not self.body_dormant or not self.is_attached or self._closing:
+            return
+        await self._body_measurement.materialize(self)
+
+    def start_materialization(self, previous):
+        async def materialize():
+            try:
+                await self.materialize_native_body()
+                if self.is_attached and self._body_measurement is current:
+                    self.native_body_committed()
+            except BaseException:
+                if self._body_measurement is current:
+                    self._body_measurement = MeasuredBody(
+                        previous.width, previous.rows, previous.widgets)
+                raise
+
+        worker = self.run_worker(materialize(), group="body-materialization", exit_on_error=False)
+        current = MaterializingBody(previous.width, previous.rows, previous.widgets, worker=worker)
+        self._body_measurement = current
+        return current
+
+    async def materialize_native_body(self):
+        raise NotImplementedError
+
+    def reconstructible_children(self):
+        raise NotImplementedError
+
+    def retire_body_resources(self):
+        pass
+
+    async def retire_body(self):
+        return await self._body_measurement.retire(self)
+
+    async def retire_native_body(self, current):
+        if not self.body_ready or not self.is_attached:
+            return False
+        if self.lock.is_locked or self._body_viewport is None:
+            return False
+        if self._body_viewport is not None and self in self._body_viewport.protected():
+            return False
+        children = self.reconstructible_children()
+        if not children or any(not child.body_ready for child in self.walk_children()
+                               if isinstance(child, ViewportBody)):
+            return False
+        compositor = self.screen._compositor
+        if not compositor.can_render_subtree(self):
+            return False
+        style_revision = self._subtree_style_revision
+        paint_state = self._resolved_paint_state()
+        size, rows = compositor.render_subtree_strips(self)
+        task = RichRenderTask(
+            RenderableSource(StripRenderable(rows)),
+            RichPresentation(self.app.console_options.update(width=size.width, height=None),
+                             RichStyle(), None, False, None, self.app.console.color_system,
+                             self.app.current_theme.dark),
         )
-        self._body_dormant = True
+        content = await self.app.preparation.submit(RenderPreparation(task, scope=self._body_scope))
+        size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
+        # The original state is the captured source/width/style lifetime. An
+        # asynchronous change invalidates it rather than copying a revision.
+        if self._body_measurement is not current or not self.is_attached or self._closing:
+            return False
+        rendered = RenderedBody(
+            current.width, current.rows, self.materialized_widget_count,
+            content=content, resource_bytes=size_bytes,
+            style_revision=style_revision, paint_state=paint_state,
+        )
+        if not rendered.ready(self):
+            return False
+        async with self.lock:
+            if self._body_measurement is not current or not rendered.ready(self):
+                return False
+            self._body_measurement = rendered
+            self.retire_body_resources()
+            await self.remove_children(children)
+            self.refresh(layout=True)
+        return True
+
+    async def restore_body(self):
+        await self._body_measurement.restore(self)
 
     @height_dependency(NATIVE_WIDGET_HEIGHT)
-    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        if self._body_dormant and self._body_measurement is not None:
-            if width != self._body_measurement.width:
-                self._body_measurement_stale = True
-            return self._body_measurement.rows
-        height = super().get_content_height(container, viewport, width)
-        measurement = self._body_measurement
-        # Layout owns extent. Live custody comes directly from native child
-        # mutations; only retirement captures a reconstruction reservation.
-        self._body_measurement = BodyMeasurement(
-            width, height,
-            measurement.widgets if measurement is not None else 1,
-        )
-        self._body_measurement_stale = False
-        return height
+    def get_content_height(self, container, viewport, width):
+        native_height = super().get_content_height
+        return self._body_measurement.height(
+            self, width, lambda: native_height(container, viewport, width))
+
+    def get_content_width(self, container, viewport):
+        if self.body_dormant:
+            return self._body_measurement.width
+        return super().get_content_width(container, viewport)
+
+    def on_unmount(self):
+        if self._body_viewport is not None:
+            self._body_viewport.discard(self)
+            self.app.preparation.discard_scope(self._body_scope)
+            self._body_viewport = None
+        self._body_scope.closed = True
+        self._body_measurement = LiveBody()
+
+    def on_mount(self):
+        from toad.screens.workspace import WorkspaceScreen
+        from toad.widgets.history_anchor import HistoryWindow
+        if isinstance(self.screen, WorkspaceScreen):
+            for ancestor in self.ancestors:
+                if isinstance(ancestor, ViewportBody):
+                    return
+                if isinstance(ancestor, HistoryWindow):
+                    self._body_viewport = ancestor.document_viewport
+                    self._body_viewport.register(self)
+                    return
 
 
 class ViewportPresentation:
@@ -302,6 +639,9 @@ class DocumentViewport:
         admitted = self.admitted_bodies
         for key in tuple(self._warm):
             if key() not in admitted:
+                owner = key()
+                if owner is not None:
+                    owner.release_paint()
                 self._warm.pop(key)
                 self.body_evictions += 1
         for owner in reversed(ahead):
@@ -433,13 +773,16 @@ class DocumentViewport:
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
                 admitted = await self._trim_warm(required=required, ahead=ahead_owners)
-                warm = admitted if active else set()
-                retained = protected | warm | visible.keys()
+                # Admission retains a body's bounded presentation resource,
+                # not its live descendant tree. Offscreen warm bodies paint
+                # their retained rows on reentry; only visible or interaction
+                # protected bodies need their current native controls.
+                retained = protected | visible.keys()
                 # One foreground cohort produces readiness before frame
                 # admission. Per-body paint waits would hold this worker while
                 # the remaining visible dormant bodies reject that same frame.
                 restoring = tuple(owner for owner in required
-                                  if owner.is_attached and not owner._closing and owner.body_dormant)
+                                  if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
                 if restoring:
                     anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
                     started = monotonic()
@@ -453,10 +796,16 @@ class DocumentViewport:
                     wanted = owner in retained
                     if (not wanted and not owner.body_dormant and owner not in protected
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
-                        await owner.retire_body()
+                        if await owner.retire_body():
+                            key = ref(owner)
+                            self._warm[key] = key
+                            self._warm.move_to_end(key)
                         # Focus/selection may change across an awaited mutation;
                         # reuse the captured protection between those boundaries.
                         protected = self.protected()
+                # Capturing rows changes the original body resource cost.
+                # The same warm LRU admits or releases that paint resource.
+                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
                 if active:
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
@@ -465,7 +814,7 @@ class DocumentViewport:
                         if not self.lookahead.accepts(demand):
                             break
                         batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
-                                 if owner in admitted and owner.is_attached and owner.body_dormant]
+                                 if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
                         if not batch:
                             continue
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))

@@ -68,7 +68,8 @@ class PresentationBudget:
         admitted = set(required)
         widgets = source_bytes = 0
         for owner in candidates:
-            count, size = owner.retained_widget_count, owner.retained_source_bytes
+            count = owner.retained_widget_count
+            size = owner.retained_source_bytes + owner.retained_paint_bytes
             if owner not in admitted:
                 if (widgets + count > self.widget_limit(viewport_rows)
                         or source_bytes + size > max_bytes):

@@ -110,6 +110,8 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
 
         try:
             await self._publish_content(source, text, append, is_current)
+            if is_current():
+                self.native_body_committed()
         except asyncio.CancelledError:
             if generation == self._content_generation:
                 self._content_generation += 1
@@ -128,9 +130,8 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             if self.body_dormant:
                 # Streaming can resume on a previously cold message. Rebuild
                 # its complete source before allowing the incremental tail path.
-                if not self._body_restoring:
-                    self._body_dormant = False
                 self._needs_full_markdown_update = True
+            self.begin_body_materialization()
             if not self.uses_paged_source(source):
                 if append and self.source + text == source and not self._needs_full_markdown_update:
                     await super().append(text)
