@@ -10,3 +10,5 @@ worktree. Arendt owns the single affected installed busy-channel/native journey.
 The parent owns merge and default publication. Existing prefixes, originals,
 UNKNOWN attempts and native proofs are preserved. The exact final Core source
 and installed proof will be recorded after Arendt freezes his completed source.
+
+Frozen Core source: `ca4bcfa5efdcde807a4da26309222760939aefc1`. The ordinary uv lock resolves this commit; the receiving delta is three Core pin lines, with no frontend production change.
