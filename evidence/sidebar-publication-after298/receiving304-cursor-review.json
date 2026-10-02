@@ -1,0 +1,54 @@
+{
+  "raw_capture": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture",
+  "scope": "Read-only derived review of original trusted captured pages; no raw review overwritten/new capture/product proof",
+  "pages": {
+    "draft": {
+      "oldest": 42907137,
+      "newest": 42932905,
+      "loaded_pages": 1,
+      "scroll_y": 130,
+      "maximum": 130
+    },
+    "focused": {
+      "oldest": 42817440,
+      "newest": 42932905,
+      "loaded_pages": 2,
+      "scroll_y": 448,
+      "maximum": 448
+    },
+    "up-done": {
+      "oldest": 42817440,
+      "newest": 42907137,
+      "loaded_pages": 1,
+      "scroll_y": 69,
+      "maximum": 275
+    },
+    "down-done": {
+      "oldest": 42817440,
+      "newest": 42932905,
+      "loaded_pages": 2,
+      "scroll_y": 440,
+      "maximum": 448
+    },
+    "reverse-done": {
+      "oldest": 42817440,
+      "newest": 42907137,
+      "loaded_pages": 1,
+      "scroll_y": 77,
+      "maximum": 275
+    },
+    "idle-done": {
+      "oldest": 42907137,
+      "newest": 42932905,
+      "loaded_pages": 1,
+      "scroll_y": 204,
+      "maximum": 204
+    }
+  },
+  "original_three_failures_preserved": true,
+  "newer_admission_original_end_advanced": true,
+  "older_admission_checks_remain_false": true,
+  "product_source_change": false,
+  "source_relation": "Original TranscriptPage.before/after -> NativePhase -> TranscriptCursor.contains across native/receipt/outcome domains",
+  "reader_body_resource_qualification": "Separate peer304 existing predicates/pixels; no fulladmission or smoothness Ready claim"
+}
