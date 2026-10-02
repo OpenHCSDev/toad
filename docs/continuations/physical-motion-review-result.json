@@ -62,5 +62,7 @@
     "Source AST has no dynamic dispatch proof.",
     "Writer receipts are not terminal pixels.",
     "Review artifact success does not change application failure."
-  ]
+  ],
+  "profile_rate_owner": "original profiler_command --rate",
+  "profile_actual_phases": 24
 }

@@ -1215,7 +1215,7 @@ def profile_launch(command):
         owner.cleanup()
 
 
-def profile_review(output, receipt, rate):
+def profile_review(output, receipt):
     """Decode py-spy's Chrome transitions once and align them with physical actions."""
     trace_path = output / "cpu-profile.json"
     if trace_path.stat().st_size > 128 * 1024 * 1024:
@@ -1224,6 +1224,8 @@ def profile_review(output, receipt, rate):
     trace = ProfileTrace(trace_path)
     observations = tuple(trace.observations())
     launch = json.loads((output / "profile-launch.json").read_text())
+    command = launch["profiler_command"]
+    rate = int(command[command.index("--rate") + 1])
     if not any(observation.pid == launch["ui_pid"] for observation in observations):
         raise RuntimeError("Profiler did not observe the actual installed UI PID")
     lower = launch["profiler_exec_monotonic"]
@@ -1433,7 +1435,7 @@ def review_recording(args):
         if profile_path.exists():
             profile = json.loads(profile_path.read_text())
         elif capture["profiling_requested"]:
-            profile = profile_review(output, capture | {"events": events}, args.profile_rate)
+            profile = profile_review(output, capture | {"events": events})
         else:
             profile = {"phases": []}
         receipt["correlated_phases"] = [phase for phase in profile["phases"]
@@ -1773,7 +1775,7 @@ def record(args):
             receipt["frame_review"] = frame_review(
                 output, receipt, window_seconds=args.frame_window_seconds)
             if args.profile:
-                receipt["profile_review"] = profile_review(output, receipt, args.profile_rate)
+                receipt["profile_review"] = profile_review(output, receipt)
             receipt["journey_review"] = args.journey.review(output, receipt)
             receipt["review_intervals"] = args.journey.review_intervals(args, events, duration)
             names = ["terminal.mp4", "before.png", "after.png"]
