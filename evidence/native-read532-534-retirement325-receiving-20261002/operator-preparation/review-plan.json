@@ -1,0 +1,34 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-ad533a9f08581561/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
+    "sha256": "d0d7d2e18c770064f4997ab83ed1728e09f3d0e3ae5caa85897213172e473f8d"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-read532-534-retirement325-20261002/source-proof.json",
+    "sha256": "6dc3fc6ca3a0e5e90f47c11b103c14688f125762fa4c20cbf24d6bd72c8c1d00"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-read532-534-retirement325-20261002/qualified-source-gates/325-retirement-published-qualified.json",
+      "sha256": "a60738aba937e386d6c55de7ec9d2967d6d31c11337aeea882536f701723e3d4"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-read532-534-retirement325-20261002/qualified-source-gates/533-installed-restore-resource.json",
+      "sha256": "12a2506a5d622b94f8c06559fd8395b4daf6bad2ab6c2dc55b7d52d04689eeb5"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-read532-534-retirement325-20261002/qualified-source-gates/534-installed-comparison.json",
+      "sha256": "471dd8e2bb02b99ed01a42e1e885731b1ac736b7a08dffb1fb71ec6de04c5bda"
+    }
+  ]
+}
