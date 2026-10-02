@@ -152,6 +152,12 @@ async def main():
                 captured = member._body_measurement.content
                 captured_rows = tuple(line.text for line in captured.lines)
                 assert any(line.strip() for line in captured_rows)
+                resource = member._body_measurement
+                # Native order/class refresh may notify with unchanged rules.
+                # Pruning and that notification must retain the same pixels;
+                # only original style writes invalidate the resource.
+                member.notify_style_update()
+                assert member._body_measurement is resource and member.body_ready
                 children = tuple(member.children)
                 restored_calls = Counter()
                 identity = id(member)
@@ -172,6 +178,15 @@ async def main():
                 family_receipts.append(dict(body=type(member).__name__, rendered_lines=len(rows),
                     nonblank_lines=sum(bool(line.strip()) for line in captured_rows),
                     reentry_ms=(perf_counter()-started)*1000, rebuild_calls=dict(restored_calls)))
+                member.styles.color = "red"
+                assert not member.body_ready
+                await member.restore_body()
+                await pilot.pause()
+                assert member.body_ready and not member.body_dormant
+                assert await member.retire_body()
+                await pilot.pause()
+                assert member.body_ready and member.retained_paint_bytes
+                family_receipts[-1]['real_style_change_rebuilt_once'] = True
             receipt['rendered_family_reentry'] = family_receipts
             print(json.dumps(family_receipts), flush=True)
             # Warm admission retains presentation, not offscreen controls.
@@ -191,6 +206,11 @@ async def main():
             assert not selected.reconstructible_children()
             assert selected in viewport.admitted_bodies
             receipt['offscreen_warm_admission_keeps_rows_not_controls'] = True
+            settled_resource = selected._body_measurement
+            await pilot.pause(.5)
+            assert selected._body_measurement is settled_resource
+            assert not viewport._pending and not viewport._running
+            receipt['stationary_admission_preserves_rendered_resource'] = True
             await viewport.suspend_source()
             # Original native mouse routing materializes controls before target
             # selection. No synthetic click retry or independent mouse owner.

@@ -223,7 +223,7 @@ class RenderedBody(BodyMeasurement):
         # Screen commits sizes only for its current layout/exposed widgets.
         # An offscreen widget's last committed size is not a new width demand.
         # Measurement and actual size commits invalidate this resource below.
-        return (body.is_mounted and self.style_revision == body._subtree_style_revision
+        return (body.native_body_ready() and self.style_revision == body._subtree_style_revision
                 and self.paint_state == body._resolved_paint_state())
 
     def style_updated(self, body):
@@ -285,7 +285,7 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.ready(self)
 
     def native_body_ready(self):
-        return self.is_mounted
+        return self.is_mounted and not self._closing
 
     @property
     def measured_rows(self):
@@ -428,7 +428,7 @@ class MeasuredViewportBody(ViewportBody):
         if not rendered.ready(self):
             return False
         async with self.lock:
-            if self._body_measurement is not current:
+            if self._body_measurement is not current or not rendered.ready(self):
                 return False
             self._body_measurement = rendered
             self.retire_body_resources()
