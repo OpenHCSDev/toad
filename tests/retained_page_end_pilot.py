@@ -27,7 +27,7 @@ async def main():
    async with view.window.history_lock:
     async with view.window.preserve_history(None):
      page.batch_size=page.stop-page.start+4
-     await page.update_fragments(page.fragments,follow=True)
+     await page.update_fragments(page.fragments,page.update_slice(page.fragments,True))
      ordered=tuple(c.fragment for c in page.children)==page.fragments[page.start:page.stop]
      await page.trim(4,older=False)
    held_end=tuple(page.children)

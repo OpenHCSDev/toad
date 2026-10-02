@@ -159,20 +159,25 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             fragments = tuple(replace(fragment, continuation=True) for fragment in fragments)
             if not is_current():
                 return
-            self._markdown = source
-            self.loading = False
             if self._paged is None:
+                history = TranscriptHistory(page, fragments=fragments)
+                if self._dormant_page_range is not None:
+                    start, stop = self._dormant_page_range
+                    history.pages[0].start, history.pages[0].stop = start, stop
+                await history.prepare_body(is_current)
+                if not is_current():
+                    return
+                self._markdown = source
+                self.loading = False
                 await self.remove_children(child for child in self.children if child not in self._prefix)
                 if not is_current():
                     return
-                self._paged = TranscriptHistory(page, fragments=fragments)
-                if self._dormant_page_range is not None:
-                    start, stop = self._dormant_page_range
-                    self._paged.pages[0].start = start
-                    self._paged.pages[0].stop = stop
-                    self._dormant_page_range = None
+                self._paged = history
+                self._dormant_page_range = None
                 await self.mount(self._paged)
             else:
+                self._markdown = source
+                self.loading = False
                 await self._paged.update_live(page, fragments=fragments, is_current=is_current)
 
     @property

@@ -280,9 +280,14 @@ class TranscriptPageView(VerticalGroup):
         self.batch_size = batch_size
         self.page = page
         self.fragments = transcript_fragments(page.events) if fragments is None else fragments
-        self.start = max(0, len(self.fragments) - self.batch_size) if newest else 0
-        self.stop = min(len(self.fragments), self.start + self.batch_size)
+        selected = self.initial_slice(self.fragments, self.batch_size, newest)
+        self.start, self.stop = selected.start, selected.stop
         self.visible_categories = all_categories()
+
+    @staticmethod
+    def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
+        start = max(0, len(fragments) - batch_size) if newest else 0
+        return slice(start, min(len(fragments), start + batch_size))
 
     def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
         return TranscriptFragmentView(fragment, self.visible_categories)
@@ -295,6 +300,17 @@ class TranscriptPageView(VerticalGroup):
         return TranscriptPageAdmission(
             CommittedInterval(self.page.before, self.page.after), self.start, self.stop,
         )
+
+    def extension_slice(self, older: bool) -> slice:
+        """One source range feeds detached preparation and native admission."""
+        return (slice(max(0, self.start - self.batch_size), self.start) if older
+                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
+
+    def update_slice(self, fragments: tuple[TranscriptFragment, ...], follow: bool) -> slice:
+        if follow:
+            return self.initial_slice(fragments, self.batch_size, True)
+        stop = min(self.stop, len(fragments))
+        return slice(min(self.start, stop), stop)
 
     def restore_admission(self, admission: TranscriptPageAdmission) -> None:
         # Positions refer to this immutable native interval, not to whatever
@@ -314,8 +330,8 @@ class TranscriptPageView(VerticalGroup):
         await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
 
     async def extend(self, older: bool) -> None:
-        start = max(0, self.start - self.batch_size) if older else self.stop
-        stop = self.start if older else min(len(self.fragments), self.stop + self.batch_size)
+        selected = self.extension_slice(older)
+        start, stop = selected.start, selected.stop
         before = self.children[0] if older and self.children else None
         if start < stop:
             await self.mount_all(
@@ -335,11 +351,10 @@ class TranscriptPageView(VerticalGroup):
         else:
             self.stop -= count
 
-    async def update_fragments(self, fragments: tuple[TranscriptFragment, ...], follow: bool) -> None:
+    async def update_fragments(self, fragments: tuple[TranscriptFragment, ...], selected: slice) -> None:
         previous = {self.start + index: child for index, child in enumerate(self.children)}
         self.fragments = fragments
-        stop = len(fragments) if follow else min(self.stop, len(fragments))
-        start = max(0, stop - self.batch_size) if follow else min(self.start, stop)
+        start, stop = selected.start, selected.stop
         for index, child in previous.items():
             if not start <= index < stop:
                 await child.remove()
@@ -383,6 +398,20 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
         self.window: HistoryWindow
+
+    async def prepare_fragments(self, fragments, current: Callable[[], bool]) -> None:
+        """Prepare this admitted source range before acquiring native custody."""
+        from toad.render_tasks import TranscriptBodyPreparation
+
+        preparation = TranscriptBodyPreparation(
+            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+        )
+        await preparation.prepare_fragments(fragments, current, batch_size=self.budget.admission_items)
+
+    async def prepare_body(self, current: Callable[[], bool]) -> None:
+        """Warm the actual page admissions, including a restored reader range."""
+        for page in self.pages:
+            await self.prepare_fragments(page.fragments[page.start:page.stop], current)
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
@@ -614,18 +643,31 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             fragments = await prepare_transcript_fragments(
                 page.events, getattr(self.app, "render_processes", None),
             )
-        async with window.history_lock:
-            if (not self.is_attached or self.window is not window
-                    or generation != self._generation or self.pages[0] is not view
-                    or (is_current is not None and not is_current())):
+        def current():
+            return (self.is_attached and self.window is window
+                    and generation == self._generation and self.pages[0] is view
+                    and (is_current is None or is_current()))
+
+        # Preparation is detached. If reader intent changes while it runs,
+        # prepare the newly selected range before borrowing the native fence.
+        while current():
+            selected = view.update_slice(fragments, window.follows_tail)
+            await self.prepare_fragments(fragments[selected], current)
+            async with window.history_lock:
+                if not current():
+                    return
+                if selected != view.update_slice(fragments, window.follows_tail):
+                    continue
+                async with window.preserve_history(None):
+                    await self.filter.remove()
+                    if selected != view.update_slice(fragments, window.follows_tail):
+                        continue
+                    view.page = page
+                    # The current reader selects both preparation and native
+                    # publication; an await cannot restore older follow intent.
+                    await view.update_fragments(fragments, selected)
+                    self._update_edges()
                 return
-            async with window.preserve_history(None):
-                await self.filter.remove()
-                view.page = page
-                # Read current follow intent after preprocessing, never restore an
-                # intent captured before the user could scroll during the await.
-                await view.update_fragments(fragments, window.follows_tail)
-                self._update_edges()
 
     def on_resize(self) -> None:
         if self.is_mounted:
@@ -701,6 +743,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         else:
             prepared = await self._reader().get(PageRequest(before=self.through))
             page, fragments = prepared.page, prepared.fragments
+        selected = TranscriptPageView.initial_slice(fragments, destination_admission, True)
+        await self.prepare_fragments(
+            fragments[selected], lambda: self.is_attached and generation == self._generation
+            and window.scroll_revision == scroll_revision,
+        )
         async with window.history_lock:
             if (not self.is_attached or self.window is not window or self.loader is not loader
                     or generation != self._generation or window.scroll_revision != scroll_revision):
@@ -712,7 +759,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     # End changes its admitted range, not its presentation owner.
                     await self.remove_children([retired for retired in self.pages if retired is not view])
                     view.batch_size = destination_admission
-                    await view.update_fragments(fragments, follow=True)
+                    await view.update_fragments(fragments, selected)
                     view.page = page
                 else:
                     await self.remove_children(list(self.pages))
@@ -752,6 +799,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     after=edge.page.after if not older else None,
                 ))
                 page, fragments = prepared.page, prepared.fragments
+            selected = (edge.extension_slice(older) if local
+                        else TranscriptPageView.initial_slice(fragments, self.budget.admission_items, older))
+            await self.prepare_fragments(
+                (edge.fragments if local else fragments)[selected], lambda: snapshot.current(self),
+            )
             async with window.history_lock:
                 if not snapshot.current(self):
                     return

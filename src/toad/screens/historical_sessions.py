@@ -125,7 +125,11 @@ class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            await content.mount(TranscriptHistory(page, load))
+            history = TranscriptHistory(page, load)
+            await history.prepare_body(lambda: generation == self._selection_generation and self.is_attached)
+            if generation != self._selection_generation or not self.is_attached:
+                return
+            await content.mount(history)
             self.query_one(HistoryWindow).scroll_end(animate=False, immediate=True)
 
     def action_focus_prompt(self) -> None:

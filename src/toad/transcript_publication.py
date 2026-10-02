@@ -193,6 +193,10 @@ class SnapshotPublication(TranscriptPublication):
         if not self.current() or self.agent is None:
             return
         view = self.owner.view
+        history = TranscriptHistory(self.page, self.agent.get_transcript_page,
+                                    fragments=fragments, committed=False)
+        self.owner.prepare_reader(history)
+        await history.prepare_body(partial(self.source_current, self.page.after))
         async with AsyncExitStack() as retirement:
             async with self.window.history_lock:
                 # Preparation may yield to another accepted source publication.
@@ -203,9 +207,6 @@ class SnapshotPublication(TranscriptPublication):
                 if not self.source_current(self.page.after):
                     self.owner.require_checkpoint()
                     return
-                history = TranscriptHistory(self.page, self.agent.get_transcript_page,
-                                            fragments=fragments, committed=False)
-                self.owner.prepare_reader(history)
                 async with self.window.preserve_history(None):
                     accepted = False
                     try:
@@ -441,6 +442,12 @@ class CheckpointPublication(CanonicalSourcePublication):
             self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
+        replacement = None
+        if prepared.history is None:
+            replacement = TranscriptHistory(
+                page, self.agent.get_transcript_page, fragments=prepared.fragments, committed=False,
+            )
+            await replacement.prepare_body(is_current)
         async with AsyncExitStack() as retirement:
             async with window.history_lock:
                 retired = retirement_candidates(contents.children, evidence)
@@ -452,16 +459,9 @@ class CheckpointPublication(CanonicalSourcePublication):
                 ):
                     return True
                 async with plan.publication(view, prepared):
-                    replacement = None
                     accepted = False
                     try:
-                        if prepared.history is None:
-                            replacement = TranscriptHistory(
-                                page,
-                                self.agent.get_transcript_page,
-                                fragments=prepared.fragments,
-                                committed=False,
-                            )
+                        if replacement is not None:
                             await contents.mount(replacement, before=0)
                         if not is_current():
                             return True
