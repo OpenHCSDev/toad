@@ -82,3 +82,35 @@ pin its independently qualified whole cohort.
 The one serial native source batch passed retained End page/source ordering,
 older/newer batch mount and provisional/accepted cancellation cleanup in15.1s.
 These checks exercise resource/custody risks; installed motion remains unqualified.
+
+## Scoped installed result
+
+Exact installed fc42dc3e on recovered334 Core7dd/Text81ec/native9f12 completed
+122.047s of original saved-history application recording. Existing sixteen warm
+and seven input paging checks pass: originalA/B/A body/window/editor/reader,
+eighteen ready bodies, draft and Undo; held Up/Down/reverse and End rendered.
+Native source owner701741/44956949 unchanged, cleanup empty. No provider input.
+Normal69 source/assets/directURLs/fullnative trust and pipcheck passed.
+
+Raw capture_completed is true, completed is false: initial before exports remained
+pending20s. Warm-ready was22.776s; all later throughUndo+after exports completed.
+No invented timeout increase or rewritten raw result; normal UI exit returncode
+is not proved by transferred-group custody. Warm-start viewed during the run;
+48 exact heldUp frames36.436–37.236s encoded while recorder lived, viewed near
+cleanup. View before exit is not established. Original moving frames and reverse
+reviewed: readable body, repeated positions then discrete jumps, not smooth.
+
+Exact key-to-key native writer intervals: inputUp19.62ms median/130.07p95,
+Down21.99/159.72, reverse15.44/61.61. Previous339 Up21.29/164.47 is a different
+admission/diagnostic workload; no causal speed claim. Marked UI Up82.20%,
+Down79.10%, reverse74.53%, mid-history29.79%, End22.68%; exports included.
+760 writer flushes,0 unmatched;1343 GIL samples,0 reported errors, clock
+uncertainty67ms. Native writer completion is not changed-pixel FPS/input latency.
+The final10s mid-history has no requests/admissions/materialization/retirement/
+page-extension or scroll observations; sidebar still publishes ten times.
+
+This is a source-reviewed, live-exercised preparation/custody checkpoint. The
+initial export gap and full performance remain open; no full application-pass,
+busy-traffic, IRC, smoothness or144Hz claim. Main-thread native register/style/
+arrangement remains sampled after detached preparation; further owner work is
+active. Qualification JSON: docs/checkpoints/admitted-body342-installed-scoped.json.
