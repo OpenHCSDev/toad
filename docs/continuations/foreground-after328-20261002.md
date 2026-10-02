@@ -56,3 +56,28 @@ while its publisher actually runs; source work is independent. No repeat of
 unchanged328 recordings. Final proportionate checks and real changed installed
 journey come after a coherent source batch, with moving-frame inspection DURING.
 ALL original unfinished scope listed above remains assigned here.
+
+## Current source batch, not installed-qualified
+
+ViewportPresentation consumes one bound-window cohort for synchronous mutation,
+readiness and follow admission. DocumentViewport restoration returns its actual
+reconstructed bodies; both callers derive delivery/admission from that result.
+An aborted restore cannot overwrite measured delivery. An unchanged retained
+cohort does not receive a second budget/LRU pass. Warm trimming is synchronous
+resource accounting, with no await or new scheduler. Capture/commit source,
+width, style, selection, stream and history-lock checks remain in their owners.
+
+Native29 (Kepler) moves retained-path reuse under the existing complete native
+geometry capability; partial resources keep uncached retained arrangement. The
+original subtree style epoch participates in its existing geometry key.
+No extra geometry map or presentation state is introduced.
+
+The recorder separately records video completion, required state exports and
+known terminal exit. A requested export error/pending receipt or known nonzero
+terminal exit prevents completion; transferred observation never invents an
+application exit code. Original330 crash receipt is preserved unchanged.
+
+Current330 ordinary UI crashed in SQLite reading. Mendel owns Core537 and Arendt
+its Toad332 consumers; those files are disjoint from this viewport batch. Final
+changed public motion qualification waits for that actual crash repair, not for
+the144Hz target. No source-only or trace print is a performance acceptance.

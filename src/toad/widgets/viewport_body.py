@@ -675,7 +675,7 @@ class DocumentViewport:
             roots, required, self.window.size.height, self.window.app.preparation.max_bytes,
         )
 
-    async def _trim_warm(self, *, required=(), ahead=()):
+    def _trim_warm(self, *, required=(), ahead=()):
         self.admitted_bodies = self.admission(required=required, ahead=ahead)
         admitted = self.admitted_bodies
         for key in tuple(self._warm):
@@ -818,7 +818,7 @@ class DocumentViewport:
                         sequence, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
-                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                admitted = self._trim_warm(required=required, ahead=ahead_owners)
                 # Admission retains a body's bounded presentation resource,
                 # not its live descendant tree. Offscreen warm bodies paint
                 # their retained rows on reentry; only visible or interaction
@@ -867,7 +867,7 @@ class DocumentViewport:
                 # Capturing rows changes the original body resource cost.
                 # The same warm LRU admits or releases that paint resource.
                 if retired_owners or restored:
-                    admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                    admitted = self._trim_warm(required=required, ahead=ahead_owners)
                 if active:
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
@@ -885,7 +885,7 @@ class DocumentViewport:
                         # Live content or a width change can change actual cost.
                         # Re-admit the completed native batch before the next one.
                         if restored:
-                            admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                            admitted = self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 
