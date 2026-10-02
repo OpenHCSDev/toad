@@ -101,7 +101,7 @@ class AgentInputSubmission(InputSubmission):
     async def execute(self, owner):
         view = owner.view
         view.transcript.invalidate()
-        if self.text.startswith('/') and await view.slash_command(self.text):
+        if self.text.startswith('/') and await view.command_catalog.execute(self.text, view):
             return
         execution = owner.begin(self)
         if execution is None:

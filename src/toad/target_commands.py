@@ -12,7 +12,7 @@ from agent_comms.comms import Comms
 from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from toad.comms_root import implicit_root, root_is_current, run_selected_write
-from toad.slash_command import LocalCommand, SlashCommand
+from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from toad.thread_actions import ChannelAction, ThreadAction
 
 if TYPE_CHECKING:
@@ -61,11 +61,15 @@ class TargetContext(PinTarget, DeclaredFamily, affix="Context"):
 
     def show_menu(self, sidebar, offset) -> None:
         from toad.widgets.comms_menu import show_target_menu
-        choices = target_commands(self)
+        choices = self.command_choices()
         show_target_menu(sidebar.app.screen, offset, self.subject,
             [(command.command.removeprefix("/"), command.label(self)) for command in choices],
             {command.command.removeprefix("/"): partial(self.execute_menu, sidebar, command)
              for command in choices})
+
+    def command_choices(self):
+        from toad.command_catalog import CommandCatalog
+        return CommandCatalog((), self).target_choices
 
     def execute_menu(self, sidebar, command) -> None:
         try:
@@ -166,8 +170,15 @@ class ViewContext(TargetContext):
         raise ValueError("Saved views cannot be pinned as channels")
 
 
-class ContextualCommand(ABC):
+class ContextualCommand(CommandPresentation, ABC):
     command: str
+
+    def target_choices(self, context: TargetContext | None, available_actions):
+        return (self,) if context is not None and self.available(context) else ()
+
+    def completion(self, context: TargetContext | None, available_actions):
+        return tuple(TargetSuggestion(command, context)
+                     for command in self.target_choices(context, available_actions))
 
     @abstractmethod
     def available(self, ctx: TargetContext) -> bool: ...
@@ -204,6 +215,9 @@ class ContextualCommand(ABC):
 class ThreadCommand(ContextualCommand):
     action: type[ThreadAction]
 
+    def target_choices(self, context: TargetContext | None, available_actions):
+        return (self,) if self.action in available_actions else ()
+
     @property
     def command(self) -> str:
         return f"/{self.action.declared_name}"
@@ -222,11 +236,7 @@ class ThreadCommand(ContextualCommand):
         self.action.request(ctx.app, ctx.subject, ctx.actor, modes)
 
 
-class TargetLocal:
-    """Context-dependent interface actions, derived from their declarations."""
-
-
-class ViewCommand(ContextualCommand, SlashCommand, LocalCommand, TargetLocal):
+class ViewCommand(ContextualCommand, SlashCommand, LocalCommand):
     @classmethod
     def parse(cls, arguments: str) -> Self:
         if arguments.strip():
@@ -312,18 +322,15 @@ class AnyModeCommand(ViewCommand, declared_name="any_mode"):
         )
 
 
-def target_commands(ctx: TargetContext) -> tuple[ContextualCommand, ...]:
-    ctx.current()
-    actions = tuple(ThreadCommand(action) for action in ctx.available_actions())
-    local = (member() for member in SlashCommand.members_with(TargetLocal))
-    return (*actions, *(command for command in local if command.available(ctx)))
-
-
 @dataclass(frozen=True)
 class TargetSuggestion(SlashCommand):
     choice: ContextualCommand
-    help: str
+    context: TargetContext
     hint = None
+
+    @property
+    def help(self) -> str:
+        return self.choice.label(self.context)
 
     @property
     def command(self) -> str:
@@ -334,14 +341,7 @@ class TargetSuggestion(SlashCommand):
         raise ValueError("Target suggestions are projections of existing declarations")
 
     def parse_arguments(self, arguments: str) -> Self:
-        return type(self)(self.choice.parse_arguments(arguments), self.help)
+        return type(self)(self.choice.parse_arguments(arguments), self.context)
 
     async def apply(self, conversation: Conversation) -> bool:
         return await self.choice.apply(conversation)
-
-
-def target_completion(ctx: TargetContext) -> list[SlashCommand]:
-    return [
-        TargetSuggestion(command, command.label(ctx))
-        for command in target_commands(ctx)
-    ]

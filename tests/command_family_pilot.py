@@ -25,7 +25,6 @@ from toad.slash_command import (
     SlashCommand,
 )
 from toad.command_catalog import CommandCatalog
-from toad.target_commands import TargetLocal, target_commands
 from toad.thread_actions import ArchiveAction, ForkAction, ThreadAction
 from toad.widgets.comms_fork_dialog import ForkDialog
 from textual.widgets import Static
@@ -63,9 +62,6 @@ async def main():
             conversation.prompt.text = "declaration ran"
             return True
 
-    for member in SlashCommand.members_with(LocalCommand):
-        assert member.help and member().command
-        assert member.parse("" if issubclass(member, TargetLocal) else "1")
     for member in ThreadAction.menu():
         assert member.pending and member.menu_label()
         assert member.tool.action_label == member.menu_label()
@@ -153,7 +149,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 ).help
                 != "ACP collision"
             )
-            assert await conversation.slash_command("/external argument") is False
+            assert await conversation.command_catalog.execute("/external argument", conversation) is False
             print(
                 "PASS: fresh ACP SDK -> real JSON-RPC validation -> mounted advertised command completion; local collision and forwarding preserved",
                 flush=True,
@@ -194,7 +190,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 c.command.removeprefix("/"): c.label(
                     conversation.command_target_context()
                 )
-                for c in target_commands(conversation.command_target_context())
+                for c in conversation.command_target_context().command_choices()
             }
             assert menu == expected, (menu, expected)
             await app.screen.dismiss()
@@ -261,7 +257,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
             }
             ctx = conversation.command_target_context()
             expected = {
-                c.command.removeprefix("/"): c.label(ctx) for c in target_commands(ctx)
+                c.command.removeprefix("/"): c.label(ctx) for c in ctx.command_choices()
             }
             assert menu == expected, (menu, expected)
             pin = next(

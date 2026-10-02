@@ -23,6 +23,10 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
         self.log_path: Path | None = None
 
     @property
+    def commands(self):
+        return ()
+
+    @property
     @abstractmethod
     def queue(self):
         """The actual source owns its input queue projection."""
@@ -62,6 +66,12 @@ class LocalAgentPresentation(AgentPresentation):
 
 class ACPAgentPresentation(AgentPresentation):
     TURN_BINDING = LocalTurnBinding
+
+    @property
+    def commands(self):
+        from toad.slash_command import AgentAdvertisedCommand
+        return tuple(AgentAdvertisedCommand.from_acp(record)
+                     for record in self.agent.controller.commands)
 
     @property
     def queue(self):
