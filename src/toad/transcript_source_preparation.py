@@ -91,6 +91,8 @@ class TranscriptSourcePreparation:
             self.app.coordination_observed.unsubscribe(self)
             if snapshot.current(self) and self._source_state is operation:
                 operation.schedule(self, work)
+            else:
+                self.finish_source_work(operation)
 
         self.app.coordination_observed.unsubscribe(self)
         self.app.coordination_observed.subscribe(self, resume)
