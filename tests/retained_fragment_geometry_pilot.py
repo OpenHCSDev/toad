@@ -30,19 +30,23 @@ async def main():
                           XDG_DATA_HOME=str(root / 'data'))
         service = Comms(root / 'wire')
         service.messaging.initialize_private_initial_protocol()
-        journal = root / 'saved.jsonl'
-        journal.write_text(''.join(json.dumps({'type': 'message', 'message': {
-            'role': 'assistant', 'content': f'Original saved fragment {i}.\n\nNative retained geometry.'
-        }}) + '\n' for i in range(4)))
-        service.registry.declare(Thread('saved', frozenset(), str(root), session_file=str(journal)))
-        page = service.transcripts.thread_transcript_page('saved')
+        from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+        from agent_comms.transcript_events import AssistantTranscript
+        page = TranscriptPage(tuple(AssistantTranscript(
+            f"Original saved fragment {i}.\n\nNative retained geometry.") for i in range(4)),
+            TranscriptCursor("body-resource", 0), TranscriptCursor("body-resource", 4), False, False)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
             await app.selected_session.wait_content_ready()
-            view = app.selected_session.conversation
-            window = view.window
+            from toad.widgets.history_anchor import HistoryWindow
+            from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+            from toad.widgets.streaming_markdown import StreamingMarkdown
+            window = HistoryWindow()
+            window.styles.width = "100%"
+            window.styles.height = 20
+            await app.selected_session.conversation.mount(window)
             history = TranscriptHistory(page)
-            await view.contents.mount(history)
+            await window.mount(history)
             viewport = window.document_viewport
 
             async def settle():
@@ -58,7 +62,7 @@ async def main():
             window.scroll_to(y=0, animate=False, immediate=True)
             await pilot.pause()
             bodies = history.fragment_views
-            assert len(bodies) == 4 and all(body.body_ready for body in bodies)
+            assert len(bodies) == 4 and all(body.body_ready for body in bodies), [(type(body).__name__, body.body_ready, type(body._body_measurement).__name__, body.is_mounted, body.size, [type(child).__name__ for child in body.children]) for body in bodies]
             scene = app.screen._compositor
 
             def compare():
@@ -122,6 +126,57 @@ async def main():
             await pilot.pause()
             compare()
             assert body.body_ready and not old_children & set(body.walk_children())
+            # The original body family paints full retained rows on reentry.
+            # A restoration may not parse/remount at the same width.
+            family = [body, PreparedConversationMarkdown("# Native prepared body\n\nRetained full lines."),
+                      StreamingMarkdown("# Native streaming body\n\nRetained full lines.", paginate=False)]
+            await window.mount(*family[1:])
+            await pilot.pause()
+            window.release_anchor()
+            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
+            await pilot.pause()
+            window.release_anchor()
+            family_receipts = []
+            for member in family:
+                scene._arrange_root(app.screen, app.size, visible_only=False)
+                if not member.body_dormant:
+                    assert await member.retire_body(), (type(member).__name__, member.body_ready)
+                    await pilot.pause()
+                captured = member._body_measurement.content
+                captured_rows = tuple(line.text for line in captured.lines)
+                assert any(line.strip() for line in captured_rows)
+                children = tuple(member.children)
+                restored_calls = Counter()
+                identity = id(member)
+                def observe_reentry(frame, event, arg):
+                    if event == 'call' and id(frame.f_locals.get('self')) == identity:
+                        if frame.f_code.co_name in {'update', 'recompose', 'materialize_native_body'}:
+                            restored_calls[frame.f_code.co_name] += 1
+                started = perf_counter()
+                sys.setprofile(observe_reentry)
+                try:
+                    await member.restore_body()
+                finally:
+                    sys.setprofile(None)
+                rows = member.render_lines(member.outer_size.region)
+                assert tuple(line.text for line in rows) == captured_rows
+                assert member.body_ready and tuple(member.children) == children
+                assert not restored_calls, restored_calls
+                family_receipts.append(dict(body=type(member).__name__, rendered_lines=len(rows),
+                    nonblank_lines=sum(bool(line.strip()) for line in captured_rows),
+                    reentry_ms=(perf_counter()-started)*1000, rebuild_calls=dict(restored_calls)))
+            receipt['rendered_family_reentry'] = family_receipts
+            print(json.dumps(family_receipts), flush=True)
+            # Original native mouse routing materializes controls before target
+            # selection. No synthetic click retry or independent mouse owner.
+            selected = family[-1]
+            await pilot.click(selected, offset=(1, 1))
+            await pilot.pause()
+            assert not selected.body_dormant and selected.children
+            receipt['native_input_materialized_original_body'] = True
+            for member in family[1:]:
+                await member.remove()
+            await pilot.pause()
             receipt['retirement_and_restore_invalidated'] = True
             await history.remove()
             await pilot.pause()

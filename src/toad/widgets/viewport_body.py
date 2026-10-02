@@ -320,9 +320,9 @@ class MeasuredViewportBody(ViewportBody):
             await self.materialize_body()
             # Native input routing must select its target after the new scene
             # commits, outside the mutation lock; no synthetic event replay.
-            painted = asyncio.get_running_loop().create_future()
-            self.call_after_refresh(painted.set_result, None)
-            await painted
+            painted = asyncio.Event()
+            self.screen.call_after_refresh(painted.set)
+            await painted.wait()
 
     async def materialize_body(self):
         if not self.body_dormant or not self.is_attached or self._closing:
