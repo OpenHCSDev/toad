@@ -69,8 +69,16 @@ class ReviewTiming(DeclaredFamily, affix="ReviewTiming"):
     @abstractmethod
     def generate(cls, output, args, env, owner, intervals): ...
 
+    @classmethod
+    @abstractmethod
+    def observe(cls, output, args, env, owner, label): ...
+
 
 class InlineReviewTiming(ReviewTiming):
+    @classmethod
+    def observe(cls, output, args, env, owner, label):
+        return live_review(output, args, env, owner, label)
+
     @classmethod
     def generate(cls, output, args, env, owner, intervals):
         names = []
@@ -84,6 +92,12 @@ class InlineReviewTiming(ReviewTiming):
 
 
 class DeferredReviewTiming(ReviewTiming):
+    @classmethod
+    def observe(cls, output, args, env, owner, label):
+        return {"label": label,
+                "assessment": "Clip encoding deferred; native frame tracing remains active. "
+                              "Inspect original timed video frames during the run separately."}
+
     @classmethod
     def generate(cls, output, args, env, owner, intervals):
         return []
@@ -1620,7 +1634,7 @@ def record(args):
                             def observe():
                                 label = f"live-{action_number}-{len(reviews)}"
                                 try:
-                                    reviews.append(live_review(output, args, env, owner, label))
+                                    reviews.append(args.review_timing.observe(output, args, env, owner, label))
                                     if args.capture_state:
                                         capture_loaded_state(
                                             output, label, transferred_program.child.identity, owner, env,
