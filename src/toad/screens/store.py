@@ -1,5 +1,7 @@
 from toad.core import session_requests
-from toad.settings import PreferenceChange
+from toad.core.preference_events import PreferenceChanged
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 from toad.preferences import LauncherSettings
 from contextlib import suppress
 from dataclasses import dataclass
@@ -329,7 +331,7 @@ class Container(containers.VerticalScroll):
         return super().allow_focus() and self.show_vertical_scrollbar
 
 
-class StoreScreen(Screen):
+class StoreScreen(CoreEventReceiver, Screen):
     BINDING_GROUP_TITLE = "Screen"
     CSS_PATH = "store.tcss"
     FOCUS_GROUP = Binding.Group("Focus")
@@ -529,7 +531,7 @@ class StoreScreen(Screen):
 
     @work
     async def on_mount(self) -> None:
-        self.app.settings_changed_signal.subscribe(self, self._preferences_changed)
+        self.observe_core(self.app.settings.events)
         try:
             self._agents = await read_agents()
         except Exception as error:
@@ -544,8 +546,9 @@ class StoreScreen(Screen):
                 first_grid = self.container.query(GridSelect).first()
                 first_grid.focus(scroll_visible=False)
 
-    async def _preferences_changed(self, change: PreferenceChange) -> None:
-        if change.field is LauncherSettings.agents:
+    @handles(PreferenceChanged)
+    async def _preferences_changed(self, message: CoreEventMessage) -> None:
+        if message.event.field is LauncherSettings.agents:
             await self.launcher.recompose()
 
             def focus_screen():

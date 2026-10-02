@@ -7,7 +7,7 @@ from toad.transcript_publication import TranscriptPresentation
 from toad.goal_interaction import GoalSession
 from toad.widgets.message_filter import OtherCategory
 
-from toad.settings import PreferenceChange
+from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SidebarSettings, ShellSettings
 
 import asyncio
@@ -321,12 +321,12 @@ class CursorContainer(containers.Vertical):
         return strips
 
 
-class ConversationWindowSettings:
+class ConversationWindowSettings(CoreEventReceiver):
     """Apply conversation preferences and subscribe tool hydration to layout."""
 
     def on_mount(self) -> None:
-        self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
+        self.observe_core(self.app.settings.events)
+        self._apply_sidebar_padding()
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
 
@@ -340,10 +340,14 @@ class ConversationWindowSettings:
         if viewport := self.__dict__.get("document_viewport"):
             viewport.membership.bind(destination.viewport_presentation)
 
-    def _settings_changed(self, update: PreferenceChange) -> None:
-        if update.field is SidebarSettings.hide:
-            top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
+    @handles(PreferenceChanged)
+    async def _settings_changed(self, message: CoreEventMessage) -> None:
+        if message.event.field is SidebarSettings.hide:
+            self._apply_sidebar_padding()
+
+    def _apply_sidebar_padding(self) -> None:
+        top, right, bottom, _ = self.styles.padding
+        self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
 
 
 class Window(ConversationWindowSettings, HistoryWindow):
@@ -1662,7 +1666,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.prompt.focus()
         self.prompt.slash_commands = self.command_catalog.commands
         self.call_after_refresh(self.post_welcome)
-        self.app.settings_changed_signal.subscribe(self, self._settings_changed)
+        self.observe_core(self.app.settings.events)
         self.observe_core(self.app.events)
 
         self.input_histories.shell.complete.add_words(
@@ -1770,8 +1774,9 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         """
         self._queue_edit_unavailable()
 
-    def _settings_changed(self, change: PreferenceChange) -> None:
-        if change.field is ShellSettings.allow_commands:
+    @handles(PreferenceChanged)
+    async def _settings_changed(self, message: CoreEventMessage) -> None:
+        if message.event.field is ShellSettings.allow_commands:
             self.input_histories.shell.complete.add_words(
                 self.app.settings.shell.allow_commands.split()
             )

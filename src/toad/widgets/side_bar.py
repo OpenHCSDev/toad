@@ -1,7 +1,7 @@
 from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
-from toad.settings import PreferenceChange
+from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SidebarSettings
 from dataclasses import dataclass
 import asyncio
@@ -679,9 +679,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if self.id in app.sidebar_layout.placements:
             self.observe_core(app.events)
         if self._navigation is None:
-            cast("ToadApp", self.app).settings_changed_signal.subscribe(
-                self, self._settings_changed  # type: ignore[arg-type]
-            )
+            self.observe_core(app.settings.events)
             self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
         else:
             self.collapsed = self.hide
@@ -933,8 +931,9 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
 
-    def _settings_changed(self, update: PreferenceChange) -> None:
-        if update.field is SidebarSettings.hide:
+    @handles(PreferenceChanged)
+    async def _settings_changed(self, message: CoreEventMessage) -> None:
+        if message.event.field is SidebarSettings.hide:
             self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
 
     @on(SideBarToggle.Pressed)

@@ -25,7 +25,6 @@ from textual.content import Content
 from textual.notifications import Notify
 from textual.reactive import reactive, var
 from textual.screen import Screen
-from textual.signal import Signal
 
 from toad import messages
 from toad.core import session_requests
@@ -45,7 +44,6 @@ from toad.session_tracker import (
     SessionTracker,
     SidebarState,
 )
-from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
 from toad.clipboard import Clipboard
 from toad.tab_order import TabOrder
@@ -292,9 +290,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.channel_history_reader = ChannelHistoryReader()
         self.navigation_reader = NavigationReader()
-        self.settings_changed_signal: Signal[PreferenceChange] = Signal(
-            self, "settings_changed"
-        )
         self.agent_data = agent_data
 
         self.application = ApplicationLifetime(self, mode)

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from agent_comms.comms import Comms, wire
 from agent_comms.presentation import WireRevision
 from toad.preferences import SidebarSettings
-from toad.settings import PreferenceChange
+from toad.core.preference_events import PreferenceChanged
 from toad.core.events import SessionChangedEvent
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.comms_root import current_root
@@ -55,7 +55,7 @@ class SidebarObservation:
         self.service = service if root == service.root else wire(root)
         self.sidebar.subscribe_core(app.session_tracker.events)
         self.sidebar.observe_core(app.events)
-        app.settings_changed_signal.subscribe(self.sidebar, self.settings_changed)
+        self.sidebar.observe_core(app.settings.events)
         self.sidebar.observe_core(app.coordination_access.events)
         self.sidebar.navigation.prepare()
         from toad.screens.workspace import WorkspaceScreen
@@ -144,7 +144,7 @@ class SidebarObservation:
         settings = self.sidebar.app.settings
         return settings.sidebar.show_stopped, settings.sidebar.show_archived
 
-    def settings_changed(self, update: PreferenceChange) -> None:
+    def settings_changed(self, update: PreferenceChanged) -> None:
         if update.field in {SidebarSettings.show_stopped, SidebarSettings.show_archived}:
             self.identity = None
             self.refresh()

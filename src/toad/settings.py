@@ -9,10 +9,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar, overload
 
-from agent_comms.field_codec import FieldCodec
-from textual.widget import Widget
+from agent_comms.field_codec import FieldCodec, WireValue
+from agent_comms.declared_family import DeclaredFamily
 
 if TYPE_CHECKING:
+    from textual.widget import Widget
     from toad.app import ToadApp
     from toad.setting_choices import Choice
 
@@ -25,7 +26,7 @@ def no_effect(app: ToadApp, value: object) -> None:
     """Preference is consumed directly when its operation runs."""
 
 
-class SettingsNode(ABC):
+class SettingsNode(WireValue, ABC):
     def __init__(
         self,
         *,
@@ -38,7 +39,33 @@ class SettingsNode(ABC):
         self._wire_name = wire_name
 
     def __set_name__(self, owner: type, name: str) -> None:
+        self.owner = owner
         self.name = name
+
+    def to_wire(self) -> str:
+        """Identify the original descriptor through its declaring group."""
+        return f"{self.owner.declared_name}/{self.name}"
+
+    @classmethod
+    def from_wire(cls, data: object):
+        reference = FieldCodec.decode(str, data)
+        group_name, separator, name = reference.partition("/")
+        if not separator:
+            raise ValueError("A setting reference requires its declaring group")
+        group = SettingsGroup.decode(group_name)
+        for node in group.nodes():
+            if node.name == name and node.owner is group and isinstance(node, cls):
+                return node
+        raise ValueError(f"Unknown {cls.__name__} declaration: {reference}")
+
+    @classmethod
+    def schema(cls) -> dict[str, object]:
+        return {"type": "string", "enum": [
+            node.to_wire()
+            for group in SettingsGroup.members_with(SettingsGroup)
+            for node in group.nodes()
+            if isinstance(node, cls) and node.owner is group
+        ]}
 
     @property
     def wire_name(self) -> str:
@@ -48,7 +75,7 @@ class SettingsNode(ABC):
     def load(self, group: SettingsGroup, raw: object, present: bool) -> None: ...
 
     @abstractmethod
-    def encode(self, group: SettingsGroup) -> object: ...
+    def document_value(self, group: SettingsGroup) -> object: ...
 
     @abstractmethod
     def form(self, group: SettingsGroup) -> Widget: ...
@@ -93,7 +120,7 @@ class SettingKind[T](SettingsNode):
     def load(self, group: SettingsGroup, raw: object, present: bool) -> None:
         group._values[self.name] = self.parse(raw) if present else self.default
 
-    def encode(self, group: SettingsGroup) -> object:
+    def document_value(self, group: SettingsGroup) -> object:
         return FieldCodec.encode(self.__get__(group))
 
     def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting[T]]:
@@ -174,7 +201,7 @@ class Group[G: "SettingsGroup"](SettingsNode):
             declaration=self,
         )
 
-    def encode(self, group: SettingsGroup) -> object:
+    def document_value(self, group: SettingsGroup) -> object:
         return self.__get__(group).document()
 
     def form(self, group: SettingsGroup) -> Widget:
@@ -197,7 +224,7 @@ class Group[G: "SettingsGroup"](SettingsNode):
         yield from self.__get__(group).leaves()
 
 
-class SettingsGroup:
+class SettingsGroup(DeclaredFamily, affix="Settings"):
     def __init__(
         self,
         raw: object = _UNSET,
@@ -253,7 +280,7 @@ class SettingsGroup:
 
     def document(self) -> dict[str, object]:
         return {
-            node.wire_name: node.encode(self)
+            node.wire_name: node.document_value(self)
             for node in self.nodes()
             if node.name in self._present
         }
@@ -324,7 +351,7 @@ class PathSetting(SettingKind[Path]):
 
         return Path(expandvars(FieldCodec.decode(str, raw))).expanduser()
 
-    def encode(self, group: SettingsGroup) -> str:
+    def document_value(self, group: SettingsGroup) -> str:
         return str(self.__get__(group))
 
     def widget(self, bound: BoundSetting[Path]) -> Widget:
