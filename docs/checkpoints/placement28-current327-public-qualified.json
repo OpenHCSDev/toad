@@ -1,0 +1,167 @@
+{
+  "scope": "Native28 indexed placement resource; installed saved public history. Not smoothness or whole scrolling acceptance.",
+  "toad_source": "3db1a769580365830721dbd47dda6caf91014821",
+  "textual_source": "06c004708e29393f5212d4cda03f69577064312f",
+  "textual_production": "e4abca481b54bd598ca14f2731a2fb1d55850a61",
+  "core": "457b1047855752f4d069ee1d39b01e30603efa41",
+  "capture": "/home/ts/.cache/agent-scratch/placement28-current327-public-20261002-01/capture",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-placement28-current327-20261002/source-proof.json",
+  "raw_capture_completed": true,
+  "raw_completed": false,
+  "raw_error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/ts/.cache/agent-scratch/placement28-current327-public-20261002-01/capture/phase-up-done-state.pickle'",
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4190294,
+      "start_time": 42597351
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4190294,
+      "start_time": 42597351
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "native_warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "unavailable_directional_phases": [
+    "up-done"
+  ],
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "writer_phases_exact_key_windows": [
+    {
+      "action": "held-Prior-0",
+      "intervals": {
+        "count": 68,
+        "median_ms": 26.55,
+        "p95_ms": 159.98,
+        "p99_ms": 240.24,
+        "max_ms": 457.48
+      },
+      "writer_receipts": 69
+    },
+    {
+      "action": "held-Next-1",
+      "intervals": {
+        "count": 63,
+        "median_ms": 26.8,
+        "p95_ms": 172.18,
+        "p99_ms": 294.08,
+        "max_ms": 334.42
+      },
+      "writer_receipts": 64
+    },
+    {
+      "action": "held-Prior-2",
+      "intervals": {
+        "count": 54,
+        "median_ms": 26.68,
+        "p95_ms": 248.95,
+        "p99_ms": 369.56,
+        "max_ms": 390.54
+      },
+      "writer_receipts": 55
+    },
+    {
+      "action": "held-Next-3",
+      "intervals": {
+        "count": 65,
+        "median_ms": 23.97,
+        "p95_ms": 183.42,
+        "p99_ms": 285.53,
+        "max_ms": 294.14
+      },
+      "writer_receipts": 66
+    },
+    {
+      "action": "held-Prior-4",
+      "intervals": {
+        "count": 70,
+        "median_ms": 24.19,
+        "p95_ms": 172.94,
+        "p99_ms": 243.55,
+        "max_ms": 367.07
+      },
+      "writer_receipts": 71
+    }
+  ],
+  "exact_key_actions": [
+    {
+      "action": "held-Prior-0",
+      "start_ns": 426966444294820,
+      "end_ns": 426970583798724
+    },
+    {
+      "action": "held-Next-1",
+      "start_ns": 426990769158146,
+      "end_ns": 426994900621102
+    },
+    {
+      "action": "held-Prior-2",
+      "start_ns": 427001878063161,
+      "end_ns": 427006018077475
+    },
+    {
+      "action": "held-Next-3",
+      "start_ns": 427031332994143,
+      "end_ns": 427035465916778
+    },
+    {
+      "action": "held-Prior-4",
+      "start_ns": 427038690820018,
+      "end_ns": 427042837709995
+    }
+  ],
+  "physical_review": {
+    "after_run_review_seconds": [
+      21,
+      56,
+      94
+    ],
+    "observations": "Readable body/chrome with discrete jumps and repeated positions; not smooth scrolling. These three sheets reviewed AFTER run. Earlier live15 sheet reviewed during run was stationary; parent live29 sheet DURING showed repeats and step advances."
+  },
+  "missing_export": {
+    "label": "up-done",
+    "manifest": "pending",
+    "duration_seconds": 20,
+    "after_refresh_wait": false,
+    "cause": "Remote capture entry/acquisition unresolved; no frame export/error/metadata; sampling has no capture stack, does not prove absence."
+  },
+  "limits": [
+    "Writer receipts are not terminal pixel presentation or input-to-pixel latency",
+    "Key intervals exclude export tails; CPU marker spans still include exports",
+    "No matched baseline speed comparison",
+    "Missing up-done snapshot means complete directional review unavailable"
+  ],
+  "next_source": "Original viewport repeats roots for density within its captured admission cohort; native reflow/add_widget stacks remain foreground work. Both existing owners retained."
+}
