@@ -31,4 +31,18 @@ No observed lost controller update or provider failure is claimed. This scope do
 - Picker request values remain local request intent until the actual ACP response; original ClientSessionRequest fences the response against session/process replacement. Refused requests do not alter accepted values. Model-history recording retains the existing recency meaning: accepted selection on acknowledged selection/completed turn, not proof of which model a provider used internally.
 - Four copied-value message classes and their independent view writers are deleted. One resource invalidation refreshes rendering and action bindings. Existing ConfigurationSetting subclasses still declare advertisement membership; no new selection family, registry or mirror was introduced.
 
-Validation has not yet run at this working checkpoint. Final qualification remains separate from source completion.
+## Qualified installed checkpoint
+
+Production 85115f155d17ae8c5b05b512df8ecf5bd9a6aacb deletes 238 lines and adds 184 across 14 production files. Four copied-value classes and every listed reader/writer are removed. The final debt census adds zero dispatch, foreign absence, long boolean chain or codec-subclass debt; class definitions decrease by four. Existing optional SDK advertisements remain optional.
+
+Normal noneditable 69-package installation verifies the complete 306-file Toad and 329-file Core inventories, declared Textual source and unchanged full-trusted Native5. Four focused checks pass. The installed SDK/stdio/UI journey passes mode advertisement and acknowledged update, filesystem, permission, terminal and reply presentation.
+
+The configured 42,932,905-byte helper source uses one canonical saved fork and one private root. Fresh launch capture matches public PID 3085175/start 39028411 and the approved current default interpreter. The same owned fixture is explicitly reopened after its deliberate teardown; ensuring-load cannot undo a stopped owner.
+
+Actual model-picker/thinking HIGH clicks and acknowledgements, invalid-request preservation, physical A/B/A with original Agent/draft/undo and current-row marking pass. Reconnect restores canonical configuration and paints it. Qualification is recorded in bounded continuations: 04 ends after positive selector checks on a tab-query driver failure; 05 proves A/B/A before an early paint assertion; 06 checks only the missing reconnect/paint boundary and exits zero. Raw failures remain preserved. This is not a claim that the first driver ran uninterrupted.
+
+Configured current OFF remains reportable although the native discovered choices reject OFF as a new request. That distinction belongs to the existing configuration admission owner; this frontend change does not override it. HIGH is a distinct authorized private-child choice.
+
+Zero native input rows, zero provider prompts, unchanged auth/settings hashes, retired private owner and still-live original public owner are verified. No public restart, source change or uncertain-input replay occurs. Receipts live in `evidence/canonical-agent-selections-302/`; the complete inventory and raw logs remain under the named protected `.artifacts/` paths.
+
+The separate Prompt native action availability/submit-now backlog is not closed by this model/mode work. No native budget, provider-compaction or broad performance claim is made.
