@@ -1,0 +1,14 @@
+{
+  "owner": "Kepler",
+  "purpose": "ONE Native5 goal513+514 receiving package with current frontend308310",
+  "receiving_pr": 312,
+  "core": "9ccc04c8ca5df864fdf9018211629bf3f2bd25d2",
+  "frontend": "b8f2e52097f3c01fb218f4418852a777e9c920df",
+  "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-goal513-514-20261002",
+  "gate_owner": "Schrodinger+Mendel",
+  "publication_owner": "parent",
+  "toad": "f07f6eb26647a5a828bc5966aa81df6a69a5048f"
+}
