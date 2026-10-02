@@ -25,6 +25,7 @@ from toad.widgets.presentation_window import (
 from textual.widget import Widget
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
+from textual._paint_state import PaintState
 from textual.worker import WorkerCancelled
 from textual.worker import Worker
 
@@ -121,6 +122,12 @@ class BodyMeasurement(ABC):
     def released(self):
         return self
 
+    def style_updated(self, body):
+        return self
+
+    def resized(self, size):
+        return self
+
     async def retire(self, body):
         return False
 
@@ -205,13 +212,25 @@ class MaterializingBody(MeasuredBody):
 class RenderedBody(BodyMeasurement):
     content: PreparedRichContent
     resource_bytes: int
+    style_revision: int
+    paint_state: PaintState
 
     @property
     def dormant(self):
         return True
 
     def ready(self, body):
-        return body.is_mounted and body.outer_size.width == self.content.width
+        # Screen commits sizes only for its current layout/exposed widgets.
+        # An offscreen widget's last committed size is not a new width demand.
+        # Measurement and actual size commits invalidate this resource below.
+        return (body.is_mounted and self.style_revision == body._subtree_style_revision
+                and self.paint_state == body._resolved_paint_state())
+
+    def style_updated(self, body):
+        return self if self.ready(body) else self.invalidated()
+
+    def resized(self, size):
+        return self if size.width == self.content.width else self.invalidated()
 
     def cost(self, body):
         return body.materialized_widget_count
@@ -291,14 +310,28 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_viewport is not None:
             self._body_viewport.request()
 
+    def _update_body_measurement(self, measurement):
+        if measurement is self._body_measurement:
+            return
+        self._body_measurement = measurement
+        if self._body_viewport is not None:
+            self._body_viewport.request()
+
     def native_body_committed(self):
         previous = self._body_measurement
         self._body_measurement = LiveBody(previous.width, previous.rows, previous.widgets)
         self.refresh(layout=True)
 
     def notify_style_update(self):
-        self.invalidate_body()
         super().notify_style_update()
+        # Notification is not a rule mutation. Retained rows depend on the
+        # original subtree rule epoch and inherited native paint values.
+        self._update_body_measurement(self._body_measurement.style_updated(self))
+
+    def _size_updated(self, size, virtual_size, container_size, layout=True):
+        changed = super()._size_updated(size, virtual_size, container_size, layout)
+        self._update_body_measurement(self._body_measurement.resized(size))
+        return changed
 
     @property
     def selection_style(self):
@@ -372,6 +405,8 @@ class MeasuredViewportBody(ViewportBody):
         compositor = self.screen._compositor
         if not compositor.can_render_subtree(self):
             return False
+        style_revision = self._subtree_style_revision
+        paint_state = self._resolved_paint_state()
         size, rows = compositor.render_subtree_strips(self)
         task = RichRenderTask(
             RenderableSource(StripRenderable(rows)),
@@ -385,13 +420,17 @@ class MeasuredViewportBody(ViewportBody):
         # asynchronous change invalidates it rather than copying a revision.
         if self._body_measurement is not current or not self.is_attached or self._closing:
             return False
+        rendered = RenderedBody(
+            current.width, current.rows, self.materialized_widget_count,
+            content=content, resource_bytes=size_bytes,
+            style_revision=style_revision, paint_state=paint_state,
+        )
+        if not rendered.ready(self):
+            return False
         async with self.lock:
             if self._body_measurement is not current:
                 return False
-            self._body_measurement = RenderedBody(
-                current.width, current.rows, self.materialized_widget_count,
-                content=content, resource_bytes=size_bytes,
-            )
+            self._body_measurement = rendered
             self.retire_body_resources()
             await self.remove_children(children)
             self.refresh(layout=True)

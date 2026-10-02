@@ -129,3 +129,45 @@ LinuxDriver check records actual enqueue/writer completion after pre-Load
 installation, with no timing delay or polling. The original public01 receipt
 remains negative and unchanged. Native6 current public ABI must be matched for
 the one joined live recording; old Core9ccc is used only by this private check.
+
+## E02 idle feedback and source correction (WIP, not Ready)
+
+The Native6 public E02 run used Corec601, Toad22119826 and Textb947. It completed
+221.178 seconds of physical recording; final review failed because the up-done
+state export never produced its pickle. That observer failure is preserved
+separately from visible stepwise scrolling and high CPU. All owned clients
+closed, cleanup had no remaining processes/errors, and the original owner epoch
+was unchanged. Raw capture: /home/ts/.cache/agent-scratch/native-retained-body-E-native6-public-20261002-02/capture.
+
+E engaged: the held-up export contained 17 Rendered bodies and 218,123 retained
+paint bytes. During-run frame sheets showed readable but discrete scroll jumps;
+End-idle frames also changed body position while stationary. This is not smooth
+scrolling acceptance. Main-process CPU was 96.1% during the 18.348-second
+mid-history idle phase. Writer intervals had p95 119.36ms and worst 1085.45ms;
+these measure native writer delivery, not terminal presentation or input latency.
+The profile has 6078 samples and four sampling errors, with approximately 59ms
+clock-alignment uncertainty. No matched before/after CPU gain is claimed.
+
+The original trace contains 100 viewport requests and 50 admissions during the
+18.043-second End idle, with no scroll observations or page extensions. Profile
+stacks show retirement/capture and native widget materialization in that phase.
+Source reading found two false invalidation decisions in the existing body owner:
+Rendered readiness compared captured rows against offscreen Widget.outer_size,
+although Screen commits sizes only for current/exposed geometry; every style
+notification also discarded rows and requested admission even with unchanged
+rules. BodyMeasurement now validates width at measurement/size commits and
+uses the original Styles subtree revision and inherited PaintState to validate
+its bounded captured resource. All three body implementations and three readiness
+consumers inherit that contract. Equal notifications and stale offscreen size
+are no longer reconstruction demands. Native23 separately removes geometry
+lookup from mounted-body admission; capture still resolves current arranged size
+through the original Compositor. These changes need batched validation and a
+changed installed journey before any performance or readiness claim.
+
+Width meanings remain distinct: BodyMeasurement.width is measured content width;
+PreparedRichContent.width is captured outer width including padding/border.
+Native _size_updated supplies that outer width. Margins remain external placement.
+NodeList removal changes custody/layout epochs, not Styles' mutation epoch;
+actual style writes alone publish _subtree_style_revision. Pruning controls does
+not itself invalidate the retained paint dependency. Source changes and real
+descendant/inherited style changes still invalidate through their original owners.
