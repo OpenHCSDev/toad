@@ -1,0 +1,40 @@
+                                                                                                                        
+  ☰     <──    ──>   New Session ×                                                                                     
+                      ━━━━━━━━━━━                                                                                       
+▼ Channels                           Name ▾    │                                                                        
++ New Session                                  │                                                                        
+▾ #any                   (1) Date created ▾    │                                                                        
+  ✓ beta                                       │                                                                        
+    Ready                                      │                                                                        
+  ✓ alpha                                      │                                                                        
+    Ready                                      │                                                                        
+  ✓ sender                                     │                                                                        
+    Ready                                      │                                                                        
+▸ #none                      Date created ▾    │                                                                        
+▸ #all                       Date created ▾    │                                                                        
+▸ #team                  (1) Date created ▾    │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                             < │                                                                      < 
+                                               │                                                                        
+                                               │ ▊                                                                      
+                                               │▌▊ ──────────────────── Outbound · 12:17:25 ────────────────────        
+                                               │▌▊  ↗ [TO] #team                                                        
+                                               │▌▊ Compute 17+25.                                                       
+                                               │▌                                                                       
+                                               │▌▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔       
+                                               │▌▶ Pending (2)                                                          
+                                               │▌                                                                       
+                                               │                                                                        
+                                               │                                                                        
+                                               │ ▶ Session details · Ready · Latest inbound #team from @sender: Pendi   
+                                               │                                                                        
+                                               │Checking input queue…                                                   
+                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                               │▊ ❯                                                                 ▎   
+40% ────────────────────────────●───────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                  │  Initializing…  … Context unavailable · Native owner has not report    
+⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                               ▏^p palette 

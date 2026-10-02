@@ -1,0 +1,44 @@
+{
+  "state": "author-installed-wheel-source-equal; not a publication activation",
+  "prefix": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+  "sources": [
+    {
+      "distribution": "agent-comms",
+      "reviewed_head": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+      "installed": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/agent_comms",
+      "source_equal_files": 311,
+      "mismatches": [],
+      "direct_url": {
+        "url": "file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/wheels-sqlite537/agent_comms-0.1.0-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "all_tracked_source_assets": 339,
+      "all_source_asset_mismatches": []
+    },
+    {
+      "distribution": "batrachian-toad",
+      "reviewed_head": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+      "installed": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/toad",
+      "source_equal_files": 276,
+      "mismatches": [],
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-command-source-closure-20261002/.artifacts/wheels-sqlite332/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "all_tracked_source_assets": 307,
+      "all_source_asset_mismatches": []
+    }
+  ],
+  "textual_direct_url": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+      "requested_revision": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6"
+    }
+  },
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+  "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+  "note": "Native unchanged qualified330; actual launch/runtime recorder must attest selected native route. No activation.json fabricated for file-wheel author environment."
+}
