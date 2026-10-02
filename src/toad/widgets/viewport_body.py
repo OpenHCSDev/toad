@@ -734,8 +734,11 @@ class DocumentViewport:
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
                 admitted = await self._trim_warm(required=required, ahead=ahead_owners)
-                warm = admitted if active else set()
-                retained = protected | warm | visible.keys()
+                # Admission retains a body's bounded presentation resource,
+                # not its live descendant tree. Offscreen warm bodies paint
+                # their retained rows on reentry; only visible or interaction
+                # protected bodies need their current native controls.
+                retained = protected | visible.keys()
                 # One foreground cohort produces readiness before frame
                 # admission. Per-body paint waits would hold this worker while
                 # the remaining visible dormant bodies reject that same frame.

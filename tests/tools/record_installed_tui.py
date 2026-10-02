@@ -1572,7 +1572,7 @@ def record(args):
                                             timeout=remaining(), frames_only=True)
                                         receipt["live_frame_delivery"] = frame_review(
                                             output, receipt, window_seconds=args.frame_window_seconds)
-                                except (OSError, subprocess.SubprocessError, ValueError, KeyError) as error:
+                                except (OSError, subprocess.SubprocessError, ValueError, KeyError, RuntimeError) as error:
                                     reviews.append({"label": label, "error": f"{type(error).__name__}: {error}",
                                                     "assessment": "unreviewed"})
                                     print(json.dumps(reviews[-1]), flush=True)

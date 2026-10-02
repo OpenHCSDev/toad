@@ -81,3 +81,35 @@ SDK0.12.1, and Native23 0b09964d with this body implementation. During it, inspe
 consecutive timed frames and the original writer-delivery timeline. Record which
 frames were actually viewed while the application was running. Capture FPS does
 not certify application delivery or terminal presentation FPS.
+
+
+## Public E observation and corrected ownership (not Ready)
+
+Original public01 passed the warm/draft/undo and input-paging predicates, but
+all exported bodies were LiveBody with zero retained paint bytes. It does not
+validate E. The frame observer also attempted driver access before acquisition;
+there are no application delivery intervals in that recording. One reverse
+consecutive-frame sheet was inspected during the run; other phases were not
+watched then. Readable pixels and recorder60fps are not smoothness evidence.
+Raw receipt remains unchanged at
+/home/ts/.cache/agent-scratch/native-retained-body-E-public-20261002-01/capture.
+
+Two source decisions prevented retained paint from carrying the work:
+DocumentViewport treated every warm admission as live widget custody, including
+offscreen bodies; native23 required optional geometry-LRU membership to capture
+complete rows. Warm admission now retains presentation resources while visible
+or interaction-protected bodies retain native controls. Native23 b9477ff reuses
+complete native arrangement independent of LRU residency, without replacing
+published full/visible scene maps. Valid RenderedBody already satisfies all
+three readiness consumers and skips update/recompose in both foreground and
+runway restoration. Actual source/style/width changes, paint-budget eviction
+and native MouseDown interaction retain their original state transitions.
+
+Observer installation now uses the original app startup callback after native
+driver acquisition. Live review consumes the existing producer phase file and
+finalized recording fragments, rather than an unpopulated final receipt or an
+unfinished video group. No extra clock or recorder was added. This coherent
+batch still needs joined native resource/observer checks and one instrumented
+installed motion/profile run on the newly approved public ABI. All clients from
+public01 are verified closed by process cmdline/executable/environment scans;
+no provider attempt or original owner was restarted.

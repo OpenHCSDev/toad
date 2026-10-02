@@ -138,9 +138,14 @@ async def main():
             window.release_anchor()
             family_receipts = []
             for member in family:
-                scene._arrange_root(app.screen, app.size, visible_only=False)
+                # Retirement owns complete paint even when optional geometry
+                # has been evicted. It must not publish a body-local scene.
+                scene._subtree_geometry.clear()
+                published_scene = scene._full_map, scene._visible_map
                 if not member.body_dormant:
                     assert await member.retire_body(), (type(member).__name__, member.body_ready)
+                    assert scene._full_map is published_scene[0]
+                    assert scene._visible_map is published_scene[1]
                     await pilot.pause()
                 captured = member._body_measurement.content
                 captured_rows = tuple(line.text for line in captured.lines)
@@ -167,6 +172,24 @@ async def main():
                     reentry_ms=(perf_counter()-started)*1000, rebuild_calls=dict(restored_calls)))
             receipt['rendered_family_reentry'] = family_receipts
             print(json.dumps(family_receipts), flush=True)
+            # Warm admission retains presentation, not offscreen controls.
+            # Exercise the original viewport worker rather than invoking its
+            # per-body retirement hook to establish this lifecycle.
+            selected = family[0]
+            await selected.materialize_body()
+            await pilot.pause()
+            window.release_anchor()
+            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
+            await pilot.pause()
+            assert selected not in scene.visible_widgets
+            viewport.resume_source()
+            await settle()
+            assert selected.body_dormant and selected.body_ready
+            assert selected.retained_paint_bytes > 0
+            assert not selected.reconstructible_children()
+            assert selected in viewport.admitted_bodies
+            receipt['offscreen_warm_admission_keeps_rows_not_controls'] = True
+            await viewport.suspend_source()
             # Original native mouse routing materializes controls before target
             # selection. No synthetic click retry or independent mouse owner.
             selected = family[-1]
