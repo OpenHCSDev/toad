@@ -1,0 +1,22 @@
+{
+  "state": "READY original preserve-only operation; NOT EXECUTED",
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "source_core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "target_core": "87c279af0a3868d444e7dbe401642d185eae9c4a",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-manifest.json",
+  "operator_manifest_sha256": "e2580e8849759b3498437d440e53120070f75a76e044c190808829e6b64f1f6f",
+  "operator_members": 51,
+  "whole_schema_equal": true,
+  "product_equal": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "plan_sha256": "264f52e18addb56bd466e5c9870642d4662669a30d3900bc7cbe498f5e1d1f85",
+  "source_proof_sha256": "12db0e17c13f6597785e5f1dd9e286936df91e9dc4f3127ad553554631fde85d",
+  "declaration_relation_sha256": "000646de6e9c2da8ed88a0194ff658134d4e290f034911457ac5bfe36d4b5731",
+  "commands": {
+    "parent_execute_once": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-preparation/publication-receipt.json --execute"
+  },
+  "execution_condition": "Parent alone, after user client closes normally and fresh original audience idle/client0; existing executor checks exact hashes, original route/links and audience before admission. Capture launches and preserve originals inside existing stopped lifetime. No manual stop, carry/reset/input replay. Existing receipt means disposition, never repeat.",
+  "public_effects": 0
+}

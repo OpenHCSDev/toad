@@ -1,0 +1,47 @@
+{
+  "state": "READY paired installed source and preserve-only operator; NOT PUBLISHED",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "installed_core": "87c279af0a3868d444e7dbe401642d185eae9c4a",
+  "installed_toad": "f4a17dda852d12c972b9d015dfb4185543b2bac7",
+  "textual": "6405228dc99ec5471c0bf8c10ddae5854971be45",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "native_manifest": "960296fdddafb01cbbeb75639f7a6a89fa36fd828b3ff5307b108abc20e7c447",
+  "native_tree": "01de56aa9550de0fe8bf93b5df8815429cba26c64b676704a9653ebf831e0e9d",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "activation_sha256": "35a174e79b59e97068afe3e9bf2b51741760f3867c89b7a35de4d5a8d8ab87a9",
+  "source_proof_sha256": "12db0e17c13f6597785e5f1dd9e286936df91e9dc4f3127ad553554631fde85d",
+  "operator_manifest_sha256": "e2580e8849759b3498437d440e53120070f75a76e044c190808829e6b64f1f6f",
+  "operator_source": "0dd0aa3c8d614a33d29cd6027a44cf186d54f45b",
+  "operator_members": 51,
+  "preparation_receipt_sha256": "8f46ef13ead3362939cfd814cb2a1fca0bd217a443d5c9ff1cc2630af25a90e1",
+  "review_plan_sha256": "264f52e18addb56bd466e5c9870642d4662669a30d3900bc7cbe498f5e1d1f85",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "schema_relation_sha256": "000646de6e9c2da8ed88a0194ff658134d4e290f034911457ac5bfe36d4b5731",
+  "whole_declared_schema_equal": true,
+  "product_equal": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/qualified-source-gates/527-functional02.json",
+      "sha256": "c252dd77978643a4e57b2bf3b10daac80f9e597f6d0bd4578972019bd48fb0cc"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/qualified-source-gates/527-prefix-capability.json",
+      "sha256": "975316e05be79dbee4162a62cc3bfdd30339c8fe93c7e9ed793a9f6988b7a687"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/qualified-source-gates/331-scoped05.json",
+      "sha256": "c7f085267e774929e07d87759c780bec136125fe690ba059bbd48f4f99f4ad9e"
+    }
+  ],
+  "scope": "527 functional02 actual configured prefix/manual commit/private peer/distinct answer165.316s; 331/Text29 scoped05 input7/resource11/readable discrete A/B/A/End. Raw recorder05 incomplete negative remains. New joined installed imports/dependencies/source/assets/fullnative trust qualify package; public actual entrypoint remains parent-owned. No smoothness/cache savings/144Hz/Undo/normalexit/fullwarm/channel latency claim.544 measurements only.",
+  "known_unclosed_failure": "Current334 boundary drain generation2101 Selected source requires reviewed raw-history coverage floor; original preserved, Mendel integration owner. This pair does not claim that fix.",
+  "protected334_333_files_unchanged": 5696,
+  "new_env": false,
+  "new_native_build": false,
+  "provider_repeated": false,
+  "public_effects": 0,
+  "parent_execute_once": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/operator-preparation/publication-receipt.json --execute",
+  "preflight": "Parent fresh actual original audience idle and no user/ACP/CLI clients. User334 currently active: do not execute. Existing executor repeats original route/link/hash/audience/client fences before receipt admission. Existing receipt requires explicit disposition; never blind retry."
+}
