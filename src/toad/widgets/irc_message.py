@@ -74,19 +74,14 @@ class IRCMessageText(Static):
         self.app.open_url(url)
 
 
-class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
+class WireMarkdownMessage(ConversationBlock, VerticalGroup):
+    """One original wire envelope; concrete bodies own only their rendering."""
+
+    DEFAULT_CLASSES = "block"
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
         ("shift+enter", "open_destination", "Open destination"),
     ]
-    DEFAULT_CSS = """
-    IRCMessage {
-        width: 1fr; height: auto; margin: 0; padding: 0;
-        .irc-body { width: 1fr; height: auto; }
-        IRCMessageText { width: 1fr; height: auto; text-wrap: wrap; }
-    }
-    """
-
     def __init__(self, message: Message, *, direction: str = "Inbound"):
         super().__init__()
         self.message = message
@@ -97,33 +92,30 @@ class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
         self.source = message.body
 
     def compose(self) -> ComposeResult:
-        message = self.message
-        yield MessageDivider(self.direction, clock=MessageClock.recorded(message.timestamp))
-        with HorizontalGroup(classes="irc-body"):
-            yield IRCMessageText(
-                Content.assemble(
-                    self._link(message.sender),
-                    (" → ", "$text-muted"),
-                    self._link(message.target),
-                    " ",
-                    self.mentioned_body(),
-                ),
-                markup=False,
-            )
+        yield MessageDivider(self.direction, clock=MessageClock.recorded(self.message.timestamp))
+        yield from self.compose_body()
         yield MessageNotifications()
 
-    @staticmethod
-    def _link(target: str) -> Content:
-        return Content.styled(target, "$accent").stylize(
-            Style.from_meta({"@click": ("open_target", (target,))})
-        )
+    def compose_body(self) -> ComposeResult:
+        from toad.widgets.agent_response import AgentResponse
 
-    def mentioned_body(self) -> Content:
-        return inline_message(self.message.body, self.message.mentions)
+        source = self.message.source.key if isinstance(self.message, HistoricalMessage) else None
+        with HorizontalGroup():
+            yield ThreadLink(self.message.sender, source)
+            yield Static(" → ", markup=False, expand=False)
+            yield ThreadLink(self.message.target, source)
+        yield AgentResponse(self.message.body, show_divider=False)
+        if self.message.mentions:
+            with HorizontalGroup():
+                yield Static("Mentioned: ", expand=False)
+                for target in dict.fromkeys(mention.thread for mention in self.message.mentions):
+                    yield ThreadLink(target, source)
 
     def read_ack_widget(self) -> Widget:
-        """Only the text block can authorize a read, never its divider."""
-        return self.query_one(IRCMessageText)
+        """Only the rendered message body can authorize a read."""
+        from toad.widgets.agent_response import AgentResponse
+
+        return self.query_one(AgentResponse)
 
     def action_open_target(self, target: str):
         if isinstance(self.message, HistoricalMessage) and not target.startswith("#"):
@@ -140,40 +132,45 @@ class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
         self.action_open_target(self.message.target)
 
     def get_clipboard_text(self) -> str:
-        return f"{self.message.sender} → {self.message.target}: {self.message.body}"
+        return self.message.body
 
 
-class WireMarkdownMessage(ConversationBlock, VerticalGroup):
-    DEFAULT_CLASSES = "block"
+class IRCMessage(WireMarkdownMessage, can_focus=True):
+    DEFAULT_CLASSES = ""
+    DEFAULT_CSS = """
+    IRCMessage {
+        width: 1fr; height: auto; margin: 0; padding: 0;
+        .irc-body { width: 1fr; height: auto; }
+        IRCMessageText { width: 1fr; height: auto; text-wrap: wrap; }
+    }
+    """
 
-    def __init__(self, message: Message, *, direction: str = "Inbound"):
-        super().__init__()
-        self.message = message
-        self.direction = (
-            f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
-            if isinstance(message, HistoricalMessage) else direction
+    def compose_body(self) -> ComposeResult:
+        message = self.message
+        with HorizontalGroup(classes="irc-body"):
+            yield IRCMessageText(
+                Content.assemble(
+                    self._link(message.sender),
+                    (" → ", "$text-muted"),
+                    self._link(message.target),
+                    " ",
+                    self.mentioned_body(),
+                ),
+                markup=False,
+            )
+
+    @staticmethod
+    def _link(target: str) -> Content:
+        return Content.styled(target, "$accent").stylize(
+            Style.from_meta({"@click": ("open_target", (target,))})
         )
-        self.source = message.body
 
-    def compose(self) -> ComposeResult:
-        from toad.widgets.agent_response import AgentResponse
-
-        yield MessageDivider(self.direction, clock=MessageClock.recorded(self.message.timestamp))
-        source = self.message.source.key if isinstance(self.message, HistoricalMessage) else None
-        with HorizontalGroup():
-            yield ThreadLink(self.message.sender, source)
-            yield Static(" → ", markup=False, expand=False)
-            yield ThreadLink(self.message.target, source)
-        yield AgentResponse(self.message.body, show_divider=False)
-        if self.message.mentions:
-            with HorizontalGroup():
-                yield Static("Mentioned: ", expand=False)
-                for target in dict.fromkeys(mention.thread for mention in self.message.mentions):
-                    yield ThreadLink(target, source)
-        yield MessageNotifications()
+    def mentioned_body(self) -> Content:
+        return inline_message(self.message.body, self.message.mentions)
 
     def read_ack_widget(self) -> Widget:
-        """Only the rendered message body can authorize a read."""
-        from toad.widgets.agent_response import AgentResponse
+        """Only the text block can authorize a read, never its divider."""
+        return self.query_one(IRCMessageText)
 
-        return self.query_one(AgentResponse)
+    def get_clipboard_text(self) -> str:
+        return f"{self.message.sender} → {self.message.target}: {self.message.body}"

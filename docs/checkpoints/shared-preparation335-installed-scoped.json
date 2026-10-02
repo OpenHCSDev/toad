@@ -1,0 +1,197 @@
+{
+  "qualification": "Scoped installed shared-preparation/native-style checkpoint; full motion/performance remains open",
+  "toad_source": "96956825",
+  "toad_installed_commit": "4916e1aafc36b73ce3287be2b3d6f6fe0563f498",
+  "production_lines": {
+    "deleted": 22,
+    "added": 20,
+    "files": 3
+  },
+  "pins": {
+    "agent_comms": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+    "toad": "4916e1aafc36b73ce3287be2b3d6f6fe0563f498",
+    "textual": "81ecfccd6622e727ec2c8d6eb6927e2a3cb9e7cd"
+  },
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+  "capture": "/home/ts/.cache/agent-scratch/shared-markdown335-native31-public-20261002-01/capture",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-shared-markdown335-native31-20261002/source-proof.json",
+  "source_proof_sha256": "59b54c0906b15da4b388a4cc751affd6678351e62520776c9407c03185035aa4",
+  "entrypoint": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "duration_seconds": 124.44319805299165,
+  "raw_capture_completed": true,
+  "raw_completed": false,
+  "raw_error": "RuntimeError: Required state capture before did not complete: {'started_seconds': 1.2700956259504892, 'manifest': {'pid': 582503, 'created': 1790970391.55, 'executable': '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14', 'rss_before': 95592448, 'started_ns': 1790970394921151248, 'profile_seconds': 0, 'gil_only': False, 'native': False, 'receipts': {'/home/ts/.cache/agent-scratch/shared-markdown335-native31-public-20261002-01/capture/before-state': 'pending', '/home/ts/.cache/agent-scratch/shared-markdown335-native31-public-20261002-01/capture/before-screen': 'pending'}, 'finished_ns': 1790970415021492806}, 'finished_seconds': 21.592817405005917}",
+  "required_exports": "Initial before state/screen remained PENDING; later required phase exports including Undo/after completed",
+  "actual_product_checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_admitted_older_source": true,
+      "held_page_down_admitted_newer_source": true,
+      "reverse_page_up_admitted_older_source": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "retained_ready_body_count": 18
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 507032,
+      "start_time": 44408504
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 507032,
+      "start_time": 44408504
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "ui_exit": "Normal exit not recorded; transferred ObservedProcess custody and required-export failure prevented final normal-quit path; no application exit success claim",
+  "motion_review": {
+    "timing": "AFTER completion; no claim of contemporaneous moving inspection",
+    "method": "Three 48-consecutive-frame sequences at recorded60fps wholly inside actual held-key windows",
+    "sequences": [
+      {
+        "file": "after-exact-input-up-frames.png",
+        "start": 37.041953342,
+        "end": 37.841953342,
+        "held_start": 36.541953342,
+        "held_end": 38.802649307
+      },
+      {
+        "file": "after-exact-input-down-frames.png",
+        "start": 59.473056958,
+        "end": 60.273056958,
+        "held_start": 58.973056958,
+        "held_end": 61.275645089
+      },
+      {
+        "file": "after-exact-reverse-frames.png",
+        "start": 80.825669748,
+        "end": 81.625669748,
+        "held_start": 80.325669748,
+        "held_end": 82.592801307
+      }
+    ],
+    "observed": "Body and chrome readable; repeated positions alternate with discrete chunk advances, especially input PageUp. No whole-chat blank in reviewed sequences. Uninterrupted animation and smoothness not achieved."
+  },
+  "native_writer": {
+    "flushed_frames": 773,
+    "unmatched_enqueues": 0,
+    "exact_key_windows": [
+      {
+        "action": "0-Prior",
+        "intervals": {
+          "count": 47,
+          "median_ms": 19.57,
+          "p95_ms": 163.64,
+          "p99_ms": 186.9,
+          "max_ms": 366.42
+        },
+        "writer_receipts": 48
+      },
+      {
+        "action": "1-Next",
+        "intervals": {
+          "count": 45,
+          "median_ms": 26.7,
+          "p95_ms": 157.42,
+          "p99_ms": 165.2,
+          "max_ms": 181.48
+        },
+        "writer_receipts": 46
+      },
+      {
+        "action": "2-Prior",
+        "intervals": {
+          "count": 92,
+          "median_ms": 16.19,
+          "p95_ms": 47.79,
+          "p99_ms": 125.76,
+          "max_ms": 348.04
+        },
+        "writer_receipts": 93
+      },
+      {
+        "action": "3-Next",
+        "intervals": {
+          "count": 110,
+          "median_ms": 16.74,
+          "p95_ms": 41.37,
+          "p99_ms": 94.34,
+          "max_ms": 103.68
+        },
+        "writer_receipts": 111
+      },
+      {
+        "action": "4-Prior",
+        "intervals": {
+          "count": 130,
+          "median_ms": 15.27,
+          "p95_ms": 25.24,
+          "p99_ms": 65.52,
+          "max_ms": 124.91
+        },
+        "writer_receipts": 131
+      }
+    ],
+    "boundary": "Writer flush receipt intervals, not terminal pixel/input-to-paint latency; capture60fps is not application FPS"
+  },
+  "kernel_ui_cpu_percent_marker_spans": {
+    "input_held_up": 82.53,
+    "input_held_down": 75.36,
+    "reverse": 72.86,
+    "mid_history_wait": 27.82,
+    "End_wait": 22.69
+  },
+  "cpu_limits": "Marker spans include state-export tails; no exact held-key CPU/overall speedup or matched causal comparison claim. Major-fault delta0 in these spans.",
+  "profile": {
+    "samples": 1362,
+    "errors": 0,
+    "alignment_uncertainty_seconds": 0.07455159551231191,
+    "path": "/home/ts/.cache/agent-scratch/shared-markdown335-native31-public-20261002-01/capture/profile-review.json",
+    "owner_stack_query": "/home/ts/.cache/agent-scratch/shared-markdown335-native31-public-20261002-01/capture/whole-ui-owner-stacks.json",
+    "limits": "Chrome stack transitions are not CPU durations, calls or sample counts"
+  },
+  "remaining": "Discrete scroll/animation interruption; busy IRC/tab cold-open and shared DM/IRC paging; full CPU/144Hz/raster/firstpaint/runway/growing-end/void/sidebar/focus/TC1/T9/T4 remain active",
+  "artifacts": {
+    "receipt.json": "035dacbf9eb78c87c3c24ede8884b1dcc46e9757c44bdeef829e0c2403a760d3",
+    "scoped-existing-phase-review.json": "cdac6a1bebc85d04d84d4a86647ff6262ee29d9cf6e27f7895ab3e33a2520c36",
+    "exact-held-frame-delivery.json": "16b40f1f07816566749d2095de2762fe9d2850675a25245ffdf291d1e13502ca",
+    "profile-review.json": "2488b64a3108310c65f4ddcb625f160cf90bad703af82c24d4d2672ff80f36c1",
+    "after-exact-input-up-frames.png": "d263fd75931e9cc934bf9a787c4baba6d9d17d14c882d08393ea84339a87396e",
+    "after-exact-input-down-frames.png": "e998968386b78b36df3b0a31782c77a68c50a84d69dbe64154880da24940978b",
+    "after-exact-reverse-frames.png": "cd42337d51aa1c9889bc9c8098bcca4b44d49770a2a0c1619e766976ac2a6439"
+  }
+}

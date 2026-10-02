@@ -10,7 +10,6 @@ from typing import Generic, TypeVar, TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import TranscriptEvent, MarkdownTranscript
 from agent_comms.mro_dispatch import MroDispatch, handles
-from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
 from toad.session_tracker import OpenTab
@@ -116,36 +115,21 @@ class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
 
 
 @dataclass(frozen=True)
-class MarkdownSyntaxRenderTask(ReusableRenderTask[list[Token]]):
+class MarkdownRenderTask(ReusableRenderTask[PreparedMarkdown]):
+    """Parse and highlight one detached body before its independent delivery."""
+
     source: str
-
-    def execute(self) -> list[Token]:
-        from toad.conversation_markdown import parse_markdown_syntax
-        return parse_markdown_syntax(self.source)
-
-    async def prepare_body(self, renderer, ansi: bool, dark: bool) -> None:
-        """Warm the same grammar and highlighted rows used by native delivery."""
-        tokens = await renderer.submit(self)
-        await renderer.submit(TokenRenderTask(tuple(tokens), ansi, dark))
-
-    def accept_result(self, result: object) -> list[Token]:
-        if not isinstance(result, list) or not all(isinstance(token, Token) for token in result):
-            raise TypeError("Markdown syntax renderer returned invalid tokens")
-        return result
-
-
-@dataclass(frozen=True)
-class TokenRenderTask(ReusableRenderTask[PreparedMarkdown]):
-    tokens: tuple[Token, ...]
     ansi: bool
     dark: bool
 
     def execute(self) -> PreparedMarkdown:
-        return prepare_tokens(list(self.tokens), self.ansi, self.dark)
+        from toad.conversation_markdown import parse_markdown_syntax
+
+        return prepare_tokens(parse_markdown_syntax(self.source), self.ansi, self.dark)
 
     def accept_result(self, result: object) -> PreparedMarkdown:
         if not isinstance(result, PreparedMarkdown):
-            raise TypeError("Token renderer returned an invalid result")
+            raise TypeError("Markdown renderer returned an invalid result")
         return result
 
 
@@ -176,9 +160,7 @@ class TranscriptBodyPreparation(MroDispatch):
 
     @handles(MarkdownTranscript)
     async def markdown(self, event: MarkdownTranscript) -> None:
-        await MarkdownSyntaxRenderTask(event.text).prepare_body(
-            self.renderer, self.ansi, self.dark,
-        )
+        await self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))
 
 
 @dataclass(frozen=True)
