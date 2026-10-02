@@ -153,6 +153,14 @@ async def exercise_preprune(view, pilot, old_page, new_page, *, checkpoint=False
                 task = asyncio.create_task(publication.publish())
                 await asyncio.wait_for(entered.wait(), 5)
                 proof['accepted_before_cancel'] = resources(view.window)
+                # The real output owner is held here. Its paged finish must
+                # still be able to acquire both original source/tree locks;
+                # accepted retirement waits outside them, never in opposition.
+                async with asyncio.timeout(5):
+                    async with view.window.history_lock:
+                        async with view.window.lock:
+                            proof['source_and_tree_locks_available_during_output_join'] = True
+                assert not old.display
                 task.cancel()
                 await pilot.pause(.05)
                 proof['cancelled_while_output_lock_held'] = resources(view.window)
@@ -189,9 +197,14 @@ async def main():
         pages = []
         for name in ('old', 'replacement'):
             source = root/f'{name}.jsonl'
-            source.write_text(''.join(json.dumps({'type': 'message', 'message': {
-                'role': 'assistant', 'content': f'## {name} saved row {i}\n\nNative resource custody.'}})
-                + '\n' for i in range(6)))
+            entries = [{'type': 'session', 'id': name, 'version': 3, 'cwd': str(root)}]
+            for i in range(6):
+                entries.append({'type': 'message', 'id': f'{name}-{i}',
+                    'parentId': entries[-1]['id'], 'message': {
+                        'role': 'assistant', 'stopReason': 'stop',
+                        'content': [{'type': 'text', 'text':
+                            f'## {name} saved row {i}\n\nNative resource custody.'}]}})
+            source.write_text(''.join(json.dumps(entry) + '\n' for entry in entries))
             comms.registry.declare(Thread(name, frozenset(), str(root), session_file=str(source)))
             pages.append(comms.transcripts.thread_transcript_page(name))
         app = ToadApp(project_dir=str(root))
