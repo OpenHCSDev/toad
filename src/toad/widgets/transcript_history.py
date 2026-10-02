@@ -46,7 +46,6 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
-from toad.work_preparation import retained_bytes
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage, TranscriptInputClaim
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
@@ -178,7 +177,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()
         self.fragment = fragment
-        self._retained_bytes = retained_bytes(fragment)
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
         self.add_class(f"-message-{self._message_category.declared_name}")
@@ -187,7 +185,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
 
     @property
     def retained_source_bytes(self) -> int:
-        return self._retained_bytes
+        return self.fragment.retained_bytes
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
@@ -236,7 +234,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
-        self._retained_bytes = retained_bytes(fragment)
         category = event_category(new_events[0]) if new_events else OtherCategory
         if category != self._message_category:
             self.remove_class(f"-message-{self._message_category.declared_name}")

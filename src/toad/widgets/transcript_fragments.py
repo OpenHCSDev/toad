@@ -1,6 +1,7 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
 from dataclasses import dataclass, replace
+from functools import cached_property
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 from threading import local
@@ -144,6 +145,13 @@ class TranscriptFragment:
     continuation: bool = False
     starts_agent_activity: bool = False
 
+    @cached_property
+    def retained_bytes(self) -> int:
+        """Measure this immutable source resource once, before native admission."""
+        from toad.work_preparation import retained_bytes
+
+        return retained_bytes(self)
+
 
 class TranscriptFragmentConsumer(MroDispatch):
     def __init__(self):
@@ -182,4 +190,9 @@ def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[Transcrip
     consumer = TranscriptFragmentConsumer()
     for event in events:
         consumer.dispatch_sync(event)
+    # This producer runs in the existing renderer for saved and paged sources.
+    # Deliver the measured resource with its source rather than walking nested
+    # tool inputs again in every native fragment constructor or publication.
+    for fragment in consumer.fragments:
+        fragment.retained_bytes
     return tuple(consumer.fragments)
