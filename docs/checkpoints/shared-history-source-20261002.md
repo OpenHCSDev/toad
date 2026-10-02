@@ -73,3 +73,9 @@ omissions and finds one constructor/compose owner, two leaf body/ack methods
 and all8 source/import uses. Output: .artifacts/shared-history-source338/
 envelope-owner-after.json. Actual dynamic dispatch/paint is not proven by AST;
 it belongs to the completed family's joined installed journey.
+
+The envelope checkpoint also deletes the unused source-text assignment rather
+than keeping one consolidated mirror of Message.body. Native BlockContent/
+selection/export consumers use the leaf clipboard/prompt methods, which read
+the original message; neither wire body is a MarkdownBlockContent. Historical
+identity routing and message timestamps remain original-message projections.
