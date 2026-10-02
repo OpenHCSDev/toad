@@ -58,7 +58,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         self.app.session_selected_signal.subscribe(self, self._observed)
         self.call_after_refresh(self.action_refresh)
 
-    def visible(self):
+    def presentation_visible(self):
         return (self.is_attached and self.query_ancestor(SessionView).is_current
                 and not self.query_ancestor(SideBar).collapsed
                 and not self.query_ancestor(SideBarCollapsible).collapsed)
@@ -70,7 +70,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         self._observed()
 
     def _observed(self, _value=None):
-        if not self.visible():
+        if not self.presentation_visible():
             return
         # Invalidation does not replace an original read still in flight.
         if self._working("context-read"):
@@ -99,7 +99,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         self.action_refresh()
 
     def action_refresh(self):
-        if self.visible():
+        if self.presentation_visible():
             self._read(self.owner, self.wire_root, force=True)
 
     def _reading(self, owner, root):
