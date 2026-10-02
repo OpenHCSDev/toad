@@ -13,7 +13,6 @@ from tempfile import TemporaryDirectory
 from time import perf_counter
 
 from agent_comms.comms import Comms
-from agent_comms.threads import Thread
 from textual._compositor import Compositor
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
@@ -44,6 +43,7 @@ async def main():
             window = HistoryWindow()
             window.styles.width = "100%"
             window.styles.height = 20
+            window.styles.position = "absolute"
             await app.selected_session.conversation.mount(window)
             history = TranscriptHistory(page)
             await window.mount(history)
@@ -170,7 +170,17 @@ async def main():
             # Original native mouse routing materializes controls before target
             # selection. No synthetic click retry or independent mouse owner.
             selected = family[-1]
-            await pilot.click(selected, offset=(1, 1))
+            window.scroll_to_widget(selected, animate=False, immediate=True)
+            await pilot.pause()
+            # Pilot.click deliberately bypasses App.on_event; feed the original
+            # native driver event boundary to exercise preparation and re-hit.
+            from textual.events import MouseDown, MouseUp
+            point = selected.region.offset + (1, 1)
+            assert app.get_widget_at(*point)[0] is selected
+            for event_class in (MouseDown, MouseUp):
+                app.post_message(event_class(None, point.x, point.y, 0, 0, 1,
+                    False, False, False, screen_x=point.x, screen_y=point.y))
+                await pilot.pause()
             await pilot.pause()
             assert not selected.body_dormant and selected.children
             receipt['native_input_materialized_original_body'] = True

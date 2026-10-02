@@ -1,0 +1,37 @@
+{
+  "fragment_arrangements": 0,
+  "profiled_100_reflows_seconds": 0.2816145429969765,
+  "fragments": 4,
+  "native_cache_capacity": 64,
+  "provider_calls": 0,
+  "boundary": "actual saved source/Toad widgets/native compositor, source only",
+  "source_update_painted": true,
+  "style_invalidated": true,
+  "resize_invalidated": true,
+  "rendered_family_reentry": [
+    {
+      "body": "TranscriptFragmentView",
+      "rendered_lines": 10,
+      "nonblank_lines": 4,
+      "reentry_ms": 0.1679880078881979,
+      "rebuild_calls": {}
+    },
+    {
+      "body": "PreparedConversationMarkdown",
+      "rendered_lines": 5,
+      "nonblank_lines": 2,
+      "reentry_ms": 0.17912901239469647,
+      "rebuild_calls": {}
+    },
+    {
+      "body": "StreamingMarkdown",
+      "rendered_lines": 5,
+      "nonblank_lines": 2,
+      "reentry_ms": 0.2525380114093423,
+      "rebuild_calls": {}
+    }
+  ],
+  "native_input_materialized_original_body": true,
+  "retirement_and_restore_invalidated": true,
+  "final_disposal_releases_scene": true
+}

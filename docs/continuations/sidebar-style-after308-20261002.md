@@ -59,3 +59,25 @@ BodyMeasurement is the existing lifecycle owner. LiveBody uses native custody; R
 Original Compositor full intrinsic subtree capture (Text23 0b09964d) produces all rows, including offscreen rows; screen-crop strips are not used as a wholebody. Existing RichRenderTask/PreparationRuntime processes detached strip data, bounded and scoped to final body disposal. Original PresentationBudget counts retained paint bytes and actual native custody, rather than reserving a full widget reconstruction for every rendered runway body. Width/style/source invalidation remains on the body owner. WorkerStatic selection/crop logic moves to existing PreparedRichContent, deleting the duplicate algorithm. Workspace retains existing native inactive paint resources.
 
 Interaction uses native Widget.prepare_input before App commits the original MouseDown target; materialization in the old body handler would be too late for real Button/Click identity. The body restores controls and waits for its own refresh outside mutation locks. Native App/Widget source is Kepler's Text23 contribution; no synthetic event retry or copied input state. These changes are published WIP for review, not runtime/visual qualified. Next is one batched native sanity and changed installed motion/profile journey with contemporaneous consecutive-frame watching. No baseline rerun.
+
+## E native family check
+
+All three original body implementations now return captured native rows at the
+same width without update, recompose, or materialize calls: Fragment 10 rows
+(4 nonblank), Prepared Markdown 5 rows (2 nonblank), Streaming Markdown 5 rows
+(2 nonblank). Source-only reentry measured 0.168/0.179/0.253ms. Original native
+App MouseDown routing reconstructs interaction resources; source/style/resize
+and final disposal checks passed. These are native resource results, not public
+application latency or smoothness.
+
+The existing warm LRU now admits retained paint cost and releases strips on
+eviction. Final scope cleanup still belongs to the original preparation runtime.
+Earlier hand-written journal pilot attempts had no decoded rows; the preserved
+negative receipts are fixture failures. Pilot.click bypasses App.on_event; the
+interaction check now uses the original App native event boundary.
+
+The next and sole public installed run uses approved Core9ccc, Native5184,
+SDK0.12.1, and Native23 0b09964d with this body implementation. During it, inspect
+consecutive timed frames and the original writer-delivery timeline. Record which
+frames were actually viewed while the application was running. Capture FPS does
+not certify application delivery or terminal presentation FPS.
