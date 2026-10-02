@@ -1,0 +1,28 @@
+{
+  "state": "NORMAL_PAIRED_INSTALL_VERIFIED; AR_ENDT_SOLE_INSTALLED_USER_JOURNEY_PENDING",
+  "receiving_pr": 310,
+  "pins": {
+    "core": "ca4bcfa5efdcde807a4da26309222760939aefc1",
+    "toad": "26b425a3b68ab02d38ef842d75fc587c267c6ea1",
+    "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-async-selected509-20261002",
+  "production_frontend_equal": "f207f9a4ab927ce46d091e061ded9d0ef6aceb11",
+  "receiving_delta": "three Core pin lines only",
+  "normal_packages": 69,
+  "pip_check": "69 compatible packages",
+  "all_four_source_assets_directURLs_verified": true,
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_builds": 0,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "public_writes": 0,
+  "protected_old_prefix_files": 2838,
+  "protected_old_prefix_unchanged": true,
+  "activation_sha256": "c1d4e3748309df0f0ea33ca50e84a92ad9d7dd9ae28d52a743913ea058e7cffc",
+  "gate_owner": "Arendt509",
+  "publication_owner": "parent"
+}
