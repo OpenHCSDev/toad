@@ -67,3 +67,13 @@ previous native32 qualification remains frozen/source-equal; its Ready status
 does not qualify these new SessionView changes. Batch final sanity and the
 changed installed channel/native switch lifecycle last, then publish scoped
 result. No repeat of the unchanged native32 recording.
+
+The completed344 source batch passed the existing real Toad/native page-mount
+sanity: older/newer admission each one four-child transaction, original source
+order/resources retained, publication fence held, no bound agent/provider. Its
+raw CLI invocation missing the required output argument is preserved separately.
+This confirms the changed reader lifetime still supports native mount/fence
+custody; it does not qualify hidden-channel switching or installed motion.
+Source/native lifecycle evidence remains in .artifacts/source344-logical-viewport-lifetime.
+No current capture/test client remains. The final changed installed channel/DM
+switch closure is still required for344Ready, without repeating frozen32 film.
