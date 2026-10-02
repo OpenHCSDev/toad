@@ -80,9 +80,11 @@ async def main():
                     async with asyncio.timeout(5):
                         await prepared.wait()
                     original = group._snapshot
-                    newer = replace(original, wire=replace(original.wire, channels=tuple(
-                        replace(view, last_activity=view.last_activity + 1)
-                        for view in original.wire.channels)))
+                    newer = replace(original, wire=replace(
+                        original.wire,
+                        unread={**original.wire.unread, 'beta': 1},
+                        thread_unread={**original.wire.thread_unread, 'beta': 1},
+                    ))
                     view = next(item for item in newer.wire.channels
                                 if item.channel.name == '#team')
                     tasks.append(asyncio.create_task(group.update_members(view, newer)))
@@ -115,6 +117,26 @@ async def main():
             await pilot.click(group.disclosure)
             await pilot.pause()
             assert group.expanded and len(group.member_container.children) == 1
+            # Poll metadata is not a new rendered row. Reuse its original
+            # prepared frames without another worker hash/delivery roundtrip.
+            reused = group.member_container.children[0]._thread_presentation
+            requests = []
+
+            async def count_rows(work):
+                if isinstance(work, ThreadRowsWork):
+                    requests.append(len(work.rows))
+                return await submit(work)
+
+            metadata_only = replace(group._snapshot, wire=replace(
+                group._snapshot.wire, channels=tuple(
+                    replace(view, last_activity=view.last_activity + 1)
+                    for view in group._snapshot.wire.channels)))
+            current_view = next(view for view in metadata_only.wire.channels
+                                if view.channel.name == '#team')
+            with patch.object(app.preparation, 'submit', count_rows):
+                await group.update_members(current_view, metadata_only)
+            assert requests == [], requests
+            assert group.member_container.children[0]._thread_presentation is reused
             # Real disclosure clicks may change reader intent while preparation
             # is held. Publication must use the current disclosure, then reverse.
             preparing, deliver = asyncio.Event(), asyncio.Event()
@@ -138,7 +160,12 @@ async def main():
                 try:
                     # Source reconciliation runs independently of the widget's
                     # message pump; the real collapse click remains deliverable.
-                    clicks.append(asyncio.create_task(group._sync_members()))
+                    changed = replace(group._snapshot, wire=replace(
+                        group._snapshot.wire,
+                        unread={**group._snapshot.wire.unread, 'beta': 2},
+                        thread_unread={**group._snapshot.wire.thread_unread, 'beta': 2},
+                    ))
+                    clicks.append(asyncio.create_task(group.update_members(group._view, changed)))
                     async with asyncio.timeout(5):
                         await preparing.wait()
                     clicks.append(asyncio.create_task(pilot.click(group.disclosure)))
@@ -179,7 +206,16 @@ async def main():
             assert [row.target_name for row in retained] == ['child']
             model = next(model for model in comms.relationships.snapshot('beta').groups
                          if model.key == 'children')
-            await children.update_group(model)
+            relationship_requests = []
+
+            async def count_relationship_rows(work):
+                if isinstance(work, ThreadRowsWork):
+                    relationship_requests.append(len(work.rows))
+                return await submit(work)
+
+            with patch.object(app.preparation, 'submit', count_relationship_rows):
+                await children.update_group(model)
+            assert relationship_requests == [], relationship_requests
             assert tuple(children.member_container.children) == retained
             children.toggle_members()
             await pilot.pause()
@@ -190,7 +226,9 @@ async def main():
             assert tuple(children.member_container.children) == retained
             receipt.update(channel_member_painted=True, collapse_expand_passed=True,
                            collapse_during_preparation=publications,
-                           canonical_relationship_child='child', relationship_row_retained=True)
+                           canonical_relationship_child='child', relationship_row_retained=True,
+                           metadata_only_worker_rows=requests,
+                           unchanged_relationship_worker_rows=relationship_requests)
             (artifacts / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
             print(json.dumps(receipt), flush=True)
         assert app._exception is None
