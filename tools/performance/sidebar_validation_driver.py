@@ -340,7 +340,7 @@ class ValidationDriver(LinuxDriver):
             await app._mounted_event.wait()
             cls.observe_frames(app._driver)
             record("frame_observer_attached", driver=type(app._driver).__name__)
-        app.run_worker(acquired(), name="frame-delivery-observer", group="frame-delivery-observer")
+        return app.run_worker(acquired(), name="frame-delivery-observer", group="frame-delivery-observer")
 
     @staticmethod
     def observe_frames(driver):

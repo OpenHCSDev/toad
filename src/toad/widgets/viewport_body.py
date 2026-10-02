@@ -5,7 +5,8 @@ their message pumps, subscriptions and render caches have a shorter lifetime.
 The window owns admission; documents implement their own retirement/restoration.
 """
 
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
+from collections.abc import Coroutine
 from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
@@ -45,10 +46,10 @@ class ViewportBody:
     def body_ready(self) -> bool:
         raise NotImplementedError
 
-    async def retire_body(self) -> bool:
+    def retire_body(self) -> Coroutine[None, None, bool]:
         raise NotImplementedError
 
-    async def restore_body(self) -> None:
+    async def restore_body(self) -> bool:
         raise NotImplementedError
 
     async def prepare_body(self) -> None:
@@ -164,8 +165,8 @@ class LiveBody(BodyMeasurement):
     async def materialize(self, body):
         return
 
-    async def retire(self, body):
-        return await body.retire_native_body(self)
+    def retire(self, body):
+        return body.retire_native_body(self)
 
 
 @dataclass(frozen=True)
@@ -388,32 +389,44 @@ class MeasuredViewportBody(ViewportBody):
     def retire_body_resources(self):
         pass
 
-    async def retire_body(self):
-        return await self._body_measurement.retire(self)
+    def retire_body(self):
+        # Acquire pixels synchronously. The viewport can capture its bounded
+        # cohort from one publication before any preparation or pruning awaits.
+        return self._body_measurement.retire(self)
 
-    async def retire_native_body(self, current):
+    @asynccontextmanager
+    async def retirement_custody(self):
+        async with self.lock:
+            yield True
+
+    def retire_native_body(self, current):
         if not self.body_ready or not self.is_attached:
-            return False
+            return BodyMeasurement.retire(current, self)
         if self.lock.is_locked or self._body_viewport is None:
-            return False
-        if self._body_viewport is not None and self in self._body_viewport.protected():
-            return False
+            return BodyMeasurement.retire(current, self)
+        if self in self._body_viewport.protected():
+            return BodyMeasurement.retire(current, self)
         children = self.reconstructible_children()
         if not children or any(not child.body_ready for child in self.walk_children()
                                if isinstance(child, ViewportBody)):
-            return False
+            return BodyMeasurement.retire(current, self)
         compositor = self.screen._compositor
-        if not compositor.can_render_subtree(self):
-            return False
         style_revision = self._subtree_style_revision
         paint_state = self._resolved_paint_state()
-        size, rows = compositor.render_subtree_strips(self)
+        captured = tuple(compositor.published_geometry((self,)))
+        if not captured:
+            return BodyMeasurement.retire(current, self)
+        _body, placement = captured[0]
+        size, rows = compositor.render_subtree_strips(self, placement)
         task = RichRenderTask(
             RenderableSource(StripRenderable(rows)),
             RichPresentation(self.app.console_options.update(width=size.width, height=None),
                              RichStyle(), None, False, None, self.app.console.color_system,
                              self.app.current_theme.dark),
         )
+        return self.finish_native_retirement(current, children, task, style_revision, paint_state)
+
+    async def finish_native_retirement(self, current, children, task, style_revision, paint_state):
         content = await self.app.preparation.submit(RenderPreparation(task, scope=self._body_scope))
         size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
         # The original state is the captured source/width/style lifetime. An
@@ -427,8 +440,11 @@ class MeasuredViewportBody(ViewportBody):
         )
         if not rendered.ready(self):
             return False
-        async with self.lock:
-            if self._body_measurement is not current or not rendered.ready(self):
+        async with self.retirement_custody() as can_commit:
+            if (not can_commit or self._body_measurement is not current or not rendered.ready(self)
+                    or not self.is_attached or self._closing
+                    or self._body_viewport is None
+                    or self in self._body_viewport.protected()):
                 return False
             self._body_measurement = rendered
             self.retire_body_resources()
@@ -437,7 +453,9 @@ class MeasuredViewportBody(ViewportBody):
         return True
 
     async def restore_body(self):
-        await self._body_measurement.restore(self)
+        previous = self._body_measurement
+        await previous.restore(self)
+        return self._body_measurement is not previous
 
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container, viewport, width):
@@ -735,7 +753,12 @@ class DocumentViewport:
 
     def resume_source(self) -> None:
         self._suspended = False
-        self.request()
+        # Resume restores the native geometry target declaration as well as
+        # source custody. Reconciliation consumes that publication; it must
+        # not capture from the departing/parked scene or manufacture its boxes.
+        if self.geometry_targets():
+            self.window.refresh(layout=True)
+        self.window.screen.frame_presentation.defer(self.window, self.request)
 
     async def close(self) -> None:
         """Release this working set before its window's final retirement."""
@@ -813,19 +836,32 @@ class DocumentViewport:
                     protected = self.protected()
                     if any(owner in visible for owner in restoring):
                         self.lookahead.delivered(monotonic() - started)
-                for owner in owners:
-                    if not owner.is_attached or owner._closing:
-                        continue
-                    wanted = owner in retained
-                    if (not wanted and not owner.body_dormant and owner not in protected
-                            and not (screen.is_current and owner in screen._compositor.visible_widgets)):
-                        if await owner.retire_body():
+                retiring = tuple(owner for owner in owners
+                                 if owner.is_attached and not owner._closing
+                                 and owner not in retained and not owner.body_dormant)
+                for first in range(0, len(retiring), self.budget.admission_items):
+                    # Each call captures its original rows now; tasks only
+                    # prepare detached rows and validate/prune afterward.
+                    batch = retiring[first:first + self.budget.admission_items]
+                    with ExitStack() as captures:
+                        operations = []
+                        for owner in batch:
+                            operation = owner.retire_body()
+                            captures.callback(operation.close)
+                            operations.append(operation)
+                        async with asyncio.TaskGroup() as preparations:
+                            tasks = [preparations.create_task(operation)
+                                     for operation in operations]
+                        results = [task.result() for task in tasks]
+                    for owner, retired in zip(batch, results):
+                        if retired:
                             key = ref(owner)
                             self._warm[key] = key
                             self._warm.move_to_end(key)
-                        # Focus/selection may change across an awaited mutation;
-                        # reuse the captured protection between those boundaries.
-                        protected = self.protected()
+                    if any(results):
+                        # Pruning retires the old scene. Continue from the next
+                        # published layout, never lazily arrange it for capture.
+                        screen.frame_presentation.defer(self.window, self.request)
                 # Capturing rows changes the original body resource cost.
                 # The same warm LRU admits or releases that paint resource.
                 admitted = await self._trim_warm(required=required, ahead=ahead_owners)
@@ -857,6 +893,7 @@ class DocumentViewport:
                     or not self.lookahead.accepts(demand)):
                 return
             owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+            restored = []
             async with AsyncExitStack() as mutation:
                 if any(owner.body_measurement_stale for owner in owners):
                     await mutation.enter_async_context(self.window.preserve_history(anchor))
@@ -864,4 +901,9 @@ class DocumentViewport:
                     if not self.window.screen.is_current or not self.lookahead.accepts(demand):
                         break
                     if owner.is_attached and not owner._closing:
-                        await owner.restore_body()
+                        if await owner.restore_body():
+                            restored.append(owner)
+            if restored:
+                # Reconstructed roots acquire capture custody only when their
+                # native layout is published, not at mount/update completion.
+                self.window.screen.frame_presentation.defer(self.window, self.request)

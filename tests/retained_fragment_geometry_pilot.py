@@ -4,6 +4,7 @@ This is a source/resource experiment, not installed or physical acceptance.
 """
 import asyncio
 from collections import Counter
+from contextlib import ExitStack
 from dataclasses import replace
 import json
 import os
@@ -51,6 +52,9 @@ async def main():
 
             async def settle():
                 async with asyncio.timeout(10):
+                    published = asyncio.Event()
+                    app.screen.frame_presentation.defer(window, published.set)
+                    await published.wait()
                     while (viewport._pending or viewport._running
                            or not viewport.visible_bodies_ready):
                         await pilot.pause(.02)
@@ -144,6 +148,42 @@ async def main():
             window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
             await pilot.pause()
             window.release_anchor()
+            for member in family:
+                await member.materialize_body()
+            await pilot.pause()
+            # This fixture parked its viewport to isolate resource operations.
+            # Publish the full native scene explicitly; parked windows do not
+            # declare offscreen geometry targets in the active frame family.
+            scene.reflow(app.screen, app.size)
+            native_captures = Counter()
+
+            def observe_capture(frame, event, arg):
+                if event != 'call':
+                    return
+                if frame.f_code.co_name == 'render_subtree_strips':
+                    native_captures['bodies'] += 1
+                if (frame.f_code.co_name == '_arrange_root'
+                        and frame.f_locals.get('root') is app.screen):
+                    native_captures['whole_scenes'] += 1
+
+            with ExitStack() as captures:
+                operations = []
+                sys.setprofile(observe_capture)
+                try:
+                    for member in family:
+                        operation = member.retire_body()
+                        captures.callback(operation.close)
+                        operations.append(operation)
+                finally:
+                    sys.setprofile(None)
+                # Borrow rows before preparation can yield and first removal
+                # can invalidate sibling placement in the original scene.
+                assert native_captures == Counter(bodies=len(family)), native_captures
+                assert all(not member.body_dormant for member in family)
+                assert all(await asyncio.gather(*operations))
+            await pilot.pause()
+            receipt['cohort_captured_before_preparation_and_pruning'] = len(family)
+            receipt['cohort_capture_whole_scene_arrangements'] = native_captures['whole_scenes']
             family_receipts = []
             for member in family:
                 # Retirement owns complete paint even when optional geometry
@@ -151,7 +191,9 @@ async def main():
                 scene._subtree_geometry.clear()
                 scene.full_map  # Resolve original scene publication before capture.
                 published_scene = scene._full_map, scene._visible_map
-                scene.render_subtree_strips(member)
+                captured_member, placement = next(scene.published_geometry((member,)))
+                assert captured_member is member
+                scene.render_subtree_strips(member, placement)
                 assert scene._full_map is published_scene[0]
                 assert scene._visible_map is published_scene[1]
                 if not member.body_dormant:
@@ -191,12 +233,31 @@ async def main():
                 await member.restore_body()
                 await pilot.pause()
                 assert member.body_ready and not member.body_dormant
+                # Every new native materialization in this parked fixture
+                # needs publication before borrowing its capture placement.
+                scene.reflow(app.screen, app.size)
                 assert await member.retire_body()
                 await pilot.pause()
                 assert member.body_ready and member.retained_paint_bytes
                 family_receipts[-1]['real_style_change_rebuilt_once'] = True
             receipt['rendered_family_reentry'] = family_receipts
             print(json.dumps(family_receipts), flush=True)
+            streaming = family[-1]
+            await streaming.materialize_body()
+            await pilot.pause()
+            scene.reflow(app.screen, app.size)
+            async with streaming._content_lock:
+                assert not await streaming.retire_body()
+            operation = streaming.retire_body()
+            # The actual stream can be acquired before any new content updates
+            # the captured LiveBody. Its original custody must block commit.
+            streaming.stream
+            assert not await operation
+            assert not streaming.body_dormant
+            await streaming.finish_stream()
+            assert await streaming.retire_body()
+            await pilot.pause()
+            receipt['inflight_stream_blocks_captured_retirement_commit'] = True
             # Warm admission retains presentation, not offscreen controls.
             # Exercise the original viewport worker rather than invoking its
             # per-body retirement hook to establish this lifecycle.
