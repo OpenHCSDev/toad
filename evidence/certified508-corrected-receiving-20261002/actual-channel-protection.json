@@ -1,0 +1,11 @@
+{
+  "protected_equal": true,
+  "read_ledger": {
+    "before_sha256": "3d4f29aec65adc86388475008910c4597a3c88d75ebd3c266d1b93f394a4f89e",
+    "after_sha256": "3d4f29aec65adc86388475008910c4597a3c88d75ebd3c266d1b93f394a4f89e",
+    "changed": false
+  },
+  "public_messages_submitted": 0,
+  "provider_calls_submitted": 0,
+  "owner_restarts": 0
+}
