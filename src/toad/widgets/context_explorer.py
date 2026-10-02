@@ -128,7 +128,8 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
                 native = await inspection.native(service)
             except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
                 unavailable = str(error)
-            if (owner, root) != (self.owner, self.wire_root) or not self.is_attached:
+            if (get_current_worker().is_cancelled or not self.is_attached
+                    or (owner, root) != (self.owner, self.wire_root)):
                 return
             self._observed_revision = revision
             if inspection == self._inspection and native == self._native:
