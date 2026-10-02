@@ -1,0 +1,305 @@
+{
+  "state": "SCOPED_READY sidebar native row-resource admission and native child-order custody; not whole CPU/performance readiness",
+  "sources": {
+    "agent_comms": "74877f2dd108ed211871a098064178eaf3a4fdb5",
+    "toad": "b08d1bd75dad582e14fe2b516bbe2af82155e8a2",
+    "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "source_byte_fidelity": true,
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-sidebar298-order21-certified508-20261002",
+  "package_count": 69,
+  "sdk": "0.12.1",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_full_trust": true,
+  "previous_prefix_files_unchanged": 3469,
+  "raw_capture": "/home/ts/.cache/agent-scratch/sidebar298-order21-certified508-public-20261002-02/capture",
+  "duration_seconds": 102.37410711398115,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 18,
+  "capture_completed": true,
+  "capture_returncode": 255,
+  "capture_exit_assessment": "255 is accepted FFmpeg SIGINT finalization, not Toad exit proof",
+  "ui_exit_assessment": "No independent UI exit status recorded; no claim of UI exit0",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3084740,
+      "start_time": 39027138
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3084740,
+      "start_time": 39027138
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "ui_config": {
+    "source": "/home/ts/.config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/sidebar298-order21-certified508-public-20261002-02/capture/ui-config",
+    "initial_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2"
+  },
+  "physical_review": {
+    "sidebar-revealed": "Visible channel bar, nra original body; canonical agent-comms-ux target painted",
+    "input-mid-history-idle-done": "Readable original saved nra body, native editor draft/caret",
+    "idle-done": "Readable saved body/visible sidebar, draft retained after End",
+    "a-return": "nra tab and original nra body/worktree, original draft; sidebar cursor remains remembered peer, distinct from active-view star/bold nra row"
+  },
+  "sampling": {
+    "sample_count": 1712,
+    "sampling_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.05898128152242862,
+    "trace_origin_monotonic_bounds": [
+      390486.22950017,
+      390486.267462733
+    ],
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "kernel_ui_cpu_phases": [
+    {
+      "phase": "warm-ready",
+      "video_start": 7.248686121951323,
+      "video_end": 9.68123900797218,
+      "ui_cpu_percent": 69.88542817586345,
+      "ui_cpu_seconds": 1.7000000000000002
+    },
+    {
+      "phase": "sidebar-revealed",
+      "video_start": 9.68123900797218,
+      "video_end": 11.085586573986802,
+      "ui_cpu_percent": 36.31579619903652,
+      "ui_cpu_seconds": 0.5099999999999998
+    },
+    {
+      "phase": "warm-start",
+      "video_start": 11.085586573986802,
+      "video_end": 16.02190430095652,
+      "ui_cpu_percent": 30.79218324410998,
+      "ui_cpu_seconds": 1.5200000000000005
+    },
+    {
+      "phase": "draft",
+      "video_start": 16.02190430095652,
+      "video_end": 17.536255343991797,
+      "ui_cpu_percent": 25.093257058703465,
+      "ui_cpu_seconds": 0.379999999999999
+    },
+    {
+      "phase": "travel-start",
+      "video_start": 17.536255343991797,
+      "video_end": 18.993417699995916,
+      "ui_cpu_percent": 34.31326632477093,
+      "ui_cpu_seconds": 0.5
+    },
+    {
+      "phase": "input-held-up",
+      "video_start": 18.993417699995916,
+      "video_end": 22.777167760999873,
+      "ui_cpu_percent": 78.49355671267459,
+      "ui_cpu_seconds": 2.9700000000000006
+    },
+    {
+      "phase": "input-held-up-done",
+      "video_start": 22.777167760999873,
+      "video_end": 39.34625216195127,
+      "ui_cpu_percent": 37.78120654416215,
+      "ui_cpu_seconds": 6.26
+    },
+    {
+      "phase": "input-mid-history-idle-done",
+      "video_start": 39.34625216195127,
+      "video_end": 40.73568972595967,
+      "ui_cpu_percent": 30.947774202929136,
+      "ui_cpu_seconds": 0.4299999999999997
+    },
+    {
+      "phase": "input-held-down",
+      "video_start": 40.73568972595967,
+      "video_end": 44.489196561975405,
+      "ui_cpu_percent": 78.59316977110831,
+      "ui_cpu_seconds": 2.9499999999999993
+    },
+    {
+      "phase": "input-held-down-done",
+      "video_start": 44.489196561975405,
+      "video_end": 47.159608928952366,
+      "ui_cpu_percent": 63.660579954716376,
+      "ui_cpu_seconds": 1.7000000000000028
+    },
+    {
+      "phase": "focused",
+      "video_start": 47.159608928952366,
+      "video_end": 49.76939717895584,
+      "ui_cpu_percent": 28.737963702572465,
+      "ui_cpu_seconds": 0.75
+    },
+    {
+      "phase": "up",
+      "video_start": 49.76939717895584,
+      "video_end": 53.56500010599848,
+      "ui_cpu_percent": 76.4041986409666,
+      "ui_cpu_seconds": 2.8999999999999986
+    },
+    {
+      "phase": "up-done",
+      "video_start": 53.56500010599848,
+      "video_end": 54.96709240297787,
+      "ui_cpu_percent": 98.42433361719583,
+      "ui_cpu_seconds": 1.379999999999999
+    },
+    {
+      "phase": "down",
+      "video_start": 54.96709240297787,
+      "video_end": 58.83328782895114,
+      "ui_cpu_percent": 97.7705362384372,
+      "ui_cpu_seconds": 3.780000000000001
+    },
+    {
+      "phase": "down-done",
+      "video_start": 58.83328782895114,
+      "video_end": 60.29386391595472,
+      "ui_cpu_percent": 81.47470101618102,
+      "ui_cpu_seconds": 1.1899999999999977
+    },
+    {
+      "phase": "reverse",
+      "video_start": 60.29386391595472,
+      "video_end": 64.21043219498824,
+      "ui_cpu_percent": 74.55506433097489,
+      "ui_cpu_seconds": 2.9200000000000017
+    },
+    {
+      "phase": "reverse-done",
+      "video_start": 64.21043219498824,
+      "video_end": 65.65192607895005,
+      "ui_cpu_percent": 79.08462274337347,
+      "ui_cpu_seconds": 1.1400000000000006
+    },
+    {
+      "phase": "end",
+      "video_start": 65.65192607895005,
+      "video_end": 68.28920418600319,
+      "ui_cpu_percent": 59.53107470164763,
+      "ui_cpu_seconds": 1.5700000000000003
+    },
+    {
+      "phase": "idle",
+      "video_start": 68.28920418600319,
+      "video_end": 84.92119541700231,
+      "ui_cpu_percent": 28.018292790550376,
+      "ui_cpu_seconds": 4.659999999999997
+    },
+    {
+      "phase": "idle-done",
+      "video_start": 84.92119541700231,
+      "video_end": 86.30564241996035,
+      "ui_cpu_percent": 25.280852156289374,
+      "ui_cpu_seconds": 0.3500000000000014
+    },
+    {
+      "phase": "switch-b",
+      "video_start": 86.30564241996035,
+      "video_end": 91.706255986006,
+      "ui_cpu_percent": 56.66022874213061,
+      "ui_cpu_seconds": 3.0600000000000023
+    },
+    {
+      "phase": "b-open",
+      "video_start": 91.706255986006,
+      "video_end": 92.80279289698228,
+      "ui_cpu_percent": 99.40385855589057,
+      "ui_cpu_seconds": 1.0899999999999963
+    },
+    {
+      "phase": "return-a",
+      "video_start": 92.80279289698228,
+      "video_end": 96.27830365597038,
+      "ui_cpu_percent": 50.35231139694467,
+      "ui_cpu_seconds": 1.75
+    },
+    {
+      "phase": "a-return",
+      "video_start": 96.27830365597038,
+      "video_end": 99.87102074699942,
+      "ui_cpu_percent": 32.00920002500439,
+      "ui_cpu_seconds": 1.1500000000000057
+    }
+  ],
+  "stationary_last10s_observation": {
+    "input-held-up-done": {
+      "start_video_seconds": 29.34625216195127,
+      "end_video_seconds": 39.34625216195127,
+      "observed_event_counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    },
+    "idle": {
+      "start_video_seconds": 74.92119541700231,
+      "end_video_seconds": 84.92119541700231,
+      "observed_event_counts": {
+        "relocating": 40,
+        "relocated": 40,
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    }
+  },
+  "source_owner_census": "src/toad/widgets/session_sidebar.py:6:from toad.sidebar_preparation import PreparedThreadRow, ThreadRowInput\nsrc/toad/widgets/session_sidebar.py:50:        self._thread_presentation: PreparedThreadRow | None = None\nsrc/toad/widgets/session_sidebar.py:59:    def thread_preparation(self, source: ThreadRowInput) -> PreparedThreadRow | None:\nsrc/toad/widgets/session_sidebar.py:66:    def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:\nsrc/toad/widgets/session_sidebar.py:77:    def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:\nsrc/toad/sidebar_preparation.py:45:class PreparedThreadRow:\nsrc/toad/sidebar_preparation.py:56:def prepare_thread_row(source: ThreadRowInput) -> PreparedThreadRow:\nsrc/toad/sidebar_preparation.py:60:def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThreadRow:\nsrc/toad/sidebar_preparation.py:73:    return PreparedThreadRow(source, frames, Content(tooltip), busy,\nsrc/toad/sidebar_preparation.py:78:class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],\nsrc/toad/sidebar_preparation.py:79:                     ContentAddressedWork[tuple[PreparedThreadRow, ...]],\nsrc/toad/sidebar_preparation.py:80:                     ThreadWork[tuple[PreparedThreadRow, ...]]):\nsrc/toad/sidebar_preparation.py:89:    def prepare(self) -> tuple[PreparedThreadRow, ...]:\nsrc/toad/widgets/thread_comms.py:136:        prepared_rows = await self.prepare_thread_rows(inputs, self.rows)\nsrc/toad/widgets/thread_comms.py:175:                row.apply_thread_preparation(prepared_rows[key])\nsrc/toad/widgets/comms_sidebar.py:139:        prepared_rows = await self.prepare_thread_rows(inputs, self._members)\nsrc/toad/widgets/comms_sidebar.py:158:            row.apply_thread_preparation(prepared_rows[name])\nsrc/toad/widgets/sidebar_tree.py:88:    async def prepare_thread_rows(self, inputs, rows):\nsrc/toad/widgets/sidebar_tree.py:90:        from toad.sidebar_preparation import ThreadRowsWork\nsrc/toad/widgets/sidebar_tree.py:95:            current = row.thread_preparation(source) if row is not None else None\nsrc/toad/widgets/sidebar_tree.py:101:            values = await self.app.preparation.submit(ThreadRowsWork(tuple(pending.values())))\n",
+  "production_delta": {
+    "toad_deleted": 11,
+    "toad_added": 33,
+    "textual_deleted": 20,
+    "textual_added": 23
+  },
+  "submitted_native_inputs_by_driver": 0,
+  "provider_calls_by_driver": 0,
+  "public_owner_restarts_by_driver": 0,
+  "public_install_changed": false,
+  "unfinished": "Whole CPU/raster/firstpaint/cold/runway/growingend/sidebar-busy/focus/TC1/T9 scope retained. Actual busy many-owner wave not covered; current screenshots show Ready participants. Old public01 negative preserved. No attribution of CPU change against unmatched hidden-sidebar oldgraph recording."
+}
