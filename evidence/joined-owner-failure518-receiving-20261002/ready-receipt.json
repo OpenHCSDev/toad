@@ -64,7 +64,6 @@
     "Source/target process-runtime and configuration relation qualified, no provider input"
   ],
   "receipts_sha256": {
-    "source-target-driver-construction-failure01.log": "08bedcf117c5abf8730f3b4a29a864f899b68d83181e51a038ec50126fd7ecdc",
     "activation.json": "570a44566f6c00191d055bf71ed24da0196843e24b4d1cb0cef0bc35d8290241",
     "verify.py": "f61754e9b8252f73f681943ca34ef50976dcc4de3ee1746585f734f81dc9f8a0",
     "source_target_control.py": "16c1ba6cb6696b364ff588359a90857ba94af810e15b69a3fe664e3932fffc2f",
@@ -74,11 +73,12 @@
     "textual-inventory.json": "817d7504618a823e4f1592be340fb9b3d2f04d6d8f1d341a3c6bf6394fb2378e",
     "toad-inventory.json": "79feace0411a052f409f0e0f61422026150142a727ed6e9ece471b6fb3721300",
     "original-shared-callback-cli-receipt.json": "880c92d2810e0e73c2f2f88ee40ca6755370b0af9c4ba038e6b406eb2086d059",
-    "verify.log": "83f4712d4bb2b0441683744fd65c67d35a77a77279ad7993632634b16275ad38",
     "source-target-receipt.json": "6dd2c747d1e0358944af67beac3e0e6121a18ad39f3b7525149d0df960b27a8b",
     "textual_diff_view-inventory.json": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396",
     "ownership.json": "d569143b28799bc0060021b585b71d5766a1250cbdc9c2d8344ffec52758dafb",
     "owned-disposable-cleanup.json": "745d757011b0f30c2a15cd13108e3fbefedf0383f1fa839ddaefa21ea55d9948",
-    "source-target.log": "2b4bf79cd0cbf409ad3517e97fc4411d9110b4fc54da373afa7326cef1603fc5"
+    "verify.txt": "83f4712d4bb2b0441683744fd65c67d35a77a77279ad7993632634b16275ad38",
+    "source-target.txt": "2b4bf79cd0cbf409ad3517e97fc4411d9110b4fc54da373afa7326cef1603fc5",
+    "source-target-driver-construction-failure01.txt": "08bedcf117c5abf8730f3b4a29a864f899b68d83181e51a038ec50126fd7ecdc"
   }
 }

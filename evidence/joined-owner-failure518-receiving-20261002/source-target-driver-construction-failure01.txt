@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/source_target_control.py", line 27, in <module>
+    private=PrivateNkLaunch.create(root, root_id, Path(meta['native']))
+            ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'PrivateNkLaunch' has no attribute 'create'
