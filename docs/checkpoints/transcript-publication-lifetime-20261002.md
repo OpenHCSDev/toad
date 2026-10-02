@@ -39,3 +39,31 @@ for A/B/A and source refresh; no new input, compaction or original replay.
 Record original source/resource/generation and actual retirement disposition,
 with source byte provenance. Native499 qualification is independent of this
 UI acceptance. Do not claim full warm rendering or latency improvement.
+
+## Coherent source checkpoint
+
+Existing `CanonicalSourcePublication` owns the known-page read, original
+application join, optional bounded source read and publication hook.
+`CheckpointPublication` now inherits that algorithm and retains only its
+checkpoint admission/preparation/commit behavior. Observed source reads keep
+their original read identity. Snapshot notifications still carry their supplied
+cut and original captured resources. No new class or semantic state was added.
+
+The old `read_bound`/`read_source_page` returning algorithm and both fabricated
+local-retirement `StaleRevision` raises are deleted. Expired local applications
+do not invoke the page hook. Genuine backend `StaleRevision` and original
+unregistered-source decline belong once to `TranscriptPublication.publish`;
+queued requests and checkpoints delete their competing handlers. Checkpoint's
+existing IO failure notice remains its behavior, not a successful read.
+
+Restore captures the original publication before deferred paint. Its callback
+invokes that same original resource operation instead of rereading/recreating
+an operation inside `refresh_revealed`; the obsolete method is deleted. Suspend
+cancels and joins the existing retained refresh group as it does other original
+publication workers. Accepted source retirement joining is unchanged.
+
+Remaining `WorkingTranscript.execute` and `TranscriptPageBuffer.prefetch`
+StaleRevision handling consumes genuine certified backend read failure at the
+separate original pager/preparation operation boundary. They never consume
+publication application's local expiration, which is no longer encoded as
+StaleRevision. No outcome/turn/input/cursor authority is changed.
