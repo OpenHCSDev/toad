@@ -26,3 +26,9 @@ Arendt qualified the original installed `/home/ts/wt/b509c01` run: nine original
 The raw driver timeout/exit 1 is retained. Its oracle required a past FULL cursor even after later proven reply TRIAGE advanced the canonical cursor. The qualification reads original native, history, publication and ACP evidence; it does not rewrite the failed receipt as an exit-zero run. The existing driver now uses the current-family contract.
 
 Core Ready `74eb10f01eb8d626e569b2e04ac7967815e8bf34` has no production, packaged asset, native stack or package-pin delta from installed `ca4bcfa5`. No rebuild or repeated provider gate is needed. Sch independently qualified the identical merged frontend305307 source through native clicks, queue/draft/rename/idle refusal with cleanup. Receiving #310 is scoped Ready; the parent alone merges and publishes. Native6, full compaction/performance and a combined physical TUI claim are outside this receipt.
+
+## Current main integration and next receiving cohort
+
+Current merged Toad main `5dab1a6ea8a481bf7360639d5b2fb45a820ef960` (#308) is normally integrated at `e335d34d`. The current-main receiving delta remains the same three Core pin lines, with no frontend production delta. Core #509 remotely merged at `f9135463a133dc213e1c72d227e695b4f8ca67f7`; its packaged production/native/pin sources equal qualified `ca4bcfa5`. The immutable qualified prefix above remains protected and is not rebuilt for this merge.
+
+The next package is one coherent #513 goal-schema + #509 + #308 cohort after the existing schema and carry owners close the source. Arendt owns #513 declarations, Mendel owns stopped-store Native5/goal carry, and Sch with Mendel owns the one affected goal path. This receiving owner stages once; the parent publishes. Existing #308 physical, #307 queue/native and #509 original qualification are reused for unchanged source rather than rerun. No interim old-target build or public carry is performed here.
