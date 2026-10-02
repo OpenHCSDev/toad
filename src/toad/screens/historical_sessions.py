@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms import HistoricalThread
+from agent_comms import HistoricalMessage, HistoricalThread
+from agent_comms.presentation import MessageNotification
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup
@@ -154,7 +155,14 @@ class HistoricalSessions(ProjectPathOwner, WorkspaceScreen, ModalScreen):
             # or historical execution; the original frozen registry owns joins.
             original = Comms(Path(item.source.root), private_initial_writes=False,
                              private_claim_writes=False)
-            results = original.views.message_notifications_for_references(references)
+            order = self.comms.bus.history.sources().index(item.source)
+            messages = tuple(HistoricalMessage.project(message, item.source, order,
+                                                       item.source.provenance)
+                             for message in original.bus.log.messages_for_references(references))
+            results = {}
+            for start in range(0, len(messages), MessageNotification.window_limit):
+                results.update(original.views.message_notifications(
+                    messages[start:start + MessageNotification.window_limit]))
             item.source.validate()
             return results
 
