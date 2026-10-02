@@ -1,0 +1,74 @@
+{
+  "state": "PUBLICATION CLOSED; scoped installed input paging and final End frame accepted by parent",
+  "observed_at": 1790938435.1067731,
+  "publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publication_owners": 19,
+  "publication_duration_s": 45.07949709892273,
+  "actual_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "actual_default_links": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/toad"
+  },
+  "raw_ui_receipt": "/home/ts/.cache/agent-scratch/320-default-scroll-20261002/capture/receipt.json",
+  "raw_ui_receipt_sha256": "9d26119f55ffbcd223f4e89634c1d2047c7c1299f2a59441da29ef9c1ba209ea",
+  "read_duration_s": 41.93456010200316,
+  "capture_completed": true,
+  "completed": true,
+  "capture_returncode": 255,
+  "parent_reported_outer_terminal_returncode": 0,
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3803280,
+      "start_time": 41311865
+    },
+    "original_owner_alive": true
+  },
+  "owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3803280,
+      "start_time": 41311865
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "visual_review": {
+    "reviewer": "parent",
+    "during_run": false,
+    "after_run": "Final End PNG personally inspected; no DURING-run inspection claim",
+    "raw_assessment_preserved": "unreviewed"
+  },
+  "viewport_observation": "Parent reported no pending/reconciling in final state",
+  "prior_E03_scope": "Qualified changed-source retained paint and two stationary10s zero-feedback-churn windows/input7 remains separate; rawcapture255/timinglimitations preserved",
+  "scope": "Installed ordinary-default canonical input paging and final End display only; not smoothness, motion or whole CPU readiness",
+  "preserved_runtime": "Native6/runtime preserve, no historical carry",
+  "input_replays": 0,
+  "repeat_publisher": false,
+  "next": "319+Text24 installed motion gate Heis; 525/528 next reviewed Core pair, no native artifact change."
+}
