@@ -89,7 +89,7 @@ class CoordinationAccess:
             return observed.service
         with ExitStack() as acquisition:
             acquisition.enter_context(selected.route.admit_client())
-            service = wire()
+            service = wire(selected.route)
             if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                 raise ValueError("Comms route changed while opening the service")
             self.custody.enter_context(acquisition.pop_all())
