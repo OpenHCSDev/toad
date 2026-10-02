@@ -1,0 +1,17 @@
+{
+  "state": "FROZEN READY: merged549/553 with550/552,343/309/Text32 source, accepted installed lifetimes and changed filesystem witness; parent-only NEW publication",
+  "target_prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "schema_equal": true,
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "operator_manifest": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/operator-manifest.json",
+  "operator_manifest_sha256": "1d4230cbcc9f94454700de45cdf73a943b27f4e14aeae3d1863f32bf701d8a3e",
+  "source_proof_sha256": "d307c32503bebf7d81e22014cb7467753eed050fb0c6d01d5c13667eda235f1f",
+  "activation_sha256": "6b48c39c5fb2eb70eb410ae509d917f35e232ea206537b68bca4f669ed0fda98",
+  "runtime_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "public_effects": 0,
+  "old_failed337_operation_repeated": false,
+  "new_publication_receipt": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/publication-receipt.json",
+  "frontend_owner": "Lovelace accepted final309 return, source2809/mergedf415; no repeated Tree journey",
+  "bootstrap_deployment_owner": "Existing ActivateGlobalExtension/ReplaceGlobalSource, merged portable mode owner, pre-stop source digest/membership witness; source755 before atomic replacement"
+}

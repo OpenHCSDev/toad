@@ -1,0 +1,10 @@
+[
+  {
+    "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication553549/canonical-toad-comms",
+    "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+  },
+  {
+    "path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+  }
+]

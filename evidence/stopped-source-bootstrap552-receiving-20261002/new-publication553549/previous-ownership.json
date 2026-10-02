@@ -1,0 +1,12 @@
+{
+  "owner": "Schrodinger sole joined547/309/548/343 builder",
+  "core": "3c48ace44f2f8ce00c55638e23655b1ed50a3b5a",
+  "toad": "9a92f8e9f21cedce71126430c24c8994dce61489",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "provider_calls": 0,
+  "public_writes": 0,
+  "new_environment": false,
+  "new_native_build": false
+}
