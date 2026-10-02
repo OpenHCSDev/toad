@@ -1,7 +1,8 @@
 """Read-only DTO capture of an authorized live Toad; no owner RPCs or UI input."""
 
 def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interval=.1,
-            wait_history_thread=None):
+            wait_history_thread=None, frame_trace=False, install_frame_trace=False,
+            frames_only=False):
     import asyncio
     from collections import Counter
     from dataclasses import asdict
@@ -41,6 +42,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     break
         if app is None:
             raise RuntimeError("No application context")
+        if frame_trace:
+            from sidebar_validation_driver import ValidationDriver, record, records
+            if install_frame_trace:
+                ValidationDriver.observe_frames(app._driver)
+            if frames_only:
+                record("frame_trace_exported", pid=expected_pid, capacity=records.maxlen)
+                write_json(prefix + "-frames.json", list(records.copy()))
+                write_json(prefix + ".json", {"pid": expected_pid, "scope": "driver frame trace only"})
+                return
         if wait_history_seconds:
             from toad.frame_presentation import FrameFlush
 
@@ -88,7 +98,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                         "elapsed_ms": (time.monotonic_ns() - started) / 1e6,
                                         "visible_saved_history_written": True,
                                     })
-                                    capture(expected_pid=expected_pid, output_prefix=output_prefix)
+                                    capture(expected_pid=expected_pid, output_prefix=output_prefix,
+                                            frame_trace=frame_trace)
                                     return
                             # One bounded diagnostic task observes native owners;
                             # no repeated attachment, exported snapshots or model reads.
@@ -97,10 +108,14 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     write_json(prefix + "-error.json", {"error": traceback.format_exc()})
                     # Preserve the original resource/scene census at failure.
                     # The error still fails the marker; no predicate is relaxed.
-                    capture(expected_pid=expected_pid, output_prefix=prefix + "-failure")
+                    capture(expected_pid=expected_pid, output_prefix=prefix + "-failure",
+                            frame_trace=frame_trace)
 
             asyncio.create_task(wait_and_capture(), name="toad-authorized-visible-history-wait")
             return
+        if frame_trace:
+            record("frame_trace_exported", pid=expected_pid, capacity=records.maxlen)
+            write_json(prefix + "-frames.json", list(records.copy()))
         namespace = vars(app)
         stacks = tuple((name, (view,)) for name, view in app.workspace_sessions.views.items())
         payload = {"schema": 1, "views": [], "sidebar_snapshot": namespace.get("_sidebar_snapshot")}
