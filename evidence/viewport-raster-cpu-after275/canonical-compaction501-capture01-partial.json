@@ -1,0 +1,331 @@
+{
+  "capture": "/home/ts/.cache/agent-scratch/compaction501-performance284-canonical-live-20261001-01/capture",
+  "pair": {
+    "core": "29248ed03469be4be4eaacdf782dc9d656a656bc",
+    "toad": "2f4effb6f3277bed134b02bd735aafca48810320",
+    "textual": "55954718732586f5a89f6f664b78a9b1e6e01f6a"
+  },
+  "new284_source_not_included": "3d2407bd894d51bce89ec3efc472e14c7fbf2530",
+  "input_paging": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "fresh_input_submitted_utc": "2026-10-02T00:19:47.448536+00:00",
+  "original_operation": "bc86b8f7f27f452da0e72a3019d71fd3",
+  "original_input": "acp:7b910b60abc7413ea2309e6b85593e5e",
+  "capture_completed": false,
+  "actual_ui_crash": "WorkerFailed: StaleRevision('Transcript application retired before source capture')",
+  "crash_report": "/home/ts/.cache/agent-scratch/compaction501-performance284-canonical-live-20261001-01/ui-state/toad/logs/Terminal_crash_2026-10-01T20_21_21_022199.txt",
+  "reader_return_undo_coverage": "A-return export unavailable after actual UI crash; no reader retention/Undo/fullwarm pass",
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "owned_fork",
+    "name": "compaction501-live-architecture-memory",
+    "identity": {
+      "pid": 2644125,
+      "start_time": 37571603
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "idle_observations": [
+    {
+      "first": "input-held-up-done",
+      "last": "input-mid-history-idle-done",
+      "snapshot_elapsed_seconds": 16.896028919,
+      "warm_entry_removals_before": 16,
+      "warm_entry_removals_after": 21,
+      "warm_entry_removal_delta": 5,
+      "warm_entry_removals_per_second": 0.29592752379687143,
+      "original_trace_events": {
+        "request": 28,
+        "full_admission": 29,
+        "scroll": 3,
+        "animation_transforming": 3,
+        "animation_transformed": 3,
+        "relocating": 150,
+        "relocated": 150,
+        "sidebar_publication_start": 15,
+        "sidebar_publication_done": 15,
+        "page_extension": 2,
+        "fragment_budget": 2,
+        "page_extended": 2
+      },
+      "ui_cpu_percent": 67.77100532442752,
+      "snapshots": [
+        {
+          "scroll_y": 77,
+          "maximum": 193,
+          "follows_tail": false,
+          "ready_body_ids": [
+            140536120061264,
+            140536120061584,
+            140536120063824,
+            140536121435920,
+            140536122410960,
+            140536122419280,
+            140536122419600,
+            140536122419920,
+            140536577309136,
+            140536577309456,
+            140536577309776,
+            140536577310416,
+            140536578380560,
+            140536578386000,
+            140536578900688,
+            140536578901328,
+            140536578910928,
+            140536578911888,
+            140536619179600,
+            140536619180240,
+            140536619180880,
+            140536619182480,
+            140536619186320,
+            140536620382352,
+            140536620382672,
+            140536620382992,
+            140536620383312,
+            140536622547344,
+            140536622547984,
+            140536622548624,
+            140536622550544,
+            140536622551824,
+            140536622561424,
+            140536628374864,
+            140536628376464,
+            140536630379216,
+            140536630381456,
+            140536982479376
+          ],
+          "visible_body_ids": [
+            140536120061584,
+            140536121435920,
+            140536577309456,
+            140536578380560,
+            140536578386000,
+            140536622548624,
+            140536622550544,
+            140536982479376
+          ],
+          "top_visible_resource": {
+            "object_id": 140536982479376,
+            "offset_rows": -3
+          },
+          "identity_limit": "Native resource identity only; exporter does not include actual admitted set or semantic fragment identity per scene node."
+        },
+        {
+          "scroll_y": 92,
+          "maximum": 225,
+          "follows_tail": false,
+          "ready_body_ids": [
+            140536120061264,
+            140536120061584,
+            140536120063824,
+            140536121435920,
+            140536122410960,
+            140536122419280,
+            140536122419600,
+            140536122419920,
+            140536577309456,
+            140536577310416,
+            140536578380560,
+            140536578386000,
+            140536578900688,
+            140536578901328,
+            140536578910928,
+            140536578911888,
+            140536619179600,
+            140536619180240,
+            140536619180880,
+            140536619182480,
+            140536620368272,
+            140536620382352,
+            140536620382672,
+            140536620382992,
+            140536620383312,
+            140536622547344,
+            140536622547984,
+            140536622548624,
+            140536622550544,
+            140536622551824,
+            140536622561424,
+            140536628374864,
+            140536628376464,
+            140536630379216,
+            140536630381456,
+            140536981782928,
+            140536982479376
+          ],
+          "visible_body_ids": [
+            140536120061584,
+            140536121435920,
+            140536577309456,
+            140536578380560,
+            140536578386000,
+            140536622548624,
+            140536622550544,
+            140536982479376
+          ],
+          "top_visible_resource": {
+            "object_id": 140536982479376,
+            "offset_rows": -3
+          },
+          "identity_limit": "Native resource identity only; exporter does not include actual admitted set or semantic fragment identity per scene node."
+        }
+      ],
+      "limit": "Warm entry removals are not actual body retire calls; source/model progress occurs during this interval."
+    },
+    {
+      "first": "idle",
+      "last": "idle-done",
+      "snapshot_elapsed_seconds": 16.847265568,
+      "warm_entry_removals_before": 202,
+      "warm_entry_removals_after": 208,
+      "warm_entry_removal_delta": 6,
+      "warm_entry_removals_per_second": 0.3561408808914669,
+      "original_trace_events": {
+        "relocating": 1005,
+        "relocated": 1005,
+        "request": 57,
+        "full_admission": 57,
+        "animation_stopping": 2,
+        "sidebar_publication_start": 5,
+        "sidebar_publication_done": 5
+      },
+      "ui_cpu_percent": 100.34083414138229,
+      "snapshots": [
+        {
+          "scroll_y": 128,
+          "maximum": 128,
+          "follows_tail": true,
+          "ready_body_ids": [
+            140536119775376,
+            140536120053264,
+            140536120059664,
+            140536120413712,
+            140536138733584,
+            140536138733904,
+            140536138734224,
+            140536577308496,
+            140536578375760,
+            140536578376720,
+            140536587766032,
+            140536620995664,
+            140536622555984,
+            140536622559184,
+            140536981782928
+          ],
+          "visible_body_ids": [
+            140536119775376,
+            140536120059664,
+            140536587766032,
+            140536981782928
+          ],
+          "top_visible_resource": {
+            "object_id": 140536120059664,
+            "offset_rows": -10
+          },
+          "identity_limit": "Native resource identity only; exporter does not include actual admitted set or semantic fragment identity per scene node."
+        },
+        {
+          "scroll_y": 194,
+          "maximum": 194,
+          "follows_tail": true,
+          "ready_body_ids": [
+            140536119433872,
+            140536119775376,
+            140536119776656,
+            140536120053264,
+            140536120059664,
+            140536120413712,
+            140536120419792,
+            140536121885712,
+            140536125358480,
+            140536138733584,
+            140536138733904,
+            140536138734224,
+            140536139640464,
+            140536577308496,
+            140536578375760,
+            140536578376720,
+            140536587766032,
+            140536620995664,
+            140536622555984,
+            140536622559184,
+            140536981782928
+          ],
+          "visible_body_ids": [
+            140536119776656,
+            140536125358480,
+            140536139640464,
+            140536981782928
+          ],
+          "top_visible_resource": {
+            "object_id": 140536119776656,
+            "offset_rows": -8
+          },
+          "identity_limit": "Native resource identity only; exporter does not include actual admitted set or semantic fragment identity per scene node."
+        }
+      ],
+      "limit": "Warm entry removals are not actual body retire calls; source/model progress occurs during this interval."
+    }
+  ],
+  "profile": {
+    "sample_count": 2927,
+    "sampling_errors": 0,
+    "limits": "Chrome transition counts/durations do not give CPU/sample counts. Kernel phase counters include capture/export overhead."
+  },
+  "images": [
+    {
+      "label": "fork-submitted",
+      "path": "/home/ts/.cache/agent-scratch/compaction501-performance284-canonical-live-20261001-01/capture/phase-fork-submitted.png",
+      "sha256": "0319c5134ddbf56a9be74255e7ade513a4eebf47655d9bef17439b03ea5336fc"
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "path": "/home/ts/.cache/agent-scratch/compaction501-performance284-canonical-live-20261001-01/capture/phase-input-mid-history-idle-done.png",
+      "sha256": "45121638f8911da728bfaa52ae9686545910209c22e7c96a4237660781f26425"
+    },
+    {
+      "label": "idle-done",
+      "path": "/home/ts/.cache/agent-scratch/compaction501-performance284-canonical-live-20261001-01/capture/phase-idle-done.png",
+      "sha256": "d0d8cad02da6527179f758bd0ac3ee55433002c710693aa54ae6a90d269185b0"
+    },
+    {
+      "label": "a-return",
+      "path": "/home/ts/.cache/agent-scratch/compaction501-performance284-canonical-live-20261001-01/capture/phase-a-return.png",
+      "sha256": "5aa6cc614e42b7644d33617d7e62682ed7147fe01c1b62cb633bea6d78022cfc"
+    }
+  ],
+  "original_native_answer": {
+    "compaction_entry": "1a251fa0",
+    "compaction_timestamp": "2026-10-02T00:21:47.713Z",
+    "user_entry": "1dd3b365",
+    "user_timestamp": "2026-10-02T00:21:56.609Z",
+    "assistant_entry": "4332fd6f",
+    "assistant_timestamp": "2026-10-02T00:21:59.776Z",
+    "text": "Compaction501UI20261001-one acknowledged.",
+    "stop_reason": "stop",
+    "submission_marker_to_persisted_assistant_seconds": 132.327464,
+    "scope": "Native original journal proof; actual UI crashed before this answer, so no final answer pixels/ACP settlement acceptance."
+  },
+  "physical_assessment": {
+    "fork_submitted": "Original fresh prompt physically visible in submitting queue; historical budget error belongs to inherited saved body.",
+    "input_mid_history_idle_done": "Saved history, original queued prompt, draft and actual compaction progress physically visible.",
+    "idle_done": "Compaction summary progress and queued original prompt physically visible.",
+    "a_return": "Blank terminal after actual WorkerFailed, not a valid warm-return frame."
+  }
+}

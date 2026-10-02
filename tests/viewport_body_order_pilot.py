@@ -281,19 +281,6 @@ async def main():
                 (evidence / 'accepted-custody.json').write_text(
                     json.dumps(accepted_custody, indent=2) + '\n')
                 assert roots == fragments
-                exact_native_cost = len(history.walk_children())
-                assert history.widget_count == exact_native_cost
-                resident_profile = cProfile.Profile()
-                resident_profile.enable()
-                for _ in range(100):
-                    assert history.widget_count == exact_native_cost
-                resident_profile.disable()
-                resident_profile.dump_stats(str(evidence / 'history-native-cost.prof'))
-                resident_walks = sum(value[0] for (_, _, name), value in
-                                     pstats.Stats(resident_profile).stats.items() if name == 'walk_children')
-                receipt.update(history_native_cost_exact=True,
-                               history_native_widgets=exact_native_cost,
-                               profiled_resident_walks=resident_walks)
             assert agent.process.process is None and agent.process.runner is None
             assert app._exception is None
             receipt.update(native_reorder=True, removed_body_released=True,

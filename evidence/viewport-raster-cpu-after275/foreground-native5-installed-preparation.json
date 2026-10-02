@@ -1,0 +1,102 @@
+{
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002",
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "b28349027052a57c50b17952a11dcfae2e71f31e",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/agent_comms",
+      "files": 329,
+      "python_files": 311,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "b28349027052a57c50b17952a11dcfae2e71f31e",
+          "requested_revision": "b28349027052a57c50b17952a11dcfae2e71f31e"
+        }
+      },
+      "inventory_sha256": "829d2a03a7e948074d608e9182a0fd00ee5db60a45ad43b39c1bd8b9948e5cd8"
+    },
+    {
+      "module": "toad",
+      "head": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/toad",
+      "files": 306,
+      "python_files": 275,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+          "requested_revision": "862ea5f113a83950d05acd7cd3c96400c4f9927f"
+        }
+      },
+      "inventory_sha256": "6411bf90c411a0ee34a18f0f910a7e3ed9175bcc9c0b88cb1f579fab69e4f96a"
+    },
+    {
+      "module": "textual",
+      "head": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/textual",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb",
+          "requested_revision": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb"
+        }
+      },
+      "inventory_sha256": "416dc893cb3ab40bb621fb91043cd6388e8973a71cc56fe42542ebb5ee459f88"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/lib/python3.14/site-packages/textual_diff_view",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_full_trust": true,
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "protected_old_prefix_files": 2838,
+  "protected_old_prefix_files_unchanged": true,
+  "public_install_changed": false,
+  "new_native_build": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "installed_head": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+  "product_equal": "f424acf5b0b73c2f32c4154f3e3a4b57bbac687a",
+  "diagnostic_caller_fix": "444c2258",
+  "installed_source_ready": true,
+  "physical_assessment": "active changed-source readonly capture03; not Ready",
+  "receipts": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-foreground-native5-20261002/source-proof.json": "96d303520192402a593f3d148e0ca79bdc8f9a1ad0f2005ca61402f662b97fd0",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-foreground-native5-20261002/verify.log": "47b4541bf5642198bea47366bad7039d73c173698a3441164fe783c301f28b70",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-foreground-native5-20261002/pip-check.log": "02688668b6d0454474958e1eacef69d7d1400436adffa497512310f7a41104cc",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-foreground-native5-20261002/requirements.txt": "8a684eed98f2cf601bb9e64a8ab7b498defc83e4b5d7db580cd45d91a2526d64",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-foreground-native5-20261002/activation.json": "eabe719cfe14f681ee210a33b7d38262406407cd2f4463e0d0134a31002ca40f"
+  },
+  "command_operator": ".artifacts/compaction499-shared-gate/canonical501-foreground284-native5-readonly03.py",
+  "original_source_epoch": {
+    "pid": 2820093,
+    "start_ticks": 38162851
+  }
+}

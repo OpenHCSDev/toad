@@ -245,7 +245,7 @@ class NativeSessionSurface:
             screen, owner = candidates[identity]
             widget = owner.widget
             viewport = widget.window.document_viewport
-            count = 1 + sum(1 for _ in widget.walk_children())
+            count = 1 + widget.descendant_count
             size = sum(body.retained_source_bytes for key in viewport._warm.values()
                        if (body := key()) is not None)
             if (widgets + count > budget.widget_limit(app.size.height)

@@ -54,19 +54,23 @@ class ThreadStatusRow(HoverSelection):
             return
         self._spinner_phase = phase
         if self._thread_presentation is not None:
-            self.apply_thread_preparation(self._thread_presentation)
+            self.paint_thread_frame(self._thread_presentation)
 
     def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:
         self._thread_presentation = prepared
         source = prepared.source
         self.thread_name = source.name
-        signature = (prepared.signature, self._spinner_phase % len(prepared.frames))
-        if signature == self._thread_signature:
-            return
-        self._thread_signature = signature
         self.add_class("-wire-thread")
         self.set_class(prepared.busy, "-busy")
         self.set_class(source.unread.highlighted, "-unread")
         self.remove_class("-asking")
         self.tooltip = prepared.tooltip
+        self.paint_thread_frame(prepared)
+
+    def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:
+        """Paint a prepared frame without repeating source publication."""
+        signature = (prepared.signature, self._spinner_phase % len(prepared.frames))
+        if signature == self._thread_signature:
+            return
+        self._thread_signature = signature
         self.update(prepared.content(self._spinner_phase), layout=False)

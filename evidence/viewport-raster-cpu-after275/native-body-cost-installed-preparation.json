@@ -1,0 +1,116 @@
+{
+  "state": "PACKAGE VERIFIED, NOT PHYSICAL READY; original-root capture withheld during parent critical292 matched-cohort cutover",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-native-count-20261002",
+  "pins": {
+    "agent_comms": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99",
+    "toad": "79252e8a2f94959a21e73400f1dc1d76393cce58",
+    "textual": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb"
+  },
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "packages_compatible": true,
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99",
+      "files": 327,
+      "python_files": 309,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99",
+          "requested_revision": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99"
+        }
+      },
+      "inventory_sha256": "a3e91d498dc53a700dad2a17e8692aacecf3eb4ba6efbff168a6013bbc9055a4"
+    },
+    {
+      "module": "toad",
+      "head": "79252e8a2f94959a21e73400f1dc1d76393cce58",
+      "files": 306,
+      "python_files": 275,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "79252e8a2f94959a21e73400f1dc1d76393cce58",
+          "requested_revision": "79252e8a2f94959a21e73400f1dc1d76393cce58"
+        }
+      },
+      "inventory_sha256": "468be9248ca0ae18700b7326725ec98d2688d1b6a0d25544a145ff5f20978b8a"
+    },
+    {
+      "module": "textual",
+      "head": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb",
+          "requested_revision": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb"
+        }
+      },
+      "inventory_sha256": "416dc893cb3ab40bb621fb91043cd6388e8973a71cc56fe42542ebb5ee459f88"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_full_trust": true,
+  "protected_old_prefix_files": 901,
+  "protected_old_prefix_files_unchanged": true,
+  "source_overlay": false,
+  "new_native_build": false,
+  "public_install_changed": false,
+  "physical_capture_running": false,
+  "next_gate": "Heisenberg284/19 ONE distinct installed saved501 A/B/A/resource/scroll physical+profile journey after parent publishes new original owner epoch; no fresh input",
+  "cleanup": {
+    "owner": "Heisenberg284/19",
+    "purpose": "obsolete owned source-only pytest target dependency bundle; current sanity used /usr/bin/pytest and actual package owns normal69 dependencies",
+    "path": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/.artifacts/source-sanity-deps",
+    "bytes": 9044003,
+    "allocated_bytes": 10358784,
+    "files": 629,
+    "process_references": [],
+    "unreadable_same_uid_processes": [
+      68488,
+      216738,
+      1561676,
+      1786010,
+      1786012,
+      1953373
+    ],
+    "removed": false,
+    "protected": "all native owners, journals, captures, source proofs, active WTs and normal runtime prefixes retained"
+  },
+  "proofs": {
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-native-count-20261002/source-proof.json": "a9e33a9ff077ea7a5f6df925a830e4d1a0dbc200f74410b2ee55b4f468151b75",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-native-count-20261002/verify.log": "008d893d8f3f05359b4c217e0460394110b51c8d23735a882f5a1b9765ffe1a5",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-native-count-20261002/pip-check.log": "21c0c75bb50070d9fd21cc7a3993aa91f48c3bdf493da31f24b6fb1d94e5048c",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport284-native-count-20261002/requirements.txt": "30d51025416e104cac258d8ef0c04f0134c7bceefd912123107aa3f4c3f6f2ca",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-native-count-20261002/activation.json": "873bfeabcf5bdfd9502c6c4e5cc6fe2503501be6082b69139bc8e50ae79689bd"
+  },
+  "previous_evidence_boundary": "critical03 c972/e36 lifetime pass is separate and excludes new count/resource source; source sanity partial outcomes retained"
+}
