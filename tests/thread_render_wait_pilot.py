@@ -18,7 +18,7 @@ from runtime_fixture import ToadApp
 from worker_preview_pilot import GateRenderer
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.render_tasks import TranscriptRenderTask
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import ThreadLoading
@@ -81,7 +81,7 @@ async def main():
             async def deliver():
                 await dispatch.wait()
                 await target.transcript.snapshot(page)
-                target.post_message(AgentReady())
+                agent.events.publish(AgentReady())
 
             agent.process.session_task = asyncio.create_task(deliver())
 

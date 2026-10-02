@@ -86,13 +86,6 @@ class ToolCallUpdate(AgentMessage):
 
 
 @dataclass
-class AvailableCommandsUpdate(AgentMessage):
-    """The agent is reporting its slash commands."""
-
-    commands: list[schema.AvailableCommand]
-
-
-@dataclass
 class CommsUpdated(AgentMessage):
     """The exact shared record plus local attachment context."""
 
@@ -102,4 +95,3 @@ class CommsUpdated(AgentMessage):
     sequence: int | None = None
     recover_draft: bool = False
     queue_scope: QueueScope | None = None
-

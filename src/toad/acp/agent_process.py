@@ -7,7 +7,7 @@ from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.child_process import StreamingChildStdio
 from toad import jsonrpc
-from toad.agent import LogAgentFail
+from toad.core.events import LogAgentFail
 from toad.acp.wire_message import IncomingWireMessage
 
 
@@ -63,7 +63,7 @@ class AgentProcess:
             )
         except Exception as error:
             self.agent.session.failed()
-            self.agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
+            self.agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
         self.disposition = ActiveProcessDisposition()
         self.agent.controller.replace_terminal_session()
@@ -166,12 +166,12 @@ class AgentProcess:
     def session_failed(self, failure):
         self.close()
         self.agent.session.failed()
-        self.agent.post_message(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
+        self.agent.events.publish(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
 
     def startup_failed(self, details):
         self.close()
         self.agent.session.failed()
-        self.agent.post_message(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
+        self.agent.events.publish(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
 
     async def communicate(self) -> None:
         """Task to communicate with the agent subprocess."""
@@ -180,7 +180,7 @@ class AgentProcess:
         env["TOAD_CWD"] = str(Path("./").absolute())
         if (command := agent.command) is None:
             agent.session.failed()
-            agent.post_message(
+            agent.events.publish(
                 LogAgentFail("Failed to start agent; no run command for this OS", log_path=agent.presentation.log_path)
             )
             return
@@ -197,7 +197,7 @@ class AgentProcess:
             )
         except Exception as error:
             agent.session.failed()
-            agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
+            agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
         self.session_task = asyncio.create_task(agent.session.run())
         self.session_task.add_done_callback(self.session_finished)
@@ -234,7 +234,7 @@ class AgentProcess:
             agent.session.failed()
             assert process.stderr is not None
             fail_details = (await process.stderr.read()).decode("utf-8", "replace")
-            agent.post_message(LogAgentFail(
+            agent.events.publish(LogAgentFail(
                 f"Agent returned a failure code: [b]{process.returncode}",
                 details=fail_details, log_path=agent.presentation.log_path,
             ))

@@ -62,7 +62,8 @@ from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
 from toad.acp.status import StopReason, EndTurnStopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.agent import AgentBase, AgentFail, AgentReady
+from toad.core.events import AgentFail, AgentReady
+from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
@@ -989,7 +990,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.transcript.source_requests.request(ObservedSourcePublication, event.presentation)
 
 
-    @on(AgentReady)
+    @handles(AgentReady)
     async def on_agent_ready(self, message: AgentReady) -> None:
         if not message.reconnected:
             self.session_start_time = monotonic()
@@ -1067,7 +1068,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 turn_count=self._turn_count,
             ).wait()
 
-    @on(AgentFail)
+    @handles(AgentFail)
     async def on_agent_fail(self, message: AgentFail) -> None:
         self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
@@ -1535,9 +1536,9 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             if existing_tool_call is not None:
                 await existing_tool_call.update_tool_call(tool_call)
 
-    @on(acp_messages.AvailableCommandsUpdate)
+    @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
-        self, message: acp_messages.AvailableCommandsUpdate
+        self, message: core_events.AvailableCommandsUpdate
     ):
         self.update_slash_commands()
 

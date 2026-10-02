@@ -38,7 +38,7 @@ from comms_boundary_fixture import coordination_fact
 from setproctitle import setproctitle
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.app import ToadApp
 from toad.render_choices import RendererChoice, LocalRenderer, PersistentRenderer
 from toad.widgets.transcript_history import TranscriptHistory
@@ -154,7 +154,7 @@ async def main():
             async def deliver():
                 initial = await page(agent)
                 await target.transcript.snapshot(initial)
-                target.post_message(AgentReady())
+                agent.events.publish(AgentReady())
 
             agent.process.session_task = asyncio.create_task(deliver())
 

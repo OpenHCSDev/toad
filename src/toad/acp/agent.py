@@ -41,7 +41,8 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
-from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
+from toad.core.events import UnsupportedResumeAgentFail, AgentReady
+from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 
 

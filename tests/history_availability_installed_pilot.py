@@ -43,7 +43,7 @@ async def main():
             await pilot.pause()
             assert 'Bus input verification unavailable' in details.title
             assert 'Saved history not loaded' in details.title
-            from toad.agent import AgentReady
+            from toad.core.events import AgentReady
             agent.session_id = "retained-reconnect-proof"
             agent.session.reconnecting = True
             await view.transcript.snapshot(page)

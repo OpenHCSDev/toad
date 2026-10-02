@@ -8,7 +8,7 @@ from toad import constants, jsonrpc
 from toad.acp import api, messages
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
-from toad.agent import AgentReady, UnsupportedResumeAgentFail
+from toad.core.events import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
@@ -74,7 +74,7 @@ class AgentSession:
                 await self.initialize()
                 if self.agent.controller.session.bound:
                     if not self.supports_load:
-                        self.agent.post_message(
+                        self.agent.events.publish(
                             UnsupportedResumeAgentFail(
                                 "Resume not supported",
                                 f"{self.agent.definition.name} does not currently support resuming sessions.",
@@ -95,7 +95,7 @@ class AgentSession:
                 self.agent.process.session_failed(failure)
                 return
         self.settled.set()
-        self.agent.post_message(AgentReady(reconnected=self.reconnecting))
+        self.agent.events.publish(AgentReady(reconnected=self.reconnecting))
 
 
     @property

@@ -17,7 +17,7 @@ from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
 from . import api, messages
 from toad import jsonrpc
-from toad.agent import LogAgentFail
+from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, decode_updates, encode_request,
@@ -171,7 +171,8 @@ class AgentController(OperationalTerminalOwner):
         return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
 
     async def restore(self, binding):
-        from .messages import CommsUpdated, AvailableCommandsUpdate
+        from .messages import CommsUpdated
+        from toad.core.events import AvailableCommandsUpdate
         if self.surface is not binding:
             return
         session = self.session
@@ -179,7 +180,7 @@ class AgentController(OperationalTerminalOwner):
         # Retained operational facts are available now. A source read must not
         # hold modes, commands, plan, queue and cursor behind filesystem I/O.
         agent.configuration.publish()
-        binding.post(AvailableCommandsUpdate(self.commands))
+        agent.events.publish(AvailableCommandsUpdate())
         if self.plan_entries is not None:
             from .messages import Plan
             binding.post(Plan(self.plan_entries))
@@ -254,9 +255,9 @@ class AgentController(OperationalTerminalOwner):
         self.agent.post_message(Plan(entries))
 
     def publish_commands(self, commands):
-        from .messages import AvailableCommandsUpdate
+        from toad.core.events import AvailableCommandsUpdate
         self.commands = commands
-        self.agent.post_message(AvailableCommandsUpdate(commands))
+        self.agent.events.publish(AvailableCommandsUpdate())
 
     def start_operation(self, operation):
         return self.agent.process.start_operation(operation)
@@ -338,7 +339,7 @@ class AgentController(OperationalTerminalOwner):
             agent.post_message(messages.CommsUpdated(InputFailedUpdate(user_text, failure),
                 recover_draft=True, agent=agent, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
-            agent.post_message(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+            agent.events.publish(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())

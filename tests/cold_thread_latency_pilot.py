@@ -22,7 +22,7 @@ from runtime_fixture import ToadApp
 from textual.widget import Widget
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.footer import Footer
@@ -76,7 +76,7 @@ async def main(profile_path=None, trace=False):
             async def attach():
                 await released.wait()
                 await target.transcript.snapshot(page)
-                target.post_message(AgentReady())
+                agent.events.publish(AgentReady())
 
             agent.process.session_task = asyncio.create_task(attach())
 

@@ -14,7 +14,7 @@ from comms_boundary_fixture import attach_coordination
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.screens.main import MainScreen
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad.widgets.transcript_history import TranscriptHistory
@@ -67,7 +67,7 @@ async def main():
             attach_coordination(agent, str(root / "wire"), "child")
             page = await agent.get_transcript_page()
             await target.transcript.snapshot(page)
-            target.post_message(AgentReady())
+            agent.events.publish(AgentReady())
             started.set()
 
         app = ToadApp(project_dir=str(root))
