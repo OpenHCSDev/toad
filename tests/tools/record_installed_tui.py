@@ -80,13 +80,13 @@ class InlineReviewTiming(ReviewTiming):
         return live_review(output, args, env, owner, label)
 
     @classmethod
-    def generate(cls, output, args, env, owner, intervals):
+    def generate(cls, output, args, env, owner, intervals, *, prefix=""):
         names = []
         for interval in intervals:
             label = interval["label"]
-            label = None if label == "main" else label
+            label = prefix + label if prefix else (None if label == "main" else label)
             print(f"Preparing review {label or 'main'} at {interval['start']:.3f}s for {interval['seconds']:.3f}s", flush=True)
-            artifacts(output, args, env, owner, start=interval["start"], seconds=interval["seconds"], label=label)
+            artifacts(output, args, env, owner, start=interval["start"], seconds=interval["seconds"], label=label, consecutive=True)
             names.extend([f"{label}-slow.mp4", f"{label}-frames.png"] if label else ["slow.mp4", "frames.png"])
         return names
 
@@ -96,7 +96,7 @@ class DeferredReviewTiming(ReviewTiming):
     def observe(cls, output, args, env, owner, label):
         return {"label": label,
                 "assessment": "Clip encoding deferred; native frame tracing remains active. "
-                              "Inspect original timed video frames during the run separately."}
+                              "Inspect consecutive original video frames during or after the run."}
 
     @classmethod
     def generate(cls, output, args, env, owner, intervals):
@@ -431,6 +431,32 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     """Declare bounded physical journeys; submission needs its original capability."""
 
     review_artifacts = ()
+    motion_phases = ()
+
+    @classmethod
+    def review_intervals(cls, args, events, duration):
+        """Select real gesture intervals from the journey's original markers."""
+        labels = args.review_phase or cls.motion_phases
+        indexed = {event["label"]: index for index, event in enumerate(events)}
+        missing = set(args.review_phase) - indexed.keys()
+        if missing:
+            raise ValueError("Missing native script markers: " + ", ".join(sorted(missing)))
+        intervals = []
+        for label in labels:
+            if label not in indexed:
+                continue  # A failed capture may stop before a later gesture.
+            index = indexed[label]
+            start = events[index]["seconds_since_capture_launch"]
+            end = events[index + 1]["seconds_since_capture_launch"] if index + 1 < len(events) else duration
+            seconds = min(args.review_seconds, end - start, duration - start)
+            if seconds > 0:
+                intervals.append({"label": label, "start": start, "seconds": seconds})
+        if not intervals:
+            seconds = min(args.review_seconds, duration - args.review_start)
+            if seconds <= 0:
+                raise ValueError("Review start lies outside the recorded video")
+            intervals.append({"label": "main", "start": args.review_start, "seconds": seconds})
+        return intervals
 
     @classmethod
     def opening_commands(cls, args):
@@ -516,6 +542,8 @@ class ArchiveScrollJourney(ArchiveJourney):
 
 
 class ScrollJourney(PhysicalJourney):
+    motion_phases = ("up", "down", "reverse", "end")
+
     @classmethod
     def script(cls, args):
         if not args.capture_state:
@@ -642,6 +670,8 @@ class WarmSourceJourney(WarmScrollJourney):
 class ScrollTravelRegressionJourney(ScrollJourney):
     """Discriminate focused key delivery and native travel on one saved source."""
 
+    motion_phases = ("input-held-up", "history-held-up", "end-done")
+
     @classmethod
     def input_commands(cls, args):
         marker = marker_command()
@@ -673,6 +703,8 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
     """Reject absent canonical routing while observing the actual busy source."""
 
     review_artifacts = ("input-paging-review.json",)
+
+    motion_phases = ("input-held-up", "input-held-down", "history-held-up")
 
     @classmethod
     def input_commands(cls, args):
@@ -733,6 +765,8 @@ class InputWarmJourney(WarmScrollJourney):
 
     review_artifacts = (*WarmScrollJourney.review_artifacts,
                         *InputPagingAcceptanceJourney.review_artifacts)
+
+    motion_phases = (*InputPagingAcceptanceJourney.motion_phases, *WarmScrollJourney.motion_phases)
 
     @classmethod
     def opening_commands(cls, args):
@@ -1181,7 +1215,7 @@ def profile_launch(command):
         owner.cleanup()
 
 
-def profile_review(output, receipt, rate):
+def profile_review(output, receipt):
     """Decode py-spy's Chrome transitions once and align them with physical actions."""
     trace_path = output / "cpu-profile.json"
     if trace_path.stat().st_size > 128 * 1024 * 1024:
@@ -1190,6 +1224,8 @@ def profile_review(output, receipt, rate):
     trace = ProfileTrace(trace_path)
     observations = tuple(trace.observations())
     launch = json.loads((output / "profile-launch.json").read_text())
+    command = launch["profiler_command"]
+    rate = int(command[command.index("--rate") + 1])
     if not any(observation.pid == launch["ui_pid"] for observation in observations):
         raise RuntimeError("Profiler did not observe the actual installed UI PID")
     lower = launch["profiler_exec_monotonic"]
@@ -1264,7 +1300,7 @@ def profile_review(output, receipt, rate):
     return result
 
 
-def artifacts(output, args, env, owner, *, start, seconds, label=None, consecutive=False):
+def artifacts(output, args, env, owner, *, start, seconds, label=None, consecutive=False, encode_slow=True):
     video = output / "terminal.mp4"
     common = ["ffmpeg", "-nostdin", "-y", "-loglevel", "warning", "-threads", "1",
               "-filter_threads", "1", "-filter_complex_threads", "1"]
@@ -1275,7 +1311,7 @@ def artifacts(output, args, env, owner, *, start, seconds, label=None, consecuti
     trim = f"trim=start={start}:duration={seconds},setpts=PTS-STARTPTS,"
     slow = output / (f"{label}-slow.mp4" if label else "slow.mp4")
     sheet = output / (f"{label}-frames.png" if label else "frames.png")
-    if not consecutive:
+    if encode_slow:
         owner.run(common + interval + [
             "-vf", trim + f"setpts={args.slowdown}*PTS", "-r", str(args.fps),
             "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-threads", "1",
@@ -1353,13 +1389,13 @@ def live_review(output, args, env, owner, label):
         raise RuntimeError("Live recording has no finalized video frames yet")
     start = duration - seconds
     artifacts(output, args, env, owner, start=start, seconds=seconds,
-              label=label, consecutive=True)
+              label=label, consecutive=True, encode_slow=False)
     result = {"event": "live_review_available", "label": label,
               "source_start_seconds": start, "source_end_seconds": duration,
               "encoding_started_monotonic": started,
               "encoding_finished_monotonic": time.monotonic(),
               "frames": str(output / f"{label}-frames.png"),
-              "assessment": "unreviewed; inspect consecutive frames now, not after the run"}
+              "assessment": "unreviewed; inspect consecutive frames during or after the run"}
     print(json.dumps(result), flush=True)
     return result
 
@@ -1376,7 +1412,37 @@ def review_recording(args):
     receipt = {"capture_receipt": str(output / "receipt.json"), "assessment": "unreviewed",
                "completed": False}
     try:
-        names = InlineReviewTiming.generate(output, args, os.environ.copy(), owner, capture["review_intervals"])
+        env = os.environ.copy()
+        video = output / "terminal.mp4"
+        info = owner.run(["ffprobe", "-v", "error", "-show_format", "-of", "json", str(video)],
+                         env, stdout=subprocess.PIPE, text=True, timeout=5)
+        duration = float(json.loads(info.stdout)["format"]["duration"])
+        args.fps = capture["fps"]
+        journey = PhysicalJourney.decode(capture["physical_journey"])
+        events = phase_events(output)
+        intervals = journey.review_intervals(args, events, duration)
+        receipt["source"] = {"receipt_sha256": digest(output / "receipt.json"),
+                             "video_sha256": digest(video),
+                             "application_completed": capture["completed"],
+                             "application_error": capture.get("error")}
+        receipt["intervals"] = intervals
+        frame_path = output / "frame-delivery.json"
+        if frame_path.exists():
+            receipt["frame_review"] = {"available": True, "artifact": frame_path.name}
+        else:
+            receipt["frame_review"] = frame_review(output, capture, window_seconds=args.frame_window_seconds)
+        profile_path = output / "profile-review.json"
+        if profile_path.exists():
+            profile = json.loads(profile_path.read_text())
+        elif capture["profiling_requested"]:
+            profile = profile_review(output, capture | {"events": events})
+        else:
+            profile = {"phases": []}
+        receipt["correlated_phases"] = [phase for phase in profile["phases"]
+                                        if any(phase["video_start_seconds"] < interval["start"] + interval["seconds"]
+                                               and phase["video_end_seconds"] > interval["start"]
+                                               for interval in intervals)]
+        names = InlineReviewTiming.generate(output, args, env, owner, intervals, prefix="review-")
         receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
                                       "sha256": digest(output / name)} for name in names}
         if any(item["bytes"] == 0 for item in receipt["artifacts"].values()):
@@ -1709,21 +1775,9 @@ def record(args):
             receipt["frame_review"] = frame_review(
                 output, receipt, window_seconds=args.frame_window_seconds)
             if args.profile:
-                receipt["profile_review"] = profile_review(output, receipt, args.profile_rate)
+                receipt["profile_review"] = profile_review(output, receipt)
             receipt["journey_review"] = args.journey.review(output, receipt)
-            intervals = [(None, args.review_start, min(args.review_seconds, duration - args.review_start))]
-            for label in args.review_phase:
-                index = next((i for i, event in enumerate(events) if event["label"] == label), None)
-                if index is None:
-                    raise ValueError(f"Missing native script marker: {label}")
-                start = events[index]["seconds_since_capture_launch"]
-                end = events[index + 1]["seconds_since_capture_launch"] if index + 1 < len(events) else duration
-                seconds = min(args.review_seconds, end - start, duration - start)
-                if seconds <= 0:
-                    raise ValueError(f"Marker {label} lies outside the video")
-                intervals.append((label, start, seconds))
-            receipt["review_intervals"] = [{"label": label or "main", "start": start, "seconds": seconds}
-                                           for label, start, seconds in intervals]
+            receipt["review_intervals"] = args.journey.review_intervals(args, events, duration)
             names = ["terminal.mp4", "before.png", "after.png"]
             if args.capture_state:
                 names.extend(path.name for name in ("before", "after", "phase")
