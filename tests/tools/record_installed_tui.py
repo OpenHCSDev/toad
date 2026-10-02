@@ -379,6 +379,13 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     review_artifacts = ()
 
     @classmethod
+    def opening_commands(cls, args):
+        # Use the application's idempotent reveal binding before requesting
+        # painted roster targets. A collapsed sidebar has no clickable rows.
+        return ("key ctrl+b", f"sleep {args.navigation_settle_seconds:g}",
+                marker_command() + "sidebar-revealed")
+
+    @classmethod
     @abstractmethod
     def script(cls, args): ...
 
@@ -467,13 +474,6 @@ class WarmScrollJourney(ScrollJourney):
 
     draft_suffix = "warm-scroll-draft"
     review_artifacts = ("warm-scroll-review.json",)
-
-    @classmethod
-    def opening_commands(cls, args):
-        # Use the application's idempotent reveal binding before requesting
-        # painted roster targets. A collapsed sidebar has no clickable rows.
-        return ("key ctrl+b", f"sleep {args.navigation_settle_seconds:g}",
-                marker_command() + "sidebar-revealed")
 
     @classmethod
     def paging_commands(cls, args):
