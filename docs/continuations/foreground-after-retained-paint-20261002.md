@@ -69,3 +69,12 @@ even when the original current map could answer. Source batch19added/2deleted
 Toad; no check or installed speed claim yet. Existing native source/resize/style/
 capture/input/disposal check follows the coherent pair, then changed installed
 path last. No unchanged public recording.
+
+The final joined native source check passed with4live body boxes supplied by
+the original viewport layout, alongside all3retained body families, real source/
+style/resize changes, native input materialization and final disposal. No scene
+mirror, public reader, provider or new package was used. Same-width source-only
+reentry0.167/0.222/0.201ms; these are not actualapplication latency. Exact
+receipt: evidence/retained-body-E/current-geometry-319-source.json. Product
+source fa88c45e, native24 production7b7a07f2 (receipt276e2ec8), native checks
+last. Changed installed busy/scroll scope is still outstanding, notReady.
