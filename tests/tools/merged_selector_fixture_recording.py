@@ -19,7 +19,9 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def main():
+def main(*, thread_name='selection302', peer_name='selection302-peer',
+         recording_tool=Path(__file__).with_name('selector_warm_recording.py'),
+         journey='selector_warm', recording_owner='Schrodinger304-merged-selector-sidebar'):
     prefix = Path(sys.prefix)
     fixture = Path(sys.argv[1]).absolute()
     output = Path(sys.argv[2]).absolute()
@@ -45,7 +47,7 @@ def main():
         XDG_STATE_HOME=str(output / 'state'), XDG_CONFIG_HOME=str(output / 'config'),
         XDG_DATA_HOME=str(output / 'data'),
         PATH=str(runtime) + os.pathsep + env.get('PATH', ''), VIRTUAL_ENV=str(prefix),
-        TOAD_TEST_ATTEMPT='receiving304-combined01')
+        TOAD_TEST_ATTEMPT=output.name)
     for key in ('PI_PROMPT', 'PI_PARENT_ID', 'PI_TASK', 'PI_AGENT_ID', 'AGENT_COMMS_THREAD',
                 'AGENT_COMMS_STARTUP_INPUT_KEY', 'PYTHONPATH', 'NO_COLOR'):
         env.pop(key, None)
@@ -56,22 +58,21 @@ def main():
                'settings_hashes': settings, 'native_prompts': 0, 'public_inputs': 0}
     owner = ProcessOwner()
     try:
-        started = service.owners.start('selection302', agent_bin=str(runtime / 'pi-comms-native'), agent_args=launch.arguments)
+        started = service.owners.start(thread_name, agent_bin=str(runtime / 'pi-comms-native'), agent_args=launch.arguments)
         receipt['private_reopen'] = FieldCodec.encode(started)
         # Real A/B/A native surfaces need separate original source owners.
         # One sibling within the SAME existing private fixture uses canonical
         # ForkSpec/SessionManager, no task/prompt or public-source replay.
-        peer_name = 'selection302-peer'
         if service.registry.name_reserved(peer_name):
             service.owners.start(peer_name, agent_bin=str(runtime / 'pi-comms-native'), agent_args=launch.arguments)
             peer = service.registry.require(peer_name)
         else:
-            peer = service.threads.fork(ForkSpec(peer_name, 'selection302', prompt=''), pi_bin=str(runtime / 'pi-comms-native'))
+            peer = service.threads.fork(ForkSpec(peer_name, thread_name, prompt=''), pi_bin=str(runtime / 'pi-comms-native'))
         receipt['private_peer'] = {'name': peer.name, 'process': FieldCodec.encode(peer.process_identity), 'session_file': peer.session_file}
-        current = service.registry.require('selection302')
+        current = service.registry.require(thread_name)
         env['TOAD_TEST_SELECTOR_MODEL'] = current.model
-        command = [str(runtime / 'python'), str(Path(__file__).with_name('selector_warm_recording.py')),
-            '--owner', 'Schrodinger304-merged-selector-sidebar', '--journey', 'selector_warm',
+        command = [str(runtime / 'python'), str(recording_tool),
+            '--owner', recording_owner, '--journey', journey,
             '--private-root', str(service.root), '--peer-thread', peer_name,
             '--capture-state', '--scroll-travel', '--profile', '--profile-threads', 'gil',
             '--output', str(output / 'capture'), '--fit-window', '--width', '1280', '--height', '900',
@@ -79,7 +80,7 @@ def main():
             '--finalize-seconds', '14', '--scroll-idle-seconds', '15', '--scroll-hold-seconds', '2',
             '--navigation-settle-seconds', '1', '--tail-seconds', '1', '--review-timing', 'deferred',
             '--', str(runtime / 'toad'), 'acp', shlex.join([str(runtime / 'python'), '-m', 'agent_comms.acp']),
-            str(original.worktree), '--title', 'Agent Comms', '--session', 'selection302']
+            str(current.worktree), '--title', 'Agent Comms', '--session', thread_name]
         (output / 'command.json').write_text(json.dumps(command, indent=2) + '\n')
         (output / 'source.json').write_text(json.dumps(receipt, indent=2) + '\n')
         with (output / 'runner.log').open('w') as log:
