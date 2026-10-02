@@ -67,10 +67,8 @@ class ThreadStatusRow(HoverSelection):
         self._thread_presentation = prepared
         source = prepared.source
         self.thread_name = source.name
-        self.add_class("-wire-thread")
-        self.set_class(prepared.busy, "-busy")
-        self.set_class(source.unread.highlighted, "-unread")
-        self.remove_class("-asking")
+        self.update_classes({"-wire-thread": True, "-busy": prepared.busy,
+                             "-unread": source.unread.highlighted, "-asking": False})
         self.tooltip = prepared.tooltip
         self.paint_thread_frame(prepared)
 

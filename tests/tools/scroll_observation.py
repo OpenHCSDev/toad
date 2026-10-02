@@ -4,7 +4,8 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import pickle
-from agent_comms.transcripts import TranscriptCursor
+from toad.transcript_preparation import CommittedInterval
+from toad.widgets.transcript_history import TranscriptPageAdmission
 
 
 @dataclass(frozen=True)
@@ -28,8 +29,7 @@ class NativePhase:
     window: int
     focused_widget: int | None
     loaded_pages: int
-    oldest_admitted: TranscriptCursor | None
-    newest_admitted: TranscriptCursor | None
+    admissions: tuple[TranscriptPageAdmission, ...]
     scroll_y: float
     maximum: float
     follows_tail: bool
@@ -47,12 +47,12 @@ class NativePhase:
                                        body["visible"], body["measured_rows"])
                        for body in window["body_resources"]["owners"])
         focused = snapshot["metadata"]["screen"]["focused"]
-        pages = tuple(page for history in view["history_pages"]
-                      for page, _start, _stop in history["pages"])
+        admissions = tuple(TranscriptPageAdmission(
+            CommittedInterval(page.before, page.after), start, stop,
+        ) for history in view["history_pages"] for page, start, stop in history["pages"])
         return cls(label, mode, draft["object_id"], "\n".join(draft["lines"]), draft["selection"],
                    window["object_id"], focused["object_id"] if focused is not None else None,
-                   len(pages), pages[0].before if pages else None,
-                   pages[-1].after if pages else None,
+                   len(admissions), admissions,
                    window["scroll_y"], window["maximum"],
                    window["follows_tail"], bodies)
 
@@ -60,18 +60,24 @@ class NativePhase:
         return {body.object_id for body in self.bodies if body.ready}
 
     def admits_before(self, other: "NativePhase") -> bool:
-        """Compare original source cursors, never offsets in reflowed geometry."""
-        if self.oldest_admitted is None or other.oldest_admitted is None:
+        """Compare native admission, including expansion within a prepared page."""
+        if not self.admissions or not other.admissions:
             return False
-        return (self.oldest_admitted != other.oldest_admitted
-                and other.oldest_admitted.contains(self.oldest_admitted))
+        current, previous = self.admissions[0], other.admissions[0]
+        if current.interval == previous.interval:
+            return current.start < previous.start
+        return (current.interval.before != previous.interval.before
+                and previous.interval.before.contains(current.interval.before))
 
     def admits_after(self, other: "NativePhase") -> bool:
-        """Newer admission extends the original page end, not its oldest edge."""
-        if self.newest_admitted is None or other.newest_admitted is None:
+        """The prepared page end alone does not describe its mounted body range."""
+        if not self.admissions or not other.admissions:
             return False
-        return (self.newest_admitted != other.newest_admitted
-                and self.newest_admitted.contains(other.newest_admitted))
+        current, previous = self.admissions[-1], other.admissions[-1]
+        if current.interval == previous.interval:
+            return current.stop > previous.stop
+        return (current.interval.through != previous.interval.through
+                and current.interval.through.contains(previous.interval.through))
 
 
 def review_retained_lifetime(output, receipt, *, suffix):
