@@ -1,0 +1,42 @@
+{
+  "state": "READY ONE combined536+328/Text28 normal69 receiving; parent freshpreflight/execution/default-channel acceptance pending",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "prefix_reused_from": "Sameinactiveold324 receivingresource, previouslyqualified329 neveradmitted; originalmetadata preserved",
+  "pins": {
+    "core": "8f0e4d92e93000c4c7b7bf83e4da56544c10eb66",
+    "toad": "b0573948adad3f12112b453c208f172a29e3295f",
+    "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+  "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+  "sdk": "0.12.1",
+  "normal_package_count": 69,
+  "new_environment": false,
+  "native_build": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "provider_calls": 0,
+  "public_effects": 0,
+  "protected_current327_rollback326_regular_files_unchanged": 7981,
+  "source_target_whole_schema_equal": true,
+  "source_target_product_equal": false,
+  "historical_carry": false,
+  "frozen_artifacts": {
+    "source-proof.json": "2230c0d2c65919eb156e1e0bcad74c48b58ae3fd24f10fd5813eae999d69f3db",
+    "../runtime-summary529-geometry322-20261002/activation.json": "851938b9c74633600165c921f04737312cb3361ac0fc9db41ca6e68d6f70b8aa",
+    "operator-manifest.json": "ad2dbb0b630523eaafef48a9a0f97001217f736e2e3d2836302047e0b07df19f",
+    "operator-preparation/preparation-receipt.json": "939562fd44e6fa093bae175cd40c702503add33e902677f2e296fc4048e427e6",
+    "operator-preparation/review-plan.json": "001cbb09455c75e44f42e5adbde03e93aae1f3270e9fbfaf785345a4e42ff509",
+    "operator-preparation/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "source-equality.json": "a4e6bbcf7ba3377a66ae87f9de356ed8e9d76c197a0dbf773040af0e213f646c"
+  },
+  "qualified_source_gates": {
+    "536-DISPATCH-CONSUMPTION.md": "bec5522f73aa29509dcc23e314504907f3897b79bae04243eb1762a1b718d20e",
+    "328-direct-native-rows-qualified.json": "577e3d3a051eba3e855cdd0ccb4a7345f08a881b7c94574e64c28669107fb301",
+    "536-dispatch-installed-source-proof.json": "1f23e6761e9c59e223e246b6069c957affdd50a44fbb3a4c1dc3ad150f8cc611",
+    "536-READY.md": "3bc727c8198a8dee9f9b81303311ad2c24c4870f8b1d7c040d653964a64ddd0e"
+  },
+  "original329_preimage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-observation536-native-rows328-receiving-20261002/original329-qualification",
+  "scope": "Original5366resource+final4handler/SQLcancel installed controls, original328completedfilm16warm/7input/3body style/stream/width/custody retained. Motiondiscrete/highCPU; no fullspeed/smooth/144Hz/S1/S4/396latencycause claim. No repeatfilm/provider/gates or duplicatepublicinstall."
+}
