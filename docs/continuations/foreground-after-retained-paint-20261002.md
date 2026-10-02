@@ -78,3 +78,37 @@ reentry0.167/0.222/0.201ms; these are not actualapplication latency. Exact
 receipt: evidence/retained-body-E/current-geometry-319-source.json. Product
 source fa88c45e, native24 production7b7a07f2 (receipt276e2ec8), native checks
 last. Changed installed busy/scroll scope is still outstanding, notReady.
+
+## Qualified installed319/Text24 checkpoint
+
+Reused OWN E03normal69 runtime, replacing only three normal Git wheels with
+Core155/Toad222b/Text276e; all source/assets/directURLs/full native trust and
+dependencycheck pass. No new69environment/native build. One changed original
+public nra-architecture recording completed106.153s/input7. Original owner
+3803280/start41311865 alive unchanged, cleanupempty/prefixclientscanempty.
+Raw FFmpeg255 is accepted captureSIGINT, not independentUIexit0 proof.
+
+Input Up native key-processing writer gaps38.2msmedian/237.0p95; reverse32.0/
+208.5. Exactphysicalkeydown/up isn't timestamped; these are native received
+handler intervals and writer completion, not terminalpaint/inputlatency. E03
+Up44.7/194.8 and reverse50.1/218.9 are descriptive: currentUp p95 worsens,
+phases/keycounts/workload/Core/export overhead differ. No overallFPSclaim.
+
+Marked UpCPU78.88%(old91.16%), down68.86,reverse67.25. AlltargetUImajorfault
+deltas0. Both final10s midhistory intervals0request/admission/materialization/
+retirement/scroll; earlierlazy settling remains in raw trace. During-run own
+11–12s and56–57s consecutive frames show discrete movement/sparsebody before
+fill; parent independently viewed live7-12 while recorder alive. No smoothness
+claim. Existing native geometry/body source/resize/style/input/disposal passes.
+
+Evidence: evidence/retained-body-E/current-geometry319-public-qualified.json.
+OriginalMP4/raw/negative preserved.1472GILsamples1error/partial, clockbound
+reported in originalprofile. Fullremainingperformance scope staysACTIVE.
+
+Same profile/source pass identifies unfinished native full-map queries before
+firsttarget layout (register/request) and descendant Widget.region queries in
+StylesCache during intrinsic capture. Kepler exactcaller trace retained in
+TextWT .artifacts/current-paint-geometry-24-source01/319-full-layout-original-callers.json.
+This is the next existing geometry/capture-lifetime owner change, not another
+unchanged recording or new renderer/map/cache. Scoped319 geometry checkpoint
+is qualified independently of complete foreground cost elimination.
