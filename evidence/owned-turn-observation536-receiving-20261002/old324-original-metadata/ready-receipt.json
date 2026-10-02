@@ -1,0 +1,55 @@
+{
+  "state": "READY for parent preserve-only publication; NOT EXECUTED",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+  "core": "d6e196a86c88cc1259be986703668ab1e1a58c1c",
+  "toad": "3fc4710abf0d0101b50f72d2c4f1c0075e01231c",
+  "textual": "8f4e06fc7d8e05ec68b0a799ffd2edc1a46bcf9c",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-ad533a9f08581561/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "ad533a9f08581561d00d5524a576bda00f6368221cc4f74ba3c68513ede8fc04",
+  "native_tree": "adb2969a4d57cb8993a92d30b924b969ca76772de5dadb31cc7b2f294ee120e9",
+  "native_full_trust": true,
+  "source_proof_sha256": "a2e90c6a0879854563b679a8cce16dd4abd712e29df16c9c72181ec56e15caa4",
+  "activation_sha256": "3a1d293c8dcb9371bbabaefb04e0d6ce953c849ef1d632dee88051a3cb909fd8",
+  "operator_manifest_sha256": "10b46363fc9208fb653395d5f0214946a3499a801a762058409fb2bb5dee5ca0",
+  "review_plan_sha256": "8f8804240e0b7db65f0b7d19801794addc28a5f585fc74301668d89956315c4e",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "whole_native_schema_equal": true,
+  "native_schema_version": 6,
+  "historical_carry": false,
+  "format_reset": false,
+  "existing_current_previous_files_unchanged": 5694,
+  "source_equality": {
+    "core_qualified": "761864c828b08eccd157445f1e5476276bcec0b3",
+    "core_merged": "d6e196a86c88cc1259be986703668ab1e1a58c1c",
+    "all_src_stack_config_tools_diff_bytes": 0,
+    "to_ad_qualified": "a179420105c362ec8337a68427d82f11abd69b62",
+    "to_ad_receiving": "3fc4710abf0d0101b50f72d2c4f1c0075e01231c",
+    "to_ad_src_diff_bytes": 0,
+    "native_rebuilt": false,
+    "qualification_repeated": false
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/qualified-source-gates/322-geometry-qualified.json",
+      "sha256": "fd14357bfbcc039ae47411e208dd0698f8fce203fa248e697f17e807f6928dce"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/qualified-source-gates/529-configured-saved-native-receipt.json",
+      "sha256": "0ffc69f8fc0831191d137a58a73995c6332978a0e910dc557fefa9900a3e8b1c"
+    }
+  ],
+  "qualification_scope": "322/Text25 physical geometry and body-capture lifetime (107s; partial mixed performance) plus529 configured42MB native manual compaction with peer/new distinct input/reply (162s). No full smoothness/CPU or S1/S4 claim. Existing530 peer/preflight negative remains separate. Parent ordinary default final verification pending.",
+  "new_native_build": false,
+  "new_provider_input": false,
+  "new_capture": false,
+  "source_overlay": false,
+  "public_writes": 0,
+  "public_stops": 0,
+  "public_starts": 0,
+  "publication_owner": "Parent: existing ALL-STOPPED PublishRetainedSummary + PreserveRuntimeInstallation + PreserveOwnerRuntime; freshly admit complete original idle/client-free audience. No independent UI-only writer.",
+  "parent_execution_command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/operator-preparation/publication-receipt.json --execute",
+  "supersedes_standalone324_publication": true
+}
