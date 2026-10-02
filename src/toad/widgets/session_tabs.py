@@ -1,3 +1,4 @@
+from toad.core import session_requests
 import asyncio
 from collections.abc import Iterable
 from functools import partial
@@ -31,7 +32,7 @@ class SessionLabel(widgets.Label):
         if self.id is not None:
             if event.button == 2:
                 event.stop()
-                self.app.post_message(messages.SessionArchive(self.id))
+                self.app.session_navigation.events.publish(session_requests.SessionArchive(self.id))
             elif event.button == 1:
                 # A second message-pump hop lets the old screen's pending
                 # full-layout timer run ahead of the user's tab click. The
@@ -64,7 +65,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
         self.tooltip = "Close tab (or middle-click its label)"
 
     def action_close_tab(self) -> None:
-        self.app.post_message(messages.SessionArchive(self.mode_name))
+        self.app.session_navigation.events.publish(session_requests.SessionArchive(self.mode_name))
 
     def on_click(self, event: events.Click) -> None:
         if event.button in {1, 2}:

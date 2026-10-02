@@ -26,6 +26,9 @@ from textual.screen import Screen
 from textual.signal import Signal
 
 from toad import messages
+from toad.core import session_requests
+from toad.core_event_carrier import CoreEventReceiver
+from agent_comms.mro_dispatch import handles
 from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
@@ -238,7 +241,7 @@ def get_store_screen() -> StoreScreen:
     return StoreScreen()
 
 
-class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
+class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -320,6 +323,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
+        self.subscribe_core(self.session_navigation.events)
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
 
@@ -602,9 +606,9 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self.coordination_access.start(self)
         await self.application.start()
 
-    @on(messages.WorkspaceSessionRequest)
-    async def on_workspace_session_request(self, event: messages.WorkspaceSessionRequest) -> None:
-        await self.session_navigation.dispatch(event)
+    @handles(session_requests.WorkspaceSessionRequest)
+    async def on_workspace_session_request(self, event: session_requests.WorkspaceSessionRequest) -> None:
+        await event.apply(self.session_navigation)
 
     async def _dispatch_action(self, namespace, action_name: str, params) -> bool:
         if namespace is self:

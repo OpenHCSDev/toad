@@ -1,3 +1,4 @@
+from toad.core import session_requests
 from toad.screens.session_view import SessionView
 import asyncio
 from pathlib import Path
@@ -285,10 +286,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             await self.open_sidebar_target(DirectTarget(peers[0]))
 
     def action_session_previous(self) -> None:
-        self.post_message(messages.SessionNavigate(self.owner_mode, -1))
+        self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.owner_mode, -1))
 
     def action_session_next(self) -> None:
-        self.post_message(messages.SessionNavigate(self.owner_mode, +1))
+        self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.owner_mode, +1))
 
     async def action_close_session(self) -> None:
         if self.id is not None:

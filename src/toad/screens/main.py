@@ -1,3 +1,4 @@
+from toad.core import session_requests
 import asyncio
 from functools import partial
 from pathlib import Path
@@ -444,11 +445,11 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def action_session_previous(self) -> None:
         if self.id is not None:
-            self.post_message(messages.SessionNavigate(self.id, -1))
+            self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, -1))
 
     def action_session_next(self) -> None:
         if self.id is not None:
-            self.post_message(messages.SessionNavigate(self.id, +1))
+            self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, +1))
 
     @on(messages.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
@@ -497,11 +498,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 path=event.path,
             )
 
-    @on(messages.SessionClose)
-    async def on_session_close(self, event: messages.SessionClose) -> None:
-        if self.id is None:
-            return
-        await self.app.session_navigation.close(self.id)
 
     def on_mount(self) -> None:
         # Route discovery already resolved new wire-thread identities off-loop.

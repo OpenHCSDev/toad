@@ -1,5 +1,6 @@
 """App admission and close use the existing workspace's declared factories."""
 from __future__ import annotations
+from toad.core.events import CoreEventStream
 
 from collections.abc import Callable
 from itertools import count
@@ -7,8 +8,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 from functools import partial
 
-from agent_comms.mro_dispatch import MroDispatch, handles
-from toad import messages
 
 from toad.comms_root import current_root, root_is_current
 from toad.navigation_preparation import CommsNavigationRequest
@@ -22,9 +21,10 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionAdmissions(MroDispatch):
+class SessionAdmissions:
     def __init__(self, app: ToadApp, initial_session_id: str | None = None) -> None:
         self.app = app
+        self.events = CoreEventStream()
         self.identities = count(1)
         self.initial_session_id = initial_session_id
 
@@ -37,44 +37,6 @@ class SessionAdmissions(MroDispatch):
             agent_session_title=session_id).data_bind(column=type(app).column,
                 column_width=type(app).column_width, scrollbar=type(app).scrollbar)
 
-    @handles(messages.SessionNavigate)
-    async def navigate_request(self, event: messages.SessionNavigate) -> None:
-        modes = [tab.mode_name for tab in self.tabs]
-        if self.app.selected_mode in modes:
-            await self.app.select_session(modes[(modes.index(self.app.selected_mode) + event.direction) % len(modes)])
-
-    @handles(messages.SessionSwitch)
-    async def switch_request(self, event: messages.SessionSwitch) -> None:
-        await self.app.select_session(event.mode_name)
-
-    @handles(messages.SessionNew)
-    async def new_request(self, event: messages.SessionNew) -> None:
-        self.app.run_worker(partial(self.launch, event.agent,
-            project_path=Path(event.path), initial_prompt=event.prompt))
-
-    @handles(messages.SessionCreate)
-    async def create_request(self, event: messages.SessionCreate) -> None:
-        await self.create_from(event.source_mode)
-
-    @handles(messages.SessionRename)
-    async def rename_request(self, event: messages.SessionRename) -> None:
-        name = event.name.strip()
-        source = self.source(event.mode_name)
-        if name and source is not None:
-            await source.conversation.rename_session(name)
-
-    @handles(messages.SessionArchive)
-    async def archive_request(self, event: messages.SessionArchive) -> None:
-        await self.close(event.mode_name)
-
-    @handles(messages.SessionClose)
-    async def close_request(self, event: messages.SessionClose) -> None:
-        self.app.update_show_sessions()
-
-    @handles(messages.LaunchAgent)
-    async def launch_request(self, event: messages.LaunchAgent) -> None:
-        self.app.run_worker(partial(self.launch, event.identity,
-            agent_session_id=event.session_id, session_pk=event.pk, initial_prompt=event.prompt))
 
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar

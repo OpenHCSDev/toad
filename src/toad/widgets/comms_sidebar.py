@@ -12,6 +12,7 @@ acts through ``agent_comms`` operations.
 """
 
 from __future__ import annotations
+from toad.core import session_requests
 
 import os
 from collections.abc import Mapping
@@ -362,7 +363,7 @@ class NewSessionButton(Static):
 
     def action_create(self) -> None:
         source_mode = cast("ToadApp", self.app).selected_mode
-        self.app.post_message(messages.SessionCreate(source_mode))
+        self.app.session_navigation.events.publish(session_requests.SessionCreate(source_mode))
 
     def on_mouse_up(self, event) -> None:
         if event.button == 1:

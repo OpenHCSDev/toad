@@ -1,3 +1,4 @@
+from toad.core import session_requests
 from toad.settings import PreferenceChange
 from toad.preferences import LauncherSettings
 from contextlib import suppress
@@ -211,7 +212,7 @@ Your favorite agents.
             return
         child = self.children[self.highlighted]
         assert isinstance(child, LauncherItem)
-        self.screen.post_message(messages.LaunchAgent(child.agent.identity))
+        self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
 class Launcher(containers.VerticalGroup):
@@ -317,7 +318,7 @@ class AgentGridSelect(GridSelect):
         if not isinstance(child, AgentItem):
             self.app.open_url("https://github.com/sponsors/willmcgugan")
             return
-        self.post_message(messages.LaunchAgent(child.agent.identity))
+        self.app.session_navigation.events.publish(session_requests.LaunchAgent(child.agent.identity))
 
 
 class Container(containers.VerticalScroll):
@@ -519,7 +520,7 @@ class StoreScreen(Screen):
         modal_response = await self.app.push_screen_wait(AgentModal(agent))
         await self.app.settings.save()
         if modal_response is not None:
-            self.post_message(modal_response)
+            self.app.session_navigation.events.publish(modal_response)
 
     @on(ChangeDirectory)
     def on_change_directory(self, event: ChangeDirectory) -> None:
@@ -585,8 +586,8 @@ class StoreScreen(Screen):
 
         session = await self.app.push_screen_wait(SessionResumeModal())
         if session is not None:
-            self.post_message(
-                messages.LaunchAgent(
+            self.app.session_navigation.events.publish(
+                session_requests.LaunchAgent(
                     session.agent_identity,
                     session.agent_session_id,
                     pk=session.id,
