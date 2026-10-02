@@ -6,7 +6,7 @@ The window owns admission; documents implement their own retirement/restoration.
 """
 
 from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
-from collections.abc import Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
@@ -27,6 +27,7 @@ from textual.geometry import Size
 from textual._paint_state import PaintState
 from textual.worker import WorkerCancelled
 from textual.worker import Worker
+from textual.await_complete import AwaitComplete
 
 
 class ViewportBody:
@@ -112,9 +113,6 @@ class BodyMeasurement(ABC):
     def invalidated(self):
         return MeasuredBody(self.width, self.rows, self.widgets)
 
-    def updating(self):
-        return MeasuredBody(self.width, self.rows, self.widgets)
-
     async def materialize(self, body):
         await body.start_materialization(self).materialize(body)
 
@@ -198,9 +196,6 @@ class MaterializingBody(MeasuredBody):
     worker: Worker
 
     def invalidated(self):
-        return self
-
-    def updating(self):
         return self
 
     async def materialize(self, body):
@@ -301,9 +296,6 @@ class MeasuredViewportBody(ViewportBody):
     def release_paint(self):
         self._body_measurement = self._body_measurement.released()
 
-    def begin_body_materialization(self):
-        self._body_measurement = self._body_measurement.updating()
-
     def invalidate_body(self):
         self._body_measurement = self._body_measurement.invalidated()
         if self._body_viewport is not None:
@@ -361,10 +353,15 @@ class MeasuredViewportBody(ViewportBody):
             return
         await self._body_measurement.materialize(self)
 
-    def start_materialization(self, previous):
+    def publish_body(self, work: Callable[[], Awaitable[None]]) -> AwaitComplete:
+        """Source updates and reentry share the original materialization worker."""
+        operation = self.start_materialization(self._body_measurement, work)
+        return AwaitComplete(operation.materialize(self))
+
+    def start_materialization(self, previous, work=None):
         async def materialize():
             try:
-                await self.materialize_native_body()
+                await (self.materialize_native_body() if work is None else work())
                 if self.is_attached and self._body_measurement is current:
                     self.native_body_committed()
             except BaseException:
@@ -892,23 +889,22 @@ class DocumentViewport:
     async def _restore_bodies(
         self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,
     ) -> tuple[ViewportBody, ...]:
-        async with self.window.history_lock:
-            if (not self.window.is_attached or not self.window.screen.is_current
-                    or not self.lookahead.accepts(demand)):
-                return ()
-            owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
-            restored = []
-            async with AsyncExitStack() as mutation:
-                if any(owner.body_measurement_stale for owner in owners):
-                    await mutation.enter_async_context(self.window.preserve_history(anchor))
-                for owner in owners:
-                    if not self.window.screen.is_current or not self.lookahead.accepts(demand):
-                        break
-                    if owner.is_attached and not owner._closing:
-                        if await owner.restore_body():
-                            restored.append(owner)
-            if restored:
-                # Reconstructed roots acquire capture custody only when their
-                # native layout is published, not at mount/update completion.
-                self.window.screen.frame_presentation.defer(self.window, self.request)
-            return tuple(restored)
+        if (not self.window.is_attached or not self.window.screen.is_current
+                or not self.lookahead.accepts(demand)):
+            return ()
+        owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+        restored = []
+        async with AsyncExitStack() as mutation:
+            if any(owner.body_measurement_stale for owner in owners):
+                await mutation.enter_async_context(self.window.preserve_reader(anchor))
+            for owner in owners:
+                if not self.window.screen.is_current or not self.lookahead.accepts(demand):
+                    break
+                if owner.is_attached and not owner._closing:
+                    if await owner.restore_body():
+                        restored.append(owner)
+        if restored:
+            # Native child composition and nested page publication produce
+            # readiness. The same frame owns capture after compensated layout.
+            self.window.screen.frame_presentation.defer(self.window, self.request)
+        return tuple(restored)

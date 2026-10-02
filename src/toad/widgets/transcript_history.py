@@ -230,7 +230,9 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         Updating Markdown itself preserves the outer scene, subscriptions and
         styles instead of destroying and reconstructing the entire fragment.
         """
-        self.begin_body_materialization()
+        await self.publish_body(partial(self._update_fragment, fragment))
+
+    async def _update_fragment(self, fragment: TranscriptFragment) -> None:
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
@@ -251,10 +253,8 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             leaf = self.children[-1]
             if isinstance(leaf, (AgentResponse, AgentThought)):
                 await leaf.update(new_events[0].text)
-                self.native_body_committed()
                 return
         await self.recompose()
-        self.native_body_committed()
 
 
 @dataclass(frozen=True)

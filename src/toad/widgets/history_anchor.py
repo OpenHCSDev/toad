@@ -225,28 +225,33 @@ class HistoryWindow(VerticalScroll):
 
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
+        """Fence a native source mutation inside its reader layout lifetime."""
+        async with self.preserve_reader(widget):
+            async with self.lock:
+                yield
 
-        """Publish one native tree mutation, then its compensated reader layout.
+    @asynccontextmanager
+    async def preserve_reader(self, widget: Widget | None):
+        """Compensate reconstruction without owning its child source locks.
 
-        Restoration produces frame readiness; it cannot wait for a paint that
-        requires other dormant bodies held behind this same history lock.
-        Native frame callbacks own physical display acknowledgment.
+        A body worker owns its native mutation. A nested pager may acquire
+        history_lock while constructing that body, so the reader lifetime
+        cannot hold that lock or the window's native tree lock around it.
+        Nested mutations use this original anchor; they cannot replace or
+        clear the reader's outstanding compensation.
         """
         from toad.screens.workspace import WorkspaceScreen
 
+        if self.history_anchor is not None:
+            yield
+            return
         screen = self.screen
         self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
         if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
         try:
-            # Mount/remove await native child composition. Until the mutation
-            # finishes, neither its page admission nor its extent is a scene
-            # the reader can consume. Source preparation precedes this phase;
-            # only this window's native tree lock holds its publication. A
-            # departing tab must not suppress another window's frames.
             try:
-                async with self.lock:
-                    yield
+                yield
             finally:
                 self.refresh(layout=True)
             if (widget is not None and widget.is_attached and self.is_attached

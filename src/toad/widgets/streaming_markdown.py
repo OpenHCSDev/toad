@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from dataclasses import replace
+from functools import partial
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -60,6 +61,9 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         else:
             await super().prepare_body()
 
+    async def materialize_native_body(self) -> None:
+        await self._update_content(self.source, append=False)
+
     @asynccontextmanager
     async def retirement_custody(self):
         async with self._content_lock:
@@ -84,10 +88,10 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         super().retire_body_resources()
 
     def update(self, markdown: str) -> AwaitComplete:
-        return AwaitComplete(self._update_content(markdown, append=False))
+        return self.publish_body(partial(self._update_content, markdown, append=False))
 
     def append(self, markdown: str) -> AwaitComplete:
-        return AwaitComplete(self._update_content(markdown, append=True))
+        return self.publish_body(partial(self._update_content, markdown, append=True))
 
     async def _parse_tokens(
         self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str, *, use_thread: bool,
@@ -115,8 +119,6 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
 
         try:
             await self._publish_content(source, text, append, is_current)
-            if is_current():
-                self.native_body_committed()
         except asyncio.CancelledError:
             if generation == self._content_generation:
                 self._content_generation += 1
@@ -136,12 +138,11 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                 # Streaming can resume on a previously cold message. Rebuild
                 # its complete source before allowing the incremental tail path.
                 self._needs_full_markdown_update = True
-            self.begin_body_materialization()
             if not self.uses_paged_source(source):
                 if append and self.source + text == source and not self._needs_full_markdown_update:
-                    await super().append(text)
+                    await self._append_body_source(text)
                 else:
-                    await super().update(source)
+                    await self._update_body_source(source)
                 if is_current():
                     self._needs_full_markdown_update = False
                 return
