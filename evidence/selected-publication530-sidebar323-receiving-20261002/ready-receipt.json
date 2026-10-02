@@ -1,0 +1,88 @@
+{
+  "state": "READY for parent existing preserve-only publication; NOT EXECUTED",
+  "receiving_pr": 326,
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002/bin/python",
+  "core": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
+  "toad": "4d5248136c91a9763ea073d4bf62136deb49b7d3",
+  "textual": "94c14b574641eb08148c3ec88e8fad9dc63dd7e5",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-ad533a9f08581561/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "ad533a9f08581561d00d5524a576bda00f6368221cc4f74ba3c68513ede8fc04",
+  "native_tree": "adb2969a4d57cb8993a92d30b924b969ca76772de5dadb31cc7b2f294ee120e9",
+  "native_full_trust": true,
+  "source_proof_sha256": "0fa86b7d6993cffe92ecbbaf30076a3a79baf28241eb45e045fab674f9ddaff1",
+  "activation_sha256": "a73741cc9feca2c0cb2054058b52816ed72be6f70b3a27865ee84e407c9be505",
+  "operator_manifest_sha256": "663a03ede44a11e0c943c306992e59f830323303eba1f00915b4d8bd9a23db01",
+  "review_plan_sha256": "0ce3cd52c2f645c2e750a41c27cd7c428a06d442701fe7554dbcbe7415c69c42",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "whole_native_schema_equal": true,
+  "native_schema_version": 6,
+  "schema_equality_not_product_equality": true,
+  "historical_carry": false,
+  "format_reset": false,
+  "protected_current324_previous321_regular_files_unchanged": 7924,
+  "source_equality": {
+    "qualified_to_merged": [
+      {
+        "module": "core",
+        "qualified": "30277862",
+        "merged": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
+        "declared_paths": [
+          "src",
+          "stack",
+          "pyproject.toml",
+          "uv.lock",
+          "tools/cutover"
+        ],
+        "diff_bytes": 0
+      },
+      {
+        "module": "toad",
+        "qualified": "dcac031f91808831b9a245d9d3c507918b2d0c3a",
+        "merged": "c08e6c6579e48bc865b589968e674cea1a606345",
+        "declared_paths": [
+          "src"
+        ],
+        "diff_bytes": 0
+      },
+      {
+        "module": "textual",
+        "qualified": "dd774cd0cb0fa39070f2e076848adf5db25e3472",
+        "merged": "94c14b574641eb08148c3ec88e8fad9dc63dd7e5",
+        "declared_paths": [
+          "src",
+          "pyproject.toml"
+        ],
+        "diff_bytes": 0
+      }
+    ],
+    "receiving_to_ad": "4d5248136c91a9763ea073d4bf62136deb49b7d3",
+    "receiving_metadata_only": true,
+    "native_rebuilt": false,
+    "actual_qualifications_repeated": false
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/qualified-source-gates/323-sidebar-scroll-qualified.json",
+      "sha256": "cc6f862bb1bde49929700b3416a98d6d6ceae63ea348ab24e36724095445a0d6"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/qualified-source-gates/530-installed-native07-main-receipt.json",
+      "sha256": "b514a04b464c0e7cd4c75b96a39d49345008eab0cb822601ada15a5af598d7a6"
+    }
+  ],
+  "scope": "Merged530/531 selected source/input custody and canonical instruction plus323/Text26 sidebar output/resource and scroll geometry. Original530 installed42MB TRIAGE/FULL/reply/cursor/lease14.7408s (2controlledlocalhost requests/no paid) separate from323 physical200s partial motion +41.321s12/12B/A/draftUndo/End. No overallCPU/smoothness/fullwarm/S4 or original372 get_state timeout resolution claim.",
+  "new_native_build": false,
+  "new_provider_input": false,
+  "new_capture": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "public_writes": 0,
+  "public_stops": 0,
+  "public_starts": 0,
+  "publication_owner": "Parent ONLY: existing ALL-STOPPED PublishRetainedSummary + PreserveRuntimeInstallation + PreserveOwnerRuntime; fresh complete idle/client-free original audience",
+  "parent_execution_command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/operator-preparation/publication-receipt.json --execute",
+  "remaining": "Parent review/merge/one-use publication and ordinary default physical verification.532/S4/fullperformance remain independent, not holds."
+}
