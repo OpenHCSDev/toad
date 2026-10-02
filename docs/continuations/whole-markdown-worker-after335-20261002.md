@@ -48,3 +48,25 @@ instead of two; warm body/runway still share one bounded prepared resource. This
 is source-established work deletion, not a measured speed claim. All original
 consumers, including three existing sanity pilots, are migrated in this batch.
 Final proportionate sanity and the changed installed path remain to run.
+
+## Final batched source sanity
+
+The three migrated original pilots passed together after implementation:
+work_preparation_pilot (shared cache, independent results, bounds/custody),
+markdown_process_pilot (native parser/fence output and no UI highlighting), and
+markdown_return_reuse_pilot (painted return, retained prepared result, fresh
+filesystem links). Logs: .artifacts/source339-sanity/batch02. The first invocation
+resolved the venv Python symlink to its base interpreter and failed before import
+with ModuleNotFoundError(agent_comms); the corrected invocation preserved the
+venv path. That original failed log remains. No provider input/public mutation.
+
+Resource check reported5.4GiB home/10.8GiB available RAM and swap12.4GiB. This was
+one serial bounded source batch using the existing dependency holder and small
+owned temporary output; no environment/native copy or new capture was allocated.
+The changed installed path remains unqualified.335 source/installed qualification
+is frozen separately; do not infer that its earlier gate covered339.
+
+Heisenberg retains full shared Window/frame/anchor/viewport integration after the
+owner cancelled the proposed transfer. Parent owns harness/live integration.
+Kepler retains channel-controller/native layout contribution; shared source hooks
+are coordinated directly, preserving one mounted history owner set.
