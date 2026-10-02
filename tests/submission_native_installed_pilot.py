@@ -12,7 +12,7 @@ from l0a_native_installed_pilot import main, until, response_painted
 from runtime_fixture import ToadApp
 from saved_state_user_journey_pilot import click_tab, screen_paint
 from toad.navigation_target import channel_target, NavigationContext
-from toad.widgets.prompt import QueueSummary
+from toad.widgets.prompt import QueueSummary, SendNow
 
 provider_hold = None
 
@@ -48,6 +48,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     mode = app.selected_mode
     release.set(); hold_next.clear()
     await until(pilot, lambda: view.agent_ready)
+    editor = view.prompt.prompt_text_area
+    assert editor.agent_ready is agent.ready
+    assert not editor.check_action('submit_now', ())
+    assert view.queue_supported is agent.presentation.queue_supported
     view.prompt.text = 'SUBMISSION_SAVED_HISTORY'
     view.prompt.prompt_text_area.focus()
     await pilot.press('enter')
@@ -72,6 +76,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert agent.session_id == 'beta'
     assert comms.registry.canonical_name('beta') == 'renamed-beta'
     await until(pilot, lambda: view.turns.owner.busy)
+    assert editor.check_action('submit_now', ())
     view.prompt.text = 'SUBMISSION_DEFERRED_AFTER_RENAME'
     await pilot.press('enter')
     await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
@@ -93,7 +98,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert view.prompt.text == 'SUBMISSION_UNSENT_DRAFT'
     view.prompt.text = ''
     view.prompt.prompt_text_area.focus()
-    await pilot.press('ctrl+y')
+    assert await pilot.click(view.prompt.query_one(SendNow), offset=(1, 0))
     view.prompt.text = 'SUBMISSION_UNSENT_DRAFT'
     release.set()
     await until(pilot, lambda: not comms.registry.require('renamed-beta').executing and len(requests) == 4, 30)
@@ -111,6 +116,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert await agent.get_goal_snapshot() == (None, None)
     assert agent.controller.prompt_in_flight == 0
     assert not agent.controller._deferred_submissions
+    assert not editor.check_action('submit_now', ())
     log = agent.presentation.log_path.read_text()
     assert log.count("'kind': 'send_now'") == 1
     root = Path(os.environ['L0A_EVIDENCE'])

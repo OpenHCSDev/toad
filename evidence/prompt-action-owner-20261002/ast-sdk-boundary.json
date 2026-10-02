@@ -1,0 +1,65 @@
+{
+  "tool": "existing NRA parse_python_modules",
+  "root": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp",
+  "sdk": "0.12.1",
+  "parsed": 38,
+  "omissions": [],
+  "boundary_records": [
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/interfaces.py",
+      "line": 172,
+      "source": "@param_model(NewSessionRequest)\nasync def new_session(self, cwd: str, additional_directories: list[str] | None=None, mcp_servers: list[HttpMcpServer | SseMcpServer | AcpMcpServer | McpServerStdio] | None=None, **kwargs: Any) -> NewSessionResponse:\n    ..."
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/interfaces.py",
+      "line": 181,
+      "source": "@param_model(LoadSessionRequest)\nasync def load_session(self, cwd: str, session_id: str, mcp_servers: list[HttpMcpServer | SseMcpServer | AcpMcpServer | McpServerStdio] | None=None, additional_directories: list[str] | None=None, **kwargs: Any) -> LoadSessionResponse | None:\n    ..."
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/interfaces.py",
+      "line": 196,
+      "source": "@param_model(SetSessionModeRequest)\nasync def set_session_mode(self, session_id: str, mode_id: str, **kwargs: Any) -> SetSessionModeResponse | None:\n    ..."
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/interfaces.py",
+      "line": 207,
+      "source": "@param_model(PromptRequest)\nasync def prompt(self, session_id: str, prompt: list[TextContentBlock | ImageContentBlock | AudioContentBlock | ResourceContentBlock | EmbeddedResourceContentBlock], **kwargs: Any) -> PromptResponse:\n    ..."
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/schema.py",
+      "line": 656,
+      "source": "class PromptCapabilities(BaseModel):\n    image: Optional[bool] = False\n    '\\n    Agent supports [`ContentBlock::Image`].\\n    '\n    audio: Optional[bool] = False\n    '\\n    Agent supports [`ContentBlock::Audio`].\\n    '\n    embedded_context: Annotated[Optional[bool], Field(alias='embeddedContext')] = False\n    '\\n    Agent supports embedded context in `session/prompt` requests.\\n\\n    When enabled, the Client is allowed to include [`ContentBlock::Resource`]\\n    in prompt requests for pieces of context that are referenced in the message.\\n    '\n    field_meta: Annotated[Optional[Dict[str, Any]], Field(alias='_meta')] = None\n    '\\n    The _meta property is reserved by ACP to allow clients and agents to attach additional\\n    metadata to their interactions. Implementations MUST NOT make assumptions about values at\\n    these keys.\\n\\n    See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)\\n    '\n\n    @field_validator('audio', 'embedded_context', 'image', mode='wrap')\n    @classmethod\n    def _salvage_on_error_0(cls, value: Any, handler: Any) -> Any:\n        return salvage_on_error(value, handler, lambda: False)"
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/schema.py",
+      "line": 4662,
+      "source": "class SessionConfigOptionSelect(SessionConfigSelect):\n    id: str\n    '\\n    Unique identifier for the configuration option.\\n    '\n    name: str\n    '\\n    Human-readable label for the option.\\n    '\n    description: Optional[str] = None\n    '\\n    Optional description for the Client to display to the user.\\n    '\n    category: Optional[Union[Literal['mode'], Literal['model'], Literal['model_config'], Literal['thought_level'], Dict[str, Any]]] = None\n    '\\n    Optional semantic category for this option (UX only).\\n    '\n    field_meta: Annotated[Optional[Dict[str, Any]], Field(alias='_meta')] = None\n    '\\n    The _meta property is reserved by ACP to allow clients and agents to attach additional\\n    metadata to their interactions. Implementations MUST NOT make assumptions about values at\\n    these keys.\\n\\n    See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)\\n    '\n    type: Literal['select']\n\n    @field_validator('category', 'description', mode='wrap')\n    @classmethod\n    def _salvage_on_error_0(cls, value: Any, handler: Any) -> Any:\n        return salvage_on_error(value, handler, lambda: None)"
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/schema.py",
+      "line": 5505,
+      "source": "class AgentCapabilities(BaseModel):\n    load_session: Annotated[Optional[bool], Field(alias='loadSession')] = False\n    '\\n    Whether the agent supports `session/load`.\\n    '\n    prompt_capabilities: Annotated[Optional[PromptCapabilities], Field(alias='promptCapabilities', validate_default=True)] = PromptCapabilities()\n    '\\n    Prompt capabilities supported by the agent.\\n    '\n    mcp_capabilities: Annotated[Optional[McpCapabilities], Field(alias='mcpCapabilities', validate_default=True)] = McpCapabilities()\n    '\\n    MCP capabilities supported by the agent.\\n    '\n    session_capabilities: Annotated[Optional[SessionCapabilities], Field(alias='sessionCapabilities', validate_default=True)] = SessionCapabilities()\n    '\\n    Session lifecycle and prompt capabilities advertised by the agent.\\n    '\n    auth: Annotated[Optional[AgentAuthCapabilities], Field(validate_default=True)] = {}\n    '\\n    Authentication-related capabilities supported by the agent.\\n    '\n    providers: Optional[ProvidersCapabilities] = None\n    '\\n    **UNSTABLE**\\n\\n    This capability is not part of the spec yet, and may be removed or changed at any point.\\n\\n    Provider configuration capabilities supported by the agent.\\n\\n    Optional. Omitted or `null` both mean the agent does not advertise support.\\n    Supplying `{}` means the agent supports provider configuration methods.\\n    '\n    nes: Optional[NesCapabilities] = None\n    '\\n    **UNSTABLE**\\n\\n    This capability is not part of the spec yet, and may be removed or changed at any point.\\n\\n    NES (Next Edit Suggestions) capabilities supported by the agent.\\n\\n    Optional. Omitted or `null` both mean the agent does not advertise support\\n    for NES methods.\\n    '\n    position_encoding: Annotated[Optional[str], Field(alias='positionEncoding')] = None\n    \"\\n    **UNSTABLE**\\n\\n    This capability is not part of the spec yet, and may be removed or changed at any point.\\n\\n    The position encoding selected by the agent from the client's supported encodings.\\n    \"\n    field_meta: Annotated[Optional[Dict[str, Any]], Field(alias='_meta')] = None\n    '\\n    The _meta property is reserved by ACP to allow clients and agents to attach additional\\n    metadata to their interactions. Implementations MUST NOT make assumptions about values at\\n    these keys.\\n\\n    See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)\\n    '\n\n    @field_validator('load_session', mode='wrap')\n    @classmethod\n    def _salvage_on_error_0(cls, value: Any, handler: Any) -> Any:\n        return salvage_on_error("
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/client/connection.py",
+      "line": 163,
+      "source": "@param_model(NewSessionRequest)\nasync def new_session(self, cwd: str, additional_directories: list[str] | None=None, mcp_servers: list[HttpMcpServer | SseMcpServer | AcpMcpServer | McpServerStdio] | None=None, **kwargs: Any) -> NewSessionResponse:\n    resolved_mcp_servers = mcp_servers or []\n    return await request_model(self._conn, AGENT_METHODS['session_new'], NewSessionRequest(cwd=cwd, additional_directories=additional_directories, mcp_servers=resolved_mcp_servers, field_meta=kwargs or None), NewSessionResponse)"
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/client/connection.py",
+      "line": 184,
+      "source": "@param_model(LoadSessionRequest)\nasync def load_session(self, cwd: str, session_id: str, mcp_servers: list[HttpMcpServer | SseMcpServer | AcpMcpServer | McpServerStdio] | None=None, additional_directories: list[str] | None=None, **kwargs: Any) -> LoadSessionResponse:\n    resolved_mcp_servers = mcp_servers or []\n    return await request_model_from_dict(self._conn, AGENT_METHODS['session_load'], LoadSessionRequest(cwd=cwd, additional_directories=additional_directories, mcp_servers=resolved_mcp_servers, session_id=session_id, field_meta=kwargs or None), LoadSessionResponse)"
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/client/connection.py",
+      "line": 218,
+      "source": "@param_model(SetSessionModeRequest)\nasync def set_session_mode(self, session_id: str, mode_id: str, **kwargs: Any) -> SetSessionModeResponse:\n    return await request_model_from_dict(self._conn, AGENT_METHODS['session_set_mode'], SetSessionModeRequest(mode_id=mode_id, session_id=session_id, field_meta=kwargs or None), SetSessionModeResponse)"
+    },
+    {
+      "path": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/lib/python3.14/site-packages/acp/client/connection.py",
+      "line": 253,
+      "source": "@param_model(PromptRequest)\nasync def prompt(self, session_id: str, prompt: list[TextContentBlock | ImageContentBlock | AudioContentBlock | ResourceContentBlock | EmbeddedResourceContentBlock], **kwargs: Any) -> PromptResponse:\n    try:\n        response = await request_model(self._conn, AGENT_METHODS['session_prompt'], PromptRequest(prompt=prompt, session_id=session_id, field_meta=kwargs or None), PromptResponse)\n    except Exception:\n        await self._session_updates.wait(session_id)\n        raise\n    await self._session_updates.wait(session_id)\n    return response"
+    }
+  ],
+  "dynamic_limits": "External SDK transport and generated native dispatch remain runtime relations; AST records no dynamically resolved receiver claim."
+}

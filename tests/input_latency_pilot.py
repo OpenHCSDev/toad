@@ -21,6 +21,7 @@ async def main():
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             area = app.selected_session.conversation.prompt.prompt_text_area
+            area.shell_mode = True
             area.focus()
             await pilot.pause()
             original = area.post_message
@@ -42,7 +43,7 @@ async def main():
                 area.text = f"message {index}"
                 dispatched.clear()
                 started = time.perf_counter()
-                area.action_submit()
+                await area.run_action("submit")
                 await asyncio.wait_for(dispatched.wait(), 2)
             assert submitted == [f"message {index}" for index in range(20)]
             print(json.dumps({"median_submit_ms": 1000 * statistics.median(timings),

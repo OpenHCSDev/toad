@@ -348,7 +348,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         self.app.coordination_facts[self] = event
-        self.conversation.queue_supported = True
         if event.worktree is not None:
             project = Path(event.worktree)
             if project != self.project_path:

@@ -60,7 +60,6 @@ class GoalEdit(ModalScreen[str | None]):
                 yield Button("Cancel", id="goal-cancel")
 
     def on_mount(self) -> None:
-        self.editor.agent_ready = True
         self.editor.text = self.goal.text
 
     @on(UserInputSubmitted)
