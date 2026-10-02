@@ -1,0 +1,43 @@
+{
+  "core": "457b1047855752f4d069ee1d39b01e30603efa41",
+  "toad_installed": "125f2fbcb5a53833e1328892bbf40783ca467581",
+  "toad_merged325": "2f82b2f976b390d87b43ae52ed7c93e2f937d4f6",
+  "toad_qualified325": "4c7dcfb4e85c1cf36f8cbd3a2f8db64ce4b5211f",
+  "textual_installed": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e",
+  "textual_qualified": "3f389f37f7a8ba42f498d18075ff0a1cfda4f896",
+  "qualified_product": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81",
+  "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+  "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+  "comparisons": [
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/ts/wt/toad-prompt-action-owner-20261002",
+        "diff",
+        "4c7dcfb4e85c1cf36f8cbd3a2f8db64ce4b5211f",
+        "125f2fbcb5a53833e1328892bbf40783ca467581",
+        "--",
+        "src",
+        "tools"
+      ],
+      "diff_bytes": 0,
+      "result": "qualifiedsourceequal"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/ts/wt/textual-native-subtree-retirement-20261001",
+        "diff",
+        "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81",
+        "667dc59ebcaddd08b7f9a20e8e083a7391624d1e",
+        "--",
+        "src",
+        "pyproject.toml"
+      ],
+      "diff_bytes": 0,
+      "result": "qualifiedsourceequal"
+    }
+  ]
+}

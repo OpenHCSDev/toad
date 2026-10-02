@@ -1,0 +1,38 @@
+{
+  "state": "READY installed receiving; parent publication/default/channel pending",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "pins": {
+    "core": "457b1047855752f4d069ee1d39b01e30603efa41",
+    "toad": "82bdf1d042c3520f747cbbb8dea543ad6b7e3dd0",
+    "textual": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+  "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+  "package_count": 69,
+  "sdk": "0.12.1",
+  "normal_dependencies": true,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "native_build": false,
+  "frozen_artifacts": {
+    "source-proof.json": "6dc3fc6ca3a0e5e90f47c11b103c14688f125762fa4c20cbf24d6bd72c8c1d00",
+    "../runtime-native-read532-534-retirement325-20261002/activation.json": "d0d7d2e18c770064f4997ab83ed1728e09f3d0e3ae5caa85897213172e473f8d",
+    "operator-manifest.json": "6973361c023145ba39f0e30229c45f3785f4ec68b21c71795a93b60329fd9a81",
+    "operator-preparation/preparation-receipt.json": "eeea493ced7fa99f265f2a3045d9b2d0eee3437f4f00c5570c866aa68b9bd373",
+    "operator-preparation/review-plan.json": "9c796b95371826cc31dba53af828d0c726a9fbd362bcc28ee3d8b90978076b86",
+    "operator-preparation/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae"
+  },
+  "qualified_source_gates": {
+    "534-installed-comparison.json": "471dd8e2bb02b99ed01a42e1e885731b1ac736b7a08dffb1fb71ec6de04c5bda",
+    "533-installed-restore-resource.json": "12a2506a5d622b94f8c06559fd8395b4daf6bad2ab6c2dc55b7d52d04689eeb5",
+    "325-retirement-published-qualified.json": "a60738aba937e386d6c55de7ec9d2967d6d31c11337aeea882536f701723e3d4",
+    "534-installed-after.json": "d6ee84feacc104cbf4c32d7d7a1bc3cd724210f9b40aeee877b8a42a412b303c"
+  },
+  "whole_declared_native_schema_equal": true,
+  "product_equal_source_target": false,
+  "historical_carry": false,
+  "public_writes": 0,
+  "protected_old_prefix_regular_files_unchanged": 7925,
+  "scope": "325 original119.431s/16warm/readable discrete moving frames; rawcompletedFalse observer gap retained. 533 actual2.317s/count/read/oversize;534 scoped .787s/proof equality. No overall CPU/smooth/S1/S4/channel latency claim. Parent fresh complete audience idle/client check, preserve-only execution and final default/channel acceptance."
+}
