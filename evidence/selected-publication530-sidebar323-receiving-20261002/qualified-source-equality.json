@@ -1,0 +1,40 @@
+{
+  "qualified_to_merged": [
+    {
+      "module": "core",
+      "qualified": "30277862",
+      "merged": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
+      "declared_paths": [
+        "src",
+        "stack",
+        "pyproject.toml",
+        "uv.lock",
+        "tools/cutover"
+      ],
+      "diff_bytes": 0
+    },
+    {
+      "module": "toad",
+      "qualified": "dcac031f91808831b9a245d9d3c507918b2d0c3a",
+      "merged": "c08e6c6579e48bc865b589968e674cea1a606345",
+      "declared_paths": [
+        "src"
+      ],
+      "diff_bytes": 0
+    },
+    {
+      "module": "textual",
+      "qualified": "dd774cd0cb0fa39070f2e076848adf5db25e3472",
+      "merged": "94c14b574641eb08148c3ec88e8fad9dc63dd7e5",
+      "declared_paths": [
+        "src",
+        "pyproject.toml"
+      ],
+      "diff_bytes": 0
+    }
+  ],
+  "receiving_to_ad": "4d5248136c91a9763ea073d4bf62136deb49b7d3",
+  "receiving_metadata_only": true,
+  "native_rebuilt": false,
+  "actual_qualifications_repeated": false
+}
