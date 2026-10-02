@@ -1,0 +1,181 @@
+{
+  "qualification": "SCOPED_READY capture/lifecycle checkpoint; not smoothness, speed, full CPU or complete performance acceptance",
+  "toad_production_head": "e6ac798e7d4e57065c241430c17ec01728f3b312",
+  "textual_production_head": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81",
+  "core": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
+  "native_manifest": "ad533a9f08581561d00d5524a576bda00f6368221cc4f74ba3c68513ede8fc04",
+  "capture": "/home/ts/.cache/agent-scratch/retirement325-published27-public-20261002-01/capture",
+  "raw_receipt": "/home/ts/.cache/agent-scratch/retirement325-published27-public-20261002-01/capture/receipt.json",
+  "raw_completed": false,
+  "capture_completed": true,
+  "raw_error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/ts/.cache/agent-scratch/retirement325-published27-public-20261002-01/capture/scroll-travel.jsonl'",
+  "duration_seconds": 119.43070660199737,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4061914,
+      "start_time": 42142967
+    },
+    "original_owner_alive": true
+  },
+  "owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4061914,
+      "start_time": 42142967
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "source_sanity": {
+    "native_checks": 4,
+    "joined_three_body_custody": "PASS; captures3, whole-scene arrangements0; stream acquired during preparation refuses retirement at commit",
+    "receipt": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native-capture-publication27-source04/receipt.json",
+    "old_source_fixture_limit": "transcript_source_lifetime pilot PREUI has_older assertion failed on old anonymous journal; retained negative"
+  },
+  "observer": {
+    "available": false,
+    "frame_files": 28,
+    "distinct_events": 28,
+    "event_kinds": [
+      "frame_trace_exported"
+    ],
+    "before_manifest_receipts": {
+      "/home/ts/.cache/agent-scratch/retirement325-published27-public-20261002-01/capture/before-state": "pending",
+      "/home/ts/.cache/agent-scratch/retirement325-published27-public-20261002-01/capture/before-screen": "pending"
+    },
+    "scroll_trace_exists": false,
+    "cause": "Only early before capture requested installation. Both startup receipts pending; subsequent native-ready captures exported without installation. No attachment receipt. Exact early remote execution stopping point is not recorded.",
+    "source_correction": "Recorder now acquires existing observers separately through App mounted/driver worker completion; refuses pending/error setup before gestures. Native capture exports after attachment. Export-only traces classify unavailable.",
+    "validation": "Four tool modules compile and original export-only frame_review classifies unavailable; changed attachment lifetime not yet exercised in installed UI. Next changed workflow uses it; no unchanged recapture."
+  },
+  "visual_review": {
+    "during": "Parent verified recorder alive and inspected original35.16s still and44\u201345s consecutive stationary sheet. Readable retained paint only; no moving-frame DURING claim.",
+    "after": [
+      {
+        "file": "review-up-36-frames.png",
+        "seconds": [
+          36,
+          37
+        ],
+        "frames": 60,
+        "assessment": "Readable original history progresses in discrete steps; no disappearing chat or chrome in this selected interval."
+      },
+      {
+        "file": "review-down-58-frames.png",
+        "seconds": [
+          58,
+          59
+        ],
+        "frames": 60,
+        "assessment": "Readable original history progresses in discrete steps; no disappearing chat or chrome in this selected interval."
+      },
+      {
+        "file": "review-reverse-76-frames.png",
+        "seconds": [
+          76,
+          77
+        ],
+        "frames": 60,
+        "assessment": "Readable original history progresses in discrete steps; no disappearing chat or chrome in this selected interval."
+      }
+    ],
+    "a_return": "phase-a-return.png original A selected, saved body and draft readable; warm source/window/editor/reader/body identity checks pass.",
+    "end_idle": "phase-idle-done.png saved bottom remains readable.",
+    "limits": "Consecutive timed frame inspection is not continuous playback. Selected intervals do not prove smooth animation or unchanged target travel; writer/travel observer unavailable. Stepwise foreground motion remains."
+  },
+  "profile": {
+    "GIL_samples": 1381,
+    "reported_sampling_errors": 0,
+    "alignment_uncertainty_seconds": 0.06431005498510786,
+    "kernel_ui_phases": [
+      {
+        "phase": "input-held-up",
+        "seconds": [
+          35.1624865810154,
+          38.57444251497509
+        ],
+        "cpu_percent": 82.35745286249637
+      },
+      {
+        "phase": "input-held-up-done",
+        "seconds": [
+          38.57444251497509,
+          55.34593369998038
+        ],
+        "cpu_percent": 30.408745076643545
+      },
+      {
+        "phase": "input-held-down",
+        "seconds": [
+          56.88498442497803,
+          60.36357169400435
+        ],
+        "cpu_percent": 80.77991962485783
+      },
+      {
+        "phase": "reverse",
+        "seconds": [
+          75.43440237897448,
+          78.88132385100471
+        ],
+        "cpu_percent": 77.46042437187813
+      },
+      {
+        "phase": "idle",
+        "seconds": [
+          83.29050673003076,
+          99.99279827601276
+        ],
+        "cpu_percent": 21.91316077751303
+      }
+    ],
+    "limits": "Phase boundaries include export/wait; not exact keyhold windows, not causal old/new speed comparison. Sampling stack transition groups are not samples/CPU durations. No actual writer quantiles, stationary requests/restores or zero churn available."
+  },
+  "production_delta": {
+    "Toad_added": 82,
+    "Toad_deleted": 35,
+    "files": [
+      "src/toad/widgets/viewport_body.py",
+      "src/toad/widgets/streaming_markdown.py"
+    ]
+  },
+  "remaining": "Full CPU/144Hz, cold/warm firstpaint/raster, velocity/reverse/idle runway, growing-end/void/End, editor/focus, busy sidebar/animation/compaction, workspace custody and TC1/T9/T4 remain active.",
+  "artifact_sha256": {
+    "receipt.json": "1119382b8a0d25e59ea3f1cadf69638444b2e51287621d240a597682bd09840f",
+    "terminal.mp4": "f977fb4450f65a95f1fb3e61c77c080152af551953339d4a941e14d83261a3c6",
+    "warm-scroll-review.json": "fffb66e6ab250779a53307f8efed371b9b21fd8144d3cacae495d3c268809028",
+    "profile-review.json": "8dc7b6700431ca5d229e2cbb4b575442f8e9ae738413c3c277c9bd1d45ad0604",
+    "phase-a-return.png": "4e0252d551c13affdf2be9231e6ac6f4a5b6be13d94b2ba1eb750330c718bfd6",
+    "phase-idle-done.png": "93afcefc0fca7bb92ecfa8eb0fe2bee38565e9aa944fb8511dcca474688b318a",
+    "review-up-36-frames.png": "cb8ada3caef8a5e53fcd8acb1b5bc83b95a2f3681942b3af1a59fad162b69269",
+    "review-down-58-frames.png": "b5532d25727fbf70cf66019ccc9df13250c9b11089105a6e6a6bcd800813c4f3",
+    "review-reverse-76-frames.png": "3318a8a505c4604d87174a04a0664e8f356daf782226d7140365ddcacf5dab35"
+  }
+}
