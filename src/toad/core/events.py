@@ -128,6 +128,21 @@ class SessionInfoUpdate(CoreEvent):
 
 
 @dataclass(frozen=True)
+class SessionTitleChanged(CoreEvent):
+    name: str
+
+
+@dataclass(frozen=True)
+class SessionSubtitleChanged(CoreEvent):
+    subtitle: str
+
+
+@dataclass(frozen=True)
+class SessionPathChanged(CoreEvent):
+    path: str
+
+
+@dataclass(frozen=True)
 class InputDispositionsChanged(CoreEvent):
     """Invalidate delivery display; the producer ledger owns its contents."""
 

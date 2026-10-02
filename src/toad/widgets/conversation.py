@@ -476,7 +476,6 @@ class ConversationSessionBinding(containers.Vertical):
         )
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
-        self._session_title = session_title
         self._auto_title_eligible = (
             agent_session_id is None and session_pk is None and session_title is None
         )
@@ -584,11 +583,7 @@ class ConversationSessionBinding(containers.Vertical):
                 )
                 self._native_agent_started_here = True
                 await self.agent.start(self)
-                self.post_message(
-                    messages.SessionUpdate(
-                        self._session_title or "New Session", self.agent_title
-                    )
-                )
+                self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
 
             from toad.screens.workspace import WorkspaceScreen
 
@@ -769,7 +764,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.prompt.prompt_text_area.insert(" ")
 
     def watch_project_path(self, path: Path) -> None:
-        self.post_message(messages.SessionUpdate(path=str(path)))
+        self.publish_core(core_events.SessionPathChanged(str(path)))
 
     async def sync_project_path(self, path: Path) -> None:
         """Apply the owner's project to every cwd-bound part of this view."""
@@ -1019,7 +1014,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
             await self.agent.set_session_name(name)
-        self.post_message(messages.SessionUpdate(name=name))
+        self.publish_core(core_events.SessionTitleChanged(name))
 
     async def rename_session(self, name: str) -> None:
         """Apply an explicit user- or agent-provided title to this session."""
@@ -1049,7 +1044,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             title = message.event.title or ""
             if (pk := self.agent.session.pk) is not None:
                 await DB().session_update_title(pk, title)
-            self.post_message(messages.SessionUpdate(name=title))
+            self.publish_core(core_events.SessionTitleChanged(title))
         else:
             await self.rename_session(message.event.title or "")
 

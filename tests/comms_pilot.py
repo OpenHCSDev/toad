@@ -405,8 +405,8 @@ async def main() -> None:
             await pilot.pause()
             assert app.session_tracker.get_session(created_mode).title == managed_thread
             await startup_agent.set_session_name("Name this from my first prompt")
-            created_conversation.post_message(
-                messages.SessionUpdate(name="Name this from my first prompt")
+            created_conversation.publish_core(
+                core_events.SessionTitleChanged("Name this from my first prompt")
             )
             await pilot.pause()
             renamed_thread = "Name-this-from-my-first-prompt"

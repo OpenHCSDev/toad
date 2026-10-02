@@ -45,13 +45,4 @@ class Flash(Message):
     duration: float | None = None
 
 
-@dataclass
-class SessionUpdate(Message):
-    name: str | None = None
-    """Name of the session, or `None` for no change."""
-    subtitle: str | None = None
-    """Session subtitle (name of agent)."""
-    path: str | None = None
-    """Project directory path."""
-
 

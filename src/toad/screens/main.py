@@ -157,7 +157,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         project_path: Path,
         agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
-        agent_session_title: str | None = None,
         session_pk: int | None = None,
         initial_prompt: str | None = None,
     ) -> None:
@@ -165,7 +164,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self.set_reactive(MainScreen.project_path, project_path)
         self._agent = agent
         self._agent_session_id = agent_session_id
-        self._agent_session_title = agent_session_title
         self.initial_coordination_root: str | None = None
         self._identity_wire: Comms | None = None
         self._comms_thread = (
@@ -245,7 +243,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         with self._context():
             return Conversation(
                 self.project_path, self._agent, self._agent_session_id,
-                self._session_pk, self._agent_session_title,
+                self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
                 initial_prompt=self._initial_prompt,
             )
 
@@ -305,14 +303,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             pass
         if self.id is not None:
             self.app.session_navigation.sync_identity(self.id, previous, thread_name)
-            details = self.app.session_tracker.get_session(self.id)
-            if (
-                details is not None
-                and details.title in {"New Session", previous}
-                and self._agent_session_title in {None, "New Session", previous}
-            ):
-                self._agent_session_title = thread_name
-                self.app.session_tracker.update_session(self.id, title=thread_name)
+            self.app.session_tracker.bind_identity(self.id, previous, thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
             self.app.session_navigation.sync_recovery(self.id, self.coordination_root)
@@ -338,12 +329,11 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         return self._agent is not None
 
     def spawn(self, *, project: Path | None = None, session_id: str | None = None,
-              title: str | None = None, root: str | None = None) -> "MainScreen":
+              root: str | None = None) -> "MainScreen":
         """Create a peer of this native source through its actual declaration."""
         app = self.app
         with app._context():
-            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
-                              agent_session_title=title).data_bind(column=type(app).column,
+            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id).data_bind(column=type(app).column,
                               column_width=type(app).column_width, scrollbar=type(app).scrollbar)
         peer.initial_coordination_root = root
         return peer
@@ -489,18 +479,20 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
 
         self.query_one(SessionThreadSidebar).update_plan(message.event.entries)
 
-    @on(messages.SessionUpdate)
-    async def on_session_update(self, event: messages.SessionUpdate) -> None:
-        # TODO: May not be required
-        if event.name is not None:
-            self._agent_session_title = event.name
+    @handles(core_events.SessionTitleChanged)
+    def on_session_title_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
-            self.app.session_tracker.update_session(
-                self.id,
-                title=event.name,
-                subtitle=event.subtitle,
-                path=event.path,
-            )
+            self.app.session_tracker.update_session(self.id, title=message.event.name)
+
+    @handles(core_events.SessionSubtitleChanged)
+    def on_session_subtitle_changed(self, message: CoreEventMessage) -> None:
+        if self.id is not None:
+            self.app.session_tracker.update_session(self.id, subtitle=message.event.subtitle)
+
+    @handles(core_events.SessionPathChanged)
+    def on_session_path_changed(self, message: CoreEventMessage) -> None:
+        if self.id is not None:
+            self.app.session_tracker.update_session(self.id, path=message.event.path)
 
 
     def on_mount(self) -> None:

@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 from agent_comms.field_codec import FieldCodec
 from agent_comms.transcripts import TranscriptPage
 from toad.acp.agent import Agent
+from toad.core_event_carrier import CoreEventMessage
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory
 from runtime_fixture import ToadApp
@@ -38,6 +39,7 @@ async def main():
             view = app.selected_session.conversation
             agent = Agent(root, {'identity': 'saved-page-proof', 'name': 'Saved page proof', 'run_command': {'*': ''}}, None, None)
             view.agent = agent
+            agent.attach_surface(view)
             details = view.query_one(SessionDetails)
             view.native_history_status = 'unavailable'
             await pilot.pause()
@@ -49,7 +51,7 @@ async def main():
             await view.transcript.snapshot(page)
             await pilot.pause()
             source = view.query_one(TranscriptHistory)
-            await view.on_agent_ready(AgentReady(reconnected=True))
+            await view.on_agent_ready(CoreEventMessage(AgentReady(reconnected=True), agent.controller.surface.subscription))
             assert view.agent_ready, "Fresh reconnect view must become ready"
             before = tuple(view.contents.children)
             # Same source page before/after the painted cursor callback must use

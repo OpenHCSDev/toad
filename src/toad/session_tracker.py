@@ -116,6 +116,16 @@ class SessionDetails:
     created_at: float = field(default_factory=time)
     """Creation time for local sessions without a wire identity."""
 
+    @property
+    def initial_title(self) -> str | None:
+        """The workspace placeholder is not an authored session name."""
+        return None if self.title == "New Session" else self.title
+
+    def bind_initial_identity(self, session_id: str | None) -> None:
+        """An existing native identity names an otherwise unnamed admission."""
+        if session_id is not None and self.title == "New Session":
+            self.title = session_id
+
 
 
 class SessionTracker:
@@ -144,6 +154,11 @@ class SessionTracker:
         if mode_name in self.sessions:
             del self.sessions[mode_name]
             self.events.publish(SessionClosedEvent(mode_name))
+
+    def bind_identity(self, mode_name: str, previous: str, current: str) -> None:
+        details = self.sessions[mode_name]
+        if details.title in {"New Session", previous}:
+            self.update_session(mode_name, title=current)
 
     def get_session(self, mode_name: str) -> SessionDetails | None:
         return self.sessions.get(mode_name, None)
