@@ -1,0 +1,47 @@
+installed new publication case: inherited source/resource/generation fencing, real cropped paint, retirement passed
+{
+  "state": "PASS_AFFECTED_INSTALLED_APP_AND_CERTIFIED_READ_FAMILY",
+  "prefix": "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001",
+  "sources": {
+    "toad": {
+      "module": "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001/lib/python3.14/site-packages/toad/__init__.py",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "c97255e80fd8a32dff312a44c24cddc01b12d29e",
+          "requested_revision": "c97255e80fd8a32dff312a44c24cddc01b12d29e"
+        }
+      }
+    },
+    "textual": {
+      "module": "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001/lib/python3.14/site-packages/textual/__init__.py",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d",
+          "requested_revision": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d"
+        }
+      }
+    },
+    "agent_comms": {
+      "module": "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001/lib/python3.14/site-packages/agent_comms/__init__.py",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99",
+          "requested_revision": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99"
+        }
+      }
+    }
+  },
+  "publication_sha256": "3fb91e1b709f993cbccf5d81f23534a79ddcd0a68ed805a9b76306cc621f6cad",
+  "provider_calls": 0,
+  "original_input_replayed": false,
+  "product_source_overlay": false,
+  "public_mutation": false,
+  "scope": "original UI pump/application epoch, held certified read decline, fresh read once, cancel/close",
+  "physical_ABA": "separate sole Heisenberg gate; not covered by this App sanity"
+}
