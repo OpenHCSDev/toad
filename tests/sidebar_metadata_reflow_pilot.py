@@ -49,7 +49,8 @@ async def main():
                     assert layout.call_count == 0, f"Metadata-only updates caused {layout.call_count} layouts"
 
                 # A real collapse/expand still reconciles members and geometry.
-                group = next(group for group in sidebar.query(ChannelGroup) if group._view.members)
+                group = next(group for group in sidebar.query(ChannelGroup) if next(view for view in sidebar.projection.snapshot.wire.channels
+                                                      if view.channel.name == group.row.target_name).members)
                 before = group.expanded
                 group.toggle_members()
                 await pilot.pause()

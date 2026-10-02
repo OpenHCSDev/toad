@@ -1727,7 +1727,6 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
 
     async def _open_tabs_changed(self, _update: None) -> None:
         self.update_slash_commands()
-        await self.goal_observation.refresh()
 
     @on(GoalControl.Activated)
     async def on_goal_control(self, event: GoalControl.Activated):
