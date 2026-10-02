@@ -203,7 +203,8 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
             model = self._context_nodes[selected].data
             self.call_after_refresh(self._restore_cursor, model)
         else:
-            self.intent.selected = None
+            # A pending/unavailable original observation cannot revoke the
+            # reader's choice. Reuse it when its node is materialized again.
             self.query_one(TextArea).load_text("Select a context segment to inspect.")
 
     def _restore_cursor(self, model):

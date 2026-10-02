@@ -213,10 +213,7 @@ class ContextInspection:
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
         return (self.source == other.source
-                and self.owner.incarnation == other.owner.incarnation
-                and self.owner.process_identity == other.owner.process_identity
-                and self.owner.session_file == other.owner.session_file
-                and self.owner.worktree == other.owner.worktree
+                and self.owner.publication_identity == other.owner.publication_identity
                 and self.owner.model == other.owner.model
                 and self.owner.thinking_level == other.owner.thinking_level)
 
