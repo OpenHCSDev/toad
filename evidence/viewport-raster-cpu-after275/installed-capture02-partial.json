@@ -1,0 +1,207 @@
+{
+  "capture": "/home/ts/.cache/agent-scratch/viewport284-text19-busy-warm-20261001-02/capture",
+  "source": "d153128e/07299746",
+  "completed": false,
+  "operator_error": "TimeoutExpired: Command '('/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-text19-20261001/bin/python', '-c', \"import os,sys\\nfd=int(sys.argv[1]); error_fd=int(sys.argv[2]); go=os.read(fd,1); os.close(fd)\\nif go != b'G': sys.exit(126)\\nos.set_inheritable(error_fd, False)\\ntry: os.execvpe(sys.argv[3], sys.argv[3:], os.environ)\\nexcept OSError as error:\\n    os.write(error_fd, str(error.errno).encode()); os._exit(126)\\n\", '10', '13', 'xdotool', 'exec', '--sync', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-text19-20261001/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py', '--mark', 'b-open', '--wait-history-seconds', '35', '--wait-history-interval', '0.1', '--wait-history-thread', 'agent-comms-ux')' timed out after 3.8317409729934298 seconds",
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2275520,
+      "start_time": 36465818
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2275520,
+      "start_time": 36465818
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "errors": [],
+    "remaining_owned_pids": []
+  },
+  "active_animation_compensation": [
+    {
+      "video_seconds": 19.893096549028996,
+      "identity_preserved": true,
+      "start_time_preserved": true,
+      "duration_preserved": true,
+      "deltas": {
+        "start": 40.0,
+        "end": 40.0,
+        "final": 40.0
+      }
+    },
+    {
+      "video_seconds": 24.195610944007058,
+      "identity_preserved": true,
+      "start_time_preserved": true,
+      "duration_preserved": true,
+      "deltas": {
+        "start": 4.0,
+        "end": 4.0000000000000036,
+        "final": 4.0000000000000036
+      }
+    },
+    {
+      "video_seconds": 24.232148187002167,
+      "identity_preserved": true,
+      "start_time_preserved": true,
+      "duration_preserved": true,
+      "deltas": {
+        "start": 0.0,
+        "end": -3.552713678800501e-15,
+        "final": -3.552713678800501e-15
+      }
+    }
+  ],
+  "kernel_phase_cpu": [
+    {
+      "from": "warm-ready",
+      "to": "warm-start",
+      "wall_seconds": 1.1583093469962478,
+      "ui_cpu_seconds": 0.6299999999999999,
+      "ui_cpu_percent": 54.38961548861961
+    },
+    {
+      "from": "warm-start",
+      "to": "draft",
+      "wall_seconds": 5.936439830984455,
+      "ui_cpu_seconds": 2.219999999999999,
+      "ui_cpu_percent": 37.396150945774025
+    },
+    {
+      "from": "draft",
+      "to": "travel-start",
+      "wall_seconds": 1.4300737850135192,
+      "ui_cpu_seconds": 0.3200000000000003,
+      "ui_cpu_percent": 22.37646779861608
+    },
+    {
+      "from": "travel-start",
+      "to": "input-held-up",
+      "wall_seconds": 1.3886991959880106,
+      "ui_cpu_seconds": 0.3200000000000003,
+      "ui_cpu_percent": 23.043147207436203
+    },
+    {
+      "from": "input-held-up",
+      "to": "input-held-up-done",
+      "wall_seconds": 5.769654275034554,
+      "ui_cpu_seconds": 4.710000000000001,
+      "ui_cpu_percent": 81.63400743750444
+    },
+    {
+      "from": "input-held-up-done",
+      "to": "input-mid-history-idle-done",
+      "wall_seconds": 16.760334341961425,
+      "ui_cpu_seconds": 7.140000000000001,
+      "ui_cpu_percent": 42.60058215022709
+    },
+    {
+      "from": "input-mid-history-idle-done",
+      "to": "input-held-down",
+      "wall_seconds": 1.4327227580361068,
+      "ui_cpu_seconds": 0.39000000000000057,
+      "ui_cpu_percent": 27.22089795897358
+    },
+    {
+      "from": "input-held-down",
+      "to": "input-held-down-done",
+      "wall_seconds": 5.6883056099759415,
+      "ui_cpu_seconds": 3.729999999999997,
+      "ui_cpu_percent": 65.57312942993885
+    },
+    {
+      "from": "input-held-down-done",
+      "to": "focused",
+      "wall_seconds": 2.2884057560004294,
+      "ui_cpu_seconds": 0.490000000000002,
+      "ui_cpu_percent": 21.41228664170123
+    },
+    {
+      "from": "focused",
+      "to": "up",
+      "wall_seconds": 2.5539438939886168,
+      "ui_cpu_seconds": 0.7199999999999989,
+      "ui_cpu_percent": 28.191692139154252
+    },
+    {
+      "from": "up",
+      "to": "up-done",
+      "wall_seconds": 5.749130846001208,
+      "ui_cpu_seconds": 1.1099999999999994,
+      "ui_cpu_percent": 19.307266258725992
+    },
+    {
+      "from": "up-done",
+      "to": "down",
+      "wall_seconds": 1.410932244034484,
+      "ui_cpu_seconds": 0.2900000000000027,
+      "ui_cpu_percent": 20.553786422143382
+    },
+    {
+      "from": "down",
+      "to": "down-done",
+      "wall_seconds": 5.735063619969878,
+      "ui_cpu_seconds": 1.0899999999999999,
+      "ui_cpu_percent": 19.00589203935849
+    },
+    {
+      "from": "down-done",
+      "to": "reverse",
+      "wall_seconds": 1.477891652029939,
+      "ui_cpu_seconds": 0.3099999999999987,
+      "ui_cpu_percent": 20.975827258662854
+    },
+    {
+      "from": "reverse",
+      "to": "reverse-done",
+      "wall_seconds": 5.848310639965348,
+      "ui_cpu_seconds": 1.1900000000000013,
+      "ui_cpu_percent": 20.34775635664682
+    },
+    {
+      "from": "reverse-done",
+      "to": "end",
+      "wall_seconds": 1.5189192250254564,
+      "ui_cpu_seconds": 0.41999999999999815,
+      "ui_cpu_percent": 27.651239979068613
+    },
+    {
+      "from": "end",
+      "to": "idle",
+      "wall_seconds": 2.6238344910088927,
+      "ui_cpu_seconds": 1.2100000000000009,
+      "ui_cpu_percent": 46.11571363004466
+    },
+    {
+      "from": "idle",
+      "to": "idle-done",
+      "wall_seconds": 16.632521786959842,
+      "ui_cpu_seconds": 3.9400000000000013,
+      "ui_cpu_percent": 23.688530521505303
+    },
+    {
+      "from": "idle-done",
+      "to": "switch-b",
+      "wall_seconds": 1.4021836290485226,
+      "ui_cpu_seconds": 0.37999999999999545,
+      "ui_cpu_percent": 27.100587407217944
+    }
+  ],
+  "raw_hashes": {
+    "receipt.json": "225472e8fafb870bf8d48ab6bba24207b526c161960b3188e37f3413280062e1",
+    "events.jsonl": "5425dc9ab2750c1434a45dd5dded43414a280c745e0b2b0eb805edb1610c6e26",
+    "scroll-travel.jsonl": "6d4eda40b90b33dfcd6625f1303b1b9b80818c1aaf8464c592f0b66369e486ee",
+    "cpu-profile.json": "e8b90704648c1d30518b23cd9948db4f9ee49a3490abf1eee78c84961bd6530f"
+  },
+  "physical": "Incomplete operator budget gate.03 End/A-return pixels differ. Initial B attribution superseded by05 original typed native events: e19f0c4 text belongs original A saved TranscriptFragmentView, not B or a proven live source block. Physical reader-to-paint relation remains unclosed."
+}

@@ -62,7 +62,7 @@ async def exercise(app, pilot, count, *, matches=True):
             seen.update(child.fragment.events[0].text for child in overlay.fragment_views)
             peak_fragments = max(peak_fragments, overlay.fragment_count)
             peak_pages = max(peak_pages, len(overlay.pages))
-            peak_widgets = max(peak_widgets, overlay.widget_count)
+            peak_widgets = max(peak_widgets, overlay.window.document_viewport.materialized_widget_count)
             # Each fixture row occupies at least one line. The viewport can
             # protect its rows plus partially clipped ends and one new batch.
             bound = budget.item_limit(view.window.size.height + 2 + budget.admission_items)

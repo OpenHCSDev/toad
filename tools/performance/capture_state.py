@@ -54,7 +54,10 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 if not app.workspace_sessions.source.shown(view):
                     return False
                 window = view.query_one_optional(HistoryWindow)
-                if window is None or window.history_mutating() or window.history_lock.locked():
+                # HistoryWindow's native tree fence owns frame publication.
+                # Its async history lock may also serialize work after a
+                # committed frame; holding it doesn't revoke that frame.
+                if window is None or window.history_mutating():
                     return False
                 screen = window.screen
                 visible = screen._compositor.visible_widgets
@@ -306,8 +309,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                             if node.history_anchor is not None else None)
                         window["layout_ready"] = (node.history_layout_ready.is_set()
                                                   if node.history_layout_ready is not None else None)
-                        window["paint_ready"] = (node.history_paint_ready.is_set()
-                                                 if node.history_paint_ready is not None else None)
                         manager = data.get("document_viewport")
                         if manager is not None:
                             visible = visible_regions
@@ -345,8 +346,8 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                 "body_evictions": manager.body_evictions,
                                 "pending": manager._pending,
                                 "outer_owner_count": len(outer),
-                                "outer_materialized_widgets": sum(1 + len(body.walk_children())
-                                                                   for body in outer if not body.body_dormant),
+                                "outer_materialized_widgets": sum(body.materialized_widget_count
+                                                                   for body in outer),
                                 "outer_materialized_source_bytes": sum(body.retained_source_bytes
                                                                         for body in outer if not body.body_dormant),
                                 "registered": len(owners),
@@ -359,7 +360,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                             "dormant": body.body_dormant, "visible": body in visible,
                                             "measured_rows": body.measured_rows,
                                             "retained_widget_count": body.retained_widget_count,
-                                            "native_widget_count": 1 + len(body.walk_children()),
+                                            "native_widget_count": body.materialized_widget_count,
                                             "retained_source_bytes": body.retained_source_bytes,
                                             "measurement": (asdict(body._body_measurement)
                                                             if body._body_measurement is not None else None)}

@@ -1,0 +1,211 @@
+{
+  "capture": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-04/capture",
+  "source": "frozen10a8 product / Core079 / Text559547 / native5184; later budget deletion NOT included",
+  "capture_completed": true,
+  "review_completed": false,
+  "duration_seconds": 104.21886889601592,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": false,
+    "held_page_down_admitted_newer_source": false,
+    "reverse_page_up_admitted_older_source": false,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": false,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "idle_observations": [
+    {
+      "first": "input-held-up-done",
+      "last": "input-mid-history-idle-done",
+      "snapshot_elapsed_seconds": 16.78971083,
+      "warm_entry_removals_before": 32,
+      "warm_entry_removals_after": 346,
+      "warm_entry_removal_delta": 314,
+      "warm_entry_removals_per_second": 18.70193019875852,
+      "original_trace_events": {
+        "sidebar_publication_start": 4,
+        "sidebar_publication_done": 4,
+        "page_extension": 149,
+        "request": 615,
+        "full_admission": 589,
+        "fragment_budget": 149,
+        "page_extended": 149,
+        "scroll": 148,
+        "animation_transforming": 148,
+        "animation_transformed": 148,
+        "relocating": 297,
+        "relocated": 297
+      },
+      "limit": "body_evictions counts warm-LRU key removal, not actual retire_body invocations; B/E profiler transitions are not CPU duration"
+    },
+    {
+      "first": "idle",
+      "last": "idle-done",
+      "snapshot_elapsed_seconds": 16.669219521,
+      "warm_entry_removals_before": 418,
+      "warm_entry_removals_after": 701,
+      "warm_entry_removal_delta": 283,
+      "warm_entry_removals_per_second": 16.977399550319355,
+      "original_trace_events": {
+        "relocating": 315,
+        "relocated": 315,
+        "page_extension": 154,
+        "request": 632,
+        "full_admission": 595,
+        "fragment_budget": 153,
+        "page_extended": 153,
+        "scroll": 153,
+        "animation_transforming": 153,
+        "animation_transformed": 153,
+        "sidebar_publication_start": 3,
+        "sidebar_publication_done": 3
+      },
+      "limit": "body_evictions counts warm-LRU key removal, not actual retire_body invocations; B/E profiler transitions are not CPU duration"
+    }
+  ],
+  "physical": [
+    {
+      "label": "warm-start",
+      "image": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-04/capture/phase-warm-start.png",
+      "sha256": "c08e2c051b4d5a0a816a8b7e6ae85eddf03ef42aab0f9a090adb2f553e1042c4",
+      "assessment": "Original fresh user prompt and exact assistant acknowledgment both physically painted.",
+      "window_object_id": 139952829498704,
+      "scroll_y": 101,
+      "maximum": 101,
+      "follows_tail": true,
+      "top_visible_resource": {
+        "object_id": 139952340591120,
+        "offset_rows": -10
+      },
+      "resource_identity_limit": "Original captured native resource identity; snapshot does not attach semantic fragment identity to each map node"
+    },
+    {
+      "label": "idle-done",
+      "image": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-04/capture/phase-idle-done.png",
+      "sha256": "bd9c6bf37a31362b605fac847cdbcbe1ca969ba12c9000314cae5b1a0c6baeff",
+      "assessment": "Original compaction summary readable; End remains away from tail; latest acknowledgment not in viewport.",
+      "window_object_id": 139952829498704,
+      "scroll_y": 92,
+      "maximum": 149,
+      "follows_tail": false,
+      "top_visible_resource": {
+        "object_id": 139952319280336,
+        "offset_rows": -15
+      },
+      "resource_identity_limit": "Original captured native resource identity; snapshot does not attach semantic fragment identity to each map node"
+    },
+    {
+      "label": "a-return",
+      "image": "/home/ts/.cache/agent-scratch/compaction499-performance284-canonical-live-20261001-04/capture/phase-a-return.png",
+      "sha256": "fecb281c07ac00effa380742345710cba8b162417489f125ad4a422a26fe2540",
+      "assessment": "Original selected fork and original summary readable; top anchor placement differs from idle-done.",
+      "window_object_id": 139952829498704,
+      "scroll_y": 63,
+      "maximum": 146,
+      "follows_tail": false,
+      "top_visible_resource": {
+        "object_id": 139952319280336,
+        "offset_rows": -7
+      },
+      "resource_identity_limit": "Original captured native resource identity; snapshot does not attach semantic fragment identity to each map node"
+    }
+  ],
+  "profile": {
+    "sample_count": 2125,
+    "sampling_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.06508446451975033
+  },
+  "ui_cpu": [
+    {
+      "phase": "input-held-up",
+      "cpu_percent": 78.83145319303257,
+      "cpu_seconds": 3.0999999999999996,
+      "interval_seconds": 3.93244051001966,
+      "includes": "same-run observation/export overhead"
+    },
+    {
+      "phase": "input-held-up-done",
+      "cpu_percent": 96.03415461217504,
+      "cpu_seconds": 16.14,
+      "interval_seconds": 16.806520622980315,
+      "includes": "same-run observation/export overhead"
+    },
+    {
+      "phase": "input-held-down",
+      "cpu_percent": 60.23374013919495,
+      "cpu_seconds": 2.3699999999999974,
+      "interval_seconds": 3.93467182101449,
+      "includes": "same-run observation/export overhead"
+    },
+    {
+      "phase": "up",
+      "cpu_percent": 17.019547119968628,
+      "cpu_seconds": 0.6499999999999986,
+      "interval_seconds": 3.819138050021138,
+      "includes": "same-run observation/export overhead"
+    },
+    {
+      "phase": "down",
+      "cpu_percent": 18.255130134962013,
+      "cpu_seconds": 0.6899999999999977,
+      "interval_seconds": 3.7797594150179066,
+      "includes": "same-run observation/export overhead"
+    },
+    {
+      "phase": "reverse",
+      "cpu_percent": 18.19568496637744,
+      "cpu_seconds": 0.7199999999999989,
+      "interval_seconds": 3.9569821159821004,
+      "includes": "same-run observation/export overhead"
+    },
+    {
+      "phase": "idle",
+      "cpu_percent": 95.9170780963937,
+      "cpu_seconds": 15.96,
+      "interval_seconds": 16.639372588018887,
+      "includes": "same-run observation/export overhead"
+    }
+  ],
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "owned_fork",
+    "name": "compaction499-live-architecture-memory",
+    "identity": {
+      "pid": 2497633,
+      "start_time": 37157760
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "new_input": false,
+  "original_answer": {
+    "entry": "42c3f6d7",
+    "parent": "c5b7e179",
+    "timestamp": "2026-10-01T23:36:06.526Z",
+    "text": "Compaction499UI20261001-one acknowledged.",
+    "stop_reason": "stop",
+    "ui_submission_marker_to_native_assistant_utc_seconds": 988.980304,
+    "limit": "Includes original compaction, source/publication/lock/provider work; not provider-only or UI-only latency"
+  }
+}

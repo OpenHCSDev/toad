@@ -38,7 +38,7 @@ async def main(*, rich=False, steps=15):
                  'bodies':[id(c) for p in history.pages for c in p.children]}
     for step in range(steps if phase!='end' else 1):
      await pilot.press(key); await pilot.pause(.03)
-     states.append({'phase':phase,'step':step,'range':[(p.start,p.stop) for p in history.pages], 'fragment_count':history.fragment_count,'widgets':history.widget_count,'widget_bound':history.widget_limit,'y':view.window.scroll_y,'maximum':view.window.max_scroll_y,'native_body_evictions':view.window.document_viewport.body_evictions,'constructs':len(constructed)})
+     states.append({'phase':phase,'step':step,'range':[(p.start,p.stop) for p in history.pages], 'fragment_count':history.fragment_count,'widgets':history.window.document_viewport.materialized_widget_count,'widget_bound':history.window.document_viewport.budget.widget_limit(history.window.size.height),'y':view.window.scroll_y,'maximum':view.window.max_scroll_y,'native_body_evictions':view.window.document_viewport.body_evictions,'constructs':len(constructed)})
    await pilot.pause(.3)
    counts=Counter(constructed)
    receipt={'boundary':'actual native Toad/Pilot source-admission diagnostic; no Agent/provider or public root; not saved41MB physical acceptance','agent_bound':view.agent is not None,'constructor_calls':len(constructed),'distinct_source_fragments':len(counts),'reconstructed_source_fragments':{str(k):v for k,v in counts.items() if v>1},'native_body_evictions':view.window.document_viewport.body_evictions,'source_fragments':len(page.fragments),'states':states,'end_before':end_before,'end_after':{'constructs':len(constructed),'pages':[id(p) for p in history.pages],'bodies':[id(c) for p in history.pages for c in p.children]},'exception':str(app._exception)}

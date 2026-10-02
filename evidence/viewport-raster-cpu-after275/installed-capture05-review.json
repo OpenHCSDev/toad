@@ -1,0 +1,355 @@
+{
+  "state": "SCOPED_PHYSICAL_BODY_REUSE_CONFIRMED_FULL_PERFORMANCE_OPEN",
+  "capture": "/home/ts/.cache/agent-scratch/viewport284-publication-busy-warm-20261001-05/capture",
+  "source_pins": {
+    "toad": "83820534e7a9a04b793a7382a4e4b83b7c47a2ac",
+    "textual": "0729974680884d3547ed222b66a536fb26f1116c",
+    "core": "1f8bf0ef9a23ae75c2b00ea97310ecbfaae37770"
+  },
+  "completed": true,
+  "duration_seconds": 102.47152467997512,
+  "native_checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_admitted_older_source": true,
+      "held_page_down_admitted_newer_source": true,
+      "reverse_page_up_admitted_older_source": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "physical": "Exact PNG inspection and RGB comparison: body crop (499,70,1229,711) is byte-identical idle-done -> A-return -> Undo. Older e19f0c4 text is original A saved AssistantTranscript. Previous B-source and body-difference attribution was incorrect. Full-frame differences are tab/sidebar keyboard selection and editor caret/draft. SidebarNavigation remembers the keyboard row separately from active row.current; A remains bold/current while B remains pink selection. These observations establish this scoped body return, not full smooth/concurrent sidebar performance.",
+  "phase_sources": {
+    "idle-done": {
+      "selected_source": "nra-architecture",
+      "source_cursor": "TranscriptCursor(session_file='/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl', offset=41294021, receipts=AssignedSourceCursor(root='/var/tmp/agent-comms-live-20260927-wzjtqhza', recipient=ThreadIncarnation(name='nra-architecture', created_at=1790049182.3907015), sequence=277), outcomes=None)",
+      "native_tail_event": "AssistantTranscript(routing=None, source=None, timestamp=1790884840.572, text='Committed and pushed `skills/refactor-audit.skill` as `e19f0c4` to `checkpoint/native-proof-performance-20260914`, preserving newer remote commits. Unrelated changes untouched.')",
+      "window": 140164045426192,
+      "scroll_y": 105,
+      "maximum": 105,
+      "scene_window_ids": [
+        140164045426192
+      ],
+      "draft": "warm-scroll-draft"
+    },
+    "b-open": {
+      "selected_source": "agent-comms-ux",
+      "source_cursor": "TranscriptCursor(session_file='/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl', offset=146073899, receipts=AssignedSourceCursor(root='/var/tmp/agent-comms-live-20260927-wzjtqhza', recipient=ThreadIncarnation(name='agent-comms-ux', created_at=1790049004.0955005), sequence=318), outcomes=None)",
+      "native_tail_event": "SentTranscript(routing=TurnRouting(requests=(), reply=MessageRoute(sender='agent-comms-ux', targets=('dedicated-worktree-cleanup-20261001',)), publications=()), source=MessageReference(seq=318, message_id='c65fb3b5c279'), timestamp=1790881151.954336, text='Verified `results.md`; no files changed or tests run (readonly coordination).\\n\\nI cannot directly relay to Kepler or Arendt489: this turn exposes no messaging tool. Please forward:\\n\\n- **Kepler:** Private native processing misses eligible batches: 25/35 reservations had additional unbound inputs, up to five. Extend canonical multi-source assignment/execution/input/handling relations\u2014not singleton loops or a new queue. Preserve per-source obligations and send proofs; exclude bound/sent/UNKNOWN/interrupted inputs.\\n- **Arendt489:** Bound-to-native gaps dominate: 14.659\u201378.169s versus 5.126\u20138.274s model streams. Request-local preparation (35.6\u201371.5ms) does not explain outer admission/startup/scheduling delays; their components remain uninstrumented.\\n\\nArchitecture-memory originals/recovery remain untouched. Cleanup receipt reports 4,569,776,128 bytes reclaimed, no active deletion.')",
+      "window": 140163447898192,
+      "scroll_y": 104,
+      "maximum": 104,
+      "scene_window_ids": [
+        140163447898192
+      ],
+      "draft": ""
+    },
+    "a-return": {
+      "selected_source": "nra-architecture",
+      "source_cursor": "TranscriptCursor(session_file='/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl', offset=41294021, receipts=AssignedSourceCursor(root='/var/tmp/agent-comms-live-20260927-wzjtqhza', recipient=ThreadIncarnation(name='nra-architecture', created_at=1790049182.3907015), sequence=277), outcomes=None)",
+      "native_tail_event": "AssistantTranscript(routing=None, source=None, timestamp=1790884840.572, text='Committed and pushed `skills/refactor-audit.skill` as `e19f0c4` to `checkpoint/native-proof-performance-20260914`, preserving newer remote commits. Unrelated changes untouched.')",
+      "window": 140164045426192,
+      "scroll_y": 105,
+      "maximum": 105,
+      "scene_window_ids": [
+        140164045426192
+      ],
+      "draft": "warm-scroll-draft"
+    },
+    "undo": {
+      "selected_source": "nra-architecture",
+      "source_cursor": "TranscriptCursor(session_file='/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl', offset=41294021, receipts=AssignedSourceCursor(root='/var/tmp/agent-comms-live-20260927-wzjtqhza', recipient=ThreadIncarnation(name='nra-architecture', created_at=1790049182.3907015), sequence=277), outcomes=None)",
+      "native_tail_event": "AssistantTranscript(routing=None, source=None, timestamp=1790884840.572, text='Committed and pushed `skills/refactor-audit.skill` as `e19f0c4` to `checkpoint/native-proof-performance-20260914`, preserving newer remote commits. Unrelated changes untouched.')",
+      "window": 140164045426192,
+      "scroll_y": 105,
+      "maximum": 105,
+      "scene_window_ids": [
+        140164045426192
+      ],
+      "draft": ""
+    }
+  },
+  "active_compensations": [
+    {
+      "video_seconds": 19.11842113896273,
+      "same_original_animation": true,
+      "same_timeline": true,
+      "deltas": {
+        "start": 40.0,
+        "end": 40.0,
+        "final": 40.0
+      }
+    },
+    {
+      "video_seconds": 19.13319106696872,
+      "same_original_animation": true,
+      "same_timeline": true,
+      "deltas": {
+        "start": -2.842170943040401e-14,
+        "end": -2.842170943040401e-14,
+        "final": -2.842170943040401e-14
+      }
+    },
+    {
+      "video_seconds": 52.09724959998857,
+      "same_original_animation": true,
+      "same_timeline": true,
+      "deltas": {
+        "start": 20.0,
+        "end": 19.999999999999996,
+        "final": 19.999999999999996
+      }
+    }
+  ],
+  "kernel_phase_cpu": [
+    {
+      "from": "warm-ready",
+      "to": "warm-start",
+      "wall_seconds": 1.1382396559929475,
+      "ui_cpu_seconds": 0.9199999999999999,
+      "ui_cpu_percent": 80.82656364642598
+    },
+    {
+      "from": "warm-start",
+      "to": "draft",
+      "wall_seconds": 5.114061233005486,
+      "ui_cpu_seconds": 2.2299999999999995,
+      "ui_cpu_percent": 43.60526592071032
+    },
+    {
+      "from": "draft",
+      "to": "travel-start",
+      "wall_seconds": 1.442438165016938,
+      "ui_cpu_seconds": 0.35999999999999943,
+      "ui_cpu_percent": 24.957742295717203
+    },
+    {
+      "from": "travel-start",
+      "to": "input-held-up",
+      "wall_seconds": 1.489201536984183,
+      "ui_cpu_seconds": 0.45000000000000107,
+      "ui_cpu_percent": 30.217535291516462
+    },
+    {
+      "from": "input-held-up",
+      "to": "input-held-up-done",
+      "wall_seconds": 3.8348464340087958,
+      "ui_cpu_seconds": 2.8499999999999996,
+      "ui_cpu_percent": 74.31849094986374
+    },
+    {
+      "from": "input-held-up-done",
+      "to": "input-mid-history-idle-done",
+      "wall_seconds": 16.6140464739874,
+      "ui_cpu_seconds": 5.879999999999999,
+      "ui_cpu_percent": 35.39173920818333
+    },
+    {
+      "from": "input-mid-history-idle-done",
+      "to": "input-held-down",
+      "wall_seconds": 1.4156679200241342,
+      "ui_cpu_seconds": 0.40000000000000213,
+      "ui_cpu_percent": 28.25521397653646
+    },
+    {
+      "from": "input-held-down",
+      "to": "input-held-down-done",
+      "wall_seconds": 3.7746280130231753,
+      "ui_cpu_seconds": 2.8000000000000007,
+      "ui_cpu_percent": 74.17949504797492
+    },
+    {
+      "from": "input-held-down-done",
+      "to": "focused",
+      "wall_seconds": 2.413389751978684,
+      "ui_cpu_seconds": 1.3999999999999986,
+      "ui_cpu_percent": 58.009693579421636
+    },
+    {
+      "from": "focused",
+      "to": "up",
+      "wall_seconds": 2.557279210013803,
+      "ui_cpu_seconds": 0.5799999999999983,
+      "ui_cpu_percent": 22.680354875949103
+    },
+    {
+      "from": "up",
+      "to": "up-done",
+      "wall_seconds": 3.838579878967721,
+      "ui_cpu_seconds": 2.6900000000000013,
+      "ui_cpu_percent": 70.07799980245302
+    },
+    {
+      "from": "up-done",
+      "to": "down",
+      "wall_seconds": 1.5656319900299422,
+      "ui_cpu_seconds": 1.4100000000000001,
+      "ui_cpu_percent": 90.05947815188897
+    },
+    {
+      "from": "down",
+      "to": "down-done",
+      "wall_seconds": 4.016571768966969,
+      "ui_cpu_seconds": 3.7600000000000016,
+      "ui_cpu_percent": 93.61217018579615
+    },
+    {
+      "from": "down-done",
+      "to": "reverse",
+      "wall_seconds": 1.5425718440092169,
+      "ui_cpu_seconds": 1.3499999999999979,
+      "ui_cpu_percent": 87.51618313551506
+    },
+    {
+      "from": "reverse",
+      "to": "reverse-done",
+      "wall_seconds": 3.808047285012435,
+      "ui_cpu_seconds": 3.1499999999999986,
+      "ui_cpu_percent": 82.71956108312118
+    },
+    {
+      "from": "reverse-done",
+      "to": "end",
+      "wall_seconds": 1.4565344419679604,
+      "ui_cpu_seconds": 1.1900000000000048,
+      "ui_cpu_percent": 81.70077999612325
+    },
+    {
+      "from": "end",
+      "to": "idle",
+      "wall_seconds": 2.792151355999522,
+      "ui_cpu_seconds": 1.5799999999999983,
+      "ui_cpu_percent": 56.587190254032514
+    },
+    {
+      "from": "idle",
+      "to": "idle-done",
+      "wall_seconds": 16.616592993028462,
+      "ui_cpu_seconds": 4.479999999999997,
+      "ui_cpu_percent": 26.961002185463613
+    },
+    {
+      "from": "idle-done",
+      "to": "switch-b",
+      "wall_seconds": 1.4610915589728393,
+      "ui_cpu_seconds": 0.3500000000000014,
+      "ui_cpu_percent": 23.95469317789055
+    },
+    {
+      "from": "switch-b",
+      "to": "b-open",
+      "wall_seconds": 6.257788999995682,
+      "ui_cpu_seconds": 2.9200000000000017,
+      "ui_cpu_percent": 46.66184813840825
+    },
+    {
+      "from": "b-open",
+      "to": "return-a",
+      "wall_seconds": 1.1471198410145007,
+      "ui_cpu_seconds": 0.8799999999999955,
+      "ui_cpu_percent": 76.71386794441048
+    },
+    {
+      "from": "return-a",
+      "to": "a-return",
+      "wall_seconds": 3.518630006001331,
+      "ui_cpu_seconds": 1.8000000000000043,
+      "ui_cpu_percent": 51.156273803439035
+    },
+    {
+      "from": "a-return",
+      "to": "undo",
+      "wall_seconds": 3.6817805329919793,
+      "ui_cpu_seconds": 1.1999999999999957,
+      "ui_cpu_percent": 32.592925875047264
+    }
+  ],
+  "profile": {
+    "sample_count": 1623,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.06571256749797613
+  },
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2275520,
+      "start_time": 36465818
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2275520,
+      "start_time": 36465818
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "errors": [],
+    "remaining_owned_pids": []
+  },
+  "capture_returncode": 255,
+  "raw_hashes": {
+    "receipt.json": "9a21b327b5af747f467a9fde18622f01c1fc88a8a5fce9ece3564d4106d2c16e",
+    "terminal.mp4": "dc52c4de2aa4f9e37910e033a7aa2a6d4355d132f125891ff08c0a9a14e9cb65",
+    "events.jsonl": "e75653991101a811cc09ad457b8b373a4d67d97ac0a74af34d55cc65f273e4f0",
+    "scroll-travel.jsonl": "7b4af8a8c4f1fc2212474ffda38d8f1fb8e7885186c41ab2beea7e939c9f82bb",
+    "cpu-profile.json": "7d04a9d369b6e6cc59ff0bb757dec50900dbfea14535c13d65abcfcdb2255390",
+    "phase-idle-done.png": "1d2714845766552cbcabf2e7a2b423d57495c69c883e4348e52d55795f0a3110",
+    "phase-a-return.png": "b8a8f9eac896b69049440803a629a0179e073daf46f0c9e5985fcda6ba5c69e3",
+    "phase-undo.png": "4c34c642b36ec0a9824e9a8c334445273bc1c09b59ec92fc9711bc694563e816"
+  },
+  "limits": [
+    "No CPU/smooth-scroll/concurrent-model sidebar acceptance claimed; visible current inbox NativePiUnavailable remains Arendt-owned.",
+    "Original capture_state live_blocks label includes saved fragments; it does not establish live/peer classification.",
+    "Native damage root-wake source55954718 is a coherent later change, under one final affected gate06. Default275/18 unchanged."
+  ],
+  "physical_pixel_comparison": {
+    "mode": "RGB",
+    "body_crop": [
+      499,
+      70,
+      1229,
+      711
+    ],
+    "idle_to_return_difference_bbox": null,
+    "idle_to_undo_difference_bbox": null,
+    "full_screen_idle_to_return_difference_bbox": [
+      17,
+      30,
+      654,
+      830
+    ],
+    "full_screen_idle_to_undo_difference_bbox": [
+      17,
+      36,
+      654,
+      830
+    ]
+  }
+}

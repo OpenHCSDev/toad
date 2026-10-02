@@ -1,0 +1,302 @@
+{
+  "state": "SCOPED_READY foreground native transaction/frame wait closure; full performance remains open",
+  "installed_head": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+  "source_change": "f424acf5b0b73c2f32c4154f3e3a4b57bbac687a",
+  "diagnostic_fix": "444c2258",
+  "product_source_equal": true,
+  "pair": {
+    "agent_comms": "b28349027052a57c50b17952a11dcfae2e71f31e",
+    "toad": "862ea5f113a83950d05acd7cd3c96400c4f9927f",
+    "textual": "679f9c85a9b974ebae7d70038f9f43e3aa8d8bbb"
+  },
+  "sdk": "0.12.1",
+  "native": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "raw": "/home/ts/.cache/agent-scratch/compaction501-foreground284-native5-readonly-20261002-03/capture",
+  "operator": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/compaction499-shared-gate/canonical501-foreground284-native5-readonly03.py",
+  "completed": true,
+  "duration_seconds": 102.31792349397438,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "input_paging_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_body_ids": [
+    139929396773584,
+    139929396773904,
+    139929396783184,
+    139929396783824,
+    139929396784144,
+    139929396785104,
+    139929396786384,
+    139929396787024,
+    139929396787984,
+    139929396788624,
+    139929396788944,
+    139929397909840,
+    139929397914000,
+    139929419413968,
+    139929896835088,
+    139929896839888,
+    139929896840208,
+    139929896841808,
+    139929896842128,
+    139929896844688,
+    139930339951632,
+    139930598449360
+  ],
+  "physical_review": {
+    "End": "Readable native original501 answer/ordinary saved native history plus current assigned inbound; correctly reaches tail.",
+    "A_return": "Same readable source tail and reader133/max133/draft after actual B->A click. Correct native child/worktree/model; original window/editor retained. Sidebar peer-row highlight remains separate scope.",
+    "held_PageUp": "Reviewed existing 47.869-51.738s contact sheet at8fps: content advances through distinct original history sections; no persistent frozen scene or all-body void in sampled frames. This does not certify60fps smoothness or rule out subframe gaps.",
+    "return_timing": "Return-a marker/state is still session-2 before physical click. The original_tab target export also records session-2; early peer/hover frames precede A admission and do not establish wrong source. Settled A frame matches child. No first-paint latency claim."
+  },
+  "before": {
+    "pid": 2820093,
+    "start_ticks": 38162851,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 382059.452393314
+  },
+  "after": {
+    "pid": 2820093,
+    "start_ticks": 38162851,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 382174.593870148
+  },
+  "original_epoch_journal_unchanged": true,
+  "default_prefix_unchanged": true,
+  "runtime_unchanged": true,
+  "fresh_inputs": 0,
+  "provider_replays": 0,
+  "owner_restarts": 0,
+  "public_package_changes": 0,
+  "operator_returncode": 0,
+  "ffmpeg_returncode": 255,
+  "ffmpeg_SIGINT255_accepted": true,
+  "ui_separate_exitcode": "not recorded; terminal/UI launch identities protected and normal Ctrl+Q cleanup verified",
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "profile": {
+    "sample_count": 1468,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.10728769050096162
+  },
+  "kernel_ui_cpu": [
+    {
+      "label": "input-held-up",
+      "seconds": 3.8510633280384354,
+      "cpu_percent": 76.86188846724825
+    },
+    {
+      "label": "input-held-up-done",
+      "seconds": 16.75768258300377,
+      "cpu_percent": 29.956409396914214
+    },
+    {
+      "label": "input-held-down",
+      "seconds": 3.7855613050051033,
+      "cpu_percent": 78.98432383189122
+    },
+    {
+      "label": "up",
+      "seconds": 3.8693532019970007,
+      "cpu_percent": 78.82454355487305
+    },
+    {
+      "label": "down",
+      "seconds": 3.8498300909996033,
+      "cpu_percent": 80.26328245560794
+    },
+    {
+      "label": "reverse",
+      "seconds": 3.7538868020055816,
+      "cpu_percent": 80.98272964373419
+    },
+    {
+      "label": "idle",
+      "seconds": 16.60815617395565,
+      "cpu_percent": 23.181381242292517
+    }
+  ],
+  "phase_resource_evidence": {
+    "warm-start": {
+      "mode": "session-1",
+      "scroll_y": 133,
+      "maximum": 133,
+      "follows_tail": true,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 0,
+      "materialized_widgets": 314,
+      "native_dirty_regions": 0
+    },
+    "input-held-up-done": {
+      "mode": "session-1",
+      "scroll_y": 90,
+      "maximum": 242,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 34,
+      "materialized_widgets": 321,
+      "native_dirty_regions": 0
+    },
+    "input-mid-history-idle-done": {
+      "mode": "session-1",
+      "scroll_y": 101,
+      "maximum": 253,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 37,
+      "materialized_widgets": 324,
+      "native_dirty_regions": 0
+    },
+    "input-held-down-done": {
+      "mode": "session-1",
+      "scroll_y": 122,
+      "maximum": 162,
+      "follows_tail": false,
+      "history_lock_held": true,
+      "layout_ready": null,
+      "pending": true,
+      "reconciling": true,
+      "visible_dormant": 0,
+      "evictions": 88,
+      "materialized_widgets": 340,
+      "native_dirty_regions": 0
+    },
+    "up-done": {
+      "mode": "session-1",
+      "scroll_y": 125,
+      "maximum": 227,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 133,
+      "materialized_widgets": 310,
+      "native_dirty_regions": 0
+    },
+    "down-done": {
+      "mode": "session-1",
+      "scroll_y": 122,
+      "maximum": 162,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 196,
+      "materialized_widgets": 316,
+      "native_dirty_regions": 0
+    },
+    "reverse-done": {
+      "mode": "session-1",
+      "scroll_y": 107,
+      "maximum": 234,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 234,
+      "materialized_widgets": 305,
+      "native_dirty_regions": 0
+    },
+    "idle-done": {
+      "mode": "session-1",
+      "scroll_y": 133,
+      "maximum": 133,
+      "follows_tail": true,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 250,
+      "materialized_widgets": 314,
+      "native_dirty_regions": 0
+    },
+    "a-return": {
+      "mode": "session-1",
+      "scroll_y": 133,
+      "maximum": 133,
+      "follows_tail": true,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 250,
+      "materialized_widgets": 314,
+      "native_dirty_regions": 0
+    },
+    "undo": {
+      "mode": "session-1",
+      "scroll_y": 133,
+      "maximum": 133,
+      "follows_tail": true,
+      "history_lock_held": false,
+      "layout_ready": null,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "evictions": 250,
+      "materialized_widgets": 314,
+      "native_dirty_regions": 0
+    }
+  },
+  "boundary": "One affected real installed Native5/Coreb283/Toad284/Text19 saved original configured501 readonly continuous journey. Source and artifacts are normal noneditable; no overlays/compatibility/native rebuild. Source publication/native lifecycle unaffected. Entire broader CPU/warm first paint/raster/buffer/growing-end/focus/sidebar/TC1/T9 scope stays owned for followup; no performance target claim.",
+  "hashes": {
+    "receipt.json": "bb45b8d0ccc086fe7ea4be59f6308540a92d582fd5486607e1f7f2b5ff996f00",
+    "warm-scroll-review.json": "2d2a830d76ed4d5d6146f1f4585192d7609196ee9dabc2761b8182380b61c1b5",
+    "input-paging-review.json": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd",
+    "profile-review.json": "5c4d41f42c7ba339d5b6e92df74a087bdb429c219a667d2439c1e3985ffd4624",
+    "terminal.mp4": "446e3a7ea8b9d56aea4acc03b863aabb9d940835a77dea68e64928fa546c81b4",
+    "phase-idle-done.png": "ff28c3119b98809aad71a25a0ea72db29acd00a5519d76cc7c02d6fe5cea6638",
+    "phase-a-return.png": "7cf5bedeb56e00254598a6c7ba41429855f96971f8a7f5b1f416b800d5bad888",
+    "phase-input-mid-history-idle-done.png": "e2512dc39f109afefd91893f9df9643eb69ccfdb99fef5f25b6663d5b2d4e13e",
+    "held-up-reviewed-frames.png": "c93a39b964bfda3c080bed12f96ce7b40543c449b214720e0cf610696d75dcd9",
+    "return-a-reviewed-frames.png": "06a202f5f460ab017711d382522c76c1a884e5c6272fe4c989961a136ee0c055"
+  }
+}

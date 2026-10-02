@@ -1,0 +1,228 @@
+{
+  "capture": "/home/ts/.cache/agent-scratch/viewport284-text19-busy-warm-20261001-03/capture",
+  "source": "d153128e/07299746",
+  "completed": false,
+  "operator_error": "TimeoutExpired: Command '('/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-text19-20261001/bin/python', '-c', \"import os,sys\\nfd=int(sys.argv[1]); error_fd=int(sys.argv[2]); go=os.read(fd,1); os.close(fd)\\nif go != b'G': sys.exit(126)\\nos.set_inheritable(error_fd, False)\\ntry: os.execvpe(sys.argv[3], sys.argv[3:], os.environ)\\nexcept OSError as error:\\n    os.write(error_fd, str(error.errno).encode()); os._exit(126)\\n\", '10', '13', 'xdotool', 'exec', '--sync', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport284-text19-20261001/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py', '--mark', 'undo')' timed out after 0.625665856001433 seconds",
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2275520,
+      "start_time": 36465818
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2275520,
+      "start_time": 36465818
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "errors": [],
+    "remaining_owned_pids": []
+  },
+  "active_animation_compensation": [
+    {
+      "video_seconds": 19.398374457960017,
+      "identity_preserved": true,
+      "start_time_preserved": true,
+      "duration_preserved": true,
+      "deltas": {
+        "start": 40.0,
+        "end": 40.0,
+        "final": 40.0
+      }
+    },
+    {
+      "video_seconds": 19.418412792962044,
+      "identity_preserved": true,
+      "start_time_preserved": true,
+      "duration_preserved": true,
+      "deltas": {
+        "start": -2.842170943040401e-14,
+        "end": -2.842170943040401e-14,
+        "final": -2.842170943040401e-14
+      }
+    },
+    {
+      "video_seconds": 43.166933205968235,
+      "identity_preserved": true,
+      "start_time_preserved": true,
+      "duration_preserved": true,
+      "deltas": {
+        "start": -10.0,
+        "end": -10.0,
+        "final": -10.0
+      }
+    }
+  ],
+  "kernel_phase_cpu": [
+    {
+      "from": "warm-ready",
+      "to": "warm-start",
+      "wall_seconds": 1.1980408339877613,
+      "ui_cpu_seconds": 0.9399999999999995,
+      "ui_cpu_percent": 78.46143247648286
+    },
+    {
+      "from": "warm-start",
+      "to": "draft",
+      "wall_seconds": 5.062459904002026,
+      "ui_cpu_seconds": 2.13,
+      "ui_cpu_percent": 42.07440731167414
+    },
+    {
+      "from": "draft",
+      "to": "travel-start",
+      "wall_seconds": 1.4367289610090666,
+      "ui_cpu_seconds": 0.370000000000001,
+      "ui_cpu_percent": 25.752943668660834
+    },
+    {
+      "from": "travel-start",
+      "to": "input-held-up",
+      "wall_seconds": 1.4595607799710706,
+      "ui_cpu_seconds": 0.5199999999999996,
+      "ui_cpu_percent": 35.627156274390046
+    },
+    {
+      "from": "input-held-up",
+      "to": "input-held-up-done",
+      "wall_seconds": 3.941560877021402,
+      "ui_cpu_seconds": 2.8200000000000003,
+      "ui_cpu_percent": 71.54526057025016
+    },
+    {
+      "from": "input-held-up-done",
+      "to": "input-mid-history-idle-done",
+      "wall_seconds": 16.743927255971357,
+      "ui_cpu_seconds": 6.67,
+      "ui_cpu_percent": 39.835337899125726
+    },
+    {
+      "from": "input-mid-history-idle-done",
+      "to": "input-held-down",
+      "wall_seconds": 1.4635309880250134,
+      "ui_cpu_seconds": 0.48999999999999844,
+      "ui_cpu_percent": 33.48067133592007
+    },
+    {
+      "from": "input-held-down",
+      "to": "input-held-down-done",
+      "wall_seconds": 3.8202933740103617,
+      "ui_cpu_seconds": 2.8000000000000007,
+      "ui_cpu_percent": 73.29280047047
+    },
+    {
+      "from": "input-held-down-done",
+      "to": "focused",
+      "wall_seconds": 2.540694564988371,
+      "ui_cpu_seconds": 1.8900000000000006,
+      "ui_cpu_percent": 74.38910705933877
+    },
+    {
+      "from": "focused",
+      "to": "up",
+      "wall_seconds": 2.7059085079818033,
+      "ui_cpu_seconds": 0.6699999999999982,
+      "ui_cpu_percent": 24.76063022913204
+    },
+    {
+      "from": "up",
+      "to": "up-done",
+      "wall_seconds": 4.121120486990549,
+      "ui_cpu_seconds": 2.8900000000000006,
+      "ui_cpu_percent": 70.12655924822099
+    },
+    {
+      "from": "up-done",
+      "to": "down",
+      "wall_seconds": 1.6049238580162637,
+      "ui_cpu_seconds": 1.5199999999999996,
+      "ui_cpu_percent": 94.70854286375723
+    },
+    {
+      "from": "down",
+      "to": "down-done",
+      "wall_seconds": 3.9368287200341,
+      "ui_cpu_seconds": 3.16,
+      "ui_cpu_percent": 80.26765258846793
+    },
+    {
+      "from": "down-done",
+      "to": "reverse",
+      "wall_seconds": 1.4981504780007526,
+      "ui_cpu_seconds": 0.7399999999999984,
+      "ui_cpu_percent": 49.39423715216588
+    },
+    {
+      "from": "reverse",
+      "to": "reverse-done",
+      "wall_seconds": 3.915743229968939,
+      "ui_cpu_seconds": 3.1799999999999997,
+      "ui_cpu_percent": 81.21063648050347
+    },
+    {
+      "from": "reverse-done",
+      "to": "end",
+      "wall_seconds": 1.5652404840220697,
+      "ui_cpu_seconds": 1.3600000000000065,
+      "ui_cpu_percent": 86.88760697687339
+    },
+    {
+      "from": "end",
+      "to": "idle",
+      "wall_seconds": 2.7895755039644428,
+      "ui_cpu_seconds": 1.8399999999999963,
+      "ui_cpu_percent": 65.95985652243704
+    },
+    {
+      "from": "idle",
+      "to": "idle-done",
+      "wall_seconds": 16.583625658997335,
+      "ui_cpu_seconds": 5.160000000000004,
+      "ui_cpu_percent": 31.115029403720772
+    },
+    {
+      "from": "idle-done",
+      "to": "switch-b",
+      "wall_seconds": 1.4838508910033852,
+      "ui_cpu_seconds": 0.23999999999999488,
+      "ui_cpu_percent": 16.17413187909373
+    },
+    {
+      "from": "switch-b",
+      "to": "b-open",
+      "wall_seconds": 6.228546374011785,
+      "ui_cpu_seconds": 2.9200000000000017,
+      "ui_cpu_percent": 46.88092252445156
+    },
+    {
+      "from": "b-open",
+      "to": "return-a",
+      "wall_seconds": 1.1088201940292493,
+      "ui_cpu_seconds": 0.5399999999999991,
+      "ui_cpu_percent": 48.70041174464348
+    },
+    {
+      "from": "return-a",
+      "to": "a-return",
+      "wall_seconds": 3.5590422499808483,
+      "ui_cpu_seconds": 2.039999999999999,
+      "ui_cpu_percent": 57.31879131277457
+    }
+  ],
+  "raw_hashes": {
+    "receipt.json": "120be8b2c3bf75004dfc43852048ab3218146acb01e3c11a29a3365793109155",
+    "events.jsonl": "047955213ab681aa6b6f797f21a4271ba8c7ab5501c79feba4fd26cfb8f47e71",
+    "scroll-travel.jsonl": "37ed578095fdd5ebfafbdebb77df7ce9ab5c1f3f917ac4fee8be570d99bff94e",
+    "cpu-profile.json": "01f47539cab71829fa96c7114ca1154c27bb2f1c1a91c8147100bca9f8eaaf90"
+  },
+  "physical": "Incomplete operator budget gate.03 End/A-return pixels differ. Initial B attribution superseded by05 original typed native events: e19f0c4 text belongs original A saved TranscriptFragmentView, not B or a proven live source block. Physical reader-to-paint relation remains unclosed."
+}

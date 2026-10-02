@@ -1,0 +1,76 @@
+{
+  "original_receipt": "/home/ts/.cache/agent-scratch/parent-reader493-scroll275-installed-20261001/receipt.json",
+  "capture_launch_monotonic": 363577.877320643,
+  "last10_stationary": [
+    {
+      "start_label": "input-held-up-done",
+      "end_label": "input-mid-history-idle-done",
+      "video_bounds_seconds": [
+        23.27484731998993,
+        33.27484731998993
+      ],
+      "counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      },
+      "relocation_compensations": {},
+      "requests": 0,
+      "admissions": 0,
+      "page_extensions": 0,
+      "scroll_changes": 0
+    },
+    {
+      "start_label": "history-held-up-done",
+      "end_label": "mid-history-idle-done",
+      "video_bounds_seconds": [
+        57.00729556498118,
+        67.00729556498118
+      ],
+      "counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10,
+        "relocating": 2,
+        "relocated": 2
+      },
+      "relocation_compensations": {
+        "0": 2
+      },
+      "requests": 0,
+      "admissions": 0,
+      "page_extensions": 0,
+      "scroll_changes": 0
+    },
+    {
+      "start_label": "mid-history-idle-done",
+      "end_label": "end-done",
+      "video_bounds_seconds": [
+        73.7963816440315,
+        83.7963816440315
+      ],
+      "counts": {
+        "relocating": 34,
+        "relocated": 34,
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      },
+      "relocation_compensations": {
+        "0": 34
+      },
+      "requests": 0,
+      "admissions": 0,
+      "page_extensions": 0,
+      "scroll_changes": 0
+    }
+  ],
+  "raw_sha256": {
+    "receipt.json": "dfc05d7ba39aab2dcd56f00eb86d9b25ce36f3505ea7157bea91590a2f675345",
+    "scroll-travel.jsonl": "9fc9d91537f346140921033e8b7751fa6dca0e46b96aeef74d05d5d94447bc5a",
+    "profile-review.json": "53ccbcd46b1cd1b95be677e7f0b9c71381e3baacf40e7274b6f3043c6dc39f6e"
+  },
+  "limits": [
+    "No body restore/retire hook is recorded; these counts do not infer zero such calls.",
+    "Chrome transition groups identify observed stacks, not CPU shares or method invocation counts.",
+    "Zero compensation does not move the reader; it is not another admission or user gesture.",
+    "Parent283 records accepted old19-baseline source, not the new draft pair."
+  ]
+}

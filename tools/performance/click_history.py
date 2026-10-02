@@ -41,6 +41,8 @@ class EditorTarget(NativeFocusTarget):
     def locate(cls, snapshot, args):
         view = cls.selected_view(snapshot)
         resource, = (draft for draft in view["drafts"] if draft["focus_target"] is not None)
+        if args.empty and any(resource["lines"]):
+            raise ValueError("Fresh fork submission requires the actual native editor to be empty")
         return resource
 
 
@@ -157,6 +159,7 @@ def main():
                         help="Native resource: " + ", ".join(NativeFocusTarget.names()))
     parser.add_argument("--name", help="Native thread/channel name or widget Class#id")
     parser.add_argument("--focused", action="store_true", help="Select only the currently focused widget")
+    parser.add_argument("--empty", action="store_true", help="Require empty original editor before a fresh fork input")
     parser.add_argument("--original-state", type=Path, help="This run's initial selected-mode snapshot")
     args = parser.parse_args()
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"]).resolve()

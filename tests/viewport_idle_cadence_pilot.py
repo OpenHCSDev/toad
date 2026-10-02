@@ -70,7 +70,7 @@ async def main():
                               if body not in app.screen._compositor.visible_widgets)
             assert await background.retire_body()
             await background.prepare_body()
-            await manager._restore_body(background, foreground)
+            await manager._restore_bodies((background,), foreground)
             assert background.body_ready
             background_delivery = lookahead.delivery_seconds
             (scratch / "receipt.json").write_text(json.dumps({
@@ -96,8 +96,34 @@ async def main():
             await pilot.press("end")
             await pilot.pause(lookahead.budget.scroll_idle_seconds + .05)
             assert lookahead.travel_rows == 0
+            # Resize the actual retired foreground cohort. Frame admission must
+            # wait for every body, while the original viewport worker must finish
+            # their compensated layout without waiting for that same paint.
+            await manager.suspend_source()
+            short = [AgentResponse(f"## Foreground {i}\n\nActual native body.", paginate=False)
+                     for i in range(6)]
+            await app.selected_session.conversation.contents.mount(*short)
+            window.scroll_end(animate=False, immediate=True)
+            await pilot.pause(.1)
+            visible = app.screen._compositor.visible_widgets
+            cohort = tuple(body for body in short if body in visible)
+            assert len(cohort) >= 2
+            for body in cohort:
+                assert await body.retire_body()
+            await pilot.resize_terminal(90, 35)
+            await pilot.pause(.1)
+            assert all(body.body_measurement_stale for body in cohort)
+            manager.resume_source()
+            async with asyncio.timeout(8):
+                while manager._running or not manager.visible_bodies_ready:
+                    await pilot.pause(.01)
+            assert all(body.body_ready for body in cohort)
+            assert not window.history_lock.locked()
+            assert window.history_layout_ready is None
+            assert not app.screen._compositor._dirty_regions
             assert app._exception is None
-            print(json.dumps({"actual_body_delivery_seconds": slow_delivery,
+            print(json.dumps({"foreground_cohort": len(cohort),
+                              "actual_body_delivery_seconds": slow_delivery,
                               "configured_idle_seconds": lookahead.budget.scroll_idle_seconds,
                               "boundary": "actual headless framework resource/timer journey; not physical capture",
                               "phases": ["contended_restore", "pageup", "idle", "pagedown", "reverse", "end", "idle"]}))

@@ -37,12 +37,19 @@ class WindowRestoration(ABC):
         """Own native reflow and its compensation as one reader restoration."""
         restoring = window._restoring
         previous = window.scroll_y
+        destination = window.scroll_target_y
         window._restoring = True
         try:
             yield
         finally:
             if not restoring:
-                window.document_viewport.lookahead.relocated(window.scroll_y - previous)
+                compensation = window.scroll_y - previous
+                if compensation:
+                    window.app.animator.transform_running_animation(
+                        window, "scroll_y", lambda value: value + compensation,
+                    )
+                    window.scroll_target_y = destination + compensation
+                window.document_viewport.lookahead.relocated(compensation)
             window._restoring = restoring
 
     @abstractmethod
@@ -95,7 +102,6 @@ class HistoryWindow(VerticalScroll):
     _restoring = False
     history_anchor: HistoryAnchor | None = None
     history_layout_ready: asyncio.Event | None = None
-    history_paint_ready: asyncio.Event | None = None
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -133,9 +139,8 @@ class HistoryWindow(VerticalScroll):
 
     def retire_presentation_wait(self) -> None:
         """Release a transaction whose scene no longer promises another frame."""
-        for ready in (self.history_layout_ready, self.history_paint_ready):
-            if ready is not None:
-                ready.set()
+        if self.history_layout_ready is not None:
+            self.history_layout_ready.set()
 
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
@@ -211,7 +216,7 @@ class HistoryWindow(VerticalScroll):
             return False
         previous = self.scroll_y
         with WindowRestoration.geometry(self):
-            self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
+            self.scroll_y = self.max_scroll_y
         return previous != self.scroll_y
 
     def history_mutating(self) -> bool:
@@ -221,7 +226,12 @@ class HistoryWindow(VerticalScroll):
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
 
-        """Publish one native tree mutation, then its compensated reader layout."""
+        """Publish one native tree mutation, then its compensated reader layout.
+
+        Restoration produces frame readiness; it cannot wait for a paint that
+        requires other dormant bodies held behind this same history lock.
+        Native frame callbacks own physical display acknowledgment.
+        """
         from toad.screens.workspace import WorkspaceScreen
 
         screen = self.screen
@@ -245,16 +255,11 @@ class HistoryWindow(VerticalScroll):
                 # mount's layout. Wait for an actual compensated reflow first.
                 self.history_layout_ready = asyncio.Event()
                 await self.history_layout_ready.wait()
-                if not self.is_attached or not screen.is_current or not widget.is_attached:
-                    return
-                painted = self.history_paint_ready = asyncio.Event()
-                self.call_after_refresh(painted.set)
-                await painted.wait()
         finally:
             if isinstance(screen, WorkspaceScreen):
                 screen.viewport_presentation.anchors.discard(self)
             self.history_anchor = None
-            self.history_layout_ready = self.history_paint_ready = None
+            self.history_layout_ready = None
 
 
 @dataclass(frozen=True)
@@ -322,7 +327,7 @@ class TailAnchor(HistoryAnchor):
     follow_tail: ClassVar[bool] = True
 
     def _restore(self, window: HistoryWindow) -> None:
-        window.anchor()
+        window.scroll_y = window.max_scroll_y
 
 
 @dataclass(frozen=True)
@@ -334,8 +339,7 @@ class RecordAnchor(HistoryAnchor):
 
     def _restore(self, window: HistoryWindow) -> None:
         if self.widget.is_attached:
-            window.release_anchor()
-            window.scroll_to(
-                y=self.scroll_y + self._offset(self.widget, window) - self.virtual_y,
-                animate=False, immediate=True,
-            )
+            # This is document placement compensation, not a new user scroll.
+            # scroll_to finishes the current animation even when the delta is
+            # zero. The enclosing restoration translates its original curve.
+            window.scroll_y = self.scroll_y + self._offset(self.widget, window) - self.virtual_y
