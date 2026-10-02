@@ -13,11 +13,9 @@ from weakref import WeakSet, ref
 from time import monotonic
 from dataclasses import dataclass, replace
 from abc import ABC, abstractmethod
-from textual.strip import Strip, StripRenderable
-from rich.style import Style as RichStyle
-from toad.rich_preparation import PreparedRichContent, RenderableSource, RichPresentation
-from toad.render_tasks import RichRenderTask
-from toad.work_preparation import PreparationScope, RenderPreparation, retained_bytes
+from textual.strip import Strip
+from toad.rich_preparation import PreparedRichContent
+from toad.work_preparation import PreparationScope, retained_bytes
 import asyncio
 from toad.widgets.presentation_window import (
     DirectionalPreparation, PreparationDemand, PresentationBudget,
@@ -418,16 +416,13 @@ class MeasuredViewportBody(ViewportBody):
             return BodyMeasurement.retire(current, self)
         _body, placement = captured[0]
         size, rows = compositor.render_subtree_strips(self, placement)
-        task = RichRenderTask(
-            RenderableSource(StripRenderable(rows)),
-            RichPresentation(self.app.console_options.update(width=size.width, height=None),
-                             RichStyle(), None, False, None, self.app.console.color_system,
-                             self.app.current_theme.dark),
-        )
-        return self.finish_native_retirement(current, children, task, style_revision, paint_state)
+        # Native capture already owns final styled terminal rows. Retain those
+        # rows directly; rendering them again in Rich workers duplicates work
+        # and serializes a resource that never leaves this process.
+        content = PreparedRichContent(size.width, tuple(rows))
+        return self.finish_native_retirement(current, children, content, style_revision, paint_state)
 
-    async def finish_native_retirement(self, current, children, task, style_revision, paint_state):
-        content = await self.app.preparation.submit(RenderPreparation(task, scope=self._body_scope))
+    async def finish_native_retirement(self, current, children, content, style_revision, paint_state):
         size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
         # The original state is the captured source/width/style lifetime. An
         # asynchronous change invalidates it rather than copying a revision.
@@ -647,19 +642,19 @@ class DocumentViewport:
 
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Native controls retain their box until their body captures its rows."""
-        return tuple(owner for owner in self.body_roots() if not owner.body_dormant)
+        return tuple(owner for owner in self.owners if not owner.body_dormant)
 
     @property
     def materialized_widget_count(self) -> int:
         """Actual native body custody in this window's resource scope."""
-        return sum(owner.materialized_widget_count for owner in self.body_roots())
+        return sum(owner.materialized_widget_count for owner in self.owners)
 
     @property
     def visible_body_rows(self) -> float:
         """Measured native density, derived from the current viewport owners."""
         visible = self.window.screen._compositor.visible_widgets
-        rows = [owner.measured_rows for owner in self.body_roots()
-                if owner in visible and owner.measured_rows]
+        rows = [owner.measured_rows for owner in visible
+                if owner in self.owners and owner.measured_rows]
         return sum(rows) / len(rows) if rows else max(1, self.window.size.height)
 
     def admission(self, *, required=(), ahead=()):
@@ -669,8 +664,9 @@ class DocumentViewport:
         # the same admission forever when the requested runway exceeds the bound.
         candidates = dict.fromkeys((*required, *ahead, *(owner
             for key in reversed(self._warm.values()) if (owner := key()) is not None)))
-        roots = tuple(owner for owner in candidates
-                      if not any(parent in self.owners for parent in owner.ancestors))
+        # Mount already admits only the outer body into this viewport. Native
+        # membership owns that boundary; consumers don't rediscover its parents.
+        roots = tuple(owner for owner in candidates if owner in self.owners)
         return self.budget.admit(
             roots, required, self.window.size.height, self.window.app.preparation.max_bytes,
         )
@@ -833,7 +829,6 @@ class DocumentViewport:
                     anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
                     started = monotonic()
                     await self._restore_bodies(restoring, anchor, demand)
-                    protected = self.protected()
                     if any(owner in visible for owner in restoring):
                         self.lookahead.delivered(monotonic() - started)
                 retiring = tuple(owner for owner in owners
