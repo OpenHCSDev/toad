@@ -157,3 +157,44 @@ source admission instead of the deleted mutex/edge flags. This checkpoint is
 source implementation, not installed qualification: affected sanity and the
 changed installed IRC/DM/receipt/End journey remain required. The fixed row cap
 and full shared body-preparation/trim policy are still unfinished scope338.
+
+
+### Qualification boundary and retained counterevidence
+
+The current source batch also removes the old controller's parent-attachment
+and message-block forwarding methods. Actual Widget attachment governs row
+read eligibility; the existing view's message factory still owns direction and
+membership-notice construction. HistorySourceSnapshot.current names the shared
+TranscriptSourcePreparation owner and its original HistoryWindow resource.
+Expected OSError/ValueError completion belongs to WorkingTranscript; the leaf
+owns only native History notification versus wire status presentation.
+
+Source sanity used the discovered default interpreter/dependencies with this
+checkout's source (not an installed338 package). Four reader contract checks
+passed. In run05 and run06, both actual Enter submissions painted the original
+USER receipt while the genuine ChannelHistoryReader._pending I/O task was held;
+typing succeeded, and each receipt remained once after release. These observations
+cover late tail retention and restart refusal. The roots and original bus records
+are retained under .artifacts/history-lifetime338; no input was replayed.
+
+Full journey did not pass. First native mount failed nominal ConversationBlock
+admission and was corrected through existing ConversationBlock/CategorizedMount/
+ChildBlockCursor capabilities. A stale fixture expected Messaging.send to return
+a Message; it was replaced with actual physical Enter and the original canonical
+user-send path. Subsequent driver setup needed actual source-admission ownership
+and repeated reader movement because older publication preserves its anchor.
+Run06 still expires at its8s bounded earlier-history step inside Pilot.pause /
+_wait_for_screen. It captured no native phase lock/frame/worker DTO, so its raw
+cannot distinguish slow native work from a compensation/lifetime stall. End was
+not reached. No deadline/oracle was relaxed and no further repeated run is claimed.
+Failed logs and originals remain intact. Heisenberg owns the Window/frame seam
+and one joined installed344/338 channel/native lifecycle qualification; that
+readonly gate alone will not prove installed own-send-under-held-I/O acceptance.
+
+NRA Package.load after-map:276 modules parsed, zero omissions,142 related
+owner/consumer sites at f52bddbc. Zero references remain to edge_scheduled,
+edge_on_resume, wait_to_admit, release_waiters, for_view or load_edge in production.
+The native framework and resource references still require actual dynamic
+qualification; AST does not prove dispatch or paint. PR338 stays draft. Shared
+body preparation/trim policy remains active scope, rather than claiming the
+fixed wire row cap and complete IRC/DM resource policy are already replaced.
