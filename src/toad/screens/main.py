@@ -23,7 +23,7 @@ from textual.widgets import (
 )
 
 from toad import messages
-from toad.core import events as acp_messages
+
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
@@ -344,7 +344,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         peer.initial_coordination_root = root
         return peer
 
-    @handles(acp_messages.CommsUpdated)
+    @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
         await ScreenCommsConsumer(self).dispatch(event.event.update)
 

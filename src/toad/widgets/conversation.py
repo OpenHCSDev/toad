@@ -57,7 +57,7 @@ from textual.widgets import Static
 from textual.widgets.markdown import MarkdownBlock
 
 from toad import jsonrpc, messages, paths
-from toad.core import events as acp_messages
+
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
@@ -1401,7 +1401,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         )
         await self.post(self._mcp_live_note)
 
-    @handles(acp_messages.Update)
+    @handles(core_events.Update)
     async def on_acp_agent_message(self, message: CoreEventMessage):
         message.stop()
         if message.publisher is not self.agent:
@@ -1714,7 +1714,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 lambda value: setattr(details, "overview_text", value),
             )
 
-    @handles(acp_messages.CommsUpdated)
+    @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
         if (event.publisher is not self.agent
                 or event.event.session_id != self.agent.session_id):

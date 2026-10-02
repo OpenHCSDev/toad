@@ -13,6 +13,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
+from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
@@ -53,7 +54,7 @@ class Plan(CoreEvent):
 class ToolCall(CoreEvent):
     """The original tool owner assembled this exact SDK call snapshot."""
 
-    tool_call: ToolCallStatus
+    tool_call: Annotated[ToolCallStatus, ToolCallWire]
 
     @property
     def tool_id(self) -> str:

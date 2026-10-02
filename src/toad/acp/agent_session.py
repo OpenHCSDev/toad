@@ -5,7 +5,7 @@ import os
 from dataclasses import replace
 import toad
 from toad import constants, jsonrpc
-from toad.core import events as messages
+from toad.core import events as core_events
 from toad.acp import api
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
@@ -303,7 +303,7 @@ class AgentSession:
             thread=replace(self.agent.coordination.thread, name=result.current),
             title=display_name,
         )
-        self.agent.events.publish(messages.CommsUpdated(self.agent.coordination, self.agent.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(self.agent.coordination, self.agent.session_id))
 
 
     async def set_mode(self, mode_id: str) -> str | None:

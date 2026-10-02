@@ -1,9 +1,7 @@
 """Specification-spelled reasons and statuses own their presentation behavior."""
 from agent_comms.declared_family import DeclaredFamily
 from dataclasses import dataclass
-from typing import Annotated
 from acp.schema import ToolCall
-from toad.acp.sdk_boundary import ToolCallWire
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
@@ -39,7 +37,7 @@ class CancelledStopReason(StopReason):
 
 @dataclass(frozen=True)
 class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
-    call: Annotated[ToolCall, ToolCallWire]
+    call: ToolCall
 
     @classmethod
     def from_acp(cls, call: ToolCall):

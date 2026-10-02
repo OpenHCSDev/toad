@@ -27,7 +27,7 @@ from agent_comms.acp_extension import (
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.conversation_turn import OrderedManagedTurn, ManagedTurn
 
-from toad.core import events as messages
+from toad.core import events as core_events
 
 
 class CommsUpdateConsumer(MroDispatch):
@@ -70,11 +70,11 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(InputFailedUpdate)
     def input_failed(self, update: InputFailedUpdate) -> None:
-        self.agent.events.publish(messages.CommsUpdated(update, recover_draft=False, session_id=self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, recover_draft=False, session_id=self.session_id))
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
-        self.agent.events.publish(messages.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)
     def turn_changed(self, update: TurnChangedUpdate) -> None:
@@ -84,7 +84,7 @@ class CommsUpdateConsumer(MroDispatch):
         binding = agent.presentation.managed_turns()
         if not binding.receive(update.state, self.turn_class):
             return
-        agent.events.publish(messages.CommsUpdated(update, session_id=self.session_id, sequence=binding.sequence))
+        agent.events.publish(core_events.CommsUpdated(update, session_id=self.session_id, sequence=binding.sequence))
 
     @handles(CursorAdvancedUpdate)
     def cursor_advanced(self, update: CursorAdvancedUpdate) -> None:
@@ -111,7 +111,7 @@ class CommsUpdateConsumer(MroDispatch):
     def input_started(self, update: InputStartedUpdate) -> None:
         if update.scope is None:
             if update.input_id is None and self.session_id == self.agent.session_id:
-                self.agent.events.publish(messages.CommsUpdated(update, session_id=self.session_id))
+                self.agent.events.publish(core_events.CommsUpdated(update, session_id=self.session_id))
             return
         starts = self.agent.queue_attachment.started(update, self.session_id)
         self.agent._post_queue_view(starts)
@@ -134,19 +134,19 @@ class CommsUpdateConsumer(MroDispatch):
         agent.project_root_path = Path(update.worktree)
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
         agent.update_status_line()
-        agent.events.publish(messages.CommsUpdated(agent.coordination, self.session_id))
+        agent.events.publish(core_events.CommsUpdated(agent.coordination, self.session_id))
         agent.session.coordinated_title(update.title)
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate) -> None:
-        self.agent.events.publish(messages.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
         from .context_measurement import ContextUnavailable
         self.agent.context_measurement = ContextUnavailable("Native context measurement is pending")
         self.agent.update_status_line()
-        self.agent.events.publish(messages.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(CompactionCommittedUpdate)
     def compaction_committed(self, update: CompactionCommittedUpdate) -> None:
@@ -165,7 +165,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CompactionPublishedUpdate)
     def compaction_published(self, update: CompactionPublishedUpdate) -> None:
-        self.agent.events.publish(messages.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(McpClientReceiptUpdate)
     def mcp_receipt(self, update: McpClientReceiptUpdate) -> None:
@@ -177,7 +177,7 @@ class CommsUpdateConsumer(MroDispatch):
                 "[ACP MCP live receipt rejected] receipt is not bound to the active session/turn"
             )
             return
-        self.agent.events.publish(messages.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(SelectedWriteAcceptedUpdate)
     def selected_write_accepted(self, update):
@@ -194,7 +194,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(PromptCancelledUpdate)
     def prompt_cancelled(self, update):
-        self.agent.events.publish(messages.CommsUpdated(update, self.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
 
 class OwnerSnapshotConsumer(CommsUpdateConsumer):

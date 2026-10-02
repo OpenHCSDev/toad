@@ -1,20 +1,24 @@
 """Decode the specification once; typed SDK models own ACP values thereafter."""
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from acp.schema import SessionNotification, ToolCall
 from agent_comms.field_codec import FieldRepresentation
 from toad.acp.notification_items import NotificationItems
 
+if TYPE_CHECKING:
+    from toad.acp.status import ToolCallStatus
+
 
 class ToolCallWire(FieldRepresentation):
-    """The official SDK owns its external record; FieldCodec owns our envelope."""
+    """The SDK's status selects its existing nominal owner once at ingress."""
 
     @classmethod
-    def encode(cls, value: ToolCall) -> object:
-        return value.model_dump(mode="json", by_alias=True)
+    def encode(cls, value: ToolCallStatus) -> object:
+        return value.call.model_dump(mode="json", by_alias=True)
 
     @classmethod
-    def decode(cls, value: object) -> ToolCall:
-        return ToolCall.model_validate(value, strict=True)
+    def decode(cls, value: object) -> ToolCallStatus:
+        from toad.acp.status import ToolCallStatus
+        return ToolCallStatus.from_acp(ToolCall.model_validate(value, strict=True))
 
     @classmethod
     def schema(cls) -> dict:

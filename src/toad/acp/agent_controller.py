@@ -15,7 +15,7 @@ from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
-from toad.core import events as messages
+from toad.core import events as core_events
 from . import api
 from toad import jsonrpc
 from toad.core.events import LogAgentFail
@@ -215,7 +215,7 @@ class AgentController(OperationalTerminalOwner):
             return
         if self.surface is not binding:
             return
-        self.agent.events.publish(messages.CommsUpdated(snapshot, session.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
     def connection_closed(self):
         from toad.core.events import McpClientStopped
@@ -341,7 +341,7 @@ class AgentController(OperationalTerminalOwner):
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
-            agent.events.publish(messages.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
+            agent.events.publish(core_events.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
             agent.events.publish(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 
