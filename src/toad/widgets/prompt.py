@@ -597,6 +597,7 @@ class Prompt(containers.VerticalGroup):
 
     def sync_queue(self) -> None:
         if self.is_mounted:
+            self.sync_session()
             self._update_queue_summary()
 
     def on_mount(self) -> None:
