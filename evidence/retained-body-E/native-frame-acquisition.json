@@ -1,0 +1,71 @@
+{
+  "boundary": "original App/LinuxDriver before Load -> driver acquisition -> mounted -> writer flush; no Toad/provider/public root",
+  "events": [
+    {
+      "event": "frame_observer_attached",
+      "ns": 407573035600325,
+      "driver": "LinuxDriver"
+    },
+    {
+      "event": "frame_enqueued",
+      "ns": 407573038566778,
+      "frame": 1,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_flushed",
+      "ns": 407573039613832,
+      "frame": 1,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_enqueued",
+      "ns": 407573057598211,
+      "frame": 2,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_flushed",
+      "ns": 407573057777841,
+      "frame": 2,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_enqueued",
+      "ns": 407583036358553,
+      "frame": 3,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_flushed",
+      "ns": 407583036459855,
+      "frame": 3,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_enqueued",
+      "ns": 407583146694849,
+      "frame": 4,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_enqueued",
+      "ns": 407583146778538,
+      "frame": 5,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_flushed",
+      "ns": 407583148574201,
+      "frame": 4,
+      "mode": "_default"
+    },
+    {
+      "event": "frame_flushed",
+      "ns": 407583148588218,
+      "frame": 5,
+      "mode": "_default"
+    }
+  ],
+  "pass": true
+}

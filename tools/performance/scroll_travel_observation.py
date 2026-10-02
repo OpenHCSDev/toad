@@ -16,7 +16,7 @@ class ScrollTravelObservation:
         from textual.widgets import TextArea
         from toad.widgets.history_anchor import HistoryWindow
         from toad.widgets.presentation_window import DirectionalPreparation
-        from toad.widgets.viewport_body import DocumentViewport
+        from toad.widgets.viewport_body import DocumentViewport, MeasuredViewportBody
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.sidebar_projection import SidebarProjection
         from toad.widgets.sidebar_viewport import SidebarViewport
@@ -37,6 +37,8 @@ class ScrollTravelObservation:
             HistoryWindow.action_page_down.__code__: self.history_page_down,
             DirectionalPreparation.relocated.__code__: self.relocating,
             DocumentViewport.admission.__code__: self.full_admission,
+            MeasuredViewportBody.start_materialization.__code__: self.materializing,
+            MeasuredViewportBody.retire_native_body.__code__: self.retiring,
             TranscriptHistory._resource_fragment_budget.__code__: self.fragment_budget,
             TranscriptHistory._extend_and_trim.__code__: self.page_extension,
             SidebarProjection.rebuild.__code__: self.sidebar_publishing,
@@ -62,8 +64,22 @@ class ScrollTravelObservation:
 
     def request(self, native):
         window = native["self"].window
+        caller = sys._getframe(2).f_back.f_code
         self.emit("request", window=id(window), position=window.scroll_y,
-                  restoring=window._restoring)
+                  restoring=window._restoring,
+                  caller=caller.co_name, caller_source=caller.co_filename)
+
+    def body_transition(self, event, native):
+        body = native['self']
+        viewport = body._body_viewport
+        self.emit(event, body=id(body), window=id(viewport.window) if viewport is not None else None,
+                  state=type(body._body_measurement).__name__)
+
+    def materializing(self, native):
+        self.body_transition('body_materialization', native)
+
+    def retiring(self, native):
+        self.body_transition('body_retirement_attempt', native)
 
     def full_admission(self, native):
         caller = sys._getframe(2).f_back.f_code
