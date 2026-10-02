@@ -79,7 +79,7 @@ class TranscriptSourcePreparation:
         self._source_state = operation
         return operation
 
-    def defer_source_work(self, work) -> None:
+    def defer_source_work(self, operation: WorkingTranscript, work) -> None:
         """Keep the original read until the shared observer supplies relief.
 
         This signal subscription is an operation resource. Its original source
@@ -89,8 +89,8 @@ class TranscriptSourcePreparation:
 
         def resume(_event) -> None:
             self.app.coordination_observed.unsubscribe(self)
-            if snapshot.current(self) and self.state.accepts_source_work:
-                self.reserve_source_work().schedule(self, work)
+            if snapshot.current(self) and self._source_state is operation:
+                operation.schedule(self, work)
 
         self.app.coordination_observed.unsubscribe(self)
         self.app.coordination_observed.subscribe(self, resume)

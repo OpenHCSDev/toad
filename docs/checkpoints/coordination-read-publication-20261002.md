@@ -27,7 +27,9 @@ does not claim installed acceptance and makes no provider or public input.
   The existing coordination observer resumes it and owns the cadence:
   `WireRevision.expiry_tick` still changes when database bytes do not.
 - `WorkingTranscript` retains a source-snapshotted read callback at the same
-  observer for scroll and End. Retirement or source replacement revokes it.
+  observer for scroll and End. The same suspended operation keeps its pending
+  destination until that observation; it does not settle into a new per-frame
+  edge read. Retirement or source replacement revokes it.
 - `ObservedThreadActivity` retains rendered status and its original pending
   read. Its unavailable event cannot publish that retained status as a fresh
   owner observation in Conversation.
