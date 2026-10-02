@@ -634,6 +634,11 @@ class TranscriptPresentation:
         worker, self.worker = self.worker, None
         workers = [worker, self.source_requests.cancel()]
         if (view := self.view) is not None:
+            # Exclusive replacement/cancel can detach the current handle while
+            # an older accepted publication still joins its retirement. The
+            # framework manager owns those actual tasks until completion.
+            workers.extend(view.workers.cancel_group(view, "transcript-window"))
+            workers.extend(view.workers.cancel_group(view, "transcript-source"))
             workers.extend(view.workers.cancel_group(view, "transcript-handling"))
             workers.extend(view.workers.cancel_group(view, "retained-native-refresh"))
         for worker in workers:
