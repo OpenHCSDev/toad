@@ -234,7 +234,10 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         if not self._selected(model):
             return
         self.query_one(TextArea).load_text("Preparing selected context detail…")
-        detail = await asyncio.to_thread(model.detail)
+        try:
+            detail = await asyncio.to_thread(model.detail)
+        except (OSError, ValueError, RuntimeError, RequestError) as error:
+            detail = f"Selected context detail unavailable: {error}"
         if self._selected(model):
             if len(detail) > self.detail_characters:
                 detail = detail[:self.detail_characters] + (
