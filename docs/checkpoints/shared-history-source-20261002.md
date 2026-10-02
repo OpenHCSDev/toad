@@ -198,3 +198,27 @@ The native framework and resource references still require actual dynamic
 qualification; AST does not prove dispatch or paint. PR338 stays draft. Shared
 body preparation/trim policy remains active scope, rather than claiming the
 fixed wire row cap and complete IRC/DM resource policy are already replaced.
+
+The remaining exporter consumer also read the removed CommsChatView._history
+field and silently emitted empty wire history. It now reads original mounted
+messages from MountedMessageHistory, and observes source admission through
+TranscriptSourcePreparation for both leaves. Wire records have zero native
+fragment pages; their messages remain original wire records, not fabricated
+native pages. Existing native page fields and native-only observations retain
+their meaning. The source map includes all276 production,39 performance and8
+recording-tool modules, zero parse omissions (165 syntactic references/key sites).
+
+The original06 negative lacks native source/frame/lock evidence. Its only
+supported classification is a screen-barrier timeout during earlier-history
+movement, before End. The existing journey now captures the original native
+exporter before teardown on failure, and uses installed package CSS and the
+existing Linux driver when physically recorded. No timeout, End oracle or old
+failure is waived. Textual Timer._tick invokes refresh callbacks in its own
+timer task; periodic refresh does not await those reads on the widget pump.
+
+Heisenberg34402 completed the separate installed channel hide/return and native
+End journey with18 checks. That cohort includes the changed shared Window/frame
+lifetime and33868e5; it does not establish held-I/O receipt/End acceptance. The
+remaining affected check borrows that immutable prefix without an environment,
+source overlay, provider input or public mutation. No full338 Ready, smoothness
+or prepared-wire-body policy claim is made.

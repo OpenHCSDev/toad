@@ -22,6 +22,10 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     from toad.widgets.comms_sidebar import CommsRow, ThreadRow
     from toad.widgets.session_tabs import SessionLabel
     from toad.widgets.tool_call import ToolCall
+    from toad.transcript_source_preparation import TranscriptSourcePreparation
+    from toad.widgets.transcript_history import TranscriptHistory
+    from toad.mounted_message_history import MountedMessageHistory
+    from toad.transcript_state import WorkingTranscript
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -321,17 +325,24 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                     if key in child_data:
                                         record[key] = child_data[key]
                             view["contents"].append(record)
-                    if kind == "TranscriptHistory":
-                        from toad.transcript_state import WorkingTranscript
+                    if isinstance(node, TranscriptSourcePreparation):
                         history = {
-                            "through": data.get("through"),
-                            "pages": tuple((page.page, page.start, page.stop) for page in tuple(data.get("pages", ()))),
+                            "object_id": id(node),
+                            "class": kind,
+                            "pages": (),
                             "generation": node._generation,
                             "source_state": type(node._source_state).__name__,
                             "has_newer": node.has_newer,
                         }
                         if isinstance(node._source_state, WorkingTranscript):
                             history["pending_request"] = type(node._source_state.pending_request).__name__
+                        if isinstance(node, TranscriptHistory):
+                            history["through"] = node.through
+                            history["pages"] = tuple((page.page, page.start, page.stop) for page in node.pages)
+                        if isinstance(node, MountedMessageHistory):
+                            # Wire records are original messages, never native
+                            # transcript pages or widgets masquerading as DTOs.
+                            view["wire_history"] = tuple(message for message, _widget in node.rows)
                         view["history_pages"].append(history)
                     if isinstance(node, HistoryWindow):
                         window = {**node_identity(node), **{key: data.get(key) for key in (
@@ -427,10 +438,6 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                     if data.get("_id") in {"channels-sidebar", "thread-sidebar"}:
                         view["bars"].append({"id": data["_id"], "collapsed": data.get("_reactive_collapsed"),
                                              "right": data.get("right")})
-                    if kind == "CommsChatView":
-                        # The second member is a mounted IRCMessage widget,
-                        # not DTO data. Export only the immutable wire message.
-                        view["wire_history"] = tuple(message for message, _widget in tuple(data.get("_history", ())))
                     if kind in {"AgentResponse", "AgentThought", "UserInput", "IncomingMessage", "CoordinationContext"}:
                         text = next((data[key] for key in ("_markdown", "source", "text", "_text", "_source")
                                      if isinstance(data.get(key), str)), None)

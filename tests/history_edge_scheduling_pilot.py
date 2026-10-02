@@ -5,6 +5,7 @@ all pages, registrations, messages, read witnesses and native rows remain real.
 """
 
 import asyncio
+import importlib.util
 import os
 from pathlib import Path
 from threading import Event
@@ -14,7 +15,7 @@ from unittest.mock import patch
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from runtime_fixture import ToadApp
+from native_session_retention_pilot import InstalledApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
 
@@ -75,8 +76,11 @@ async def pending_read(chat, pilot, body):
 async def main():
     scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
     scratch.mkdir(parents=True, exist_ok=True)
-    directory = tempfile.mkdtemp(prefix='private-', dir=scratch)
+    directory = os.environ.get('TOAD_HISTORY_LIFETIME_DIRECTORY') or tempfile.mkdtemp(prefix='private-', dir=scratch)
     root = Path(directory)
+    if not root.resolve().is_relative_to(scratch.resolve()):
+        raise ValueError('History fixture must use its owned persistent scratch directory')
+    root.mkdir(parents=True, exist_ok=True)
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
     comms = wire(root / 'wire')
@@ -84,8 +88,9 @@ async def main():
                                  process_identity=ProcessIdentity.capture(os.getpid())))
     for index in range(140):
         comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
-    app = ToadApp(project_dir=str(root))
-    async with app.run_test(size=(100, 32)) as pilot:
+    app = InstalledApp(project_dir=str(root))
+    headless = os.environ.get('L0A_HEADLESS', '1') != '0'
+    async with app.run_test(headless=headless, size=(100, 32)) as pilot:
         await pilot.pause()
         owner = app.selected_mode
         await channel_target('#edge').open(NavigationContext(app, owner, root, 'edge-reader'))
@@ -123,15 +128,31 @@ async def main():
         # Each older-page publication preserves the actual reader anchor. A
         # single Home therefore moves one edge, not through the whole source.
         # Repeat movement as the user does until the real tail is unmounted.
-        async with asyncio.timeout(8):
-            while not history.has_newer:
-                chat.window.scroll_home(animate=False, immediate=True)
-                await pilot.pause(.05)
-        chat.window.focus()
-        await pilot.press('end')
-        await until(lambda: history.checkpoint_available and not history.has_newer)
-        assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
-        assert chat.window.follows_tail and app._exception is None
+        try:
+            async with asyncio.timeout(8):
+                while not history.has_newer:
+                    chat.window.scroll_home(animate=False, immediate=True)
+                    await pilot.pause(.05)
+            chat.window.focus()
+            await pilot.press('end')
+            await until(lambda: history.checkpoint_available and not history.has_newer)
+            assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+            assert chat.window.follows_tail and app._exception is None
+        except BaseException:
+            # Capture the original native owner before run_test retires it.
+            # The previous barrier failure had no source/lock/frame evidence.
+            exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
+            spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            module.capture(expected_pid=os.getpid(), output_prefix=root / 'failed-history-state')
+            raise
+        print('PASS: receipt/typing/restart/End on original native window', flush=True)
+        if not headless:
+            # The existing recorder owns the physical window and quits through
+            # its real Ctrl+Q binding after retaining the visible final frame.
+            while not app._exit:
+                await asyncio.sleep(.05)
     assert not history.reader._pending
     print('PASS: original read admission, independent receipt paint, typing, restart fence, shared End and closed I/O')
 
