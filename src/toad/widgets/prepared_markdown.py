@@ -31,7 +31,7 @@ from textual.widgets._markdown import Markdown, MarkdownBlock
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
 from toad.markdown_preparation import FenceKey, PreparedFence
-from toad.render_tasks import MarkdownSyntaxRenderTask
+from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
 
@@ -87,9 +87,9 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
     async def prepare_body(self) -> None:
         # Results live only in PreparationRuntime's bounded cache. Fresh file
         # links and widget construction remain at the foreground delivery.
-        await MarkdownSyntaxRenderTask(self.source).prepare_body(
-            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
-        )
+        await self.app.render_processes.submit(MarkdownRenderTask(
+            self.source, self.app.native_ansi_color, self.app.current_theme.dark,
+        ))
 
     def _cancel_preparation(self) -> None:
         self._preparation_closed = True
@@ -116,9 +116,7 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         # after highlighting; they never become reusable renderer inputs.
         while not self._preparation_closed and self.is_attached and not self._pruning:
             theme = (self.app.native_ansi_color, self.app.current_theme.dark)
-            request = MarkdownSyntaxRenderTask(markdown).prepare_body(
-                self.app.render_processes, *theme,
-            )
+            request = self.app.render_processes.submit(MarkdownRenderTask(markdown, *theme))
             worker = self.run_worker(request, group="markdown-preparation", exit_on_error=False)
             try:
                 prepared = await worker.wait()

@@ -22,3 +22,29 @@ Read all owners/callers with existing NRA AST parsing, implement the whole famil
 then batch proportionate final checks and the affected installed application path.
 Work in progress; no speed or readiness claim before that validation. Original335
 movie and writer evidence remain available; no unchanged capture is requested.
+
+## Published implementation, not Ready
+
+The existing task is now MarkdownRenderTask(source,ansi,dark). Its execute method
+calls the original pure parser and prepare_tokens in the same process and returns
+PreparedMarkdown once. TokenRenderTask and intermediate token-result validation/
+resubmission are deleted. Runway, body delivery and startup submit this same task.
+Project-token resolution still runs freshly after independent runtime delivery;
+body lifecycle, native mount, frame readiness and viewport code are untouched.
+
+Existing NRA parse_python_module_roots read914 modules across Toad production,
+its tests and the installed Textual dependency with Python3.14. The initial NRA
+Python3.11 attempt failed on project syntax and was corrected; no skipped parse
+is reported as a clean result. AST selected the two task declarations, calls and
+PreparedMarkdown preparation; import references were also read from rg. Boundary
+semantics reviewed: RenderPreparation identity/result storage, PreparationRuntime
+copy and byte-bound policies, RendererSubmission custody, FieldCodec task transport,
+original pure parser/fence generation. Dynamic dispatch is not proved by AST.
+
+This deliberately makes theme part of the whole reusable request. Changing theme
+may parse again; the old theme-free token cache is removed, not retained as a
+second authority. At a fixed source/theme, a cold body now needs one worker request
+instead of two; warm body/runway still share one bounded prepared resource. This
+is source-established work deletion, not a measured speed claim. All original
+consumers, including three existing sanity pilots, are migrated in this batch.
+Final proportionate sanity and the changed installed path remain to run.
