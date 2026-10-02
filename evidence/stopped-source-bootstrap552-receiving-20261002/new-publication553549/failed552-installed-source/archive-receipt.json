@@ -1,0 +1,8 @@
+{
+  "source_proof_sha256": "fe6b2fcaa54d822e0f522c5218857159e093473fd7c15cd01b9c5abd9e00b908",
+  "activation_sha256": "f94bdd4e3b92761c14d4f59812b0a19a83051c7885e4775846058aa90481c9c0",
+  "failed_publication_receipt_sha256": "0c0418296bfa69f7354e815ba486d37e925b4a3815a660860ee20bd2ed722cad",
+  "failed_operator_ready_sha256": "773da177282d9351359d13fe95b5442dc28241b4134c9d3d46ed36ee7aaad986",
+  "state": "Parent authorized released552 holder only after original installed source proof/activation archived; original failed receipt/operators/native960/current334/333 unchanged",
+  "full_environment_copy": false
+}
