@@ -58,8 +58,7 @@ class SessionUpdateEffect(MroDispatch):
 
     @handles(CurrentModeUpdate)
     def mode(self, update):
-        self.agent.controller.current_mode = update.current_mode_id
-        self.agent.post_message(messages.ModeUpdate(update.current_mode_id))
+        self.agent.controller.update_mode(update.current_mode_id)
 
     @handles(ConfigOptionUpdate)
     def config(self, update):

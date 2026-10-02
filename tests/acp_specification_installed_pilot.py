@@ -36,10 +36,10 @@ async def main():
             await until(pilot, lambda: view.agent is not None and view.agent_ready)
             agent = view.agent
             try:
-                await until(pilot, lambda: view.current_mode is not None)
-                assert view.current_mode is agent.controller.modes['read']
+                await until(pilot, lambda: agent.current_mode is not None)
+                assert agent.current_mode is agent.available_modes[0]
                 assert await agent.set_mode('write') is None
-                await until(pilot, lambda: view.current_mode is agent.controller.modes['write'])
+                await until(pilot, lambda: agent.current_mode is agent.available_modes[1])
                 await view.submit_input(messages.UserInputSubmitted('SDK_SPECIFICATION_JOURNEY'))
                 await until(pilot, lambda: isinstance(app.screen, PermissionsScreen))
                 await until(pilot, lambda: 'old SDK content' in frame(app) and 'new SDK content' in frame(app))

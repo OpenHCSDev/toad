@@ -40,8 +40,7 @@ from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Model
-    from acp.schema import SessionMode
+    from toad.agent import AgentBase
 
 
 class ModeSwitcher(SelectionOptionList):
@@ -485,10 +484,7 @@ class Prompt(containers.VerticalGroup):
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
     agent_ready: var[bool] = var(False)
-    current_mode: var[SessionMode | None] = var(None)
-    modes: var[dict[str, SessionMode] | None] = var(None)
-    current_model: var[Model | None] = var(None)
-    models: var[dict[str, Model] | None] = var(None)
+    agent: var[AgentBase | None] = var(None)
     model_history_scope = var("")
     queue_supported = var(False)
     status: var[str | Content] = var("")
@@ -534,32 +530,31 @@ class Prompt(containers.VerticalGroup):
             self.prompt_text_area.get_cursor_line_end_location()
         )
 
-    def watch_current_mode(self, mode: SessionMode | None) -> None:
+    def watch_agent(self) -> None:
+        if self.is_mounted:
+            self.sync_configuration()
+
+    def sync_configuration(self) -> None:
+        """Render the original operational owners; no accepted selection lives here."""
         if self.simple_input:
             return
+        agent = self.agent
+        mode = agent.current_mode if agent is not None else None
         self.set_class(mode is not None, "-has-mode")
-        if mode is not None:
-            tooltip = Content.from_markup(
-                "[b]$description[/]\n\n[dim](click to open mode switcher)",
-                description=mode.description,
-            )
-            self.query_one(ModeInfo).with_tooltip(tooltip).update(mode.name)
-        self.watch_modes(self.modes)
-
-    def watch_current_model(self, model: Model | None) -> None:
-        if self.simple_input:
-            return
+        info = self.query_one(ModeInfo)
+        info.update(mode.name if mode is not None else "")
+        info.tooltip = (Content.from_markup(
+            "[b]$description[/]\n\n[dim](click to open mode switcher)",
+            description=mode.description or mode.name,
+        ) if mode is not None else None)
+        model = agent.configuration.model.selected if agent is not None else None
         self.set_class(model is not None, "-has-model")
-        agent_info = self.query_one(AgentInfo)
-        if model is None:
-            agent_info.tooltip = None
-        else:
-            agent_info.tooltip = Content.from_markup(
-                "[b]$description[/]\n\n[dim](click to search models)",
-                description=model.description or model.id,
-            )
-        self.watch_models(self.models)
-
+        self.query_one(AgentInfo).tooltip = (Content.from_markup(
+            "[b]$description[/]\n\n[dim](click to search models)",
+            description=model.description or model.value,
+        ) if model is not None else None)
+        self.update_modes()
+        self.model_switcher.configuration_changed()
 
     def ask(self, ask: Ask) -> None:
         """Replace the textarea prompt with a menu of options.
@@ -584,42 +579,27 @@ class Prompt(containers.VerticalGroup):
 
     @on(events.Click, "AgentInfo")
     def on_agent_info_click(self):
-        if self.models:
+        if self.agent is not None and self.agent.configuration.model.available:
             self.model_switcher.focus()
 
-    def watch_modes(self, modes: dict[str, SessionMode] | None) -> None:
-        if self.simple_input:
-            return
+    def update_modes(self) -> None:
         from toad.visuals.columns import Columns
 
+        agent = self.agent
+        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower()) if agent is not None else []
+        current = agent.current_mode if agent is not None else None
         columns = Columns("auto", "auto", "flex")
-        if modes is not None:
-            mode_list = sorted(modes.values(), key=lambda mode: mode.name.lower())
-            for mode in mode_list:
-                columns.add_row(
-                    (
-                        Content.styled("✔", "$text-success")
-                        if self.current_mode and mode.id == self.current_mode.id
-                        else ""
-                    ),
-                    Content.from_markup("[bold]$mode[/]", mode=mode.name),
-                    Content.styled(mode.description or "", "dim"),
-                )
-        else:
-            mode_list = []
-
+        for mode in mode_list:
+            columns.add_row(
+                Content.styled("✔", "$text-success") if mode is current else "",
+                Content.from_markup("[bold]$mode[/]", mode=mode.name),
+                Content.styled(mode.description or "", "dim"),
+            )
         self.mode_switcher.set_options(
             [Option(row, id=mode.id) for row, mode in zip(columns, mode_list)]
         )
-        if self.current_mode is not None:
-            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(
-                self.current_mode.id
-            )
-
-    def watch_models(self, models: dict[str, Model] | None) -> None:
-        if self.simple_input:
-            return
-        self.model_switcher.set_models(models or {}, self.current_model)
+        if current is not None:
+            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(current.id)
 
     def sync_turn(self) -> None:
         self.set_class(self.agent_busy and self.queue_supported, "-queue-mode")
@@ -635,6 +615,7 @@ class Prompt(containers.VerticalGroup):
             self._update_queue_summary()
 
     def on_mount(self) -> None:
+        self.sync_configuration()
         self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:

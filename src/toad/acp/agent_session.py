@@ -46,6 +46,7 @@ class AgentSession:
         """Start admission clears readiness before any asynchronous work."""
         self.connected = False
         self.settled.clear()
+        self.agent.controller.reset_configuration()
 
     def closed(self):
         self.connected = False
@@ -317,6 +318,7 @@ class AgentSession:
         except jsonrpc.APIError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
         else:
+            self.agent.controller.update_mode(mode_id)
             return None
 
 
@@ -334,7 +336,5 @@ class AgentSession:
     def publish_configuration(self, response):
         self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         if (modes := response.modes) is not None:
-            self.agent.controller.publish_modes(modes.current_mode_id, {
-                mode.id: mode
-                for mode in modes.available_modes})
+            self.agent.controller.publish_modes(modes)
         self.agent.configuration.receive(response.config_options)

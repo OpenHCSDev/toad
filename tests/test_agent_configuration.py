@@ -27,25 +27,24 @@ def test_configuration_owns_typed_groups_replacement_and_new_case():
     configuration.receive(None)
     assert configuration.setting(ModelConfigurationSetting) is model
     configuration.publish()
-    assert agent.messages[-2].models['model-a'].name == 'Model A'
-    assert agent.messages[-1].current_level == 'high'
+    assert agent.messages[-1].agent is agent
+    assert configuration.model.selected is model.choices[0]
     configuration.receive([])
     assert not configuration.thinking.choices and configuration.thinking.current == ''
-    assert agent.messages[-1].current_level == ''  # unavailable never invented off
+    assert agent.messages[-1].agent is agent  # invalidation carries no selection copy
 
     class BudgetConfigurationSetting(ConfigurationSetting):
         label = 'budget'
         @classmethod
         def matches(cls, option):
             return option.id == 'budget'
-        def publish(self, agent):
-            agent.post_message(self.current)
 
     try:
         extra = AgentConfiguration(agent)
         extra.receive(SetSessionConfigOptionResponse.model_validate({'configOptions':[{'id':'budget','name':'Budget','type':'select','currentValue':'bounded',
                                         'options':[{'value':'bounded','name':'Bounded'}]}]}, strict=True).config_options)
         assert extra.setting(BudgetConfigurationSetting).current == 'bounded'
-        assert 'bounded' in agent.messages
+        assert extra.setting(BudgetConfigurationSetting).selected.name == 'Bounded'
+        assert agent.messages[-1].agent is agent
     finally:
         ConfigurationSetting.__registry__.pop(BudgetConfigurationSetting.declared_name)

@@ -9,8 +9,8 @@ import tempfile
 from pathlib import Path
 
 from textual.content import Content
-from toad.acp.agent import Model
-from toad.acp.messages import SetModels
+from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
+from toad.acp.status import EndTurnStopReason
 from toad.agent import AgentBase
 from toad.app import ToadApp
 from toad.db import DB
@@ -27,10 +27,10 @@ class TestAgent(AgentBase):
     def __init__(self, project, target, models):
         super().__init__(project)
         self.target = target
-        self.models = models
         self.calls = []
-        from toad.acp.agent_configuration import AgentConfiguration
-        self.configuration = AgentConfiguration(self)
+        self.configuration.receive([SessionConfigOptionSelect(
+            id='model', name='Model', category='model', type='select',
+            current_value=next(iter(models)), options=list(models.values()))])
 
     def post_message(self, message):
         return self.target.post_message(message)
@@ -45,7 +45,8 @@ class TestAgent(AgentBase):
         self.calls.append(model_id)
         if model_id == "test/unavailable":
             return "Model unavailable"
-        self.target.post_message(SetModels(model_id, self.models))
+        self.configuration.receive([self.configuration.model.option.model_copy(
+            update={'current_value': model_id})])
         return None
 
 
@@ -62,18 +63,18 @@ async def main():
         sonnet = "openrouter/anthropic/claude-sonnet-4.6"
         gpt = "openrouter/openai/gpt-5.4"
         models = {
-            model.id: model
+            model.value: model
             for model in (
-                Model(glm, "GLM 5.3 Flash", "Fast coding model"),
-                Model(sonnet, "Claude Sonnet 4.6", "Balanced coding model"),
-                Model(gpt, "GPT 5.4", "OpenRouter"),
-                Model("openai/gpt-5.4", "GPT 5.4 direct", "OpenAI"),
-                Model("test/unavailable", "Unavailable model", None),
+                SessionConfigSelectOption(value=glm, name="GLM 5.3 Flash", description="Fast coding model"),
+                SessionConfigSelectOption(value=sonnet, name="Claude Sonnet 4.6", description="Balanced coding model"),
+                SessionConfigSelectOption(value=gpt, name="GPT 5.4", description="OpenRouter"),
+                SessionConfigSelectOption(value="openai/gpt-5.4", name="GPT 5.4 direct", description="OpenAI"),
+                SessionConfigSelectOption(value="test/unavailable", name="Unavailable model"),
             )
         }
         models.update(
             {
-                f"test/model-{n:04}": Model(f"test/model-{n:04}", f"Model {n:04}", None)
+                f"test/model-{n:04}": SessionConfigSelectOption(value=f"test/model-{n:04}", name=f"Model {n:04}")
                 for n in range(1000)
             }
         )
@@ -84,10 +85,10 @@ async def main():
             agent = TestAgent(root, conversation, models)
             # Install the fixture without restarting the already-mounted shell
             # view's lifecycle / filesystem watchers.
-            conversation.set_reactive(type(conversation).agent, agent)
+            conversation.agent = agent
             conversation.model_history_scope = "picker-test"
-            conversation.post_message(SetModels(glm, models))
-            await until(lambda: conversation.current_model is not None)
+            agent.configuration.publish()
+            await until(lambda: agent.configuration.model.selected is not None)
             db = DB()
             await db.record_model_usage("picker-test", gpt)
             await db.record_model_usage("picker-test", sonnet)
@@ -159,7 +160,7 @@ async def main():
             await pilot.pause()
             assert ids()[0] == gpt
             await pilot.press("enter")
-            await until(lambda: conversation.current_model.id == gpt)
+            await until(lambda: agent.configuration.model.current == gpt)
             for _ in range(50):
                 if (await db.recent_models("picker-test"))[0] == gpt:
                     break
@@ -180,13 +181,13 @@ async def main():
             await pilot.press(*"unavailable", "enter")
             await until(lambda: agent.calls[-1] == "test/unavailable")
             await pilot.pause()
-            assert conversation.current_model.id == gpt
+            assert agent.configuration.model.current == gpt
             assert "test/unavailable" not in await db.recent_models("picker-test")
             # Loading/receiving model state is not use. A completed turn is.
-            conversation.post_message(SetModels(sonnet, models))
-            await until(lambda: conversation.current_model.id == sonnet)
+            agent.configuration.receive([agent.configuration.model.option.model_copy(update={'current_value': sonnet})])
+            await until(lambda: agent.configuration.model.current == sonnet)
             assert (await db.recent_models("picker-test"))[0] == gpt
-            await conversation.agent_turn_over("end_turn")
+            await conversation.agent_turn_over(EndTurnStopReason)
             assert (await db.recent_models("picker-test"))[0] == sonnet
             history = json.loads(
                 subprocess.check_output(

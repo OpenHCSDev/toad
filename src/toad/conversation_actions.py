@@ -33,7 +33,7 @@ class ModeSwitcherAction(KeyboundAction, ConversationAction):
     show = True
 
     def available(self, conversation):
-        return bool(conversation.modes)
+        return conversation.mode_selection_available
 
     async def apply(self, conversation):
         conversation.prompt.mode_switcher.focus()
