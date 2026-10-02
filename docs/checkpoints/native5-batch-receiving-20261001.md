@@ -44,5 +44,41 @@ source. Driver checks per-route replies/receipts, one original-wave native input
 separate late native input, per-original source proof, final cursor coverage,
 ordinary native read tool and ACP notification facts. Original490completed02,
 its missing observer packets, UNKNOWN and every public source remain untouched.
-The fixture and raw evidence live under .artifacts/mixedroute-native5-batch01;
-no public owners/defaults are modified. Final outcome recorded after execution.
+Completed fresh02 raw evidence lives under /home/ts/wt/b289c02;
+failed original01 remains under .artifacts/mixedroute-native5-batch01;
+no public owners/defaults are modified. Fresh02 PASS23.5123304s: three sources share one native input, two distinct channel/direct receipts with no private leak, late fourth source uses a separate native input, all4 historical native proofs, final cursor coverage, ordinary native read tool,10ACP facts/7captured packets. Owned workers retired; original configured profile unchanged.
+
+## Preserved failure and source owner/caller closure
+
+Original01 hit the96.288s observation limit after activity had already recorded
+OSError("AF_UNIX path too long") at1790902810.9790459. OwnerToolSocket.start binds
+the private session path; TrackedTurnSession.complete awaits open_tools before
+native_session.open/spawn and outside its later native-failure handler. Original01
+remains prompt_starting with NULLcontext/session and no receipt. No timeout, idle
+or finished registry turn, missing context or later successful fresh input is
+converted into terminal proof, completed disposition or retry authority.
+
+Arendt489 acknowledged ownership of this acquired-resource startup and error-custody
+gap within the existing lifecycle families. No runtime/compaction/transport product
+edit was made here. Fresh02 uses new private originals and the completed490 short
+persistent fixture convention, same installed package/byte-identical driver. There
+is no timeout extension, native build, model override or old01/completed49002 replay.
+Readonly actual canonical root address is94bytes, below Linux108-byte limit.
+
+[Existing owner/caller closure](../../evidence/native5-batch-receiving-20261001/launch-lifecycle-owner-caller-closure.json)
+maps batch capture, input reservation/prompt binding, launch/tool resource custody,
+error classification, registry lease finish, drain availability and ACP/notification
+consumers. Actual installed-source search is recorded beside it. Missing context
+alone cannot establish provider wait or absence; this exact01 has a recorded bind
+error before the native open/spawn source call. No combined490/499 batch defect is
+demonstrated: the exact installed fresh02 path passes its scoped obligations.
+
+## Ready package checkpoint
+
+[Receiving qualification](../../evidence/native5-batch-receiving-20261001/receiving-qualification.json)
+and [installed mixed-route receipt](../../evidence/native5-batch-receiving-20261001/installed-mixedroute02.json)
+are persistent beside source/assets/native inventories, exact495 declaration equality,
+frozen recipe and driver provenance. Raw credentials, native sessions and callback
+bodies remain only in owned private fixtures. Parent owns public stopped Native5
+carry/default publication and actual default attachment. This is installed private
+qualification, not public/default or full UI acceptance. No further dispatch.
