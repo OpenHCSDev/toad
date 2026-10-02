@@ -210,10 +210,15 @@ class ContextInspection:
         return cls(thread, comms.bus.log.context_manifests(owner, comms.registry),
                    SessionRevision.observe(thread.session_file))
 
-    def current(self, comms):
-        thread = comms.registry.require(self.owner.name)
-        return (thread == self.owner
-                and self.source == SessionRevision.observe(thread.session_file))
+    def same_native_source(self, other: ContextInspection):
+        """Compare original SDK source/launch facts, not roster presentation."""
+        return (self.source == other.source
+                and self.owner.incarnation == other.owner.incarnation
+                and self.owner.process_identity == other.owner.process_identity
+                and self.owner.session_file == other.owner.session_file
+                and self.owner.worktree == other.owner.worktree
+                and self.owner.model == other.owner.model
+                and self.owner.thinking_level == other.owner.thinking_level)
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.

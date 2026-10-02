@@ -73,8 +73,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         if not self.visible():
             return
         # Invalidation does not replace an original read still in flight.
-        if any(worker.node is self and worker.group == "context-read"
-               and not worker.is_finished for worker in self.workers):
+        if self._working("context-read"):
             return
         access = self.app.coordination_access
         if self._observed_revision != access.revision:
@@ -89,8 +88,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
     def set_identity(self, owner, root):
         if (owner, root) == (self.owner, self.wire_root):
             return
-        self.workers.cancel_group(self, "context-read")
-        self.workers.cancel_group(self, "context-detail")
+        self.workers.cancel_node(self)
         self._context_nodes.clear()
         self._loaded.clear()
         self.owner, self.wire_root = owner, root
@@ -108,6 +106,10 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         return (self.is_attached and not get_current_worker().is_cancelled
                 and (owner, root) == (self.owner, self.wire_root))
 
+    def _working(self, group):
+        return any(worker.node is self and worker.group == group
+                   and not worker.is_finished for worker in self.workers)
+
     @work(group="context-read", exclusive=True, exit_on_error=False)
     async def _read(self, owner, root, *, force=False):
         status = self.query_one(".context-status", Static)
@@ -116,46 +118,62 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         if not owner or root is None:
             status.update("No managed thread context available")
             return
-        service = self.app.coordination_access.service
-        if str(service.root.resolve()) != str(root):
-            status.update("Selected context belongs to another wire root")
-            return
         try:
-            if (not force and self._inspection is not None
-                    and await asyncio.to_thread(self._inspection.current, service)):
-                if self._reading(owner, root):
-                    self._observed_revision = revision
+            service = self.app.coordination_access.service
+            if str(service.root.resolve()) != str(root):
+                status.update("Selected context belongs to another wire root")
                 return
             inspection = await asyncio.to_thread(ContextInspection.read, service, owner)
             if not self._reading(owner, root):
                 return
-            if self._inspection is None:
-                self._present(inspection, None)
+            previous = self._inspection
+            same_source = (previous is not None
+                           and inspection.same_native_source(previous))
+            changed_manifests = (previous is None
+                                 or inspection.manifests != previous.manifests)
+            if not same_source:
+                self.workers.cancel_group(self, "context-native")
+                self._native = None
+            self._inspection = inspection
+            if not same_source or changed_manifests:
+                self._present(inspection, self._native)
+            if force or not same_source:
                 status.update(f"{owner} · recorded manifests available\nReading native context…")
-            native = None
-            unavailable = ""
-            try:
-                native = await inspection.native(service)
-            except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-                unavailable = str(error)
-            if not self._reading(owner, root):
-                return
-            self._observed_revision = revision
-            if inspection == self._inspection and native == self._native:
-                return
-            self._inspection, self._native = inspection, native
-            self._present(inspection, native)
-            status.update(
-                f"{owner} · native base before future input/provider hooks\n"
-                f"Segment counts: estimates ({native.counter}) · provider totals unavailable"
-                if native is not None else
-                f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
+                self._read_native(inspection, service, owner, root)
+            elif (changed_manifests and self._native is None
+                  and not self._working("context-native")):
+                # An original SDK manifest is context evidence; an unrelated
+                # roster status change is not permission to poll native again.
+                self._read_native(inspection, service, owner, root)
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
             if self._reading(owner, root):
-                self._observed_revision = revision
                 status.update(f"Context unavailable: {error}")
+
+    @work(group="context-native", exclusive=True, exit_on_error=False)
+    async def _read_native(self, inspection, service, owner, root):
+        native = None
+        unavailable = ""
+        try:
+            native = await inspection.native(service)
+        except asyncio.CancelledError:
+            raise
+        except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
+            unavailable = str(error)
+        if (not self._reading(owner, root) or self._inspection is None
+                or not inspection.same_native_source(self._inspection)):
+            return
+        if native != self._native:
+            self._native = native
+            # Use the latest original manifest observation, not the earlier
+            # capture whose native request was pending while it was appended.
+            self._present(self._inspection, native)
+        self.query_one(".context-status", Static).update(
+            f"{owner} · native base before future input/provider hooks\n"
+            f"Segment counts: estimates ({native.counter}) · provider totals unavailable"
+            if native is not None else
+            f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
 
     def _present(self, inspection, native):
         tree = self.query_one(Tree)
@@ -190,7 +208,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
 
     def _restore_cursor(self, model):
         node = self._context_nodes.get(model.key)
-        if (self.is_attached and node is not None and node.data is model
+        if (self._owns_node(node) and node.data is model
                 and self.intent.selected == model.key):
             self.query_one(Tree).move_cursor(node, animate=False)
             self._show_detail(model)
@@ -200,8 +218,12 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         self._context_nodes[model.key] = node
         return node
 
+    def _owns_node(self, node):
+        return (self.is_attached and node is not None and node.data is not None
+                and self._context_nodes.get(node.data.key) is node)
+
     def _expand(self, node):
-        if node.data is None or node.data.key in self._loaded:
+        if not self._owns_node(node) or node.data.key in self._loaded:
             return
         self._loaded.add(node.data.key)
         for model in node.data.children():
@@ -210,21 +232,20 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
 
     @on(Tree.NodeExpanded, "#context-tree")
     def node_expanded(self, event):
-        if event.node.data is not None:
+        if self._owns_node(event.node):
             self.intent.expanded.add(event.node.data.key)
             self._expand(event.node)
 
     @on(Tree.NodeCollapsed, "#context-tree")
     def node_collapsed(self, event):
-        if event.node.data is not None:
+        if self._owns_node(event.node):
             self.intent.expanded.discard(event.node.data.key)
 
     @on(Tree.NodeSelected, "#context-tree")
     @on(Tree.NodeHighlighted, "#context-tree")
     def node_selected(self, event):
         event.stop()
-        if (event.node.data is not None
-                and self._context_nodes.get(event.node.data.key) is event.node):
+        if self._owns_node(event.node):
             self.intent.selected = event.node.data.key
             self._show_detail(event.node.data)
 
@@ -232,8 +253,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         if not self.is_attached:
             return False
         node = self.query_one(Tree).cursor_node
-        return (node is not None and node.data is model
-                and self._context_nodes.get(model.key) is node)
+        return node is not None and node.data is model and self._owns_node(node)
 
     @work(group="context-detail", exclusive=True, exit_on_error=False)
     async def _show_detail(self, model):
@@ -253,5 +273,4 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
             self.query_one(TextArea).load_text(detail)
 
     def on_unmount(self):
-        self.workers.cancel_group(self, "context-read")
-        self.workers.cancel_group(self, "context-detail")
+        self.workers.cancel_node(self)

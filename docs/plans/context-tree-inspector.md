@@ -17,9 +17,9 @@ SDK per-segment counts are explicitly estimates, with their counter named. Provi
 
 ## Lifetime and reader choices
 
-Only expansion and selection intent survive sidebar retirement. Changed native content has a changed original digest in its navigation key. Async detail publication additionally requires the exact currently selected TreeNode.data object: reusing a key across threads or refreshes cannot admit an older result. Both worker groups are cancelled on identity retirement and unmount. Original Textual Signal/MessagePump teardown releases subscriptions.
+Only expansion and selection intent survive sidebar retirement. Changed native content has a changed original digest in its navigation key. Expansion, collapse, selection and cursor events require their original current TreeNode resource. Async detail publication additionally requires the exact currently selected TreeNode.data object: reusing a key across threads or refreshes cannot admit an older result. All workers owned by the panel are cancelled on identity retirement and unmount. Original Textual Signal/MessagePump teardown releases subscriptions.
 
-Coordination invalidations cannot cancel an unfinished context read. The original WorkerManager and completion event own that lifetime; the latest original coordination revision is checked when it finishes. No loader flags, generation store or polling timer were added. Refresh restores the cursor without toggling saved expansion choices.
+Coordination invalidations cannot cancel an unfinished original observation read. The original WorkerManager and completion event own that lifetime; the latest original coordination revision is checked when it finishes. Manifest observations progress independently of the native RPC, so a new recorded turn appears while native detail is pending. Comparing original native source/launch facts avoids rebuilding on unrelated roster status; comparing original manifests catches appends even with unchanged session bytes. No loader flags, generation store or polling timer were added. Refresh restores the cursor without toggling saved expansion choices.
 
 ## Read-only boundary
 
