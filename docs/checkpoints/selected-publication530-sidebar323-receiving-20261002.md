@@ -17,3 +17,11 @@ Exact whole currentd6 and target5c55 NativeSchemaDeclarations are equal, version
 The single parent command is in `evidence/selected-publication530-sidebar323-receiving-20261002/operator-preparation/preparation-receipt.json`. Parent alone freshly recaptures the complete original idle/client-free audience and executes once, preserving settings/source/history/UNKNOWN and selecting the same nativead533. This preparation has zero public effects. Ordinary default physical startup/display follows parent publication as a distinct result; no new public channel/provider claim is made here.
 
 `activation.staging_receipt` selects the immutable installed source proof; the separate READY receipt names exact pins and hashes. Current324/default and qualified prefixes remain protected. Independent532 artifact0b306/S4 and full performance follow-ups do not hold this ready bundle.
+
+## Publication identity readback
+
+Parent executed the frozen one-use publisher once, session94109 terminal0,42.625240s. Raw receipt phase remains `retained-batch-launched-configurations-verified-public-ui-pending`, SHA9493e155f6498e7a4aa15dbd00f6f90183f890b352aea493204b754938db85de. Its bytes are archived unchanged.
+
+Readback confirms all five links select the qualified combined prefix, the route retains the original root/rootID and nativead533, and all19 exact published full process identities are alive with the original thread births. Every original Thread field except the replaced process identity remains equal at this observation; no subsequent turn-progress differences were observed. Target interpreter launch capture passed with credentials only in RAM. Readback did not launch, stop, publish, retry or send any native/provider input.
+
+The separate publication identity closure is SHA199d806edeb7ebfee947d0b2a6824b1434e3bffdc4791e6f0fb2a63b34e4b6b5. Complete schema equality remains distinct from product equality. Parent ordinary default physical observation and fresh configured channel probe are pending separate results, not inferred from this readback.532/native0b306 remains a later independent pair and is not mixed into this installed release.
