@@ -55,17 +55,18 @@ async def main():
             observations = []
             original_demand = None
 
-            async def held_restoration(owners, anchor):
-                await restoration(owners, anchor)
+            async def held_restoration(owners, anchor, demand):
+                await restoration(owners, anchor, demand)
                 if not entered.is_set():
                     entered.set()
                     await release.wait()
 
             def observe_acceptance(demand):
                 accepted = accepts(demand)
-                observations.append(dict(original_demand=demand is original_demand,
-                                         original_still_current=original_demand is manager.lookahead.demand,
-                                         accepted=accepted))
+                if original_demand is not None:
+                    observations.append(dict(original_demand=demand is original_demand,
+                                             original_still_current=original_demand is manager.lookahead.demand,
+                                             accepted=accepted))
                 return accepted
 
             manager._restore_bodies = held_restoration
