@@ -121,3 +121,25 @@ Preserve raw failures. Scoped checkpoint can ship; ALL remaining assignment
 above stays active in the next main-based draft before sustained source work.
 Next source lead: remaining native can→fullscene lookup and geometry relocation
 on retained output; Kepler owns native boundary, Heisenberg wholeintegration.
+
+## Observer attribution limits
+
+The failed200second run performed36 serial live preview encodes totaling
+129.98s recorder walltime (1.06–7.14s each). This delays driver continuation,
+not UI CPU itself.20 full state collection spans total11.39s acquisition/wait
+walltime; their recorded UI extraction totals452.73ms (10.83–39.88ms each),
+excluding frame-only JSON copies and worker persistence. These overlap encoder
+work and cannot be added/subtracted as CPU.56 observed UI-process changed-stack
+groups contain capture_state/capture_screen among2266 UI-process groups; these
+are stack transitions, not calls, CPU shares or exhaustive samples.
+
+Source read: full DTO extraction walks native trees and queries body readiness/
+cost/focus hooks which may acquire geometry; committed map DTO reads themselves
+do not reflow. Software screen export renders and requests refresh. Frames-only
+exports copy growing original driver records and write JSON inside UI process;
+pickle/JSON persistence runs its existing named daemon thread. Preserve actual
+user-visible holds; measured kernel phases include all these observers. No
+claim that captured CPU is entirely product work or observer overhead removed.
+Next changed-source gate uses less frequent existing exports with during-run
+watching, and original GIL-thread sampling if attribution needs it. No rerun
+of this unchanged source solely for observer accounting.

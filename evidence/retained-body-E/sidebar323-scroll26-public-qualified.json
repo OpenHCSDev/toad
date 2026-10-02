@@ -2269,5 +2269,163 @@
   "raw_receipt_sha256": {
     "/home/ts/.cache/agent-scratch/sidebar323-scroll26-public-20261002-01/capture/receipt.json": "d62d8674f67860e1941d1cf5f63701598728c889a27f9e2b590ff4abefd4f7d3",
     "/home/ts/.cache/agent-scratch/sidebar323-row-lifetime-public-20261002-02/capture/receipt.json": "08ce12fa578eda87deb50c68ccc624e48cc8e7cd05c7742d3999be0257ccee57"
+  },
+  "observer_work_separation": {
+    "motion_raw": "/home/ts/.cache/agent-scratch/sidebar323-scroll26-public-20261002-01/capture",
+    "encoding_exports": 36,
+    "encoding_wall_seconds_sum": 129.97511378506897,
+    "encoding_wall_seconds_range": [
+      1.0581902749836445,
+      7.1417084480053745
+    ],
+    "scope_encoding": "Recorder-process subprocess work; serial observers delay driver continuation. Not UI CPU time. Encoding ranges can overlap marker waiting.",
+    "phase_state_export_operations": 20,
+    "phase_state_export_wall_seconds_sum": 11.387468296044972,
+    "scope_state_wall": "Main-thread acquisition/remote attachment/wait plus worker serialization/filewrite; overlaps encoder observation, not additive CPU time.",
+    "full_state_main_capture_count": 20,
+    "full_state_main_capture_wall_ms_sum": 452.734605,
+    "full_state_main_capture_wall_ms_range": [
+      10.827681,
+      39.879209
+    ],
+    "scope_ui_capture": "Exact source ui_capture_ms until tree/DTO extraction completes; excludes later persist thread, frame-only JSON exports and remote waiting. Wall not CPU.",
+    "observed_ui_stack_change_groups": 2266,
+    "diagnostic_stack_change_groups": 56,
+    "diagnostic_examples": [
+      {
+        "video_seconds": 6.658279849497635,
+        "thread": 140156895999680,
+        "frames": [
+          {
+            "function": "_bootstrap",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "_bootstrap_inner",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "run",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "persist",
+            "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py"
+          },
+          {
+            "function": "write_json",
+            "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py"
+          },
+          {
+            "function": "dump",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py"
+          }
+        ]
+      },
+      {
+        "video_seconds": 6.758109849497635,
+        "thread": 140156895999680,
+        "frames": [
+          {
+            "function": "_bootstrap",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "_bootstrap_inner",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "run",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "persist",
+            "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py"
+          },
+          {
+            "function": "write_json",
+            "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py"
+          },
+          {
+            "function": "dump",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py"
+          },
+          {
+            "function": "_iterencode",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_dict",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_dict",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          }
+        ]
+      },
+      {
+        "video_seconds": 6.810328849497635,
+        "thread": 140156895999680,
+        "frames": [
+          {
+            "function": "_bootstrap",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "_bootstrap_inner",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "run",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"
+          },
+          {
+            "function": "persist",
+            "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py"
+          },
+          {
+            "function": "write_json",
+            "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tools/performance/capture_state.py"
+          },
+          {
+            "function": "dump",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/__init__.py"
+          },
+          {
+            "function": "_iterencode",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_dict",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_dict",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_list",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_dict",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          },
+          {
+            "function": "_iterencode_dict",
+            "source": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/json/encoder.py"
+          }
+        ]
+      }
+    ],
+    "profile_scope": "Chrome changed stack groups, NOTcalls/samples/CPUtime. No valid per-phase observer CPU subtraction from kernel totals.",
+    "source_effects": [
+      "live_review ffprobe/ffmpeg decodes original video and encodes sheet/motion; frames-only remote export copies growing native driver records and writes JSON on UI thread.",
+      "Full capture_state walks all open view native trees and existing map DTOs, queries agent label, body readiness/cost and focus hit testing; raw map fields themselves do not force reflow, but readiness/native geometry hooks may acquire full_map.",
+      "capture_screen calls original app.export_screenshot then screen.refresh; software export can render and schedule a repaint. Markers use physical import screenshot; full before screen export has this effect.",
+      "capture_state.persist serializes JSON/pickle on its named daemon worker, competing for GIL/resources rather than widget mutation."
+    ],
+    "next_changed_gate_policy": "Reuse existing cadence parameter with bounded less frequent frames-only live exports; keep watching frames during same run. Consider existing GIL sampling declaration when remaining profile attribution requires main-thread differentiation. No same-source rerun."
   }
 }
