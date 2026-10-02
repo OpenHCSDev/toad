@@ -1,5 +1,5 @@
 {
-  "state": "READY useful qualified geometry pair; not public/default verified yet",
+  "state": "Standalone installed source qualified; publication HOLD for combined backend/frontend cohort",
   "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-geometry322-20261002",
   "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-geometry322-20261002/bin/python",
   "core": "87719d6fed318cf07c793c96ceabf9d54bd53c43",
@@ -30,6 +30,9 @@
   "new_provider_input": false,
   "public_mutations": 0,
   "backend_core_native_configuration_change": false,
-  "publication_owner": "Parent sole publisher; existing Cohort publish/currentlink machinery, unchanged backend no restart required. Fresh actual idle/client gate belongs parent.",
-  "scope": "Useful current geometry/early body capture lifetime checkpoint; actual107s/input7/idle10x2/cleanup[] original source qualification retained. Partial mixed performance: Up p95 better, reverse worse; not overall smoothness/CPU. 321 later peer/preflight failure remains separate530; 520/529 budget source-gates independent."
+  "publication_owner": "Parent executes the existing ALL-STOPPED PublishRetainedSummary lifetime with PreserveRuntimeInstallation and PreserveOwnerRuntime. No independently supported UI-only publisher was found; do not invoke its link method outside that lifetime.",
+  "scope": "Useful current geometry/early body capture lifetime checkpoint; actual107s/input7/idle10x2/cleanup[] original source qualification retained. Partial mixed performance: Up p95 better, reverse worse; not overall smoothness/CPU. 321 later peer/preflight failure remains separate530; 520/529 budget source-gates independent.",
+  "format_carry_reset": false,
+  "backend_restart": "Existing preserve-only stopped/retained launch custody; parent once complete original audience idle/client-free.",
+  "publication_hold": "Parent batches322/Text25 frontend with next reviewed merged521+529/nativead533. Standalone324 publication NOTEXECUTED. Existing preserve-only operator prepared, not standaloneUIowner."
 }
