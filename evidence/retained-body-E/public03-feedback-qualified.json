@@ -1,0 +1,272 @@
+{
+  "qualification": "SCOPED retained-paint and stationary viewport feedback correction; not smoothness, whole CPU or full performance readiness",
+  "installed": {
+    "core": "48d408a46d73f9123b71a7ccdc81b86e8d8aa7c2",
+    "toad": "32cca305b531842008a56fb7a3b5db81d0b8d812",
+    "textual": "fc9be9e8720f334c8ac88c9d926d3817eec07e2f",
+    "sdk": "0.12.1",
+    "native": "5184",
+    "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-native-strips-E-feedback-20261002/source-proof.json",
+    "source_proof_sha256": "4cb1c5c7d258dcbda4a87909200beaa865ac41026cc2a271c305498ad322bfee"
+  },
+  "raw": "/home/ts/.cache/agent-scratch/native-retained-body-E-feedback-native6-public-20261002-03/capture",
+  "duration_seconds": 88.35965753201162,
+  "completed": true,
+  "capture_completed": true,
+  "input_paging": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "stationary_last10": [
+    {
+      "label": "input-mid-history-idle-done",
+      "start_seconds": 20.616844003030565,
+      "end_seconds": 30.616844003030565,
+      "counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      },
+      "requests": 0,
+      "admissions": 0,
+      "materializations": 0,
+      "retirement_attempts": 0,
+      "scrolls": 0
+    },
+    {
+      "label": "mid-history-idle-done",
+      "start_seconds": 56.99390028603375,
+      "end_seconds": 66.99390028603375,
+      "counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 9
+      },
+      "requests": 0,
+      "admissions": 0,
+      "materializations": 0,
+      "retirement_attempts": 0,
+      "scrolls": 0
+    }
+  ],
+  "resources": [
+    {
+      "source": "phase-input-mid-history-idle-done-state.json",
+      "states": {
+        "RenderedBody": 40,
+        "LiveBody": 7
+      },
+      "paint_bytes": 275115,
+      "rendered_all_ready": true,
+      "pending": false,
+      "reconciling": false,
+      "evictions": 0,
+      "runway": {
+        "requested_rows": 96,
+        "baseline_rows": 96,
+        "measured_body_rows": 5.857142857142857,
+        "admitted_items": 17,
+        "ready_rows": {
+          "before": 97,
+          "after": 131
+        },
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "foreground_delivery_seconds": 0.0
+      },
+      "scroll_y": 101,
+      "maximum": 239,
+      "follows_tail": false
+    },
+    {
+      "source": "phase-mid-history-idle-done-state.json",
+      "states": {
+        "RenderedBody": 23,
+        "LiveBody": 4
+      },
+      "paint_bytes": 278411,
+      "rendered_all_ready": true,
+      "pending": false,
+      "reconciling": false,
+      "evictions": 0,
+      "runway": {
+        "requested_rows": 96,
+        "baseline_rows": 96,
+        "measured_body_rows": 12.0,
+        "admitted_items": 8,
+        "ready_rows": {
+          "before": 94,
+          "after": 131
+        },
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "foreground_delivery_seconds": 0.0
+      },
+      "scroll_y": 105,
+      "maximum": 243,
+      "follows_tail": false
+    },
+    {
+      "source": "phase-end-done-state.json",
+      "states": {
+        "RenderedBody": 14,
+        "LiveBody": 4
+      },
+      "paint_bytes": 91743,
+      "rendered_all_ready": true,
+      "pending": false,
+      "reconciling": false,
+      "evictions": 0,
+      "runway": {
+        "requested_rows": 96,
+        "baseline_rows": 96,
+        "measured_body_rows": 8.75,
+        "admitted_items": 11,
+        "ready_rows": {
+          "before": 101,
+          "after": 0
+        },
+        "demand": "StationaryPreparation",
+        "travel_rows": 0,
+        "foreground_delivery_seconds": 0.0
+      },
+      "scroll_y": 105,
+      "maximum": 105,
+      "follows_tail": true
+    }
+  ],
+  "kernel_ui_phase_cpu": [
+    {
+      "start": "travel-start",
+      "end": "input-held-up",
+      "seconds": 1.1855089610326104,
+      "ui_cpu_percent": 101.22234748481088
+    },
+    {
+      "start": "input-held-up",
+      "end": "input-held-up-done",
+      "seconds": 4.969250086985994,
+      "ui_cpu_percent": 91.16063632747424
+    },
+    {
+      "start": "input-held-up-done",
+      "end": "input-mid-history-idle-done",
+      "seconds": 17.493890504003502,
+      "ui_cpu_percent": 39.27085286390578
+    },
+    {
+      "start": "input-mid-history-idle-done",
+      "end": "input-held-down",
+      "seconds": 2.4824418930220418,
+      "ui_cpu_percent": 28.600870860089724
+    },
+    {
+      "start": "input-held-down",
+      "end": "input-held-down-done",
+      "seconds": 4.967467529990245,
+      "ui_cpu_percent": 71.66629632719491
+    },
+    {
+      "start": "input-held-down-done",
+      "end": "before-history-focus",
+      "seconds": 2.6033471470000222,
+      "ui_cpu_percent": 37.25972546987375
+    },
+    {
+      "start": "before-history-focus",
+      "end": "history-held-up",
+      "seconds": 3.4206371110049076,
+      "ui_cpu_percent": 27.480260825558606
+    },
+    {
+      "start": "history-held-up",
+      "end": "history-held-up-done",
+      "seconds": 5.2940278349560685,
+      "ui_cpu_percent": 69.89007453963836
+    },
+    {
+      "start": "history-held-up-done",
+      "end": "mid-history-idle-done",
+      "seconds": 17.6091347670299,
+      "ui_cpu_percent": 32.653506694524786
+    },
+    {
+      "start": "mid-history-idle-done",
+      "end": "end-done",
+      "seconds": 17.654016184969805,
+      "ui_cpu_percent": 32.230626393354754
+    }
+  ],
+  "frame_delivery": {
+    "intervals": {
+      "count": 364,
+      "median_ms": 131.47,
+      "p95_ms": 503.54,
+      "p99_ms": 508.28,
+      "max_ms": 739.09
+    },
+    "enqueue_to_writer": {
+      "count": 365,
+      "median_ms": 1.19,
+      "p95_ms": 14.44,
+      "p99_ms": 22.18,
+      "max_ms": 39.76
+    },
+    "unmatched_enqueues": 0,
+    "trace_limit_reached": false
+  },
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3672764,
+      "start_time": 40937314
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3672764,
+      "start_time": 40937314
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "visual_review": {
+    "during_run": "Own live19-20 contact sheet viewed while clients alive; parent independently viewed actual mid-history PNG during run. This is not continuous playback or smoothness evidence.",
+    "after_run": "Actual mid-history and End PNGs readable. Finalized video82s and83s both retain the correct stationary End body. Recorded scrolling remains stepwise.",
+    "live_sheet_timing_failure": "live24-34 labelled82-83s depicts older moving content unlike finalized video82/83. Fragmented-MP4 input seeking is not validated; exact temporal motion claims from live contact sheets withdrawn. Original artifacts unchanged."
+  },
+  "limits": [
+    "Phase heldUp spans4.969s including diagnostic state capture after1.5s key hold; not exact held-key frame percentile.",
+    "Writer completion is not changed pixels, emulator presentation or input-to-paint. Global p95 mixes legitimate stationary heartbeat.",
+    "Mid-history-done to End-done includes End burst; not entirely stationary idle.",
+    "E02 different duration/pins/workload; CPU observations are not a controlled causal speedup.",
+    "Body retirement callbacks count attempts, not successful retirements.",
+    "1329 GIL samples,0 reported sampling errors; alignment uncertainty approximately76.9ms. Chrome transition counts are not calls, samples, duration or CPU attribution.",
+    "No new model/provider inputs, replay, original-owner restart, desktop0 interaction or public mutation."
+  ],
+  "remaining": "Full CPU, smooth scrolling,144Hz/input latency, warm/cold first paint, growing-end/void, focus, busy/sidebar/animation and TC1/T9/T4 remain owned in receiving continuation.",
+  "raw_sha256": {
+    "receipt.json": "61f9a24f66ef283f69ed1e1b7cc5c43164f66681a6fad32842b7a6db4b02056a",
+    "events.jsonl": "681ae013a84440a10a27c0b3c1e90d5c662ac62bffc02693ae8bc892aeb00664",
+    "scroll-travel.jsonl": "174ee5a8721e2ebf19a9d111cf49e4266c08c4c6f639452c954c0357fece478b",
+    "frame-delivery.json": "8b93385a8aa69daf4ca4f7617874c8d69a4f9a7f7dbd9019fb1753ab88de9c56",
+    "terminal.mp4": "7681b72003f993a40c17d767f5ec1c69519dd46d7e5f119aa984b4db32228f2b"
+  }
+}

@@ -171,3 +171,41 @@ NodeList removal changes custody/layout epochs, not Styles' mutation epoch;
 actual style writes alone publish _subtree_style_revision. Pruning controls does
 not itself invalidate the retained paint dependency. Source changes and real
 descendant/inherited style changes still invalidate through their original owners.
+
+
+## E03 useful retained-paint checkpoint
+
+Normal69 Core48d/Toad32cca/Textfc9/SDK12.1/native5184 installed source/assets
+were verified, then one original public nra-architecture read-only run completed
+88.360s. Input-focused paging7/7 passed; original owner3672764/start40937314
+was unchanged alive, owned clients closed, cleanup empty. No input or restart.
+
+Existing BodyMeasurement now rejects actual width/style/source changes while
+retaining rows through equal style notifications and unchanged-width offscreen
+reentry. Native Compositor admits captures through the same original current
+full map, not optional geometry-LRU residency. E03 retained40/23/14 Rendered
+bodies, all ready; paint275115/278411/91743bytes at the two midhistory/End exports.
+Both last10s midhistory intervals have ZERO requests, admissions, materializations,
+retirement attempts, scrolling or relocation. Earlier pending lazy pages settle
+before those intervals; they are not omitted from the raw trace.
+
+CPU remains91.16/71.67/69.89% in Up/Down/reverse marked spans,39.27/32.65%
+over whole mididle spans including early pending work. The short settled interval
+30.617–33.099s is28.60%. These are not a matched causal comparison with E02.
+Native writer enqueue-to-flush p95 is14.44ms; active Up inter-write median52.94ms
+/p95257.52ms includes capture overhead beyond the1.5s key hold. Global p95503ms
+mixes stationary heartbeat; none of these is terminal input-to-paint or144Hz.
+
+Own contact sheet was opened during the run, parent independently viewed actual
+midhistory PNG during it. After-run finalized video82/83s retains correct End
+body. Live24-34 sheet labelled82–83s instead shows older moving content, so its
+exact temporal motion interpretation is withdrawn; fragmented-MP4 input seek
+needs correction in the EXISTING recorder, not another capture/framework. Raw
+assessment=unreviewed remains untouched. Scrolling is still stepwise, not smooth.
+
+Profile main-thread changed stacks reach arrange_widget/add_widget while paging
+and SidebarObservation.read/poll -> SidebarProjection.publish/rebuild while
+stationary. These identify remaining owners, not CPU shares from compressed
+transitions. Full original performance/TC1/T9/T4 scope remains above. Useful
+retained-resource/idle-feedback checkpoint is qualified separately from it.
+Evidence: evidence/retained-body-E/public03-feedback-qualified.json.
