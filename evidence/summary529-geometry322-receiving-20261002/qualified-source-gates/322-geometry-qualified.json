@@ -1,0 +1,352 @@
+{
+  "scope": "Scoped joined original frame preparation lifetime/native absolute capture geometry and cache validity; NOT smoothness/144Hz/full performance acceptance",
+  "pins": {
+    "core": "87719d6fed318cf07c793c96ceabf9d54bd53c43",
+    "toad": "b54fb4c6f1b2f2c3daa71a986acc6f61c49722d3",
+    "textual": "a2f5f71f422def4a40032e4cfcd795b93d4dd3eb"
+  },
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-native-capture-lifetime322-20261002/source-proof.json",
+  "source_proof_sha256": "771aa579731cbdea4ca135b64159198edd68fa19233d6a2849a6933fce1666c5",
+  "raw": "/home/ts/.cache/agent-scratch/native-capture-lifetime322-public-20261002-01/capture",
+  "duration_seconds": 107.35262147895992,
+  "completed": true,
+  "capture_completed": true,
+  "operator_exit": 0,
+  "capture_returncode": 255,
+  "capture_returncode_scope": "FFmpeg accepted SIGINT255; not independent UI exit proof",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3857854,
+      "start_time": 41504646
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3857854,
+      "start_time": 41504646
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "input_paging": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "stationary_last10": [
+    {
+      "label": "input-mid-history-idle-done",
+      "start_seconds": 21.519130192988086,
+      "end_seconds": 31.519130192988086,
+      "event_counts": {
+        "sidebar_publication_done": 10,
+        "sidebar_publication_start": 9
+      }
+    },
+    {
+      "label": "mid-history-idle-done",
+      "start_seconds": 70.45457861199975,
+      "end_seconds": 80.45457861199975,
+      "event_counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    }
+  ],
+  "native_key_processing_writer_intervals": [
+    {
+      "phase": "input-held-up",
+      "native_handler_start_seconds": 10.124790873,
+      "native_handler_end_seconds": 13.056786786,
+      "handler_events": 57,
+      "writer_completions": 48,
+      "inter_writer": {
+        "count": 47,
+        "median_ms": 30.31,
+        "p95_ms": 166.68,
+        "p99_ms": 209.78,
+        "max_ms": 267.54
+      }
+    },
+    {
+      "phase": "input-held-down",
+      "native_handler_start_seconds": 37.953828889,
+      "native_handler_end_seconds": 41.685014761,
+      "handler_events": 78,
+      "writer_completions": 61,
+      "inter_writer": {
+        "count": 60,
+        "median_ms": 24.25,
+        "p95_ms": 216.72,
+        "p99_ms": 250.33,
+        "max_ms": 317.12
+      }
+    },
+    {
+      "phase": "history-held-up",
+      "native_handler_start_seconds": 53.828069799,
+      "native_handler_end_seconds": 58.18068208,
+      "handler_events": 86,
+      "writer_completions": 60,
+      "inter_writer": {
+        "count": 59,
+        "median_ms": 31.31,
+        "p95_ms": 242.57,
+        "p99_ms": 307.56,
+        "max_ms": 331.75
+      }
+    }
+  ],
+  "enqueue_to_writer": {
+    "count": 478,
+    "median_ms": 1.26,
+    "p95_ms": 10.56,
+    "p99_ms": 23.26,
+    "max_ms": 27.08
+  },
+  "kernel_ui_phase_cpu_and_faults": [
+    {
+      "label": "travel-start",
+      "elapsed_seconds": 1.9512528170016594,
+      "ui_cpu_percent": 99.42330297214123,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 3518
+    },
+    {
+      "label": "input-held-up",
+      "elapsed_seconds": 5.4144201970193535,
+      "ui_cpu_percent": 78.86347650576955,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 19225
+    },
+    {
+      "label": "input-held-up-done",
+      "elapsed_seconds": 17.90612954000244,
+      "ui_cpu_percent": 36.747193106696926,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 15243
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "elapsed_seconds": 3.4946661290014163,
+      "ui_cpu_percent": 28.901187201210668,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 190
+    },
+    {
+      "label": "input-held-down",
+      "elapsed_seconds": 7.260567763005383,
+      "ui_cpu_percent": 68.45194704088479,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 14873
+    },
+    {
+      "label": "input-held-down-done",
+      "elapsed_seconds": 3.6501616640016437,
+      "ui_cpu_percent": 34.24505857720381,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 1447
+    },
+    {
+      "label": "before-history-focus",
+      "elapsed_seconds": 4.4406811249791645,
+      "ui_cpu_percent": 24.770974745572676,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 576
+    },
+    {
+      "label": "history-held-up",
+      "elapsed_seconds": 8.14620661502704,
+      "ui_cpu_percent": 66.4112789629022,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 18940
+    },
+    {
+      "label": "history-held-up-done",
+      "elapsed_seconds": 21.943165122997016,
+      "ui_cpu_percent": 36.959116675016524,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 9628
+    },
+    {
+      "label": "mid-history-idle-done",
+      "elapsed_seconds": 20.193734179949388,
+      "ui_cpu_percent": 29.46458513803669,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 5320
+    }
+  ],
+  "body_resources": [
+    {
+      "label": "input-mid-history-idle-done",
+      "thread": "nra-architecture",
+      "rows": 242,
+      "scroll_y": 103,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "restoring": false,
+      "states": {
+        "RenderedBody": 42,
+        "LiveBody": 2
+      },
+      "paint_bytes": 319539,
+      "visible": 4,
+      "visible_rendered": 2,
+      "all_ready": true,
+      "pending": false,
+      "reconciling": false,
+      "source": "phase-input-mid-history-idle-done-state.json"
+    },
+    {
+      "label": "mid-history-idle-done",
+      "thread": "nra-architecture",
+      "rows": 311,
+      "scroll_y": 111,
+      "follows_tail": false,
+      "history_lock_held": false,
+      "restoring": false,
+      "states": {
+        "LiveBody": 6,
+        "RenderedBody": 31
+      },
+      "paint_bytes": 594275,
+      "visible": 6,
+      "visible_rendered": 0,
+      "all_ready": true,
+      "pending": false,
+      "reconciling": false,
+      "source": "phase-mid-history-idle-done-state.json"
+    },
+    {
+      "label": "after",
+      "thread": "nra-architecture",
+      "rows": 105,
+      "scroll_y": 105,
+      "follows_tail": true,
+      "history_lock_held": false,
+      "restoring": false,
+      "states": {
+        "RenderedBody": 14,
+        "LiveBody": 4
+      },
+      "paint_bytes": 136722,
+      "visible": 4,
+      "visible_rendered": 0,
+      "all_ready": true,
+      "pending": false,
+      "reconciling": false,
+      "source": "after-state.json"
+    }
+  ],
+  "profile": {
+    "trace": "cpu-profile.json",
+    "sample_count": 1474,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.0790120649826713,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "during_visual_review": [
+    {
+      "recorder_pid": 3898623,
+      "checked_alive": true,
+      "reviewed_monotonic": 416473.18046496,
+      "review_timing": "during_run",
+      "views": [
+        {
+          "file": "live-3-5-frames.png",
+          "source_seconds": [
+            9,
+            10
+          ],
+          "assessment": "Consecutive sixty-frame sheet: content progresses in discrete jumps with repeated pixel holds; no entire body void observed; limited grid visibility does not establish smoothness."
+        },
+        {
+          "file": "phase-input-held-up-done.png",
+          "phase_seconds": 13.613,
+          "assessment": "Actual original nra history readable after input-focused paging; sidebar and prompt readable, no global/body blank."
+        }
+      ]
+    },
+    {
+      "recorder_pid": 3898623,
+      "checked_alive": true,
+      "reviewed_monotonic": 416503.737195345,
+      "review_timing": "during_run",
+      "file": "live-19-19-frames.png",
+      "source_seconds": [
+        56,
+        57
+      ],
+      "assessment": "Consecutive reverse-scroll frames show readable changing body, repeated holds and discrete jumps; no entire body blank. Some individual commands/regions sparse, normal history space not assessed as void from reduced sheet. Not smooth scroll proof."
+    },
+    {
+      "recorder_pid": 3898623,
+      "checked_alive": true,
+      "reviewed_monotonic": 416533.071185036,
+      "review_timing": "during_run",
+      "views": [
+        {
+          "file": "phase-mid-history-idle-done.png",
+          "source_seconds": 80.455,
+          "assessment": "Mid-history after reverse15idle remains actual readable saved ToolCall diff; no entire body void."
+        },
+        {
+          "file": "live-23-26-frames.png",
+          "source_seconds": [
+            87,
+            88
+          ],
+          "assessment": "Post-End consecutive frames remain readable and stationary at tail, no entire body void; stationary is not scrolling fps evidence."
+        }
+      ]
+    }
+  ],
+  "physical_assessment": "Personally inspected consecutive frames DURING at9\u201310s Up,56\u201357s reverse,87\u201388s postEnd and actual heldUpdone/mididle PNGs. Readable real saved body/chrome; repeated holds/discrete jumps remain. Not smooth or terminal FPS proof. Reduced contact sheet cannot diagnose every sparse region.",
+  "timing_limits": [
+    "Native handler windows are actual processed key action spans; not physical keydown/up or input-to-paint.",
+    "Kernel CPU marked phases include postkey queued work/export; workload/Core/phase durations differ fromE04. No controlled causal overall CPU gain claim.",
+    "Writer completion does not establish emulator changed/presented frame timing. Global heartbeat intervals are not active-scroll FPS.",
+    "Profiler covers UI plus observed subprocesses; transitions are not sample counts/calls/CPU shares.",
+    "Early state-observer retries recorded separately in raw capture; recovered terminal journey does not erase them."
+  ],
+  "raw_artifact_sha256": {
+    "receipt.json": "ead4177975d6245ada3682d008e0bec366eae02f9f580574696cda7b453a6681",
+    "events.jsonl": "92b3eb007e238e3002c102afa6a5f14de494296df6fbbbf5db971699794ce7b0",
+    "scroll-travel.jsonl": "29cb1d06c58a024fc3ab41d89027d886d89b8b205315f5da9506e3bb52debfff",
+    "after-state-frames.json": "62c863ef2a641cf3a011d2aa0cbae6e417054f6807833c80699dd732940cdafd",
+    "profile-review.json": "330d576551747cd58c605a00a1b63f4490c62626f8028890f99d4f189e32cc58",
+    "cpu-profile.json": "1415f84add273090f960770edeba475534c7bd2d3da0e59a248c9b80494c3d69",
+    "input-paging-review.json": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-geometry322-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-geometry322-20261002/activation.json",
+    "sha256": "c88f11d6026e3f97f84a109ebf5f3a8f32428d1766b97bbf06fb8b0901dcd818"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-geometry322-20261002/source-proof.json",
+    "sha256": "9a51963e3c8f1893c427f610673f52156cbe9c6d5ba1e7657bba8e533c505f6d"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-geometry322-20261002/qualified-source-gates/322-geometry-qualified.json",
+      "sha256": "fd14357bfbcc039ae47411e208dd0698f8fce203fa248e697f17e807f6928dce"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-geometry322-20261002/qualified-source-gates/525-unchanged-core-installed-saved-resource.json",
+      "sha256": "2a33759f3db8b67bf337f212654eabab023a7ae3243cff7edc3a3268bf15e507"
+    }
+  ]
+}

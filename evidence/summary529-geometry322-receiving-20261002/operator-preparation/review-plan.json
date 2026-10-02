@@ -1,0 +1,30 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-ad533a9f08581561/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+    "sha256": "3a1d293c8dcb9371bbabaefb04e0d6ce953c849ef1d632dee88051a3cb909fd8"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/source-proof.json",
+    "sha256": "a2e90c6a0879854563b679a8cce16dd4abd712e29df16c9c72181ec56e15caa4"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/qualified-source-gates/322-geometry-qualified.json",
+      "sha256": "fd14357bfbcc039ae47411e208dd0698f8fce203fa248e697f17e807f6928dce"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary529-geometry322-20261002/qualified-source-gates/529-configured-saved-native-receipt.json",
+      "sha256": "0ffc69f8fc0831191d137a58a73995c6332978a0e910dc557fefa9900a3e8b1c"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "scope": "Unpublished metadata descriptions only; package/source/native/protected-file checks retained unchanged",
+  "previous_source_proof_sha256": "5dbfdeb314d8e68c72ca30609019e88aabf0cc5f74b14a9319494543ea94733e",
+  "final_source_proof_sha256": "a2e90c6a0879854563b679a8cce16dd4abd712e29df16c9c72181ec56e15caa4",
+  "updated_fields": [
+    "ownership.receiving_pr",
+    "ownership.gate_owner",
+    "ownership.original_prefix",
+    "source_proof.journey_owners",
+    "review_plan.source_proof.sha256",
+    "preparation.plan_sha256",
+    "preparation.source_proof_sha256"
+  ],
+  "package_bytes_changed": false,
+  "publication_executed": false
+}
