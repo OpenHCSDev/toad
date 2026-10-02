@@ -68,3 +68,17 @@ claim. Native mount/layout can still block the message loop after pure preparati
 that remaining cost stays within the full performance assignment. Raw339 remains
 frozen; no unchanged baseline capture is requested. Public337 publication holds
 only public attachment while its real publisher/recovery runs.
+
+## Matched installed qualification pair
+
+The normal main merge brought337 candidate Core732/Text640 pins. Actual337
+publication failed and334 was recovered at Core7dd/Text81ec/native9f12. The
+normal installer refused the two Textual URLs before mutating the holder. This
+branch qualifies342 against that recovered public pair; pyproject and lock now
+name its exact original packages. All merged production is retained. No dependency
+bypass, overlay, new environment or native build. Final receiving may normally
+pin its independently qualified whole cohort.
+
+The one serial native source batch passed retained End page/source ordering,
+older/newer batch mount and provisional/accepted cancellation cleanup in15.1s.
+These checks exercise resource/custody risks; installed motion remains unqualified.
