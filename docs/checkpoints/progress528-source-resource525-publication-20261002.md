@@ -1,12 +1,12 @@
 # Joined525/528/319 publication
 
-Parent executed the original publisher once.19 retained owners launched with whole original settings verified; publication43.3447s. Current five entrypoint links and the active route match the qualified target. Read-only closure confirmed each published PID and original process epoch alive; no additional restart or provider input. Native5184, source sessions and UNKNOWN dispositions were not rewritten by a carry.
+Parent executed the original publisher once.19 retained owners launched with whole original settings verified; publication43.3447s. Current five entrypoint links and the active route match the qualified target. Read-only closure confirmed each published PID alive with its current full process epoch recorded; no additional restart or provider input. Native5184, source sessions and UNKNOWN dispositions were not rewritten by a carry.
 
 The normal69 candidate remains frozen Core87719d6/Toad2a3d006d/Text431b4e12, SDK0.12.1; Toad merged321a90f8b7a and Text merged24 68af192f have identical qualified product/config/tool bytes.
 
 ## Actual default read
 
-Parent ran ordinary toad-comms saved-helper observation46.1423s. Parent inspected DURING recorder3863694: history loaded, Ready, collapsed coordination. Closure author did not inspect DURING this run. Original helper3858116/start41505937 stayed alive unchanged; runtime unchanged; cleanup empty. Rawcapture_returncode255 and assessmentunreviewed/review_timingdeferred preserved; parent process terminal0 is a different result. No full-motion/CPU assertion.
+Parent ran ordinary toad-comms saved-helper observation46.1423s. Parent inspected DURING recorder3863694: history loaded, Ready, collapsed coordination. Closure author did not inspect DURING this run. Original helper3858116/start41505937 stayed alive unchanged; runtime unchanged; cleanup empty. Rawcapture_returncode255 and assessmentunreviewed/review_timingdeferred preserved; parent recorder wrapper56778 terminal0 is a different result. No full-motion/CPU assertion.
 
 ## Fresh configured channel
 
