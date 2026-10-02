@@ -266,3 +266,34 @@ did not reach fixture completion before recorder custody expired. No End or
 full338 acceptance is claimed. Both old physical roots/movies remain untouched.
 The new source scheduling batch is not installed in the frozen344 prefix; its
 affected installed check needs the next normally packaged matching cohort.
+
+Parent assigned Heisenberg one normally integrated347/338 candidate and one
+physical motion/receipt/End journey with the existing CPU and writer evidence.
+The old344/cb48 holder is released for that integration; its source proof,
+original receipts and both failed338 recordings remain preserved. There is no
+second package, environment, worktree or repeat of those original inputs.
+The scheduling checkpoint4b9461b4 changes three production files by10 additions
+and10 deletions. Its before/after NRA owner map covers276 production,39
+performance and389 test modules, zero parse omissions. Per-name matches include
+unrelated refresh methods; receiver ownership was read at the migrated callers,
+and dynamic dispatch and physical paint still require the combined journey.
+
+The existing held-reader fixture now exposes record_retained as the original
+saved-source fixture's readonly_capture callback. Its one SourceCapture child
+uses the installed App/Linux driver and original ACP definition. InputWarm's
+physical native motion, A/B/A and Undo finish before the same App/Pilot runs
+the original held-reader receipt/restart/End assertions. It observes the
+recorder's completed source-start marker, then the existing immutable outcome
+waiter prevents quitting early. No parallel gestures, second App/root or
+provider input is introduced; recording budgets remain the sole operator's
+arguments. Old negative movies and roots remain untouched.
+
+PhysicalJourney owns the command-to-history-thread hook; all seven readiness
+callers use it. The retained fixture supplies its declared resource436 source
+instead of pretending the Python script's final argument is an agent name.
+SourceCapture accepts source-entrypoint arguments with its original selected
+Python, persistent source and private route guards. Fresh edge-reader originals
+explicitly declare the existing ExternalThreadExecution capability, preserving
+agent authorship without accidentally enabling native prompt delivery. Common
+seed and outcome/failure export behavior replaces the duplicated fixture path.
+This is test/tool glue; the ten-line production scheduling deletion is unchanged.

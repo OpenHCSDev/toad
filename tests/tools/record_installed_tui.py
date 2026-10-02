@@ -434,6 +434,11 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     motion_phases = ()
 
     @classmethod
+    def history_thread(cls, args):
+        """The ordinary installed CLI's final argument selects its thread."""
+        return args.command[-1]
+
+    @classmethod
     def review_intervals(cls, args, events, duration):
         """Select real gesture intervals from the journey's original markers."""
         labels = args.review_phase or cls.motion_phases
@@ -650,7 +655,7 @@ class RetainedLifetimeJourney(WarmScrollJourney):
 
     @classmethod
     def opening_commands(cls, args):
-        return (cls.ready_command(args, "warm-ready", args.command[-1]),
+        return (cls.ready_command(args, "warm-ready", cls.history_thread(args)),
                 *super().opening_commands(args))
 
     @classmethod
@@ -732,7 +737,7 @@ class ScrollTravelRegressionJourney(ScrollJourney):
         marker = marker_command()
         ready = (marker + f"travel-start --wait-history-seconds {args.history_wait_seconds:g} "
                  f"--wait-history-interval {args.history_wait_interval:g} "
-                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+                 f"--wait-history-thread {shlex.quote(cls.history_thread(args))}")
         hold = f"sleep {args.scroll_hold_seconds:g}"
         idle = f"sleep {args.scroll_idle_seconds:g}"
         return "\n".join([
@@ -811,7 +816,7 @@ class InputWarmJourney(WarmScrollJourney):
     def opening_commands(cls, args):
         if not args.scroll_travel:
             raise ValueError("Input warm acceptance requires original paging observation")
-        return (cls.ready_command(args, "warm-ready", args.command[-1]),
+        return (cls.ready_command(args, "warm-ready", cls.history_thread(args)),
                 *super().opening_commands(args))
 
     @classmethod
@@ -863,7 +868,7 @@ class StationaryInputScrollJourney(ScrollJourney):
         settle = f"sleep {args.navigation_settle_seconds:g}"
         ready = (marker + f"stationary-start --wait-history-seconds {args.history_wait_seconds:g} "
                  f"--wait-history-interval {args.history_wait_interval:g} "
-                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+                 f"--wait-history-thread {shlex.quote(cls.history_thread(args))}")
         return "\n".join([
             ready, settle, marker + "stationary-loaded",
             native_click_command("phase-stationary-loaded-state.pickle"),
@@ -1000,8 +1005,8 @@ class SourceCapture(PrivateCapture):
     def admit(cls, args, command, env):
         root = cls.admit_root(args, env)
         selection = RuntimeSelection.from_environment(command, env)
-        if len(command) != 2 or Path(command[0]).resolve() != (selection.bin_directory / 'python').resolve():
-            raise ValueError('Source capture requires the selected runtime Python and one source entrypoint')
+        if len(command) < 2 or Path(command[0]).resolve() != (selection.bin_directory / 'python').resolve():
+            raise ValueError('Source capture requires the selected runtime Python and a source entrypoint')
         source = Path(command[1]).resolve()
         if not source.is_file() or not source.is_relative_to(Path.home() / 'wt'):
             raise ValueError('Source capture requires an existing persistent worktree entrypoint')
