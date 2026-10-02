@@ -93,3 +93,21 @@ The parent owns the existing recorder REVIEW-only change needed to inspect a
 failed capture after completion. Existing raw335 failure and film stay untouched.
 Core state/events journeys and frontend motion/writer evidence are distinct;
 this frontend's later gate confirms actual rendering, not a second semantic owner.
+
+## Joined source hook migration
+
+Normally integrated Kepler338 published08a598c5 (including original message-envelope
+owner4337b250). ReaderPosition now asks each existing source preparation member
+for its original admission resources and delegates restoration; it no longer
+knows each leaf's .pages/capture_admission implementation. Conversation's filter
+consumer calls the same owner's projection_changed hook instead of reaching
+into a native-only .filter. Native leaf uses its original page admissions;
+fully-mounted wire resources need no reconstructed local fragment admission.
+Window.histories refers to the existing shared source-preparation capability,
+not the native-only leaf type. No second registration set or copied cursor.
+
+The pending338 controller migration will register its actual native history
+resource and use protect_history. The current published hook batch is reviewable
+working progress, not full cross-view/lazy-animation qualification. Joined final
+checks and installed IRC/DM motion follow the completed family; do not repeat
+unchanged335 recording or claim its earlier qualification covered this source.

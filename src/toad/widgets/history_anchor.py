@@ -17,7 +17,8 @@ from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
-    from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageAdmission
+    from toad.widgets.transcript_history import TranscriptPageAdmission
+    from toad.transcript_source_preparation import TranscriptSourcePreparation
 
 
 class WindowRestoration(ABC):
@@ -66,11 +67,11 @@ class ReaderPosition(WindowRestoration):
         if window.follows_tail:
             return TailReaderPosition()
         return OffsetReaderPosition(window.scroll_y, tuple(
-            page.capture_admission()
-            for history in window.histories for page in history.pages
+            admission for history in window.histories
+            for admission in history.capture_reader_admissions()
         ))
 
-    def prepare_history(self, history: "TranscriptHistory") -> None:
+    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Tail readers use ordinary newest-page admission."""
 
 
@@ -85,10 +86,8 @@ class OffsetReaderPosition(ReaderPosition):
     y: float
     admissions: tuple["TranscriptPageAdmission", ...]
 
-    def prepare_history(self, history: "TranscriptHistory") -> None:
-        for page in history.pages:
-            for admission in self.admissions:
-                page.restore_admission(admission)
+    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
+        history.restore_reader_admissions(self.admissions)
 
     def _restore(self, window: "HistoryWindow") -> None:
         window.release_anchor()
@@ -157,7 +156,7 @@ class HistoryWindow(VerticalScroll):
         return asyncio.Lock()
 
     @cached_property
-    def histories(self) -> WeakSet[TranscriptHistory]:
+    def histories(self) -> WeakSet[TranscriptSourcePreparation]:
         """Mounted pagers register themselves; status checks need no DOM scan."""
         return WeakSet()
 
