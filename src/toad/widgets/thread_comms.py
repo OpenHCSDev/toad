@@ -1,6 +1,9 @@
 """Owner-scoped right-sidebar communication and explicitly declared work links."""
 
 from __future__ import annotations
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 
 from toad.navigation_target import NavigationTarget, person_target, linked_target
 
@@ -190,7 +193,7 @@ class RelationshipRows(SidebarGroup):
             container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
-class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
+class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -245,9 +248,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.
         self.app.coordination_observed.subscribe(self, self._observed)
-        self.app.open_tabs_changed.subscribe(self, self._observed)
-        self.app.session_selected_signal.subscribe(self, self._observed)
-        self.app.thread_actions_changed.subscribe(self, self._observed)
+        self.observe_core(self.app.events)
         if self._live:
             self._bind_screen_identity()
         self._sync_filter_control()
@@ -314,6 +315,10 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         for group in self.groups.values():
             group.display = False
         self.refresh_relationships(force=True)
+
+    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged)
+    async def app_observed(self, event: CoreEventMessage) -> None:
+        self._observed(event.event)
 
     def _observed(self, _value):
         if not self.is_attached or self.screen is not self.app.screen:

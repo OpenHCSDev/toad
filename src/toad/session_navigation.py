@@ -1,5 +1,6 @@
 """App admission and close use the existing workspace's declared factories."""
 from __future__ import annotations
+from toad.core import events as core_events
 from toad.core.events import CoreEventStream
 
 from collections.abc import Callable
@@ -70,7 +71,7 @@ class SessionAdmissions:
         return admission.source(self) if admission else None
 
     def publish(self) -> None:
-        self.app.open_tabs_changed.publish(None)
+        self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()
 
     async def admit(self, admission: SessionAdmission, *, after: str | None = None) -> str:

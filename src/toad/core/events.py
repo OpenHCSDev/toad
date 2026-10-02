@@ -75,6 +75,33 @@ class SessionClosedEvent(SessionChangedEvent):
 
 
 @dataclass(frozen=True)
+class SessionSelected(CoreEvent):
+    """The original application completed this mode transition."""
+
+    mode_name: str
+
+
+@dataclass(frozen=True)
+class OpenTabsChanged(CoreEvent):
+    """Read the original session admissions and tab order again."""
+
+
+@dataclass(frozen=True)
+class TabHistoryChanged(CoreEvent):
+    """The original TabOrder changed its navigation history."""
+
+
+@dataclass(frozen=True)
+class ThreadActionsChanged(CoreEvent):
+    """The original application changed an admitted thread action."""
+
+
+@dataclass(frozen=True)
+class SidebarLayoutChanged(CoreEvent):
+    """The original sidebar layout changed; native panes derive their paint."""
+
+
+@dataclass(frozen=True)
 class Thinking(CoreEvent):
     type: str
     text: str

@@ -1,6 +1,7 @@
 """Thread menu declarations own presentation, input collection and execution."""
 
 from __future__ import annotations
+from toad.core import events as core_events
 
 import asyncio
 from abc import abstractmethod
@@ -61,12 +62,12 @@ class ThreadActions:
             app.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
         self.requests[subject] = ThreadActionExecution(self, action, selected, subject, actor, session_modes)
-        app.thread_actions_changed.publish(None)
+        app.events.publish(core_events.ThreadActionsChanged())
 
     def finished(self, execution: ThreadActionExecution) -> None:
         if self.requests.get(execution.subject) is execution:
             del self.requests[execution.subject]
-        self.app.thread_actions_changed.publish(None)
+        self.app.events.publish(core_events.ThreadActionsChanged())
 
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be

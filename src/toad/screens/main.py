@@ -1,3 +1,4 @@
+from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
 from toad.core_event_carrier import CoreEventReceiver
@@ -511,9 +512,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             self._content_ready.set()
         else:
             self.screen.frame_presentation.defer(self, self._start_content_hydration)
-        self.app.sidebar_layout_changed.subscribe(
-            self, lambda _event: self._align_tabs_with_sidebar(False)
-        )
+        self.observe_core(self.app.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
         for tree in self.query("#project_directory_tree").results(DirectoryTree):
@@ -521,7 +520,8 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
 
-    def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
+    @handles(core_events.SidebarLayoutChanged)
+    async def layout_observed(self, event: CoreEventMessage) -> None:
         self.screen.align_tabs_to_sidebars()
 
     def channels_context(self) -> tuple[str, str]:

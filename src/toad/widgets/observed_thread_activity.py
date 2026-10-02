@@ -1,4 +1,7 @@
 """Visible conversation feedback from the core's current thread presentation."""
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 
 import asyncio
 from collections.abc import Awaitable, Callable
@@ -10,7 +13,7 @@ from textual.message import Message
 from textual.widgets import Static
 
 
-class ObservedThreadActivity(Static):
+class ObservedThreadActivity(CoreEventReceiver, Static):
     """Observation never starts/settles an ACP turn or changes send admission."""
 
     DEFAULT_CSS = """
@@ -46,8 +49,7 @@ class ObservedThreadActivity(Static):
         # expiry. Rebuilding the same proof on a second cadence burns CPU and
         # competes with the original receipt/read transactions.
         self.app.coordination_observed.subscribe(self, self.refresh_observation)
-        self.app.session_selected_signal.subscribe(self, self.refresh_observation)
-        self.app.thread_actions_changed.subscribe(self, self.refresh_observation)
+        self.observe_core(self.app.events)
         self.refresh_observation()
 
     def bind(self, read: Callable[[], Awaitable[ThreadPresentation | None]]) -> None:
@@ -64,6 +66,10 @@ class ObservedThreadActivity(Static):
     def on_unmount(self) -> None:
         if self._read_task is not None:
             self._read_task.cancel()
+
+    @handles(core_events.SessionSelected, core_events.ThreadActionsChanged)
+    async def app_observed(self, event: CoreEventMessage) -> None:
+        self.refresh_observation()
 
     def refresh_observation(self, _event=None) -> None:
         if not self.is_attached or not self.query_ancestor(SessionView).is_current:

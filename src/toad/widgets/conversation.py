@@ -1413,7 +1413,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     async def on_turn_changed(self, message: CoreEventMessage) -> None:
         if not self.turns.changed(message):
             return
-        self.app.open_tabs_changed.publish(None)
+        self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
             self.transcript.invalidate()
             return
@@ -1663,7 +1663,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.prompt.slash_commands = self.command_catalog.commands
         self.call_after_refresh(self.post_welcome)
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self.app.open_tabs_changed.subscribe(self, self._open_tabs_changed)
+        self.observe_core(self.app.events)
 
         self.input_histories.shell.complete.add_words(
             self.app.settings.shell.allow_commands.split()
@@ -1722,7 +1722,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             return
         await ConversationCommsConsumer(self, event).dispatch(event.event.update)
 
-    async def _open_tabs_changed(self, _update: None) -> None:
+    @handles(core_events.OpenTabsChanged)
+    async def _open_tabs_changed(self, event: CoreEventMessage) -> None:
         self.update_slash_commands()
 
     @on(GoalControl.Activated)

@@ -1,3 +1,4 @@
+from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
@@ -282,6 +283,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         from toad.work_preparation import PreparationRuntime, PreparedRenderer
 
         Renderer.prepare_spawn()
+        self.events = core_events.CoreEventStream(self)
         self.settings = ToadSettings.open(self)
         self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
@@ -305,17 +307,13 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self._sidebar_snapshot = None
         self.thread_actions = ThreadActions(self)
         self.transfers = Transfers(self)
-        self.thread_actions_changed: Signal[None] = Signal(self, "thread-actions-changed")
         self.sidebar_state = SidebarState()
         self.sidebar_layout = SidebarLayout()
-        self.sidebar_layout_changed: Signal[None] = Signal(self, "sidebar-layout-changed")
         self._mode_switch_lock = asyncio.Lock()
         self._atomic_mode_switch = False
         self._pending_mode_switch: str | None = None
-        self.session_selected_signal: Signal[str] = Signal(self, "session-selected")
-        self.open_tabs_changed: Signal[None] = Signal(self, "open-tabs-changed")
         self.tab_order = TabOrder(
-            self, lambda mode, index: self.select_session(mode, history_index=index)
+            lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
@@ -510,7 +508,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
                         await self.workspace_screen.layout_navigation()
                     if mode != previous:
                         self.tab_order.record_visit(mode, history_index)
-                        self.session_selected_signal.publish(mode)
+                        self.events.publish(core_events.SessionSelected(mode))
             finally:
                 self._atomic_mode_switch = False
                 self._pending_mode_switch = None

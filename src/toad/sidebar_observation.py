@@ -1,5 +1,6 @@
 """Validated observation of the shared coordination service; no independent store."""
 from __future__ import annotations
+from toad.core import events as core_events
 import asyncio
 from dataclasses import dataclass
 from agent_comms.comms import Comms, wire
@@ -53,8 +54,7 @@ class SidebarObservation:
         service = app.coordination_access.service
         self.service = service if root == service.root else wire(root)
         self.sidebar.subscribe_core(app.session_tracker.events)
-        app.session_selected_signal.subscribe(self.sidebar, self.sidebar.navigation.mode_changed)
-        app.thread_actions_changed.subscribe(self.sidebar, self.actions_changed)
+        self.sidebar.observe_core(app.events)
         app.settings_changed_signal.subscribe(self.sidebar, self.settings_changed)
         app.coordination_observed.subscribe(self.sidebar, self.coordination_updated)
         self.sidebar.navigation.prepare()
@@ -286,7 +286,7 @@ class SidebarObservation:
             # metadata. Heartbeats and unrelated channel activity must not
             # invalidate every Conversation's goal and relationship readers.
             if app.open_tabs != previous_tabs:
-                app.open_tabs_changed.publish(None)
+                app.events.publish(core_events.OpenTabsChanged())
         except (OSError, ValueError):
             # An external writer may be replacing/recovering the wire. Retry on
             # the next poll without blocking or terminating the view.

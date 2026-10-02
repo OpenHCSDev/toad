@@ -1,3 +1,6 @@
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 from toad.core import session_requests
 from toad.screens.session_view import SessionView
 import asyncio
@@ -26,7 +29,7 @@ from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, 
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
-class CommsScreen(SessionView, NavigationOwner, can_focus=False):
+class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
@@ -77,7 +80,6 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loaded = False
         self._content_loading = False
         self._hydrate_queued = False
-        self._sidebar_layout_watch = False
 
     app = getters.app(ToadApp)
 
@@ -181,11 +183,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def _prepare_content(self) -> None:
         for sidebar in self.query(SideBar):
             sidebar._apply_layout()
-        if not self._sidebar_layout_watch:
-            self._sidebar_layout_watch = True
-            self.app.sidebar_layout_changed.subscribe(
-                self, lambda _event: self.screen.align_tabs_to_sidebars()
-            )
+        self.observe_core(self.app.events)
         self.screen.align_tabs_to_sidebars()
         chat = self.query_one(CommsChatView)
         chat._me = self.me
@@ -194,6 +192,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         # finishes. Its actor/target are bound by the mode transition owner.
         self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
+
+    @handles(core_events.SidebarLayoutChanged)
+    async def layout_observed(self, event: CoreEventMessage) -> None:
+        self.screen.align_tabs_to_sidebars()
 
     async def _load_content(self) -> None:
         if self._content_loading or not self.is_attached:

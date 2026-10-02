@@ -31,12 +31,26 @@ class CoreEventReceiver(MroDispatch):
         self._core_subscriptions.add(subscription)
         return subscription
 
+    def observe_core(self, stream: CoreEventStream) -> Subscription:
+        """Broadcast observations terminate at their original native recipient."""
+        for subscription in self._core_subscriptions:
+            if subscription.stream is stream and subscription.active:
+                return subscription
+        subscription = stream.subscribe(self.post_core_observation)
+        self._core_subscriptions.add(subscription)
+        return subscription
+
     def retire_core(self, subscription: Subscription) -> None:
         subscription.close()
         self._core_subscriptions.discard(subscription)
 
     def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
         return self.post_message(CoreEventMessage(event, subscription))
+
+    def post_core_observation(self, event: CoreEvent, subscription: Subscription) -> bool:
+        message = CoreEventMessage(event, subscription)
+        message.bubble = False
+        return self.post_message(message)
 
     async def on_core_event_message(self, message: CoreEventMessage) -> None:
         if not message.subscription.active:

@@ -1,3 +1,6 @@
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings
 from dataclasses import dataclass
@@ -300,7 +303,7 @@ class MainMenuButton(widgets.Static, can_focus=True):
             self.action_open_menu()
 
 
-class TabHistoryControls(containers.HorizontalGroup):
+class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
     """Left-sidebar controls shared by native thread and channel screens."""
 
     DEFAULT_CSS = """
@@ -335,11 +338,15 @@ class TabHistoryControls(containers.HorizontalGroup):
 
     def on_mount(self) -> None:
         app = cast("ToadApp", self.app)
-        app.tab_order.changed.subscribe(self, self._sync)
-        app.open_tabs_changed.subscribe(self, self._sync)
-        self._sync(None)
+        self.observe_core(app.tab_order.events)
+        self.observe_core(app.events)
+        self._sync()
 
-    def _sync(self, _event: None) -> None:
+    @handles(core_events.TabHistoryChanged, core_events.OpenTabsChanged)
+    async def history_changed(self, event: CoreEventMessage) -> None:
+        self._sync()
+
+    def _sync(self) -> None:
         app = cast("ToadApp", self.app)
         for button in self.query(TabHistoryButton):
             unavailable = app.tab_order.history_target(button.direction) is None
@@ -530,7 +537,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         width = self._start_width + direction * (screen_x - self._start_x)
         percent = round(100 * width / max(1, bar.screen.size.width))
         if app.sidebar_layout.width(bar.id, percent):
-            app.sidebar_layout_changed.publish(None)
+            app.events.publish(core_events.SidebarLayoutChanged())
 
     def action_resize(self, direction: int) -> None:
         bar = self.query_ancestor(SideBar)
@@ -570,7 +577,7 @@ class SidebarDecorations:
         return iter(())
 
 
-class SideBar(SidebarDecorations, containers.Vertical):
+class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
     DEFAULT_CSS = """
@@ -670,7 +677,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
         self.trap_focus()
         app = cast("ToadApp", self.app)
         if self.id in app.sidebar_layout.placements:
-            app.sidebar_layout_changed.subscribe(self, self._layout_changed)
+            self.observe_core(app.events)
         if self._navigation is None:
             cast("ToadApp", self.app).settings_changed_signal.subscribe(
                 self, self._settings_changed  # type: ignore[arg-type]
@@ -840,13 +847,14 @@ class SideBar(SidebarDecorations, containers.Vertical):
             )
         return True
 
-    def _layout_changed(self, _update: None) -> None:
+    @handles(core_events.SidebarLayoutChanged)
+    async def _layout_changed(self, event: CoreEventMessage) -> None:
         if self.is_mounted and self.screen.is_current and self._apply_layout():
             self._order_sidebars()
 
     def on_resize(self) -> None:
         if self.is_mounted and self.screen.is_current and self._apply_layout():
-            cast("ToadApp", self.app).sidebar_layout_changed.publish(None)
+            cast("ToadApp", self.app).events.publish(core_events.SidebarLayoutChanged())
 
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
@@ -854,7 +862,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
         if event.slider.kind == "width" and self.id is not None:
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
-                app.sidebar_layout_changed.publish(None)
+                app.events.publish(core_events.SidebarLayoutChanged())
 
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
@@ -863,7 +871,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
             return
         app = cast("ToadApp", self.app)
         event.action.apply(app.sidebar_layout, self.id)
-        app.sidebar_layout_changed.publish(None)
+        app.events.publish(core_events.SidebarLayoutChanged())
 
     @on(widgets.Collapsible.Collapsed)
     @on(widgets.Collapsible.Expanded)
@@ -920,7 +928,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
         self._presented_layout = None
         if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
             self._apply_layout()
-            cast("ToadApp", self.app).sidebar_layout_changed.publish(None)
+            cast("ToadApp", self.app).events.publish(core_events.SidebarLayoutChanged())
 
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""

@@ -1,4 +1,5 @@
 """Click both sidebar close orders in the installed Textual and ACP workspace."""
+from toad.core import events as core_events
 
 import asyncio
 import os
@@ -107,7 +108,7 @@ async def main():
             content = app.selected_session.query_one("#session-content")
             pushing_width = content.region.width
             app.sidebar_layout.float_mode(right.id)
-            app.sidebar_layout_changed.publish(None)
+            app.events.publish(core_events.SidebarLayoutChanged())
             await pilot.pause()
             assert app.sidebar_layout.get(right.id).floating
             assert content.region.width > pushing_width, (

@@ -1,3 +1,4 @@
+from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 import asyncio
@@ -182,15 +183,15 @@ class SessionsTabs(CoreEventReceiver, Widget):
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.current_session = self.app.selected_mode
-        self.app.session_selected_signal.subscribe(self, self.handle_mode_change)
+        self.observe_core(self.app.events)
         self.subscribe_core(self.app.session_tracker.events)
-        self.app.open_tabs_changed.subscribe(self, self._tabs_changed)
         self.call_later(self._sync_tabs)
         self.update_underline(self.current_session, animate=False)
         self.call_after_refresh(self.update_underline, self.current_session)
         self._sync_spinner(self.app.open_tabs)
 
-    def handle_mode_change(self, mode: str) -> None:
+    @handles(core_events.SessionSelected)
+    async def handle_mode_change(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             self.call_later(self._sync_tabs)
 
@@ -262,7 +263,8 @@ class SessionsTabs(CoreEventReceiver, Widget):
         if self.screen.is_active:
             await self._sync_tabs()
 
-    async def _tabs_changed(self, _update: None) -> None:
+    @handles(core_events.OpenTabsChanged)
+    async def _tabs_changed(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             await self._sync_tabs()
 

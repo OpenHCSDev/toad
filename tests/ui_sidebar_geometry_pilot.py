@@ -1,4 +1,5 @@
 """Screenshot regressions: full-width header and edge-bound sidebar geometry."""
+from toad.core import events as core_events
 
 import asyncio
 import os
@@ -49,7 +50,7 @@ async def main() -> None:
             check(not left.query("#sidebar-horizontal-slider"), "duplicate horizontal slider")
             for percentage in (50, 30, 15):
                 app.sidebar_layout.width("channels-sidebar", percentage)
-                app.sidebar_layout_changed.publish(None)
+                app.events.publish(core_events.SidebarLayoutChanged())
                 await pilot.pause()
                 scrolls = [node for node in left.walk_children()
                            if node.show_vertical_scrollbar and node.scrollbar_size_vertical > 0
@@ -79,11 +80,11 @@ async def main() -> None:
                       f"{selector} hover needs a visible background change")
             app.sidebar_layout.move("thread-sidebar", "left")
             right.reveal()
-            app.sidebar_layout_changed.publish(None)
+            app.events.publish(core_events.SidebarLayoutChanged())
             await pilot.pause()
             before = (left.region, right.region)
             app.sidebar_layout.float_mode("thread-sidebar")
-            app.sidebar_layout_changed.publish(None)
+            app.events.publish(core_events.SidebarLayoutChanged())
             await pilot.pause()
             check((left.region, right.region) == before, "Float must not move/resize either bar")
             left.toggle()
@@ -91,7 +92,7 @@ async def main() -> None:
             check(right.region.x == left.region.right,
                   "floating peer must pack against the collapsed outer bar")
             app.sidebar_layout.float_mode("thread-sidebar")
-            app.sidebar_layout_changed.publish(None)
+            app.events.publish(core_events.SidebarLayoutChanged())
             await pilot.pause()
             check(right.region.x == left.region.right, "Push must use the same packed position")
             for side in ("left", "right"):
@@ -99,7 +100,7 @@ async def main() -> None:
                 right.reveal()
                 app.sidebar_layout.move("channels-sidebar", side)
                 app.sidebar_layout.move("thread-sidebar", side)
-                app.sidebar_layout_changed.publish(None)
+                app.events.publish(core_events.SidebarLayoutChanged())
                 await pilot.pause()
 
                 def packed() -> None:
