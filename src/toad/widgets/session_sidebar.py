@@ -76,6 +76,9 @@ class ThreadStatusRow(HoverSelection):
 
     def retire_thread_preparation(self) -> None:
         """Release row output when its source becomes unavailable."""
+        if self._thread_presentation is not None:
+            self.update_classes({"-wire-thread": False, "-busy": False,
+                                 "-unread": False, "-asking": False})
         self._thread_presentation = None
         self._thread_signature = None
 

@@ -60,3 +60,26 @@ route/resource family checks and one changed installed real-path gate. The
 same profile still has native scroll reflow losing offscreen targets; Kepler
 owns that existing Screen/reflow_visible caller family in Textual26. The
 previous322/25 recording stays frozen and is not proof of this new source.
+
+## Completed source-family sanity
+
+Removed CommsRow's copied label. Switching from prepared thread output to a
+plain linked target now retires the original preparation and compares native
+Static.content; unavailable output releases preparation before applying its
+own classes. Preparation retirement clears only classes owned by an actual
+prepared thread, preserving independent channel unread output.
+
+The existing private metadata/disclosure/retirement pilot passed with 357
+mounted widgets and zero metadata-only layouts. Its private protocol marker
+and visible sidebar are now initialized through their original owners. The
+independent transcript retention worker is suspended during the metadata-only
+assertion and resumed before disclosure/retirement checks. This isolates the
+sidebar contract; it does not prove whole-viewport quiescence or CPU improvement.
+Earlier missing-marker and overlapping-retention failures remain under
+.artifacts/sidebar323-source-sanity. AST source parsing covered 276 modules,
+with zero omissions and no remaining SidebarPaint or CommsRow._label consumers.
+
+Next validation is one changed installed323/Text26 public saved-history
+journey on the newly declared Core d6e196a8/native ad533 default. Reuse the
+closed owned69-package prefix, normal wheels only. No installed or CPU Ready
+claim yet; previous322 capture remains frozen.

@@ -10,9 +10,10 @@ from unittest.mock import patch
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_channel_roster
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from toad.widgets.side_bar import SideBar
 
 
 async def main():
@@ -20,19 +21,26 @@ async def main():
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
-        wire(root / "wire").registry.declare(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms = wire(root / "wire")
+        comms.messaging.initialize_private_initial_protocol()
+        comms.registry.declare(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            sidebar = app.screen.query_one(CommsSidebar)
-            async with asyncio.timeout(5):
-                while sidebar.projection.snapshot is None:
-                    await pilot.pause(.02)
+            app.screen.query_one("#channels-sidebar", SideBar).reveal()
+            sidebar = await wait_channel_roster(app, pilot)
+            viewport = app.selected_session.conversation.window.document_viewport
+            # Isolate sidebar invalidation from the independent retention
+            # worker while retaining the original mounted conversation tree.
+            await viewport.suspend_source()
             await app.selected_session.conversation.contents.mount(*[
                 AgentResponse(f"Reply {index}\n\n" + "Paragraph.\n\n" * 16, paginate=False)
                 for index in range(100)
             ])
             app.selected_session.conversation.window.anchor()
+            async with asyncio.timeout(10):
+                while not viewport.visible_bodies_ready:
+                    await pilot.pause(.02)
             await pilot.pause()
             with patch.object(type(sidebar.observation), "refresh"):
                 snapshot = sidebar.projection.snapshot
@@ -47,6 +55,7 @@ async def main():
                         await sidebar.projection.publish(sidebar.observation.project(state))
                         await pilot.pause(.03)
                     assert layout.call_count == 0, f"Metadata-only updates caused {layout.call_count} layouts"
+                viewport.resume_source()
 
                 # A real collapse/expand still reconciles members and geometry.
                 group = next(group for group in sidebar.query(ChannelGroup) if next(view for view in sidebar.projection.snapshot.wire.channels
