@@ -1,0 +1,1783 @@
+{
+  "owner": "Heisenberg537-native-busy",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture",
+  "command": [
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project",
+    "--title",
+    "Agent Comms",
+    "--session",
+    "resource436"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project",
+    "--title",
+    "Agent Comms",
+    "--session",
+    "resource436"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "ui_config": {
+    "source": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/ui-config",
+    "initial_sha256": null
+  },
+  "private_root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+  "capture_target": "private",
+  "physical_journey": "sqlite_busy",
+  "original_owner_before": {
+    "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+    "mode": "private"
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/sqlite_busy_recording.py",
+    "--journey",
+    "sqlite_busy",
+    "--private-root",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+    "--capture-state",
+    "--output",
+    "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture",
+    "--owner",
+    "Heisenberg537-native-busy",
+    "--fit-window",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--startup-wait",
+    "1",
+    "--history-wait-seconds",
+    "35",
+    "--navigation-settle-seconds",
+    "1",
+    "--max-duration",
+    "160",
+    "--finalize-seconds",
+    "14",
+    "--tail-seconds",
+    "1",
+    "--review-timing",
+    "deferred",
+    "--",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project",
+    "--title",
+    "Agent Comms",
+    "--session",
+    "resource436"
+  ],
+  "recorder_source_sha256": "2c05edfd688a86564a280593c43f4b2cf836137aa97b2f36598f95ab009c8c61",
+  "started_utc": "2026-10-02T16:50:39.168608+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": false,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin",
+    "launcher": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+    "launcher_sha256": "51a8a34514145f60495e48aa663f7a04f4950ec5b9710f9008b0f6df5ecf280a",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "sha256": "51a8a34514145f60495e48aa663f7a04f4950ec5b9710f9008b0f6df5ecf280a"
+      },
+      "acp": {
+        "selected_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "sha256": "4a9109ef651b363c41a66c17cf663e3f5bf3db0af3b019a0d8eab34e25fa66c4"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "sha256": "51a8a34514145f60495e48aa663f7a04f4950ec5b9710f9008b0f6df5ecf280a"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "sha256": "4a9109ef651b363c41a66c17cf663e3f5bf3db0af3b019a0d8eab34e25fa66c4"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/activation.json",
+    "activation_sha256": "785685d738a95de79aba1651028a165b3ee02706241bcd43683040afd3f4c339",
+    "activation": {
+      "stage": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+      "pins": {
+        "agent_comms": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+        "toad": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+        "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+      "state": "author72 installed source/directURLs/assets/fulltrust verified; private physical gate pending, not public activation",
+      "staging_receipt": "/home/ts/wt/toad-command-source-closure-20261002/evidence/sqlite407-paired-332-20261002/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+      "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+      "native_configuration_note": "Core537/Toad332 exact cd150/56580 source; same owned297 authorprefix reused; unchanged current330 Text3dd/Diff8fa/native00c2/SDK0.12.1. Original407 and p530 donor protected. Parent public publisher, Heisenberg sole private physical recorder."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "b0f2b9d6c7b020e7294998074355237794d12a5e8585483b482ea573fb2450fd",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+              "requested_revision": "56580c8f3b0409b3bb7d574224a3be87ac072b57"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "e5b9e69ba5465d795ae3abed04a06be031235d83f1f907ff7cfddf1a2c7614ae",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+              "requested_revision": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "8c67c2b55f5c9ae86f9ca6d32e1dca8a3fa17b5ee9aa444f0817ec139e1d2a8f",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+              "requested_revision": "cd150be078c07b9f4b2d1af83e4cd28f1f584597"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+        "wire_root_id": "324b745459294bafb03bf818345eae1d",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+        "wire_root_id": "324b745459294bafb03bf818345eae1d",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":8175",
+  "ui_identity": {
+    "pid": 252964,
+    "start_ticks": 43548052
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 435480.893756235,
+  "interaction_deadline_monotonic": 435626.893756235,
+  "finish_deadline_monotonic": 435640.893756235,
+  "finalize_seconds": 14.0,
+  "terminal_pid": 252963,
+  "state_captures": {
+    "before": {
+      "started_seconds": 1.284346240980085,
+      "manifest": {
+        "pid": 252964,
+        "created": 1790959840.52,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 123981824,
+        "started_ns": 1790959843068122900,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/before-screen": "complete"
+        },
+        "finished_ns": 1790959843200838394
+      },
+      "finished_seconds": 1.6009807549999095
+    },
+    "observers": {
+      "started_seconds": 1.6011058719595894,
+      "manifest": {
+        "pid": 252964,
+        "created": 1790959840.52,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 133152768,
+        "started_ns": 1790959843390319443,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/observers-state": "complete"
+        },
+        "finished_ns": 1790959843454947277
+      },
+      "finished_seconds": 1.8816232469980605
+    },
+    "after": {
+      "started_seconds": 42.65005974197993,
+      "manifest": {
+        "pid": 252964,
+        "created": 1790959840.52,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 191799296,
+        "started_ns": 1790959884438033976,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/after-screen": "complete"
+        },
+        "finished_ns": 1790959884570363949
+      },
+      "finished_seconds": 43.001471406954806
+    }
+  },
+  "terminal_processes": {
+    "252963": {
+      "start_ticks": 43548045,
+      "command": "st -e /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad acp /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project --title Agent Comms --session resource436 "
+    },
+    "252964": {
+      "start_ticks": 43548052,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+    },
+    "252975": {
+      "start_ticks": 43548120,
+      "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "252995": {
+      "start_ticks": 43548246,
+      "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork "
+    },
+    "253002": {
+      "start_ticks": 43548279,
+      "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+    }
+  },
+  "driver_started_seconds": 1.9230390359880403,
+  "live_reviews": [
+    {
+      "label": "live-0-0",
+      "error": "CalledProcessError: Command '['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', '/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4']' returned non-zero exit status 1.",
+      "assessment": "unreviewed"
+    },
+    {
+      "label": "live-0-1",
+      "error": "CalledProcessError: Command '['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', '/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4']' returned non-zero exit status 1.",
+      "assessment": "unreviewed"
+    },
+    {
+      "label": "live-0-2",
+      "error": "CalledProcessError: Command '['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', '/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4']' returned non-zero exit status 1.",
+      "assessment": "unreviewed"
+    },
+    {
+      "label": "live-0-3",
+      "error": "CalledProcessError: Command '['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', '/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4']' returned non-zero exit status 1.",
+      "assessment": "unreviewed"
+    },
+    {
+      "label": "live-0-4",
+      "error": "CalledProcessError: Command '['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', '/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4']' returned non-zero exit status 1.",
+      "assessment": "unreviewed"
+    },
+    {
+      "label": "live-0-5",
+      "error": "CalledProcessError: Command '['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_packets', '-show_entries', 'format=duration:packet=pts_time,flags', '-of', 'json', '/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4']' returned non-zero exit status 1.",
+      "assessment": "unreviewed"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-3-6",
+      "source_start_seconds": 9.6,
+      "source_end_seconds": 10.0,
+      "encoding_started_monotonic": 435492.776838151,
+      "encoding_finished_monotonic": 435494.193909645,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-3-6-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-3-7",
+      "source_start_seconds": 12.6,
+      "source_end_seconds": 13.0,
+      "encoding_started_monotonic": 435495.51177862,
+      "encoding_finished_monotonic": 435496.687631266,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-3-7-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-5-8",
+      "source_start_seconds": 15.6,
+      "source_end_seconds": 16.0,
+      "encoding_started_monotonic": 435498.184065926,
+      "encoding_finished_monotonic": 435499.46815491,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-5-8-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-6-9",
+      "source_start_seconds": 15.6,
+      "source_end_seconds": 16.0,
+      "encoding_started_monotonic": 435500.912488554,
+      "encoding_finished_monotonic": 435502.25340442,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-6-9-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-7-10",
+      "source_start_seconds": 17.6,
+      "source_end_seconds": 18.0,
+      "encoding_started_monotonic": 435503.688168561,
+      "encoding_finished_monotonic": 435504.995522471,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-7-10-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-9-11",
+      "source_start_seconds": 23.6,
+      "source_end_seconds": 24.0,
+      "encoding_started_monotonic": 435506.629822905,
+      "encoding_finished_monotonic": 435508.151463188,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-9-11-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-10-12",
+      "source_start_seconds": 24.6,
+      "source_end_seconds": 25.0,
+      "encoding_started_monotonic": 435509.592601748,
+      "encoding_finished_monotonic": 435511.189154835,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-10-12-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-12-13",
+      "source_start_seconds": 29.6,
+      "source_end_seconds": 30.0,
+      "encoding_started_monotonic": 435513.516613303,
+      "encoding_finished_monotonic": 435515.302294511,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-12-13-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-13-14",
+      "source_start_seconds": 32.6,
+      "source_end_seconds": 33.0,
+      "encoding_started_monotonic": 435516.749311911,
+      "encoding_finished_monotonic": 435518.542258587,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-13-14-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-14-15",
+      "source_start_seconds": 35.6,
+      "source_end_seconds": 36.0,
+      "encoding_started_monotonic": 435519.998988011,
+      "encoding_finished_monotonic": 435521.862084895,
+      "frames": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/live-14-15-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames now, not after the run"
+    }
+  ],
+  "live_frame_delivery": {
+    "available": true,
+    "trace": "live-14-15-state-frames.json",
+    "artifacts": [
+      "frame-delivery.json",
+      "frame-delivery.svg"
+    ],
+    "intervals": {
+      "count": 279,
+      "median_ms": 77.45,
+      "p95_ms": 500.41,
+      "p99_ms": 508.83,
+      "max_ms": 537.89
+    },
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "driver_finished_seconds": 41.37302599597024,
+  "duration_seconds": 43.001475784985814,
+  "capture_returncode": 255,
+  "runtime_after": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin",
+    "launcher": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+    "launcher_sha256": "51a8a34514145f60495e48aa663f7a04f4950ec5b9710f9008b0f6df5ecf280a",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "resolved_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "sha256": "51a8a34514145f60495e48aa663f7a04f4950ec5b9710f9008b0f6df5ecf280a"
+      },
+      "acp": {
+        "selected_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "sha256": "4a9109ef651b363c41a66c17cf663e3f5bf3db0af3b019a0d8eab34e25fa66c4"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "sha256": "51a8a34514145f60495e48aa663f7a04f4950ec5b9710f9008b0f6df5ecf280a"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "sha256": "4a9109ef651b363c41a66c17cf663e3f5bf3db0af3b019a0d8eab34e25fa66c4"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/activation.json",
+    "activation_sha256": "785685d738a95de79aba1651028a165b3ee02706241bcd43683040afd3f4c339",
+    "activation": {
+      "stage": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+      "pins": {
+        "agent_comms": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+        "toad": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+        "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+      "state": "author72 installed source/directURLs/assets/fulltrust verified; private physical gate pending, not public activation",
+      "staging_receipt": "/home/ts/wt/toad-command-source-closure-20261002/evidence/sqlite407-paired-332-20261002/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+      "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+      "native_configuration_note": "Core537/Toad332 exact cd150/56580 source; same owned297 authorprefix reused; unchanged current330 Text3dd/Diff8fa/native00c2/SDK0.12.1. Original407 and p530 donor protected. Parent public publisher, Heisenberg sole private physical recorder."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "b0f2b9d6c7b020e7294998074355237794d12a5e8585483b482ea573fb2450fd",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+              "requested_revision": "56580c8f3b0409b3bb7d574224a3be87ac072b57"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "e5b9e69ba5465d795ae3abed04a06be031235d83f1f907ff7cfddf1a2c7614ae",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+              "requested_revision": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "8c67c2b55f5c9ae86f9ca6d32e1dca8a3fa17b5ee9aa444f0817ec139e1d2a8f",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+              "requested_revision": "cd150be078c07b9f4b2d1af83e4cd28f1f584597"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+        "wire_root_id": "324b745459294bafb03bf818345eae1d",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+        "wire_root_id": "324b745459294bafb03bf818345eae1d",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 252963,
+    "start_ticks": 43548045,
+    "returncode": 0
+  },
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c02a",
+        "width": 1280,
+        "height": 900,
+        "coded_width": 1280,
+        "coded_height": 900,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 42,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 661248,
+        "duration": "43.050000",
+        "bit_rate": "1541057",
+        "bits_per_raw_sample": "8",
+        "extradata_size": 38,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "43.050000",
+      "size": "8309711",
+      "bit_rate": "1544197",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "iso5",
+        "minor_version": "512",
+        "compatible_brands": "iso5iso6mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "events": [
+    {
+      "label": "native-ready",
+      "utc": "2026-10-02T16:50:50.719082+00:00",
+      "image_only": false,
+      "seconds_since_capture_launch": 9.002384683000855,
+      "cpu": {
+        "252963": {
+          "start_ticks": 43548045,
+          "cpu_seconds": 0.11,
+          "minor_faults": 4906,
+          "major_faults": 13,
+          "command": "st -e /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad acp /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project --title Agent Comms --session resource436 "
+        },
+        "252964": {
+          "start_ticks": 43548052,
+          "cpu_seconds": 5.04,
+          "minor_faults": 50198,
+          "major_faults": 2,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+        },
+        "252995": {
+          "start_ticks": 43548246,
+          "cpu_seconds": 0.76,
+          "minor_faults": 15943,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork "
+        },
+        "253002": {
+          "start_ticks": 43548279,
+          "cpu_seconds": 1.24,
+          "minor_faults": 21829,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+        },
+        "253036": {
+          "start_ticks": 43548391,
+          "cpu_seconds": 2.68,
+          "minor_faults": 20286,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp "
+        },
+        "253007": {
+          "start_ticks": 43548298,
+          "cpu_seconds": 1.18,
+          "minor_faults": 21646,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "252975": {
+          "start_ticks": 43548120,
+          "cpu_seconds": 0.02,
+          "minor_faults": 1832,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "253052": {
+          "start_ticks": 43548651,
+          "cpu_seconds": 2.22,
+          "minor_faults": 21042,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.worker "
+        }
+      },
+      "state_capture": {
+        "started_seconds": 2.5208564369822852,
+        "manifest": {
+          "pid": 252964,
+          "created": 1790959840.52,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 147984384,
+          "started_ns": 1790959844316438846,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-native-ready-state": "complete"
+          },
+          "finished_ns": 1790959850591540552
+        },
+        "finished_seconds": 9.002314278972335
+      },
+      "history_wait": {
+        "pid": 252964,
+        "mode": "session-1",
+        "thread": "resource436",
+        "elapsed_ms": 6194.445791,
+        "visible_saved_history_written": true
+      },
+      "screenshot": "phase-native-ready.png"
+    },
+    {
+      "label": "reader",
+      "utc": "2026-10-02T16:51:01.289710+00:00",
+      "image_only": false,
+      "seconds_since_capture_launch": 19.573018089984544,
+      "cpu": {
+        "252963": {
+          "start_ticks": 43548045,
+          "cpu_seconds": 0.2,
+          "minor_faults": 4960,
+          "major_faults": 14,
+          "command": "st -e /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad acp /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project --title Agent Comms --session resource436 "
+        },
+        "252964": {
+          "start_ticks": 43548052,
+          "cpu_seconds": 15.88,
+          "minor_faults": 76947,
+          "major_faults": 2,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+        },
+        "252995": {
+          "start_ticks": 43548246,
+          "cpu_seconds": 0.76,
+          "minor_faults": 15943,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork "
+        },
+        "253002": {
+          "start_ticks": 43548279,
+          "cpu_seconds": 1.5,
+          "minor_faults": 26512,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+        },
+        "253036": {
+          "start_ticks": 43548391,
+          "cpu_seconds": 2.69,
+          "minor_faults": 20289,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp "
+        },
+        "253007": {
+          "start_ticks": 43548298,
+          "cpu_seconds": 1.89,
+          "minor_faults": 27828,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "252975": {
+          "start_ticks": 43548120,
+          "cpu_seconds": 0.02,
+          "minor_faults": 1832,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "253052": {
+          "start_ticks": 43548651,
+          "cpu_seconds": 2.77,
+          "minor_faults": 21473,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.worker "
+        }
+      },
+      "screenshot": "phase-reader.png",
+      "state_capture": {
+        "started_seconds": 19.846362663956825,
+        "manifest": {
+          "pid": 252964,
+          "created": 1790959840.52,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 186585088,
+          "started_ns": 1790959861633801703,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-reader-state": "complete"
+          },
+          "finished_ns": 1790959861766329311
+        },
+        "finished_seconds": 20.1860813209787
+      }
+    },
+    {
+      "label": "busy-end",
+      "utc": "2026-10-02T16:51:09.931130+00:00",
+      "image_only": false,
+      "seconds_since_capture_launch": 28.214438764960505,
+      "cpu": {
+        "252963": {
+          "start_ticks": 43548045,
+          "cpu_seconds": 0.21,
+          "minor_faults": 4961,
+          "major_faults": 14,
+          "command": "st -e /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad acp /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project --title Agent Comms --session resource436 "
+        },
+        "252964": {
+          "start_ticks": 43548052,
+          "cpu_seconds": 17.93,
+          "minor_faults": 78470,
+          "major_faults": 2,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+        },
+        "252995": {
+          "start_ticks": 43548246,
+          "cpu_seconds": 0.76,
+          "minor_faults": 15943,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork "
+        },
+        "253002": {
+          "start_ticks": 43548279,
+          "cpu_seconds": 1.5,
+          "minor_faults": 26525,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+        },
+        "253036": {
+          "start_ticks": 43548391,
+          "cpu_seconds": 2.69,
+          "minor_faults": 20289,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp "
+        },
+        "253007": {
+          "start_ticks": 43548298,
+          "cpu_seconds": 1.9,
+          "minor_faults": 27831,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "252975": {
+          "start_ticks": 43548120,
+          "cpu_seconds": 0.02,
+          "minor_faults": 1832,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "253052": {
+          "start_ticks": 43548651,
+          "cpu_seconds": 3.02,
+          "minor_faults": 21604,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.worker "
+        }
+      },
+      "screenshot": "phase-busy-end.png",
+      "state_capture": {
+        "started_seconds": 28.505138314969372,
+        "manifest": {
+          "pid": 252964,
+          "created": 1790959840.52,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 189095936,
+          "started_ns": 1790959870294071836,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-busy-end-state": "complete"
+          },
+          "finished_ns": 1790959870426834429
+        },
+        "finished_seconds": 28.840365269978065
+      }
+    },
+    {
+      "label": "released-ready",
+      "utc": "2026-10-02T16:51:14.206323+00:00",
+      "image_only": false,
+      "seconds_since_capture_launch": 32.489627448958345,
+      "cpu": {
+        "252963": {
+          "start_ticks": 43548045,
+          "cpu_seconds": 0.22,
+          "minor_faults": 4961,
+          "major_faults": 14,
+          "command": "st -e /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad acp /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project --title Agent Comms --session resource436 "
+        },
+        "252964": {
+          "start_ticks": 43548052,
+          "cpu_seconds": 19.18,
+          "minor_faults": 80062,
+          "major_faults": 2,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+        },
+        "252995": {
+          "start_ticks": 43548246,
+          "cpu_seconds": 0.76,
+          "minor_faults": 15943,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork "
+        },
+        "253002": {
+          "start_ticks": 43548279,
+          "cpu_seconds": 1.5,
+          "minor_faults": 26525,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+        },
+        "253036": {
+          "start_ticks": 43548391,
+          "cpu_seconds": 2.69,
+          "minor_faults": 20289,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp "
+        },
+        "253007": {
+          "start_ticks": 43548298,
+          "cpu_seconds": 1.9,
+          "minor_faults": 27831,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "252975": {
+          "start_ticks": 43548120,
+          "cpu_seconds": 0.02,
+          "minor_faults": 1832,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "253052": {
+          "start_ticks": 43548651,
+          "cpu_seconds": 3.15,
+          "minor_faults": 21634,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.worker "
+        }
+      },
+      "state_capture": {
+        "started_seconds": 32.161595697980374,
+        "manifest": {
+          "pid": 252964,
+          "created": 1790959840.52,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 189526016,
+          "started_ns": 1790959873956418088,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-released-ready-state": "complete"
+          },
+          "finished_ns": 1790959874089014497
+        },
+        "finished_seconds": 32.489539964008145
+      },
+      "history_wait": {
+        "pid": 252964,
+        "mode": "session-1",
+        "thread": "resource436",
+        "elapsed_ms": 1.223699,
+        "visible_saved_history_written": true
+      },
+      "screenshot": "phase-released-ready.png"
+    },
+    {
+      "label": "settled-end",
+      "utc": "2026-10-02T16:51:20.378729+00:00",
+      "image_only": false,
+      "seconds_since_capture_launch": 38.66203941497952,
+      "cpu": {
+        "252963": {
+          "start_ticks": 43548045,
+          "cpu_seconds": 0.22,
+          "minor_faults": 4961,
+          "major_faults": 14,
+          "command": "st -e /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/toad acp /home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/project --title Agent Comms --session resource436 "
+        },
+        "252964": {
+          "start_ticks": 43548052,
+          "cpu_seconds": 19.98,
+          "minor_faults": 80081,
+          "major_faults": 2,
+          "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+        },
+        "252995": {
+          "start_ticks": 43548246,
+          "cpu_seconds": 0.76,
+          "minor_faults": 15943,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=14) --multiprocessing-fork "
+        },
+        "253002": {
+          "start_ticks": 43548279,
+          "cpu_seconds": 1.5,
+          "minor_faults": 26525,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+        },
+        "253036": {
+          "start_ticks": 43548391,
+          "cpu_seconds": 2.69,
+          "minor_faults": 20289,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.acp "
+        },
+        "253007": {
+          "start_ticks": 43548298,
+          "cpu_seconds": 1.9,
+          "minor_faults": 27831,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+        },
+        "252975": {
+          "start_ticks": 43548120,
+          "cpu_seconds": 0.02,
+          "minor_faults": 1832,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+        },
+        "253052": {
+          "start_ticks": 43548651,
+          "cpu_seconds": 3.5,
+          "minor_faults": 21753,
+          "major_faults": 0,
+          "command": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002/bin/python -m agent_comms.worker "
+        }
+      },
+      "screenshot": "phase-settled-end.png",
+      "state_capture": {
+        "started_seconds": 38.94222191598965,
+        "manifest": {
+          "pid": 252964,
+          "created": 1790959840.52,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 191524864,
+          "started_ns": 1790959880721436651,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02/capture/phase-settled-end-state": "complete"
+          },
+          "finished_ns": 1790959880854027789
+        },
+        "finished_seconds": 39.25290964200394
+      }
+    }
+  ],
+  "frame_review": {
+    "available": true,
+    "trace": "after-state-frames.json",
+    "artifacts": [
+      "frame-delivery.json",
+      "frame-delivery.svg"
+    ],
+    "intervals": {
+      "count": 283,
+      "median_ms": 78.72,
+      "p95_ms": 500.43,
+      "p99_ms": 508.83,
+      "max_ms": 537.89
+    },
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "journey_review": {
+    "checks": {
+      "same_native_view": true,
+      "native_end_held_by_original_work": false,
+      "native_end_released_without_refresh": true,
+      "saved_history_still_attached": true,
+      "destination_is_native_end": true
+    },
+    "scope": "Private native saved history, actual End during SQL exclusion, automatic release; no input or performance claim"
+  },
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 8309711,
+      "sha256": "44d8648df8d0caea6b7ebcd06eda9dfc79bccd39e9a2553c8221be39446ec92f"
+    },
+    "before.png": {
+      "bytes": 1238,
+      "sha256": "99310cdfd7e1b0f60f996692e237e597eff274e6e33167727156a71fc2dd57eb"
+    },
+    "after.png": {
+      "bytes": 107652,
+      "sha256": "58ef5f5a562e254263baaf4729ab27082541649b8b3178c14aa6293313ccfc05"
+    },
+    "before-state.json": {
+      "bytes": 2298,
+      "sha256": "9e62b9b85a469139da0632d1f3117af762a15e761453278f87c9ba61458a8ef6"
+    },
+    "before-state.pickle": {
+      "bytes": 2032,
+      "sha256": "71404e7ae638d97390d843e62ddd74626466b383b2dc29cc70e241427ccf8941"
+    },
+    "before-screen.svg": {
+      "bytes": 2059,
+      "sha256": "382d3dd7c654b1d2a50c77d456c4134a09f60b3f32ea082fd5f720f2ecde0b1c"
+    },
+    "before-remote.py": {
+      "bytes": 1408,
+      "sha256": "d479d4d2420d6f2a3f367b680d4c4b4fc2aee00251137dee18f6302ea99f14fb"
+    },
+    "before-state-metadata.json": {
+      "bytes": 2273,
+      "sha256": "6c1cf2eb1f42c7dc86333dcd9c55ce0aabe5436d9347a401053f19086f726206"
+    },
+    "before-state-frames.json": {
+      "bytes": 117,
+      "sha256": "626a8fc4ed6ff38effa6658a07da8c66f9322890fb4fa7ab6e7405564014cf62"
+    },
+    "before-manifest.json": {
+      "bytes": 556,
+      "sha256": "26794f0be8c51bcc112b16f51f679f16ab3d18db49213228fdf801bdb4b9e312"
+    },
+    "before-screen.json": {
+      "bytes": 167,
+      "sha256": "6d9893878c91265e5600afeb6e983281bc5147762d270ce49a56df00b7eaaa7d"
+    },
+    "before-capture.log": {
+      "bytes": 101,
+      "sha256": "60d24da341362e0f243513412b424a1c7e32a55468b137a7356accd56125bbb8"
+    },
+    "after-screen.svg": {
+      "bytes": 58441,
+      "sha256": "72a26e005a259cafd555b77484d06fae8846c6989176b37bdec41032a03ad657"
+    },
+    "after-state-metadata.json": {
+      "bytes": 385896,
+      "sha256": "1a844f68fd26c74ed2313b62a17b4c4d05073f0418b52157dfbd3772670aa5d4"
+    },
+    "after-remote.py": {
+      "bytes": 1406,
+      "sha256": "180f61105efed7e06c806c70071f55aea7006d6a138fb0149237473bec45530a"
+    },
+    "after-manifest.json": {
+      "bytes": 554,
+      "sha256": "3800dab64306848b384ef54854389110a85e0cf4020bb98564bd871419e546cd"
+    },
+    "after-state-frames.json": {
+      "bytes": 63588,
+      "sha256": "1334db6c8cf81faaa2d8759bf02743b19aa27e221667ba12223c9384633cda79"
+    },
+    "after-capture.log": {
+      "bytes": 100,
+      "sha256": "270916d790b23bc7a323d3cf73f240589f4c388dfe6e1afa4a8a2b8ca7ee6452"
+    },
+    "after-state.json": {
+      "bytes": 385922,
+      "sha256": "d42b9d94e975e499596c048e6d2a2a0de70e878cce971b0fc5c33030a74a5fa2"
+    },
+    "after-state.pickle": {
+      "bytes": 75349,
+      "sha256": "376ab013586cd0b8684cceb98067a0272b777a196c7d42dc878fb7962aa45de4"
+    },
+    "after-screen.json": {
+      "bytes": 167,
+      "sha256": "0e1f9dd95b209f157d7b08287617c903204a0c4d66297d0b0ce2012879e4f633"
+    },
+    "phase-native-ready-remote.py": {
+      "bytes": 1034,
+      "sha256": "1553987adcf7c6e174b9d1ec463a0bcce47fd083bccd3f0347ceb13f716d8179"
+    },
+    "phase-reader-capture.log": {
+      "bytes": 107,
+      "sha256": "57d9ba69b8a546f62b58e2dea03046dfd61b48e35e3519865e204e9b3905cbcf"
+    },
+    "phase-released-ready-state-metadata.json": {
+      "bytes": 385897,
+      "sha256": "ebb87d26f1c426ef9c00bf0229c45ee13a3a675127f57c6e64fa61737efff230"
+    },
+    "phase-busy-end-state-frames.json": {
+      "bytes": 55622,
+      "sha256": "95071f35fc8c1354bca0711ca76294ff18da303a018f08fc8c202fe6648198da"
+    },
+    "phase-native-ready.png": {
+      "bytes": 95423,
+      "sha256": "d530ad5a605d67b0550b173cebec5631671eacdea8f9583ae291a21dbd1f02d1"
+    },
+    "phase-busy-end-manifest.json": {
+      "bytes": 451,
+      "sha256": "21e4b157bbeb4ea8b40c797042cc599f6bdb72fb31125fdec909de8ad7ee60ec"
+    },
+    "phase-reader-state.json": {
+      "bytes": 437611,
+      "sha256": "98d6c72e3848e20fa14d70a6b4c3bf0bd4a5c830c4ee86cdd35da197aaf35450"
+    },
+    "phase-released-ready-state-frames.json": {
+      "bytes": 58456,
+      "sha256": "8388ca59dd9aedaa103420d4a9175e89960fa9fabfe32d1f2efd60649fc96645"
+    },
+    "phase-settled-end-capture.log": {
+      "bytes": 112,
+      "sha256": "e811b1ded399c18a89cef05d826c4bc4f85f8e3f33cd01b6e312503793a72df0"
+    },
+    "phase-reader.png": {
+      "bytes": 77514,
+      "sha256": "1d1d2b5b73f5bea36bfa369605b4ef3100e3d5eb0fe7ff3e258217bcc3834023"
+    },
+    "phase-settled-end.png": {
+      "bytes": 107671,
+      "sha256": "787d69d79190cea682560130d7e9e98518d3d02a40e56d95a490747b5c4a38e7"
+    },
+    "phase-released-ready-manifest.json": {
+      "bytes": 457,
+      "sha256": "321ecf52100a0ed2715301122202a701a1169f4dc7f23bb8b6ec1d666c5d20c1"
+    },
+    "phase-settled-end-state.pickle": {
+      "bytes": 75349,
+      "sha256": "91c4b408276da465cdec3b42630d04046adbd4df62f25e2489aa7340247bdabc"
+    },
+    "phase-released-ready-remote.py": {
+      "bytes": 1036,
+      "sha256": "f1dcbe95f789539607579a3782cce2daa3bb30926342e3cf91df316b946348c1"
+    },
+    "phase-busy-end.png": {
+      "bytes": 102159,
+      "sha256": "fa897bb927aa9ff09250313a2945f45f2a0e97c688af53d338c54e87842c4456"
+    },
+    "phase-settled-end-state-frames.json": {
+      "bytes": 61622,
+      "sha256": "8a594174205ce4d364050c67aded65898c594ae84ed98bbca1c2eb5d54264672"
+    },
+    "phase-reader-state.pickle": {
+      "bytes": 283013,
+      "sha256": "ac7e31526ea2f6f2d7b51f83b3dda246ecd98a8b249ee9e6959486c4c8d91398"
+    },
+    "phase-settled-end-state.json": {
+      "bytes": 385923,
+      "sha256": "1d09e40b9263cfbb77c7c3fe31796ee631862ed219f25e9908f16df26fb24fd4"
+    },
+    "phase-busy-end-remote.py": {
+      "bytes": 1020,
+      "sha256": "8dd4753b1262cac02e935ce0e5b6e5bbc22d9080f892fe12b1b147155bf25ae6"
+    },
+    "phase-native-ready-capture.log": {
+      "bytes": 113,
+      "sha256": "eda718e0b9c78fc71e7a2ec4a1dfa1ed227980d9fd8c7d86dbd8213df6567530"
+    },
+    "phase-native-ready-state-metadata.json": {
+      "bytes": 441046,
+      "sha256": "5c09bb200d4d7e533767bd88aeb394e4fb592767d8cd7ddde6c0a00dd56b2e20"
+    },
+    "phase-busy-end-state-metadata.json": {
+      "bytes": 377699,
+      "sha256": "a38d4b92c7d845c03d7677a205c1cdb60fc4454813fd999b61d9384f07e21e4d"
+    },
+    "phase-busy-end-state.json": {
+      "bytes": 377726,
+      "sha256": "da3e049758625ef5d70a8b013c6fcdfa389d1de6d7d29c96f63052680cdd534e"
+    },
+    "phase-reader-state-frames.json": {
+      "bytes": 49954,
+      "sha256": "d53222c43326ff4415a427dad49062dc2136149563a71db1ea56099914a2648c"
+    },
+    "phase-native-ready-state-frames.json": {
+      "bytes": 24756,
+      "sha256": "3dc5c79d194fe480bae22d8ef53c7ddedb727ecd2820fc5a1bc6011032ecd444"
+    },
+    "phase-reader-state-metadata.json": {
+      "bytes": 437584,
+      "sha256": "a253e6d2716840f55c07f91016cae738cf8d047661448cde987660c4ffc12ad9"
+    },
+    "phase-native-ready-manifest.json": {
+      "bytes": 455,
+      "sha256": "2a36df9d6f71ba7d787713e2e65d7fce34aacf826a750b0adb9be513b08561a6"
+    },
+    "phase-settled-end-remote.py": {
+      "bytes": 1023,
+      "sha256": "951de3e2a4f9b711be2818131f9a85c734a48b7ff2a9c601666b15cb00cfa0fe"
+    },
+    "phase-released-ready-state.pickle": {
+      "bytes": 75349,
+      "sha256": "cdddf0cfe9bc904bee00610278c58047850b45c8c135bee30ad9c31d1cfdaece"
+    },
+    "phase-released-ready-state.json": {
+      "bytes": 385923,
+      "sha256": "06b279421ccfdf178d22e0ec5a0743476bda61851a7cd6299628ad8ceddd62bf"
+    },
+    "phase-reader-manifest.json": {
+      "bytes": 449,
+      "sha256": "823f3e644c351395c0b62fc35e8f4144eab70668471b3b79c10260f9917a163d"
+    },
+    "phase-released-ready-state-wait.json": {
+      "bytes": 136,
+      "sha256": "65991c3a968265ef22492ca722bb5ba8eb038d5fafef3556297e6639f4b47bc8"
+    },
+    "phase-settled-end-state-metadata.json": {
+      "bytes": 385897,
+      "sha256": "d07cdf0c5648deff6fc7da4c5cdc382c92dfea3438dbbe7affd4df610072558e"
+    },
+    "phase-native-ready-state-wait.json": {
+      "bytes": 139,
+      "sha256": "4c1086560b6f587744c5d8d076a54414be7f880d74bae3108d9f2c0738543ff4"
+    },
+    "phase-busy-end-state.pickle": {
+      "bytes": 275187,
+      "sha256": "0a377c4dce957e94b34ec772b1be594846ee1f9c3749b078105d0b60886ec3e1"
+    },
+    "phase-released-ready-capture.log": {
+      "bytes": 115,
+      "sha256": "acd94abcda8f66ca576ba637694d960ff7c1eb8df198ab9cb7c37467a2047704"
+    },
+    "phase-busy-end-capture.log": {
+      "bytes": 109,
+      "sha256": "79d6a2300aaf91d9821d5fed06679f86e67917139488aa2b89c4f02b5f2b38ae"
+    },
+    "phase-reader-remote.py": {
+      "bytes": 1018,
+      "sha256": "94abce410b51edbc5dfc8c89c3139ec5f35daca6452965e46417ec8d4afc6c54"
+    },
+    "phase-native-ready-state.pickle": {
+      "bytes": 79519,
+      "sha256": "b5ab8ef59ebdddb5cec6f2822d4d6aebabf1a0b8c8d26d3095c957651767fd26"
+    },
+    "phase-settled-end-manifest.json": {
+      "bytes": 454,
+      "sha256": "b500d54b15ecbda35a063995b2f0776b41b0383d47c870f0731cd723ad8c74ec"
+    },
+    "phase-released-ready.png": {
+      "bytes": 107652,
+      "sha256": "58ef5f5a562e254263baaf4729ab27082541649b8b3178c14aa6293313ccfc05"
+    },
+    "phase-native-ready-state.json": {
+      "bytes": 441072,
+      "sha256": "a0f991a3b43ed056fa1d87c2a846f8f76692f926826b55e86cdc3c319201b416"
+    },
+    "sqlite-busy-review.json": {
+      "bytes": 354,
+      "sha256": "9aaaa33b5657c08b574b1d14e324f49d80b532d4b538e92f982922b148907142"
+    },
+    "history-click-target.json": {
+      "bytes": 507,
+      "sha256": "def5d8047628cd2cef2d1763b86435e1e8b128b0c095519ee13eec9a561d5eb8"
+    },
+    "live-10-12-frames.png": {
+      "bytes": 1222964,
+      "sha256": "964b4383cbe657c069e4b5402e9b98532394c3e5f09e7c1e09634458b8a4daf0"
+    },
+    "live-5-8-frames.png": {
+      "bytes": 1294874,
+      "sha256": "0443f36dff6a413b22caa6c3aa4e773f664c2302a9a5151d33857140e3fe0cf6"
+    },
+    "live-12-13-frames.png": {
+      "bytes": 907276,
+      "sha256": "060aee302b614f316be4f012b2dc82993cbf61bc4c5a1c7fd5203bcff5e4812d"
+    },
+    "live-7-10-frames.png": {
+      "bytes": 637708,
+      "sha256": "660728664068c3e3d48d9c754ef205dbde3be490641dcec90a3a63caab8ebe6d"
+    },
+    "live-6-9-frames.png": {
+      "bytes": 1294874,
+      "sha256": "0443f36dff6a413b22caa6c3aa4e773f664c2302a9a5151d33857140e3fe0cf6"
+    },
+    "live-9-11-frames.png": {
+      "bytes": 637325,
+      "sha256": "ddb2df6ceddb3c6e4d001f2da9f1681606ad6fdec78692f8b09447248fe208c9"
+    },
+    "live-3-7-frames.png": {
+      "bytes": 1482526,
+      "sha256": "7575391cbdf5fa3a7491c067a19a0820b09db1879d6be45ed36562c00478e4f9"
+    },
+    "live-3-6-frames.png": {
+      "bytes": 1124503,
+      "sha256": "c7049be43c17c77def7f438e5248ba84b7bda24f822c99bde33876a16eb82a85"
+    },
+    "live-14-15-frames.png": {
+      "bytes": 1093554,
+      "sha256": "0ee38b402b2b37778d27b3febed1bc26c997bb5833e3b5988d5775ea274fd6c5"
+    },
+    "live-13-14-frames.png": {
+      "bytes": 1093676,
+      "sha256": "545b59f910d0b9d8c971b216d8379c88370c8960b3a60849c55dec81197e0d23"
+    },
+    "frame-delivery.json": {
+      "bytes": 52834,
+      "sha256": "381d5310550e4e34fe577cd4babfda0e426efc5fc0f0756af5b819709e77cc27"
+    },
+    "frame-delivery.svg": {
+      "bytes": 5504,
+      "sha256": "451f189142a156da84ecd0e1fe03747db9f1294777b5ab61b14609d4f198a463"
+    }
+  },
+  "error": "RuntimeError: Private native busy recovery failed: native_end_held_by_original_work",
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 252814,
+        "start_ticks": 43547835,
+        "returncode": 0
+      },
+      {
+        "pid": 252953,
+        "start_ticks": 43548027,
+        "returncode": 0
+      },
+      {
+        "pid": 252963,
+        "start_ticks": 43548045,
+        "returncode": 0
+      },
+      {
+        "pid": 252964,
+        "start_ticks": 43548052,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 252965,
+        "start_ticks": 43548057,
+        "returncode": 0
+      },
+      {
+        "pid": 252966,
+        "start_ticks": 43548067,
+        "returncode": 0
+      },
+      {
+        "pid": 252967,
+        "start_ticks": 43548078,
+        "returncode": 0
+      },
+      {
+        "pid": 252968,
+        "start_ticks": 43548087,
+        "returncode": 255
+      },
+      {
+        "pid": 252978,
+        "start_ticks": 43548189,
+        "returncode": 0
+      },
+      {
+        "pid": 252987,
+        "start_ticks": 43548217,
+        "returncode": 0
+      },
+      {
+        "pid": 252996,
+        "start_ticks": 43548249,
+        "returncode": 0
+      },
+      {
+        "pid": 253005,
+        "start_ticks": 43548281,
+        "returncode": 0
+      },
+      {
+        "pid": 253035,
+        "start_ticks": 43548383,
+        "returncode": 1
+      },
+      {
+        "pid": 253039,
+        "start_ticks": 43548503,
+        "returncode": 1
+      },
+      {
+        "pid": 253051,
+        "start_ticks": 43548622,
+        "returncode": 1
+      },
+      {
+        "pid": 253054,
+        "start_ticks": 43548742,
+        "returncode": 1
+      },
+      {
+        "pid": 253072,
+        "start_ticks": 43548860,
+        "returncode": 1
+      },
+      {
+        "pid": 253079,
+        "start_ticks": 43548977,
+        "returncode": 1
+      },
+      {
+        "pid": 253222,
+        "start_ticks": 43549060,
+        "returncode": 0
+      },
+      {
+        "pid": 253236,
+        "start_ticks": 43549162,
+        "returncode": 0
+      },
+      {
+        "pid": 253237,
+        "start_ticks": 43549175,
+        "returncode": 0
+      },
+      {
+        "pid": 253239,
+        "start_ticks": 43549277,
+        "returncode": 0
+      },
+      {
+        "pid": 253241,
+        "start_ticks": 43549297,
+        "returncode": 0
+      },
+      {
+        "pid": 253298,
+        "start_ticks": 43549419,
+        "returncode": 0
+      },
+      {
+        "pid": 253307,
+        "start_ticks": 43549551,
+        "returncode": 0
+      },
+      {
+        "pid": 253308,
+        "start_ticks": 43549571,
+        "returncode": 0
+      },
+      {
+        "pid": 253323,
+        "start_ticks": 43549668,
+        "returncode": 0
+      },
+      {
+        "pid": 253327,
+        "start_ticks": 43549705,
+        "returncode": 0
+      },
+      {
+        "pid": 253328,
+        "start_ticks": 43549716,
+        "returncode": 0
+      },
+      {
+        "pid": 253341,
+        "start_ticks": 43549818,
+        "returncode": 0
+      },
+      {
+        "pid": 253343,
+        "start_ticks": 43549839,
+        "returncode": 0
+      },
+      {
+        "pid": 253350,
+        "start_ticks": 43549946,
+        "returncode": 0
+      },
+      {
+        "pid": 253354,
+        "start_ticks": 43549989,
+        "returncode": 0
+      },
+      {
+        "pid": 253503,
+        "start_ticks": 43550091,
+        "returncode": 0
+      },
+      {
+        "pid": 253504,
+        "start_ticks": 43550111,
+        "returncode": 0
+      },
+      {
+        "pid": 253519,
+        "start_ticks": 43550225,
+        "returncode": 0
+      },
+      {
+        "pid": 253524,
+        "start_ticks": 43550266,
+        "returncode": 0
+      },
+      {
+        "pid": 253539,
+        "start_ticks": 43550368,
+        "returncode": 0
+      },
+      {
+        "pid": 253540,
+        "start_ticks": 43550386,
+        "returncode": 0
+      },
+      {
+        "pid": 253552,
+        "start_ticks": 43550499,
+        "returncode": 0
+      },
+      {
+        "pid": 253556,
+        "start_ticks": 43550546,
+        "returncode": 0
+      },
+      {
+        "pid": 253558,
+        "start_ticks": 43550561,
+        "returncode": 0
+      },
+      {
+        "pid": 253567,
+        "start_ticks": 43550663,
+        "returncode": 0
+      },
+      {
+        "pid": 253577,
+        "start_ticks": 43550682,
+        "returncode": 0
+      },
+      {
+        "pid": 253596,
+        "start_ticks": 43550815,
+        "returncode": 0
+      },
+      {
+        "pid": 253601,
+        "start_ticks": 43550857,
+        "returncode": 0
+      },
+      {
+        "pid": 253629,
+        "start_ticks": 43550959,
+        "returncode": 0
+      },
+      {
+        "pid": 253630,
+        "start_ticks": 43550978,
+        "returncode": 0
+      },
+      {
+        "pid": 253786,
+        "start_ticks": 43551119,
+        "returncode": 0
+      },
+      {
+        "pid": 253803,
+        "start_ticks": 43551159,
+        "returncode": 0
+      },
+      {
+        "pid": 253815,
+        "start_ticks": 43551249,
+        "returncode": 0
+      },
+      {
+        "pid": 253843,
+        "start_ticks": 43551351,
+        "returncode": 0
+      },
+      {
+        "pid": 253845,
+        "start_ticks": 43551370,
+        "returncode": 0
+      },
+      {
+        "pid": 253852,
+        "start_ticks": 43551530,
+        "returncode": 0
+      },
+      {
+        "pid": 253858,
+        "start_ticks": 43551572,
+        "returncode": 0
+      },
+      {
+        "pid": 253876,
+        "start_ticks": 43551674,
+        "returncode": 0
+      },
+      {
+        "pid": 253919,
+        "start_ticks": 43551695,
+        "returncode": 0
+      },
+      {
+        "pid": 253951,
+        "start_ticks": 43551854,
+        "returncode": 0
+      },
+      {
+        "pid": 253956,
+        "start_ticks": 43551897,
+        "returncode": 0
+      },
+      {
+        "pid": 253972,
+        "start_ticks": 43551999,
+        "returncode": 0
+      },
+      {
+        "pid": 254106,
+        "start_ticks": 43552022,
+        "returncode": 0
+      },
+      {
+        "pid": 254121,
+        "start_ticks": 43552186,
+        "returncode": 0
+      },
+      {
+        "pid": 254174,
+        "start_ticks": 43552326,
+        "returncode": 0
+      },
+      {
+        "pid": 254179,
+        "start_ticks": 43552354,
+        "returncode": 0
+      },
+      {
+        "pid": 254185,
+        "start_ticks": 43552410,
+        "returncode": 0
+      },
+      {
+        "pid": 254188,
+        "start_ticks": 43552610,
+        "returncode": 0
+      },
+      {
+        "pid": 254235,
+        "start_ticks": 43552851,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sqlite537-native-copy02/wire",
+    "mode": "private"
+  }
+}

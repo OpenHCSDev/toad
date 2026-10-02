@@ -1,0 +1,10 @@
+{
+  "core_accepted_production": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+  "core_merged": "cca41ab52a90e0353ad3340ca63a01a6b3bc0abc",
+  "core_src_stack_config_equal": true,
+  "toad_accepted_production": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+  "toad_merged": "64220f10a1489071cc4914b90e8fc244a73de211",
+  "installed_toad": "04552f092843b1e83bea31e25de905f8c286e364",
+  "toad_src_tools_equal": true,
+  "toad_only_receiving_metadata_changes": "Paired Core Git pin and normal lock; no product or driver change"
+}

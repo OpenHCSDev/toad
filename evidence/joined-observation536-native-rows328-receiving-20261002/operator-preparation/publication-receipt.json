@@ -1,0 +1,527 @@
+{
+  "phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "started": 1790954301.226895,
+  "cohort": {
+    "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+    "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+    "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "original_route": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+      "version": 1
+    },
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "activation": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+      "sha256": "851938b9c74633600165c921f04737312cb3361ac0fc9db41ca6e68d6f70b8aa"
+    },
+    "source_proof": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-observation536-native-rows328-receiving-20261002/source-proof.json",
+      "sha256": "2230c0d2c65919eb156e1e0bcad74c48b58ae3fd24f10fd5813eae999d69f3db"
+    },
+    "actual_gates": [
+      {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-observation536-native-rows328-receiving-20261002/qualified-source-gates/536-DISPATCH-CONSUMPTION.md",
+        "sha256": "bec5522f73aa29509dcc23e314504907f3897b79bae04243eb1762a1b718d20e"
+      },
+      {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-observation536-native-rows328-receiving-20261002/qualified-source-gates/536-READY.md",
+        "sha256": "3bc727c8198a8dee9f9b81303311ad2c24c4870f8b1d7c040d653964a64ddd0e"
+      },
+      {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-observation536-native-rows328-receiving-20261002/qualified-source-gates/328-direct-native-rows-qualified.json",
+        "sha256": "577e3d3a051eba3e855cdd0ccb4a7345f08a881b7c94574e64c28669107fb301"
+      }
+    ]
+  },
+  "runtime_installation": {
+    "classification": "runtime/preserve",
+    "original_files": [
+      {
+        "path": "/var/tmp/agent-comms-live-20260927-wzjtqhza/compaction-commits.sqlite3",
+        "sha256": "46d23761a633095beb07cc198c6f658f94092ad997c0e1b1f7cb428c10e52e6c",
+        "revision": {
+          "identity": {
+            "device": 2083,
+            "inode": 4589864
+          },
+          "size": 1880064,
+          "mtime_ns": 1790950515053778704,
+          "ctime_ns": 1790950515053778704
+        }
+      }
+    ],
+    "retired": [],
+    "copied_bytes": 0
+  },
+  "owners_before": [
+    {
+      "identity": {
+        "incarnation": {
+          "name": "agent-comms-ux",
+          "created_at": 1790049004.0955005
+        },
+        "generation": 1972
+      },
+      "process": {
+        "pid": 4190281,
+        "start_time": 42597215
+      },
+      "admission_generation": 1936
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-architecture",
+          "created_at": 1790049182.3907015
+        },
+        "generation": 1973
+      },
+      "process": {
+        "pid": 4190294,
+        "start_time": 42597351
+      },
+      "admission_generation": 1937
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-class-first-name-review",
+          "created_at": 1790229371.6420214
+        },
+        "generation": 1974
+      },
+      "process": {
+        "pid": 4190304,
+        "start_time": 42597489
+      },
+      "admission_generation": 1938
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-domain-mapping",
+          "created_at": 1790116627.8997042
+        },
+        "generation": 1975
+      },
+      "process": {
+        "pid": 4190333,
+        "start_time": 42597629
+      },
+      "admission_generation": 1939
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-ordered-branch-call-review",
+          "created_at": 1790232054.218321
+        },
+        "generation": 1976
+      },
+      "process": {
+        "pid": 4190335,
+        "start_time": 42597766
+      },
+      "admission_generation": 1940
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-roster-heuristic-map",
+          "created_at": 1790218471.1256046
+        },
+        "generation": 1977
+      },
+      "process": {
+        "pid": 4190348,
+        "start_time": 42597902
+      },
+      "admission_generation": 1941
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "refactor-r1",
+          "created_at": 1790606381.4139948
+        },
+        "generation": 1978
+      },
+      "process": {
+        "pid": 4190495,
+        "start_time": 42598041
+      },
+      "admission_generation": 1942
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-architecture-memory",
+          "created_at": 1790654215.0835924
+        },
+        "generation": 1979
+      },
+      "process": {
+        "pid": 4190497,
+        "start_time": 42598186
+      },
+      "admission_generation": 1943
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-pr159-viewer-bind-owner",
+          "created_at": 1790657026.7285714
+        },
+        "generation": 1980
+      },
+      "process": {
+        "pid": 4190535,
+        "start_time": 42598329
+      },
+      "admission_generation": 1944
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nominal-refactor-advisor-2",
+          "created_at": 1790700391.614946
+        },
+        "generation": 1981
+      },
+      "process": {
+        "pid": 4190548,
+        "start_time": 42598469
+      },
+      "admission_generation": 1945
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-helper",
+          "created_at": 1790708584.4423254
+        },
+        "generation": 1982
+      },
+      "process": {
+        "pid": 4190555,
+        "start_time": 42598608
+      },
+      "admission_generation": 1946
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-helper2",
+          "created_at": 1790713653.7134795
+        },
+        "generation": 1983
+      },
+      "process": {
+        "pid": 4190572,
+        "start_time": 42598749
+      },
+      "admission_generation": 1947
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "comms428",
+          "created_at": 1790725198.0008519
+        },
+        "generation": 1984
+      },
+      "process": {
+        "pid": 4190639,
+        "start_time": 42598893
+      },
+      "admission_generation": 1948
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-merged-runtime",
+          "created_at": 1790873422.6705143
+        },
+        "generation": 1985
+      },
+      "process": {
+        "pid": 4190843,
+        "start_time": 42599043
+      },
+      "admission_generation": 1949
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-merged-models",
+          "created_at": 1790873447.6164267
+        },
+        "generation": 1986
+      },
+      "process": {
+        "pid": 4190846,
+        "start_time": 42599186
+      },
+      "admission_generation": 1950
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-merged-boundaries",
+          "created_at": 1790873473.1996155
+        },
+        "generation": 1987
+      },
+      "process": {
+        "pid": 4190883,
+        "start_time": 42599327
+      },
+      "admission_generation": 1951
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-open-prs",
+          "created_at": 1790873496.352646
+        },
+        "generation": 1988
+      },
+      "process": {
+        "pid": 4190886,
+        "start_time": 42599474
+      },
+      "admission_generation": 1952
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "compaction499-live-architecture-memory",
+          "created_at": 1790895107.1284342
+        },
+        "generation": 1989
+      },
+      "process": {
+        "pid": 4190920,
+        "start_time": 42599615
+      },
+      "admission_generation": 1953
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "compaction501-live-architecture-memory",
+          "created_at": 1790900050.675298
+        },
+        "generation": 1990
+      },
+      "process": {
+        "pid": 4190975,
+        "start_time": 42599757
+      },
+      "admission_generation": 1954
+    }
+  ],
+  "protected_original_sha256": {
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl": "1f7ade9e9d00eceb1eec18fb7879efa5d6681a7ffc433bf7884c5bfc2f924852",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl.input-proof": "bb4e20406a80c45271f7b79d514b40faa79a1d07a632097eee401eb51c5da3e6",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-29T23-39-56-904Z_01a0ef8a-0c69-75a1-86fe-53cd38ab0d18.jsonl": "3798696a9300ab40761743584864b56d9ea7b5214648022bc9f82e8a80b6c222",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-29T23-39-56-904Z_01a0ef8a-0c69-75a1-86fe-53cd38ab0d18.jsonl.input-proof": "14d08d549ec6e66454ac17cdb2557ed08a3e68b373d15b26f17860380837e1b2",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl.input-proof": "a2b672363cb65cfa2bebad4300e209cb816f33e028734749a0b1efc59ae5c99e",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T02-54-37-390Z_01a0d156-1f4d-7042-a6bd-b9a7a8f962cf.jsonl": "ce0698533e95878b228ef14c13f51315723eb698fdf095cf3b8922dadfa15d16",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T02-54-37-390Z_01a0d156-1f4d-7042-a6bd-b9a7a8f962cf.jsonl.input-proof": "3058df6fd975ffc0982ef0dba25ff64e59e657055ca2ec6dd1bb9bc4698a3fea",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T05-56-25-895Z_01a0d1fc-92a7-73f8-bb18-c7b0ea66b194.jsonl": "3ae1ab63cc83d547dfa40b107e6d77c0c7f93983654b009e52c50365b46fabda",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T05-56-25-895Z_01a0d1fc-92a7-73f8-bb18-c7b0ea66b194.jsonl.input-proof": "3ff6d88c7fa1be023bf82495cc1364237f5d3997228dcc36e9765cbe5ffcbfb4",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T06-41-01-603Z_01a0d225-66a2-7297-99ec-8ea7702f4404.jsonl": "6580ed87246a5b1dec3b025516ef788c06fa0aa945f3c81df2cc2bdba152316a",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T06-41-01-603Z_01a0d225-66a2-7297-99ec-8ea7702f4404.jsonl.input-proof": "35d7ccb4d192cf70a68fae32adfbb4956ff0682b43556750702185d8131b3fa5",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl": "8031b62cae14962feaf06519db6a2bdd2374c28792e82f819fd7175ef91c3d9e",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl.input-proof": "567486693540c668607b7760937a6c6f452324c573ad7090d354cb4e2fb28d7b",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl": "95fd424c5799e20e24863cdb67296e89abcf6c82b992fe06384be5f54d55d9ae",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl.input-proof": "03b50b06318bdebee906a6306108fe7955f86a7ec72c8253ca406600ba751a08",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl": "a52cd732dc0aaafb015c5fc923d112bc2d589cbb8c81eb1f414fdce36aab2851",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl.input-proof": "59f08451724167b7850d09aaa4794de80390fc9dbcf6be965fab99578c661937",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T19-03-03-440Z_01a0ee8c-8c10-77cc-a306-2f47d15ba7d0.jsonl": "b70d79aa354409f98ed63f9fe4b1f3ed2fef9c132e55df789ae3326551708fe7",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T19-03-03-440Z_01a0ee8c-8c10-77cc-a306-2f47d15ba7d0.jsonl.input-proof": "8117d9afd1dfaa1adbc5f94ad87283b5f6973d92ce507c5871312f0ac7d7d615",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T20-27-32-549Z_01a0eed9-e545-72c7-a2fa-d3870585abee.jsonl": "d3a3f1226ea260ad83d866e572b408b2295c446fca00ff18fcf1fa04fdcfb912",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T20-27-32-549Z_01a0eed9-e545-72c7-a2fa-d3870585abee.jsonl.input-proof": "f0f9d758bc0ccdf24ab990bc71711fffda584c9e7a88a793ea986af53fed0286",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl": "4a509827ef9c9cb2ce0eff5db7744fc53607a5f7f68b014ee4607d740c3c8f47",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl.input-proof": "90ea0c2e61f2a6c86f14bef718ef9f9b8ae3d6e27b5cd41fcf5cda008c57df4f",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-46-206Z_01a0f860-273f-749b-b07a-3c8b4cf6290e.jsonl": "1c708641025df4e65ad3fa14c9e228cd03ab606879fd322894aa7cbfb66e0da0",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-46-206Z_01a0f860-273f-749b-b07a-3c8b4cf6290e.jsonl.input-proof": "dbeecdf62275adec311145b7d4b206d23d6e51fb1da97019ecaba8c3606d7da9",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-12-126Z_01a0f860-8c7e-7129-8d3f-c358fe68ad60.jsonl": "fe386a71dcbe571b10a6809c8febca92251211af877b4e7646262d647ef67096",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-12-126Z_01a0f860-8c7e-7129-8d3f-c358fe68ad60.jsonl.input-proof": "9310b0f2b9e0c3d60deb82ee009db98a1bd8d31a719849e00492ea15b1bcd500",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-35-321Z_01a0f860-e719-7127-8b6d-b4a808991c79.jsonl": "48e3f133f5071fe4cf9efce31ec67cbe5d57e7daea4b9a4012e51ea53466d48f",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-35-321Z_01a0f860-e719-7127-8b6d-b4a808991c79.jsonl.input-proof": "60f02e0434faed172fd36e6cca0754e1fa94bdde86cdbbdc09d548a7c26ec204",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T22-51-46-051Z_01a0f9aa-a804-77e8-8107-3d93fcaec806.jsonl": "f821b7b51d55b566fc447e5afd7d97549b33220b04b7d34987ee255f1e946314",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T22-51-46-051Z_01a0f9aa-a804-77e8-8107-3d93fcaec806.jsonl.input-proof": "6d12c1197899716eb642cf9c7dba27b90dc76d0ed0c3c01361d039b69140c5de",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl": "e9345bcdc9b1a5d221d95fd558a826f86d9f95fcc409ee74eaabcabc873753b2",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl.input-proof": "e84df9d383db7cda5e4e233f6dfb9ea2fa72cf6ea9f743ddead7fdac7c4a17c5",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/coordination.sqlite3": "94923b7aeb23dfbc1bcea741e88d16eae5f70f0273cf04801c4bc5f54da2942d",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/goal-private/goal_attempts.sqlite3": "1befd181b44ed3884d02154526dbf38d8b57bfdcadef0ace00f6a6db98224080",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/goal_history.sqlite3": "22a33c895eca73a73e261e80dc6f3773fdeed252984765d74fe1c9b2886cab7b",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/goal_pause_events.json": "a15aa8abde6d8dfed7e07586136fccf631acc8b5c02790379ee7052d472bf61f",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/input_dispositions.json": "53d05db733fa7ac34c881fe5d53f253a135aec9caab26b7ba1e4d866ae450252",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/native_prompt_bindings.sqlite3": "7b8691dc5e0c238ca4889e7e9ce18af085fe40853aab950fb68a8c077c500f5d"
+  },
+  "protected_preimages": [],
+  "registry_original_sha256": "1faeb05429f867e1a6bcc0e8782a379f96f0dfea1af653c1f6a4075d51bada3d",
+  "goal_installation": {
+    "classification": "goal/preserve",
+    "original_files": [
+      {
+        "path": "/var/tmp/agent-comms-live-20260927-wzjtqhza/goal-private/goal_attempts.sqlite3",
+        "sha256": "1befd181b44ed3884d02154526dbf38d8b57bfdcadef0ace00f6a6db98224080",
+        "revision": {
+          "identity": {
+            "device": 2083,
+            "inode": 4589859
+          },
+          "size": 237568,
+          "mtime_ns": 1790926556995927714,
+          "ctime_ns": 1790926557015928095
+        }
+      }
+    ]
+  },
+  "byte_invariant_originals": {
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T19-03-03-440Z_01a0ee8c-8c10-77cc-a306-2f47d15ba7d0.jsonl": "b70d79aa354409f98ed63f9fe4b1f3ed2fef9c132e55df789ae3326551708fe7",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T02-54-37-390Z_01a0d156-1f4d-7042-a6bd-b9a7a8f962cf.jsonl.input-proof": "3058df6fd975ffc0982ef0dba25ff64e59e657055ca2ec6dd1bb9bc4698a3fea",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl": "e9345bcdc9b1a5d221d95fd558a826f86d9f95fcc409ee74eaabcabc873753b2",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl": "a52cd732dc0aaafb015c5fc923d112bc2d589cbb8c81eb1f414fdce36aab2851",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-29T23-39-56-904Z_01a0ef8a-0c69-75a1-86fe-53cd38ab0d18.jsonl": "3798696a9300ab40761743584864b56d9ea7b5214648022bc9f82e8a80b6c222",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-12-126Z_01a0f860-8c7e-7129-8d3f-c358fe68ad60.jsonl.input-proof": "9310b0f2b9e0c3d60deb82ee009db98a1bd8d31a719849e00492ea15b1bcd500",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T02-54-37-390Z_01a0d156-1f4d-7042-a6bd-b9a7a8f962cf.jsonl": "ce0698533e95878b228ef14c13f51315723eb698fdf095cf3b8922dadfa15d16",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T22-51-46-051Z_01a0f9aa-a804-77e8-8107-3d93fcaec806.jsonl.input-proof": "6d12c1197899716eb642cf9c7dba27b90dc76d0ed0c3c01361d039b69140c5de",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T22-51-46-051Z_01a0f9aa-a804-77e8-8107-3d93fcaec806.jsonl": "f821b7b51d55b566fc447e5afd7d97549b33220b04b7d34987ee255f1e946314",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl": "1f7ade9e9d00eceb1eec18fb7879efa5d6681a7ffc433bf7884c5bfc2f924852",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl.input-proof": "567486693540c668607b7760937a6c6f452324c573ad7090d354cb4e2fb28d7b",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T19-03-03-440Z_01a0ee8c-8c10-77cc-a306-2f47d15ba7d0.jsonl.input-proof": "8117d9afd1dfaa1adbc5f94ad87283b5f6973d92ce507c5871312f0ac7d7d615",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T06-41-01-603Z_01a0d225-66a2-7297-99ec-8ea7702f4404.jsonl.input-proof": "35d7ccb4d192cf70a68fae32adfbb4956ff0682b43556750702185d8131b3fa5",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T20-27-32-549Z_01a0eed9-e545-72c7-a2fa-d3870585abee.jsonl": "d3a3f1226ea260ad83d866e572b408b2295c446fca00ff18fcf1fa04fdcfb912",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-46-206Z_01a0f860-273f-749b-b07a-3c8b4cf6290e.jsonl.input-proof": "dbeecdf62275adec311145b7d4b206d23d6e51fb1da97019ecaba8c3606d7da9",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl": "8031b62cae14962feaf06519db6a2bdd2374c28792e82f819fd7175ef91c3d9e",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl": "4a509827ef9c9cb2ce0eff5db7744fc53607a5f7f68b014ee4607d740c3c8f47",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T05-56-25-895Z_01a0d1fc-92a7-73f8-bb18-c7b0ea66b194.jsonl.input-proof": "3ff6d88c7fa1be023bf82495cc1364237f5d3997228dcc36e9765cbe5ffcbfb4",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl.input-proof": "90ea0c2e61f2a6c86f14bef718ef9f9b8ae3d6e27b5cd41fcf5cda008c57df4f",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/coordination.sqlite3": "94923b7aeb23dfbc1bcea741e88d16eae5f70f0273cf04801c4bc5f54da2942d",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/input_dispositions.json": "53d05db733fa7ac34c881fe5d53f253a135aec9caab26b7ba1e4d866ae450252",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T20-27-32-549Z_01a0eed9-e545-72c7-a2fa-d3870585abee.jsonl.input-proof": "f0f9d758bc0ccdf24ab990bc71711fffda584c9e7a88a793ea986af53fed0286",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl.input-proof": "e84df9d383db7cda5e4e233f6dfb9ea2fa72cf6ea9f743ddead7fdac7c4a17c5",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl.input-proof": "03b50b06318bdebee906a6306108fe7955f86a7ec72c8253ca406600ba751a08",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/native_prompt_bindings.sqlite3": "7b8691dc5e0c238ca4889e7e9ce18af085fe40853aab950fb68a8c077c500f5d",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/goal_pause_events.json": "a15aa8abde6d8dfed7e07586136fccf631acc8b5c02790379ee7052d472bf61f",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl.input-proof": "bb4e20406a80c45271f7b79d514b40faa79a1d07a632097eee401eb51c5da3e6",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T05-56-25-895Z_01a0d1fc-92a7-73f8-bb18-c7b0ea66b194.jsonl": "3ae1ab63cc83d547dfa40b107e6d77c0c7f93983654b009e52c50365b46fabda",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl.input-proof": "a2b672363cb65cfa2bebad4300e209cb816f33e028734749a0b1efc59ae5c99e",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl.input-proof": "59f08451724167b7850d09aaa4794de80390fc9dbcf6be965fab99578c661937",
+    "/var/tmp/agent-comms-live-20260927-wzjtqhza/goal_history.sqlite3": "22a33c895eca73a73e261e80dc6f3773fdeed252984765d74fe1c9b2886cab7b",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T06-41-01-603Z_01a0d225-66a2-7297-99ec-8ea7702f4404.jsonl": "6580ed87246a5b1dec3b025516ef788c06fa0aa945f3c81df2cc2bdba152316a",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-12-126Z_01a0f860-8c7e-7129-8d3f-c358fe68ad60.jsonl": "fe386a71dcbe571b10a6809c8febca92251211af877b4e7646262d647ef67096",
+    "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-29T23-39-56-904Z_01a0ef8a-0c69-75a1-86fe-53cd38ab0d18.jsonl.input-proof": "14d08d549ec6e66454ac17cdb2557ed08a3e68b373d15b26f17860380837e1b2",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-35-321Z_01a0f860-e719-7127-8b6d-b4a808991c79.jsonl.input-proof": "60f02e0434faed172fd36e6cca0754e1fa94bdde86cdbbdc09d548a7c26ec204",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl": "95fd424c5799e20e24863cdb67296e89abcf6c82b992fe06384be5f54d55d9ae",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-35-321Z_01a0f860-e719-7127-8b6d-b4a808991c79.jsonl": "48e3f133f5071fe4cf9efce31ec67cbe5d57e7daea4b9a4012e51ea53466d48f",
+    "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-46-206Z_01a0f860-273f-749b-b07a-3c8b4cf6290e.jsonl": "1c708641025df4e65ad3fa14c9e228cd03ab606879fd322894aa7cbfb66e0da0"
+  },
+  "results": [
+    {
+      "thread": "agent-comms-ux",
+      "previous_pid": 4190281,
+      "pid": 103170
+    },
+    {
+      "thread": "nra-architecture",
+      "previous_pid": 4190294,
+      "pid": 103360
+    },
+    {
+      "thread": "nra-class-first-name-review",
+      "previous_pid": 4190304,
+      "pid": 103363
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "previous_pid": 4190333,
+      "pid": 103386
+    },
+    {
+      "thread": "nra-ordered-branch-call-review",
+      "previous_pid": 4190335,
+      "pid": 103389
+    },
+    {
+      "thread": "nra-roster-heuristic-map",
+      "previous_pid": 4190348,
+      "pid": 103392
+    },
+    {
+      "thread": "refactor-r1",
+      "previous_pid": 4190495,
+      "pid": 103394
+    },
+    {
+      "thread": "openhcs-architecture-memory",
+      "previous_pid": 4190497,
+      "pid": 103416
+    },
+    {
+      "thread": "openhcs-pr159-viewer-bind-owner",
+      "previous_pid": 4190535,
+      "pid": 103555
+    },
+    {
+      "thread": "nominal-refactor-advisor-2",
+      "previous_pid": 4190548,
+      "pid": 103559
+    },
+    {
+      "thread": "openhcs-helper",
+      "previous_pid": 4190555,
+      "pid": 103573
+    },
+    {
+      "thread": "openhcs-helper2",
+      "previous_pid": 4190572,
+      "pid": 103644
+    },
+    {
+      "thread": "comms428",
+      "previous_pid": 4190639,
+      "pid": 103647
+    },
+    {
+      "thread": "openhcs-audit-merged-runtime",
+      "previous_pid": 4190843,
+      "pid": 103661
+    },
+    {
+      "thread": "openhcs-audit-merged-models",
+      "previous_pid": 4190846,
+      "pid": 103674
+    },
+    {
+      "thread": "openhcs-audit-merged-boundaries",
+      "previous_pid": 4190883,
+      "pid": 103822
+    },
+    {
+      "thread": "openhcs-audit-open-prs",
+      "previous_pid": 4190886,
+      "pid": 103824
+    },
+    {
+      "thread": "compaction499-live-architecture-memory",
+      "previous_pid": 4190920,
+      "pid": 103837
+    },
+    {
+      "thread": "compaction501-live-architecture-memory",
+      "previous_pid": 4190975,
+      "pid": 103851
+    }
+  ],
+  "finished": 1790954345.4481213
+}

@@ -1,0 +1,15 @@
+{
+  "owner": "Schrodinger; parent owns preserve-only public cutover and configured channel qualification",
+  "purpose": "One merged530/531 +323/Text26 release, existingad533; no532/S4 hold",
+  "receiving_pr": 326,
+  "core": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
+  "frontend": "4d5248136c91a9763ea073d4bf62136deb49b7d3",
+  "textual": "94c14b574641eb08148c3ec88e8fad9dc63dd7e5",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-ad533a9f08581561/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "gate_owner": "Original323 physical sidebar/scroll and530 installed native07 qualification; parent ordinary default final",
+  "publication_owner": "parent",
+  "toad": "4d5248136c91a9763ea073d4bf62136deb49b7d3",
+  "original_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002"
+}
