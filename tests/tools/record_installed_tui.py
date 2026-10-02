@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 from abc import abstractmethod
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from collections import defaultdict
@@ -23,6 +23,7 @@ import shlex
 import signal
 import subprocess
 import sys
+import threading
 import time
 from typing import TYPE_CHECKING
 
@@ -227,6 +228,28 @@ class ProcessOwner:
         self.children.append(owned)
         return owned
 
+    @contextmanager
+    def finalizing(self):
+        """Finish owned teardown and its receipt after the first interruption.
+
+        The interrupted operation still fails. A further terminal interrupt
+        cannot abandon the original child groups halfway through their cleanup.
+        Signal handlers belong to this synchronous shutdown lifetime only.
+        """
+        # Python delivers these handlers on the main thread. Existing asyncio
+        # driver wrappers also use this owner in worker threads; those threads
+        # finish teardown normally and cannot install process signal handlers.
+        if threading.current_thread() is not threading.main_thread():
+            yield
+            return
+        handlers = {sig: signal.signal(sig, signal.SIG_IGN)
+                    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)}
+        try:
+            yield
+        finally:
+            for sig, handler in handlers.items():
+                signal.signal(sig, handler)
+
     def run(self, argv, env, *, timeout=30, stdout=subprocess.DEVNULL,
             observe=None, observation_interval=1, **kwargs):
         owned = self.start(argv, env=env, stdout=stdout, **kwargs)
@@ -252,15 +275,17 @@ class ProcessOwner:
                 raise subprocess.CalledProcessError(owned.process.returncode, argv, out, err)
             return subprocess.CompletedProcess(argv, owned.process.returncode, out, err)
         finally:
-            owned.stop()
+            with self.finalizing():
+                owned.stop()
 
     def cleanup(self):
         leaks, errors = [], []
-        for owned in reversed(self.children):
-            try:
-                leaks.extend(owned.stop())
-            except (OSError, subprocess.SubprocessError) as error:
-                errors.append(str(error))
+        with self.finalizing():
+            for owned in reversed(self.children):
+                try:
+                    leaks.extend(owned.stop())
+                except (OSError, subprocess.SubprocessError) as error:
+                    errors.append(str(error))
         return {"remaining_owned_pids": sorted(set(leaks)), "errors": errors,
                 "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
                 "processes": [o.receipt() for o in self.children]}
@@ -1347,10 +1372,11 @@ def review_recording(args):
         receipt["error"] = f"{type(error).__name__}: {error}"
         raise
     finally:
-        receipt["cleanup"] = owner.cleanup()
-        if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
-            receipt["completed"] = False
-        (output / "review-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+        with owner.finalizing():
+            receipt["cleanup"] = owner.cleanup()
+            if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
+                receipt["completed"] = False
+            (output / "review-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
     if not receipt["completed"]:
         raise RuntimeError("Review cleanup incomplete; inspect review-receipt.json")
     return output
@@ -1705,46 +1731,47 @@ def record(args):
         receipt["error"] = f"{type(error).__name__}: {error}"
         raise
     finally:
-        # Failure must preserve raw samples too. Export while the verified UI
-        # target is still alive, before reverse-order process-group cleanup.
-        if args.profile and terminal is not None and "profile_export" not in receipt:
+        with owner.finalizing():
+            # Failure must preserve raw samples too. Export while the verified UI
+            # target is still alive, before reverse-order process-group cleanup.
+            if args.profile and terminal is not None and "profile_export" not in receipt:
+                try:
+                    terminal.export(output, receipt)
+                except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+                    receipt["profile_export_error"] = str(error)
+                    receipt["completed"] = False
+            transfer = output / "profile-terminal.json"
+            if args.profile and transfer.exists():
+                try:
+                    identity = json.loads(transfer.read_text())
+                    if transferred_terminal is None:
+                        transferred_terminal = owner.transfer(identity["pid"], identity["start_ticks"])
+                    if transferred_program is None and "program" in identity:
+                        program = identity["program"]
+                        transferred_program = owner.transfer(program["pid"], program["start_ticks"])
+                except (OSError, ValueError, KeyError) as error:
+                    receipt["terminal_transfer_error"] = str(error)
+                    receipt["completed"] = False
+            if capture is not None:
+                try:
+                    capture.stop(signal.SIGINT)
+                except (OSError, subprocess.SubprocessError) as error:
+                    receipt["capture_cleanup_error"] = str(error)
+            receipt["cleanup"] = owner.cleanup()
+            if terminal is not None and (not args.profile or transferred_terminal is not None):
+                # Read the actual parent's exit result. Transferred observation
+                # deliberately cannot invent an exit code for the profiled UI.
+                receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
+                if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
+                    receipt["completed"] = False
             try:
-                terminal.export(output, receipt)
-            except (OSError, subprocess.SubprocessError, RuntimeError) as error:
-                receipt["profile_export_error"] = str(error)
+                receipt["original_owner_after"] = target.observe()
+            except (OSError, ValueError) as error:
+                receipt["original_owner_error"] = str(error)
                 receipt["completed"] = False
-        transfer = output / "profile-terminal.json"
-        if args.profile and transfer.exists():
-            try:
-                identity = json.loads(transfer.read_text())
-                if transferred_terminal is None:
-                    transferred_terminal = owner.transfer(identity["pid"], identity["start_ticks"])
-                if transferred_program is None and "program" in identity:
-                    program = identity["program"]
-                    transferred_program = owner.transfer(program["pid"], program["start_ticks"])
-            except (OSError, ValueError, KeyError) as error:
-                receipt["terminal_transfer_error"] = str(error)
+            if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
                 receipt["completed"] = False
-        if capture is not None:
-            try:
-                capture.stop(signal.SIGINT)
-            except (OSError, subprocess.SubprocessError) as error:
-                receipt["capture_cleanup_error"] = str(error)
-        receipt["cleanup"] = owner.cleanup()
-        if terminal is not None and (not args.profile or transferred_terminal is not None):
-            # Read the actual parent's exit result. Transferred observation
-            # deliberately cannot invent an exit code for the profiled UI.
-            receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
-            if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
-                receipt["completed"] = False
-        try:
-            receipt["original_owner_after"] = target.observe()
-        except (OSError, ValueError) as error:
-            receipt["original_owner_error"] = str(error)
-            receipt["completed"] = False
-        if receipt["cleanup"]["remaining_owned_pids"] or receipt["cleanup"]["errors"]:
-            receipt["completed"] = False
-        (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+            (output / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
     if not receipt["completed"]:
         raise RuntimeError("Recorder cleanup incomplete; inspect receipt.json")
     return output

@@ -1,0 +1,30 @@
+{
+  "state": "owner-paused04, not application verdict; resumed source work only",
+  "raw_recorder_receipt_exists": false,
+  "runner_log": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-04/runner.log",
+  "outer_source_receipt": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-04/source.json",
+  "private_owners_alive": {
+    "resource436": false,
+    "resource236b": false,
+    "user": false
+  },
+  "native_input_rows": 0,
+  "settings_unchanged": true,
+  "owned_pids_closed": {
+    "428776": true,
+    "428964": true,
+    "428987": true,
+    "428991": true,
+    "429003": true,
+    "429277": true,
+    "436093": true,
+    "428950": true,
+    "428963": true
+  },
+  "partial_video_bytes": 48469776,
+  "profiler_bytes": 12561829,
+  "public_helper_witness_released": true,
+  "error": "Second KeyboardInterrupt reached recorder ProcessOwner.cleanup before recorder receipt write. No actual UI exit verdict. Outer original cleanup recorded -2 recorder returncode and private owners stopped.",
+  "motion": "DURING 32-33s held PageUp sequence readable but discrete advances/repeated frames. Other reviewed down64-65 segment partially pre-key; no smoothness claim. Extracted down66-67/reverse130-131 not viewed during run.",
+  "preserve": "All original movie/profile/phase exports/command/source/log artifacts preserved; no replay."
+}
