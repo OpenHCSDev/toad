@@ -1,0 +1,19 @@
+{
+  "owner": "Mendel Toad290",
+  "paths": [
+    "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001",
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-20261001",
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/staging-historical-handling290-20261001",
+    "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/staging-historical-handling290-current-20261001"
+  ],
+  "exclusive_allocated_bytes": 51376128,
+  "budget_bytes": 67108864,
+  "peak_not_measured": true,
+  "gate_runner_exited": true,
+  "remaining_fixture_or_prefix_process_refs": [],
+  "xvfb_cleanup_authority": "existing xvfb-run EXIT trap; no parallel process registry or signal cleanup",
+  "public_mutations": 0,
+  "provider_calls": 0,
+  "native_build": false
+}

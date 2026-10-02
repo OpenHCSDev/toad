@@ -1,0 +1,18 @@
+{
+  "state": "installed exact source/localwheel/native fulltrust/imports PASS; actual journey pending",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "source_commit": "81cb5dd279ee232055f3d2d5dc3a34864829312d",
+  "files": 306,
+  "wheel_sha256": "b7bd6d0a9f515851c9dff61f9887b29f0b17b495f662751508632718a3e7397e",
+  "actual_direct_url": {
+    "url": "file:///home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/build-merged-81cb5/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "normal_resolution": true,
+  "sdk": "0.12.1",
+  "packages": 69,
+  "native_full_trust": true,
+  "overlay": false,
+  "dependency_bypass": false,
+  "canonical_release_vcs_proof_claim": false
+}

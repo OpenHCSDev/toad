@@ -1,0 +1,10 @@
+{
+  "state": "precondition-failed-before-native-fixture",
+  "cause": "local-wheel verifier incorrectly required UV direct_url archive_info.hashes; canonical activation not yet written",
+  "inputs": 0,
+  "provider_calls": 0,
+  "source_files_created": 0,
+  "owner": "Mendel",
+  "at_epoch": 1790900423.8663545,
+  "original_root_was_empty_verified": true
+}
