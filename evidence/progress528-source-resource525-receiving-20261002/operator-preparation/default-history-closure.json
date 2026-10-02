@@ -1,5 +1,5 @@
 {
-  "state": "Published and ordinary-default saved-history observe completed; scoped qualification",
+  "state": "Installed checkpoint; original10 channel replies succeeded, subsequent whole channel workflow FAILED",
   "observed_at": 1790939929.1531422,
   "publication": {
     "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/operator-preparation/publication-receipt.json",
@@ -437,12 +437,19 @@
         "sender": "openhcs-audit-open-prs",
         "ts": 1790939719.8318176
       }
-    ]
+    ],
+    "whole_channel_workflow": "FAILED: subsequent peer processing/preflight source failures; not full channel acceptance"
   },
   "new_ui_runs": 0,
   "new_provider_inputs": 0,
   "new_publication_execution": 0,
   "scope": "Source-resource/native-progress/geometry checkpoint. No full smoothness/CPU assertion; no original input/native/UNKNOWN replay.",
   "merged_toad": "a90f8b7a7653e4493ac3a65eea428cac82460396",
-  "frozen_installed_src_config_tools_equal_merged": true
+  "frozen_installed_src_config_tools_equal_merged": true,
+  "later_peer_failure": {
+    "parent_report": "wire383/384 models/boundaries nativepreflight await_get_state18/20sec seq382NotSent; lastpeer499 pending observed+364s",
+    "exact_source_evidence": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/live-openhcs-timing-528-20261002/observation-02.json",
+    "sha256": "62664b50212bffdff5ed786f5c72d1f80b51fa6051765af0cbd3139c1dae8c2a",
+    "disposition": "Mendel latency/preflight tracing with Arendt/Einstein; no retry/provider/cutover repeated"
+  }
 }

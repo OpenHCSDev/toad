@@ -10,6 +10,6 @@ Parent ran ordinary toad-comms saved-helper observation46.1423s. Parent inspecte
 
 ## Fresh configured channel
 
-Original user372/c325cac723e0 had ten Completed original assignment claims and ten canonical published agent messages373..382. Reply creation34.7224–64.0353s; two external CLI recipients pending. Peer reply-audience claims remain a separate observation, not original request failure. Mendel owns remaining latency attribution. This establishes the useful configured checkpoint, not an overall speed claim.
+Original user372/c325cac723e0 had ten Completed original assignment claims and ten canonical published agent messages373..382. Reply creation34.7224–64.0353s; two external CLI recipients pending. Peer reply-audience claims remain a separate observation, not original request failure. Mendel owns remaining latency attribution. This qualifies only the ten original responses. The WHOLE channel workflow FAILED afterward: peer messages383/384 (models/boundaries) hit native preflight await_get_state18/20s, seq382 NotSent; lastpeer499 was still pending at+364s. Parent observation02 and diagnostics are preserved; Mendel/Arendt/Einstein own the source cause. No full channel acceptance or overall speed claim.
 
 Original publication, UI and exact original/peer channel evidence plus hashes are retained in evidence/progress528-source-resource525-receiving-20261002/operator-preparation/. New closure did not execute publication, UI or a provider again.
