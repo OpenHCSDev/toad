@@ -1,25 +1,54 @@
 """One derived command view joins ACP advertisements and local declarations."""
 
 from dataclasses import dataclass
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from toad.slash_command import AgentAdvertisedCommand, LocalCommand, SlashCommand
-from toad.target_commands import TargetContext, TargetLocal, target_completion
+from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
+from toad.target_commands import TargetContext, ThreadCommand
+from toad.thread_actions import ThreadAction
+
+if TYPE_CHECKING:
+    from toad.widgets.conversation import Conversation
 
 
 @dataclass(frozen=True)
 class CommandCatalog:
-    advertised: list[AgentAdvertisedCommand]
+    advertised: Sequence[AgentAdvertisedCommand]
     context: TargetContext | None = None
 
     @property
-    def commands(self) -> list[SlashCommand]:
-        # Declaration spelling wins over an agent's external advertisement.
+    def entries(self) -> tuple[CommandPresentation, ...]:
+        # Local declaration spelling remains authoritative when unavailable.
         commands = {command.command: command for command in self.advertised}
-        if self.context is not None:
-            commands.update((command.command, command)
-                            for command in target_completion(self.context))
+        for action in ThreadAction.menu():
+            command = ThreadCommand(action)
+            commands[command.command] = command
         for member in SlashCommand.members_with(LocalCommand):
-            if not issubclass(member, TargetLocal):
-                command = member()
-                commands[command.command] = command
-        return sorted(commands.values(), key=lambda command: command.command)
+            command = member()
+            commands[command.command] = command
+        return tuple(sorted(commands.values(), key=lambda command: command.command))
+
+    @property
+    def commands(self) -> list[SlashCommand]:
+        actions = self.context.current().available_actions() if self.context is not None else ()
+        return [choice for command in self.entries
+                for choice in command.completion(self.context, actions)]
+
+    @property
+    def target_choices(self):
+        actions = self.context.current().available_actions() if self.context is not None else ()
+        return tuple(choice for command in self.entries
+                     for choice in command.target_choices(self.context, actions))
+
+    async def execute(self, text: str, conversation: Conversation) -> bool:
+        name, _, arguments = text.partition(" ")
+        command = next((command for command in self.entries
+                        if command.command == name), None)
+        if command is None:
+            return False
+        try:
+            return await command.parse_arguments(arguments).apply(conversation)
+        except (OSError, ValueError) as error:
+            conversation.flash(str(error), style="error")
+            return True

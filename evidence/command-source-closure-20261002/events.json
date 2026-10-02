@@ -1,0 +1,38 @@
+[
+  {
+    "phase": "01-saved-native",
+    "seconds": 0.5508617220330052,
+    "mode": "session-1",
+    "requests": 2
+  },
+  {
+    "phase": "02-local-collision-newcase",
+    "seconds": 2.6656479529920034,
+    "mode": "session-1",
+    "requests": 2
+  },
+  {
+    "phase": "03-pointer-menu",
+    "seconds": 4.034523281035945,
+    "mode": "comms-1",
+    "requests": 2
+  },
+  {
+    "phase": "04-channel-original-target",
+    "seconds": 5.779176562034991,
+    "mode": "comms-1",
+    "requests": 2
+  },
+  {
+    "phase": "05-native-return-hot-publication",
+    "seconds": 6.558634112996515,
+    "mode": "session-1",
+    "requests": 2
+  },
+  {
+    "phase": "06-original-forwarded-native-response",
+    "seconds": 10.716434272006154,
+    "mode": "session-1",
+    "requests": 3
+  }
+]

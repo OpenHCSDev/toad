@@ -1,0 +1,51 @@
+{
+  "owner": "Mendel/Toad297",
+  "prefix": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "fixture": "/home/ts/.cache/agent-scratch/c297/08",
+  "status": "assertions-passed-footage-unreviewed",
+  "started": 1790911511.2915978,
+  "display": ":1",
+  "terminal": {
+    "pid": 2994916,
+    "start_ticks": 38715054,
+    "returncode": null
+  },
+  "window": "2097158",
+  "capture_origin_monotonic": 387151.186313251,
+  "terminal_exit": 0,
+  "capture": {
+    "pid": 2994962,
+    "start_ticks": 38715116,
+    "returncode": 0
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2994877,
+        "start_ticks": 38715046,
+        "returncode": 0
+      },
+      {
+        "pid": 2994916,
+        "start_ticks": 38715054,
+        "returncode": 0
+      },
+      {
+        "pid": 2994940,
+        "start_ticks": 38715056,
+        "returncode": 0
+      },
+      {
+        "pid": 2994962,
+        "start_ticks": 38715116,
+        "returncode": 0
+      }
+    ]
+  },
+  "remaining_private_owners": [],
+  "finished": 1790911547.422407
+}
