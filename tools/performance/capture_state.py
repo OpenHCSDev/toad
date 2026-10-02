@@ -14,7 +14,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
     import traceback
     from textual._context import active_app
     from textual.geometry import Offset
-    from toad.widgets.conversation import CursorContainer
+    from toad.widgets.conversation import CursorContainer, Conversation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.prompt import PromptTextArea
     from toad.navigation_target import ChannelTarget
@@ -228,6 +228,16 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         pending.clear()
                         break
                     data = vars(node)
+                    if isinstance(node, Conversation) and node.agent is not None:
+                        agent = node.agent
+                        mode = agent.current_mode
+                        view["agent_configuration"] = {
+                            "agent_object_id": id(agent), "session_id": agent.session_id,
+                            "model": agent.configuration.model.current,
+                            "thinking": agent.configuration.thinking.current,
+                            "mode": mode.id if mode is not None else None,
+                            "rendered_label": node.agent_info.plain,
+                        }
                     kind = type(node).__name__
                     widget_classes[kind] += 1
                     children = data.get("_nodes")
