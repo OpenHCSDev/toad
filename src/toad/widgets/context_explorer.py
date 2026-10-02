@@ -104,6 +104,10 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         if self.visible():
             self._read(self.owner, self.wire_root, force=True)
 
+    def _reading(self, owner, root):
+        return (self.is_attached and not get_current_worker().is_cancelled
+                and (owner, root) == (self.owner, self.wire_root))
+
     @work(group="context-read", exclusive=True, exit_on_error=False)
     async def _read(self, owner, root, *, force=False):
         status = self.query_one(".context-status", Static)
@@ -119,17 +123,22 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         try:
             if (not force and self._inspection is not None
                     and await asyncio.to_thread(self._inspection.current, service)):
-                self._observed_revision = revision
+                if self._reading(owner, root):
+                    self._observed_revision = revision
                 return
             inspection = await asyncio.to_thread(ContextInspection.read, service, owner)
+            if not self._reading(owner, root):
+                return
+            if self._inspection is None:
+                self._present(inspection, None)
+                status.update(f"{owner} · recorded manifests available\nReading native context…")
             native = None
             unavailable = ""
             try:
                 native = await inspection.native(service)
             except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
                 unavailable = str(error)
-            if (get_current_worker().is_cancelled or not self.is_attached
-                    or (owner, root) != (self.owner, self.wire_root)):
+            if not self._reading(owner, root):
                 return
             self._observed_revision = revision
             if inspection == self._inspection and native == self._native:
@@ -144,8 +153,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if (self.is_attached and not get_current_worker().is_cancelled
-                    and (owner, root) == (self.owner, self.wire_root)):
+            if self._reading(owner, root):
                 self._observed_revision = revision
                 status.update(f"Context unavailable: {error}")
 
