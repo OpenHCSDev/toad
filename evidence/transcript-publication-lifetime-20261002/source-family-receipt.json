@@ -1,0 +1,32 @@
+{
+  "state": "SOURCE_CLOSURE_PUBLISHED; INSTALLED_READONLY_ABA_PENDING_PARENT_STAGE_AND_HEIS_PHYSICAL_GATE",
+  "head": "fff8015fe54eacf4e9d965eb90c91194222237a4",
+  "base": "4e50e03d2793b79762e8f8ea7b7e8d720acdd693",
+  "source_sha256": "b59ee47eaf43db308047c3ea51817ae009adfaf0306b25e9d288dd23a57c619b",
+  "source_added": 64,
+  "source_deleted": 74,
+  "production_files": [
+    "src/toad/transcript_publication.py"
+  ],
+  "new_classes": 0,
+  "new_state_registry": false,
+  "source_tests": {
+    "passed": 7,
+    "seconds": 5.69,
+    "declared_textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d",
+    "explicit_source_context": true,
+    "installed_acceptance": false
+  },
+  "ratchet_exit": 0,
+  "failed_import_controls_preserved": [
+    "pytest.log",
+    "pytest-matching-text.log"
+  ],
+  "fixture_driver_source": "tests/guards/test_transcript_publication.py",
+  "actual_original_attempt": "bc86b8f7f27f452da0e72a3019d71fd3",
+  "new_provider_input": false,
+  "publication_owner": "TranscriptPublication",
+  "read_application_owner": "CanonicalSourcePublication",
+  "original_task_custody": "existing Textual WorkerManager and joined TranscriptPresentation.suspend",
+  "remaining_gate": "normal immutable293 receiver installed ACP/UI same completed501 A/B/A; Heisenberg sole physical runner"
+}

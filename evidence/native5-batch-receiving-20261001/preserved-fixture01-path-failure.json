@@ -1,0 +1,44 @@
+{
+  "failed_attempt": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/mixedroute-native5-batch01",
+  "receipt": {
+    "elapsed_seconds": 96.28836592898006,
+    "failure": "TimeoutError: ",
+    "model": "openai-codex/gpt-6.1-sol",
+    "thinking": "off",
+    "installed_interpreter": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-batch490-20261001/bin/python",
+    "original_sequences": [
+      1,
+      2,
+      3
+    ],
+    "late_original_seq": 4,
+    "proof": {},
+    "public_mutations": 0,
+    "original_replays": 0,
+    "provider": "actual configured provider, no substitute",
+    "all_owned_workers_retired": true,
+    "configured_source_files_unchanged": true
+  },
+  "diagnostic": {
+    "kind": "unavailable_drain",
+    "owner": {
+      "incarnation": {
+        "name": "batch-receiver",
+        "created_at": 1790902805.2536807
+      },
+      "generation": 3
+    },
+    "error_type": "OSError",
+    "reason": "AF_UNIX path too long"
+  },
+  "source_existing_owner": "OwnerToolSocket.start; TrackedTurn.complete/open_tools",
+  "launch_order": "open_tools/start_unix_server is awaited before native_session.open/spawn; error occurred there",
+  "native_provider_dispatch_in_failed01": false,
+  "worker_cleanup": "all owned workers retired; no /proc process retained originalroot environment",
+  "old_original_disposition": "preserved prompt_starting NULLcontext/receipt; never replay or derive success",
+  "gap_owner": "Arendt489 existing launch/transport/error-custody family; notified",
+  "fresh_fixture": "/home/ts/wt/b289c02",
+  "fresh_socket_bytes": 75,
+  "fresh_driver": "same byte-identical shared_bus_restart_native.py",
+  "authorization": "same single configured-provider installed journey; first attempt failed before native spawn; new independent private originals, no UNKNOWN replay"
+}

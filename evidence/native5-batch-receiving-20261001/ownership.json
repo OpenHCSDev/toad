@@ -1,0 +1,15 @@
+{
+  "owner": "Singer PR289 package; parent public Native5 carry/cutover",
+  "core": "b28349027052a57c50b17952a11dcfae2e71f31e",
+  "toad": "2ca4d89474699891a34001728af70b85d9460223",
+  "textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-batch490-20261001",
+  "state": "normal69 source/native verified; configured installed mixedroute02PASS; unactivated, original01 preserved",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "private_fixtures": [
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/mixedroute-native5-batch01",
+    "/home/ts/wt/b289c02"
+  ]
+}

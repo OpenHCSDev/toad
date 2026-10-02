@@ -1,0 +1,26 @@
+{
+  "state": "qualified owned installed Native5 batch artifact; parent public carry/default pending",
+  "pins": {
+    "core": "b28349027052a57c50b17952a11dcfae2e71f31e",
+    "toad": "2ca4d89474699891a34001728af70b85d9460223",
+    "textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-batch490-20261001",
+  "source_proof": "source-proof.json",
+  "installed_mixedroute": "installed-mixedroute02.json",
+  "elapsed_seconds": 23.512330400000792,
+  "package_count": 69,
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "carry_declarations": "ALL target DDL/columns/metadata exactly match reviewed495 target9/3/3/5",
+  "original_failed01": "retained UNKNOWN; no terminal/completion inference, replay or timeout extension",
+  "acp_fact_count": 10,
+  "captured_acp_packets": 7,
+  "public_mutations": 0,
+  "original_replays": 0,
+  "all_owned_workers_retired": true,
+  "configured_source_files_unchanged": true,
+  "known_gap": "long socket address/error custody owned by Arendt489; canonical current root address94bytes fits108limit",
+  "new_native_build": false
+}

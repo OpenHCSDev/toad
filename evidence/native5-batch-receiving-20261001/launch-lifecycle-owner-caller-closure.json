@@ -1,0 +1,54 @@
+{
+  "installed_core": "b28349027052a57c50b17952a11dcfae2e71f31e",
+  "original_diagnostic": "Activity unavailable_drain OSError AF_UNIX path too long at1790902810.9790459",
+  "timeout_is_not_terminal_proof": true,
+  "failed01_disposition": "unchanged prompt_starting NULL context/session; one bound native input; three engaged sources and pending late original; no receipts",
+  "observation_range_seconds": 96.28836592898006,
+  "existing_original_owner": "OwnerToolSocket path/start own address/bind; TrackedTurnSession complete/open_tools own transport/child custody",
+  "caller_closure": [
+    {
+      "owner": "SelectedExecution.run",
+      "meaning": "captures one SelectedParticipant batch/session and engages existing SelectedAttempt"
+    },
+    {
+      "owner": "SelectedAttempt.prepare -> SelectedRequest.reserve -> PrivateSendAdmission.reserve",
+      "meaning": "reserves native input and binds original expected prompt before process start; NULLcontext is neither providerwait nor terminal fact"
+    },
+    {
+      "owner": "SelectedAttempt.run -> PrivateSendAdmission.execute -> TrackedTurnSession.execute/complete",
+      "meaning": "open_tools/start_unix_server awaited before native_session.open/spawn; recorded bind error prevents native dispatch"
+    },
+    {
+      "owner": "TrackedTurnSession.complete",
+      "meaning": "transport/tool acquisition outside later OSError->NativePiUnavailable handler; original custody releases without terminal proof"
+    },
+    {
+      "owner": "SelectedRequest.native_failures",
+      "meaning": "handles NativePiTerminalFailure/NativePiUnavailable; raw pre-spawn OSError bypasses stage-specific failure reporting"
+    },
+    {
+      "owner": "SelectedParticipant.select finally",
+      "meaning": "finish_turn releases registry lease only; cannot imply completed assignment, receipt or native terminal outcome"
+    },
+    {
+      "owner": "InputDrain.observe",
+      "meaning": "raw OSError produces owner-fenced UnavailableDrainDiagnostic; timer supplies no backend disposition"
+    },
+    {
+      "owner": "ActivityObservation/DrainReadiness -> AgentActivity -> assignment notification and ACP",
+      "meaning": "derive availability/presentation from original owner fact; idle, turn_finished, deadline and missing context never authorize replay/completion"
+    }
+  ],
+  "code_owner": "Arendt489 directly acknowledged original acquired-resource startup gap and existing lifecycle scope; no competing product edit",
+  "requested_closure": "reuse existing OwnerToolSocket/TrackedTurn startup and error-custody families, address validity and original pre-spawn failure classification, preserve original one-use reservation/UNKNOWN; no second transport/custody family or fabricated terminal context",
+  "batch_owner": "Kepler490; no batch compatibility defect demonstrated; fresh installed02 passes all3 sources/2routes/nativeproofs/cursor/notifications",
+  "compaction_owner": "Schrodinger499; merged budget policy does not change this pre-spawn socket branch",
+  "failed01_native_provider_dispatch": false,
+  "basis": "recorded exact early bind error plus source launch order, not inferred from timer or NULLcontext alone",
+  "fresh02": "new originals under short persistent fixture; no old01 or completed49002 replay",
+  "actual_canonical_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "canonical_tool_socket_bytes": 94,
+  "unix_socket_limit_bytes": 108,
+  "canonical_address_fits": true,
+  "future_dispatches": 0
+}
