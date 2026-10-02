@@ -1605,7 +1605,7 @@ def record(args):
                 receipt["driver_finished_seconds"] = time.monotonic() - started
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
-                time.sleep(max(0, remaining() - 1))
+                time.sleep(min(args.tail_seconds, remaining()))
             if not transferred_program.child.identity.alive():
                 raise RuntimeError(f"Installed terminal exited during recording: {terminal.process.returncode}")
             screenshot("after.png")
