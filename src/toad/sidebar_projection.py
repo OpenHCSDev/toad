@@ -101,7 +101,6 @@ class SidebarProjection:
         async with self.lock:
             if self.sidebar.observation.service is not service or not self.sidebar.accepts_publication():
                 return
-            changed = snapshot != self.snapshot
             paint = SidebarPaint(snapshot, tuple(self.sidebar.navigation.state.expanded.items()),
                                  tuple(self.sidebar.app.thread_actions.pending.items()))
             if paint != self.paint:
@@ -111,8 +110,6 @@ class SidebarProjection:
                 if not self.sidebar.accepts_publication():
                     return
                 self.paint = paint
-                if changed:
-                    self.sidebar.app.open_tabs_changed.publish(None)
             else:
                 self.sidebar.navigation.apply()
                 self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)

@@ -281,11 +281,17 @@ class SidebarObservation:
                         title="Read positions",
                         severity="warning",
                     )
-            self.sidebar.app._sidebar_snapshot = state
+            app = self.sidebar.app
+            previous_tabs = app.open_tabs
+            app._sidebar_snapshot = state
             self.identity = SidebarReadIdentity(revision, actor, filters)
             await self.sidebar.projection.publish(snapshot)
+            # Admissions own tab labels/unread, not the wire's observation
+            # metadata. Heartbeats and unrelated channel activity must not
+            # invalidate every Conversation's goal and relationship readers.
+            if app.open_tabs != previous_tabs:
+                app.open_tabs_changed.publish(None)
         except (OSError, ValueError):
             # An external writer may be replacing/recovering the wire. Retry on
             # the next poll without blocking or terminating the view.
             return
-
