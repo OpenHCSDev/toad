@@ -1,0 +1,40 @@
+{
+  "scope": "Source-family change; actual installed physical capture running, not Ready",
+  "source": "4bb730c08eedf8f6eb1709e53d497c826b65ba3a",
+  "before_source_parsed": 275,
+  "before_parse_omissions": [],
+  "existing_owners": [
+    "SidebarProjection source/publication lock",
+    "SidebarGroup member custody",
+    "ThreadStatusRow native update_classes",
+    "GoalObservation canonical GoalChanged/bind/reconnect/control reads"
+  ],
+  "deleted_channel_fields": [
+    "_channel_active",
+    "_snapshot",
+    "_unread",
+    "_view"
+  ],
+  "deleted_method": "ChannelGroup.update_members",
+  "migrated_consumers": [
+    "SidebarProjection.rebuild",
+    "SidebarObservation.bind",
+    "ChannelGroup disclosure/present callbacks",
+    "channel_disclosure_publication_pilot",
+    "sidebar_metadata_reflow_pilot",
+    "channel_views_pilot",
+    "existing sidebar retirement guard"
+  ],
+  "goal_shared_method_grant": "Sch direct grant, 307 other methods remain intact",
+  "goal_change": "_open_tabs_changed retains command-catalog updates but no longer requests goal owner for unrelated tab presentation",
+  "style_change": "4 independent style mutations -> one existing native atomic update_classes, both channel and relationship ThreadStatusRow consumers inherit",
+  "source_sanity": {
+    "disclosure02": "PASS held preparation/collapse/current publication/relationship retention, metadata-only worker requests0",
+    "metadata": "PASS595widgets0metadata-layouts/retired navigation filtered",
+    "guards": "PASS original custody and row-order guards migrated to new owner; no exceptions"
+  },
+  "preserved_failure": "disclosure01 asserted direct widget expansion without recording SidebarNavigation intent; migrated existing harness to original navigation state; raw log retained",
+  "new_type_pool_cache_clock_registry": false,
+  "cpu_gain_or_144hz_proved": false,
+  "limits": "AST members/dotted references support source reading; do not prove dynamic resolution. Full readiness requires inspected actual installed path. Existing source poll for explicit goal availability remains."
+}
