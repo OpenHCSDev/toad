@@ -76,6 +76,7 @@ async def main():
                     # call uses the same member-reconciliation entrypoint as
                     # its native callback without blocking Pilot.pause on it.
                     group.expanded = True
+                    sidebar.navigation.state.expanded[group.row.target_name] = True
                     group.disclosure.update('▾', layout=False)
                     tasks.append(asyncio.create_task(finished_disclosure()))
                     async with asyncio.timeout(5):
