@@ -1,0 +1,9 @@
+# Receiving304 newer source admission reviewer closure
+
+This changes original recorder diagnostics only; no product source, model/provider input, capture, timer, threshold or raw receipt mutation. Preserve receiving304 capture01's original three red assertions.
+
+Existing owner census: TranscriptPage.before/after are canonical bounded source edges; TranscriptCursor.contains validates native file, receipt identity/frontier and outcome identity/frontier. NativePhase.read is the only NativePhase constructor. Every newer-admission decision was review_warm_return and InputPagingJourney.review; both wrongly reused oldest-before comparison. Both now derive newest-after through the same NativePhase and original cursor owner. RetainedLifetime/ForkCompaction consumers use the same diagnostic decoder unchanged; no new class or independent source identity/custody family.
+
+Actual existing capture source: focused spans42817440..42932905 in two pages; updone one page42817440..42907137; downdone restores second newer page42907137..42932905 without moving the oldest edge; reverse returns to first page. Newer admission is proven by original after extension. Older admission predicates remain false, as the completed history-focused gestures ended69/77 rows above their mounted top and did not establish a new older source edge. Preceding input paging already advanced oldest42907137 ->42817440. These phase boundaries do not qualify smoothness/full admission, and snapshots alone do not establish every intermediate frame.
+
+After original owner/caller analysis and coherent shared algorithm correction, bounded read-only raw-page validation passed forward newer extension, rejects reversed containment, and preserves both older predicates as false. Derived proof receiving304-cursor-review.json is separate from untouched raw warm-scroll-review.json. No unchanged re-record, assertion weakening or fullPASS relabeling.
