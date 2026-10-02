@@ -82,6 +82,9 @@ class TranscriptSourcePreparation:
         if self.state.accepts_source_work:
             return await self.reserve_source_work().execute(self, work)
 
+    def source_failed(self, error) -> None:
+        self.notify(str(error), title="History", severity="error")
+
     def observe_source(self) -> None:
         self.window.histories.add(self)
         self.watch(self.window, "scroll_y", self._scroll_changed, init=False)

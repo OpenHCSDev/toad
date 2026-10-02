@@ -179,6 +179,9 @@ class WorkingTranscript(SuspendedTranscript):
                 # This admitted mutation declined its original read. Keep the
                 # committed source; a new request owns any later advance.
                 return False
+            except (OSError, ValueError) as error:
+                owner.source_failed(error)
+                return False
 
     def schedule(self, owner, work):
         return owner.run_worker(partial(self.execute, owner, work))

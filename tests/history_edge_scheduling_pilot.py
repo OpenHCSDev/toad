@@ -7,6 +7,7 @@ all pages, registrations, messages, read witnesses and native rows remain real.
 import asyncio
 import os
 from pathlib import Path
+from threading import Event
 import tempfile
 from unittest.mock import patch
 
@@ -28,20 +29,24 @@ async def pending_read(chat, pilot, body):
     """Control original read completion, never its decoded result or UI state."""
     history = chat.message_history
     reader = history.reader
-    entered, release = asyncio.Event(), asyncio.Event()
-    original = reader.read
+    entered, release = Event(), Event()
+    original = reader.comms.views.channel_display_page
 
-    async def read(follow):
-        result = await original(follow)
+    def read(*args, **kwargs):
+        result = original(*args, **kwargs)
         entered.set()
-        await release.wait()
+        if not release.wait(8):
+            raise TimeoutError("Original source completion was not released")
         return result
 
-    with patch.object(reader, 'read', read):
-        refresh = asyncio.create_task(chat._refresh())
+    with patch.object(reader.comms.views, 'channel_display_page', read):
+        await until(lambda: history.state.accepts_source_work)
+        operation = history.reserve_source_work()
+        refresh = asyncio.create_task(operation.execute(history, chat._refresh_source))
         try:
             await until(entered.is_set)
             assert not history.state.accepts_source_work
+            assert reader._pending, "Actual source I/O must still own its reader task"
             assert not chat.window.history_lock.locked()
             chat.prompt.text = body
             chat.prompt.prompt_text_area.focus()
@@ -50,6 +55,7 @@ async def pending_read(chat, pilot, body):
                         and not chat._human_admission_blocked)
             receipt = next(m for m, _ in history.rows if m.body == body)
             assert not release.is_set()
+            print('receipt visible with original I/O pending', body, flush=True)
             await pilot.pause()
             assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
             widget = next(w for m, w in history.rows if m.view_key == receipt.view_key)
@@ -63,59 +69,64 @@ async def pending_read(chat, pilot, body):
         await pilot.pause()
         assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
         assert not chat.window.history_lock.locked()
+        await until(lambda: history.state.accepts_source_work)
 
 
 async def main():
     scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
     scratch.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='private-', dir=scratch) as directory:
-        root = Path(directory)
-        os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
-                          XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
-        comms = wire(root / 'wire')
-        comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(root),
-                                     process_identity=ProcessIdentity.capture(os.getpid())))
-        for index in range(140):
-            comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
-        app = ToadApp(project_dir=str(root))
-        async with app.run_test(size=(100, 32)) as pilot:
-            await pilot.pause()
-            owner = app.selected_mode
-            await channel_target('#edge').open(NavigationContext(app, owner, root, 'edge-reader'))
-            chat = app.screen.query_one(CommsChatView)
-            history = chat.message_history
-            await until(lambda: history.checkpoint_available and bool(history.rows))
-            await pilot.pause()
-            assert history in chat.window.histories
-            # Tail replacement started from the original initial source. An
-            # already-painted later receipt survives its older read watermark.
-            history.reader.restart()
-            await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
+    directory = tempfile.mkdtemp(prefix='private-', dir=scratch)
+    root = Path(directory)
+    os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
+                      XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
+    comms = wire(root / 'wire')
+    comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(root),
+                                 process_identity=ProcessIdentity.capture(os.getpid())))
+    for index in range(140):
+        comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
+    app = ToadApp(project_dir=str(root))
+    async with app.run_test(size=(100, 32)) as pilot:
+        await pilot.pause()
+        owner = app.selected_mode
+        await channel_target('#edge').open(NavigationContext(app, owner, root, 'edge-reader'))
+        chat = app.screen.query_one(CommsChatView)
+        history = chat.message_history
+        await until(lambda: history.checkpoint_available and bool(history.rows))
+        await pilot.pause()
+        assert history in chat.window.histories
+        # Tail replacement started from the original initial source. An
+        # already-painted later receipt survives its older read watermark.
+        history.reader.restart()
+        await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
 
-            # Actual earlier pages evict the original tail. A send from that
-            # reader position restarts the source and rejects the older read.
-            operation = history.reserve_source_work()
-            try:
-                chat.window.release_anchor()
+        # Actual earlier pages evict the original tail. A send from that
+        # reader position restarts the source and rejects the older read.
+        operation = history.reserve_source_work()
+        try:
+            chat.window.release_anchor()
+            async with asyncio.timeout(8):
                 while not history.has_newer:
+                    assert history.has_older, "Original tail must be evicted before source exhaustion"
+                    chat.window.scroll_home(animate=False, immediate=True)
+                    await pilot.pause()
                     page = await history.reader.page(before=history.rows[0][0].view_cursor, limit=40)
                     await history.mount_page(page, older=True)
-            finally:
-                history.finish_source_work(operation)
-            assert history.has_newer
-            history.reader.restart()
-            await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
-            await until(lambda: history.checkpoint_available)
-            assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+        finally:
+            history.finish_source_work(operation)
+        assert history.has_newer
+        history.reader.restart()
+        await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
+        await until(lambda: history.checkpoint_available)
+        assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
 
-            chat.window.release_anchor()
-            chat.window.scroll_home(animate=False, immediate=True)
-            await until(lambda: history.has_newer)
-            chat.window.jump_to_latest()
-            await until(lambda: history.checkpoint_available and not history.has_newer)
-            assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
-            assert chat.window.follows_tail and app._exception is None
-        assert not history.reader._pending
+        chat.window.release_anchor()
+        chat.window.scroll_home(animate=False, immediate=True)
+        await until(lambda: history.has_newer)
+        chat.window.jump_to_latest()
+        await until(lambda: history.checkpoint_available and not history.has_newer)
+        assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+        assert chat.window.follows_tail and app._exception is None
+    assert not history.reader._pending
     print('PASS: original read admission, independent receipt paint, typing, restart fence, shared End and closed I/O')
 
 

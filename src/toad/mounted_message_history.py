@@ -122,6 +122,10 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     def report_source_coverage(self):
         self.mark_visible()
 
+    def source_failed(self, error):
+        self.view.status = f"Wire error: {error}"
+
+
     def compose(self):
         from toad.widgets.comms_chat import HistoryLoading
         yield HistoryLoading("Loading messages…", id="history-loading")

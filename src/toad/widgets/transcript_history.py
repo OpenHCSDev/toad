@@ -863,8 +863,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     self._require_publication()
         except _PublicationRetired:
             return
-        except (OSError, ValueError) as error:
-            self.notify(str(error), title="History", severity="error")
         finally:
             if self.state.accepts_publication:
                 self.window.check_follow()
