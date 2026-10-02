@@ -254,5 +254,174 @@ async def main():
     print("file paths: relative resolution, highlighting, exact source, and terminal preview passed")
 
 
+async def encoded_historical_journey(root: Path):
+    """Actual installed Linux driver and clipboard; original saved-source selection."""
+    import hashlib
+    import importlib.metadata as metadata
+    import json
+    import subprocess
+    import time
+    from urllib.parse import quote
+    from textual.actions import parse
+    from textual.widgets import Select
+    from toad.screens.historical_sessions import HistoricalSessions
+    from toad.widgets.transcript_history import TranscriptHistory
+
+    root.mkdir(parents=True, exist_ok=False)
+    started = time.monotonic()
+    os.environ.update(AGENT_COMMS_ROOT=str(root / "live"),
+                      XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
+                      XDG_DATA_HOME=str(root / "data"))
+    activation = json.loads((Path(sys.prefix) / "activation.json").read_text())
+    receipt = {"state": "running", "prefix": sys.prefix, "pins": activation["pins"],
+               "checks": [], "provider_calls": 0, "public_mutations": 0}
+    output = root / "receipt.json"
+    native = activation["native_package"]
+    spelling = "report space #50%.md"
+    projects = [root / "old root #A%", root / "old root #B%"]
+    old = wire(root / "old")
+    script = """
+import {pathToFileURL} from 'node:url';
+import {join} from 'node:path';
+const {SessionManager}=await import(pathToFileURL(join(process.argv[1],'dist/core/session-manager.js')));
+const manager=SessionManager.create(process.argv[2],join(process.argv[2],'sessions'));
+manager.appendMessage({role:'user',content:'Saved request',timestamp:1});
+manager.appendMessage({role:'assistant',content:[{type:'text',text:process.argv[3]}],
+ provider:'fixture',model:'fixture',api:'fixture',stopReason:'stop',timestamp:2});
+console.log(manager.getSessionFile());
+"""
+    paths = []
+    for number, project in enumerate(projects):
+        project.mkdir()
+        path = project / "nested" / spelling
+        path.parent.mkdir()
+        path.write_text(f"# ORIGINAL-ROOT-{number}\nExact filename: {spelling}\n")
+        paths.append(path)
+        markdown = (f"[Encoded direct](<{quote(str(path))}>)\n\n"
+                    f"[Deferred basename](<{quote(spelling)}>)\n\n"
+                    "Autolink nested/plain.py\n")
+        (path.parent / "plain.py").write_text("# Plain token producer\n")
+        session = subprocess.check_output(["node", "--input-type=module", "-e", script,
+                    native, str(project), markdown], text=True, timeout=10).strip()
+        old.registry.declare(Thread(f"saved-{number}", frozenset({"team"}), str(project),
+                                    session_file=session, created_at=10.0 + number))
+    old.messaging.send_user_message("#source", "Saved source bus anchor outside tested conversations", worktree=str(root))
+    live = wire(root / "live")
+    live.views.attach_history(old.root)
+    threads = tuple(t for t in live.views.historical_threads() if t.thread.name.startswith("saved-"))
+    assert len(threads) == 2
+    originals = {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+                 for p in (root / "old").rglob("*") if p.is_file()}
+    app = ToadApp(project_dir=str(root / "different live root"), mode="store")
+
+    async def until(pilot, condition):
+        async with asyncio.timeout(12):
+            while not condition():
+                await pilot.pause(.05)
+
+    def frame(label):
+        subprocess.run(["import", "-window", "root", str(root / (label + ".png"))],
+                       check=True, timeout=5)
+        (root / (label + ".svg")).write_text(app.export_screenshot())
+
+    async def physical(pilot, x, y, button=1):
+        # Cell coordinates come from the actual compositor, not guessed link text.
+        window = subprocess.check_output(["xdotool", "search", "--class", "st"], text=True).splitlines()[-1]
+        geometry = subprocess.check_output(["xdotool", "getwindowgeometry", "--shell", window],text=True)
+        dims = dict(line.split("=",1) for line in geometry.splitlines() if "=" in line)
+        width,height = int(dims["WIDTH"]),int(dims["HEIGHT"])
+        px = 2 + int((x+.5)*(width-4)/app.size.width)
+        py = 2 + int((y+.5)*(height-4)/app.size.height)
+        subprocess.run(["xdotool", "mousemove", "--window", window, str(px), str(py), "click", str(button)],check=True)
+        await pilot.pause(.25)
+
+    def link_cell(href):
+        for y in range(app.size.height):
+            for x in range(app.size.width):
+                action = app.screen.get_style_at(x,y).meta.get("@click")
+                if isinstance(action,str):
+                    try:
+                        namespace,name,args = parse(action)
+                    except Exception:
+                        continue
+                    if name == "link" and args == (href,):
+                        return x,y
+        raise AssertionError(f"Link not physically rendered: {href}")
+
+    observed = []
+    def observe(message):
+        from textual import events
+        from textual.worker import Worker
+        if isinstance(message, (events.Click, Markdown.LinkClicked, Worker.StateChanged)):
+            row = {"message":type(message).__qualname__, "repr":repr(message)}
+            if isinstance(message,Markdown.LinkClicked):
+                from toad.project_path_owner import ProjectPathOwner
+                owner=ProjectPathOwner.containing(message.markdown)
+                row.update(href=message.href,root=str(owner.project_root),
+                           admitted=owner.admits_link(message.markdown,owner.project_root.resolve()))
+            observed.append(row)
+    try:
+        async with app.run_test(headless=False, size=None, message_hook=observe) as pilot:
+            await pilot.pause(.2)
+            for number,path in enumerate(paths):
+                history = HistoricalSessions(live, threads, name=f"saved-{number}")
+                await app.push_screen(history)
+                await until(pilot,lambda: bool(history.query(AgentResponse)))
+                await pilot.pause(.3)
+                assert history.project_root == projects[number]
+                response = history.query_one(AgentResponse)
+                tokens = response._make_parser().parse(response.source)
+                hrefs = [c.attrs["href"] for t in tokens if t.type == "inline" and t.children
+                         for c in t.children if c.type == "link_open"]
+                direct = "toad-file:" + quote(str(path))
+                deferred = "toad-file-search:" + quote(spelling)
+                assert hrefs == [direct, deferred, "toad-file:" + quote(str(path.parent / "plain.py"))], hrefs
+                frame(f"root-{number}-links")
+                for kind,href in (("direct",direct),("deferred",deferred)):
+                    await physical(pilot,*link_cell(href),button=3)
+                    await until(pilot,lambda:isinstance(app.screen,ContextMenu))
+                    item = next(i for i in app.screen.query(ContextMenuItem) if i.action == "copy_path")
+                    await physical(pilot,item.region.x+2,item.region.y)
+                    await until(pilot,lambda:not isinstance(app.screen,ContextMenu))
+                    copied = subprocess.check_output(["xclip","-selection","clipboard","-o"],text=True,timeout=5)
+                    assert copied == str(path),repr(copied)
+                    receipt["checks"].append(f"root-{number}-{kind}-native-clipboard-exact")
+                await physical(pilot,*link_cell(direct))
+                await until(pilot,lambda:any(isinstance(v,FilePreviewScreen) for v in app.workspace_sessions.views.values()))
+                # The historical modal may still cover the workspace; close only via its binding.
+                if app.screen is history:
+                    await pilot.press("escape")
+                preview = app.selected_session.query_one(FilePreview)
+                await asyncio.wait_for(preview.wait_ready(),12)
+                assert preview.path == path
+                await pilot.pause(.3)
+                frame(f"root-{number}-preview")
+                assert f"ORIGINAL-ROOT-{number}" in preview.query_one(Markdown).source
+                receipt["checks"].append(f"root-{number}-actual-leftclick-preview")
+                await app.session_navigation.close(app.selected_mode)
+            assert all(hashlib.sha256(Path(name).read_bytes()).hexdigest()==digest for name,digest in originals.items())
+            receipt["originals_unchanged"] = True
+            receipt["driver"] = type(app._driver).__name__
+            assert receipt["driver"] == "LinuxDriver"
+            assert app._exception is None
+        receipt["state"] = "passed"
+    except BaseException as error:
+        receipt["state"] = "failed"
+        receipt["error"] = repr(error)
+        raise
+    finally:
+        receipt["elapsed_seconds"] = time.monotonic()-started
+        receipt["sdk"] = metadata.version("agent-client-protocol")
+        (root / "events.json").write_text(json.dumps(observed,indent=2)+"\n")
+        output.write_text(json.dumps(receipt,indent=2)+"\n")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    import sys
+    try:
+        asyncio.run(encoded_historical_journey(Path(sys.argv[2])) if sys.argv[1:2] == ["--installed-owner"] else main())
+    except BaseException:
+        if sys.argv[1:2] == ["--installed-owner"]:
+            import traceback
+            (Path(sys.argv[2]) / "terminal-error.txt").write_text(traceback.format_exc())
+        raise
