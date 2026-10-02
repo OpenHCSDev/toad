@@ -1,0 +1,1718 @@
+{
+  "owner": "Kepler",
+  "roots": [
+    {
+      "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
+      "allocated_bytes": 84819968,
+      "borrowers": []
+    },
+    {
+      "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged504-295-20261002",
+      "allocated_bytes": 74489856,
+      "borrowers": []
+    },
+    {
+      "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged297-504-295-20261002",
+      "allocated_bytes": 74457088,
+      "borrowers": []
+    },
+    {
+      "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-certified508-candidate-20261002",
+      "allocated_bytes": 74452992,
+      "borrowers": []
+    }
+  ],
+  "borrowers": [],
+  "proc_permission_denied": [
+    {
+      "pid": "1",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "4",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "5",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "6",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "7",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "8",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "11",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "12",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "13",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "14",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "15",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "16",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "17",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "18",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "19",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "20",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "21",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "22",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "23",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "24",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "25",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "26",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "27",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "29",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "30",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "31",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "32",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "33",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "35",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "36",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "37",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "38",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "39",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "41",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "42",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "43",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "44",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "45",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "47",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "48",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "49",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "50",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "51",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "53",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "54",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "55",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "56",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "57",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "59",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "60",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "61",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "62",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "63",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "65",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "66",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "67",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "68",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "69",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "71",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "72",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "73",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "74",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "75",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "77",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "78",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "79",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "80",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "81",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "83",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "84",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "85",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "86",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "87",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "89",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "90",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "91",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "92",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "93",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "95",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "96",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "97",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "98",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "99",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "101",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "102",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "103",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "104",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "105",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "107",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "108",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "109",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "110",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "111",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "113",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "116",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "117",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "118",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "119",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "120",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "121",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "123",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "125",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "126",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "127",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "128",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "129",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "130",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "131",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "132",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "136",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "137",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "138",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "139",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "140",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "141",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "142",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "143",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "144",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "146",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "147",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "148",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "149",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "162",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "163",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "164",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "165",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "166",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "167",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "168",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "169",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "171",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "172",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "173",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "174",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "175",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "176",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "177",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "178",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "179",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "180",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "181",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "182",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "188",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "189",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "191",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "192",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "193",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "194",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "195",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "196",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "197",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "198",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "199",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "200",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "201",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "202",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "211",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "212",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "213",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "217",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "218",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "219",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "303",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "304",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "305",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "306",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "313",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "315",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "332",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "333",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "334",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "335",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "336",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "337",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "338",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "343",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "344",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "348",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "349",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "350",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "351",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "366",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "388",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "390",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "433",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "444",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "636",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "637",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "638",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "639",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "640",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "641",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "671",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "680",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "681",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "687",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "688",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "689",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "690",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "691",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "696",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "697",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "698",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "700",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "727",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "727",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "731",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "731",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "751",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "751",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "762",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "763",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "779",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "779",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "781",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "781",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "782",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "782",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "786",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "786",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "832",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "832",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "837",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "837",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "845",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "845",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "847",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "847",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "862",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "862",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "863",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "863",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "865",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "865",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1181",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1181",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1185",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1185",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1198",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1198",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1453",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1453",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2532",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2532",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2579",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2579",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2695",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2695",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "4031",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "4031",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "10748",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "10748",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "43562",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "43562",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "68488",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "216738",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "366758",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "366758",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "821465",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "887977",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "975417",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "975417",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1175689",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1175691",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1175692",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1485757",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1561676",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1786010",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1786010",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1786012",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1786012",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1787273",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1854523",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "1953373",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2085515",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2113237",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2125419",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2127322",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2185327",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2186207",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2197947",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2200830",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2222842",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2534197",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2565206",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2787616",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2836683",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2859724",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2861772",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2907400",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2959414",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2963389",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2965334",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2970488",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2973255",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2973990",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2975058",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2977359",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "2992885",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3001076",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3001520",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3015571",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3016091",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3028213",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3052723",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3056247",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3061984",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3066813",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3116120",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3116650",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3125444",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3130038",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3698865",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3699396",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3699396",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3728919",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3728919",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763115",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763186",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763186",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763187",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763187",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763192",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763192",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763194",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763194",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3763374",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3796428",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3796428",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3796476",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3796476",
+      "resource": "maps",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3830004",
+      "resource": "environ",
+      "error": "permission denied"
+    },
+    {
+      "pid": "3938680",
+      "resource": "environ",
+      "error": "permission denied"
+    }
+  ],
+  "pth_files_checked": 81,
+  "handoff": "Sch304 explicitly protects only own302/default508/ad7 donor; no refs to these fourobsolete prefixes",
+  "protected": [
+    "runtime-certified508-corrected-candidate-20261002 currentdefault",
+    "runtime-pending503-cursor507-candidate-20261002 qualifieddonor",
+    "native5184 package",
+    "source worktrees",
+    "all original/private fixture roots, nativejournals,UNKNOWN and evidence"
+  ],
+  "state": "READONLY_AUDIT_BEFORE_DELETE"
+}

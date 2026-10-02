@@ -1015,6 +1015,12 @@ class OwnedForkCapture(ExistingThreadCapture, PrivateCapture):
         return cls(route=route, name=thread.name, identity=retained.process, selection=selection)
 
 
+class PrivateOwnedForkCapture(OwnedForkCapture):
+    """Canonical fork custody with the existing explicit private route owner."""
+
+    read_route = PrivateCapture.__dict__["read_route"]
+
+
 def cpu_snapshot(root_pid):
     """Read existing kernel counters for the launched terminal and its workers."""
     table = process_table()

@@ -1,0 +1,15 @@
+{
+  "owner": "Kepler",
+  "purpose": "ONE normal receiving shadow for completed Core509+Toad305307",
+  "receiving_pr": 310,
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-async-selected509-20261002",
+  "core": "ca4bcfa5efdcde807a4da26309222760939aefc1",
+  "frontend": "f207f9a4ab927ce46d091e061ded9d0ef6aceb11",
+  "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "resources": "one69prefix,no new native,retained receipts/private originals untouched",
+  "gate_owner": "Arendt509",
+  "publication_owner": "parent",
+  "toad": "26b425a3b68ab02d38ef842d75fc587c267c6ea1"
+}

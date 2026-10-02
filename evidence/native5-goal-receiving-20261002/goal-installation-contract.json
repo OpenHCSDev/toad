@@ -1,0 +1,10 @@
+{
+  "owner": "Mendel514",
+  "source": "9ccc04c8ca5df864fdf9018211629bf3f2bd25d2",
+  "declaration_path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/native5-goal-receiving-20261002/original-goal-declaration.json",
+  "declaration_sha256": "2d47d9c59afd870af997f53813b54c5a325446d13f3f33e17e1d932928ee1d7d",
+  "runtime_installation_required_field": "goal_schema",
+  "source_provenance": "authentic18da original GoalLedgerTable wholeDDL; owner confirms exact liveDDL",
+  "target": "declaration-owned goal ddl_digest plus Native5; stopped installation only",
+  "public_installation_owner": "parent"
+}

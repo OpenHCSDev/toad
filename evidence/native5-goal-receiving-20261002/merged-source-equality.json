@@ -1,0 +1,16 @@
+{
+  "installed_core": "9ccc04c8ca5df864fdf9018211629bf3f2bd25d2",
+  "merged_main": "a8a3ba05d789ef46c08570543b2bed96a80b3a9c",
+  "installed_ancestor_of_main": true,
+  "compared_roots": [
+    "src",
+    "tools",
+    "stack",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "changed_files": [],
+  "rebuild_required": false,
+  "gate_owner": "Schrodinger",
+  "gate_state": "affected installed goal journey pending"
+}

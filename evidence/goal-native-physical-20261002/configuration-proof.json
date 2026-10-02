@@ -1,0 +1,43 @@
+{
+  "HOME": {
+    "source": "/home/ts",
+    "child": "/home/ts",
+    "equal": true
+  },
+  "PI_CODING_AGENT_DIR": {
+    "source": null,
+    "child": null,
+    "equal": true
+  },
+  "AGENT_COMMS_NATIVE_CONFIG_DIR": {
+    "source": null,
+    "child": "/home/ts/.pi/agent",
+    "equal": false
+  },
+  "PI_SETTINGS_PATH": {
+    "source": null,
+    "child": null,
+    "equal": true
+  },
+  "PI_AUTH_PATH": {
+    "source": null,
+    "child": null,
+    "equal": true
+  },
+  "PI_MODEL": {
+    "source": null,
+    "child": null,
+    "equal": true
+  },
+  "PI_THINKING_LEVEL": {
+    "source": null,
+    "child": null,
+    "equal": true
+  },
+  "arguments_equal": true,
+  "child_process": {
+    "pid": 3417557,
+    "start_time": 40019063
+  },
+  "last_finished_turn": null
+}
