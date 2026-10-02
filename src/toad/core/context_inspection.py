@@ -135,10 +135,11 @@ class NativeDetail(ContextProjection):
 @dataclass(frozen=True)
 class NativeMessageNode(ContextNode):
     raw: dict
+    position: int
 
     @property
     def label(self):
-        return f"Message {int(self.key.rsplit('/', 1)[1]) + 1}"
+        return f"Message {self.position + 1}"
 
     def detail(self):
         message = PiMessage.from_wire(self.raw)
@@ -188,8 +189,8 @@ class NativeMessageRange(ContextNode):
         return f"Messages {self.start + 1}–{self.stop}"
 
     def children(self):
-        return tuple(NativeMessageNode(f"{self.key.rsplit('/range/', 1)[0]}/message/{i}",
-                                      self.segment.messages[i])
+        return tuple(NativeMessageNode(f"{self.key}/message/{i}",
+                                      self.segment.messages[i], i)
                      for i in range(self.start, self.stop))
 
     def detail(self):
@@ -236,5 +237,5 @@ class ContextInspection:
 
     @staticmethod
     def active(context: NativeContextData):
-        return tuple(SegmentNodes(f"native/{i}/{segment.declared_name}").dispatch_sync(segment)
+        return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}").dispatch_sync(segment)
                      for i, segment in enumerate(context.segments))

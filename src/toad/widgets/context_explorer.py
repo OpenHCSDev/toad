@@ -8,8 +8,9 @@ from acp.exceptions import RequestError
 from textual import on, work
 from textual.containers import Vertical
 from textual.widgets import Static, TextArea, Tree
+from textual.worker import Worker, WorkerState, get_current_worker
 
-from toad.context_inspection import ContextInspection, ContextNode
+from toad.core.context_inspection import ContextInspection, ContextNode
 from toad.screens.session_view import SessionView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 
@@ -71,14 +72,27 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
     def _observed(self, _value=None):
         if not self.visible():
             return
+        # Invalidation does not replace an original read still in flight.
+        if any(worker.node is self and worker.group == "context-read"
+               and not worker.is_finished for worker in self.workers):
+            return
         access = self.app.coordination_access
-        if self._observed_revision != access.revision or self._inspection is None:
+        if self._observed_revision != access.revision:
             self._read(self.owner, self.wire_root)
+
+    @on(Worker.StateChanged)
+    def context_read_finished(self, event):
+        if (event.worker.node is self and event.worker.group == "context-read"
+                and event.state == WorkerState.SUCCESS):
+            self._observed()
 
     def set_identity(self, owner, root):
         if (owner, root) == (self.owner, self.wire_root):
             return
         self.workers.cancel_group(self, "context-read")
+        self.workers.cancel_group(self, "context-detail")
+        self._context_nodes.clear()
+        self._loaded.clear()
         self.owner, self.wire_root = owner, root
         self._inspection, self._native = None, None
         self._observed_revision = None
@@ -93,6 +107,8 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
     @work(group="context-read", exclusive=True, exit_on_error=False)
     async def _read(self, owner, root, *, force=False):
         status = self.query_one(".context-status", Static)
+        revision = self.app.coordination_access.revision
+        self._observed_revision = revision
         if not owner or root is None:
             status.update("No managed thread context available")
             return
@@ -100,7 +116,6 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         if str(service.root.resolve()) != str(root):
             status.update("Selected context belongs to another wire root")
             return
-        revision = self.app.coordination_access.revision
         try:
             if (not force and self._inspection is not None
                     and await asyncio.to_thread(self._inspection.current, service)):
@@ -128,7 +143,10 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            status.update(f"Context unavailable: {error}")
+            if (self.is_attached and not get_current_worker().is_cancelled
+                    and (owner, root) == (self.owner, self.wire_root)):
+                self._observed_revision = revision
+                status.update(f"Context unavailable: {error}")
 
     def _present(self, inspection, native):
         tree = self.query_one(Tree)
@@ -154,10 +172,19 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
                     self._expand(node)
                     node.expand()
                     pending.extend(node.children)
-            if selected in self._context_nodes:
-                tree.select_node(self._context_nodes[selected])
         if selected in self._context_nodes:
-            self._show_detail(self._context_nodes[selected].data)
+            model = self._context_nodes[selected].data
+            self.call_after_refresh(self._restore_cursor, model)
+        else:
+            self.intent.selected = None
+            self.query_one(TextArea).load_text("Select a context segment to inspect.")
+
+    def _restore_cursor(self, model):
+        node = self._context_nodes.get(model.key)
+        if (self.is_attached and node is not None and node.data is model
+                and self.intent.selected == model.key):
+            self.query_one(Tree).move_cursor(node, animate=False)
+            self._show_detail(model)
 
     def _add(self, parent, model):
         node = parent.add(model.label, model, allow_expand=True)
@@ -187,15 +214,27 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
     @on(Tree.NodeHighlighted, "#context-tree")
     def node_selected(self, event):
         event.stop()
-        if event.node.data is not None:
+        if (event.node.data is not None
+                and self._context_nodes.get(event.node.data.key) is event.node):
             self.intent.selected = event.node.data.key
             self._show_detail(event.node.data)
 
+    def _selected(self, model):
+        if not self.is_attached:
+            return False
+        node = self.query_one(Tree).cursor_node
+        return (node is not None and node.data is model
+                and self._context_nodes.get(model.key) is node)
+
     @work(group="context-detail", exclusive=True, exit_on_error=False)
     async def _show_detail(self, model):
-        # JSON preparation and long body decoding stay off the UI thread.
+        # Publication belongs to this exact selected original tree model, not
+        # a reusable string key shared by another thread or context snapshot.
+        if not self._selected(model):
+            return
+        self.query_one(TextArea).load_text("Preparing selected context detail…")
         detail = await asyncio.to_thread(model.detail)
-        if self.is_attached and self.intent.selected == model.key:
+        if self._selected(model):
             if len(detail) > self.detail_characters:
                 detail = detail[:self.detail_characters] + (
                     "\n\n[Preview truncated; original context remains unchanged.]")
