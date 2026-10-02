@@ -101,3 +101,25 @@ existing NRA before/after family output remains under
 still requires source reading. This extension is published work in progress.
 Final batched sanity and changed installed channel/native return qualification
 remain required; the frozen Text32 film does not qualify this source extension.
+
+## Joined channel/native qualification boundary
+
+Normally merged Kepler338 source68e5e294 at05e2d1cb; source identities, channel
+page I/O and shared edge scheduling stay its existing owners. Its private held
+read/receipt sanity passed both original send branches, but its final End setup
+timed out and remains a negative. This merge does not turn that result into
+installed receipt or End acceptance. Native32 now pins actual main940880e1;
+its product source equals the frozen qualifiedd052 package.
+
+The existing RetainedLifetimeJourney now owns a peer review hook. Its original
+native-peer member still requires saved pages. ChannelLifetimeJourney uses
+real channel roster/tab clicks and the same native reader/draft/Undo/End
+algorithm, with channel-specific publication and window custody observations.
+The existing capture exports DocumentViewport.accepts_frame directly alongside
+its resource suspension, so logical admission is not guessed from the raw flag.
+No new recorder, timer, UI state or provider fixture was added.
+
+The final changed installed journey reuses runtime-native-style22; it qualifies
+channel/native hide-return custody and actual saved native draft/Undo, not
+338 own-send-under-held-I/O, smoothness, foreground CPU or the final144Hz goal.
+All earlier recordings and source proofs remain frozen.

@@ -655,7 +655,42 @@ class RetainedLifetimeJourney(WarmScrollJourney):
     @classmethod
     def review(cls, output, receipt):
         from scroll_observation import review_retained_lifetime
-        return review_retained_lifetime(output, receipt, suffix=cls.draft_suffix)
+        return review_retained_lifetime(output, receipt, suffix=cls.draft_suffix,
+                                       peer_review=cls.peer_review)
+
+    @classmethod
+    def peer_review(cls, output, receipt):
+        from scroll_observation import NativePhase
+        return {"peer_saved_history_loaded": NativePhase.read(output, "b-open").loaded_pages > 0}
+
+
+class ChannelLifetimeJourney(RetainedLifetimeJourney):
+    """Use the same native lifetime journey with a real channel as its peer."""
+
+    @classmethod
+    def peer_click(cls, args):
+        if not args.peer_channel:
+            raise ValueError("Channel lifetime requires --peer-channel")
+        return native_click_command("phase-switch-b-state.pickle", target="channel", name=args.peer_channel)
+
+    @classmethod
+    def peer_ready(cls, args):
+        return f"sleep {args.navigation_settle_seconds:g}\n" + marker_command() + "b-open"
+
+    @classmethod
+    def closing_commands(cls, args):
+        return (*super().closing_commands(args),
+                native_click_command("phase-lifetime-end-state.pickle", target="peer_tab",
+                                     original_state="phase-warm-start-state.pickle"),
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "channel-return",
+                native_click_command("phase-channel-return-state.pickle", target="original_tab",
+                                     original_state="phase-warm-start-state.pickle"),
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "native-return")
+
+    @classmethod
+    def peer_review(cls, output, receipt):
+        from scroll_observation import review_channel_lifetime
+        return review_channel_lifetime(output)
 
 
 class WarmSourceJourney(WarmScrollJourney):
@@ -1999,6 +2034,7 @@ def main():
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
     parser.add_argument("--archive-index", type=int, default=0, help="Original retained selector row from the current source namespace")
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
+    parser.add_argument("--peer-channel", help="Actual channel roster target for the shared view lifetime journey")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
     parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")
