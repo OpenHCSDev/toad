@@ -160,10 +160,13 @@ class WorkingTranscript(SuspendedTranscript):
                 PruningTranscript, ClosingTranscript, DetachedTranscript)
 
     async def execute(self, owner, work):
-        from agent_comms.coordination_errors import StaleRevision
+        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         try:
             return await work()
+        except CoordinationReadUnavailable:
+            owner.defer_source_work(work)
+            return False
         except StaleRevision:
             # This admitted mutation declined its original read. Keep the
             # already committed source; a new request owns any later advance.

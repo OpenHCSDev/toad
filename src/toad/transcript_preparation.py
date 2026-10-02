@@ -209,7 +209,7 @@ class TranscriptPageBuffer(PreparedPageSource):
         The runtime owns each retained page. Consumers prepare its actual
         leaves without copying the paging cursor into another resource owner.
         """
-        from agent_comms.coordination_errors import StaleRevision
+        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         for _ in range(min(rounds, self.runtime.max_entries)):
             for older in (True, False):
@@ -227,9 +227,9 @@ class TranscriptPageBuffer(PreparedPageSource):
                     continue
                 try:
                     prepared = await self.get(request)
-                except StaleRevision:
-                    # A revoked source is not a failed page identity to cache.
-                    # Leave the original mounted source and terminate this read.
+                except (CoordinationReadUnavailable, StaleRevision):
+                    # Busy or revoked source reads cannot poison page identity.
+                    # Keep mounted coverage and terminate speculative work.
                     return
                 except (OSError, ValueError):
                     # A foreground request can retry/report the error. Repeated
