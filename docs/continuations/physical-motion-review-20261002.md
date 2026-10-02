@@ -13,7 +13,7 @@ smoothness. No new recorder, runtime observer, environment or worktree.
 
 ## Implemented and verified
 
-22 harness lines deleted. The existing PhysicalJourney owns one marker-based
+26 harness lines deleted. The existing PhysicalJourney owns one marker-based
 review interval operation for both capture and retained review. Existing review
 encoding now emits consecutive source frames and slowed clips, and retained
 review selects the recorded journey, actual recording FPS, original CPU phases
@@ -35,3 +35,8 @@ recording review tool itself, exercised on the original real failed capture.
 This supplies U7's frontend motion review in the headless UI plan. State/intents
 remain with their existing core owners; each frontend's rendering is checked
 from these continuous journeys rather than rebuilding a synthetic backend.
+
+Proactive follow-through: retained review no longer applies its own CLI default
+to a previous profiler run. Both consumers now derive the sampling rate from the
+original profiler command. The actual retained profile decoded24 phases at its
+original25Hz; scratch hardlinks were removed after the check.
