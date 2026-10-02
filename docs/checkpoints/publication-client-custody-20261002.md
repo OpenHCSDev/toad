@@ -21,3 +21,11 @@ Joined normal69 candidate: Core a0efe81d, Toad 2b55f0b5, Text31 8015662a, SDK 0.
 AST evidence uses the existing refactor-audit Package parser: before638 and after640 Python modules across both production roots and outside-src cutover tools, zero parse omissions. Shell bootstrap and dynamic/external/old installed clients are stated limitations, not inferred Python resolution. Before/after declarations and references are in `evidence/publication-client-custody-20261002`. No public publisher was repeated.
 
 Required packaged ratchet: Core548/547 zero positive deltas; all four343 production files zero positive deltas. Joined309 context_inspection/explorer currently add three long boolean chains (15 terms) and six foreign absence probes. Lovelace owns their semantic cleanup through the existing context and Tree resources. This record does not claim a zero-debt joined candidate or full physical qualification yet.
+
+## Final normal source integration
+
+Core548 is merged at71e15bbabf8a and has zero source/stack/operator delta from the installed qualifieda0efe. The same69 holder now contains Core71e15, Toadf9b1bbcd, Text32940880 and native960, with complete four-module byte equality, Git provenance, forced assets, SDK and native full trust. No environment or native package was created.
+
+The final309 member2809b051 includes the actual selection-intent repair and renames its observation predicate to presentation_visible, preserving Textual DOM.visible. Its sole changed return-retention physical check belongs to Lovelace. Previous raw selection-loss and startup-refusal recordings remain unchanged. This source checkpoint does not mark343 or public activation Ready.
+
+The new publication freeze contains the accepted548 early-recovery operators and the exact canonical bootstrap plus its current preimage. Five default links alone do not deploy that tracked bootstrap; the existing stopped source-deployment owner must preserve its executable mode. Original failed337 is never repeated. Final proof references are in evidence/publication-client-custody-20261002/final-stage.json.
