@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002",
+  "pins": {
+    "agent_comms": "87719d6fed318cf07c793c96ceabf9d54bd53c43",
+    "toad": "2a3d006d635b23665a096d70fef91cf678c9098e",
+    "textual": "431b4e121bd2320d2b222e139cb0a3d568a84f6b"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "state": "normal69 installed source/directURLs/assets/fulltrust verified; parent activation and default gate sole owner",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_configuration_note": "Joined525/528/319/Text24: current320 and previous318 preserved; sameNative6/5184, no historical carry or native build; parent sole publisher."
+}

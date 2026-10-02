@@ -11,3 +11,11 @@ The existing complete51-file publisher was copied into this receiver's independe
 An initial metadata-adapter load referenced a sparse-omitted old tracked file and stopped before preparation. The adapter was obtained from its committed Git blob; the raw construction failure is retained. No product change or guard relaxation followed it.
 
 Parent must freshly admit the complete actual idle audience and retire clients normally before execution. The final affected installed path is ordinary-default saved-history scrolling after publication, with physical inspection during that same run. New525 resource recovery and the separate520 native workflow are independent; this qualified checkpoint does not wait for them.
+
+## Published scoped closure
+
+Parent executed the publisher once. The original receipt reports nineteen launched configurations in45.079 seconds. A read-only closure now confirms all five default links and the active route identify this target, with Native5184 unchanged. No second publisher or owner restart ran here.
+
+The ordinary-default `nra-architecture` input-paging capture completed in41.935 seconds. All seven canonical input checks passed; runtime selection and the exact original owner identity remained unchanged, with no remaining owned process or cleanup error. Parent inspected the final End PNG after the run only. There is no during-run visual claim and no smoothness, motion or whole-CPU acceptance inferred from this run. Raw `capture_returncode=255` remains preserved separately from the reported outer command returncode0; the original unreviewed raw assessment is not rewritten.
+
+The missing `operator-preparation/default-scroll-closure.json` has been created from those original receipts and passive route/link reads, then retained with publication and raw capture hashes in the evidence directory. The prior qualified E03 source gate remains separate. Next319/Text24 motion acceptance and reviewed528/525 Core changes belong to the next candidate; this installed prefix and all original proofs stay immutable.

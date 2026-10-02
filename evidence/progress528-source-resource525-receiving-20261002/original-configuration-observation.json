@@ -1,0 +1,201 @@
+{
+  "time": 1790939230.7344747,
+  "source": "authentic current320 Core155 registry snapshot",
+  "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "owners": [
+    {
+      "name": "agent-comms-ux",
+      "original_thread_sha256": "25b35b50ebbe7952c5a719e9df99a8d1a107050214703b54e4c702de3d12521c",
+      "original_process": {
+        "pid": 3803278,
+        "start_time": 41311724
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "nra-architecture",
+      "original_thread_sha256": "186bcfef8349e6bcd4cc19c1c889b01fd8ac76d910f2eae8d31b6e0557dae158",
+      "original_process": {
+        "pid": 3803280,
+        "start_time": 41311865
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "nra-class-first-name-review",
+      "original_thread_sha256": "975c7f151ada7e28a85c0e2af99565c70cad33d1e8d42c4e314c9e4b5af6656f",
+      "original_process": {
+        "pid": 3803283,
+        "start_time": 41312003
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "nra-domain-mapping",
+      "original_thread_sha256": "633553c1262787cef1754d0df2ad2710ee00097d2c55643037fb98215c9dfc17",
+      "original_process": {
+        "pid": 3803296,
+        "start_time": 41312147
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "nra-ordered-branch-call-review",
+      "original_thread_sha256": "f9c771e4548552d7745f95bbb8e13250fb230100a36b005530c0577d0ec5a8f4",
+      "original_process": {
+        "pid": 3803376,
+        "start_time": 41312284
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "nra-roster-heuristic-map",
+      "original_thread_sha256": "ce5bdb1c3ced32915cc4015679a5b6c2c4e8c1f580846558ecbb3c247405face",
+      "original_process": {
+        "pid": 3803408,
+        "start_time": 41312426
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "refactor-r1",
+      "original_thread_sha256": "ab82f7233c642fb50e4c1a1b43354028aa913f1d4d72e94358a0c532964a14c3",
+      "original_process": {
+        "pid": 3803462,
+        "start_time": 41312567
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-architecture-memory",
+      "original_thread_sha256": "8b2e6eb0e19cc2215d903c8b085ef6582a88fe82b3db0fde0bc30dc0eefd5267",
+      "original_process": {
+        "pid": 3803476,
+        "start_time": 41312714
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-pr159-viewer-bind-owner",
+      "original_thread_sha256": "3c957a24d4fdf2f52bbdf4ed06c3691cf59266743354bc382e9edbf913d3aeca",
+      "original_process": {
+        "pid": 3803488,
+        "start_time": 41312854
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "nominal-refactor-advisor-2",
+      "original_thread_sha256": "14936723fb743bc0bc5d336d201c8543662be2eb619a530c7c2b43ef87a9a74c",
+      "original_process": {
+        "pid": 3803490,
+        "start_time": 41312996
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-helper",
+      "original_thread_sha256": "22a238a7be08928efe6c94ab9c8b996be1af0aca007216f3e0137373b5e838c1",
+      "original_process": {
+        "pid": 3803527,
+        "start_time": 41313136
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-helper2",
+      "original_thread_sha256": "b2e8370b02f35cc41341831ec130bf90e1c38ac2b928b4f2d8ab5349ba8d69be",
+      "original_process": {
+        "pid": 3803634,
+        "start_time": 41313281
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "comms428",
+      "original_thread_sha256": "9d077f31c8ff5cdbf9cbd233d5fb1f8801b52099339e82fbdebd3eff31634aaa",
+      "original_process": {
+        "pid": 3803665,
+        "start_time": 41313424
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-audit-merged-runtime",
+      "original_thread_sha256": "3b1bd685737fb18ed68f308e362df6516557ba9660efe9384d00ec14fafe4ae8",
+      "original_process": {
+        "pid": 3803724,
+        "start_time": 41313567
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-audit-merged-models",
+      "original_thread_sha256": "7de6ee8b709189ebbf1cf4739270754c470563c89a0490288db7595b8268158d",
+      "original_process": {
+        "pid": 3803738,
+        "start_time": 41313704
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-audit-merged-boundaries",
+      "original_thread_sha256": "45f0b010bfa07d0c490c2171a3e31f2777eb9935654192bf274a719a85166636",
+      "original_process": {
+        "pid": 3803749,
+        "start_time": 41313843
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "openhcs-audit-open-prs",
+      "original_thread_sha256": "bd4da18b8bd28948f750fef060da87e6464f0cf5a19f7aceb8fb760a760f8458",
+      "original_process": {
+        "pid": 3803777,
+        "start_time": 41313984
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "compaction499-live-architecture-memory",
+      "original_thread_sha256": "161edb2438638f463100ffaf2151333a5f7d1af870cca7980c748b9ef7fc997e",
+      "original_process": {
+        "pid": 3803790,
+        "start_time": 41314125
+      },
+      "idle": true,
+      "reason": null
+    },
+    {
+      "name": "compaction501-live-architecture-memory",
+      "original_thread_sha256": "378d8467cb1aa0d8b32c89a957f9a307354503be26931a98d347ba9f2b3a0427",
+      "original_process": {
+        "pid": 3803925,
+        "start_time": 41314266
+      },
+      "idle": true,
+      "reason": null
+    }
+  ],
+  "count": 19,
+  "all_idle_at_observation": true,
+  "public_mutations": 0,
+  "claim": "Read-only observation only; original operation recaptures complete audience, original launch/configuration, idle/no-client requirements at parent execution."
+}
