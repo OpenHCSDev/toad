@@ -12,7 +12,9 @@ from weakref import WeakSet, ref
 from time import monotonic
 from dataclasses import dataclass, replace
 import asyncio
-from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
+from toad.widgets.presentation_window import (
+    DirectionalPreparation, PreparationDemand, PresentationBudget,
+)
 
 from textual.widget import Widget
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
@@ -441,7 +443,7 @@ class DocumentViewport:
                 if restoring:
                     anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
                     started = monotonic()
-                    await self._restore_bodies(restoring, anchor)
+                    await self._restore_bodies(restoring, anchor, demand)
                     protected = self.protected()
                     if any(owner in visible for owner in restoring):
                         self.lookahead.delivered(monotonic() - started)
@@ -467,27 +469,27 @@ class DocumentViewport:
                         if not batch:
                             continue
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))
-                        for owner in batch:
-                            if not self.lookahead.accepts(demand):
-                                break
-                            anchor = next((item for item in owners if item in visible and item.is_attached), owner)
-                            await self._restore_bodies((owner,), anchor)
+                        anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
+                        await self._restore_bodies(tuple(batch), anchor, demand)
                         # Live content or a width change can change actual cost.
                         # Re-admit the completed native batch before the next one.
                         admitted = await self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 
-    async def _restore_bodies(self, owners: tuple[ViewportBody, ...], anchor: Widget) -> None:
+    async def _restore_bodies(
+        self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,
+    ) -> None:
         async with self.window.history_lock:
-            if not self.window.is_attached or not self.window.screen.is_current:
+            if (not self.window.is_attached or not self.window.screen.is_current
+                    or not self.lookahead.accepts(demand)):
                 return
             owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
             async with AsyncExitStack() as mutation:
                 if any(owner.body_measurement_stale for owner in owners):
                     await mutation.enter_async_context(self.window.preserve_history(anchor))
                 for owner in owners:
-                    if not self.window.screen.is_current:
+                    if not self.window.screen.is_current or not self.lookahead.accepts(demand):
                         break
                     if owner.is_attached and not owner._closing:
                         await owner.restore_body()
