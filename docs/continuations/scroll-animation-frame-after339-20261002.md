@@ -30,3 +30,41 @@ mount and restoration lifetimes together before changing that contract. Existing
 RecordAnchor already translates scroll_y directly and WindowRestoration translates
 the native running animation; do not reintroduce the removed scroll_to cancellation
 or patch a symptom without finding which remaining operation owns the wait.
+
+## Published working batch, not Ready
+
+Native Markdown.update and append hold the document lock while awaiting parsing.
+A page's mount awaits that Markdown startup while HistoryWindow.preserve_history
+holds the window mutation fence. Workspace then pauses its timer and frame admission
+rejects the mutation. The old reader/animation can keep advancing without writer
+frames while detached work runs. RecordAnchor already translates the running curve;
+replacing its compensation again would miss this earlier dependency.
+
+This batch prepares the original admitted Markdown ranges before those fences:
+initial snapshot/checkpoint mount, saved-session mount, older/newer page extension,
+End destination, live page replacement, filter projection and paged streaming
+restoration. TranscriptPageView owns initial/extension/update slice selection;
+preparation and mutation consume the same selection. Live update rechecks current
+reader selection under the original history lock and after projection retirement.
+Original publication/cursor/cancel/worker custody checks remain at commit. Sch
+explicitly granted the two transcript_publication preparation/mount seams.
+
+DocumentViewport now prepares both visible and runway restoration through its
+one _restore_bodies path before borrowing reader compensation; the runway-only
+preparation decision is deleted. No additional renderer, result store, pending
+state, scroll destination or frame-gate bypass. PreparationRuntime retains the
+same bounded shared task results; widget creation stays on the main thread.
+
+Existing NRA parser read279 modules (all Toad production plus native Markdown,
+Animator and Screen), no parse omissions. AST and source reads covered extend,
+update_fragments, initial mount, materialize_body and _restore_bodies callers.
+Generic .extend calls remain dynamically ambiguous; each selected call was read
+semantically. The original retained-page End consumer is migrated with both
+production update_fragments consumers. No new checking framework.
+
+Source checkpoint only; batched custody/range/frame sanity and changed installed
+motion/profile are still required. No performance gain or uninterrupted-animation
+claim. Native mount/layout can still block the message loop after pure preparation;
+that remaining cost stays within the full performance assignment. Raw339 remains
+frozen; no unchanged baseline capture is requested. Public337 publication holds
+only public attachment while its real publisher/recovery runs.
