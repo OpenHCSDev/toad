@@ -1,0 +1,92 @@
+{
+  "state": "passed",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "pins": {
+    "agent_comms": "9954cdd73dff20e590aebf15467a170f0a69e799",
+    "toad": "81cb5dd279ee232055f3d2d5dc3a34864829312d",
+    "textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d"
+  },
+  "checks": [
+    {
+      "selected": "alpha",
+      "original_created_at": 10.0,
+      "source": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed03/live/history/source-w_ix97em",
+      "rows": [
+        {
+          "widget": "OutgoingMessage",
+          "reference": {
+            "seq": 1,
+            "message_id": "0764f3aa4a4f"
+          },
+          "title": "No recorded notification result",
+          "details": "No notification result is recorded for this message. This does not confirm receipt."
+        },
+        {
+          "widget": "IncomingMessage",
+          "reference": {
+            "seq": 2,
+            "message_id": "cb35eb7f8513"
+          },
+          "title": "No recorded notification result",
+          "details": "No notification result is recorded for this message. This does not confirm receipt."
+        }
+      ]
+    },
+    {
+      "selected": "beta",
+      "original_created_at": 11.0,
+      "source": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed03/live/history/source-w_ix97em",
+      "rows": [
+        {
+          "widget": "IncomingMessage",
+          "reference": {
+            "seq": 1,
+            "message_id": "0764f3aa4a4f"
+          },
+          "title": "No recorded notification result",
+          "details": "No notification result is recorded for this message. This does not confirm receipt."
+        },
+        {
+          "widget": "OutgoingMessage",
+          "reference": {
+            "seq": 2,
+            "message_id": "cb35eb7f8513"
+          },
+          "title": "No recorded notification result",
+          "details": "No notification result is recorded for this message. This does not confirm receipt."
+        }
+      ]
+    },
+    {
+      "selected": "alpha",
+      "original_created_at": 10.0,
+      "source": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed03/live/history/source-w_ix97em",
+      "rows": [
+        {
+          "widget": "OutgoingMessage",
+          "reference": {
+            "seq": 1,
+            "message_id": "0764f3aa4a4f"
+          },
+          "title": "No recorded notification result",
+          "details": "No notification result is recorded for this message. This does not confirm receipt."
+        },
+        {
+          "widget": "IncomingMessage",
+          "reference": {
+            "seq": 2,
+            "message_id": "cb35eb7f8513"
+          },
+          "title": "No recorded notification result",
+          "details": "No notification result is recorded for this message. This does not confirm receipt."
+        }
+      ]
+    }
+  ],
+  "provider_calls": 0,
+  "public_mutations": 0,
+  "protected_files": 46,
+  "original_and_live_bytes_unchanged": true,
+  "native_source": "actual SessionManager journals + canonical archived wire",
+  "elapsed_seconds": 6.688414942007512
+}
