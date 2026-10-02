@@ -470,7 +470,10 @@ class WarmScrollJourney(ScrollJourney):
 
     @classmethod
     def opening_commands(cls, args):
-        return ()
+        # Use the application's idempotent reveal binding before requesting
+        # painted roster targets. A collapsed sidebar has no clickable rows.
+        return ("key ctrl+b", f"sleep {args.navigation_settle_seconds:g}",
+                marker_command() + "sidebar-revealed")
 
     @classmethod
     def paging_commands(cls, args):
@@ -549,7 +552,8 @@ class RetainedLifetimeJourney(WarmScrollJourney):
 
     @classmethod
     def opening_commands(cls, args):
-        return (cls.ready_command(args, "warm-ready", args.command[-1]),)
+        return (cls.ready_command(args, "warm-ready", args.command[-1]),
+                *super().opening_commands(args))
 
     @classmethod
     def history_commands(cls, args):
@@ -675,7 +679,8 @@ class InputWarmJourney(WarmScrollJourney):
     def opening_commands(cls, args):
         if not args.scroll_travel:
             raise ValueError("Input warm acceptance requires original paging observation")
-        return (cls.ready_command(args, "warm-ready", args.command[-1]),)
+        return (cls.ready_command(args, "warm-ready", args.command[-1]),
+                *super().opening_commands(args))
 
     @classmethod
     def paging_commands(cls, args):
@@ -1298,12 +1303,23 @@ def record(args):
     if selection.bin_directory.parent.resolve() != Path(sys.prefix).resolve():
         raise ValueError("Run recorder with the selected installed runtime's Python")
     output.mkdir(parents=True, exist_ok=False)
+    # Physical navigation uses normal preference owners, which save on exit.
+    # Preserve their initial inputs while keeping writes inside this capture.
+    config_source = Path(env.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "toad" / "toad.json"
+    config_home = output / "ui-config"
+    (config_home / "toad").mkdir(parents=True)
+    config_snapshot = config_home / "toad" / "toad.json"
+    if config_source.is_file():
+        shutil.copy2(config_source, config_snapshot)
+    env["XDG_CONFIG_HOME"] = str(config_home)
     receipt = {
         "owner": args.owner, "purpose": target.purpose,
         "output": str(output), "command": command, "terminal_command": ["st", "-e", *command],
         "fps": args.fps, "screen": [args.width, args.height],
         "profiling_requested": args.profile,
         "state_capture_requested": args.capture_state,
+        "ui_config": {"source": str(config_source), "home": str(config_home),
+                      "initial_sha256": digest(config_snapshot) if config_snapshot.is_file() else None},
         "private_root": str(private_root),
         "capture_target": target.declared_name,
         "physical_journey": args.journey.declared_name,
