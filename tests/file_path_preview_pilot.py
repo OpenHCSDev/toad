@@ -277,7 +277,7 @@ async def encoded_historical_journey(root: Path):
                "checks": [], "provider_calls": 0, "public_mutations": 0}
     output = root / "receipt.json"
     native = activation["native_package"]
-    spelling = "report space #50%.md"
+    spelling = "report space #50% literal%20.md"
     projects = [root / "old root #A%", root / "old root #B%"]
     old = wire(root / "old")
     script = """

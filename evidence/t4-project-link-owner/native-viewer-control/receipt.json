@@ -1,0 +1,17 @@
+{
+  "state": "passed",
+  "scope": "installed native MarkdownViewer actual link/go/load/back/forward; headless sanity only",
+  "prefix": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-uri-20261001",
+  "literal_path_anchor_percent_preserved": true,
+  "no_mocks": true,
+  "provider_calls": 0,
+  "browser_side_effect": {
+    "occurred": true,
+    "cause": "Native MarkdownViewer defaults open_links=True; extra headless sanity omitted explicit open_links=False",
+    "requested_target": "/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/native-viewer-control/b #literal%20.md",
+    "observed_output": "qutebrowser: Opening in existing instance; config import prctl failed",
+    "user_browser_untouched_after_incident": true,
+    "no_claim_browser_effect_absent": true
+  },
+  "disposition": "Retain exact qualified result; no further Viewer checks per owner; future isolated driver uses open_links=False for source reason"
+}

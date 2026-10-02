@@ -1,0 +1,33 @@
+{
+  "state": "passed",
+  "prefix": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/runtime-project-link-uri-20261001",
+  "pins": {
+    "agent_comms": "9954cdd73dff20e590aebf15467a170f0a69e799",
+    "toad": "0eecf0cd6601793545e9f1cb155321ed11b27339",
+    "textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d"
+  },
+  "checks": [
+    "root-0-direct-native-clipboard-exact",
+    "root-0-deferred-native-clipboard-exact",
+    "root-0-actual-leftclick-preview",
+    "root-1-direct-native-clipboard-exact",
+    "root-1-deferred-native-clipboard-exact",
+    "root-1-actual-leftclick-preview"
+  ],
+  "provider_calls": 0,
+  "public_mutations": 0,
+  "originals_unchanged": true,
+  "driver": "LinuxDriver",
+  "elapsed_seconds": 10.004207857011352,
+  "sdk": "0.12.1",
+  "cleanup_remaining": [],
+  "capture_environment": {
+    "NO_COLOR": "removed",
+    "PYTHONPATH": "removed",
+    "DISPLAY": "owned Xvfb only"
+  },
+  "physical_frames_personally_reviewed": [
+    "root-1-preview.png"
+  ],
+  "supported_markdown_grammar": "encoded absolute href; file:// not tested because native parser rejects it"
+}

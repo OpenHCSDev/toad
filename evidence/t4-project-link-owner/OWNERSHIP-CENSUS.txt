@@ -1,0 +1,20 @@
+src/toad/project_link.py:19:class ProjectLinkProblem(Exception):
+src/toad/project_link.py:33:class AmbiguousProjectFile(ProjectLinkProblem):
+src/toad/project_link.py:39:class ProjectSearchLimit(ProjectLinkProblem):
+src/toad/project_link.py:45:class EncodedProjectLink:
+src/toad/project_link.py:53:class ProjectLink(DeclaredFamily, affix="Link"):
+src/toad/project_link.py:57:        uri = urlsplit(href)
+src/toad/project_link.py:67:        value = unquote(uri.path)
+src/toad/project_link.py:116:class ProjectFileLink(ProjectLink):
+src/toad/project_link.py:131:    async def apply_file(self, widget, event, effect: Callable[[Path], None]) -> None:
+src/toad/project_link.py:146:    def preview_file(self, widget, path: Path) -> None:
+src/toad/project_link.py:150:    def copy_file(self, widget, event, path: Path) -> None:
+src/toad/project_link.py:161:class DirectProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="toad-file"):
+src/toad/project_link.py:166:        return cls(Path(unquote(uri.path)))
+src/toad/project_link.py:177:class SearchProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="toad-file-search"):
+src/toad/project_link.py:193:        return cls(unquote(uri.path))
+src/toad/project_link.py:231:class MissingProjectFileLink(ProjectFileLink):
+src/toad/project_link.py:243:class ExternalProjectLink(ProjectLink):
+src/toad/project_path_owner.py:8:class ProjectPathOwner:
+
+Replaced private helpers/prefix decision source search: ZERO hits (_unique_project_file, _file_lookup_notice, _resolve_path, _linked_file, _searchable_basename, startswith("toad-file)).

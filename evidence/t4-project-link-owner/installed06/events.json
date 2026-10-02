@@ -1,0 +1,126 @@
+[
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='_get_suggestion' description='<coroutine object Suggester._get_suggestion at 0x7fdf2b0fe740>'>, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='_get_suggestion' description='<coroutine object Suggester._get_suggestion at 0x7fdf2b0fe740>'>, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS name='_get_suggestion' description='<coroutine object Suggester._get_suggestion at 0x7fdf2b0fe740>'>, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='on_mount' description='on_mount()'>, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='on_mount' description='on_mount()'>, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method UsageReports.send of <toad.application_lifetime.UsageReports object at 0x7fdf2af027b0>>, 'toad-run', {})\">, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method UsageReports.send of <toad.application_lifetime.UsageReports object at 0x7fdf2af027b0>>, 'toad-run', {})\">, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<function set_process_title at 0x7fdf2a4143b0>, 'toad')\">, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<function set_process_title at 0x7fdf2a4143b0>, 'toad')\">, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method UsageReports.send of <toad.application_lifetime.UsageReports object at 0x7fdf2af027b0>>, 'toad-install', {})\">, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method UsageReports.send of <toad.application_lifetime.UsageReports object at 0x7fdf2af027b0>>, 'toad-install', {})\">, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='_warm_renderer' group='renderer-warmup' description='_warm_renderer()'>, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='_warm_renderer' group='renderer-warmup' description='_warm_renderer()'>, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS name='_warm_renderer' group='renderer-warmup' description='_warm_renderer()'>, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS description=\"functools.partial(<function set_process_title at 0x7fdf2a4143b0>, 'toad')\">, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS name='on_mount' description='on_mount()'>, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS description=\"functools.partial(<bound method UsageReports.send of <toad.application_lifetime.UsageReports object at 0x7fdf2af027b0>>, 'toad-run', {})\">, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS description=\"functools.partial(<bound method UsageReports.send of <toad.application_lifetime.UsageReports object at 0x7fdf2af027b0>>, 'toad-install', {})\">, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='check' description='<bound method VersionMonitor.check of <toad.version.VersionMonitor object at 0x7fdf2af02900>>'>, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING name='check' description='<bound method VersionMonitor.check of <toad.version.VersionMonitor object at 0x7fdf2af02900>>'>, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS name='check' description='<bound method VersionMonitor.check of <toad.version.VersionMonitor object at 0x7fdf2af02900>>'>, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Click",
+    "repr": "Click(ContextMenuItem(classes='item'), x=2, y=0, pointer_x=2, pointer_y=0, screen_x=3, screen_y=20, button=1, style=Style(color=Color('default', ColorType.DEFAULT), bgcolor=Color('default', ColorType.DEFAULT), bold=True, reverse=True, meta={'offset': (0, 0)}), chain=1)"
+  },
+  {
+    "message": "Click",
+    "repr": "Click(ContextMenuItem(classes='item'), x=2, y=0, pointer_x=2, pointer_y=0, screen_x=3, screen_y=22, button=1, style=Style(color=Color('default', ColorType.DEFAULT), bgcolor=Color('default', ColorType.DEFAULT), bold=True, reverse=True, meta={'offset': (0, 0)}), chain=1)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method SessionAdmissions.preview of <toad.session_navigation.SessionAdmissions object at 0x7fdf2af030e0>>, PosixPath('/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/old root #A%/nested/report space #50% literal%20.md'))\">, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method SessionAdmissions.preview of <toad.session_navigation.SessionAdmissions object at 0x7fdf2af030e0>>, PosixPath('/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/old root #A%/nested/report space #50% literal%20.md'))\">, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS description=\"functools.partial(<bound method SessionAdmissions.preview of <toad.session_navigation.SessionAdmissions object at 0x7fdf2af030e0>>, PosixPath('/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/old root #A%/nested/report space #50% literal%20.md'))\">, <WorkerState.SUCCESS: 5>)"
+  },
+  {
+    "message": "Click",
+    "repr": "Click(ContextMenuItem(classes='item'), x=2, y=0, pointer_x=2, pointer_y=0, screen_x=3, screen_y=20, button=1, style=Style(color=Color('default', ColorType.DEFAULT), bgcolor=Color('default', ColorType.DEFAULT), bold=True, reverse=True, meta={'offset': (0, 0)}), chain=1)"
+  },
+  {
+    "message": "Click",
+    "repr": "Click(ContextMenuItem(classes='item'), x=2, y=0, pointer_x=2, pointer_y=0, screen_x=3, screen_y=22, button=1, style=Style(color=Color('default', ColorType.DEFAULT), bgcolor=Color('default', ColorType.DEFAULT), bold=True, reverse=True, meta={'offset': (0, 0)}), chain=1)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method SessionAdmissions.preview of <toad.session_navigation.SessionAdmissions object at 0x7fdf2af030e0>>, PosixPath('/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/old root #B%/nested/report space #50% literal%20.md'))\">, <WorkerState.PENDING: 1>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker RUNNING description=\"functools.partial(<bound method SessionAdmissions.preview of <toad.session_navigation.SessionAdmissions object at 0x7fdf2af030e0>>, PosixPath('/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/old root #B%/nested/report space #50% literal%20.md'))\">, <WorkerState.RUNNING: 2>)"
+  },
+  {
+    "message": "Worker.StateChanged",
+    "repr": "StateChanged(<Worker SUCCESS description=\"functools.partial(<bound method SessionAdmissions.preview of <toad.session_navigation.SessionAdmissions object at 0x7fdf2af030e0>>, PosixPath('/home/ts/wt/toad-first-ui-end-keypad-20260930/evidence/t4-project-link-owner/installed06/old root #B%/nested/report space #50% literal%20.md'))\">, <WorkerState.SUCCESS: 5>)"
+  }
+]
