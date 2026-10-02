@@ -33,6 +33,7 @@ def _fragment_parser() -> MarkdownIt:
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
+    *, continuation: bool = False,
 ) -> tuple["TranscriptFragment", ...]:
     """Prepare plain model data; never send widgets or application state to workers.
 
@@ -42,12 +43,12 @@ async def prepare_transcript_fragments(
     from toad.render_tasks import TranscriptRenderTask
 
     if pool is not None:
-        return await pool.submit(TranscriptRenderTask(events))
+        return await pool.submit(TranscriptRenderTask(events, continuation=continuation))
     from toad.render_processes import RenderProcessPool
 
     owned_pool = RenderProcessPool()
     try:
-        return await owned_pool.submit(TranscriptRenderTask(events))
+        return await owned_pool.submit(TranscriptRenderTask(events, continuation=continuation))
     finally:
         await owned_pool.aclose()
 
@@ -154,22 +155,23 @@ class TranscriptFragment:
 
 
 class TranscriptFragmentConsumer(MroDispatch):
-    def __init__(self):
+    def __init__(self, *, continuation: bool = False):
         self.fragments: list[TranscriptFragment] = []
         self.tools: dict[str, int] = {}
         self.budget = RenderBudget()
         self.boundary = AgentActivityBoundary()
+        self.continuation = continuation
 
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript):
         # One lazy disclosure owns the full metadata source.
-        self.fragments.append(TranscriptFragment((event,)))
+        self.fragments.append(TranscriptFragment((event,), continuation=self.continuation))
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript):
         starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
         self.fragments.extend(
-            TranscriptFragment((replace(event, text=part),), continuation=index > 0,
+            TranscriptFragment((replace(event, text=part),), continuation=self.continuation or index > 0,
                                starts_agent_activity=starts_activity and index == 0)
             for index, part in enumerate(self.budget.split(event.text))
         )
@@ -182,12 +184,15 @@ class TranscriptFragmentConsumer(MroDispatch):
         else:
             self.tools[event.tool_call_id] = len(self.fragments)
             self.fragments.append(TranscriptFragment(
-                (event,), starts_agent_activity=self.boundary.observe(event_category(event)),
+                (event,), continuation=self.continuation,
+                starts_agent_activity=self.boundary.observe(event_category(event)),
             ))
 
 
-def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[TranscriptFragment, ...]:
-    consumer = TranscriptFragmentConsumer()
+def transcript_fragments(
+    events: tuple[TranscriptEvent, ...], *, continuation: bool = False,
+) -> tuple[TranscriptFragment, ...]:
+    consumer = TranscriptFragmentConsumer(continuation=continuation)
     for event in events:
         consumer.dispatch_sync(event)
     # This producer runs in the existing renderer for saved and paged sources.

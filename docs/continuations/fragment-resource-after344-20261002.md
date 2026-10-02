@@ -23,6 +23,20 @@ decode. Reading the actual SDK ruled out model assignment: its content hook
 silently skips invalid items, even with strict=True. That prototype was rejected
 before publication. No new cache or payload/validation type was created.
 
+Inner paged Markdown previously changed every delivered fragment with a native
+`replace(..., continuation=True)` loop. That discarded its worker-owned resource
+measurement and gave warmup a different task input from publication. The existing
+TranscriptRenderTask now carries this original presentation input. Its fragment
+consumer constructs the final representation before measuring it; both native
+warmup and publication request the same continuation task. The native replacement
+loop and import are deleted. Ordinary saved pages keep their original divider
+behavior. No stream, publication custody, pager or source lifecycle is changed.
+Existing NRA parsed all278 Toad production modules and found all17 related call
+sites before this batch. An initial Python3.11 parse rejected modern syntax;
+Python3.14 parsed every declared module. AST names do not prove dynamic binding.
+The published continuation change is awaiting the final combined process check
+and matching installed application path; it is not a performance result.
+
 Existing NRA parsed the eight explicit producer/resource/admission consumer
 files before editing (19 selected sites), with dynamic resolution source-read.
 No new type, pool, cache catalog, mirror, clock or scan tool. This is published

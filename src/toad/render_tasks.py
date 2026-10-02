@@ -166,9 +166,10 @@ class TranscriptBodyPreparation(MroDispatch):
 @dataclass(frozen=True)
 class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
     events: tuple[TranscriptEvent, ...]
+    continuation: bool = False
 
     def execute(self) -> tuple[TranscriptFragment, ...]:
-        return transcript_fragments(self.events)
+        return transcript_fragments(self.events, continuation=self.continuation)
 
     def accept_result(self, result: object) -> tuple[TranscriptFragment, ...]:
         if not isinstance(result, tuple) or not all(isinstance(item, TranscriptFragment) for item in result):
