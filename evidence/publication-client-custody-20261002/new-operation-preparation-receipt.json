@@ -1,0 +1,17 @@
+{
+  "state": "SOURCE REVIEW OPERANDS; frontend return-retention and executable bootstrap deployment member pending; NOT EXECUTABLE/Ready",
+  "target_prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "schema_equal": true,
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "operator_manifest": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/operator-manifest.json",
+  "operator_manifest_sha256": "5d9d96a5f6dc8707663a8953da8f22eb61392d217f7f2cac84c92876a3d1f094",
+  "source_proof_sha256": "886c9635baf5732031bbf041e9490d0f546b8da87bd45bf7ea4acec2f7721b05",
+  "activation_sha256": "8497bd68089766b2ef3eb5997a6359526d9f1778ed06a4f5520e6ea1e80c15fd",
+  "runtime_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "public_effects": 0,
+  "old_failed337_operation_repeated": false,
+  "new_publication_receipt": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/new-publication548343/publication-receipt.json",
+  "frontend_owner": "Lovelace sole changed309 installed return path",
+  "bootstrap_deployment_owner": "Parent existing stopped source-activation member, preserve executable mode and original reviewed preimage"
+}

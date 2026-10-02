@@ -311,7 +311,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_access = CoordinationAccess(self._coordination_changed)
+        self.coordination_access = CoordinationAccess(self._coordination_changed, self.preparation)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
@@ -323,10 +323,12 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
-        await self.coordination_access.close()
         await self.thread_navigation.close()
         await self.thread_actions.close()
         await super()._close_all()
+        # Native clients and the preparation owner have joined actual I/O.
+        # A failed retirement keeps its route resource instead of certifying exit.
+        await self.coordination_access.close()
 
     async def on_unmount(self) -> None:
         self.terminal_attention.close()

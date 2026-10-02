@@ -10,7 +10,7 @@ import os
 import asyncio
 from dataclasses import dataclass
 from collections.abc import Callable, Iterator, Mapping
-from contextlib import contextmanager, nullcontext
+from contextlib import ExitStack, contextmanager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 from toad.core.events import CoreEventStream, CoordinationObserved
@@ -62,7 +62,7 @@ class ObservedCommsService:
 class CoordinationAccess:
     """A validated core route owns cached access and guarded UI write admission."""
 
-    def __init__(self, changed: Callable[[], None]) -> None:
+    def __init__(self, changed: Callable[[], None], preparation) -> None:
         self.observation: ObservedCommsService | None = None
         self.changed = changed
         self.events = CoreEventStream(self)
@@ -70,6 +70,8 @@ class CoordinationAccess:
         self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self.task: asyncio.Task[None] | None = None
         self.timer = None
+        self.custody = ExitStack()
+        self.preparation = preparation
 
     @property
     def observed_service(self) -> Comms | None:
@@ -87,9 +89,12 @@ class CoordinationAccess:
         observed = self.observation
         if observed is not None and observed.selection == selected:
             return observed.service
-        service = wire()
-        if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-            raise ValueError("Comms route changed while opening the service")
+        with ExitStack() as acquisition:
+            acquisition.enter_context(selected.route.admit_client())
+            service = wire(selected.route)
+            if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+                raise ValueError("Comms route changed while opening the service")
+            self.custody.enter_context(acquisition.pop_all())
         self.observation = ObservedCommsService(selected, service)
         self.revision = None
         self.route_stamp = None
@@ -109,6 +114,7 @@ class CoordinationAccess:
         if self.task is not None:
             self.task.cancel()
             await asyncio.gather(self.task, return_exceptions=True)
+        self.custody.close()
 
     def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
         from agent_comms.active_route import active_route_path
@@ -140,10 +146,10 @@ class CoordinationAccess:
     async def observe(self, revision: WireRevision | None,
                       route_stamp: tuple[tuple[int, int, int, int] | None, ...]) -> None:
         try:
-            service = await asyncio.to_thread(lambda: self.service)
+            service = await self.preparation.run_thread(lambda: self.service)
             route_stamp = self.current_route_stamp()
             revision = service.views.revision()
-            if not await asyncio.to_thread(root_is_current, service.root):
+            if not await self.preparation.run_thread(root_is_current, service.root):
                 raise ValueError("Observed Comms route changed before publication")
             if service is not self.observed_service or self.current_route_stamp() != route_stamp:
                 return

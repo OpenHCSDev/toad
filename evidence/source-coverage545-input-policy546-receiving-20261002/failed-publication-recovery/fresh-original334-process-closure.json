@@ -1,0 +1,198 @@
+{
+  "state": "Original334 fresh20 actual process/environment/source closure",
+  "observed_at": 1790974151.567745,
+  "owners": [
+    {
+      "name": "agent-comms-ux",
+      "process": {
+        "pid": 701739,
+        "start_time": 44956880
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "nra-architecture",
+      "process": {
+        "pid": 701741,
+        "start_time": 44956949
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "nra-class-first-name-review",
+      "process": {
+        "pid": 701743,
+        "start_time": 44957021
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "nra-domain-mapping",
+      "process": {
+        "pid": 701822,
+        "start_time": 44957093
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "nra-ordered-branch-call-review",
+      "process": {
+        "pid": 701978,
+        "start_time": 44957167
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "nra-roster-heuristic-map",
+      "process": {
+        "pid": 701992,
+        "start_time": 44957254
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "refactor-r1",
+      "process": {
+        "pid": 702086,
+        "start_time": 44957335
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-architecture-memory",
+      "process": {
+        "pid": 702104,
+        "start_time": 44957430
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-pr159-viewer-bind-owner",
+      "process": {
+        "pid": 702108,
+        "start_time": 44957530
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "nominal-refactor-advisor-2",
+      "process": {
+        "pid": 702111,
+        "start_time": 44957639
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-helper",
+      "process": {
+        "pid": 702114,
+        "start_time": 44957741
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-helper2",
+      "process": {
+        "pid": 702136,
+        "start_time": 44957846
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "comms428",
+      "process": {
+        "pid": 702179,
+        "start_time": 44957945
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-merged-runtime",
+      "process": {
+        "pid": 702193,
+        "start_time": 44958051
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-merged-models",
+      "process": {
+        "pid": 702356,
+        "start_time": 44958170
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-merged-boundaries",
+      "process": {
+        "pid": 702373,
+        "start_time": 44958292
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-open-prs",
+      "process": {
+        "pid": 702386,
+        "start_time": 44958375
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "dedicated-worktree-cleanup-20261001",
+      "process": {
+        "pid": 702428,
+        "start_time": 44958513
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "compaction499-live-architecture-memory",
+      "process": {
+        "pid": 702460,
+        "start_time": 44958643
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    },
+    {
+      "name": "compaction501-live-architecture-memory",
+      "process": {
+        "pid": 702465,
+        "start_time": 44958783
+      },
+      "root_id_package_environment_equal": true,
+      "actual_source_interpreter_capture": true
+    }
+  ],
+  "owner_count": 20,
+  "original_native_manifest": "9f12ddf4e22d6d7a14074eb2ec22ba2f7ab376faa9a1f3b2320a0caf7d7ae3a2",
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "recovery_sha256": "49fbd07023633184e4b356d969ec2e6bec0d6f21c38ec4c8988cb5e71da380c6",
+  "lost_environment_restored": false,
+  "provider_inputs_sent": 0,
+  "publisher_repeated": false
+}
