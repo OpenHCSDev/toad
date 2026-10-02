@@ -1,0 +1,9 @@
+{
+  "phase": "prepublication-client-refused-no-public-write",
+  "client_pid": 3615800,
+  "client_start_time": 40750362,
+  "normal_close_signal": "SIGINT",
+  "requested_at": 1790933693.8511012,
+  "observed_at": 1790933711.1149714,
+  "original_process_present": false
+}
