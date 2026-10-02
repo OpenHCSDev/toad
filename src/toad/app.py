@@ -330,10 +330,13 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
-        await self.coordination_access.close()
-        await self.thread_navigation.close()
-        await self.thread_actions.close()
-        await super()._close_all()
+        try:
+            await self.thread_navigation.close()
+            await self.thread_actions.close()
+            await super()._close_all()
+        finally:
+            # The route borrower outlives all windows and their ACP clients.
+            await self.coordination_access.close()
 
     async def on_unmount(self) -> None:
         self.terminal_attention.close()

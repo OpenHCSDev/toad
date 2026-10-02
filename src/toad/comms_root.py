@@ -10,7 +10,7 @@ import os
 import asyncio
 from dataclasses import dataclass
 from collections.abc import Callable, Iterator, Mapping
-from contextlib import contextmanager, nullcontext
+from contextlib import ExitStack, contextmanager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
@@ -69,6 +69,7 @@ class CoordinationAccess:
         self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self.task: asyncio.Task[None] | None = None
         self.timer = None
+        self.custody = ExitStack()
 
     @property
     def observed_service(self) -> Comms | None:
@@ -86,9 +87,12 @@ class CoordinationAccess:
         observed = self.observation
         if observed is not None and observed.selection == selected:
             return observed.service
-        service = wire()
-        if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-            raise ValueError("Comms route changed while opening the service")
+        with ExitStack() as acquisition:
+            acquisition.enter_context(selected.route.admit_client())
+            service = wire()
+            if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+                raise ValueError("Comms route changed while opening the service")
+            self.custody.enter_context(acquisition.pop_all())
         self.observation = ObservedCommsService(selected, service)
         self.revision = None
         self.route_stamp = None
@@ -103,11 +107,14 @@ class CoordinationAccess:
         self.refresh()
 
     async def close(self) -> None:
-        if self.timer is not None:
-            self.timer.stop()
-        if self.task is not None:
-            self.task.cancel()
-            await asyncio.gather(self.task, return_exceptions=True)
+        try:
+            if self.timer is not None:
+                self.timer.stop()
+            if self.task is not None:
+                self.task.cancel()
+                await asyncio.gather(self.task, return_exceptions=True)
+        finally:
+            self.custody.close()
 
     def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
         from agent_comms.active_route import active_route_path
