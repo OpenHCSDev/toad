@@ -1,0 +1,86 @@
+{
+  "scope": "Corrected semantic assessment of the same completed physical copy02; no rerun or production change",
+  "qualified": true,
+  "qualified_fact": "First End remains an admitted WorkingTranscript during original private SQLite exclusion and reaches native bottom after release without user refresh",
+  "original_capture_directory": "/home/ts/.cache/agent-scratch/sqlite537-native-busy-release-20261002-02",
+  "original_artifact_sha256": {
+    "capture/receipt.json": "9cee7f4ea014bf68c6cdf7cd8bd8cd64f9bc88d23a3dfb9b0fcc86772807efcf",
+    "capture/sqlite-busy-review.json": "9aaaa33b5657c08b574b1d14e324f49d80b532d4b538e92f982922b148907142",
+    "capture/phase-reader-state.pickle": "ac7e31526ea2f6f2d7b51f83b3dda246ecd98a8b249ee9e6959486c4c8d91398",
+    "capture/phase-busy-end-state.pickle": "0a377c4dce957e94b34ec772b1be594846ee1f9c3749b078105d0b60886ec3e1",
+    "capture/phase-settled-end-state.pickle": "91c4b408276da465cdec3b42630d04046adbd4df62f25e2489aa7340247bdabc",
+    "sql-resource.jsonl": "ca2a8acc3d9c4ee07b771fa8a685e3e9ce98650b0d6e2a07893c8ce7cdec33f6",
+    "source-capture.json": "bf86f4e7ffc6a56a571db01845399874f023b0c76588d92e323286ed00bd4532",
+    "process-cleanup.json": "9c8b843e939c8acba1b97ba3e57b14e37adb3002b3dc92b83a7f7afc3200543d"
+  },
+  "raw_capture_completed": true,
+  "raw_review_completed": false,
+  "raw_review_error": "RuntimeError: Private native busy recovery failed: native_end_held_by_original_work",
+  "raw_failed_receipt_preserved": true,
+  "source_semantics": {
+    "first_end": "LiveTranscript.request_latest reserves WorkingTranscript and schedules _jump_latest; IdleViewportRequest means no additional End is queued",
+    "second_end": "WorkingTranscript.request_latest alone changes pending_request to LatestViewportRequest; the second-End case was not exercised"
+  },
+  "phases": {
+    "reader": {
+      "captured_ns": 1790959861697837906,
+      "source_state": "LiveTranscript",
+      "generation": 0,
+      "has_newer": true,
+      "pending_request": "not exported for a settled source",
+      "native_offset": 42932727,
+      "loaded_pages": 5,
+      "window_object_id": 140695706415696,
+      "scroll_y": 100.0,
+      "maximum": 409
+    },
+    "busy-end": {
+      "captured_ns": 1790959870336448867,
+      "source_state": "WorkingTranscript",
+      "generation": 5,
+      "has_newer": true,
+      "pending_request": "IdleViewportRequest",
+      "native_offset": 42932727,
+      "loaded_pages": 5,
+      "window_object_id": 140695706415696,
+      "scroll_y": 409,
+      "maximum": 409
+    },
+    "settled-end": {
+      "captured_ns": 1790959880766229980,
+      "source_state": "LiveTranscript",
+      "generation": 8,
+      "has_newer": false,
+      "pending_request": "not exported for a settled source",
+      "native_offset": 42932727,
+      "loaded_pages": 1,
+      "window_object_id": 140695706415696,
+      "scroll_y": 138,
+      "maximum": 138
+    }
+  },
+  "checks": {
+    "original_native_frontier_unchanged": true,
+    "same_selected_session": true,
+    "same_window": true,
+    "first_end_admission_held": true,
+    "first_end_has_no_second_end_subrequest": true,
+    "released_without_refresh": true,
+    "destination_at_bottom": true,
+    "actual_st_exit_zero": true,
+    "cleanup_complete": true,
+    "original_saved_source_unchanged": true,
+    "no_original_input_replay": true
+  },
+  "sql_exclusion_seconds": 8.447296198,
+  "original_source_sha256": "cebfdbab98f3e5270fa23fb9d90983364abccf5ba4834f74544d3c43feb2cb0b",
+  "installed_core": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+  "installed_toad": "56580c8f3b0409b3bb7d574224a3be87ac072b57",
+  "installed_prefix": "/home/ts/wt/toad-command-source-closure-20261002/.artifacts/runtime-command297-merged-20261002",
+  "limits": [
+    "No operation object identity was exported; none is inferred.",
+    "Second End, physical source revocation, full handling refresh and performance are not qualified by this capture.",
+    "The failed original review is not replaced or relabeled as a passing recorder run.",
+    "Public activation and fresh channel verification remain parent-owned."
+  ]
+}

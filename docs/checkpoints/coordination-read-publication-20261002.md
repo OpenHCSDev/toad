@@ -14,8 +14,9 @@ same publication boundary. No independent readiness state, empty receipt
 substitute, broad worker exception suppression or SQL timeout change.
 
 Source ownership and caller migration precede validation. The parent owns the
-single affected installed busy-read journey and public publication. This draft
-does not claim installed acceptance and makes no provider or public input.
+single affected installed busy-read journey and public publication. The actual
+physical first-End busy/release scope is qualified below. No provider or public
+input was made for it.
 
 ## Source closure
 
@@ -53,5 +54,33 @@ the existing Python3.14 package dependencies. They are source sanity, not an
 installed busy-read qualification. The matched lock now selects Core cd150be0;
 `uv lock --check` passes. No environment, native package or public route changed.
 
-The parent-owned paired installed journey still must demonstrate actual SQLite
-contention followed by release and publication, without user refresh or input.
+## Physical busy/release acceptance
+
+Heisenberg's completed copy02 used actual plain-st, installed Toad/ACP and a
+private copied Native6 saved source. Core cd150be0 and Toad56580c8f were installed
+byte-equal to their reviewed source; Text3dd989 and native00c2 were unchanged.
+The private SQLite exclusion lasted8.447s. The actual st exited0, all owned
+capture processes retired, and the original source hash remained unchanged.
+
+The original review reported failure because it required a queued latest
+destination for the first End. Source and the original trusted snapshots show
+that first End on `LiveTranscript` reserves `WorkingTranscript` and schedules
+`_jump_latest`; its pending slot remains `IdleViewportRequest`. Only another
+End while that operation is working creates `LatestViewportRequest`.
+
+Those same original snapshots show the reader Live/gen0 with a newer tail,
+busy End Working/gen5 with an idle pending slot and newer tail, then automatic
+release Live/gen8 with no newer tail. The same native frontier, selected session
+and window were retained. End arrived at the bottom without refresh or input.
+This is held native work, not a cache bypass or a lost request.
+
+The failed recorder receipt and review remain unchanged. A separate corrected
+semantic assessment records their hashes and the source relation in
+`evidence/coordination-read-publication-20261002/physical-copy02-semantic-closure.json`.
+No UI run, provider call or production edit was repeated to obtain this result.
+
+This qualifies the physical first-End busy/release path. It does not qualify a
+second End, physical source revocation, full handling refresh or performance.
+Operation object identity was not exported and is not invented. The pair is
+ready for merged receiving; public activation and its fresh channel probe remain
+parent-owned.
