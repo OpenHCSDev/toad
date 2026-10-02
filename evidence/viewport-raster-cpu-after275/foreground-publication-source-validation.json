@@ -1,0 +1,80 @@
+{
+  "source_before": "45db949eff745bad65a3fa8c250d27b94cfe0f07",
+  "order": "existing owner/caller analysis, coherent native transaction closure, then bounded validation",
+  "cadence": {
+    "returncode": 0,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/viewport-foreground-publication-20261002/cadence.log",
+    "result": {
+      "foreground_cohort": 3,
+      "actual_body_delivery_seconds": 0.5184851420344785,
+      "configured_idle_seconds": 0.2,
+      "boundary": "actual headless framework resource/timer journey; not physical capture",
+      "phases": [
+        "contended_restore",
+        "pageup",
+        "idle",
+        "pagedown",
+        "reverse",
+        "end",
+        "idle"
+      ]
+    },
+    "checks": [
+      "three real retired visible native Markdown bodies with stale width",
+      "original cohort restoration completes",
+      "visible body readiness",
+      "history lock released",
+      "layout waiter cleared",
+      "native damage drained"
+    ]
+  },
+  "reversal": {
+    "returncode": 0,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/viewport-foreground-publication-20261002/demand.log",
+    "result": {
+      "observations": [
+        {
+          "original_demand": true,
+          "original_still_current": false,
+          "accepted": false
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        }
+      ],
+      "original_native_body": "AgentResponse",
+      "native_pageup": true,
+      "provider_inputs": 0,
+      "scope": "native source counter; not physical installed acceptance"
+    }
+  },
+  "guards": {
+    "runner": "direct invocation of existing AST guard functions; no application imports",
+    "passed": [
+      "test_serialized_history_tree_mutations_use_native_publication",
+      "test_history_layout_producers_do_not_wait_for_their_own_paint"
+    ],
+    "pytest_discovery_error": "system pytest conftest cannot import agent_comms; guard functions executed directly, assertion unchanged"
+  },
+  "limits": "Headless source/native resource sanity only. Changed production has not yet passed an installed physical journey. PR284/Text19 not Ready.",
+  "next_gate": "After parent matching Native5 install notification, one normal current-pair immutable installed saved501 A/B/A, inputfocused held/reverse/End/mididle capture/profile; no fresh prompt or original replay",
+  "ownership": "HistoryWindow owns native tree mutation and compensated layout; FramePresentation/FrameFlush owns terminal acknowledgment; TranscriptPresentation.painted owns deferred source frontier/reader effect; DocumentViewport owns required materialization cohort",
+  "public_changes": false
+}

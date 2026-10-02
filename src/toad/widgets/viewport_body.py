@@ -5,6 +5,7 @@ their message pumps, subscriptions and render caches have a shorter lifetime.
 The window owns admission; documents implement their own retirement/restoration.
 """
 
+from contextlib import AsyncExitStack
 from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
@@ -432,19 +433,22 @@ class DocumentViewport:
                 admitted = await self._trim_warm(required=required, ahead=ahead_owners)
                 warm = admitted if active else set()
                 retained = protected | warm | visible.keys()
-                # Restore visible source before retiring unrelated bodies.
-                ordered = sorted(owners, key=lambda owner: owner not in visible)
-                for owner in ordered:
+                # One foreground cohort produces readiness before frame
+                # admission. Per-body paint waits would hold this worker while
+                # the remaining visible dormant bodies reject that same frame.
+                restoring = tuple(owner for owner in required
+                                  if owner.is_attached and not owner._closing and owner.body_dormant)
+                if restoring:
+                    anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
+                    started = monotonic()
+                    await self._restore_bodies(restoring, anchor)
+                    protected = self.protected()
+                    if any(owner in visible for owner in restoring):
+                        self.lookahead.delivered(monotonic() - started)
+                for owner in owners:
                     if not owner.is_attached or owner._closing:
                         continue
                     wanted = owner in retained
-                    if owner.body_dormant and wanted and owner in required:
-                        anchor = next((item for item in owners if item in visible and item.is_attached), owner)
-                        started = monotonic()
-                        await self._restore_body(owner, anchor)
-                        protected = self.protected()
-                        if owner in visible:
-                            self.lookahead.delivered(monotonic() - started)
                     if (not wanted and not owner.body_dormant and owner not in protected
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()
@@ -467,19 +471,23 @@ class DocumentViewport:
                             if not self.lookahead.accepts(demand):
                                 break
                             anchor = next((item for item in owners if item in visible and item.is_attached), owner)
-                            await self._restore_body(owner, anchor)
+                            await self._restore_bodies((owner,), anchor)
                         # Live content or a width change can change actual cost.
                         # Re-admit the completed native batch before the next one.
                         admitted = await self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 
-    async def _restore_body(self, owner: ViewportBody, anchor: Widget) -> None:
+    async def _restore_bodies(self, owners: tuple[ViewportBody, ...], anchor: Widget) -> None:
         async with self.window.history_lock:
-            if not self.window.is_attached or not owner.is_attached or not self.window.screen.is_current:
+            if not self.window.is_attached or not self.window.screen.is_current:
                 return
-            if owner.body_measurement_stale:
-                async with self.window.preserve_history(anchor):
-                    await owner.restore_body()
-            else:
-                await owner.restore_body()
+            owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+            async with AsyncExitStack() as mutation:
+                if any(owner.body_measurement_stale for owner in owners):
+                    await mutation.enter_async_context(self.window.preserve_history(anchor))
+                for owner in owners:
+                    if not self.window.screen.is_current:
+                        break
+                    if owner.is_attached and not owner._closing:
+                        await owner.restore_body()

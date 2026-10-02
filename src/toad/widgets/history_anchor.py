@@ -102,7 +102,6 @@ class HistoryWindow(VerticalScroll):
     _restoring = False
     history_anchor: HistoryAnchor | None = None
     history_layout_ready: asyncio.Event | None = None
-    history_paint_ready: asyncio.Event | None = None
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -140,9 +139,8 @@ class HistoryWindow(VerticalScroll):
 
     def retire_presentation_wait(self) -> None:
         """Release a transaction whose scene no longer promises another frame."""
-        for ready in (self.history_layout_ready, self.history_paint_ready):
-            if ready is not None:
-                ready.set()
+        if self.history_layout_ready is not None:
+            self.history_layout_ready.set()
 
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
@@ -228,7 +226,12 @@ class HistoryWindow(VerticalScroll):
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
 
-        """Publish one native tree mutation, then its compensated reader layout."""
+        """Publish one native tree mutation, then its compensated reader layout.
+
+        Restoration produces frame readiness; it cannot wait for a paint that
+        requires other dormant bodies held behind this same history lock.
+        Native frame callbacks own physical display acknowledgment.
+        """
         from toad.screens.workspace import WorkspaceScreen
 
         screen = self.screen
@@ -252,16 +255,11 @@ class HistoryWindow(VerticalScroll):
                 # mount's layout. Wait for an actual compensated reflow first.
                 self.history_layout_ready = asyncio.Event()
                 await self.history_layout_ready.wait()
-                if not self.is_attached or not screen.is_current or not widget.is_attached:
-                    return
-                painted = self.history_paint_ready = asyncio.Event()
-                self.call_after_refresh(painted.set)
-                await painted.wait()
         finally:
             if isinstance(screen, WorkspaceScreen):
                 screen.viewport_presentation.anchors.discard(self)
             self.history_anchor = None
-            self.history_layout_ready = self.history_paint_ready = None
+            self.history_layout_ready = None
 
 
 @dataclass(frozen=True)
