@@ -235,8 +235,8 @@ class ContextInspection:
         connection = RuntimeConnection(comms, owner.name, socket_path(comms.root, process.pid))
         try:
             payload = await connection.request("context")
-            return FieldCodec.decode(NativeContextData, payload).require_session_file(
-                owner.require_saved_session())
+            context = await asyncio.to_thread(FieldCodec.decode, NativeContextData, payload)
+            return context.require_session_file(owner.require_saved_session())
         finally:
             await connection.close()
 
