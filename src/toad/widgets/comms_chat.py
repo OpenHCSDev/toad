@@ -134,8 +134,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
                 agent_ready=Conversation.agent_ready,
-                current_mode=Conversation.current_mode,
-                modes=Conversation.modes,
+                agent=Conversation.agent,
                 status=Conversation.status,
             )
 

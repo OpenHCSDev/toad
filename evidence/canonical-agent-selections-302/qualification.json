@@ -1,0 +1,34 @@
+{
+  "production_head": "85115f155d17ae8c5b05b512df8ecf5bd9a6aacb",
+  "prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "core": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+  "declared_sources": {
+    "agent-comms": {
+      "git": "https://github.com/OpenHCSDev/agent-comms.git",
+      "rev": "5395eb6afc403224daaecfd3774ef43e2f200da8"
+    },
+    "textual": {
+      "git": "https://github.com/OpenHCSDev/textual.git",
+      "rev": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7"
+    },
+    "textual-diff-view": {
+      "git": "https://github.com/OpenHCSDev/textual-diff-view.git",
+      "rev": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+    }
+  },
+  "distribution_count": 69,
+  "source_files": {
+    "toad": 306,
+    "agent_comms": 329,
+    "textual": null
+  },
+  "full_source_proof": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302-final/source-proof.json",
+  "full_source_proof_sha256": "b7b668ef260fa5af73ec5bef965dd2050ebcf336ed9c23f13e745b918bb0ee7b",
+  "production_added": 184,
+  "production_deleted": 238,
+  "production_files": 14,
+  "sdk_installed_journey": "exit0 modes read/write, file/permission/terminal/reply",
+  "focused_checks": "4 passed",
+  "qualification": "selectors04 and A/B/A05 reached positive phases before recorded driver failures; only missing reconnect paint checked in exit0 continuation06. No provider or native prompts. Raw negatives preserved.",
+  "remaining": "Native-control Prompt check_action/submit-now belongs separate T4 backlog; no whole-provider or compaction claim."
+}

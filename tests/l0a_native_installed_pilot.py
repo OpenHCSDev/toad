@@ -392,8 +392,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     replacement.agent = agent
                     view = replacement
                     await until(pilot, lambda: view.turns.managed_id == agent._active_turn_id)
-                    await until(pilot, lambda: view.current_model is not None)
-                    assert view.current_model.id == "selected-offline/fixture"
+                    await until(pilot, lambda: view.agent.configuration.model.selected is not None)
+                    assert view.agent.configuration.model.current == "selected-offline/fixture"
                     assert view.busy_count == 1
                     assert agent.queue_attachment is original_queue
                     assert agent.process.process is process and process.returncode is None

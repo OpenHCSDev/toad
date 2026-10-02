@@ -1,0 +1,53 @@
+{
+  "prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "source_owner": "openhcs-helper",
+  "source_process": {
+    "pid": 3085175,
+    "start_time": 39028411
+  },
+  "source_interpreter": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-certified508-corrected-candidate-20261002/bin/python",
+  "source_session": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T19-03-03-440Z_01a0ee8c-8c10-77cc-a306-2f47d15ba7d0.jsonl",
+  "source_session_sha256_observed": "4c7dad1d4669bce0258cbc6fbd17c382628657cac38c919f13f129c9f12eca11",
+  "source_bytes": 42932905,
+  "canonical_fork": {
+    "sessionId": "01a0facc-98a2-7348-add0-98c6ca1ba6f3",
+    "sessionFile": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl"
+  },
+  "model": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "worktree": "/home/ts/code/projects/openhcs",
+  "settings_hashes": {
+    "/home/ts/.pi/agent/auth.json": "37ba06ac86a59912521d31462ae4575478f376c910176a3a9b59172d7132bcdd",
+    "/home/ts/.pi/agent/settings.json": "3ed1351864b5628126d34624e95a031e69cbdda8c546d04cf059c933e8de91c9"
+  },
+  "native_prompts": 0,
+  "public_inputs": 0,
+  "root_id": "2f2c57a2224d4d0080b01cc289e819f9",
+  "completed": [
+    "explicit-owned-fixture-reopen-from-fresh-retained-launch",
+    "ordinary-configured-saved-native-ACP-loaded",
+    "channel-navigation-original-workspace-captured",
+    "physical-A-B-A-original-owner-selection-draft-undo-preserved"
+  ],
+  "private_start": {
+    "thread": "selection302",
+    "pid": 3105808,
+    "launched": true
+  },
+  "navigation": {
+    "from": "session-1",
+    "to": "comms-1",
+    "selected": "comms-1",
+    "screen": "WorkspaceScreen",
+    "mode": "workspace",
+    "stack": [
+      "WorkspaceScreen"
+    ]
+  },
+  "failure": "AssertionError: ",
+  "owned_owner_after": {
+    "pid": 3105808,
+    "start_time": 39091207
+  }
+}

@@ -74,6 +74,8 @@ class AgentBase(ABC):
     def __init__(self, project_root: Path) -> None:
         self.project_root_path = project_root
         self.presentation = LocalAgentPresentation(self)
+        from toad.acp.agent_configuration import AgentConfiguration
+        self.configuration = AgentConfiguration(self)
 
     ready = False
 
@@ -102,8 +104,16 @@ class AgentBase(ABC):
     async def send_prompt(self, prompt: str) -> type[StopReason] | None:
         """Send a prompt; return its stop reason."""
 
+    @property
+    def available_modes(self):
+        return ()
+
+    @property
+    def current_mode(self):
+        return None
+
     async def set_mode(self, mode_id: str) -> str | None:
-        """Select a mode; return its stop reason."""
+        return "This agent does not support mode selection"
 
     async def cancel(self) -> bool:
         """Cancel the active prompt if supported."""

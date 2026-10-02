@@ -205,7 +205,7 @@ async def main():
                 await pilot.pause(.05)
                 await until(pilot, lambda: painted(picker, "Local second"))
                 await pilot.press("enter")
-                await until(pilot, lambda: view.current_model.id == "local/second")
+                await until(pilot, lambda: view.agent.configuration.model.current == "local/second")
                 assert {"config_id": "model", "value": "local/second"} in list(
                     map(json.loads, (project / "completion-wire.jsonl").read_text().splitlines()))
                 await until(pilot, lambda: not picker.is_open and prompt.prompt_text_area.has_focus)

@@ -18,7 +18,6 @@ from toad.widgets.selection import SelectionOptionList
 from toad.widgets.prompt_popup import InfoPopup
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Model
     from toad.widgets.prompt import Prompt
 
 
@@ -109,8 +108,6 @@ class ModelSwitcher(InfoPopup):
 
     def __init__(self):
         super().__init__()
-        self.models: dict[str, Model] = {}
-        self.current_model_id: str | None = None
         self.recent_ids: list[str] = []
         self._open_generation = 0
         self._selection_moved = False
@@ -128,9 +125,7 @@ class ModelSwitcher(InfoPopup):
         yield options
         yield ConnectProvider()
 
-    def set_models(self, models: dict[str, Model], current: Model | None) -> None:
-        self.models = models
-        self.current_model_id = current.id if current is not None else None
+    def configuration_changed(self) -> None:
         if self.is_mounted and self.is_open:
             self.filter_models(preserve_selection=True)
 
@@ -162,9 +157,14 @@ class ModelSwitcher(InfoPopup):
         previous_id = highlighted.id if highlighted is not None else None
         terms = self.search_input.value.casefold().split()
         recent = {model_id: index for index, model_id in enumerate(self.recent_ids)}
+        from toad.widgets.prompt import Prompt
+        agent = self.query_ancestor(Prompt).agent
+        setting = agent.configuration.model if agent is not None else None
+        models = setting.choices if setting is not None else ()
+        current = setting.current if setting is not None else ""
         ranked = []
-        for model in self.models.values():
-            fields = {model.name.casefold(), model.id.casefold()}
+        for model in models:
+            fields = {model.name.casefold(), model.value.casefold()}
             scores = [
                 max(
                     *(match_score(term, field) for field in fields),
@@ -175,20 +175,20 @@ class ModelSwitcher(InfoPopup):
             if scores and not all(scores):
                 continue
             rank = recent.get(
-                model.id, len(recent) + (model.id != self.current_model_id)
+                model.value, len(recent) + (model.value != current)
             )
-            ranked.append((-sum(scores), rank, model.name.casefold(), model.id, model))
+            ranked.append((-sum(scores), rank, model.name.casefold(), model.value, model))
         ranked.sort(key=lambda item: item[:4])
         options = []
         for *_, model in ranked:
             label = Content.assemble(
-                ("✓ " if model.id == self.current_model_id else "  ", "$text-success"),
+                ("✓ " if model.value == current else "  ", "$text-success"),
                 (model.name, "bold"),
-                (" · recent" if model.id in recent else "", "dim"),
+                (" · recent" if model.value in recent else "", "dim"),
             )
-            if model.id != model.name:
-                label += Content.styled(f" · {model.id}", "dim")
-            options.append(Option(label, id=model.id))
+            if model.value != model.name:
+                label += Content.styled(f" · {model.value}", "dim")
+            options.append(Option(label, id=model.value))
         self.option_list.set_options(options)
         if options:
             ids = [option.id for option in options]
@@ -200,7 +200,7 @@ class ModelSwitcher(InfoPopup):
         else:
             self.option_list.highlighted = None
         self.query_one(".model-count", Static).update(
-            f"{len(options)} / {len(self.models)} models · {'best matches' if terms else 'recent first'}"
+            f"{len(options)} / {len(models)} models · {'best matches' if terms else 'recent first'}"
             if options
             else "No matching models"
         )

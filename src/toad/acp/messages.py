@@ -22,8 +22,7 @@ from .permission_controller import PermissionRequest
 if TYPE_CHECKING:
     from toad.live_output import OutputStream
     from textual.content import Content
-    from toad.acp.agent import Model
-    from acp.schema import SessionMode
+    from toad.agent import AgentBase
     from toad.acp.agent_controller import SurfaceBinding
     from toad.acp.terminal_controller import TerminalController
     from toad.terminal_execution import TerminalExecution
@@ -122,37 +121,11 @@ class AvailableCommandsUpdate(AgentMessage):
     commands: list[schema.AvailableCommand]
 
 
-@rich.repr.auto
 @dataclass
-class SetModes(AgentMessage):
-    """Set modes from agent."""
+class ConfigurationChanged(AgentMessage):
+    """Invalidate selection presentation; the original agent owns all values."""
 
-    current_mode: str
-    modes: dict[str, SessionMode]
-
-
-@dataclass
-class ModeUpdate(AgentMessage):
-    """Agent informed us about a mode change."""
-
-    current_mode: str
-
-
-@rich.repr.auto
-@dataclass
-class SetModels(AgentMessage):
-    """Set selectable models from an agent's session configuration."""
-
-    current_model: str
-    models: dict[str, Model]
-
-
-@dataclass
-class SetThinkingLevels(AgentMessage):
-    """Set the current and available model-specific thinking levels."""
-
-    current_level: str
-    levels: list[str]
+    agent: AgentBase
 
 
 @dataclass
