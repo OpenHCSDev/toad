@@ -230,12 +230,31 @@ async def main():
                 await member.restore_body()
                 await pilot.pause()
                 assert member.body_ready and not member.body_dormant
+                # Every new native materialization in this parked fixture
+                # needs publication before borrowing its capture placement.
+                scene.reflow(app.screen, app.size)
                 assert await member.retire_body()
                 await pilot.pause()
                 assert member.body_ready and member.retained_paint_bytes
                 family_receipts[-1]['real_style_change_rebuilt_once'] = True
             receipt['rendered_family_reentry'] = family_receipts
             print(json.dumps(family_receipts), flush=True)
+            streaming = family[-1]
+            await streaming.materialize_body()
+            await pilot.pause()
+            scene.reflow(app.screen, app.size)
+            async with streaming._content_lock:
+                assert not await streaming.retire_body()
+            operation = streaming.retire_body()
+            # The actual stream can be acquired before any new content updates
+            # the captured LiveBody. Its original custody must block commit.
+            streaming.stream
+            assert not await operation
+            assert not streaming.body_dormant
+            await streaming.finish_stream()
+            assert await streaming.retire_body()
+            await pilot.pause()
+            receipt['inflight_stream_blocks_captured_retirement_commit'] = True
             # Warm admission retains presentation, not offscreen controls.
             # Exercise the original viewport worker rather than invoking its
             # per-body retirement hook to establish this lifecycle.
