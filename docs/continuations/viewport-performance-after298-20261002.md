@@ -10,7 +10,7 @@ All unfinished scope in [the full previous receiving scope](viewport-performance
 
 298ee8e4109 and Text21789ea50a are merged scoped row-preparation/native-order custody changes. Exact approved Core74877/Toadb08d/Text2382/native5184 normal69 actual public journey102.374s passed warm16/input7 with18readybodies retained. Personally reviewed original A/End/midhistory pixels are readable; original owner epoch unchanged and cleanup empty. See [the full qualification](../../evidence/viewport-performance-after284/sidebar-order-public-certified508-qualified.json).
 
-CPU75–98%scroll/37.8%mididle/28%End idle remains unfinished.1712GIL samples, zero reported errors, approximate alignment±0.059s, instrumentation/export overhead included. No busy-many-model waveform, first-paint, FPS, Strip reuse or speedup claim. FFmpeg255 is not independent UI exit proof. PUBLIC01 hidden-sidebar failure is retained; no unchanged capture follows.
+CPU75–98%scroll/37.8%mididle/28%End idle remains unfinished.1712 profiler samples (all-thread policy from actual launch, not GIL-only), zero reported errors, approximate alignment±0.059s, instrumentation/export overhead included. No busy-many-model waveform, first-paint, FPS, Strip reuse or speedup claim. FFmpeg255 is not independent UI exit proof. PUBLIC01 hidden-sidebar failure is retained; no unchanged capture follows.
 
 ## Next existing-owner source closure
 
