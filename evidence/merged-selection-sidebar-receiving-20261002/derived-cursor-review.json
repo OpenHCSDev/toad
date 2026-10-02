@@ -1,0 +1,59 @@
+{
+  "owner_contribution": "40af80b44466bf1f4af8f2f42e2a869bcad26926",
+  "source": "Original preserved capture, no new run",
+  "older_edge_up": {
+    "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+    "offset": 42817440,
+    "receipts": {
+      "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+      "recipient": {
+        "name": "selection302",
+        "created_at": 1790914108.8525786
+      },
+      "sequence": 0
+    },
+    "outcomes": null
+  },
+  "older_edge_down": {
+    "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+    "offset": 42817440,
+    "receipts": {
+      "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+      "recipient": {
+        "name": "selection302",
+        "created_at": 1790914108.8525786
+      },
+      "sequence": 0
+    },
+    "outcomes": null
+  },
+  "newer_edge_up": {
+    "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+    "offset": 42907137,
+    "receipts": {
+      "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+      "recipient": {
+        "name": "selection302",
+        "created_at": 1790914108.8525786
+      },
+      "sequence": 0
+    },
+    "outcomes": null
+  },
+  "newer_edge_down": {
+    "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+    "offset": 42932905,
+    "receipts": {
+      "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+      "recipient": {
+        "name": "selection302",
+        "created_at": 1790914108.8525786
+      },
+      "sequence": 0
+    },
+    "outcomes": null
+  },
+  "newer_extension": true,
+  "raw_generic_failures_unchanged": true,
+  "remaining_older_crossing_not_proven": true
+}
