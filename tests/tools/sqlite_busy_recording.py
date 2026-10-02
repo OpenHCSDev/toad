@@ -46,8 +46,8 @@ class SqliteBusyJourney(PhysicalJourney):
             return view
         ready, busy, settled = (selected(label) for label in ('native-ready', 'busy-end', 'settled-end'))
         checks = {
-            'same_native_view': ready['session_id'] == busy['session_id'] == settled['session_id'],
-            'native_end_held_by_original_work': any(page['source_state'] == 'WorkingTranscript' for page in busy['history_pages']),
+            'same_native_view': ready['agent_configuration']['session_id'] == busy['agent_configuration']['session_id'] == settled['agent_configuration']['session_id'],
+            'native_end_held_by_original_work': any(page['source_state'] == 'WorkingTranscript' and page['pending_request'] == 'LatestViewportRequest' for page in busy['history_pages']),
             'native_end_released_without_refresh': all(page['source_state'] != 'WorkingTranscript' for page in settled['history_pages']),
             'saved_history_still_attached': bool(settled['history_pages']),
             'destination_is_native_end': all(abs(window['scroll_y'] - window['maximum']) < 1 for window in settled['history_windows']),

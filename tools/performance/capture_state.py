@@ -322,12 +322,16 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                         record[key] = child_data[key]
                             view["contents"].append(record)
                     if kind == "TranscriptHistory":
-                        view["history_pages"].append({
+                        from toad.transcript_state import WorkingTranscript
+                        history = {
                             "through": data.get("through"),
                             "pages": tuple((page.page, page.start, page.stop) for page in tuple(data.get("pages", ()))),
                             "generation": node._generation,
                             "source_state": type(node._source_state).__name__,
-                        })
+                        }
+                        if isinstance(node._source_state, WorkingTranscript):
+                            history["pending_request"] = type(node._source_state.pending_request).__name__
+                        view["history_pages"].append(history)
                     if isinstance(node, HistoryWindow):
                         window = {**node_identity(node), **{key: data.get(key) for key in (
                             "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}}
