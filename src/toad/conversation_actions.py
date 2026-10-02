@@ -33,7 +33,7 @@ class ModeSwitcherAction(KeyboundAction, ConversationAction):
     show = True
 
     def available(self, conversation):
-        return bool(conversation.modes)
+        return bool(conversation.agent is not None and conversation.agent.available_modes)
 
     async def apply(self, conversation):
         conversation.prompt.mode_switcher.focus()

@@ -31,12 +31,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     high = next(item for item in app.screen.query('ContextMenuItem') if item.action == 'high')
     await until(pilot, lambda: high in app.screen._compositor.visible_widgets and high.region.width > 0)
     assert await pilot.click(high, offset=(1, 0))
-    await until(pilot, lambda: view.thinking_level == 'high')
+    await until(pilot, lambda: agent.configuration.thinking.current == 'high')
     assert comms.registry.require('beta').thinking_level == 'high'
     assert agent.configuration.thinking.current == 'high'
     await agent.session.reconnect()
     await until(pilot, agent.session.settled.is_set)
-    await until(pilot, lambda: view.thinking_level == 'high' and view.agent_ready)
+    await until(pilot, lambda: agent.configuration.thinking.current == 'high' and view.agent_ready)
     assert view.prompt.text == 'CONFIGURATION_UNSENT_DRAFT'
     assert view.prompt.prompt_text_area.document is document
     assert view.prompt.prompt_text_area.history is undo

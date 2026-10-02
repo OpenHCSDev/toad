@@ -53,22 +53,27 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
     def choices(self) -> tuple[SessionConfigSelectOption, ...]:
         return tuple(SelectChoices(self.option).values) if self.option else ()
 
+    @property
+    def selected(self) -> SessionConfigSelectOption | None:
+        return next((choice for choice in self.choices if choice.value == self.current), None)
+
     async def select(self, agent, value: str) -> str | None:
         if self.option is None:
             return f"This agent does not advertise {self.label} configuration"
+        from toad.acp.client_session import ClientSessionRequest
+        authority = ClientSessionRequest(agent, agent.session_id)
+        authority.require()
         with agent.request():
             response = api.session_set_config_option(agent.session_id, self.option.id, value)
         try:
             result = await response.wait()
+            authority.require()
         except jsonrpc.JSONRPCError as error:
             return ACPFailure.from_error(error.code, error.message).feedback
         except jsonrpc.APIError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
         agent.configuration.receive(result.config_options)
         return None
-
-    @abstractmethod
-    def publish(self, agent) -> None: ...
 
 
 class ModelConfigurationSetting(ConfigurationSetting):
@@ -78,12 +83,6 @@ class ModelConfigurationSetting(ConfigurationSetting):
     def matches(cls, option):
         return option.category == "model" or option.id == "model"
 
-    def publish(self, agent):
-        from toad.acp.agent import Model
-        models = {choice.value: Model(choice.value, choice.name, choice.description)
-                  for choice in self.choices}
-        agent.post_message(messages.SetModels(self.current, models))
-
 
 class ThinkingConfigurationSetting(ConfigurationSetting):
     label = "thinking-level"
@@ -91,9 +90,6 @@ class ThinkingConfigurationSetting(ConfigurationSetting):
     @classmethod
     def matches(cls, option):
         return option.category == "thought_level" or option.id == "thinking_level"
-
-    def publish(self, agent):
-        agent.post_message(messages.SetThinkingLevels(self.current, [choice.value for choice in self.choices]))
 
 
 class ConfigurationAdvertisements(MroDispatch):
@@ -112,11 +108,18 @@ class AgentConfiguration:
     """Single actual advertisement owner; detached surfaces keep this same value."""
     def __init__(self, agent):
         self.agent = agent
+        self.reset()
+
+    def reset(self):
         self.selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
 
     def setting[T: ConfigurationSetting](self, kind: type[T]) -> T:
         from typing import cast
         return cast(T, self.selections[kind])
+
+    @property
+    def model(self) -> ModelConfigurationSetting:
+        return self.setting(ModelConfigurationSetting)
 
     @property
     def thinking(self) -> ThinkingConfigurationSetting:
@@ -134,5 +137,4 @@ class AgentConfiguration:
         self.publish()
 
     def publish(self):
-        for setting in self.selections.values():
-            setting.publish(self.agent)
+        self.agent.post_message(messages.ConfigurationChanged(self.agent))

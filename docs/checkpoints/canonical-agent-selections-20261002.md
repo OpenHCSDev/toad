@@ -22,3 +22,13 @@ Extend the existing owners and publish invalidation of those original resources.
 After source closure, one focused sanity batch and an installed ACP/UI journey covering advertised modes/models, acknowledged selection, unsolicited source updates, refused selection, and A/B/A return. Existing real application and ACP paths are required; no UI substitute or selection-state mirror.
 
 No observed lost controller update or provider failure is claimed. This scope does not alter native budgets, bus readers, cursor custody or viewport preparation.
+
+## Working implementation
+
+- ConfigurationSetting derives its selected **original SDK choice**; the separate Model tuple conversion is deleted. AgentConfiguration publishes only an invalidation carrying its original Agent, not a second catalog/current-value record.
+- AgentController keeps one original SDK SessionModeState. Full advertisements, unsolicited CurrentModeUpdate and acknowledged set-mode requests use the same mode-state admission. There is no second controller table/ID pair. Session replacement and process startup clear those advertisements through the existing controller lifecycle.
+- Conversation and Prompt no longer own models/modes/current_model/current_mode/thinking_level; ModelSwitcher no longer owns models/current_model_id. All consumers listed above now read the original owners. Prompt's Agent reference is the original resource binding; option-list items and rendered label Content are presentation resources, never admission or selection authority.
+- Picker request values remain local request intent until the actual ACP response; original ClientSessionRequest fences the response against session/process replacement. Refused requests do not alter accepted values. Model-history recording retains the existing recency meaning: accepted selection on acknowledged selection/completed turn, not proof of which model a provider used internally.
+- Four copied-value message classes and their independent view writers are deleted. One resource invalidation refreshes rendering and action bindings. Existing ConfigurationSetting subclasses still declare advertisement membership; no new selection family, registry or mirror was introduced.
+
+Validation has not yet run at this working checkpoint. Final qualification remains separate from source completion.

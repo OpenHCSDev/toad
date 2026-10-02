@@ -233,7 +233,7 @@ class ModelCommand(NoArgumentsCommand):
     help = "Choose this thread's model"
 
     async def apply(self, conversation: Conversation) -> bool:
-        if conversation.models:
+        if conversation.agent is not None and conversation.agent.configuration.model.choices:
             conversation.prompt.model_switcher.focus()
         else:
             conversation.flash("This agent has no model selector", style="error")

@@ -114,8 +114,6 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Model
-    from acp.schema import SessionMode
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
@@ -391,42 +389,10 @@ class ConversationSessionBinding(containers.Vertical):
 
 
     agent: var[AgentBase | None] = var(None, bindings=True)
-
-
     agent_info: var[Content] = var(Content())
-
-
     agent_ready: var[bool] = var(False)
-
-
-    modes: var[dict[str, SessionMode]] = var({}, bindings=True)
-
-
-    current_mode: var[SessionMode | None] = var(None)
-
-
-    models: var[dict[str, Model]] = var({}, bindings=True)
-
-
     model_history_scope = var("")
-
-
     queue_supported = var(False)
-
-
-
-
-
-
-
-
-
-
-    current_model: var[Model | None] = var(None)
-
-
-    thinking_level = var("")
-
 
     input_delivery: var[dict] = var(empty_delivery)
 
@@ -863,10 +829,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
                 agent_ready=Conversation.agent_ready,
-                current_mode=Conversation.current_mode,
-                modes=Conversation.modes,
-                current_model=Conversation.current_model,
-                models=Conversation.models,
+                agent=Conversation.agent,
                 model_history_scope=Conversation.model_history_scope,
                 queue_supported=Conversation.queue_supported,
                 status=Conversation.status,
@@ -1218,18 +1181,21 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     @work
     @on(messages.ChangeModel)
     async def on_change_model(self, event: messages.ChangeModel) -> None:
-        if self.agent is None:
+        if (agent := self.agent) is None:
             return
-        if (error := await self.agent.set_model(event.model_id)) is not None:
+        error = await agent.set_model(event.model_id)
+        if agent is not self.agent:
+            return
+        if error is not None:
             self.notify(error, title="Set Model", severity="error")
-        elif (model := self.models.get(event.model_id)) is not None:
+        elif (model := agent.configuration.model.selected) is not None:
             from textual.geometry import Offset
 
             from toad.db import DB
             from toad.widgets.comms_menu import ContextMenu
 
-            await DB().record_model_usage(self.model_history_scope, event.model_id)
-            levels = [choice.value for choice in self.agent.configuration.thinking.choices]
+            await DB().record_model_usage(self.model_history_scope, model.value)
+            levels = [choice.value for choice in agent.configuration.thinking.choices]
             if len(levels) > 1:
                 level = await self.app.push_screen_wait(
                     ContextMenu(
@@ -1244,7 +1210,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 )
                 if (
                     level
-                    and (error := await self.agent.set_thinking_level(level))
+                    and (error := await agent.set_thinking_level(level))
                     is not None
                 ):
                     self.notify(error, title="Set thinking level", severity="error")
@@ -1253,16 +1219,10 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 Content.from_markup(
                     "Model changed to [b]$model[/] · thinking [b]$level",
                     model=model.name,
-                    level=self.agent.configuration.thinking.current or "unavailable",
+                    level=agent.configuration.thinking.current or "unavailable",
                 ),
                 style="success",
             )
-
-    @on(acp_messages.ModeUpdate)
-    def on_mode_update(self, event: acp_messages.ModeUpdate) -> None:
-        if (modes := self.modes) is not None:
-            if (mode := modes.get(event.current_mode)) is not None:
-                self.current_mode = mode
 
     @on(messages.UserInputSubmitted)
     async def on_user_input_submitted(self, event: messages.UserInputSubmitted) -> None:
@@ -1281,11 +1241,12 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         """
         self.turns.finish_client()
         self._agent_activity_boundary.reset()
-        if stop_reason is not None and stop_reason.completed and self.current_model is not None:
+        model = self.agent.configuration.model.selected if self.agent is not None else None
+        if stop_reason is not None and stop_reason.completed and model is not None:
             from toad.db import DB
 
             await DB().record_model_usage(
-                self.model_history_scope, self.current_model.id
+                self.model_history_scope, model.value
             )
         await self.output.settle()
         pending_loading, self._loading = self._loading, None
@@ -1587,48 +1548,36 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             self.query_one(f"#{block_id}").focus()
 
     async def set_mode(self, mode_id: str | None) -> None:
-        """Set the mode give its id (if it exists).
-
-        Args:
-            mode_id: Id of mode.
-
-        Returns:
-            `True` if the mode was changed, `False` if it didn't exist.
-        """
-        if (agent := self.agent) is None:
+        if (agent := self.agent) is None or mode_id is None:
             return
-        if mode_id is None:
-            self.current_mode = None
-        else:
-            if (error := await agent.set_mode(mode_id)) is not None:
-                self.notify(error, title="Set Mode", severity="error")
-            elif (new_mode := self.modes.get(mode_id)) is not None:
-                self.current_mode = new_mode
-                self.flash(
-                    Content.from_markup("Mode changed to [b]$mode", mode=new_mode.name),
-                    style="success",
-                )
+        error = await agent.set_mode(mode_id)
+        if agent is not self.agent:
+            return
+        if error is not None:
+            self.notify(error, title="Set Mode", severity="error")
+        elif (mode := agent.current_mode) is not None:
+            self.flash(
+                Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
+                style="success",
+            )
 
-    @on(acp_messages.SetModes)
-    async def on_acp_set_modes(self, message: acp_messages.SetModes):
-        self.modes = message.modes
-        self.current_mode = self.modes[message.current_mode]
-
-    @on(acp_messages.SetModels)
-    async def on_acp_set_models(self, message: acp_messages.SetModels):
-        self.models = message.models
-        self.current_model = self.models.get(message.current_model)
+    @on(acp_messages.ConfigurationChanged)
+    def on_acp_configuration_changed(self, message: acp_messages.ConfigurationChanged):
+        message.stop()
+        if message.agent is not self.agent:
+            return
         self._update_model_info()
-
-    @on(acp_messages.SetThinkingLevels)
-    def on_acp_set_thinking_levels(self, message: acp_messages.SetThinkingLevels):
-        self.thinking_level = message.current_level
-        self._update_model_info()
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_configuration()
+        self.refresh_bindings()
 
     def _update_model_info(self) -> None:
-        if self.current_model is not None:
-            suffix = f" · {self.thinking_level}" if self.thinking_level else ""
-            self.agent_info = Content(self.current_model.name + suffix)
+        agent = self.agent
+        model = agent.configuration.model.selected if agent is not None else None
+        if model is not None:
+            level = agent.configuration.thinking.current
+            suffix = f" · {level}" if level else ""
+            self.agent_info = Content(model.name + suffix)
         else:
             self.agent_info = (
                 self.agent.get_info() if self.agent is not None else Content()
@@ -1845,7 +1794,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:
-            self.agent_info = agent.get_info()
+            self._update_model_info()
             self.agent_ready = agent.ready
             self.status = agent.context_measurement.status()
             if self.agent_ready:
