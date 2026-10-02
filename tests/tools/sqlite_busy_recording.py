@@ -95,7 +95,7 @@ async def capture(service, project, evidence, environment):
         '--capture-state', '--output', str(output), '--owner', 'Heisenberg537-native-busy',
         '--fit-window', '--width', '1280', '--height', '900', '--startup-wait', '1',
         '--history-wait-seconds', '35', '--navigation-settle-seconds', '1',
-        '--max-duration', '160', '--finalize-seconds', '12', '--tail-seconds', '1',
+        '--max-duration', '160', '--finalize-seconds', '14', '--tail-seconds', '1',
         '--review-timing', 'deferred', '--', str(runtime / 'toad'), 'acp',
         shlex.join([str(runtime / 'python'), '-m', 'agent_comms.acp']), str(project),
         '--title', 'Agent Comms', '--session', 'resource436']
