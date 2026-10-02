@@ -123,3 +123,42 @@ The final changed installed journey reuses runtime-native-style22; it qualifies
 channel/native hide-return custody and actual saved native draft/Undo, not
 338 own-send-under-held-I/O, smoothness, foreground CPU or the final144Hz goal.
 All earlier recordings and source proofs remain frozen.
+
+## Installed channel/native lifetime checkpoint
+
+The original second run completed62.070s on exact installedcb48/Core7dd,
+mergedNative32 main940880 and configurednative9f. Physical#openhcs opening,
+native return, draft/Undo, nativeEnd, channelreturn and finalnative return
+produced18 passing native lifetime checks. Hidden windows were excluded from
+frame admission; selected windows were admitted. Actualst exit0, cleanupempty,
+and originalnra owner701741/44956949 stayed alive and unchanged. No input was
+submitted to a provider and no public owner was restarted.
+
+The raw receipt remains completed=false: final review inherited a requirement
+for unavailable_scroll_phases from the full scroll-performance journey. That
+observation is not part of the retained-lifetime variant. PhysicalJourney now
+owns the shared native-check validation; leaves declare their extra required
+observations. Revalidated the original18 checks without rerunning the application
+or changing the original receipt/movie/state. The earlier#any click rejection
+also remains preserved. The corrected invocation used the actual guarded
+#openhcs target, without fallback or longer deadlines.
+
+Viewed the actual populated channel PNG while the recorder was alive; native
+return, channelreturn and finalnative return PNGs were read after completion.
+They show the correct saved native body, channel rows and draft. This is selected
+frame assessment, not continuous motion or smoothness. No CPU profile was
+requested for this narrow lifetime run. Qualification and original hashes are
+in docs/checkpoints/channel-native-lifetime344-installed-scoped.json.
+
+Normally merged Kepler338 finaleb936 after capture: native Widget.is_attached
+replaces the parent attachment forwarder and the block forwarder is deleted
+(seven production lines removed). Installed02 used33868e; it does not qualify
+the later deletion or the separate original held-I/O End gap. Normally merged
+main0a522 after capture, retaining Core992 and native940880 pins. The344
+shared lifetime methods remain unchanged; main separately adds ContextExplorer
+binding and client-route custody. The receiving/default pair still needs its
+ordinary installed qualification under the parent release owner.
+
+This is a scoped shared-window lifetime checkpoint. Full foreground CPU,
+144Hz, raster/warm/cold, adaptive/growingEnd/void, focus, busy/sidebar, lazy
+animation and TC1/T9/T4 work continues here; no full performance claim.

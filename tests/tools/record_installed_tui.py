@@ -488,6 +488,16 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     @classmethod
     def validate_review(cls, review):
         """The journey owns required native checks; footage review stays separate."""
+        if review is None:
+            return
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Installed journey failed: " + ", ".join(failed))
+        cls.validate_observations(review)
+
+    @classmethod
+    def validate_observations(cls, review):
+        """Leaves own additional observation requirements beyond native checks."""
 
 
 class ObserveJourney(PhysicalJourney):
@@ -620,10 +630,7 @@ class WarmScrollJourney(ScrollJourney):
                                   scroll_labels=cls.scroll_review_phases)
 
     @classmethod
-    def validate_review(cls, review):
-        failed = [name for name, passed in review["checks"].items() if not passed]
-        if failed:
-            raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
+    def validate_observations(cls, review):
         if review["unavailable_scroll_phases"]:
             raise RuntimeError("Warm scroll observation incomplete: "
                                + ", ".join(review["unavailable_scroll_phases"]))
@@ -636,6 +643,10 @@ class RetainedLifetimeJourney(WarmScrollJourney):
     """
 
     review_artifacts = ("retained-lifetime-review.json",)
+
+    @classmethod
+    def validate_observations(cls, review):
+        """Saved-view custody supplies native checks, without held-scroll phases."""
 
     @classmethod
     def opening_commands(cls, args):
@@ -788,13 +799,6 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
         (output / "input-paging-review.json").write_text(json.dumps(result, indent=2) + "\n")
         return result
 
-    @classmethod
-    def validate_review(cls, review):
-        failed = [name for name, passed in review["checks"].items() if not passed]
-        if failed:
-            raise RuntimeError("Installed input-focused history paging failed: " + ", ".join(failed))
-
-
 class InputWarmJourney(WarmScrollJourney):
     """Use the original warm journey with focused paging and idle away from tail."""
 
@@ -893,13 +897,6 @@ class StationaryInputScrollJourney(ScrollJourney):
         (output / "stationary-scroll-review.json").write_text(
             json.dumps(result, default=str, indent=2) + "\n")
         return result
-
-    @classmethod
-    def validate_review(cls, review):
-        failed = [name for name, passed in review["checks"].items() if not passed]
-        if failed:
-            raise RuntimeError("Stationary diagnostic missed its required coverage: " + ", ".join(failed))
-
 
 class SavedTabCloseJourney(PhysicalJourney):
     @classmethod
