@@ -83,3 +83,41 @@ Next validation is one changed installed323/Text26 public saved-history
 journey on the newly declared Core d6e196a8/native ad533 default. Reuse the
 closed owned69-package prefix, normal wheels only. No installed or CPU Ready
 claim yet; previous322 capture remains frozen.
+
+## Scoped installed checkpoint
+
+Qualified source dcac031f/Textual26 dd774 on actual current Core d6e196a8,
+native ad533, SDK0.12.1. Normal69 installed source/assets/directURLs and full
+native trust checked, same owned prefix, no source overlays/native build.
+Production: Toad38 lines deleted/48 added in7files; Textual4 deleted/12 added
+in2files. All replaced SidebarPaint/force/CommsRow._label consumers removed.
+
+Actual public original nra history input paging passed7/7. During the first
+recording personally inspected consecutive Up/Down/reverse frames and idle/End
+output: readable, visibly discrete/held motion. The200second recorder budget
+expired at idle-done before tab switching; preserve that incomplete receipt.
+No fullwarm pass or speed claim from that recording.
+
+The existing narrow RetainedLifetimeJourney then completed41.321s,12/12:
+actual Bclick→Aclick, original editor/window/draft/Undo retained, returned
+body and End ready. Reader-before-return output inspected DURING; Areturn
+PNG inspected AFTER. Original owner3963688/start41850726 unchanged alive
+in both runs; runtime unchanged, both cleanups empty, no prompts/providers.
+FFmpeg255 is accepted recorderSIGINT, not independent Toad exit proof.
+
+First last10s mididle has zero viewport work. End last10s has20 zero-delta
+geometry relocations (same position243/prediction0) and10 sidebar publications,
+but no request/admission/restore/retirement/scroll. Do not call it zero geometry.
+Native processed-key writer intervals Up22.15ms median/242.70p95; reverse
+41.01/316.23. Marked Up68.65%CPU, reverse64.58%, Endidle22.40%, all UI
+major-fault deltas0. Different source/phase lengths/diagnostic overhead from322;
+not a causal overall CPU improvement. Profile2554reported samples/0errors,
+clock alignment nominal±0.031s. No144Hz/wholewarm/busycompaction qualification.
+
+Receipt: evidence/retained-body-E/sidebar323-scroll26-public-qualified.json.
+Raw motion/profile: ~/.cache/agent-scratch/sidebar323-scroll26-public-20261002-01.
+Missing tab/row lifetime: ~/.cache/agent-scratch/sidebar323-row-lifetime-public-20261002-02.
+Preserve raw failures. Scoped checkpoint can ship; ALL remaining assignment
+above stays active in the next main-based draft before sustained source work.
+Next source lead: remaining native can→fullscene lookup and geometry relocation
+on retained output; Kepler owns native boundary, Heisenberg wholeintegration.

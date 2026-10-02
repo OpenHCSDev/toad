@@ -1,0 +1,2273 @@
+{
+  "scope": "Scoped original sidebar row output/resource/navigation and canonical scroll geometry target retention; NOT overallCPU/smoothness/144Hz/fullwarm qualification",
+  "pins": {
+    "core": "d6e196a86c88cc1259be986703668ab1e1a58c1c",
+    "toad": "dcac031f91808831b9a245d9d3c507918b2d0c3a",
+    "textual": "dd774cd0cb0fa39070f2e076848adf5db25e3472"
+  },
+  "native_manifest": "ad533a9f08581561d00d5524a576bda00f6368221cc4f74ba3c68513ede8fc04",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-sidebar323-scroll26-20261002/source-proof.json",
+  "source_proof_sha256": "9ecb2f7e2ca5ce81c37316d546ca806475c410a70ab300e56f6777c67a403ae5",
+  "production_change": {
+    "toad_files": 7,
+    "toad_added": 48,
+    "toad_deleted": 38,
+    "textual_files": 2,
+    "textual_added": 12,
+    "textual_deleted": 4
+  },
+  "source_sanity": {
+    "raw": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar323-source-sanity/metadata-isolated.log",
+    "widgets": 357,
+    "metadata_layouts": 0,
+    "disclosure_and_retirement_passed": true,
+    "scope": "private protocol initialized and sidebar revealed; original retention suspended for metadata-only assertion then resumed; does not prove wholeviewport quiescence",
+    "preserved_failures": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar323-source-sanity"
+  },
+  "motion_run": {
+    "raw": "/home/ts/.cache/agent-scratch/sidebar323-scroll26-public-20261002-01/capture",
+    "completed": false,
+    "capture_completed": false,
+    "error": "TimeoutExpired: Command '['xdotool', 'exec', '--sync', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py', '--mark', 'idle-done']' timed out after 3.0033738340134732 seconds",
+    "scope": "Partial original input_warm; inputpaging/held/reverse/End recorded, failed200second recorder deadline atidle-done beforeB/A; no warmjourney pass",
+    "profile_export": {
+      "started_monotonic": 419381.600131516,
+      "finished_monotonic": 419381.888933997,
+      "returncode": 0,
+      "remaining_owned_pids": [],
+      "bytes": 17792265
+    },
+    "input_paging": {
+      "checks": {
+        "input_remains_focused": true,
+        "original_editor_window_and_mode": true,
+        "draft_and_caret_preserved": true,
+        "input_pageup_moves_history": true,
+        "input_pagedown_moves_history": true,
+        "input_pageup_reaches_original_window": true,
+        "input_pagedown_reaches_original_window": true
+      },
+      "native_checks_passed": true,
+      "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+      "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+    },
+    "stationary_last10": [
+      {
+        "label": "input-mid-history-idle-done",
+        "start_seconds": 45.839819750981405,
+        "end_seconds": 55.839819750981405,
+        "event_counts": {
+          "sidebar_publication_start": 10,
+          "sidebar_publication_done": 10
+        },
+        "scope": "last10seconds only; first observer and source settle work excluded"
+      },
+      {
+        "label": "idle-done",
+        "start_seconds": 171.52830405597342,
+        "end_seconds": 181.52830405597342,
+        "event_counts": {
+          "relocating": 20,
+          "relocated": 20,
+          "sidebar_publication_start": 10,
+          "sidebar_publication_done": 10
+        },
+        "scope": "last10seconds only; first observer and source settle work excluded",
+        "relocation_detail": {
+          "events": 20,
+          "compensation_values": [
+            0
+          ],
+          "tracked_position_values": [
+            243
+          ],
+          "predicted_rows_values": [
+            0
+          ],
+          "demand": "StationaryPreparation",
+          "source": "original scroll-travel.jsonl exact171.528\u2013181.528s",
+          "scope": "Not zero geometry work; no reader travel or requested/admitted/materialized/retired bodies in this interval"
+        }
+      }
+    ],
+    "native_handler_writer_intervals": [
+      {
+        "phase": "input-held-up",
+        "handler_start_seconds": 32.540699547,
+        "handler_end_seconds": 36.300270709,
+        "handler_events": 79,
+        "writer_completions": 61,
+        "inter_writer": {
+          "count": 60,
+          "median_ms": 22.15,
+          "p95_ms": 242.7,
+          "p99_ms": 259.07,
+          "max_ms": 284.83
+        }
+      },
+      {
+        "phase": "input-held-down",
+        "handler_start_seconds": 64.769113626,
+        "handler_end_seconds": 69.64488974,
+        "handler_events": 107,
+        "writer_completions": 62,
+        "inter_writer": {
+          "count": 61,
+          "median_ms": 28.51,
+          "p95_ms": 244.21,
+          "p99_ms": 286.81,
+          "max_ms": 564.64
+        }
+      },
+      {
+        "phase": "reverse",
+        "handler_start_seconds": 128.457154765,
+        "handler_end_seconds": 135.222733736,
+        "handler_events": 154,
+        "writer_completions": 77,
+        "inter_writer": {
+          "count": 76,
+          "median_ms": 41.01,
+          "p95_ms": 316.23,
+          "p99_ms": 423.77,
+          "max_ms": 618.69
+        }
+      }
+    ],
+    "marked_kernel_cpu_and_faults": [
+      {
+        "label": "warm-ready",
+        "elapsed_seconds": 3.81877059902763,
+        "ui_cpu_percent": 71.22711169643424,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 4471
+      },
+      {
+        "label": "sidebar-revealed",
+        "elapsed_seconds": 2.894458181981463,
+        "ui_cpu_percent": 24.875121861567457,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 391
+      },
+      {
+        "label": "warm-start",
+        "elapsed_seconds": 9.661287845985498,
+        "ui_cpu_percent": 25.048420444336198,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 462
+      },
+      {
+        "label": "draft",
+        "elapsed_seconds": 3.097570210986305,
+        "ui_cpu_percent": 25.181027284984104,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 137
+      },
+      {
+        "label": "travel-start",
+        "elapsed_seconds": 3.0117895180010237,
+        "ui_cpu_percent": 24.570110081635153,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 779
+      },
+      {
+        "label": "input-held-up",
+        "elapsed_seconds": 7.458199605054688,
+        "ui_cpu_percent": 68.6492755775803,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 15499
+      },
+      {
+        "label": "input-held-up-done",
+        "elapsed_seconds": 18.88946188997943,
+        "ui_cpu_percent": 37.74591378795368,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 12287
+      },
+      {
+        "label": "input-mid-history-idle-done",
+        "elapsed_seconds": 4.5154582359828055,
+        "ui_cpu_percent": 28.12560616505358,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 232
+      },
+      {
+        "label": "input-held-down",
+        "elapsed_seconds": 9.931028352002613,
+        "ui_cpu_percent": 62.12851057620638,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 11870
+      },
+      {
+        "label": "input-held-down-done",
+        "elapsed_seconds": 5.804122926027048,
+        "ui_cpu_percent": 25.154532710756666,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 1812
+      },
+      {
+        "label": "focused",
+        "elapsed_seconds": 10.431221350969281,
+        "ui_cpu_percent": 23.9665127973504,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 1865
+      },
+      {
+        "label": "up",
+        "elapsed_seconds": 11.117009281006176,
+        "ui_cpu_percent": 63.50628862082786,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 12004
+      },
+      {
+        "label": "up-done",
+        "elapsed_seconds": 5.908594458014704,
+        "ui_cpu_percent": 70.40591513870393,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 6863
+      },
+      {
+        "label": "down",
+        "elapsed_seconds": 12.38101834000554,
+        "ui_cpu_percent": 66.55349159264969,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 13652
+      },
+      {
+        "label": "down-done",
+        "elapsed_seconds": 6.388027542969212,
+        "ui_cpu_percent": 45.39742479964407,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 2798
+      },
+      {
+        "label": "reverse",
+        "elapsed_seconds": 13.579010542016476,
+        "ui_cpu_percent": 64.58497084793967,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 17793
+      },
+      {
+        "label": "reverse-done",
+        "elapsed_seconds": 7.026973407017067,
+        "ui_cpu_percent": 60.05430440061077,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 5452
+      },
+      {
+        "label": "end",
+        "elapsed_seconds": 14.942889533005655,
+        "ui_cpu_percent": 38.546761570293306,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 4973
+      },
+      {
+        "label": "idle",
+        "elapsed_seconds": 23.66313033597544,
+        "ui_cpu_percent": 22.39771291772975,
+        "major_fault_delta": 0,
+        "minor_fault_delta": 2388
+      }
+    ],
+    "enqueue_to_writer": {
+      "count": 821,
+      "median_ms": 1.74,
+      "p95_ms": 10.61,
+      "p99_ms": 17.64,
+      "max_ms": 32.23
+    },
+    "profile": {
+      "sample_count": 2554,
+      "sampling_errors": 0,
+      "sampling_quality": "no reported sampling errors",
+      "alignment_nominal_uncertainty_seconds": 0.030960895490134137,
+      "trace": "cpu-profile.json",
+      "limits": [
+        "Scheduler delays and sampling errors can increase clock uncertainty",
+        "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+        "Default thread selection measures sampled wall stacks; parallel waiting spans are not process CPU attribution",
+        "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+        "Threads remain separate; recursive frame identities count once per observed stack",
+        "Kernel counter deltas give per-process CPU time at action boundaries",
+        "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+        "No automatic inference that a UI frame passed or a function is redundant"
+      ]
+    },
+    "during_visual_review": [
+      {
+        "recorder_pid": 3990089,
+        "recorder_alive": true,
+        "review_monotonic": 419236.435783506,
+        "frames": [
+          "live-2-4-frames.png",
+          "phase-warm-start.png"
+        ],
+        "source_interval_seconds": [
+          4,
+          5
+        ],
+        "assessment": "Personally viewed consecutive startup/loading frames DURING; body not yet ready at4\u20135s. Warm-start13.72s screenshot body and roster readable. These are startup/retained source observations, not smooth-scroll proof."
+      },
+      {
+        "recorder_pid": 3990089,
+        "recorder_alive": true,
+        "review_monotonic": 419263.925371134,
+        "frames": [
+          "live-12-12-frames.png"
+        ],
+        "source_interval_seconds": [
+          31,
+          32
+        ],
+        "assessment": "Personally inspected60consecutiveframes DURING input-heldUp/postkey boundary. Real body and roster remain readable; discrete jumps and repeated holds, not smoothness/144Hz acceptance. Reduced grid cannot establish emulator frame timing."
+      },
+      {
+        "recorder_pid": 3990089,
+        "recorder_alive": true,
+        "review_monotonic": 419285.457706403,
+        "frames": [
+          "live-19-20-frames.png",
+          "phase-input-mid-history-idle-done.png"
+        ],
+        "source_interval_seconds": [
+          63,
+          64
+        ],
+        "assessment": "Personally inspected Down consecutiveframes and prior idle screenshot DURING. Body and roster readable; discrete moves/holds persist. Mid-history source remains nra, original draft visible, no entire-body blank at snapshot. Not motion/FPS acceptance."
+      },
+      {
+        "recorder_pid": 3990089,
+        "recorder_alive": true,
+        "review_monotonic": 419335.108053751,
+        "frames": [
+          "live-27-25-frames.png"
+        ],
+        "source_interval_seconds": [
+          90,
+          91
+        ],
+        "assessment": "Personally inspected history-focus Up sequence DURING, after original input paging. Content progresses in discrete steps with holds; roster/chrome remains painted. No full void observed in these frames, not smoothness proof."
+      },
+      {
+        "recorder_pid": 3990089,
+        "recorder_alive": true,
+        "review_monotonic": 419358.030668822,
+        "frames": [
+          "live-37-31-frames.png"
+        ],
+        "source_interval_seconds": [
+          127,
+          128
+        ],
+        "assessment": "Personally inspected reverse consecutiveframes DURING. Chat/chrome remain readable; source advances in discrete jumps with holds, not smoothness. No entire-body void observed in these frames."
+      },
+      {
+        "recorder_pid": 3990089,
+        "recorder_alive": true,
+        "review_monotonic": 419384.610378001,
+        "frames": [
+          "phase-idle.png"
+        ],
+        "phase_seconds": 157.87,
+        "assessment": "Personally viewed End/idle snapshot DURING. Actual nra chat/roster/draft readable at destination; no body blank at this snapshot. Not entire-phase motion proof."
+      }
+    ],
+    "original_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 3963688,
+        "start_time": 41850726
+      },
+      "original_owner_alive": true
+    },
+    "original_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 3963688,
+        "start_time": 41850726
+      },
+      "original_owner_alive": true
+    },
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "physical_assessment": "Personally viewed consecutive Up31\u201332/Down63\u201364/historyUp90\u201391/reverse127\u2013128 and mididle/End snapshots DURING. Real body/roster readable but discrete movement and holds; no smoothnessclaim. Startup4\u20135 loading also observed."
+  },
+  "row_lifetime_run": {
+    "raw": "/home/ts/.cache/agent-scratch/sidebar323-row-lifetime-public-20261002-02/capture",
+    "duration_seconds": 41.320703450008295,
+    "completed": true,
+    "capture_completed": true,
+    "capture_returncode": 255,
+    "capture_returncode_scope": "FFmpeg normalSIGINT255, not Toad fatal/UIexit proof",
+    "runtime_unchanged": true,
+    "review": {
+      "checks": {
+        "original_saved_history_loaded": true,
+        "peer_saved_history_loaded": true,
+        "peer_selected": true,
+        "source_view_retained": true,
+        "editor_retained": true,
+        "history_window_retained": true,
+        "draft_typed": true,
+        "draft_retained_on_return": true,
+        "undo_restored_original_draft": true,
+        "returned_saved_body_ready": true,
+        "end_saved_body_ready": true
+      },
+      "native_checks_passed": true,
+      "phases": {
+        "warm-start": {
+          "label": "warm-start",
+          "mode": "session-1",
+          "editor": 139879400778128,
+          "text": "",
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "window": 139879162418256,
+          "focused_widget": 139879400778128,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 238
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 16,
+              "stop": 20
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41294021,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 277
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 18
+            }
+          ],
+          "scroll_y": 128,
+          "maximum": 128,
+          "follows_tail": true,
+          "bodies": [
+            {
+              "object_id": 139878674946064,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878694726672,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878687009808,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878674945104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674955344,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139879101156560,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 22
+            },
+            {
+              "object_id": 139878686536912,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674942224,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139878686534992,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674953104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878686539152,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139879101168080,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 5
+            },
+            {
+              "object_id": 139878648439312,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674948624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674943504,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688124560,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674951824,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674940624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674944784,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878648440592,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878688125840,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674941904,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 3
+            }
+          ]
+        },
+        "draft": {
+          "label": "draft",
+          "mode": "session-1",
+          "editor": 139879400778128,
+          "text": "warm-scroll-draft",
+          "selection": [
+            [
+              0,
+              17
+            ],
+            [
+              0,
+              17
+            ]
+          ],
+          "window": 139879162418256,
+          "focused_widget": 139879400778128,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 238
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 16,
+              "stop": 20
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41294021,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 277
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 18
+            }
+          ],
+          "scroll_y": 128,
+          "maximum": 128,
+          "follows_tail": true,
+          "bodies": [
+            {
+              "object_id": 139878674946064,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878694726672,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878687009808,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878674945104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674955344,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139879101156560,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 22
+            },
+            {
+              "object_id": 139878686536912,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674942224,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139878686534992,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674953104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878686539152,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139879101168080,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 5
+            },
+            {
+              "object_id": 139878648439312,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674948624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674943504,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688124560,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674951824,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674940624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674944784,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878648440592,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878688125840,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674941904,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 3
+            }
+          ]
+        },
+        "reader-before-return": {
+          "label": "reader-before-return",
+          "mode": "session-1",
+          "editor": 139879400778128,
+          "text": "warm-scroll-draft",
+          "selection": [
+            [
+              0,
+              17
+            ],
+            [
+              0,
+              17
+            ]
+          ],
+          "window": 139879162418256,
+          "focused_widget": 139879162418256,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 238
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 12,
+              "stop": 20
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41294021,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 277
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 18
+            }
+          ],
+          "scroll_y": 136.0,
+          "maximum": 168,
+          "follows_tail": false,
+          "bodies": [
+            {
+              "object_id": 139878674946064,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878694726672,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878687009808,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878674945104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674955344,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139879101156560,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 22
+            },
+            {
+              "object_id": 139878686536912,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101161360,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674942224,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139878686534992,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674953104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878686539152,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139879101168080,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 5
+            },
+            {
+              "object_id": 139878648439312,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674948624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878694724112,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674943504,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688124560,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674951824,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674940624,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674944784,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878648440592,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101163280,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878694724432,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688125840,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674941904,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 3
+            }
+          ]
+        },
+        "b-open": {
+          "label": "b-open",
+          "mode": "session-2",
+          "editor": 139878648437072,
+          "text": "",
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "window": 139878638763728,
+          "focused_widget": 139878648437072,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl",
+                  "offset": 146058002,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "agent-comms-ux",
+                      "created_at": 1790049004.0955005
+                    },
+                    "sequence": 259
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl",
+                  "offset": 146086525,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "agent-comms-ux",
+                      "created_at": 1790049004.0955005
+                    },
+                    "sequence": 350
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 6,
+              "stop": 18
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "",
+                  "offset": 0,
+                  "receipts": null,
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "",
+                  "offset": 0,
+                  "receipts": null,
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 1
+            }
+          ],
+          "scroll_y": 144,
+          "maximum": 144,
+          "follows_tail": true,
+          "bodies": [
+            {
+              "object_id": 139878173642256,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 18
+            },
+            {
+              "object_id": 139878173646416,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 22
+            },
+            {
+              "object_id": 139878172422736,
+              "ready": true,
+              "dormant": false,
+              "visible": false,
+              "measured_rows": 20
+            },
+            {
+              "object_id": 139878172419216,
+              "ready": true,
+              "dormant": false,
+              "visible": false,
+              "measured_rows": 14
+            },
+            {
+              "object_id": 139878174709456,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878174711056,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878173640976,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 13
+            },
+            {
+              "object_id": 139878172422416,
+              "ready": true,
+              "dormant": false,
+              "visible": false,
+              "measured_rows": 29
+            },
+            {
+              "object_id": 139878172421456,
+              "ready": true,
+              "dormant": false,
+              "visible": false,
+              "measured_rows": 19
+            },
+            {
+              "object_id": 139878174716816,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878174709136,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 12
+            },
+            {
+              "object_id": 139878174710736,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 3
+            }
+          ]
+        },
+        "a-return": {
+          "label": "a-return",
+          "mode": "session-1",
+          "editor": 139879400778128,
+          "text": "warm-scroll-draft",
+          "selection": [
+            [
+              0,
+              17
+            ],
+            [
+              0,
+              17
+            ]
+          ],
+          "window": 139879162418256,
+          "focused_widget": 139879400778128,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 238
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 12,
+              "stop": 20
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41294021,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 277
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 18
+            }
+          ],
+          "scroll_y": 136.0,
+          "maximum": 165,
+          "follows_tail": false,
+          "bodies": [
+            {
+              "object_id": 139878674946064,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878694726672,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878687009808,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878674945104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674955344,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139879101156560,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878686536912,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101161360,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674942224,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139878686534992,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674953104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878686539152,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 19
+            },
+            {
+              "object_id": 139879101168080,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 5
+            },
+            {
+              "object_id": 139878648439312,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674948624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878694724112,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674943504,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688124560,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674951824,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674940624,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674944784,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878648440592,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101163280,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878694724432,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688125840,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674941904,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 3
+            }
+          ]
+        },
+        "undo": {
+          "label": "undo",
+          "mode": "session-1",
+          "editor": 139879400778128,
+          "text": "",
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "window": 139879162418256,
+          "focused_widget": 139879400778128,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 238
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 12,
+              "stop": 20
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41294021,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 277
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 18
+            }
+          ],
+          "scroll_y": 136.0,
+          "maximum": 165,
+          "follows_tail": false,
+          "bodies": [
+            {
+              "object_id": 139878674946064,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878694726672,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878687009808,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878674945104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674955344,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139879101156560,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878686536912,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101161360,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674942224,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139878686534992,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674953104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878686539152,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 19
+            },
+            {
+              "object_id": 139879101168080,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 5
+            },
+            {
+              "object_id": 139878648439312,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674948624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878694724112,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674943504,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688124560,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674951824,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674940624,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674944784,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878648440592,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101163280,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878694724432,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688125840,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674941904,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 3
+            }
+          ]
+        },
+        "lifetime-end": {
+          "label": "lifetime-end",
+          "mode": "session-1",
+          "editor": 139879400778128,
+          "text": "",
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "window": 139879162418256,
+          "focused_widget": 139879400778128,
+          "loaded_pages": 2,
+          "admissions": [
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 238
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 12,
+              "stop": 20
+            },
+            {
+              "interval": {
+                "before": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41270257,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 269
+                  },
+                  "outcomes": null
+                },
+                "through": {
+                  "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+                  "offset": 41294021,
+                  "receipts": {
+                    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+                    "recipient": {
+                      "name": "nra-architecture",
+                      "created_at": 1790049182.3907015
+                    },
+                    "sequence": 277
+                  },
+                  "outcomes": null
+                }
+              },
+              "start": 0,
+              "stop": 18
+            }
+          ],
+          "scroll_y": 165,
+          "maximum": 165,
+          "follows_tail": true,
+          "bodies": [
+            {
+              "object_id": 139878674946064,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878694726672,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 6
+            },
+            {
+              "object_id": 139878687009808,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 8
+            },
+            {
+              "object_id": 139878674945104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674955344,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139879101156560,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878686536912,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101161360,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674942224,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 11
+            },
+            {
+              "object_id": 139878686534992,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674953104,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878686539152,
+              "ready": true,
+              "dormant": false,
+              "visible": true,
+              "measured_rows": 19
+            },
+            {
+              "object_id": 139879101168080,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 5
+            },
+            {
+              "object_id": 139878648439312,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674948624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878694724112,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878674943504,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688124560,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674951824,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878674940624,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 4
+            },
+            {
+              "object_id": 139878674944784,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139878648440592,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 7
+            },
+            {
+              "object_id": 139879101163280,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878694724432,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 10
+            },
+            {
+              "object_id": 139878688125840,
+              "ready": true,
+              "dormant": true,
+              "visible": true,
+              "measured_rows": 2
+            },
+            {
+              "object_id": 139878674941904,
+              "ready": true,
+              "dormant": true,
+              "visible": false,
+              "measured_rows": 3
+            }
+          ]
+        }
+      },
+      "physical_assessment": "unreviewed; inspect actual A/B/A and End PNGs/video",
+      "scope": "saved application/source/resource lifetime, not warm raster/FPS/reader qualification",
+      "events": [
+        {
+          "label": "warm-ready",
+          "video_seconds": 6.107325365010183,
+          "screenshot": "phase-warm-ready.png"
+        },
+        {
+          "label": "sidebar-revealed",
+          "video_seconds": 8.593635327008087,
+          "screenshot": "phase-sidebar-revealed.png"
+        },
+        {
+          "label": "warm-start",
+          "video_seconds": 10.096893462003209,
+          "screenshot": "phase-warm-start.png"
+        },
+        {
+          "label": "draft",
+          "video_seconds": 15.169832279963885,
+          "screenshot": "phase-draft.png"
+        },
+        {
+          "label": "reader-before-return",
+          "video_seconds": 18.953806082019582,
+          "screenshot": "phase-reader-before-return.png"
+        },
+        {
+          "label": "switch-b",
+          "video_seconds": 20.493285914999433,
+          "screenshot": "phase-switch-b.png"
+        },
+        {
+          "label": "b-open",
+          "video_seconds": 26.12098311301088,
+          "screenshot": "phase-b-open.png"
+        },
+        {
+          "label": "return-a",
+          "video_seconds": 27.39560867199907,
+          "screenshot": "phase-return-a.png"
+        },
+        {
+          "label": "a-return",
+          "video_seconds": 31.077189978968818,
+          "screenshot": "phase-a-return.png"
+        },
+        {
+          "label": "undo",
+          "video_seconds": 34.73179288499523,
+          "screenshot": "phase-undo.png"
+        },
+        {
+          "label": "lifetime-end",
+          "video_seconds": 38.57437800697517,
+          "screenshot": "phase-lifetime-end.png"
+        }
+      ]
+    },
+    "original_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 3963688,
+        "start_time": 41850726
+      },
+      "original_owner_alive": true
+    },
+    "original_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 3963688,
+        "start_time": 41850726
+      },
+      "original_owner_alive": true
+    },
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": []
+    },
+    "during_visual_review": [
+      {
+        "recorder_pid": 4000472,
+        "recorder_alive": true,
+        "review_monotonic": 419517.234643735,
+        "frames": [
+          "phase-reader-before-return.png"
+        ],
+        "phase_seconds": 19.0,
+        "assessment": "Personally viewed actual saved nra body/roster/draft DURING narrow lifetime run. SinglePageUp readable, no entirebodyblank at snapshot. Not heldscroll/FPS proof."
+      }
+    ],
+    "physical_assessment": "Actual reader-before-return savedbody/roster/draft inspected DURING; AreturnPNG personally inspected AFTER completed run, selectedoriginalnra/body/draft readable. This narrow12check existingfamily fills only missing Bclick/Areturn/Undo/End; not fullwarmraster/reader/FPS qualification."
+  },
+  "limits": [
+    "No full input_warm pass; original incomplete receipt preserved unchanged.",
+    "Native processed handler span is not exact physical keydown/up/input-to-paint.",
+    "Kernel marked phases include diagnostic/state export and delayed work; durations/core/workload differ from322. No causal overallCPU gain claim.",
+    "Writer enqueue/completion is not emulator presented/changedframe rate; globalheartbeat not motion.",
+    "Chrome transition counts are not samples/calls/CPUshares.",
+    "Current public workload is readonly actualowners; no synthetic/provider traffic created. Concurrentbusy compaction not claimed."
+  ],
+  "unfinished_scope": "FullCPU/144Hz/warmcoldfirstpaint/raster/velocity3runway/reverseEnd/growingendvoid/focus/sidebarbusy/animation/TC1T9T4 and sourceworkspace custody remain active",
+  "raw_receipt_sha256": {
+    "/home/ts/.cache/agent-scratch/sidebar323-scroll26-public-20261002-01/capture/receipt.json": "d62d8674f67860e1941d1cf5f63701598728c889a27f9e2b590ff4abefd4f7d3",
+    "/home/ts/.cache/agent-scratch/sidebar323-row-lifetime-public-20261002-02/capture/receipt.json": "08ce12fa578eda87deb50c68ccc624e48cc8e7cd05c7742d3999be0257ccee57"
+  }
+}
