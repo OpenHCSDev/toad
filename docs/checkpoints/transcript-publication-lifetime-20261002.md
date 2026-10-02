@@ -111,7 +111,10 @@ remained owned by that source.
 
 Original owner2644125/start37571603 and native source42,145,087B/
 SHAe600d879 were unchanged before/after this readonly run. Operator/capture
-exit0, cleanup remainingPIDs/errors empty. Native input was not sent. The
+operator and terminal exit0, cleanup remainingPIDs/errors empty. The video
+recorder exited255 after its owned SIGINT stop, explicitly accepted by existing
+record_installed_tui.py1469-1473; that is not the terminal's disposition.
+Native input was not sent. The
 committed receipt is `physical03-qualification.json` beside the installed-family
 evidence; original raw recording and failures remain private and protected.
 

@@ -1,0 +1,71 @@
+{
+  "state": "PASS_SCOPED_INSTALLED_SOURCE_LIFETIME_AND_READONLY_PHYSICAL_ABA",
+  "production_head": "fff8015fe54eacf4e9d965eb90c91194222237a4",
+  "receiving_head": "c97255e80fd8a32dff312a44c24cddc01b12d29e",
+  "core": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99",
+  "textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "capture": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture",
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "physical_review_by": "Schrodinger; personally viewed original B-open, A-return and lifetime-End PNGs",
+  "images": [
+    {
+      "name": "phase-b-open.png",
+      "sha256": "531bfe6ff25bad0defede67220a55d54219df81b65df07d84cb78c8191d07df7"
+    },
+    {
+      "name": "phase-a-return.png",
+      "sha256": "28537dc128f61db60a8c069b9bef14204308ef3209ec106400c71679a71a9cb1"
+    },
+    {
+      "name": "phase-lifetime-end.png",
+      "sha256": "2c6ab6349773203cdade79ffb2d988af84b137ccb04490a34535739096c60a2b"
+    }
+  ],
+  "observed_pixels": {
+    "B": "agent-comms-ux saved outbound/handling readable",
+    "A": "canonical501 Original Request, inherited OpenHCS identity, retained warm-scroll-draft",
+    "End": "original Compaction501UI20261001-one acknowledged. and Ready"
+  },
+  "original_before": {
+    "pid": 2644125,
+    "start_ticks": 37571603,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 378761.601249282
+  },
+  "original_after": {
+    "pid": 2644125,
+    "start_ticks": 37571603,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 378810.233945635
+  },
+  "original_unchanged": true,
+  "cleanup_remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "operator_returncode": 0,
+  "terminal_returncode": 0,
+  "video_capture_returncode": 255,
+  "video_capture_disposition": "ffmpeg stopped via SIGINT; existing record_installed_tui.py1469-1473 explicitly admits0/255, not a TUI failure",
+  "no_new_native_input": true,
+  "observer_correction": "Removed independent serialization-history-lock-unlocked predicate; native tree/body/current frame and FrameFlush fences retained",
+  "preserved_failure02_holder": "UNKNOWN; no deadlock or healthy-holder claim",
+  "scope": "application/source/resource lifetime; not raster/FPS/globalCPU or performance284 readiness",
+  "raw_receipt_sha256": "be6f00c08ec5570d60bda6250b78527cedcd604d892d7fea9531f14de3f92565",
+  "raw_review_sha256": "f09fc85d8bb29045c00d2be286f87040e054680f50889a79a80386d8f0434d52"
+}
