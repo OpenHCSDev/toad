@@ -980,7 +980,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         self, event: ObservedThreadActivity.Changed
     ) -> None:
         event.stop()
-        if not event.current:
+        if not event.current or event.unavailable:
             return
         if event.presentation is not None:
             from toad.transcript_publication import ObservedSourcePublication

@@ -82,6 +82,7 @@ async def declaration_case():
             await self.release.wait()
             if self.current():
                 await self.contents.mount(AgentResponse('Declared publication painted'))
+            return True
 
     class HeldSourcePublication(CanonicalSourcePublication):
         """Hold an actual certified read before its application admission."""

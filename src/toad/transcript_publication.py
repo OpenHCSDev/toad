@@ -69,7 +69,7 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
-    async def publish(self) -> None:
+    async def publish(self) -> bool:
         """Join original UI application before capturing source-transfer custody.
 
         Ordered ACP ingress can already report a settled source while its
@@ -78,7 +78,7 @@ class TranscriptPublication(ABC):
         preparation start after the join, with the same actor and generation.
         """
         if not self.current():
-            return
+            return True
         view = self.owner.view
         pump = view.task
         if asyncio.current_task() is pump:
@@ -86,19 +86,27 @@ class TranscriptPublication(ABC):
             # source worker must perform the join; waiting here blocks the very
             # messages whose resource custody the source needs to capture.
             self.owner.source_requests.submit(self)
-            return
-        from agent_comms.coordination_errors import StaleRevision
+            return True
+        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
         from agent_comms.errors import UnregisteredThreadError
 
         try:
             if await self.capture_application():
-                await self.publish_applied()
+                return await self.publish_applied()
+        except CoordinationReadUnavailable:
+            # No source snapshot was acquired. Keep the original operation,
+            # mounted history and admission unchanged until a new observation
+            # or the existing preparation completion resumes source work.
+            if self.current():
+                self.owner.source_requests.defer(self)
+                return False
         except (StaleRevision, UnregisteredThreadError):
             # The original backend read lost its source. Every publication
             # declines it here; only a new observation can admit another read.
-            return
+            return True
         except (OSError, ValueError) as error:
             self.report_failure(error)
+        return True
 
     def report_failure(self, error: Exception) -> None:
         """Keep genuine read/preparation failures distinct from retirement."""
@@ -132,7 +140,7 @@ class TranscriptPublication(ABC):
             applied.cancel()
 
     @abstractmethod
-    async def publish_applied(self) -> None: ...
+    async def publish_applied(self) -> bool: ...
 
 
 class SnapshotPublication(TranscriptPublication):
@@ -154,9 +162,10 @@ class SnapshotPublication(TranscriptPublication):
             self.owner.require_checkpoint()
         return False
 
-    async def publish_applied(self) -> None:
+    async def publish_applied(self) -> bool:
         # The original supplied page is already known at the inherited join.
         await self.publish_page()
+        return True
 
     async def publish_page(self) -> None:
         """Admit this operation's known cut and original applied resource cohort."""
@@ -226,20 +235,21 @@ class SnapshotPublication(TranscriptPublication):
 class HandlingPublication(TranscriptPublication):
     """Render original recipient outcomes on existing original source bodies."""
 
-    async def publish_applied(self) -> None:
+    async def publish_applied(self) -> bool:
         from toad.widgets.wire_message_handling import WireMessageHandling
 
         if self.agent is None:
-            return
+            return True
         bodies = WireMessageHandling.within(self.contents)
         references = WireMessageHandling.references_in(bodies)
         if not references:
-            return
+            return True
         results = await self.agent.get_message_notifications(references)
         if self.current():
             for body in bodies:
                 if body.is_attached:
                     body.show_notifications(results)
+        return True
 
 
 class CanonicalSourcePublication(TranscriptPublication):
@@ -248,32 +258,32 @@ class CanonicalSourcePublication(TranscriptPublication):
     async def read_page(self) -> TranscriptPage:
         return await self.agent.get_transcript_page()
 
-    async def publish_applied(self) -> None:
+    async def publish_applied(self) -> bool:
         if self.agent is None or not self.agent.transcript_ready:
-            return
+            return True
         page = await self.read_page()
         # The known native cut and its applied original resources meet here.
         # An expired application cannot publish this read; it is not a stale
         # backend revision and must not escape as a failed Textual worker.
         if not await self.capture_application():
-            return
+            return True
         bound = self.source_bound(page.after)
         if bound != page.after:
             self.owner.dirty = self.owner.checkpoint_required = True
             page = await self.agent.get_transcript_page(through=bound)
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
-                return
-        await self.publish_source_page(page)
+                return True
+        return await self.publish_source_page(page)
 
-    async def publish_source_page(self, page: TranscriptPage) -> None:
+    async def publish_source_page(self, page: TranscriptPage) -> bool:
         # Supplied snapshots capture their own application boundary. This
         # original read already joined and retains that exact resource cohort.
         snapshot = SnapshotPublication(self.owner, self.owner.view,
                                        self.window, self.contents, page)
         snapshot.captured = self.captured
         await snapshot.publish_page()
-        await self.owner.publish(HandlingPublication)
+        return await self.owner.publish(HandlingPublication)
 
 
 class ObservedSourcePublication(CanonicalSourcePublication):
@@ -285,12 +295,13 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         identity = self.presentation.read_identity
         return await self.agent.get_transcript_page(read_identity=identity)
 
-    async def publish_applied(self) -> None:
+    async def publish_applied(self) -> bool:
         if self.agent is None:
-            return
+            return True
         await self.agent.observe_thread_presentation(self.presentation)
         if self.current():
-            await super().publish_applied()
+            return await super().publish_applied()
+        return True
 
 
 class SourcePublicationRequests:
@@ -312,15 +323,36 @@ class SourcePublicationRequests:
         if self.pending.full():
             self.pending.get_nowait()
         self.pending.put_nowait(publication)
+        self.resume()
+
+    def defer(self, publication: TranscriptPublication) -> None:
+        """Retain a busy original read without replacing newer source work."""
+        if self.pending.empty():
+            self.pending.put_nowait(publication)
+        view = self.owner.view
+        view.app.coordination_observed.unsubscribe(view)
+        view.app.coordination_observed.subscribe(view, self.resume)
+
+    def resume(self, _event=None) -> bool:
+        """Resume retained work only at an existing source/preparation signal."""
+        if self.pending.empty():
+            return False
         if self.worker is None or self.worker.is_finished:
-            self.worker = self.owner.view.run_worker(self.publish, group="transcript-source")
+            view = self.owner.view
+            view.app.coordination_observed.unsubscribe(view)
+            self.worker = view.run_worker(self.publish, group="transcript-source")
+        return True
 
     async def publish(self) -> None:
         while not self.pending.empty():
             publication = self.pending.get_nowait()
-            await publication.publish()
+            if not await publication.publish():
+                return
 
     def cancel(self) -> Worker[None] | None:
+        view = self.owner.view
+        if view is not None:
+            view.app.coordination_observed.unsubscribe(view)
         while not self.pending.empty():
             self.pending.get_nowait()
         worker, self.worker = self.worker, None
@@ -361,15 +393,16 @@ class CheckpointPublication(CanonicalSourcePublication):
                           if child is not history and isinstance(child, CommitParticipant))
         return self.plan.ready(history) and self.plan.permits(view, potential)
 
-    async def publish_applied(self) -> None:
+    async def publish_applied(self) -> bool:
         if self.admitted():
-            await super().publish_applied()
+            return await super().publish_applied()
+        return True
 
     def report_failure(self, error: Exception) -> None:
         if self.current():
             self.owner.view.notify(str(error), title="Committed history", severity="error")
 
-    async def publish_source_page(self, page: TranscriptPage) -> None:
+    async def publish_source_page(self, page: TranscriptPage) -> bool:
         from toad.widgets.committed_presentation import (
             CommitEvidence,
             CommittedHistory,
@@ -379,10 +412,10 @@ class CheckpointPublication(CanonicalSourcePublication):
 
         view = self.owner.view
         if view is None:
-            return
+            return True
         window, contents = self.window, self.contents
         if not self.admitted():
-            return
+            return True
         plan = self.plan
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
@@ -393,10 +426,10 @@ class CheckpointPublication(CanonicalSourcePublication):
         )
         is_current = partial(self.source_current, page.after)
         if not page.events or not is_current():
-            return
+            return True
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
-            return
+            return True
         evidence = CommitEvidence(
             self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
@@ -409,7 +442,7 @@ class CheckpointPublication(CanonicalSourcePublication):
                 or not plan.ready(prepared.history)
                 or not plan.permits(view, retired)
             ):
-                return
+                return True
             async with plan.publication(view, prepared):
                 replacement = None
                 accepted = False
@@ -423,12 +456,12 @@ class CheckpointPublication(CanonicalSourcePublication):
                         )
                         await contents.mount(replacement, before=0)
                     if not is_current():
-                        return
+                        return True
                     # Identity-backed arrivals during a mount may now be covered;
                     # ordinary late arrivals remain outside the captured cohort.
                     retired = retirement_candidates(contents.children, evidence)
                     if not plan.permits(view, retired):
-                        return
+                        return True
                     plan.commit(prepared, page.after)
                     if replacement is not None:
                         replacement.publish_committed()
@@ -444,11 +477,12 @@ class CheckpointPublication(CanonicalSourcePublication):
                     ):
                         await replacement.remove()
         if not window.is_attached or not contents.is_attached:
-            return
+            return True
         if self.native_current():
             self.owner.dirty = False
             self.owner.checkpoint_required = False
         plan.finish(view, page.after)
+        return True
 
 
 
@@ -542,10 +576,11 @@ class TranscriptPresentation:
             return None
         return kind(self, view, window, contents, *args)
 
-    async def publish(self, kind: type[TranscriptPublication], *args) -> None:
+    async def publish(self, kind: type[TranscriptPublication], *args) -> bool:
         publication = self.capture(kind, *args)
         if publication is not None and publication.current():
-            await publication.publish()
+            return await publication.publish()
+        return True
 
     async def snapshot(self, page: TranscriptPage) -> None:
         await self.publish(SnapshotPublication, page)
@@ -610,6 +645,8 @@ class TranscriptPresentation:
                             group="transcript-handling", exclusive=True)
 
     def retry(self) -> None:
+        if self.source_requests.resume():
+            return
         if not self.dirty or self.worker is not None and not self.worker.is_finished:
             return
         publication = self.capture(CheckpointPublication)

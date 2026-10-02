@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable
 
 from toad.screens.session_view import SessionView
 from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.coordination_errors import CoordinationReadUnavailable
 from textual.message import Message
 from textual.widgets import Static
 
@@ -80,6 +81,14 @@ class ObservedThreadActivity(Static):
             read = self._pending_reads.get_nowait()
             try:
                 presentation, unavailable = await read(), False
+            except CoordinationReadUnavailable:
+                if read is self.read and self.is_attached:
+                    if self._pending_reads.empty():
+                        self._pending_reads.put_nowait(read)
+                    self._publish(self.presentation, True)
+                # The original coordination observer resumes this same read;
+                # a busy snapshot supplies neither absence nor fresh status.
+                return
             except Exception:
                 presentation, unavailable = None, True
             if (read is not self.read or not self.is_attached
