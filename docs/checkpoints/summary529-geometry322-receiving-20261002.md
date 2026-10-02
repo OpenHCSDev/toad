@@ -20,3 +20,11 @@ Parent executes the single command in `evidence/summary529-geometry322-receiving
 The unpublished standalone324 prefix and receipts remain intact; its publisher was never executed and is superseded for publication by this combined plan. `activation.staging_receipt` points to the verified installed source proof; READY remains separate. Initial copied metadata descriptions were corrected at the existing producer, with their preimage preserved, before freezing the publication plan. Package bytes and qualification proofs are unchanged.
 
 See `evidence/summary529-geometry322-receiving-20261002/ready-receipt.json` for exact pins and hashes, and the preparation receipt for the single parent command. No323/Text26 or optional520 gate holds this qualified checkpoint.
+
+## Public publication and identity readback
+
+Parent executed the prepared publisher once, session88926 terminal0,44.680s. Raw publication phase remains `retained-batch-launched-configurations-verified-public-ui-pending`. The five links select the combined runtime; route retains the original root/rootID and selects nativead533. All19 exact published PIDs/full process identities were alive, retaining their original thread births, with target-interpreter launch capture verified without exporting credentials.
+
+The complete stored Thread comparison at this later observation differs for `compaction499-live-architecture-memory` in only canonical `turn_generation`34→35 and `last_finished_turn_id`124d6d732048b6a080e0e721e7787de1→dc6987ad2fa834d8f76857e6b82e122e. Configuration, session/model/thinking/tags/worktree/goal and birth fields are unchanged for all19. The publisher already verified exact originals during retained launch; this readback does not infer what triggered the subsequent turn progression. No receipt or source state was restored.
+
+Schema equality877→d6 means whole schema declarations only, not product source equality: the target contains qualified521/529 changes. The recorded761→d6 qualification equality is separate and unchanged. Raw publisher receipt is untouched. Readback performed no provider/input, stop/start or second publication. Parent's ordinary default physical run remains a distinct pending qualification.
