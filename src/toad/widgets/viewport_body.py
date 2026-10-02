@@ -535,23 +535,27 @@ class ViewportPresentation:
               for target in window.document_viewport.geometry_targets()),
         )))
 
-    def has_pending_mutations(self) -> bool:
-        return any(window.history_mutating() for window in self.frame_windows())
+    def has_pending_mutations(self, windows) -> bool:
+        return any(window.history_mutating() for window in windows)
 
     def prepare(self) -> bool:
         screen = self.screen
         if not screen.is_current:
             return True
-        if self.has_pending_mutations():
+        # This synchronous admission consumes one cohort from the original
+        # membership owner. Mutation, body readiness and follow checks don't
+        # independently select the same windows again within the same frame.
+        windows = tuple(self.frame_windows())
+        if self.has_pending_mutations(windows):
             return False
         # Visible source bodies must be ready on every frame, including rapid
         # PageDown/End frames outside a session activation.
-        for window in self.frame_windows():
+        for window in windows:
             if not window.document_viewport.visible_bodies_ready:
                 window.document_viewport.request()
                 return False
         changed = False
-        for window in self.frame_windows():
+        for window in windows:
             changed |= window.check_follow()
         if changed:
             # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
