@@ -1,5 +1,5 @@
 """Post-spinner transcript preparation must not block draft input or tab exit."""
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import asyncio
 import os

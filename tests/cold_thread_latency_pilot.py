@@ -1,5 +1,5 @@
 """Observe post-spinner replay and quiet/updated tab returns without a provider."""
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import argparse
 import asyncio

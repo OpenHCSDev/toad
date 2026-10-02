@@ -15,7 +15,8 @@ from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
-from . import api, messages
+from toad.core import events as messages
+from . import api
 from toad import jsonrpc
 from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
@@ -175,7 +176,7 @@ class AgentController(OperationalTerminalOwner):
         return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
 
     async def restore(self, binding):
-        from .messages import CommsUpdated
+        from toad.core.events import CommsUpdated
         from toad.core.events import AvailableCommandsUpdate
         if self.surface is not binding:
             return
@@ -193,7 +194,7 @@ class AgentController(OperationalTerminalOwner):
         if agent.coordination is not None:
             coordination = agent.coordination
             authority = ClientSessionRequest(agent, agent.session_id)
-            binding.post(CommsUpdated(coordination, agent, agent.session_id))
+            self.agent.events.publish(CommsUpdated(coordination, agent.session_id))
             snapshot = await self.transcripts.snapshot(
                 coordination.wire_root, coordination.thread.name)
             if self.surface is not binding:
@@ -201,7 +202,7 @@ class AgentController(OperationalTerminalOwner):
             if self.session is not session:
                 return
             self.require_owner(coordination, authority)
-            binding.post(CommsUpdated(snapshot, agent, agent.session_id))
+            self.agent.events.publish(CommsUpdated(snapshot, agent.session_id))
         target = binding.target
         if target is not None:
             target.call_later(self.start_terminal_presentation, target)
@@ -214,7 +215,7 @@ class AgentController(OperationalTerminalOwner):
             return
         if self.surface is not binding:
             return
-        binding.post(messages.CommsUpdated(snapshot, self.agent, session.session_id))
+        self.agent.events.publish(messages.CommsUpdated(snapshot, session.session_id))
 
     def connection_closed(self):
         from toad.core.events import McpClientStopped
@@ -340,8 +341,7 @@ class AgentController(OperationalTerminalOwner):
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
-            agent.post_message(messages.CommsUpdated(InputFailedUpdate(user_text, failure),
-                recover_draft=True, agent=agent, session_id=authority.session_id, queue_scope=queue_scope))
+            agent.events.publish(messages.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
             agent.events.publish(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 

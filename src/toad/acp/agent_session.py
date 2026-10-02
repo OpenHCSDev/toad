@@ -5,7 +5,8 @@ import os
 from dataclasses import replace
 import toad
 from toad import constants, jsonrpc
-from toad.acp import api, messages
+from toad.core import events as messages
+from toad.acp import api
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
 from toad.core.events import AgentReady, UnsupportedResumeAgentFail
@@ -302,9 +303,7 @@ class AgentSession:
             thread=replace(self.agent.coordination.thread, name=result.current),
             title=display_name,
         )
-        self.agent.post_message(
-            messages.CommsUpdated(self.agent.coordination, self.agent, self.agent.session_id)
-        )
+        self.agent.events.publish(messages.CommsUpdated(self.agent.coordination, self.agent.session_id))
 
 
     async def set_mode(self, mode_id: str) -> str | None:

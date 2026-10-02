@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 class SessionAdmissions:
     def __init__(self, app: ToadApp, initial_session_id: str | None = None) -> None:
         self.app = app
-        self.events = CoreEventStream()
+        self.events = CoreEventStream(self)
         self.identities = count(1)
         self.initial_session_id = initial_session_id
 

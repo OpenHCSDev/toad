@@ -14,7 +14,7 @@ class AgentBase(ABC):
 
     def __init__(self, project_root: Path) -> None:
         self.project_root_path = project_root
-        self.events = CoreEventStream()
+        self.events = CoreEventStream(self)
         self.presentation = LocalAgentPresentation(self)
         from toad.acp.agent_configuration import AgentConfiguration
         self.configuration = AgentConfiguration(self)

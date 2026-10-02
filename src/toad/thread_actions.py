@@ -158,7 +158,7 @@ class StartAction(ThreadAction[OwnerStartResult]):
             title="Session action",
         )
         if result.launched:
-            from toad.acp.messages import CommsUpdated
+            from toad.core.events import CommsUpdated
             from agent_comms.acp_extension import TranscriptChangedUpdate
 
             for mode_name in ctx.session_modes:
@@ -166,7 +166,7 @@ class StartAction(ThreadAction[OwnerStartResult]):
                 if screen is not None and screen.conversation.agent is not None:
                     await screen.conversation.agent.session.reconnect()
                     agent = screen.conversation.agent
-                    screen.conversation.post_message(CommsUpdated(TranscriptChangedUpdate(None), agent, agent.session_id))
+                    agent.events.publish(CommsUpdated(TranscriptChangedUpdate(None), agent.session_id))
 
 
 class FinishedAction(ThreadAction[None]):

@@ -5,7 +5,7 @@ This isolates renderer/navigation cost from changing production owner schemas.
 """
 
 from agent_comms.message_reference import MessageReference
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 from runtime_fixture import coordination_update
 
 import asyncio

@@ -39,7 +39,8 @@ from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
     ProjectedTranscriptSource, incoming_sequences,
 )
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+from toad.response_delivery import ResponseDelivery
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput

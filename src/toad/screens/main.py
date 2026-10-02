@@ -1,3 +1,4 @@
+from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 import asyncio
@@ -22,7 +23,7 @@ from textual.widgets import (
 )
 
 from toad import messages
-from toad.acp import messages as acp_messages
+from toad.core import events as acp_messages
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
@@ -343,9 +344,9 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         peer.initial_coordination_root = root
         return peer
 
-    @on(acp_messages.CommsUpdated)
-    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
-        await ScreenCommsConsumer(self).dispatch(event.update)
+    @handles(acp_messages.CommsUpdated)
+    async def on_comms_updated(self, event: CoreEventMessage) -> None:
+        await ScreenCommsConsumer(self).dispatch(event.event.update)
 
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
@@ -479,10 +480,10 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         await self.app.session_navigation.preview(path)
 
     @handles(core_events.Plan)
-    async def on_acp_plan(self, message: core_events.Plan):
+    async def on_acp_plan(self, message: CoreEventMessage):
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        self.query_one(SessionThreadSidebar).update_plan(message.entries)
+        self.query_one(SessionThreadSidebar).update_plan(message.event.entries)
 
     @on(messages.SessionUpdate)
     async def on_session_update(self, event: messages.SessionUpdate) -> None:

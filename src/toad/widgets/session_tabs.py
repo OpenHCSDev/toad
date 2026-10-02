@@ -1,3 +1,4 @@
+from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 import asyncio
 from collections.abc import Iterable
@@ -257,7 +258,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
         yield Underline()
 
     @handles(SessionChangedEvent)
-    async def handle_session_update(self, event: SessionChangedEvent) -> None:
+    async def handle_session_update(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             await self._sync_tabs()
 

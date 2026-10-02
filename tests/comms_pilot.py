@@ -33,7 +33,7 @@ from textual.widgets import Footer, Markdown
 from textual.widgets._footer import FooterKey
 
 from toad import messages, paths
-from toad.acp import messages as acp_messages
+from toad.core import events as acp_messages
 from toad.core import events as core_events
 from toad.acp.status import ToolCallStatus
 from acp.schema import ToolCall as SDKToolCall
@@ -555,21 +555,15 @@ async def main() -> None:
             assert app.session_tracker.session_count == 1
             conversation._loading = await conversation.post(Loading("Thinking…"))
             current_summary = app.session_tracker.get_session(owner_mode).summary
-            from toad.widgets.agent_response import UnroutedResponse
+            from toad.response_delivery import UnroutedResponse
             conversation.turns.finish_client()
-            conversation.post_message(acp_messages.Update(
-                "text", "Background message",
-                conversation.turns.owner.response_stream(UnroutedResponse()), conversation.agent,
-            ))
+            conversation.post_message(acp_messages.Update('text', 'Background message', conversation.turns.owner.response_stream(UnroutedResponse())))
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).summary == current_summary
             )
             conversation.turns.start_client()
-            conversation.post_message(acp_messages.Update(
-                "text", "Finished answer",
-                conversation.turns.owner.response_stream(UnroutedResponse()), conversation.agent,
-            ))
+            conversation.post_message(acp_messages.Update('text', 'Finished answer', conversation.turns.owner.response_stream(UnroutedResponse())))
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).summary

@@ -14,6 +14,10 @@ class CoreEventMessage(Message):
         self.event = event
         self.subscription = subscription
 
+    @property
+    def publisher(self) -> object:
+        return self.subscription.stream.publisher
+
 
 class CoreEventReceiver(MroDispatch):
     """Consume declared events inside the native message-pump lifetime."""
@@ -38,7 +42,7 @@ class CoreEventReceiver(MroDispatch):
         if not message.subscription.active:
             message.stop()
             return
-        await self.dispatch(message.event)
+        await self.consume_handlers(message, self.handlers_for(message.event))
 
     def _on_unmount(self) -> None:
         for subscription in self._core_subscriptions:

@@ -10,7 +10,8 @@ from pathlib import Path
 from agent_comms.routing import MessageRoute
 from runtime_fixture import ToadApp
 from toad.screens.main import MainScreen
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+from toad.response_delivery import ResponseDelivery
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
@@ -19,7 +20,7 @@ from toad.widgets.route_header import RouteHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.conversation import TurnActivity
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 from toad.core.events import ToolCall as ToolUpdate
 from toad.acp.status import ToolCallStatus
 from acp.schema import ToolCall as SDKToolCall

@@ -12,6 +12,7 @@ acts through ``agent_comms`` operations.
 """
 
 from __future__ import annotations
+from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 
 import os
@@ -489,8 +490,8 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         await self.observation.close()
 
     @handles(SessionChangedEvent)
-    async def session_changed(self, event: SessionChangedEvent) -> None:
-        await self.observation.session_updated(event)
+    async def session_changed(self, event: CoreEventMessage) -> None:
+        await self.observation.session_updated(event.event)
 
     def sidebar_visibility_changed(self) -> None:
         self.projection.sync_spinner()

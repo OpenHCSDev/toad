@@ -19,7 +19,7 @@ from agent_comms.transcript_events import (
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from runtime_fixture import ToadApp
 
-from toad.acp import messages as acp
+from toad.core import events as acp
 from acp.schema import ToolCall
 from toad.acp.status import ToolCallStatus
 from toad.core import events as core_events
@@ -63,17 +63,7 @@ async def main() -> None:
                 nonlocal sequence
                 sequence += 1
                 await view.on_turn_started(
-                    acp.CommsUpdated(
-                        TurnStartedUpdate(
-                            turn_id,
-                            started_at=None,
-                            activity=None,
-                            activity_detail=None,
-                        ),
-                        agent=agent,
-                        session_id=agent.session_id,
-                        sequence=sequence,
-                    )
+                    acp.CommsUpdated(TurnStartedUpdate(turn_id, started_at=None, activity=None, activity_detail=None), session_id=agent.session_id, sequence=sequence)
                 )
 
             await view.post(UserInput("Please prepare the worktree"))
@@ -107,13 +97,7 @@ async def main() -> None:
             await view.on_acp_agent_thinking(core_events.Thinking("text", "Check the result"))
             assert len(view.contents.query(AgentActivityDivider)) == 1
             await view.on_input_started(
-                acp.CommsUpdated(
-                    InputStartedUpdate(
-                        None, "A follow-up in the same live turn", None, None
-                    ),
-                    agent=agent,
-                    session_id=agent.session_id,
-                )
+                acp.CommsUpdated(InputStartedUpdate(None, 'A follow-up in the same live turn', None, None), session_id=agent.session_id)
             )
             await start("first")
             await view.on_acp_agent_thinking(
@@ -145,7 +129,7 @@ async def main() -> None:
 
             await view.post(UserInput("Answer with text first"))
             await start("text-first")
-            await view.on_acp_agent_message(acp.Update("text", "Text reply"))
+            await view.on_acp_agent_message(acp.Update('text', 'Text reply'))
             await view.on_acp_agent_thinking(core_events.Thinking("text", "Later activity"))
             assert len(view.contents.query(AgentActivityDivider)) == 3, "Text already carries an Agent header"
 

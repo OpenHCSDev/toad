@@ -22,7 +22,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.transcript_publication import CheckpointPublication
 from toad.widgets.agent_response import AgentResponse
-from toad.acp.messages import Update, CommsUpdated
+from toad.core.events import Update, CommsUpdated
 from toad.widgets.transcript_history import TranscriptHistory
 
 TOKEN = 'ORIGINAL_LATE_NATIVE_RESPONSE'
@@ -109,8 +109,7 @@ async def main():
                         publication = asyncio.create_task(view.transcript.snapshot(page))
                     elif case == 'queued_snapshot':
                         page = await agent.get_transcript_page()
-                        agent.post_message(CommsUpdated(TranscriptSnapshotUpdate.capture(comms.transcripts, 'source'),
-                                                      agent, agent.session_id))
+                        agent.post_message(CommsUpdated(TranscriptSnapshotUpdate.capture(comms.transcripts, 'source'), agent.session_id))
                         async def accepted_source():
                             async with asyncio.timeout(8):
                                 while not any(item.committed_cursor == page.after

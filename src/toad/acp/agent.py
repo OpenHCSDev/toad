@@ -35,7 +35,7 @@ from textual.message_pump import MessagePump
 
 import toad
 from toad import jsonrpc, paths
-from toad.acp import messages
+from toad.core import events as messages
 from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer
@@ -268,24 +268,11 @@ class Agent(AgentBase):
             consumer.dispatch_sync(fact)
 
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
-        self.post_message(
-            messages.CommsUpdated(
-                QueuePresentation(starts),
-                self,
-                self.session_id,
-            )
-        )
+        self.events.publish(messages.CommsUpdated(QueuePresentation(starts), self.session_id))
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
-        self.post_message(
-            messages.CommsUpdated(
-                CursorPresentation(self._private_cursor.status),
-                self,
-                self.session_id,
-                self._private_cursor_sequence,
-            )
-        )
+        self.events.publish(messages.CommsUpdated(CursorPresentation(self._private_cursor.status), self.session_id, self._private_cursor_sequence))
 
     def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()
@@ -435,9 +422,7 @@ class Agent(AgentBase):
         )
         self.coordination = replace(self.coordination, worktree=result.current)
         self.project_root_path = Path(result.current)
-        self.post_message(
-            messages.CommsUpdated(self.coordination, self, self.session_id)
-        )
+        self.events.publish(messages.CommsUpdated(self.coordination, self.session_id))
         return result.current
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:

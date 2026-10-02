@@ -8,7 +8,7 @@ from urllib.parse import quote
 from agent_comms.acp_extension import decode_updates
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
-from toad.acp import messages
+from toad.core import events as messages
 from toad.core import events
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
@@ -104,9 +104,9 @@ class AgentContentEffect(MessageContentEffect):
         text = content.text
         if text.startswith('[agent error]'):
             text += f'\n\n[Open ACP log]({quote(str(self.agent.presentation.log_path))})'
-        from toad.widgets.agent_response import ResponseDelivery
+        from toad.response_delivery import ResponseDelivery
         stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))
-        self.agent.post_message(messages.Update(content.type, text, stream, self.agent))
+        self.agent.events.publish(messages.Update(content.type, text, stream))
 
 
 class SessionNotificationOwner(ClientRequestOwner):

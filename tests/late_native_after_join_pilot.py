@@ -22,7 +22,7 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.transcript_publication import CheckpointPublication
 from toad.widgets.agent_response import AgentResponse
-from toad.acp.messages import Update, CommsUpdated
+from toad.core.events import Update, CommsUpdated
 from toad.widgets.transcript_history import TranscriptHistory
 
 TOKEN = 'ORIGINAL_AFTER_JOIN_NATIVE_RESPONSE'

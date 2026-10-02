@@ -124,7 +124,7 @@ class SessionTracker:
     def __init__(self) -> None:
         self.sessions: dict[str, SessionDetails] = {}
         self._session_index = 0
-        self.events = CoreEventStream()
+        self.events = CoreEventStream(self)
 
     @property
     def session_count(self) -> int:

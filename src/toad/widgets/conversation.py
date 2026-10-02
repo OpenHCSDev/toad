@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.core_event_carrier import CoreEventMessage
 
 from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
@@ -56,7 +57,7 @@ from textual.widgets import Static
 from textual.widgets.markdown import MarkdownBlock
 
 from toad import jsonrpc, messages, paths
-from toad.acp import messages as acp_messages
+from toad.core import events as acp_messages
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
@@ -98,7 +99,7 @@ from toad.widgets.input_delivery import (
     empty_delivery,
 )
 from toad.widgets.user_input import UserInput
-from toad.widgets.agent_response import ResponseDelivery
+from toad.response_delivery import ResponseDelivery
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
@@ -992,8 +993,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
 
     @handles(AgentReady)
-    async def on_agent_ready(self, message: AgentReady) -> None:
-        if not message.reconnected:
+    async def on_agent_ready(self, message: CoreEventMessage) -> None:
+        if not message.event.reconnected:
             self.session_start_time = monotonic()
             if self.agent is not None:
                 content = Content.assemble(self.agent.get_info(), " connected")
@@ -1030,7 +1031,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @handles(core_events.SessionInfoUpdate)
     async def on_session_info_update(
-        self, message: core_events.SessionInfoUpdate
+        self, message: CoreEventMessage
     ) -> None:
         if (
             self.agent.coordination.wire_root
@@ -1040,12 +1041,12 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             from toad.db import DB
 
             self._auto_title_eligible = False
-            title = message.title or ""
+            title = message.event.title or ""
             if (pk := self.agent.session.pk) is not None:
                 await DB().session_update_title(pk, title)
             self.post_message(messages.SessionUpdate(name=title))
         else:
-            await self.rename_session(message.title or "")
+            await self.rename_session(message.event.title or "")
 
     async def on_unmount(self) -> None:
         self.goal_controls.close()
@@ -1070,34 +1071,34 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             ).wait()
 
     @handles(AgentFail)
-    async def on_agent_fail(self, message: AgentFail) -> None:
+    async def on_agent_fail(self, message: CoreEventMessage) -> None:
         self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         self.turns.finish_client()
         self.agent_ready = True
         self._agent_fail = True
         self.prompt.sync_session()
-        self.notify(message.message, title="Agent failure", severity="error", timeout=5)
+        self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
             self.app.application.usage.publish(
                 "agent-session-error",
                 agent=self._agent_data.identity,
-                message=message.message,
-                details=message.details,
+                message=message.event.message,
+                details=message.event.details,
             )
 
-        if message.message:
+        if message.event.message:
             error = Content.assemble(
-                Content.from_markup(message.message).stylize("$text-error"),
+                Content.from_markup(message.event.message).stylize("$text-error"),
                 " — ",
-                Content(message.details.strip()).stylize("dim"),
+                Content(message.event.details.strip()).stylize("dim"),
             )
         else:
-            error = Content(message.details.strip()).stylize("$text-error")
+            error = Content(message.event.details.strip()).stylize("$text-error")
         await self.post(Note(error, classes="-error"))
 
-        await message.explain(self)
+        await message.event.explain(self)
 
     @on(messages.WorkStarted)
     def on_work_started(self) -> None:
@@ -1322,7 +1323,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         await message.binding.present_terminal(message, self)
 
     @handles(core_events.UpdateStatusLine)
-    async def on_update_status_line(self, message: core_events.UpdateStatusLine):
+    async def on_update_status_line(self, message: CoreEventMessage):
         # The shared widget can receive a queued status message after its
         # source changes. The selected Agent owns the measured value.
         if self.agent is not None:
@@ -1330,7 +1331,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @handles(core_events.RejectedSessionUpdate)
     async def on_rejected_session_update(
-        self, message: core_events.RejectedSessionUpdate
+        self, message: CoreEventMessage
     ) -> None:
         self.output.boundary()
         await self.post(
@@ -1346,44 +1347,44 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self._mcp_live_note = None
 
     def on_private_native_cursor_update(
-        self, message: acp_messages.CommsUpdated
+        self, message: CoreEventMessage
     ) -> None:
         message.stop()
         if (
-            message.agent is not self.agent
+            message.publisher is not self.agent
             or self.agent is None
-            or message.session_id != self.agent.session_id
-            or message.sequence <= self._private_cursor_sequence
+            or message.event.session_id != self.agent.session_id
+            or message.event.sequence <= self._private_cursor_sequence
         ):
             return
-        self._private_cursor_sequence = message.sequence
-        self.native_history_status = message.update.status
+        self._private_cursor_sequence = message.event.sequence
+        self.native_history_status = message.event.update.status
 
     @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(
-        self, message: core_events.McpClientStopped
+        self, message: CoreEventMessage
     ) -> None:
         await self._clear_mcp_live()
 
-    async def on_mcp_client_status(self, message: acp_messages.CommsUpdated) -> None:
+    async def on_mcp_client_status(self, message: CoreEventMessage) -> None:
         """Render the turn-bound receipt only inside an active server-owned turn."""
         # The message carries the validated turn identity; a delayed or queued
         # message from an older agent cannot attach to a successor turn here.
         agent_session = self.agent.session_id if self.agent else None
         if (
-            message.agent is not self.agent
+            message.publisher is not self.agent
             or (self.agent.current_turn.managed_id if self.agent else None)
-            != message.update.turn_id
+            != message.event.update.turn_id
             or self.turns.managed_id is None
-            or message.update.turn_id != self.turns.managed_id
-            or (agent_session is not None and message.session_id != agent_session)
+            or message.event.update.turn_id != self.turns.managed_id
+            or (agent_session is not None and message.event.session_id != agent_session)
         ):
             # Late or forged: the projection dies with its turn and is never
             # shown outside the active-turn lifetime.
             return
         if self._mcp_live_note is not None:
             return  # The package emits at most one receipt per turn.
-        rows = message.update.receipt.servers
+        rows = message.event.update.receipt.servers
         summary = (
             "; ".join(
                 f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
@@ -1400,16 +1401,16 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         )
         await self.post(self._mcp_live_note)
 
-    @on(acp_messages.Update)
-    async def on_acp_agent_message(self, message: acp_messages.Update):
+    @handles(acp_messages.Update)
+    async def on_acp_agent_message(self, message: CoreEventMessage):
         message.stop()
-        if message.agent is not self.agent:
+        if message.publisher is not self.agent:
             return
         if self.turns.owner.busy:
             self.turns.describe("Writing response…")
-        await self.output.append(message.stream, message.text)
+        await self.output.append(message.event.stream, message.event.text)
 
-    async def on_turn_changed(self, message: acp_messages.CommsUpdated) -> None:
+    async def on_turn_changed(self, message: CoreEventMessage) -> None:
         if not self.turns.changed(message):
             return
         self.app.open_tabs_changed.publish(None)
@@ -1421,33 +1422,33 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         await self.output.settle()
         self.transcript.retry()
 
-    async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
+    async def on_queue_view_update(self, message: CoreEventMessage) -> None:
         if (
             self.agent is None
-            or message.agent is not self.agent
-            or message.session_id != self.agent.session_id
+            or message.publisher is not self.agent
+            or message.event.session_id != self.agent.session_id
         ):
             return
         async with self.window.preserve_history(None):
-            for started in message.update.starts:
+            for started in message.event.update.starts:
                 if (
-                    message.agent is not self.agent
-                    or message.session_id != self.agent.session_id
+                    message.publisher is not self.agent
+                    or message.event.session_id != self.agent.session_id
                 ):
                     return
                 await self.present_started_input(started)
             self.submissions.publish_pending()
 
-    async def on_input_started(self, message: acp_messages.CommsUpdated):
+    async def on_input_started(self, message: CoreEventMessage):
         if (
             self.agent is None
-            or message.agent is not self.agent
-            or message.session_id != self.agent.session_id
+            or message.publisher is not self.agent
+            or message.event.session_id != self.agent.session_id
         ):
             return
-        if message.update.text is not None:
+        if message.event.update.text is not None:
             async with self.window.preserve_history(None):
-                await self.present_started_input(message.update)
+                await self.present_started_input(message.event.update)
                 self.submissions.publish_pending()
 
     async def present_started_input(self, started) -> None:
@@ -1457,22 +1458,22 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
         self.submissions.native_input_presented(started)
 
-    def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
+    def on_input_failed(self, message: CoreEventMessage) -> None:
         """Only a locally failed request may recover its own draft text."""
         if not self.submissions.accepts_failure(message):
             return
-        if not message.recover_draft:
+        if not message.event.recover_draft:
             # Server notices (including unstarted queued/restored inputs) are
             # read-only evidence, not permission to change the local composer.
             self.flash(
-                f"{message.update.failure.title}: {message.update.failure.description}\n{message.update.failure.input_disposition}\n{message.update.failure.action}",
+                f"{message.event.update.failure.title}: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
                 style="error",
             )
             return
-        self.submissions.restore_draft(message.update.text)
+        self.submissions.restore_draft(message.event.update.text)
 
         self.flash(
-            f"{message.update.failure.title}; draft restored: {message.update.failure.description}\n{message.update.failure.input_disposition}\n{message.update.failure.action}",
+            f"{message.event.update.failure.title}; draft restored: {message.event.update.failure.description}\n{message.event.update.failure.input_disposition}\n{message.event.update.failure.action}",
             style="error",
         )
 
@@ -1494,51 +1495,51 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.transcript.retry()
 
     @handles(core_events.Thinking)
-    async def on_acp_agent_thinking(self, message: core_events.Thinking):
+    async def on_acp_agent_thinking(self, message: CoreEventMessage):
         self.turns.describe("Thinking…")
-        activity = " ".join(message.text.splitlines()).strip() or "Thinking"
-        await self.output.append(ThoughtStream(), message.text)
+        activity = " ".join(message.event.text.splitlines()).strip() or "Thinking"
+        await self.output.append(ThoughtStream(), message.event.text)
 
-    @on(acp_messages.RequestPermission)
-    async def on_acp_request_permission(self, message: acp_messages.RequestPermission):
-        message.stop()
-        self.request_permissions(message.request)
+    @handles(core_events.RequestPermission)
+    async def on_acp_request_permission(self, message: CoreEventMessage):
+        for request in self.agent.permissions.pending:
+            self.request_permissions(request)
         self.output.boundary()
 
     @handles(core_events.Plan)
-    async def on_acp_plan(self, message: core_events.Plan):
+    async def on_acp_plan(self, message: CoreEventMessage):
         from toad.widgets.plan import Plan
 
         if self.contents.children and isinstance(
             (current_plan := self.contents.children[-1]), Plan
         ):
-            current_plan.entries = message.entries
+            current_plan.entries = message.event.entries
         else:
-            await self.post(Plan(message.entries))
+            await self.post(Plan(message.event.entries))
 
     @handles(core_events.ToolCall)
     async def on_acp_tool_call_update(
-        self, message: core_events.ToolCall
+        self, message: CoreEventMessage
     ):
         from toad.widgets.tool_call import ToolCall
 
-        tool_call = message.tool_call
+        tool_call = message.event.tool_call
         tool_call.activity(self, tool_call.call.title or 'Using tool')
 
-        tool_id = message.tool_id
+        tool_id = message.event.tool_id
         try:
             existing_tool_call: ToolCall | None = self.contents.get_child_by_id(
                 tool_id, ToolCall
             )
         except NoMatches:
-            await self.post(ToolCall(tool_call, id=message.tool_id), new_block=True)
+            await self.post(ToolCall(tool_call, id=message.event.tool_id), new_block=True)
         else:
             if existing_tool_call is not None:
                 await existing_tool_call.update_tool_call(tool_call)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
-        self, message: core_events.AvailableCommandsUpdate
+        self, message: CoreEventMessage
     ):
         self.update_slash_commands()
 
@@ -1570,7 +1571,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             )
 
     @handles(core_events.ConfigurationChanged)
-    async def on_acp_configuration_changed(self, message: core_events.ConfigurationChanged):
+    async def on_acp_configuration_changed(self, message: CoreEventMessage):
         self._update_model_info()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_configuration()
@@ -1680,7 +1681,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @handles(core_events.InputDispositionsChanged)
     async def on_input_dispositions_changed(
-        self, event: core_events.InputDispositionsChanged
+        self, event: CoreEventMessage
     ) -> None:
         self.delivery_observation.invalidate()
 
@@ -1713,14 +1714,13 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 lambda value: setattr(details, "overview_text", value),
             )
 
-    @on(acp_messages.CommsUpdated)
-    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
-        if event.agent is not None and (
-            event.agent is not self.agent or event.session_id != self.agent.session_id
-        ):
+    @handles(acp_messages.CommsUpdated)
+    async def on_comms_updated(self, event: CoreEventMessage) -> None:
+        if (event.publisher is not self.agent
+                or event.event.session_id != self.agent.session_id):
             event.stop()
             return
-        await ConversationCommsConsumer(self, event).dispatch(event.update)
+        await ConversationCommsConsumer(self, event).dispatch(event.event.update)
 
     async def _open_tabs_changed(self, _update: None) -> None:
         self.update_slash_commands()
@@ -2196,7 +2196,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     async def goal_changed(self, update: GoalChangedUpdate):
-        self.conversation.goal_observation.receive(self.message.agent, (update.goal, update.execution))
+        self.conversation.goal_observation.receive(self.message.publisher, (update.goal, update.execution))
 
     @handles(CompactionChangedUpdate)
     async def compaction_changed(self, update: CompactionChangedUpdate):

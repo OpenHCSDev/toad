@@ -7,16 +7,39 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated
-from weakref import WeakSet
+from weakref import WeakSet, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
+from toad.live_output import OutputStream
+from agent_comms.acp_extension import AgentCommsUpdate, QueueScope
+from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
+
+
+@dataclass(frozen=True)
+class Update(CoreEvent):
+    """The original stream owns grouping; its native block is not wire data."""
+
+    type: str
+    text: str
+    stream: OutputStream
+
+
+@dataclass(frozen=True)
+class CommsUpdated(CoreEvent):
+    """The original typed publication retains its emission-time context."""
+
+    update: AgentCommsUpdate | QueuePresentation | CursorPresentation
+    session_id: str | None = None
+    sequence: int | None = None
+    recover_draft: bool = False
+    queue_scope: QueueScope | None = None
 
 
 @dataclass(frozen=True)
@@ -74,6 +97,11 @@ class SessionInfoUpdate(CoreEvent):
 @dataclass(frozen=True)
 class InputDispositionsChanged(CoreEvent):
     """Invalidate delivery display; the producer ledger owns its contents."""
+
+
+@dataclass(frozen=True)
+class RequestPermission(CoreEvent):
+    """The original permission controller has requests to present."""
 
 
 @dataclass(frozen=True)
@@ -182,8 +210,16 @@ class Subscription:
 class CoreEventStream:
     """Publish original events; neither retain state nor schedule frontend work."""
 
-    def __init__(self) -> None:
+    def __init__(self, publisher: object) -> None:
+        self._publisher = ref(publisher)
         self.subscriptions: WeakSet[Subscription] = WeakSet()
+
+    @property
+    def publisher(self) -> object:
+        publisher = self._publisher()
+        if publisher is None:
+            raise RuntimeError("The publication resource outlived its original owner")
+        return publisher
 
     def subscribe(self, listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
         subscription = Subscription(self, listener)
@@ -192,4 +228,5 @@ class CoreEventStream:
 
     def publish(self, event: CoreEvent) -> None:
         for subscription in tuple(self.subscriptions):
-            subscription.listener(event, subscription)
+            if subscription.active:
+                subscription.listener(event, subscription)

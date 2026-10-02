@@ -1,5 +1,5 @@
 """Click a pre-persistence fork row, then scroll inherited history after persistence."""
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import asyncio
 import json

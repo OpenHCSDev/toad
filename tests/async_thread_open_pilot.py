@@ -1,5 +1,5 @@
 """Slow owner/history and sidebar reads must not hold navigation or draft input."""
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import asyncio
 import os

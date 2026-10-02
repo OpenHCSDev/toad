@@ -16,7 +16,7 @@ async def declaration_case():
     import os
     from tempfile import TemporaryDirectory
     from toad.live_output import OutputStream, ResponseStream, ThoughtStream
-    from toad.widgets.agent_response import RoutedResponse
+    from toad.response_delivery import RoutedResponse
     from toad.widgets.agent_thought import AgentThought
     from agent_comms.routing import MessageRoute
     from toad.app import ToadApp
@@ -58,14 +58,15 @@ async def declaration_case():
             assert diagnostic.region.overlaps(viewport)
             # A generic ACP request can settle before its queued widget updates
             # drain. Its captured local turn still owns one continuous reply.
-            from toad.acp.messages import Update
-            from toad.widgets.agent_response import AgentResponse, UnroutedResponse
+            from toad.core.events import Update
+            from toad.response_delivery import UnroutedResponse
+            from toad.widgets.agent_response import AgentResponse
             view.turns.start_client()
             first = view.turns.owner.response_stream(UnroutedResponse())
             second = view.turns.owner.response_stream(UnroutedResponse())
             view.turns.finish_client()
-            await view.on_acp_agent_message(Update('text', 'Local queued', first, None))
-            await view.on_acp_agent_message(Update('text', ' response', second, None))
+            await view.on_acp_agent_message(Update('text', 'Local queued', first))
+            await view.on_acp_agent_message(Update('text', ' response', second))
             local = view.output.streams[ResponseStream].block
             await view.output.finish(ResponseStream)
             assert local.source == 'Local queued response'
@@ -78,7 +79,7 @@ async def declaration_case():
             another = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), 'Next owner notice')
             assert notice is not another and notice._stream is None and another._stream is None
             count = len(view.query(AgentResponse))
-            await view.on_acp_agent_message(Update('text', 'Retired source', ResponseStream(), object()))
+            await view.on_acp_agent_message(Update('text', 'Retired source', ResponseStream()))
             assert len(view.query(AgentResponse)) == count
             view.output.retire()
             assert await view.output.append(DiagnosticStream(), 'Retired view must not reopen') is None

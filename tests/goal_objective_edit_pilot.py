@@ -2,7 +2,7 @@ from agent_comms.goal_actions import GoalAction, ActiveGoalAction, PausedGoalAct
 from runtime_fixture import coordination_update
 """A real owner save updates the mounted goal preview, independently of progress."""
 from agent_comms.acp_extension import GoalChangedUpdate
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 
 import asyncio
 import os

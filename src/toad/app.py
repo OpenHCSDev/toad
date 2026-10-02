@@ -1,3 +1,4 @@
+from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoordinationAccess, implicit_root, root_is_current, run_selected_write
@@ -607,8 +608,8 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         await self.application.start()
 
     @handles(session_requests.WorkspaceSessionRequest)
-    async def on_workspace_session_request(self, event: session_requests.WorkspaceSessionRequest) -> None:
-        await event.apply(self.session_navigation)
+    async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
+        await event.event.apply(self.session_navigation)
 
     async def _dispatch_action(self, namespace, action_name: str, params) -> bool:
         if namespace is self:

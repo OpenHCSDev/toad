@@ -3,7 +3,7 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from toad.acp.messages import Update, CommsUpdated
+from toad.core.events import Update, CommsUpdated
 from toad.acp.agent import Agent
 from runtime_fixture import ToadApp
 from toad.messages import UserInputSubmitted
