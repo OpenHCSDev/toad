@@ -236,6 +236,33 @@ The existing physical journey family now waits for this fixture's immutable
 outcome before the recorder quits. This is fixture completion custody, not
 another backend/UI state owner. Failure captures the existing native exporter
 before retirement at any scenario step. Original8s application assertions and
-the40s recorder budget remain unchanged; there is no fixed extra settling
+the44s recorder budget remain unchanged; there is no fixed extra settling
 delay or weaker End assertion. One corrected affected check uses fresh private
 originals. Normal launcher acceptance remains the separate qualified34402 path.
+
+## Source I/O also leaves the input event pump
+
+The Timer callback runs separately, but the full caller trace found a different
+bypass: submit_input -> _paint_sent_receipt -> _refresh awaited catalog/history/
+roster/agent-info reads on the CommsChatView event pump. Releasing history_lock
+alone was therefore insufficient for normal idle-source sends.
+
+The existing TranscriptSourcePreparation now admits and schedules that work
+through WorkingTranscript.schedule. Initial refresh, periodic refresh, receipt
+refresh, edge paging and End share this admission. Deleted execute_source_work
+and the duplicate edge/End scheduling decisions. Initial refresh no longer
+creates an extra wrapper worker. The input handler awaits only the already-
+canonical receipt's native publication, then schedules the source read and
+returns. No waiter, future, queue, new type or backend state is introduced.
+
+Explicit completion in existing test consumers borrows the actual worker through
+runtime_fixture.refresh_comms; all21 Comms refresh call sites, the direct edge
+caller and the I/O-held fixture are migrated. Sidebar refresh is a different
+owner and remains unchanged. Changed18 Python files parse; diff whitespace
+checks pass. These catch migration damage, not behavioral readiness.
+
+Physical02 retained original inputs and empty cleanup/no leaked processes, but
+did not reach fixture completion before recorder custody expired. No End or
+full338 acceptance is claimed. Both old physical roots/movies remain untouched.
+The new source scheduling batch is not installed in the frozen344 prefix; its
+affected installed check needs the next normally packaged matching cohort.

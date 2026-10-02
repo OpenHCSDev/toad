@@ -22,6 +22,7 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
 from textual.widget import Widget
+from textual.worker import Worker
 
 from toad.conversation_kind import ConversationKind
 from toad import messages
@@ -168,7 +169,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         # view. Start its asynchronous page read now, overlapping it with the
         # remaining control mounts rather than waiting for another empty
         # history frame. The original pager admits its asynchronous source read.
-        self.run_worker(self._refresh(), group="comms-initial-history")
+        await self._refresh()
 
     def prepare_prompt(self) -> None:
         """Apply comms prompt state after a mode becomes active."""
@@ -271,7 +272,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 else:
                     feedback.show_result(results.get((message.seq, message.message_id), ()))
 
-    async def _refresh(self) -> None:
+    async def _refresh(self) -> Worker | None:
         if not self.is_attached or self.message_history.reader is None:
             return
         if not self.query_ancestor(SessionView).is_current:
@@ -282,7 +283,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self.display = False
             return
         self._refresh_notifications()
-        await self.message_history.execute_source_work(self._refresh_source)
+        return self.message_history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:
         from toad.comms_root import root_is_current

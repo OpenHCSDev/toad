@@ -14,6 +14,7 @@ from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from runtime_fixture import refresh_comms
 
 
 async def until(pilot, condition):
@@ -50,7 +51,7 @@ async def main():
             for name in names:
                 comms.agents.begin_turn(name, name)
             comms.messaging.send(names[0], "#talk", "ARRIVED_AFTER_ROSTER_GREW")
-            await chat._refresh()
+            await refresh_comms(chat)
             # Participant hydration can resize the viewport after the history
             # refresh returns; wait for the committed layout, not one tick.
             await until(pilot, lambda: chat.window.follows_tail and
@@ -60,7 +61,7 @@ async def main():
             await pilot.pause()
             position = chat.window.scroll_y
             comms.messaging.send(names[0], "#talk", "WAIT_UNTIL_I_RETURN")
-            await chat._refresh()
+            await refresh_comms(chat)
             await pilot.pause()
             assert not chat.window.follows_tail and chat.window.scroll_y == position
             chat.window.scroll_end(animate=False, immediate=True)

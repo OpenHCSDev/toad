@@ -26,6 +26,7 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.side_bar import SideBar
 from toad.widgets.comms_sidebar import CommsSidebar
+from runtime_fixture import refresh_comms
 
 
 class ToadApp(FixtureApp):
@@ -220,7 +221,7 @@ async def main():
             observed.read = counted_read
             dm.message_history.request = counted_request
             observed.refresh_observation()
-            await dm._refresh()
+            await refresh_comms(dm)
             await pilot.pause()
             assert hidden_reads == [], hidden_reads
             await app.select_session(dm_mode)

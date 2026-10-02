@@ -33,6 +33,7 @@ from toad.comms_root import (
 )
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import CommsSidebar
+from runtime_fixture import refresh_comms
 
 
 def route(home: Path, root: Path, root_id: str) -> Path:
@@ -133,7 +134,7 @@ async def main() -> None:
                 mode = await channel_target("#team").open(NavigationContext(app, owner_mode, sandbox, "user"))
                 assert mode == app.selected_mode
                 view = app.screen.query_one(CommsChatView)
-                await view._refresh()
+                await refresh_comms(view)
                 await pilot.pause()
                 assert view.message_history.reader.comms.root == first
                 assert any(
@@ -153,7 +154,7 @@ async def main() -> None:
 
                 with patch.object(view.message_history.reader, "read", delayed_read):
                     view.message_history.reader.restart()
-                    pending = asyncio.create_task(view._refresh())
+                    pending = asyncio.create_task(refresh_comms(view))
                     async with asyncio.timeout(5):
                         await entered.wait()
                     route(home, second, second_id)
@@ -162,12 +163,14 @@ async def main() -> None:
                 assert current_root() == second
                 assert app.coordination_access.service.root == second  # app cache invalidated
                 view.message_history.has_newer = True
-                await view.message_history.execute_source_work(
+                worker = view.message_history.schedule_source_work(
                     lambda: view.message_history._load_page(False))
+                if worker is not None:
+                    await worker.wait()
                 assert all(
                     "LATE-OLD-EDGE" not in str(message) for message, _ in view.message_history.rows
                 )
-                await view._refresh()
+                await refresh_comms(view)
                 app.screen.query_one(CommsSidebar)._refresh()
                 await pilot.pause()
                 assert not root_is_current(first)
@@ -183,7 +186,7 @@ async def main() -> None:
                 assert new_app.coordination_access.service.root == second
                 await channel_target("#team").open(NavigationContext(new_app, new_app.selected_mode, sandbox, "user"))
                 new_view = new_app.screen.query_one(CommsChatView)
-                await new_view._refresh()
+                await refresh_comms(new_view)
                 await pilot.pause()
                 assert new_view.display and new_view.message_history.reader.comms.root == second
                 assert any(
@@ -229,7 +232,7 @@ async def main() -> None:
                     assert sender.call_count == 1
                 route_path.write_text("{")
                 route_path.chmod(0o600)
-                await new_view._refresh()
+                await refresh_comms(new_view)
                 await pilot.pause()
                 assert not new_view.display
                 assert "NEW-WIRE-ONLY" not in new_app.export_screenshot()

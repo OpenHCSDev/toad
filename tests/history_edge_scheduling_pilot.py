@@ -48,8 +48,8 @@ async def pending_read(chat, pilot, body):
 
     with patch.object(reader.comms.views, 'channel_display_page', read):
         await until(lambda: history.state.accepts_source_work)
-        operation = history.reserve_source_work()
-        refresh = asyncio.create_task(operation.execute(history, chat._refresh_source))
+        refresh = await chat._refresh()
+        assert refresh is not None, "The original pager must admit the controlled read"
         try:
             await until(entered.is_set)
             assert not history.state.accepts_source_work
@@ -72,7 +72,7 @@ async def pending_read(chat, pilot, body):
             assert chat.prompt.text.endswith('hi')
         finally:
             release.set()
-            await refresh
+            await refresh.wait()
         await pilot.pause()
         assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
         assert not chat.window.history_lock.locked()

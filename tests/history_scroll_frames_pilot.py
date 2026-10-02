@@ -17,6 +17,7 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
+from runtime_fixture import refresh_comms
 
 
 class ScrollFrameApp(ToadApp):
@@ -117,7 +118,7 @@ async def main():
 
             chat.message_history.reader.restart()
             with patch.object(chat.message_history, "publish", delayed_refresh):
-                refresh = asyncio.create_task(chat._refresh())
+                refresh = asyncio.create_task(refresh_comms(chat))
                 async with asyncio.timeout(10):
                     await entered.wait()
                     window.scroll_relative(y=-4, animate=False, immediate=True)

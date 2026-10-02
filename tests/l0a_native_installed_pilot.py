@@ -34,6 +34,7 @@ from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad import messages
 from toad.navigation_preparation import ThreadNavigationRequest
+from runtime_fixture import refresh_comms
 
 
 def response_painted(app, view, text):
@@ -66,7 +67,7 @@ async def notification_feedback(
     await channel.submit_input(messages.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
     await until(pilot, entered.is_set)
     await until(pilot, lambda: comms.registry.require("beta").executing)
-    await channel._refresh()
+    await refresh_comms(channel)
     await pilot.pause()
     roster = channel.query_one(ChannelParticipants)
     assert "beta" in roster.names.render().plain, roster.names.render()
@@ -74,7 +75,7 @@ async def notification_feedback(
     print("CHANNEL_ACTIVE_STATUS", roster.names.render().plain, flush=True)
     release.set()
     await until(pilot, lambda: not comms.registry.require("beta").executing)
-    await channel._refresh()
+    await refresh_comms(channel)
     await until(pilot, lambda: "No active turns" in roster.names.render().plain)
     assert "No active turns" in roster.names.render().plain, roster.names.render()
     print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
