@@ -1,0 +1,367 @@
+{
+  "scope": "SCOPED installed whole pure bar process execution/resource/caller checkpoint; NOT full CPU/smoothness/144Hz readiness",
+  "source": {
+    "toad_tested": "9d56cd48dbbd8c72d47b8e29d974e4781368942b",
+    "core": "ad7bf20bc5a30ee7728d4b6f22794ae1cbf49a94",
+    "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+    "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+    "public_core_at_run": "74877f2dd108ed211871a098064178eaf3a4fdb5",
+    "public304_cutover": false,
+    "normal69": "process-preparation-installed-source.json"
+  },
+  "raw": "/home/ts/.cache/agent-scratch/sidebar-process305-public-20261002-01/capture",
+  "raw_receipt_sha256": "636e05f5576d94fcbbed1bf697c4d8b226e13d4038e36f335208eab40f07d25b",
+  "seconds": 114.79444968095049,
+  "capture_completed": true,
+  "operator_exit": 0,
+  "ffmpeg_exit": 255,
+  "independent_ui_exit_proved": false,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_body_ids": [
+    140097342572816,
+    140097342574096,
+    140097342574736,
+    140097342575376,
+    140097342579216,
+    140097676427984,
+    140097676428944,
+    140097676429264,
+    140097676429904,
+    140097676435664,
+    140097676438224,
+    140097676438864,
+    140097676439504,
+    140097676441104,
+    140097676441424,
+    140097676441744,
+    140097679882704,
+    140097697944016,
+    140097697944336,
+    140097697945296,
+    140097697947216,
+    140097697950096
+  ],
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3084740,
+      "start_time": 39027138
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3084740,
+      "start_time": 39027138
+    },
+    "original_owner_alive": true
+  },
+  "original_identity_unchanged": true,
+  "remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "runtime_unchanged": true,
+  "profile": {
+    "sampling": "consistent",
+    "threads": "all",
+    "sample_count": 2356,
+    "sampling_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.07724611349753105,
+    "processes": [
+      "3226269",
+      "3226361",
+      "3226392",
+      "3226406",
+      "3226407",
+      "3230937",
+      "3230942"
+    ]
+  },
+  "ui_phases": [
+    {
+      "label": "warm-ready",
+      "start_s": 10.793633837951347,
+      "duration_s": 2.689801035041455,
+      "ui_cpu_s": 2.329999999999999,
+      "ui_cpu_percent": 86.6235074507691
+    },
+    {
+      "label": "sidebar-revealed",
+      "start_s": 13.483434872992802,
+      "duration_s": 1.6226467869710177,
+      "ui_cpu_s": 0.6699999999999999,
+      "ui_cpu_percent": 41.2905633795192
+    },
+    {
+      "label": "warm-start",
+      "start_s": 15.10608165996382,
+      "duration_s": 5.417515204986557,
+      "ui_cpu_s": 1.9400000000000013,
+      "ui_cpu_percent": 35.809774898542535
+    },
+    {
+      "label": "draft",
+      "start_s": 20.523596864950377,
+      "duration_s": 1.9088642120477743,
+      "ui_cpu_s": 1.0699999999999985,
+      "ui_cpu_percent": 56.05427527252624
+    },
+    {
+      "label": "travel-start",
+      "start_s": 22.432461076998152,
+      "duration_s": 1.7909346770029515,
+      "ui_cpu_s": 1.0200000000000014,
+      "ui_cpu_percent": 56.953501045997136
+    },
+    {
+      "label": "input-held-up",
+      "start_s": 24.223395754001103,
+      "duration_s": 4.0802045409800485,
+      "ui_cpu_s": 3.120000000000001,
+      "ui_cpu_percent": 76.4667547585884
+    },
+    {
+      "label": "input-held-up-done",
+      "start_s": 28.303600294981152,
+      "duration_s": 16.786733067012392,
+      "ui_cpu_s": 7.239999999999998,
+      "ui_cpu_percent": 43.12929723191537
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "start_s": 45.090333361993544,
+      "duration_s": 1.6906817219569348,
+      "ui_cpu_s": 0.5199999999999996,
+      "ui_cpu_percent": 30.756823904034913
+    },
+    {
+      "label": "input-held-down",
+      "start_s": 46.78101508395048,
+      "duration_s": 4.321689609030727,
+      "ui_cpu_s": 3.539999999999999,
+      "ui_cpu_percent": 81.91240742053093
+    },
+    {
+      "label": "input-held-down-done",
+      "start_s": 51.102704692981206,
+      "duration_s": 3.075670846970752,
+      "ui_cpu_s": 2.0500000000000007,
+      "ui_cpu_percent": 66.65212573117371
+    },
+    {
+      "label": "focused",
+      "start_s": 54.17837553995196,
+      "duration_s": 2.8310538880177774,
+      "ui_cpu_s": 1.0100000000000016,
+      "ui_cpu_percent": 35.675760333448636
+    },
+    {
+      "label": "up",
+      "start_s": 57.009429427969735,
+      "duration_s": 4.203828241035808,
+      "ui_cpu_s": 3.5399999999999956,
+      "ui_cpu_percent": 84.20895900180147
+    },
+    {
+      "label": "up-done",
+      "start_s": 61.21325766900554,
+      "duration_s": 1.864393220981583,
+      "ui_cpu_s": 1.6400000000000006,
+      "ui_cpu_percent": 87.96427607350762
+    },
+    {
+      "label": "down",
+      "start_s": 63.077650889987126,
+      "duration_s": 4.078634064993821,
+      "ui_cpu_s": 3.6099999999999994,
+      "ui_cpu_percent": 88.51002425012769
+    },
+    {
+      "label": "down-done",
+      "start_s": 67.15628495498095,
+      "duration_s": 1.7554472120245919,
+      "ui_cpu_s": 1.6100000000000065,
+      "ui_cpu_percent": 91.7145208908425
+    },
+    {
+      "label": "reverse",
+      "start_s": 68.91173216700554,
+      "duration_s": 4.100293515948579,
+      "ui_cpu_s": 3.289999999999999,
+      "ui_cpu_percent": 80.23815824899249
+    },
+    {
+      "label": "reverse-done",
+      "start_s": 73.01202568295412,
+      "duration_s": 1.6887204620288685,
+      "ui_cpu_s": 1.6899999999999977,
+      "ui_cpu_percent": 100.0757696729506
+    },
+    {
+      "label": "end",
+      "start_s": 74.70074614498299,
+      "duration_s": 3.0142254839884117,
+      "ui_cpu_s": 2.729999999999997,
+      "ui_cpu_percent": 90.57053012462994
+    },
+    {
+      "label": "idle",
+      "start_s": 77.7149716289714,
+      "duration_s": 16.702653471031226,
+      "ui_cpu_s": 5.020000000000003,
+      "ui_cpu_percent": 30.055104769470304
+    },
+    {
+      "label": "idle-done",
+      "start_s": 94.41762510000262,
+      "duration_s": 1.5364358619553968,
+      "ui_cpu_s": 0.38000000000000256,
+      "ui_cpu_percent": 24.732565114457998
+    },
+    {
+      "label": "switch-b",
+      "start_s": 95.95406096195802,
+      "duration_s": 5.986970080004539,
+      "ui_cpu_s": 2.9499999999999957,
+      "ui_cpu_percent": 49.273672000675155
+    },
+    {
+      "label": "b-open",
+      "start_s": 101.94103104196256,
+      "duration_s": 1.3841563829919323,
+      "ui_cpu_s": 1.0900000000000034,
+      "ui_cpu_percent": 78.7483273850825
+    },
+    {
+      "label": "return-a",
+      "start_s": 103.32518742495449,
+      "duration_s": 4.174935368006118,
+      "ui_cpu_s": 2.8900000000000006,
+      "ui_cpu_percent": 69.22262850215614
+    },
+    {
+      "label": "a-return",
+      "start_s": 107.50012279296061,
+      "duration_s": 4.416774951037951,
+      "ui_cpu_s": 2.1299999999999955,
+      "ui_cpu_percent": 48.225232745884895
+    }
+  ],
+  "descriptive_earlier_comparison": [
+    {
+      "phase": "input-held-up",
+      "earlier_ui_cpu_percent": 78.49355671267459,
+      "candidate_ui_cpu_percent": 76.4667547585884,
+      "causal_gain_established": false
+    },
+    {
+      "phase": "input-held-up-done",
+      "earlier_ui_cpu_percent": 37.78120654416215,
+      "candidate_ui_cpu_percent": 43.12929723191537,
+      "causal_gain_established": false
+    },
+    {
+      "phase": "input-held-down",
+      "earlier_ui_cpu_percent": 78.59316977110831,
+      "candidate_ui_cpu_percent": 81.91240742053093,
+      "causal_gain_established": false
+    },
+    {
+      "phase": "up",
+      "earlier_ui_cpu_percent": 76.4041986409666,
+      "candidate_ui_cpu_percent": 84.20895900180147,
+      "causal_gain_established": false
+    },
+    {
+      "phase": "down",
+      "earlier_ui_cpu_percent": 97.7705362384372,
+      "candidate_ui_cpu_percent": 88.51002425012769,
+      "causal_gain_established": false
+    },
+    {
+      "phase": "reverse",
+      "earlier_ui_cpu_percent": 74.55506433097489,
+      "candidate_ui_cpu_percent": 80.23815824899249,
+      "causal_gain_established": false
+    },
+    {
+      "phase": "idle",
+      "earlier_ui_cpu_percent": 28.018292790550376,
+      "candidate_ui_cpu_percent": 30.055104769470304,
+      "causal_gain_established": false
+    }
+  ],
+  "physical_review": {
+    "mididle": "Readable saved original transcript/input/draft and channels; no body void in reviewed frame",
+    "end": "Readable original tail/body/chrome",
+    "a_return": "Selected original A and same pre-return original body/draft; contact sheet shows peer until actual tab activation then original A, no destination blank in reviewed frames",
+    "input_up": "Contact sheet shows history progressing after initial marker/export interval; not smooth/144Hz proof",
+    "observed_other_activity": "Compaction499 row visibly Thinking/provider stream started then Waiting for model. This is a visible sidebar observation, not validated native concurrent multi-model response qualification"
+  },
+  "measurement_limits": [
+    "The earlier and changed runs have different Core/source-history/activity and durations; CPU percentages are descriptive, not causal before/after gains.",
+    "Main PID CPU includes worker threads; Chrome all-thread transitions are not CPU attribution or recovered sample durations.",
+    "Pure bar algorithms were moved by original RenderTask process transport and source-native actual pool validated; short purebar execution was not captured as a profiler stack match, so no quantitative offload saving is established.",
+    "No actual terminal presentation timestamp hook or external key-down latency authority in retained capture; p50/p95/p99/worst input-to-paint and144Hz not measured.",
+    "No original provider inputs, paidcalls, publicposts, retries, ownerrestarts or globalpackage changes.",
+    "FFmpeg255 accepted SIGINT does not prove UIexit0.",
+    "All prior negative captures and full CPU/raster/warm/cold/runway/growingEnd/sidebar/focus/TC1T9 scope preserved."
+  ],
+  "artifacts": {
+    "phase-input-mid-history-idle-done.png": {
+      "retained_path": "evidence/sidebar-publication-after298/process305-public-phase-input-mid-history-idle-done.png",
+      "sha256": "8499266db8985c75540e33d9ef144f752e8b3d3c35049d503c415ebf46aabc5a"
+    },
+    "phase-idle-done.png": {
+      "retained_path": "evidence/sidebar-publication-after298/process305-public-phase-idle-done.png",
+      "sha256": "b6616c25ab69a9e8faf207055e01eb8e86050bfee6359451e3278568522cc7ff"
+    },
+    "phase-a-return.png": {
+      "retained_path": "evidence/sidebar-publication-after298/process305-public-phase-a-return.png",
+      "sha256": "fb211a0a9fe48ae943ad4f22c04f2af23357c9b2e8ef1752cd28a416441c17bb"
+    },
+    "input-up-review-frames.png": {
+      "retained_path": "evidence/sidebar-publication-after298/process305-public-input-up-review-frames.png",
+      "sha256": "6a036f382edc9fcde859a3ee759c28610e330201f8d3289f6bafc027e61eb26b"
+    },
+    "a-return-review-frames.png": {
+      "retained_path": "evidence/sidebar-publication-after298/process305-public-a-return-review-frames.png",
+      "sha256": "be9782abd437fb167400e5143163f9b5ff5572754690675cbf55904b0c503c53"
+    }
+  },
+  "production_delta": {
+    "added": 63,
+    "deleted": 17
+  },
+  "next_owner_boundary": "Source-owned sidebar full-DTOpublish/rebuild and native style/layout/damage; pure preparation is already process-owned, widget mutation remains native main."
+}

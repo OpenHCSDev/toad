@@ -652,7 +652,7 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
             "draft_and_caret_preserved": all((phase.text, phase.selection) == (initial.text, initial.selection)
                                             for phase in (up, down)),
             "input_pageup_moves_history": up.scroll_y < initial.scroll_y or up.admits_before(initial),
-            "input_pagedown_moves_history": down.scroll_y > up.scroll_y or up.admits_before(down),
+            "input_pagedown_moves_history": down.scroll_y > up.scroll_y or down.admits_after(up),
             "input_pageup_reaches_original_window": routed("history_page_up", "input-held-up", "input-held-up-done"),
             "input_pagedown_reaches_original_window": routed("history_page_down", "input-held-down", "input-held-down-done"),
         }

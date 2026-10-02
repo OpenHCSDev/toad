@@ -1,0 +1,2167 @@
+{
+  "checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": false,
+    "held_page_down_admitted_newer_source": false,
+    "reverse_page_up_admitted_older_source": false,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "native_checks_passed": false,
+  "retained_ready_body_ids": [
+    140638182341392,
+    140638182342352,
+    140638437655568,
+    140638437867600,
+    140638463612624,
+    140638474443088,
+    140638474443728,
+    140638474444048,
+    140638474444368
+  ],
+  "phases": {
+    "warm-start": {
+      "label": "warm-start",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638476352912,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42907137,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 130,
+      "maximum": 130,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 140637804976144,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804979664,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804977744,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804982864,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140637803453072,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804977424,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804985104,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804977104,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        }
+      ]
+    },
+    "draft": {
+      "label": "draft",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638476352912,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42907137,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 130,
+      "maximum": 130,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 140637804976144,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804979664,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804977744,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804982864,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140637803453072,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804977424,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804985104,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804977104,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        }
+      ]
+    },
+    "focused": {
+      "label": "focused",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638437662928,
+      "loaded_pages": 2,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42817440,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 448,
+      "maximum": 448,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 140637768035344,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638181294160,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 140637771186256,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637768029264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637771191376,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637771485328,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 20
+        },
+        {
+          "object_id": 140637803459792,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140638437880080,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140637771487568,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 14
+        },
+        {
+          "object_id": 140637768035664,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637803451792,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638233574800,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637771190736,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637803448912,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637803454032,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 66
+        },
+        {
+          "object_id": 140637783939728,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 22
+        },
+        {
+          "object_id": 140637771487888,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 23
+        },
+        {
+          "object_id": 140637771192976,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637803447952,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 14
+        },
+        {
+          "object_id": 140637768035024,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 140637768025744,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637771490128,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 24
+        },
+        {
+          "object_id": 140637814596432,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 140637768037264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        }
+      ]
+    },
+    "up-done": {
+      "label": "up-done",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638437662928,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42817440,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 69,
+      "maximum": 275,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 140637804976144,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 21
+        },
+        {
+          "object_id": 140637804981264,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140638205783056,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140638181294160,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 140637773545552,
+          "ready": false,
+          "dormant": true,
+          "visible": true,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637773550672,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 9
+        },
+        {
+          "object_id": 140637771485328,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 20
+        },
+        {
+          "object_id": 140637803459792,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140638182328592,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 5
+        },
+        {
+          "object_id": 140637771487568,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 14
+        },
+        {
+          "object_id": 140637766862160,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638181295440,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637770923408,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637771190736,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637773549072,
+          "ready": false,
+          "dormant": true,
+          "visible": true,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140638182340112,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637772401232,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 12
+        },
+        {
+          "object_id": 140637803448912,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637771487888,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 23
+        },
+        {
+          "object_id": 140637771192976,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637773551312,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 5
+        },
+        {
+          "object_id": 140638182331152,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140638181304080,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 17
+        },
+        {
+          "object_id": 140637771490128,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 24
+        },
+        {
+          "object_id": 140637771484048,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "down-done": {
+      "label": "down-done",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638437662928,
+      "loaded_pages": 2,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42817440,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 440,
+      "maximum": 448,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 140637770913808,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637803447312,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 140637769329680,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 6
+        },
+        {
+          "object_id": 140638181294160,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 140638169519184,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637769323600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637769333840,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637770911888,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 14
+        },
+        {
+          "object_id": 140637804446096,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638169514384,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 14
+        },
+        {
+          "object_id": 140637771190736,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804450256,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637804452816,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638205785616,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140637770911248,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 22
+        },
+        {
+          "object_id": 140637773548112,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637771487888,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 23
+        },
+        {
+          "object_id": 140637771192976,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140638205783696,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637770923728,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 66
+        },
+        {
+          "object_id": 140637772796688,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637772407632,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637770914768,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 20
+        },
+        {
+          "object_id": 140638474443728,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 24
+        }
+      ]
+    },
+    "reverse-done": {
+      "label": "reverse-done",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638437662928,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42817440,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 77,
+      "maximum": 275,
+      "follows_tail": false,
+      "bodies": [
+        {
+          "object_id": 140637770913808,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140638181294160,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 3
+        },
+        {
+          "object_id": 140638169514064,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 12
+        },
+        {
+          "object_id": 140638169519184,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637773559952,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 9
+        },
+        {
+          "object_id": 140637770911888,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 14
+        },
+        {
+          "object_id": 140637773358224,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 0
+        },
+        {
+          "object_id": 140637773362384,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 0
+        },
+        {
+          "object_id": 140637773548752,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 17
+        },
+        {
+          "object_id": 140637771487568,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 21
+        },
+        {
+          "object_id": 140638169515344,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637773545872,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637773359504,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 0
+        },
+        {
+          "object_id": 140638169519504,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637771190736,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638169517584,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637773559312,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637771488848,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637771487888,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 23
+        },
+        {
+          "object_id": 140637771192976,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637771482768,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637804457616,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 5
+        },
+        {
+          "object_id": 140637772802768,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 5
+        },
+        {
+          "object_id": 140637771410128,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 16
+        },
+        {
+          "object_id": 140637771495248,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 15
+        },
+        {
+          "object_id": 140637773553552,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637770914768,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 20
+        },
+        {
+          "object_id": 140638474443728,
+          "ready": false,
+          "dormant": true,
+          "visible": false,
+          "measured_rows": 24
+        }
+      ]
+    },
+    "idle-done": {
+      "label": "idle-done",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638476352912,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42907137,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 204,
+      "maximum": 204,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 140638437655568,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638437867600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474444368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638463612624,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 140638182342352,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638182341392,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474444048,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474443088,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638474443728,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "b-open": {
+      "label": "b-open",
+      "mode": "session-2",
+      "editor": 140637803454672,
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "window": 140637771834192,
+      "focused_widget": 140637803454672,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-41-09-448Z_01a0faea-8848-777c-b399-ceb27a371dad.jsonl",
+        "offset": 42907239,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302-peer",
+            "created_at": 1790916070.5171087
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 130,
+      "maximum": 130,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 140637772797968,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637772799568,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637772797648,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637772807888,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637772799248,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140637772796688,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140637772794768,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140637772798928,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        }
+      ]
+    },
+    "a-return": {
+      "label": "a-return",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "warm-scroll-draft",
+      "selection": [
+        [
+          0,
+          17
+        ],
+        [
+          0,
+          17
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638476352912,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42907137,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 204,
+      "maximum": 204,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 140638437655568,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638437867600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474444368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638463612624,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 140638182342352,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638182341392,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474444048,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474443088,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638474443728,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    },
+    "undo": {
+      "label": "undo",
+      "mode": "session-1",
+      "editor": 140638476352912,
+      "text": "",
+      "selection": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "window": 140638437662928,
+      "focused_widget": 140638476352912,
+      "loaded_pages": 1,
+      "oldest_admitted": {
+        "session_file": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/forks/sessions/--home-ts-code-projects-openhcs--/2026-10-02T04-08-27-553Z_01a0facc-98a2-7348-add0-98c6ca1ba6f3.jsonl",
+        "offset": 42907137,
+        "receipts": {
+          "root": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302/configured/actual01/wire",
+          "recipient": {
+            "name": "selection302",
+            "created_at": 1790914108.8525786
+          },
+          "sequence": 0
+        },
+        "outcomes": null
+      },
+      "scroll_y": 204,
+      "maximum": 204,
+      "follows_tail": true,
+      "bodies": [
+        {
+          "object_id": 140638437655568,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638437867600,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474444368,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638463612624,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 74
+        },
+        {
+          "object_id": 140638182342352,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 2
+        },
+        {
+          "object_id": 140638182341392,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474444048,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 4
+        },
+        {
+          "object_id": 140638474443088,
+          "ready": true,
+          "dormant": false,
+          "visible": true,
+          "measured_rows": 71
+        },
+        {
+          "object_id": 140638474443728,
+          "ready": true,
+          "dormant": false,
+          "visible": false,
+          "measured_rows": 2
+        }
+      ]
+    }
+  },
+  "physical_assessment": "unreviewed; inspect terminal.mp4 and phase PNGs",
+  "limits": [
+    "Native resource identities do not certify a warm physical first paint",
+    "Source admission direction does not certify visible motion; inspect the physical frames",
+    "A snapshot does not prove preparation or rasterization was skipped",
+    "Only actual Ctrl+Z output proves preserved Undo; no history-manager mirror is inspected"
+  ],
+  "events": [
+    {
+      "label": "selector-ready",
+      "video_seconds": 7.351185563951731,
+      "screenshot": "phase-selector-ready.png",
+      "state_capture": {
+        "started_seconds": 2.1839398819720373,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 136990720,
+          "started_ns": 1790916076720780609,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-ready-state": "complete"
+          },
+          "finished_ns": 1790916081694654311
+        },
+        "finished_seconds": 7.351081205997616
+      }
+    },
+    {
+      "label": "selector-picker",
+      "video_seconds": 10.468410614004824,
+      "screenshot": "phase-selector-picker.png",
+      "state_capture": {
+        "started_seconds": 10.754377225006465,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 173752320,
+          "started_ns": 1790916085288913925,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-picker-state": "complete"
+          },
+          "finished_ns": 1790916085421544803
+        },
+        "finished_seconds": 11.07501449197298
+      }
+    },
+    {
+      "label": "selector-filtered",
+      "video_seconds": 13.65846900595352,
+      "screenshot": "phase-selector-filtered.png",
+      "state_capture": {
+        "started_seconds": 13.919504709949251,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 174235648,
+          "started_ns": 1790916088449660627,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-filtered-state": "complete"
+          },
+          "finished_ns": 1790916088582174052
+        },
+        "finished_seconds": 14.21643942996161
+      }
+    },
+    {
+      "label": "selector-acknowledged",
+      "video_seconds": 16.24293814098928,
+      "screenshot": "phase-selector-acknowledged.png",
+      "state_capture": {
+        "started_seconds": 16.50481262599351,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 176009216,
+          "started_ns": 1790916091034577551,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-acknowledged-state": "complete"
+          },
+          "finished_ns": 1790916091066840635
+        },
+        "finished_seconds": 16.7159143720055
+      }
+    },
+    {
+      "label": "selector-closed",
+      "video_seconds": 18.736303009965923,
+      "screenshot": "phase-selector-closed.png",
+      "state_capture": {
+        "started_seconds": 19.012523255951237,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 176087040,
+          "started_ns": 1790916093548467956,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-closed-state": "complete"
+          },
+          "finished_ns": 1790916093680891670
+        },
+        "finished_seconds": 19.31727023399435
+      }
+    },
+    {
+      "label": "warm-ready",
+      "video_seconds": 20.536149106977973,
+      "screenshot": "phase-warm-ready.png",
+      "state_capture": {
+        "started_seconds": 20.211391691002063,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 175783936,
+          "started_ns": 1790916094748427147,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-warm-ready-state": "complete"
+          },
+          "finished_ns": 1790916094880811327
+        },
+        "finished_seconds": 20.536059567995835
+      }
+    },
+    {
+      "label": "sidebar-revealed",
+      "video_seconds": 22.934482935990673,
+      "screenshot": "phase-sidebar-revealed.png",
+      "state_capture": {
+        "started_seconds": 23.221437498985324,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 176267264,
+          "started_ns": 1790916097752797297,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-sidebar-revealed-state": "complete"
+          },
+          "finished_ns": 1790916097885473821
+        },
+        "finished_seconds": 23.53514123300556
+      }
+    },
+    {
+      "label": "warm-start",
+      "video_seconds": 24.353654756967444,
+      "screenshot": "phase-warm-start.png",
+      "state_capture": {
+        "started_seconds": 24.6373652999755,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 176345088,
+          "started_ns": 1790916099169978174,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-warm-start-state": "complete"
+          },
+          "finished_ns": 1790916099302335803
+        },
+        "finished_seconds": 24.96556863799924
+      }
+    },
+    {
+      "label": "draft",
+      "video_seconds": 29.264060777961276,
+      "screenshot": "phase-draft.png",
+      "state_capture": {
+        "started_seconds": 29.548676596954465,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 177479680,
+          "started_ns": 1790916104077565071,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-draft-state": "complete"
+          },
+          "finished_ns": 1790916104209980329
+        },
+        "finished_seconds": 29.84427031397354
+      }
+    },
+    {
+      "label": "travel-start",
+      "video_seconds": 30.6447707839543,
+      "screenshot": "phase-travel-start.png",
+      "state_capture": {
+        "started_seconds": 30.910060400958173,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 177856512,
+          "started_ns": 1790916105439872906,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-travel-start-state": "complete"
+          },
+          "finished_ns": 1790916105572242969
+        },
+        "finished_seconds": 31.228740807971917
+      }
+    },
+    {
+      "label": "input-held-up",
+      "video_seconds": 32.04548218095442,
+      "screenshot": "phase-input-held-up.png",
+      "state_capture": {
+        "started_seconds": 32.31212629599031,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 179724288,
+          "started_ns": 1790916106844110558,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-input-held-up-state": "complete"
+          },
+          "finished_ns": 1790916106976620265
+        },
+        "finished_seconds": 32.62951614597114
+      }
+    },
+    {
+      "label": "input-held-up-done",
+      "video_seconds": 35.84495098498883,
+      "screenshot": "phase-input-held-up-done.png",
+      "state_capture": {
+        "started_seconds": 36.11896891595097,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 187387904,
+          "started_ns": 1790916110652073501,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-input-held-up-done-state": "complete"
+          },
+          "finished_ns": 1790916110784506293
+        },
+        "finished_seconds": 36.41863919998286
+      }
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "video_seconds": 52.3821396669955,
+      "screenshot": "phase-input-mid-history-idle-done.png",
+      "state_capture": {
+        "started_seconds": 52.66642336494988,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 191029248,
+          "started_ns": 1790916127199085432,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-input-mid-history-idle-done-state": "complete"
+          },
+          "finished_ns": 1790916127364083018
+        },
+        "finished_seconds": 53.02929073595442
+      }
+    },
+    {
+      "label": "input-held-down",
+      "video_seconds": 53.863271993002854,
+      "screenshot": "phase-input-held-down.png",
+      "state_capture": {
+        "started_seconds": 54.14041971595725,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 191664128,
+          "started_ns": 1790916128670587114,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-input-held-down-state": "complete"
+          },
+          "finished_ns": 1790916128803097502
+        },
+        "finished_seconds": 54.43707266898127
+      }
+    },
+    {
+      "label": "input-held-down-done",
+      "video_seconds": 57.573394388949964,
+      "screenshot": "phase-input-held-down-done.png",
+      "state_capture": {
+        "started_seconds": 57.847359638952184,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 192749568,
+          "started_ns": 1790916132385380242,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-input-held-down-done-state": "complete"
+          },
+          "finished_ns": 1790916132550223275
+        },
+        "finished_seconds": 58.190336356987245
+      }
+    },
+    {
+      "label": "focused",
+      "video_seconds": 59.88255231198855,
+      "screenshot": "phase-focused.png",
+      "state_capture": {
+        "started_seconds": 60.141091972996946,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 193142784,
+          "started_ns": 1790916134669320927,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-focused-state": "complete"
+          },
+          "finished_ns": 1790916134801623651
+        },
+        "finished_seconds": 60.4509406889556
+      }
+    },
+    {
+      "label": "up",
+      "video_seconds": 62.43080128199654,
+      "screenshot": "phase-up.png",
+      "state_capture": {
+        "started_seconds": 62.69543992297258,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 193966080,
+          "started_ns": 1790916137229484600,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-up-state": "complete"
+          },
+          "finished_ns": 1790916137362068878
+        },
+        "finished_seconds": 63.00776548299473
+      }
+    },
+    {
+      "label": "up-done",
+      "video_seconds": 66.25267219595844,
+      "screenshot": "phase-up-done.png",
+      "state_capture": {
+        "started_seconds": 66.55264187598368,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 196231168,
+          "started_ns": 1790916141090441240,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-up-done-state": "complete"
+          },
+          "finished_ns": 1790916141223385339
+        },
+        "finished_seconds": 66.88061811996158
+      }
+    },
+    {
+      "label": "down",
+      "video_seconds": 67.75126251898473,
+      "screenshot": "phase-down.png",
+      "state_capture": {
+        "started_seconds": 68.01963882497512,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 196677632,
+          "started_ns": 1790916142557007463,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-down-state": "complete"
+          },
+          "finished_ns": 1790916142689299286
+        },
+        "finished_seconds": 68.32771576195955
+      }
+    },
+    {
+      "label": "down-done",
+      "video_seconds": 71.57228793698596,
+      "screenshot": "phase-down-done.png",
+      "state_capture": {
+        "started_seconds": 71.85784397600219,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 197132288,
+          "started_ns": 1790916146388659593,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-down-done-state": "complete"
+          },
+          "finished_ns": 1790916146521156074
+        },
+        "finished_seconds": 72.16298281395575
+      }
+    },
+    {
+      "label": "reverse",
+      "video_seconds": 73.00621612498071,
+      "screenshot": "phase-reverse.png",
+      "state_capture": {
+        "started_seconds": 73.28591200697701,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 198029312,
+          "started_ns": 1790916147827075487,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-reverse-state": "complete"
+          },
+          "finished_ns": 1790916147959497788
+        },
+        "finished_seconds": 73.60667686199304
+      }
+    },
+    {
+      "label": "reverse-done",
+      "video_seconds": 76.89114788098959,
+      "screenshot": "phase-reverse-done.png",
+      "state_capture": {
+        "started_seconds": 77.17690014198888,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 198959104,
+          "started_ns": 1790916151707994897,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-reverse-done-state": "complete"
+          },
+          "finished_ns": 1790916151840411487
+        },
+        "finished_seconds": 77.48222357896157
+      }
+    },
+    {
+      "label": "end",
+      "video_seconds": 78.31604634196265,
+      "screenshot": "phase-end.png",
+      "state_capture": {
+        "started_seconds": 78.58377731399378,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 199540736,
+          "started_ns": 1790916153118558357,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-end-state": "complete"
+          },
+          "finished_ns": 1790916153251271859
+        },
+        "finished_seconds": 78.89305725996383
+      }
+    },
+    {
+      "label": "idle",
+      "video_seconds": 80.97558721195674,
+      "screenshot": "phase-idle.png",
+      "state_capture": {
+        "started_seconds": 81.24291107198223,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 200425472,
+          "started_ns": 1790916155772996344,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-idle-state": "complete"
+          },
+          "finished_ns": 1790916155905391844
+        },
+        "finished_seconds": 81.56975763500668
+      }
+    },
+    {
+      "label": "idle-done",
+      "video_seconds": 97.53695412399247,
+      "screenshot": "phase-idle-done.png",
+      "state_capture": {
+        "started_seconds": 97.80310858698795,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 200433664,
+          "started_ns": 1790916172332451832,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-idle-done-state": "complete"
+          },
+          "finished_ns": 1790916172465062730
+        },
+        "finished_seconds": 98.11403675598558
+      }
+    },
+    {
+      "label": "switch-b",
+      "video_seconds": 98.98251885198988,
+      "screenshot": "phase-switch-b.png",
+      "state_capture": {
+        "started_seconds": 99.2463196030003,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 200433664,
+          "started_ns": 1790916173774366231,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-switch-b-state": "complete"
+          },
+          "finished_ns": 1790916173906920621
+        },
+        "finished_seconds": 99.56400272599421
+      }
+    },
+    {
+      "label": "b-open",
+      "video_seconds": 104.25639557495015,
+      "screenshot": "phase-b-open.png",
+      "state_capture": {
+        "started_seconds": 101.33202365296893,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 201519104,
+          "started_ns": 1790916175860262825,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-b-open-state": "complete"
+          },
+          "finished_ns": 1790916178597202038
+        },
+        "finished_seconds": 104.25632935896283
+      }
+    },
+    {
+      "label": "return-a",
+      "video_seconds": 105.35568415198941,
+      "screenshot": "phase-return-a.png",
+      "state_capture": {
+        "started_seconds": 105.63014705199748,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 201887744,
+          "started_ns": 1790916180163589167,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-return-a-state": "complete"
+          },
+          "finished_ns": 1790916180296027577
+        },
+        "finished_seconds": 105.95103643200127
+      }
+    },
+    {
+      "label": "a-return",
+      "video_seconds": 108.76320105895866,
+      "screenshot": "phase-a-return.png",
+      "state_capture": {
+        "started_seconds": 109.03634081099881,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 202076160,
+          "started_ns": 1790916183569544604,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-a-return-state": "complete"
+          },
+          "finished_ns": 1790916183702063447
+        },
+        "finished_seconds": 109.3304314549896
+      }
+    },
+    {
+      "label": "undo",
+      "video_seconds": 112.27410815400071,
+      "screenshot": "phase-undo.png",
+      "state_capture": {
+        "started_seconds": 112.56600853696,
+        "manifest": {
+          "pid": 3130919,
+          "created": 1790916073.23,
+          "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+          "rss_before": 202113024,
+          "started_ns": 1790916187102027656,
+          "profile_seconds": 0,
+          "gil_only": false,
+          "native": false,
+          "receipts": {
+            "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-undo-state": "complete"
+          },
+          "finished_ns": 1790916187234408667
+        },
+        "finished_seconds": 112.8595757879666
+      }
+    }
+  ]
+}

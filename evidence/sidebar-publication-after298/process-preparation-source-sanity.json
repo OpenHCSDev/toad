@@ -1,0 +1,67 @@
+{
+  "scope": "Source-native App/process sanity only; changed noneditable public UI gate pending",
+  "source_order": "owner and caller semantics, coherent nominal whole-family migration, batched validation last",
+  "prepared_bars": {
+    "exit": 0,
+    "shared_process_task_for_equal_inputs": true,
+    "independent_delivery": true,
+    "changed_input_new_task": true,
+    "worker_pids_not_ui": true,
+    "newest_roster_before_readiness": true,
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar-process305-source-sanity/prepared-bars.log"
+  },
+  "disclosure": {
+    "exit": 0,
+    "receipt": {
+      "expanded": true,
+      "canonical_members": [
+        "beta"
+      ],
+      "first_publication_rows": [
+        "beta"
+      ],
+      "newer_preparation_pending": true,
+      "channel_member_painted": true,
+      "collapse_expand_passed": true,
+      "collapse_during_preparation": [
+        [
+          false,
+          []
+        ],
+        [
+          false,
+          []
+        ]
+      ],
+      "canonical_relationship_child": "child",
+      "relationship_row_retained": true,
+      "metadata_only_worker_rows": [],
+      "unchanged_relationship_worker_rows": []
+    },
+    "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/sidebar-process305-source-sanity/disclosure.log"
+  },
+  "ast_declarations_before": {
+    "prepare_thread_row": 1,
+    "prepare_thread_presentation": 1,
+    "prepare_tab": 1,
+    "ThreadRowsWork": 1,
+    "TabRosterWork": 1,
+    "ThreadRowsRenderTask": 0,
+    "TabRosterRenderTask": 0
+  },
+  "ast_declarations_after": {
+    "prepare_thread_row": 0,
+    "prepare_thread_presentation": 1,
+    "prepare_tab": 1,
+    "ThreadRowsWork": 1,
+    "TabRosterWork": 1,
+    "ThreadRowsRenderTask": 1,
+    "TabRosterRenderTask": 1
+  },
+  "ast_parse_omissions": [],
+  "ast_dynamic_resolution_proved": false,
+  "new_pool_cache_timer_registry_or_state": false,
+  "cpu_or_fps_improvement_proved": false,
+  "target_hz": 144,
+  "target_frame_ms": 6.944444444444445
+}

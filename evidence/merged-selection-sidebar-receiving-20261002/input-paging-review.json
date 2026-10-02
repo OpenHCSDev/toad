@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "native_checks_passed": true,
+  "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+  "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+}

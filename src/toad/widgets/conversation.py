@@ -392,7 +392,9 @@ class ConversationSessionBinding(containers.Vertical):
     agent_info: var[Content] = var(Content())
     agent_ready: var[bool] = var(False)
     model_history_scope = var("")
-    queue_supported = var(False)
+    @property
+    def queue_supported(self) -> bool:
+        return self.agent is not None and self.agent.presentation.queue_supported
 
     @property
     def model_selection_available(self) -> bool:
@@ -836,10 +838,8 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
-                agent_ready=Conversation.agent_ready,
                 agent=Conversation.agent,
                 model_history_scope=Conversation.model_history_scope,
-                queue_supported=Conversation.queue_supported,
                 status=Conversation.status,
             )
 
@@ -1001,6 +1001,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                     )
 
         self.agent_ready = True
+        self.prompt.sync_session()
         self.query_one(ObservedThreadActivity).refresh_observation()
         self.call_later(self.goal_observation.refresh)
         self.call_later(self.delivery_observation.refresh)
@@ -1072,6 +1073,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         self.turns.finish_client()
         self.agent_ready = True
         self._agent_fail = True
+        self.prompt.sync_session()
         self.notify(message.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
@@ -2165,6 +2167,8 @@ class ConversationCommsConsumer(MroDispatch):
         # Source binding is published independently of registry/activity changes.
         # A fresh DM must acquire its original status even on an unchanged wire.
         self.conversation.query_one(ObservedThreadActivity).refresh_observation()
+        self.conversation.prompt.sync_session()
+        self.conversation.prompt.sync_queue()
 
     @handles(CursorPresentation)
     async def cursor_presentation(self, update):

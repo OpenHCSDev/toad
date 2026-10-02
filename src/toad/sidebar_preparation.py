@@ -1,13 +1,19 @@
 """Worker-prepared native bar content shared across views and bar types."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from agent_comms.presentation import ThreadView
 from textual.content import Content
 
 from toad.session_tracker import OpenTab, UnreadPresentation, ExactUnread
 from toad.widgets.activity_spinner import FRAMES, animated_label
-from toad.work_preparation import ContentAddressedWork, SerializedWork, ThreadWork
+from toad.work_preparation import ContentAddressedWork, RendererWork, SerializedWork
+
+if TYPE_CHECKING:
+    from toad.render_tasks import TabRosterRenderTask, ThreadRowsRenderTask
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,10 +59,6 @@ class PreparedThreadRow:
         return self.frames[phase % len(self.frames)]
 
 
-def prepare_thread_row(source: ThreadRowInput) -> PreparedThreadRow:
-    return prepare_thread_presentation(source.presentation())
-
-
 def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThreadRow:
     summary = source.action_status if source.action_status is not None else source.summary
     busy = source.action_status is not None or source.busy
@@ -77,17 +79,20 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
 @dataclass(frozen=True)
 class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
                      ContentAddressedWork[tuple[PreparedThreadRow, ...]],
-                     ThreadWork[tuple[PreparedThreadRow, ...]]):
+                     RendererWork[tuple[PreparedThreadRow, ...]]):
     rows: tuple[ThreadRowInput, ...]
 
     @property
-    def inputs(self) -> object:
+    def inputs(self) -> tuple[ThreadRowPresentation, ...]:
         # ContentAddressedWork evaluates this on its worker thread. Declare the
         # semantic projection before hashing, not every field of a core record.
         return tuple(row.presentation() for row in self.rows)
 
-    def prepare(self) -> tuple[PreparedThreadRow, ...]:
-        return tuple(prepare_thread_row(row) for row in self.rows)
+    @property
+    def render_task(self) -> ThreadRowsRenderTask:
+        from toad.render_tasks import ThreadRowsRenderTask
+
+        return ThreadRowsRenderTask(self.inputs)
 
 
 @dataclass(frozen=True)
@@ -112,12 +117,15 @@ def prepare_tab(tab: OpenTab) -> PreparedTab:
 @dataclass(frozen=True)
 class TabRosterWork(SerializedWork[tuple[PreparedTab, ...]],
                     ContentAddressedWork[tuple[PreparedTab, ...]],
-                    ThreadWork[tuple[PreparedTab, ...]]):
+                    RendererWork[tuple[PreparedTab, ...]]):
     tabs: tuple[OpenTab, ...]
 
     @property
     def inputs(self) -> object:
         return self.tabs
 
-    def prepare(self) -> tuple[PreparedTab, ...]:
-        return tuple(prepare_tab(tab) for tab in self.tabs)
+    @property
+    def render_task(self) -> TabRosterRenderTask:
+        from toad.render_tasks import TabRosterRenderTask
+
+        return TabRosterRenderTask(self.tabs)

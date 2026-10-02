@@ -1,0 +1,127 @@
+{
+  "state": "READY scoped merged frontend combination; parent public activation remaining",
+  "candidate_prefix": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002",
+  "source_proof": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/merged-selection-sidebar-receiving-20261002/source-proof.json",
+  "activation": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/runtime-merged-selection-sidebar-20261002/activation.json",
+  "package_toader_git": "358b9a330f3c72f3aeee68537279a6fee70f061b",
+  "core_git": "ad7bf20bc5a30ee7728d4b6f22794ae1cbf49a94",
+  "textual_git": "23822923a02b75a1fad10751d97dc009c36b598b",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "duration_seconds": 114.79531928000506,
+  "scope": "One actual configured saved-helper ACP selector + input-focused paging/warm native A/B/A/End/Undo in isolated st, same private302root; no provider/input/replay",
+  "checks": {
+    "same_original_agent_after_selector_and_return": true,
+    "same_original_session_after_selector_and_return": true,
+    "acknowledged_configured_model_preserved": true,
+    "configured_thinking_preserved": true,
+    "accepted_label_preserved": true,
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true,
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "end_at_actual_bottom": true,
+    "end_has_actual_ready_visible_body": true,
+    "zero_native_input_rows": true,
+    "source_settings_unchanged": true,
+    "private_owners_retired": true,
+    "capture_cleanup_empty": true,
+    "caller_cleanup_empty": true,
+    "original_newer_page_extension": true
+  },
+  "source_oracle_confirmation": "Heisenberg: admits_before reads only oldest pages[0].before, so newer append can leave it unchanged; up/reverse ended inside resident range at69/77, nottop. No newpage assertion implication. Parent authorized exact intended combination scope.",
+  "raw_generic_recorder_completed": false,
+  "raw_generic_exit": 1,
+  "raw_generic_failed_checks": [
+    "held_page_up_admitted_older_source",
+    "held_page_down_admitted_newer_source",
+    "reverse_page_up_admitted_older_source"
+  ],
+  "not_claimed": [
+    "Full generic WarmScroll admission PASS",
+    "New page/top crossing proof",
+    "Uninterrupted recorder exit0",
+    "Whole CPU improvement",
+    "Provider turn/compaction rerun"
+  ],
+  "physical_frames_personally_reviewed": true,
+  "protected_old_prefix_files": 20,
+  "protected_unchanged": true,
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/receipt.json",
+      "bytes": 670285,
+      "sha256": "4d8375e42d4dade106f4ed35d28a35d5b87791a03e55bb39414877e3f2f4f782"
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/terminal.mp4",
+      "bytes": 15820810,
+      "sha256": "72b301cd5e308113003c9d49ad76d0908fd78dd660813f23cb5c5685d08b0bbf"
+    },
+    "cpu-profile.json": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/cpu-profile.json",
+      "bytes": 8554539,
+      "sha256": "285e2507585b0b5a3158309f8449b459302950ac56188eb8c5006930a3045385"
+    },
+    "selector-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/selector-review.json",
+      "bytes": 1079,
+      "sha256": "b8a03dc04660b8b624c289f8a130580e4880b64e8b0075a3ffdded395ca9c841"
+    },
+    "input-paging-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/input-paging-review.json",
+      "bytes": 540,
+      "sha256": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd"
+    },
+    "warm-scroll-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/warm-scroll-review.json",
+      "bytes": 63834,
+      "sha256": "e274ba7c11d42e2b377afbe88710843d8739901a33cf2a3d21a4e963b28b6c68"
+    },
+    "phase-selector-filtered.png": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-filtered.png",
+      "bytes": 103942,
+      "sha256": "ed3c302e2586095271d473b406d075e86f754aaba81daf9f7204779262e566ab"
+    },
+    "phase-selector-acknowledged.png": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-selector-acknowledged.png",
+      "bytes": 102620,
+      "sha256": "2c795e589adee30bfcb0c93111ad52dd12b931e11060be1fd948ab51ace3561e"
+    },
+    "phase-a-return.png": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-a-return.png",
+      "bytes": 102649,
+      "sha256": "03e1f2d88b425bd2fff8138ad2e886227ada59fefdb1e048089fc1af34b74e70"
+    },
+    "phase-idle-done.png": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-idle-done.png",
+      "bytes": 101741,
+      "sha256": "c2fd262ff52a1b469ae565c63067d0e152870386a674809f2c42074e50fa51bc"
+    },
+    "phase-undo.png": {
+      "path": "/home/ts/.cache/agent-scratch/receiving304-combined-configured-20261002-01/capture/phase-undo.png",
+      "bytes": 101396,
+      "sha256": "415f154a7c8f6de1ca7867792bd8fc3e021a52f82a544df397f2852ce4d710bf"
+    }
+  },
+  "original_completed302_and298_qualification": "Separate preserved scopes; not inferred by test composition",
+  "prompt_action_followup": "https://github.com/OpenHCSDev/toad/issues/306",
+  "corrected_original_newer_edge_review": "/home/ts/wt/toad-merged-selection-sidebar-20261002/.artifacts/merged-selection-sidebar-receiving-20261002/derived-cursor-review.json"
+}

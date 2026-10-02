@@ -108,9 +108,6 @@ class GoalBar(VerticalGroup):
         self.watch(self._source(), "goal_execution", self.watch_execution)
         if self._throbber is not None:
             self.watch(self._throbber, "busy", self._queue_separator_update)
-        if self._prompt is not None:
-            self.watch(self._prompt, "turn", self._queue_separator_update)
-            self.watch(self._prompt, "queue_supported", self._queue_separator_update)
         self._queue_separator_update()
 
     def notify_style_update(self) -> None:

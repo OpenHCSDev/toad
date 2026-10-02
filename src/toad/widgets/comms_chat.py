@@ -133,7 +133,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
-                agent_ready=Conversation.agent_ready,
                 agent=Conversation.agent,
                 status=Conversation.status,
             )
@@ -177,7 +176,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             return
         self.update_slash_commands()
         prompt.agent_info = self.agent_info
-        prompt.agent_ready = True
+        prompt.sync_session()
         prompt.shell_mode = False
         prompt.update_prompt()
         prompt.focus()

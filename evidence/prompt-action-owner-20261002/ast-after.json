@@ -1,0 +1,975 @@
+{
+  "tool": "existing refactor-audit Package AST queries",
+  "head": "8a5def6eb5141256e844fb6b659a8be0cf70fa25",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 276,
+      "omissions": [],
+      "records": [
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 58,
+          "context": "Load",
+          "source": "view.queue_supported"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 141,
+          "context": "Load",
+          "source": "view.queue_supported"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 156,
+          "context": "Load",
+          "source": "view.queue_supported"
+        },
+        {
+          "path": "src/toad/conversation_submission.py",
+          "line": 189,
+          "context": "Load",
+          "source": "view.queue_supported"
+        },
+        {
+          "path": "src/toad/prompt_actions.py",
+          "line": 18,
+          "context": "Load",
+          "source": "editor.schedule_submission"
+        },
+        {
+          "path": "src/toad/prompt_actions.py",
+          "line": 27,
+          "context": "Load",
+          "source": "editor.agent_ready"
+        },
+        {
+          "path": "src/toad/prompt_actions.py",
+          "line": 27,
+          "context": "Load",
+          "source": "editor.queue_supported"
+        },
+        {
+          "path": "src/toad/prompt_actions.py",
+          "line": 30,
+          "context": "Load",
+          "source": "editor.schedule_submission"
+        },
+        {
+          "path": "src/toad/transcript_publication.py",
+          "line": 352,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 154,
+          "context": "Store",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/comms_fork_dialog.py",
+          "line": 57,
+          "context": "Load",
+          "source": "self.action_submit"
+        },
+        {
+          "path": "src/toad/widgets/comms_fork_dialog.py",
+          "line": 60,
+          "context": "Load",
+          "source": "self.action_submit"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 393,
+          "declaration": "agent_ready: var[bool] = var(False)"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 773,
+          "context": "Load",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1003,
+          "context": "Store",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1074,
+          "context": "Store",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 397,
+          "context": "Load",
+          "source": "self.agent.presentation.queue_supported"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 560,
+          "context": "Store",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 592,
+          "context": "Store",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1808,
+          "context": "Store",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1810,
+          "context": "Load",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 359,
+          "context": "Load",
+          "source": "self.action_submit"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 656,
+          "context": "Load",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 192,
+          "context": "Load",
+          "source": "self.query_ancestor(Prompt).agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 196,
+          "context": "Load",
+          "source": "self.query_ancestor(Prompt).queue_supported"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 498,
+          "context": "Load",
+          "source": "self.agent.presentation.queue_supported"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 613,
+          "context": "Load",
+          "source": "self.queue_supported"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 301,
+          "context": "Load",
+          "source": "self.agent_ready"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 649,
+          "context": "Load",
+          "source": "self.agent_ready"
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "parsed": 388,
+      "omissions": [],
+      "records": [
+        {
+          "path": "tests/acp_specification_installed_pilot.py",
+          "line": 36,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/acp_specification_installed_pilot.py",
+          "line": 59,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/admission_scope_installed_pilot.py",
+          "line": 27,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 19,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/agent_configuration_native_installed_pilot.py",
+          "line": 39,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 126,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/agent_selection_configured_installed_pilot.py",
+          "line": 189,
+          "context": "Load",
+          "source": "returned.agent_ready"
+        },
+        {
+          "path": "tests/async_thread_open_pilot.py",
+          "line": 162,
+          "context": "Load",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 224,
+          "context": "Load",
+          "source": "cold.agent_ready"
+        },
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 343,
+          "context": "Load",
+          "source": "sender.agent_ready"
+        },
+        {
+          "path": "tests/canonical_wire_conversation_installed_pilot.py",
+          "line": 484,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+          "line": 217,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/canonical_wire_retained_real_installed_pilot.py",
+          "line": 469,
+          "context": "Load",
+          "source": "cold.agent_ready"
+        },
+        {
+          "path": "tests/catalog_actions_native_installed_pilot.py",
+          "line": 204,
+          "context": "Load",
+          "source": "launched.agent_ready"
+        },
+        {
+          "path": "tests/catalog_actions_native_installed_pilot.py",
+          "line": 156,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/checkpoint_source_pivot_pilot.py",
+          "line": 52,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/checkpoint_source_pivot_pilot.py",
+          "line": 56,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/client_session_native_installed_pilot.py",
+          "line": 20,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/client_session_native_installed_pilot.py",
+          "line": 88,
+          "context": "Load",
+          "source": "returned.agent_ready"
+        },
+        {
+          "path": "tests/cold_thread_latency_pilot.py",
+          "line": 125,
+          "context": "Load",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/command_family_pilot.py",
+          "line": 130,
+          "context": "Load",
+          "source": "chat.agent_ready"
+        },
+        {
+          "path": "tests/comms_scene_latency_pilot.py",
+          "line": 35,
+          "context": "Load",
+          "source": "chat.prompt.agent_ready"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 101,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/compaction_summary_stream_native_installed_pilot.py",
+          "line": 358,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 26,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/context_compaction_native_installed_pilot.py",
+          "line": 148,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/context_native_installed_pilot.py",
+          "line": 18,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/context_resume_pilot.py",
+          "line": 55,
+          "context": "Load",
+          "source": "app.selected_session.conversation.agent_ready"
+        },
+        {
+          "path": "tests/existing_thread_tab_title_pilot.py",
+          "line": 147,
+          "context": "Load",
+          "source": "app.selected_session.conversation.agent_ready"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 266,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 269,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 74,
+          "context": "Load",
+          "source": "parent_view.agent_ready"
+        },
+        {
+          "path": "tests/first_fork_native_installed_pilot.py",
+          "line": 268,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/goal_objective_edit_pilot.py",
+          "line": 72,
+          "context": "Store",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 134,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/goal_pause_owner_pilot.py",
+          "line": 75,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/goal_retry_pilot.py",
+          "line": 41,
+          "context": "Store",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/goal_server_poll_pilot.py",
+          "line": 100,
+          "context": "Store",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/goal_standby_history_pilot.py",
+          "line": 107,
+          "context": "Store",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/history_availability_installed_pilot.py",
+          "line": 53,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/input_history_native_installed_pilot.py",
+          "line": 12,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 348,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/l0a_native_installed_pilot.py",
+          "line": 533,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/late_native_after_join_pilot.py",
+          "line": 81,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/late_native_after_join_pilot.py",
+          "line": 85,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/late_native_application_pilot.py",
+          "line": 81,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/late_native_application_pilot.py",
+          "line": 85,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/main_menu_transfer_pilot.py",
+          "line": 62,
+          "context": "Load",
+          "source": "dialog.action_submit"
+        },
+        {
+          "path": "tests/main_menu_transfer_pilot.py",
+          "line": 66,
+          "context": "Load",
+          "source": "dialog.action_submit"
+        },
+        {
+          "path": "tests/main_menu_transfer_pilot.py",
+          "line": 89,
+          "context": "Load",
+          "source": "dialog.action_submit"
+        },
+        {
+          "path": "tests/manual_live_turn_status.py",
+          "line": 121,
+          "context": "Load",
+          "source": "editor.agent_ready"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 240,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/native_loaded_return_cache_pilot.py",
+          "line": 207,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 38,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/native_widget_actions_installed_pilot.py",
+          "line": 48,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/navigation_terminal_fixture.py",
+          "line": 173,
+          "context": "Store",
+          "source": "screen.conversation.agent_ready"
+        },
+        {
+          "path": "tests/off_tail_checkpoint_pilot.py",
+          "line": 77,
+          "context": "Store",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/original_stream_headers_installed_pilot.py",
+          "line": 49,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/original_turn_resource_real_installed_pilot.py",
+          "line": 220,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/owner_replacement_recovery_installed_pilot.py",
+          "line": 115,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/pending_thread_open_pilot.py",
+          "line": 80,
+          "context": "Load",
+          "source": "source.conversation.agent_ready"
+        },
+        {
+          "path": "tests/pending_thread_open_pilot.py",
+          "line": 95,
+          "context": "Load",
+          "source": "source.conversation.agent_ready"
+        },
+        {
+          "path": "tests/pending_thread_open_pilot.py",
+          "line": 130,
+          "context": "Load",
+          "source": "view.conversation.agent_ready"
+        },
+        {
+          "path": "tests/pending_thread_open_pilot.py",
+          "line": 139,
+          "context": "Load",
+          "source": "view.conversation.agent_ready"
+        },
+        {
+          "path": "tests/project_resume_pilot.py",
+          "line": 35,
+          "context": "Load",
+          "source": "app.selected_session.conversation.agent_ready"
+        },
+        {
+          "path": "tests/prompt_completion_installed_pilot.py",
+          "line": 64,
+          "context": "Load",
+          "source": "prompt.agent_ready"
+        },
+        {
+          "path": "tests/readonly_saved_reader_pilot.py",
+          "line": 78,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/reconnect_source_native_installed_pilot.py",
+          "line": 33,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/reconnect_source_native_installed_pilot.py",
+          "line": 83,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 62,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/response_source_custody_pilot.py",
+          "line": 67,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/restored_inbound_continuous_installed_pilot.py",
+          "line": 165,
+          "context": "Load",
+          "source": "alpha_screen.conversation.agent_ready"
+        },
+        {
+          "path": "tests/retained_input_origin_observer.py",
+          "line": 77,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/saved_state_user_journey_pilot.py",
+          "line": 272,
+          "context": "Load",
+          "source": "app.selected_session.conversation.agent_ready"
+        },
+        {
+          "path": "tests/session_sort_pilot.py",
+          "line": 114,
+          "context": "Load",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/session_sort_pilot.py",
+          "line": 140,
+          "context": "Load",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/snapshot_cancellation_custody_pilot.py",
+          "line": 215,
+          "context": "Load",
+          "source": "type(view).agent_ready"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 52,
+          "context": "Load",
+          "source": "editor.agent_ready"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 54,
+          "context": "Load",
+          "source": "view.queue_supported"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 54,
+          "context": "Load",
+          "source": "agent.presentation.queue_supported"
+        },
+        {
+          "path": "tests/submission_native_installed_pilot.py",
+          "line": 50,
+          "context": "Load",
+          "source": "view.agent_ready"
+        },
+        {
+          "path": "tests/thread_render_wait_pilot.py",
+          "line": 132,
+          "context": "Load",
+          "source": "conversation.agent_ready"
+        },
+        {
+          "path": "tests/transcript_teardown_pilot.py",
+          "line": 43,
+          "context": "Store",
+          "source": "view.agent_ready"
+        }
+      ]
+    },
+    {
+      "root": "tools",
+      "parsed": 41,
+      "omissions": [],
+      "records": [
+        {
+          "path": "tools/performance/profile_thread_open.py",
+          "line": 143,
+          "context": "Load",
+          "source": "app.screen.conversation.agent_ready"
+        },
+        {
+          "path": "tools/performance/profile_thread_open.py",
+          "line": 186,
+          "context": "Load",
+          "source": "app.screen.conversation.agent_ready"
+        },
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 609,
+          "context": "Load",
+          "source": "conversation.agent_ready"
+        }
+      ]
+    }
+  ],
+  "distinct_presentation_resource": "Conversation.agent_ready still represents settled loading/welcome/error UI; failure sets True. No Prompt/editor admission consumes it. Historical view-only fixture writes remain explicitly listed.",
+  "deletion": "Prompt+editor ready/queue var definitions and binds; MainScreen queue flag write; Conversation queue var; PromptTextArea check_action string switch and direct action methods; direct click bypass; invalid separator fixture",
+  "limitations": [
+    "Lexical occurrences and annotated declarations, not dynamic dispatch proof. Existing DeclaredWidgetActions synthesizes action methods through partialmethod.",
+    "Original Agent.ready forwards AgentSession.ready, queue capability forwards Controller coordination, busy forwards TurnOwner; derived readers do not store accepted semantic values."
+  ],
+  "final_source_family": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 113,
+      "owner": "AgentController",
+      "bases": [
+        "OperationalTerminalOwner"
+      ],
+      "methods": []
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 20,
+      "owner": "AgentSession",
+      "bases": [],
+      "methods": [
+        {
+          "name": "ready",
+          "line": 38,
+          "source": "@property\ndef ready(self):\n    return self.connected and self.settled.is_set()"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 15,
+      "owner": "QueueAttachment",
+      "bases": [
+        "ProjectionAttachment"
+      ],
+      "methods": []
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 17,
+      "owner": "AgentPresentation",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        {
+          "name": "queue_supported",
+          "line": 30,
+          "source": "@property\ndef queue_supported(self) -> bool:\n    return False"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/agent_presentation.py",
+      "line": 71,
+      "owner": "ACPAgentPresentation",
+      "bases": [
+        "AgentPresentation"
+      ],
+      "methods": [
+        {
+          "name": "queue_supported",
+          "line": 85,
+          "source": "@property\ndef queue_supported(self) -> bool:\n    \"\"\"Advertisement belongs to the original coordination declaration.\"\"\"\n    return self.agent.coordination is not None"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 161,
+      "owner": "SubmissionExecution",
+      "bases": [],
+      "methods": []
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 211,
+      "owner": "ConversationSubmissions",
+      "bases": [],
+      "methods": []
+    },
+    {
+      "path": "src/toad/prompt_actions.py",
+      "line": 6,
+      "owner": "PromptAction",
+      "bases": [
+        "NativeAction",
+        "DeclaredFamily"
+      ],
+      "methods": []
+    },
+    {
+      "path": "src/toad/prompt_actions.py",
+      "line": 10,
+      "owner": "SubmitAction",
+      "bases": [
+        "KeyboundAction",
+        "PromptAction"
+      ],
+      "methods": [
+        {
+          "name": "apply",
+          "line": 17,
+          "source": "async def apply(self, editor):\n    editor.schedule_submission()"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/prompt_actions.py",
+      "line": 21,
+      "owner": "SubmitNowAction",
+      "bases": [
+        "KeyboundAction",
+        "PromptAction"
+      ],
+      "methods": [
+        {
+          "name": "available",
+          "line": 26,
+          "source": "def available(self, editor):\n    return editor.agent_ready and editor.agent_busy and editor.queue_supported"
+        },
+        {
+          "name": "apply",
+          "line": 29,
+          "source": "async def apply(self, editor):\n    editor.schedule_submission(immediate=True)"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/prompt_actions.py",
+      "line": 33,
+      "owner": "ClearInputAction",
+      "bases": [
+        "KeyboundAction",
+        "PromptAction"
+      ],
+      "methods": [
+        {
+          "name": "available",
+          "line": 40,
+          "source": "def available(self, editor):\n    return bool(editor.text)"
+        },
+        {
+          "name": "apply",
+          "line": 43,
+          "source": "async def apply(self, editor):\n    editor.clear()\n    editor.suggestions = None\n    editor.suggestion = ''"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widget_actions.py",
+      "line": 5,
+      "owner": "DeclaredWidgetActions",
+      "bases": [],
+      "methods": [
+        {
+          "name": "check_action",
+          "line": 21,
+          "source": "def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:\n    try:\n        declaration = self.ACTIONS.decode(action)\n    except ValueError:\n        return super().check_action(action, parameters)\n    return declaration.parse(parameters).available(self)"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 115,
+      "owner": "PromptSubmission",
+      "bases": [],
+      "methods": [
+        {
+          "name": "schedule_submission",
+          "line": 118,
+          "source": "def schedule_submission(self, *, immediate: bool=False) -> None:\n    self._submit_immediate |= immediate\n    if not self._submit_pending:\n        self._submit_pending = True\n        self.call_later(self._submit)"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 127,
+      "owner": "PromptTextArea",
+      "bases": [
+        "DeclaredWidgetActions",
+        "PromptSubmission",
+        "HighlightedTextArea"
+      ],
+      "methods": [
+        {
+          "name": "agent_busy",
+          "line": 187,
+          "source": "@property\ndef agent_busy(self) -> bool:\n    return self.turns.owner.busy if self.turns is not None else False"
+        },
+        {
+          "name": "agent_ready",
+          "line": 191,
+          "source": "@property\ndef agent_ready(self) -> bool:\n    return self.simple_input or self.shell_mode or self.query_ancestor(Prompt).agent_ready"
+        },
+        {
+          "name": "queue_supported",
+          "line": 195,
+          "source": "@property\ndef queue_supported(self) -> bool:\n    return not self.simple_input and self.query_ancestor(Prompt).queue_supported"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 424,
+      "owner": "Prompt",
+      "bases": [
+        "containers.VerticalGroup"
+      ],
+      "methods": [
+        {
+          "name": "agent_busy",
+          "line": 489,
+          "source": "@property\ndef agent_busy(self) -> bool:\n    return self.turns.owner.busy if self.turns is not None else False"
+        },
+        {
+          "name": "agent_ready",
+          "line": 493,
+          "source": "@property\ndef agent_ready(self) -> bool:\n    return self.simple_input or self.shell_mode or (self.agent is not None and self.agent.ready)"
+        },
+        {
+          "name": "queue_supported",
+          "line": 497,
+          "source": "@property\ndef queue_supported(self) -> bool:\n    return self.agent is not None and self.agent.presentation.queue_supported"
+        },
+        {
+          "name": "sync_turn",
+          "line": 588,
+          "source": "def sync_turn(self) -> None:\n    if not self.is_mounted:\n        return\n    if (editor := self.query_one_optional(PromptTextArea)) is not None:\n        self.set_class(SubmitNowAction().available(editor), '-queue-mode')\n        editor.refresh_bindings()\n    from toad.widgets.goal_bar import GoalBar\n    for goal_bar in self.parent.query(GoalBar):\n        goal_bar._queue_separator_update()"
+        },
+        {
+          "name": "sync_queue",
+          "line": 598,
+          "source": "def sync_queue(self) -> None:\n    if self.is_mounted:\n        self.sync_session()\n        self._update_queue_summary()"
+        },
+        {
+          "name": "on_send_prompt_now",
+          "line": 640,
+          "source": "@on(messages.SendPromptNow)\nasync def on_send_prompt_now(self, event):\n    event.stop()\n    self.screen.set_focus(self.prompt_text_area)\n    await self.prompt_text_area.run_action('submit_now')"
+        },
+        {
+          "name": "sync_session",
+          "line": 647,
+          "source": "def sync_session(self) -> None:\n    if not self.is_mounted:\n        return\n    self.set_class(not self.agent_ready, '-not-ready')\n    self.watch_agent_info(self.agent_info)\n    self.sync_turn()"
+        },
+        {
+          "name": "check_action",
+          "line": 815,
+          "source": "def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:\n    return True"
+        }
+      ]
+    }
+  ],
+  "all_production_parsed": 276,
+  "omissions": [],
+  "remaining_local_intent": "_submit_pending coalesces pending UI callbacks; _submit_immediate retains original unsent user intent until _submit consumes it. Neither is accepted native/queue state.",
+  "new_class_rationale": "PromptAction specializes the existing NativeAction context and DeclaredFamily enumeration; three leaf members own existing effects, key declarations and eligibility. No duplicated dispatcher, registry, session or readiness class.",
+  "boundary_modules": 38
+}
