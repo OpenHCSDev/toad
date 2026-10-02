@@ -141,11 +141,13 @@ async def main():
                 # Retirement owns complete paint even when optional geometry
                 # has been evicted. It must not publish a body-local scene.
                 scene._subtree_geometry.clear()
+                scene.full_map  # Resolve original scene publication before capture.
                 published_scene = scene._full_map, scene._visible_map
+                scene.render_subtree_strips(member)
+                assert scene._full_map is published_scene[0]
+                assert scene._visible_map is published_scene[1]
                 if not member.body_dormant:
                     assert await member.retire_body(), (type(member).__name__, member.body_ready)
-                    assert scene._full_map is published_scene[0]
-                    assert scene._visible_map is published_scene[1]
                     await pilot.pause()
                 captured = member._body_measurement.content
                 captured_rows = tuple(line.text for line in captured.lines)
