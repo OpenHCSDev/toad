@@ -95,7 +95,6 @@ class SidebarObservation:
             self.sidebar.projection.snapshot = None
             self.identity = None
             self.sidebar.navigation.reset()
-            self.sidebar.projection.paint = None
             self.sidebar.projection.sync_spinner()
 
     async def session_updated(self, update: tuple[str, SessionDetails | None]) -> None:

@@ -1,22 +1,14 @@
 """Keyed channel hierarchy, row paint and spinner custody."""
 from __future__ import annotations
 import asyncio
-from dataclasses import dataclass
 from textual.content import Content
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.widgets.activity_spinner import FRAMES
-
-@dataclass(frozen=True)
-class SidebarPaint:
-    snapshot: SidebarSnapshot
-    expansion: tuple[tuple[str, bool], ...]
-    actions: tuple[tuple[str, str], ...]
 
 class SidebarProjection:
     def __init__(self, sidebar):
         self.sidebar = sidebar
         self.snapshot = None
-        self.paint = None
         self.lock = asyncio.Lock()
         self.phase = 0
         self.timer = None
@@ -78,7 +70,7 @@ class SidebarProjection:
     def has_snapshot(self) -> bool:
         return self.snapshot is not None
 
-    def sync_spinner(self, snapshot: SidebarSnapshot | None = None) -> None:
+    def sync_spinner(self) -> None:
         timer = self.timer
         if timer is None:
             return
@@ -101,19 +93,11 @@ class SidebarProjection:
         async with self.lock:
             if self.sidebar.observation.service is not service or not self.sidebar.accepts_publication():
                 return
-            paint = SidebarPaint(snapshot, tuple(self.sidebar.navigation.state.expanded.items()),
-                                 tuple(self.sidebar.app.thread_actions.pending.items()))
-            if paint != self.paint:
-                # Publication is serialized by this sidebar, not a global paint
-                # mask held across worker delivery and descendant mount awaits.
-                await self.rebuild(snapshot)
-                if not self.sidebar.accepts_publication():
-                    return
-                self.paint = paint
-            else:
-                self.sidebar.navigation.apply()
-                self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
-                self.sync_spinner(snapshot)
+            # The snapshot is source custody, not a paint signature. Keyed
+            # groups and prepared rows own changes to their actual output.
+            await self.rebuild(snapshot)
+            if not self.sidebar.accepts_publication():
+                return
             if not self.sidebar.navigation.ready.is_set() and self.sidebar.is_attached and self.sidebar.screen.is_current:
                 self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
 
@@ -138,7 +122,8 @@ class SidebarProjection:
             await self.sidebar.mount(NewSessionButton())
             if not self.sidebar.accepts_publication():
                 return
-        for key in set(channels) - set(desired_keys):
+        retired_channels = set(channels) - set(desired_keys)
+        for key in retired_channels:
             row = channels.pop(key)
             await row.query_ancestor(ChannelGroup).remove()
             if not self.sidebar.accepts_publication():
@@ -154,6 +139,8 @@ class SidebarProjection:
             await self.sidebar.mount(*new_groups)
             if not self.sidebar.accepts_publication():
                 return
+        if retired_channels or new_groups:
+            self.sidebar.navigation.rows_changed()
         for view in snapshot.wire.channels:
             channel_row = channels[view.channel.name]
             unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
@@ -171,9 +158,10 @@ class SidebarProjection:
         if list(self.sidebar.children) != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sidebar.sort_children(key=positions.__getitem__)
-        self.sidebar.navigation.apply(force=True)
-        self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode, force=True)
-        self.sync_spinner(snapshot)
+            self.sidebar.navigation.rows_changed()
+        self.sidebar.navigation.apply()
+        self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
+        self.sync_spinner()
         # Retain full row text. Only the content grows; the outer sidebar owns
         # both native scrollbars and keeps their geometry at the visible edge.
         widest = max((Content(view.channel.name).cell_length + 12
