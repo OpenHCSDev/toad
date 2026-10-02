@@ -1,0 +1,23 @@
+{
+  "state": "PREPARED, NOT EXECUTED",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/operator-manifest.json",
+  "operator_manifest_sha256": "7390098a738d451aa85fbb1e6d72ea52048c0786c4ed5bec79ea676a78bd517c",
+  "operator_members": 51,
+  "operator_core": "48d408a46d73f9123b71a7ccdc81b86e8d8aa7c2",
+  "source_core": "c6019afd34313db81504a364e3cc4024470a3034",
+  "source_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native-configuration516-20261002",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002",
+  "native_version": 6,
+  "whole_declared_schema_equal": true,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "historical_carry": false,
+  "plan_sha256": "272f6bf307d3a7cea48ea6d736c9ed38f4fefa5a961836703fbbf5047745559f",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "source_proof_sha256": "1b6c14ef6eb2814f25722a0d149a885ca976e984699b9657158b0953bb54264b",
+  "public_stops": 0,
+  "public_starts": 0,
+  "public_writes": 0,
+  "owner_readiness_claim": false,
+  "execution_condition": "Parent only, after current sends/reservations settle; existing publisher recaptures and fences actual complete idle audience.",
+  "parent_execution_command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/operator-preparation/publication-receipt.json --execute"
+}

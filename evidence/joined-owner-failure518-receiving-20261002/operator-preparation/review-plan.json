@@ -1,0 +1,34 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002",
+  "source_interpreter": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native-configuration516-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native-configuration516-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/activation.json",
+    "sha256": "570a44566f6c00191d055bf71ed24da0196843e24b4d1cb0cef0bc35d8290241"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/source-proof.json",
+    "sha256": "1b6c14ef6eb2814f25722a0d149a885ca976e984699b9657158b0953bb54264b"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/comms-stopped-cutover-failure-custody-20261002/evidence/stopped-cutover-failure-custody-20261002/ready-receipt.json",
+      "sha256": "0d61296cec21553d25ca4d4903790179247f4ac921531ebed33f512b88b4f61c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/joined-owner-failure518-receiving-20261002/original-shared-callback-cli-receipt.json",
+      "sha256": "880c92d2810e0e73c2f2f88ee40ca6755370b0af9c4ba038e6b406eb2086d059"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/evidence/joined-owner-failure518-receiving-20261002/source-target-receipt.json",
+      "sha256": "6dd2c747d1e0358944af67beac3e0e6121a18ad39f3b7525149d0df960b27a8b"
+    }
+  ]
+}
