@@ -477,6 +477,22 @@ class WarmScrollJourney(ScrollJourney):
         return ()
 
     @classmethod
+    def history_commands(cls, args):
+        return (scroll_script(idle_seconds=args.scroll_idle_seconds,
+                              hold_seconds=args.scroll_hold_seconds,
+                              state="phase-draft-state.pickle"),)
+
+    @classmethod
+    def closing_commands(cls, args):
+        return ()
+
+    @classmethod
+    def ready_command(cls, args, label, thread):
+        return (marker_command() + f"{label} --wait-history-seconds {args.history_wait_seconds:g} "
+                f"--wait-history-interval {args.history_wait_interval:g} "
+                f"--wait-history-thread {shlex.quote(thread)}")
+
+    @classmethod
     def peer_click(cls, args):
         if not args.peer_thread:
             raise ValueError("Warm scrolling requires --peer-thread for the actual native roster target")
@@ -486,9 +502,7 @@ class WarmScrollJourney(ScrollJourney):
     def peer_ready(cls, args):
         if not args.peer_thread:
             raise ValueError("Warm scrolling requires the intended peer identity")
-        return (marker_command() + f"b-open --wait-history-seconds {args.history_wait_seconds:g} "
-                f"--wait-history-interval {args.history_wait_interval:g} "
-                f"--wait-history-thread {shlex.quote(args.peer_thread)}")
+        return cls.ready_command(args, "b-open", args.peer_thread)
 
     @classmethod
     def script(cls, args):
@@ -505,13 +519,12 @@ class WarmScrollJourney(ScrollJourney):
             marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
             f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
             *cls.paging_commands(args),
-            scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
-                          state="phase-draft-state.pickle"),
+            *cls.history_commands(args),
             marker + "switch-b", peer_click, peer_ready, marker + "return-a",
             native_click_command("phase-return-a-state.pickle", target="original_tab",
                                  original_state="phase-warm-start-state.pickle"), settle, marker + "a-return",
             native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
-            marker + "undo", "",
+            marker + "undo", *cls.closing_commands(args), "",
         ])
 
     @classmethod
@@ -524,6 +537,34 @@ class WarmScrollJourney(ScrollJourney):
         failed = [name for name, passed in review["checks"].items() if not passed]
         if failed:
             raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
+
+
+class RetainedLifetimeJourney(WarmScrollJourney):
+    """Original saved view custody through scroll, actual A/B/A and End.
+
+    This qualifies source/application lifetime, not paging velocity or FPS.
+    """
+
+    review_artifacts = ("retained-lifetime-review.json",)
+
+    @classmethod
+    def opening_commands(cls, args):
+        return (cls.ready_command(args, "warm-ready", args.command[-1]),)
+
+    @classmethod
+    def history_commands(cls, args):
+        return (native_click_command("phase-draft-state.pickle"), "key Prior",
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "reader-before-return")
+
+    @classmethod
+    def closing_commands(cls, args):
+        return (native_click_command("phase-undo-state.pickle"), "key End",
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "lifetime-end")
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import review_retained_lifetime
+        return review_retained_lifetime(output, receipt, suffix=cls.draft_suffix)
 
 
 class WarmSourceJourney(WarmScrollJourney):
@@ -634,9 +675,7 @@ class InputWarmJourney(WarmScrollJourney):
     def opening_commands(cls, args):
         if not args.scroll_travel:
             raise ValueError("Input warm acceptance requires original paging observation")
-        return (marker_command() + f"warm-ready --wait-history-seconds {args.history_wait_seconds:g} "
-                f"--wait-history-interval {args.history_wait_interval:g} "
-                f"--wait-history-thread {shlex.quote(args.command[-1])}",)
+        return (cls.ready_command(args, "warm-ready", args.command[-1]),)
 
     @classmethod
     def paging_commands(cls, args):
@@ -933,8 +972,7 @@ class OwnedForkCapture(ExistingThreadCapture, PrivateCapture):
         cls.require_acp_command(command, selection)
         if command[3:] != [thread.worktree, "--session", thread.name]:
             raise ValueError("Owned fork ACP must select the actual child and its original worktree")
-        retained = RetainedOwnerLaunch.capture(thread, snapshot,
-                                              interpreter=str(selection.bin_directory / "python"))
+        retained = RetainedOwnerLaunch.capture(thread, snapshot)
         runtime = RestartEnvironment.inherit(retained.environment)
         if runtime.root is None:
             raise ValueError("Retained child has no explicit native launch root")

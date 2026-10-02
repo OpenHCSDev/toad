@@ -54,7 +54,10 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 if not app.workspace_sessions.source.shown(view):
                     return False
                 window = view.query_one_optional(HistoryWindow)
-                if window is None or window.history_mutating() or window.history_lock.locked():
+                # HistoryWindow's native tree fence owns frame publication.
+                # Its async history lock may also serialize work after a
+                # committed frame; holding it doesn't revoke that frame.
+                if window is None or window.history_mutating():
                     return False
                 screen = window.screen
                 visible = screen._compositor.visible_widgets

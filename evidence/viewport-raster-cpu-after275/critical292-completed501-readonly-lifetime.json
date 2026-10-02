@@ -1,0 +1,187 @@
+{
+  "scope": "SCOPED critical292/293 installed completed501 saved-source/application lifetime acceptance; not performance284/Text19 or scrolling CPU/raster readiness",
+  "capture": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03",
+  "pair": {
+    "agent_comms": "0f63cfb0e8bbf77b32dc803b81481428fa38cd99",
+    "toad": "c97255e80fd8a32dff312a44c24cddc01b12d29e",
+    "textual": "e36d7ee4b8b1945ebf90fcb840753a68fe2ae16d"
+  },
+  "entrypoint": [
+    "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001/bin/python",
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "--owner",
+    "Heisenberg-critical292-293-completed501-readonly",
+    "--capture-target",
+    "owned_fork",
+    "--journey",
+    "retained_lifetime",
+    "--peer-thread",
+    "agent-comms-ux",
+    "--capture-state",
+    "--output",
+    "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture",
+    "--fit-window",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--startup-wait",
+    "1",
+    "--history-wait-seconds",
+    "35",
+    "--max-duration",
+    "600",
+    "--finalize-seconds",
+    "14",
+    "--scroll-idle-seconds",
+    "15",
+    "--scroll-hold-seconds",
+    "2",
+    "--navigation-settle-seconds",
+    "1",
+    "--tail-seconds",
+    "1",
+    "--review-timing",
+    "deferred",
+    "--fork-thread",
+    "compaction501-live-architecture-memory",
+    "--fork-parent",
+    "openhcs-architecture-memory",
+    "--",
+    "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001/bin/toad",
+    "acp",
+    "/home/ts/wt/toad-critical-compaction501-release-20261001/.artifacts/runtime-critical-compaction501-20261001/bin/python -m agent_comms.acp",
+    "/home/ts/code/projects/openhcs",
+    "--session",
+    "compaction501-live-architecture-memory"
+  ],
+  "duration_seconds": 37.904803221987095,
+  "completed": true,
+  "capture_returncode": 255,
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "original_before": {
+    "pid": 2644125,
+    "start_ticks": 37571603,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 378761.601249282
+  },
+  "original_after": {
+    "pid": 2644125,
+    "start_ticks": 37571603,
+    "source": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+    "bytes": 42145087,
+    "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+    "monotonic": 378810.233945635
+  },
+  "journal_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "rpc_errors": [],
+  "rpc_methods": [
+    {
+      "side": "[client",
+      "method": "initialize",
+      "count": 2
+    },
+    {
+      "side": "[client",
+      "method": "session/load",
+      "count": 2
+    },
+    {
+      "side": "[agent",
+      "method": "session/update",
+      "count": 8
+    }
+  ],
+  "terminal_crash_reports": [],
+  "physical_assessment": {
+    "B": "Readable agent-comms-ux saved history, selected matching tab and Ready",
+    "A_return": "Selected compaction501 tab, original saved Original Request/Early Progress/Context for Suffix, openhcs worktree, original draft readable",
+    "End": "Exact Compaction501UI20261001-one acknowledged. saved reply readable; Ready; nativeEnd233=max233 follows_tail true"
+  },
+  "observer_semantics": "HistoryWindow.history_mutating native tree fence + original bodies/current shown frame/FrameFlush remain; async history_lock serialization is not independent paint authority. Original RetainedOwnerLaunch derives retained interpreter separately from UI RuntimeSelection.",
+  "prior_attempts": {
+    "01": "pre-UI interpreter conflation; owner/source unchanged",
+    "02": "B35s readiness timeout although actualBpaint readable, held async serialization lock with presented frame; exactlockholder not captured, no productdeadlock verdict; Areturn not reached"
+  },
+  "limits": [
+    "No fresh Enter, provider request, original attempt retry, restart or default activation",
+    "Not a matched backend cohort cutover acceptance: B retains old498/53b8 owner; actual current ACP load/source/frame path worked in this readonly mixed-cohort observation",
+    "No CPU/FPS/raster/continuous-growing-end qualification; performance284/Text19 absent",
+    "11 native checks support custody; physical phase PNGs inspected separately"
+  ],
+  "artifacts": {
+    "capture/receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture/receipt.json",
+      "sha256": "be6f00c08ec5570d60bda6250b78527cedcd604d892d7fea9531f14de3f92565",
+      "bytes": 121023
+    },
+    "capture/retained-lifetime-review.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture/retained-lifetime-review.json",
+      "sha256": "f09fc85d8bb29045c00d2be286f87040e054680f50889a79a80386d8f0434d52",
+      "bytes": 34691
+    },
+    "capture/terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture/terminal.mp4",
+      "sha256": "a15aa02192211c3605157fabf2c5cb5aba782180dde61f1f51d1049978cb0928",
+      "bytes": 1826683
+    },
+    "capture/phase-b-open.png": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture/phase-b-open.png",
+      "sha256": "531bfe6ff25bad0defede67220a55d54219df81b65df07d84cb78c8191d07df7",
+      "bytes": 116766
+    },
+    "capture/phase-a-return.png": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture/phase-a-return.png",
+      "sha256": "28537dc128f61db60a8c069b9bef14204308ef3209ec106400c71679a71a9cb1",
+      "bytes": 96380
+    },
+    "capture/phase-lifetime-end.png": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/capture/phase-lifetime-end.png",
+      "sha256": "2c6ab6349773203cdade79ffb2d988af84b137ccb04490a34535739096c60a2b",
+      "bytes": 86962
+    },
+    "command.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/command.json",
+      "sha256": "d0036d62ee3c093cb178231ffae0a530663c8554966623c9a655b9cf17921089",
+      "bytes": 1937
+    },
+    "activation.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/activation.json",
+      "sha256": "b2a35792e5134962bd83049762bfadcb5055355a0a67e85ba083a86f080a342d",
+      "bytes": 2415
+    },
+    "owner-source-before.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/owner-source-before.json",
+      "sha256": "50069e7d767f4fe71170cc67be59032fff03dc4347fb2d5ce154a570d7b1568a",
+      "bytes": 327
+    },
+    "owner-source-after.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/owner-source-after.json",
+      "sha256": "705749bc360a78463ea15a78b810c324731632abf86514f7e98b149f8a26cc88",
+      "bytes": 327
+    },
+    "acp-readonly-summary.json": {
+      "path": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-03/acp-readonly-summary.json",
+      "sha256": "2e82f1744edaefca4752f8884fa48c82c7aa044bc2c421781a78e67f72034433",
+      "bytes": 2403
+    }
+  }
+}
