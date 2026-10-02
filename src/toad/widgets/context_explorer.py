@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 
+from acp.exceptions import RequestError
 from textual import on, work
 from textual.containers import Vertical
 from textual.widgets import Static, TextArea, Tree
@@ -30,15 +31,19 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
     BINDINGS = [("r", "refresh", "Refresh context")]
     DETAIL_CHARACTERS = 24000
 
-    def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent):
+    def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent,
+                 detail_characters: int = DETAIL_CHARACTERS):
         super().__init__()
         self.owner, self.wire_root = owner, root
         self.intent = intent
+        if detail_characters < 1:
+            raise ValueError("Context detail preview must have a positive bound")
+        self.detail_characters = detail_characters
         self._inspection: ContextInspection | None = None
         self._native = None
         self._observed_revision = None
         self._loaded: set[str] = set()
-        self._nodes = {}
+        self._context_nodes = {}
 
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
@@ -68,7 +73,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
             return
         access = self.app.coordination_access
         if self._observed_revision != access.revision or self._inspection is None:
-            self.action_refresh()
+            self._read(self.owner, self.wire_root)
 
     def set_identity(self, owner, root):
         if (owner, root) == (self.owner, self.wire_root):
@@ -83,10 +88,10 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
 
     def action_refresh(self):
         if self.visible():
-            self._read(self.owner, self.wire_root)
+            self._read(self.owner, self.wire_root, force=True)
 
     @work(group="context-read", exclusive=True, exit_on_error=False)
-    async def _read(self, owner, root):
+    async def _read(self, owner, root, *, force=False):
         status = self.query_one(".context-status", Static)
         if not owner or root is None:
             status.update("No managed thread context available")
@@ -97,12 +102,16 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
             return
         revision = self.app.coordination_access.revision
         try:
+            if (not force and self._inspection is not None
+                    and await asyncio.to_thread(self._inspection.current, service)):
+                self._observed_revision = revision
+                return
             inspection = await asyncio.to_thread(ContextInspection.read, service, owner)
             native = None
             unavailable = ""
             try:
                 native = await inspection.native(service)
-            except (OSError, ValueError, RuntimeError, ConnectionError) as error:
+            except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
                 unavailable = str(error)
             if (owner, root) != (self.owner, self.wire_root) or not self.is_attached:
                 return
@@ -118,13 +127,13 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
                 f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
         except asyncio.CancelledError:
             raise
-        except (OSError, ValueError, RuntimeError, ConnectionError) as error:
+        except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
             status.update(f"Context unavailable: {error}")
 
     def _present(self, inspection, native):
         tree = self.query_one(Tree)
         selected = self.intent.selected
-        self._nodes.clear()
+        self._context_nodes.clear()
         self._loaded.clear()
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             tree.clear()
@@ -138,21 +147,21 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
                 self._add(recorded, model)
             tree.root.add_leaf("Archived context: not supplied by this observation")
             # Restore expansions without fetching referenced files or rebuilding text.
-            pending = list(self._nodes.values())
+            pending = list(self._context_nodes.values())
             while pending:
                 node = pending.pop()
                 if node.data.key in self.intent.expanded:
                     self._expand(node)
                     node.expand()
                     pending.extend(node.children)
-            if selected in self._nodes:
-                tree.select_node(self._nodes[selected])
-        if selected in self._nodes:
-            self._show_detail(self._nodes[selected].data)
+            if selected in self._context_nodes:
+                tree.select_node(self._context_nodes[selected])
+        if selected in self._context_nodes:
+            self._show_detail(self._context_nodes[selected].data)
 
     def _add(self, parent, model):
         node = parent.add(model.label, model, allow_expand=True)
-        self._nodes[model.key] = node
+        self._context_nodes[model.key] = node
         return node
 
     def _expand(self, node):
@@ -175,6 +184,7 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
             self.intent.expanded.discard(event.node.data.key)
 
     @on(Tree.NodeSelected, "#context-tree")
+    @on(Tree.NodeHighlighted, "#context-tree")
     def node_selected(self, event):
         event.stop()
         if event.node.data is not None:
@@ -186,8 +196,8 @@ class ContextExplorer(SidebarVisibilityObserver, Vertical):
         # JSON preparation and long body decoding stay off the UI thread.
         detail = await asyncio.to_thread(model.detail)
         if self.is_attached and self.intent.selected == model.key:
-            if len(detail) > self.DETAIL_CHARACTERS:
-                detail = detail[:self.DETAIL_CHARACTERS] + (
+            if len(detail) > self.detail_characters:
+                detail = detail[:self.detail_characters] + (
                     "\n\n[Preview truncated; original context remains unchanged.]")
             self.query_one(TextArea).load_text(detail)
 

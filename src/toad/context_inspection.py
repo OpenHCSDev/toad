@@ -11,6 +11,8 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.runtime import RuntimeConnection, socket_path
+from agent_comms.selected_source import SessionRevision, SessionObservation
+from agent_comms.threads import Thread
 from agent_comms.turn_context import (
     ContextManifest, MeasuredNativeSegment, NativeMessages, Provenance,
     SegmentManifest, SystemLayerSegment, ToolCatalogSegment,
@@ -106,10 +108,16 @@ class NativeSegmentNode(ContextNode):
         )
 
     def detail(self):
-        return NativeDetail().dispatch(self.segment)
+        return NativeDetail().dispatch_sync(self.segment)
 
 
-class NativeDetail(MroDispatch):
+class ContextProjection(MroDispatch):
+    """A leaf projection returns display data rather than mutating an event."""
+    def consume_handlers_sync(self, value, handlers):
+        return next(iter(handlers))(value)
+
+
+class NativeDetail(ContextProjection):
     """Use existing SDK segment and content owners; omit private reasoning."""
     @handles(SystemLayerSegment)
     def system(self, segment):
@@ -133,43 +141,78 @@ class NativeMessageNode(ContextNode):
         return f"Message {int(self.key.rsplit('/', 1)[1]) + 1}"
 
     def detail(self):
-        message = FieldCodec.decode(PiMessage, self.raw)
+        message = PiMessage.from_wire(self.raw)
         calls = tuple(call for part in message.parts for call in part.tool_calls())
         tool_text = "\n".join(json.dumps(FieldCodec.encode(call), ensure_ascii=False,
                                         indent=2) for call in calls)
-        return "\n".join(filter(None, (message.text, tool_text))) or (
+        usage = ("Provider usage on this original message:\n" + json.dumps(
+            FieldCodec.encode(message.usage), ensure_ascii=False, indent=2)
+            if message.usage is not None else "")
+        return "\n".join(filter(None, (message.text, tool_text, usage))) or (
             "No public text in this message. Images, opaque content and private reasoning "
             "are not rendered.")
 
 
-class SegmentNodes(MroDispatch):
+class SegmentNodes(ContextProjection):
+    def __init__(self, key):
+        self.key = key
+
     @handles(MeasuredNativeSegment)
-    def segment(self, segment, key):
-        return NativeSegmentNode(key, segment)
+    def segment(self, segment):
+        return NativeSegmentNode(self.key, segment)
 
     @handles(NativeMessages)
-    def messages(self, segment, key):
-        return NativeMessagesNode(key, segment)
+    def messages(self, segment):
+        return NativeMessagesNode(self.key, segment)
 
 
 @dataclass(frozen=True)
 class NativeMessagesNode(NativeSegmentNode):
+    page_size: int = 64
+
     def children(self):
-        # Message bodies are decoded only when this branch is expanded/selected.
         return (*super().children(),
-                *(NativeMessageNode(f"{self.key}/message/{i}", message)
-                  for i, message in enumerate(self.segment.messages)))
+                *(NativeMessageRange(f"{self.key}/range/{start}", self.segment,
+                                     start, min(start + self.page_size, len(self.segment.messages)))
+                  for start in range(0, len(self.segment.messages), self.page_size)))
+
+
+@dataclass(frozen=True)
+class NativeMessageRange(ContextNode):
+    segment: NativeMessages
+    start: int
+    stop: int
+
+    @property
+    def label(self):
+        return f"Messages {self.start + 1}–{self.stop}"
+
+    def children(self):
+        return tuple(NativeMessageNode(f"{self.key.rsplit('/range/', 1)[0]}/message/{i}",
+                                      self.segment.messages[i])
+                     for i in range(self.start, self.stop))
+
+    def detail(self):
+        return "Selected active message range; expand to inspect an individual original message."
 
 
 @dataclass(frozen=True)
 class ContextInspection:
     """Original observed objects and selection identity, shared by any frontend."""
-    owner: str
+    owner: Thread
     manifests: tuple[ContextManifest, ...]
+    source: SessionObservation
 
     @classmethod
     def read(cls, comms, owner):
-        return cls(owner, comms.bus.log.context_manifests(owner, comms.registry))
+        thread = comms.registry.require(owner)
+        return cls(thread, comms.bus.log.context_manifests(owner, comms.registry),
+                   SessionRevision.observe(thread.session_file))
+
+    def current(self, comms):
+        thread = comms.registry.require(self.owner.name)
+        return (thread == self.owner
+                and self.source == SessionRevision.observe(thread.session_file))
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
@@ -179,11 +222,13 @@ class ContextInspection:
                      for identity, manifest in reversed(turns.items()))
 
     async def native(self, comms):
-        owner = await asyncio.to_thread(comms.registry.require, self.owner)
+        owner = await asyncio.to_thread(comms.registry.require, self.owner.name)
+        if owner.incarnation != self.owner.incarnation:
+            raise ValueError("Selected context thread incarnation changed")
         process = owner.require_process()
         connection = RuntimeConnection(comms, owner.name, socket_path(comms.root, process.pid))
         try:
-            payload = await connection.request("context", prepare=False)
+            payload = await connection.request("context")
             return FieldCodec.decode(NativeContextData, payload).require_session_file(
                 owner.require_saved_session())
         finally:
@@ -191,6 +236,5 @@ class ContextInspection:
 
     @staticmethod
     def active(context: NativeContextData):
-        projection = SegmentNodes()
-        return tuple(projection.dispatch(segment, f"native/{i}/{segment.declared_name}")
+        return tuple(SegmentNodes(f"native/{i}/{segment.declared_name}").dispatch_sync(segment)
                      for i, segment in enumerate(context.segments))
