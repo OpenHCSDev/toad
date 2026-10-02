@@ -1,0 +1,30 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/activation.json",
+    "sha256": "df033dfd4148cea322ab481c9cf82b1affe17985a562c10e219308d4b880c0e4"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/shared-ingress524-summary523-20261002/source-proof.json",
+    "sha256": "49566e60a853caefb08e78ec876aeef043fbdd26c48b90b76686e0e2f83a6790"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/shared-ingress524-summary523-20261002/qualified-source-gates/installed-recovery-receipt.json",
+      "sha256": "dd0a87e26e661d63f842c4ca6155da0594971bd2547ae1314d82fe385ac1c465"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/shared-ingress524-summary523-20261002/qualified-source-gates/installed-parallel04-receipt.json",
+      "sha256": "d62d51bb09d2bff58b6d554de89b37e470db31a6cf4178358b5732da0f43e759"
+    }
+  ]
+}

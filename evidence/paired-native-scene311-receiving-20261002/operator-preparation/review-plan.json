@@ -1,0 +1,30 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/activation.json",
+    "sha256": "222ad412d93585891d0732b40e388d47dd94451ba3dc4bbb8941baaea03309f3"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/source-proof.json",
+    "sha256": "bb055d036ccd5a64d7fcc6750a92b79bdad295482fa5f86dd394d48dd2b87282"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/qualified-source-gates/E03-qualified-receipt.json",
+      "sha256": "5377907cf1d647a870e1dc53204f0be9029583f23ca9b3236381945a6ecac92e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/qualified-source-gates/current318-default-physical-closure.json",
+      "sha256": "33f45fd4bae28bcb8e9ce95c633f70f7dc5632b79c27545a54b5eb4ab6f70c5a"
+    }
+  ]
+}

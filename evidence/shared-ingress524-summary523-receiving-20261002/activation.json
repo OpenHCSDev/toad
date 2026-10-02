@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002",
+  "pins": {
+    "agent_comms": "155b00076312626e025861efc3ed14549adca5c0",
+    "toad": "48377132268934648db3ebc8ceb9cb2b1a850004",
+    "textual": "23822923a02b75a1fad10751d97dc009c36b598b"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "state": "normal69 installed source/directURLs/assets/fulltrust verified; parent activation and default gate sole owner",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/shared-ingress524-summary523-20261002/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_configuration_note": "Critical523/524: current316 donor preserved; sameNative6/5184, no historical carry or native build; parent sole publisher."
+}

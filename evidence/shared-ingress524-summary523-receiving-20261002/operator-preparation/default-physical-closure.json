@@ -1,0 +1,12 @@
+{
+  "state": "installed-public-read-verified-with-known-source-change-inboxes",
+  "observed_at": 1790936552.4105027,
+  "publication_duration_s": 43.25319743156433,
+  "current_owner_processes": 19,
+  "default_links": 5,
+  "raw_ui_receipt": "/home/ts/.cache/agent-scratch/318-default-saved-helper-20261002/capture/receipt.json",
+  "read_duration_s": 28.70561952004209,
+  "cleanup": [],
+  "known_failure": "Four original summary exclusions retired; new source-change mandatory compaction errors remain; no oldinput replay",
+  "scope": "actual default saved-helper Ready/history; observer before Loading reviewed and after Ready reviewed; not scrolling acceptance"
+}
