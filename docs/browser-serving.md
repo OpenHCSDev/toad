@@ -13,6 +13,9 @@ toad run ~/project --serve --host 127.0.0.1 --port 8000
 toad acp 'agent-comms-acp' --project-dir ~/project --serve --host 127.0.0.1 --port 8000
 ```
 
+ACP accepts the project as positional `PATH` or `-d` / `--project-dir PATH`.
+When both are supplied, the explicit option selects the project for terminal and browser sessions.
+
 Open the printed URL in your browser. After authentication, the existing
 WebSocket starts Toad; the unauthenticated server starts no Toad app or renderer
 children. Closing the browser stops that Toad child. Comms owners keep their

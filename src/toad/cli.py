@@ -117,6 +117,20 @@ class DefaultCommandGroup(click.Group):
         formatter.write_usage(ctx.command_path, "[OPTIONS] PATH OR COMMAND [ARGS]...")
 
 
+class AcpCommand(click.Command):
+    """Decode the two raw project spellings into Click's original value slot."""
+
+    def parse_args(self, ctx, args):
+        remaining = super().parse_args(ctx, args)
+        project_option = ctx.params.pop("project_option")
+        if project_option is not None:
+            ctx.params["project_dir"] = project_option
+            ctx.set_parameter_source(
+                "project_dir", ctx.get_parameter_source("project_option")
+            )
+        return remaining
+
+
 @click.group(cls=DefaultCommandGroup, invoke_without_command=True)
 @click.option("-v", "--version", is_flag=True, help="Show version and exit.")
 @click.pass_context
@@ -216,7 +230,7 @@ def run(
         run_terminal(app)
 
 
-@main.command("acp")
+@main.command("acp", cls=AcpCommand)
 @click.argument("command", metavar="COMMAND")
 @click.argument("project_dir", metavar="PATH", default=None)
 @click.option(
@@ -232,7 +246,7 @@ def run(
     help="Optional title to display in the status bar",
     default=None,
 )
-@click.option("-d", "--project-dir", metavar="PATH", default=None)
+@click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
 @click.option(
     "-p",
     "--port",
