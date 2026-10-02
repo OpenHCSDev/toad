@@ -1,0 +1,15 @@
+{
+  "owner": "Schrodinger; parent owns preserve-only public cutover and configured channel qualification",
+  "purpose": "Separate critical523/524 normal69 stage; Native5184 unchanged; no520artifact integration",
+  "receiving_pr": 316,
+  "core": "155b00076312626e025861efc3ed14549adca5c0",
+  "frontend": "990d091f48f9395cd0d4c08141170a3e170032e2",
+  "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-shared-ingress524-summary523-20261002",
+  "gate_owner": "Arendt configured saved-fork/native/ACP path",
+  "publication_owner": "parent",
+  "toad": "48377132268934648db3ebc8ceb9cb2b1a850004",
+  "original_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native-configuration516-20261002"
+}
