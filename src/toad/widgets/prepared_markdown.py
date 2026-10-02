@@ -3,6 +3,7 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import replace
+from functools import partial
 from typing import cast
 
 from markdown_it import MarkdownIt
@@ -69,29 +70,19 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         self._prepared_fences.clear()
 
     async def materialize_native_body(self) -> None:
-        await self.update(self.source)
+        await self._update_body_source(self.source)
 
     def update(self, markdown: str) -> AwaitComplete:
-        self.begin_body_materialization()
-        operation = super().update(markdown)
-
-        async def publish():
-            await operation
-            if self.is_attached:
-                self.native_body_committed()
-
-        return AwaitComplete(publish())
+        return self.publish_body(partial(self._update_body_source, markdown))
 
     def append(self, markdown: str) -> AwaitComplete:
-        self.begin_body_materialization()
-        operation = super().append(markdown)
+        return self.publish_body(partial(self._append_body_source, markdown))
 
-        async def publish():
-            await operation
-            if self.is_attached:
-                self.native_body_committed()
+    def _update_body_source(self, markdown: str) -> AwaitComplete:
+        return super().update(markdown)
 
-        return AwaitComplete(publish())
+    def _append_body_source(self, markdown: str) -> AwaitComplete:
+        return super().append(markdown)
 
     async def prepare_body(self) -> None:
         # Results live only in PreparationRuntime's bounded cache. Fresh file
