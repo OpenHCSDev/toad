@@ -65,10 +65,11 @@ def test_publication_cases_inherit_original_application_join():
 
 async def declaration_case():
     import asyncio
+    import json
     import os
     from tempfile import TemporaryDirectory
     from toad.app import ToadApp
-    from toad.transcript_publication import TranscriptPublication
+    from toad.transcript_publication import TranscriptPublication, CanonicalSourcePublication
     from toad.widgets.agent_response import AgentResponse
 
     class DeclaredPublication(TranscriptPublication):
@@ -81,6 +82,18 @@ async def declaration_case():
             await self.release.wait()
             if self.current():
                 await self.contents.mount(AgentResponse('Declared publication painted'))
+
+    class HeldSourcePublication(CanonicalSourcePublication):
+        """Hold an actual certified read before its application admission."""
+        def __init__(self, owner, view, window, contents, entered, release):
+            super().__init__(owner, view, window, contents)
+            self.entered, self.release = entered, release
+
+        async def read_page(self):
+            page = await super().read_page()
+            self.entered.set()
+            await self.release.wait()
+            return page
 
     with TemporaryDirectory(dir='.artifacts') as directory:
         root=Path(directory).resolve()
@@ -155,6 +168,39 @@ async def declaration_case():
             await pilot.pause()
             assert len(view.contents.query(AgentResponse)) == 1
             await view.contents.remove_children()
+            # A real Agent and certified native journal supply the source.
+            # A declaration-only read hook holds its existing async boundary;
+            # no UI, protocol, source page or epoch is fabricated by the test.
+            from agent_comms.comms import Comms
+            from agent_comms.threads import Thread
+            from toad.acp.agent import Agent
+            from toad.agent_schema import AgentDefinition
+            from comms_boundary_fixture import attach_registered_coordination
+
+            journal = root / 'source.jsonl'
+            journal.write_text(json.dumps({'id': 'original', 'type': 'message',
+                'message': {'role': 'assistant', 'content': 'Certified original source'}}) + '\n')
+            Comms(root / 'wire').registry.declare(
+                Thread('publication-source', frozenset(), str(root), session_file=str(journal)))
+            agent = Agent(root, AgentDefinition.decode({
+                'name': 'Source', 'identity': 'source', 'short_name': 'source',
+                'run_command': {'*': 'true'}, 'protocol': 'acp'}), 'publication-source')
+            attach_registered_coordination(agent, root / 'wire', 'publication-source')
+            view.agent = agent
+            await pilot.pause()
+            entered, release = asyncio.Event(), asyncio.Event()
+            pending = asyncio.create_task(view.transcript.publish(HeldSourcePublication, entered, release))
+            await entered.wait()
+            view.transcript.invalidate()
+            release.set()
+            await pending
+            assert not view.transcript.histories, 'Expired read acquired a replacement application'
+            await view.transcript.publish(HeldSourcePublication, entered, release)
+            await pilot.pause()
+            assert len(view.transcript.histories) == 1
+            assert view.transcript.histories[0].committed_cursor.session_file == str(journal)
+            await view.contents.remove_children()
+            view.agent = None
             entered.clear();release.clear()
             pending=asyncio.create_task(view.transcript.publish(DeclaredPublication,entered,release))
             await entered.wait()
