@@ -1,0 +1,1161 @@
+{
+  "scope": "six changed consumer owners; full package dependency resolution not claimed",
+  "before": {
+    "src/toad/transcript_publication.py": [
+      {
+        "class": "TranscriptPublication",
+        "members": [
+          "__init__",
+          "native_current",
+          "source_bound",
+          "source_current",
+          "current",
+          "publish",
+          "report_failure",
+          "capture_application",
+          "application_current",
+          "publish_applied"
+        ]
+      },
+      {
+        "class": "SnapshotPublication",
+        "members": [
+          "__init__",
+          "admitted",
+          "publish_applied",
+          "publish_page"
+        ]
+      },
+      {
+        "class": "HandlingPublication",
+        "members": [
+          "publish_applied"
+        ]
+      },
+      {
+        "class": "CanonicalSourcePublication",
+        "members": [
+          "read_page",
+          "publish_applied",
+          "publish_source_page"
+        ]
+      },
+      {
+        "class": "ObservedSourcePublication",
+        "members": [
+          "__init__",
+          "read_page",
+          "publish_applied"
+        ]
+      },
+      {
+        "class": "SourcePublicationRequests",
+        "members": [
+          "__init__",
+          "request",
+          "submit",
+          "publish",
+          "cancel"
+        ]
+      },
+      {
+        "class": "CheckpointPublication",
+        "members": [
+          "__init__",
+          "current",
+          "admitted",
+          "publish_applied",
+          "report_failure",
+          "publish_source_page"
+        ]
+      },
+      {
+        "class": "TranscriptPresentation",
+        "members": [
+          "__init__",
+          "view",
+          "histories",
+          "reports_coverage",
+          "invalidate",
+          "prepare_reader",
+          "restore_native",
+          "reveal_retained",
+          "capture",
+          "publish",
+          "snapshot",
+          "painted",
+          "source_changed",
+          "changed",
+          "require_checkpoint",
+          "request",
+          "request_handling",
+          "retry",
+          "source_work_finished",
+          "close",
+          "suspend",
+          "covered",
+          "retire_presentations",
+          "_retire_presentations"
+        ]
+      }
+    ],
+    "src/toad/transcript_state.py": [
+      {
+        "class": "TranscriptState",
+        "members": [
+          "execute",
+          "reserve",
+          "request_latest",
+          "retirement_source",
+          "retire_preparation",
+          "resume",
+          "resume_if_parked",
+          "validate_snapshot",
+          "observed",
+          "for_projection",
+          "publish"
+        ]
+      },
+      {
+        "class": "ProvisionalTranscript",
+        "members": [
+          "successors",
+          "publish"
+        ]
+      },
+      {
+        "class": "LiveTranscript",
+        "members": [
+          "reserve",
+          "request_latest",
+          "successors",
+          "publish"
+        ]
+      },
+      {
+        "class": "SuspendedTranscript",
+        "members": [
+          "reports_coverage",
+          "publish",
+          "successors"
+        ]
+      },
+      {
+        "class": "ViewportRequest",
+        "members": [
+          "apply"
+        ]
+      },
+      {
+        "class": "IdleViewportRequest",
+        "members": [
+          "apply"
+        ]
+      },
+      {
+        "class": "LatestViewportRequest",
+        "members": [
+          "apply"
+        ]
+      },
+      {
+        "class": "WorkingTranscript",
+        "members": [
+          "__init__",
+          "request_latest",
+          "retirement_source",
+          "accepts_publication",
+          "successors",
+          "execute",
+          "schedule"
+        ]
+      },
+      {
+        "class": "DetachedTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "PruningTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "ClosingTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "RetiredProjectionTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "RetiredSourceTranscript",
+        "members": [
+          "successors",
+          "publish"
+        ]
+      },
+      {
+        "class": "ParkedSourceTranscript",
+        "members": [
+          "successors",
+          "publish",
+          "retirement_source",
+          "retire_preparation",
+          "resume",
+          "resume_if_parked",
+          "validate_snapshot"
+        ]
+      }
+    ],
+    "src/toad/transcript_source_preparation.py": [
+      {
+        "class": "HistorySourceSnapshot",
+        "members": [
+          "current"
+        ]
+      },
+      {
+        "class": "TranscriptSourceWorkFinished",
+        "members": [
+          "__init__"
+        ]
+      },
+      {
+        "class": "TranscriptSourcePreparation",
+        "members": [
+          "__init__",
+          "state",
+          "source_publication_available",
+          "source_snapshot",
+          "blocks_visible_read",
+          "reserve_source_work",
+          "finish_source_work",
+          "retire_source",
+          "resume_source",
+          "_reader",
+          "prepare_scroll",
+          "prefetch_distance"
+        ]
+      }
+    ],
+    "src/toad/transcript_preparation.py": [
+      {
+        "class": "PreparedTranscriptPage",
+        "members": []
+      },
+      {
+        "class": "PageRequest",
+        "members": []
+      },
+      {
+        "class": "CommittedInterval",
+        "members": []
+      },
+      {
+        "class": "FilteredTranscriptBatch",
+        "members": []
+      },
+      {
+        "class": "TranscriptFilterWork",
+        "members": [
+          "identity",
+          "prepare"
+        ]
+      },
+      {
+        "class": "PreparedPageSource",
+        "members": [
+          "closed",
+          "get",
+          "prefetch",
+          "close"
+        ]
+      },
+      {
+        "class": "TranscriptPageProjection",
+        "members": [
+          "project"
+        ]
+      },
+      {
+        "class": "CategoryProjection",
+        "members": [
+          "project"
+        ]
+      },
+      {
+        "class": "TranscriptPageWork",
+        "members": [
+          "work_key",
+          "result_size",
+          "execute"
+        ]
+      },
+      {
+        "class": "TranscriptPageBuffer",
+        "members": [
+          "__init__",
+          "closed",
+          "close",
+          "get",
+          "prefetch"
+        ]
+      },
+      {
+        "class": "ProjectedTranscriptSource",
+        "members": [
+          "__init__",
+          "boundary",
+          "get",
+          "prefetch",
+          "close"
+        ]
+      }
+    ],
+    "src/toad/widgets/observed_thread_activity.py": [
+      {
+        "class": "ObservedThreadActivity",
+        "members": [
+          "__init__",
+          "on_mount",
+          "bind",
+          "on_unmount",
+          "refresh_observation",
+          "_observe",
+          "_publish"
+        ]
+      }
+    ],
+    "src/toad/widgets/conversation.py": [
+      {
+        "class": "Loading",
+        "members": []
+      },
+      {
+        "class": "PaintOnlyRefresh",
+        "members": [
+          "on_mount",
+          "automatic_refresh"
+        ]
+      },
+      {
+        "class": "ThreadLoading",
+        "members": [
+          "initial_contents",
+          "render"
+        ]
+      },
+      {
+        "class": "TurnActivity",
+        "members": [
+          "__init__",
+          "owner",
+          "on_mount",
+          "sync",
+          "render"
+        ]
+      },
+      {
+        "class": "CategorizedMount",
+        "members": [
+          "mount"
+        ]
+      },
+      {
+        "class": "Contents",
+        "members": [
+          "process_layout"
+        ]
+      },
+      {
+        "class": "ContentsGrid",
+        "members": [
+          "pre_layout"
+        ]
+      },
+      {
+        "class": "CursorContainer",
+        "members": [
+          "on_mount",
+          "_update_blink",
+          "render_lines"
+        ]
+      },
+      {
+        "class": "ConversationWindowSettings",
+        "members": [
+          "on_mount",
+          "on_screen_layout_refresh",
+          "rebind_screen",
+          "_settings_changed"
+        ]
+      },
+      {
+        "class": "Window",
+        "members": [
+          "action_focus_prompt"
+        ]
+      },
+      {
+        "class": "ConversationSessionBinding",
+        "members": [
+          "_turn_changed",
+          "queue_supported",
+          "model_selection_available",
+          "mode_selection_available",
+          "__init__",
+          "_initialize_session",
+          "release_native_session",
+          "prepare_retained_session",
+          "resume_retained_history",
+          "refresh_native_projection",
+          "start_native_session",
+          "watch_agent_ready"
+        ]
+      },
+      {
+        "class": "Conversation",
+        "members": [
+          "watch_visible_categories",
+          "remember_tool_expansion",
+          "update_title",
+          "agent_title",
+          "is_watching_directory",
+          "insert_path_into_prompt",
+          "watch_project_path",
+          "sync_project_path",
+          "_turn_changed",
+          "make_throbber",
+          "on_key",
+          "compose",
+          "_terminal",
+          "add_focusable_terminal",
+          "on_shell_terminal_terminate",
+          "on_directory_changed",
+          "on_terminal_finalized",
+          "on_terminal_long_running",
+          "on_terminal_alternate_screen_",
+          "on_terminal_focus",
+          "on_terminal_blur",
+          "on_flash",
+          "flash",
+          "terminal_action_state",
+          "focus_terminal",
+          "navigation",
+          "cursor_block",
+          "cursor_block_child",
+          "_read_thread_activity",
+          "on_observed_thread_activity",
+          "on_agent_ready",
+          "_apply_session_name",
+          "rename_session",
+          "_auto_name_from_prompt",
+          "on_session_info_update",
+          "on_unmount",
+          "on_agent_fail",
+          "on_work_started",
+          "on_work_finished",
+          "on_change_mode",
+          "on_provider_login",
+          "action_provider_login",
+          "on_change_model",
+          "on_user_input_submitted",
+          "submit_input",
+          "agent_turn_over",
+          "on_menu_option_selected",
+          "on_menu_dismissed",
+          "on_current_working_directory_changed",
+          "_sync_throbber",
+          "watch_busy_count",
+          "on_terminal_projection",
+          "on_update_status_line",
+          "on_rejected_session_update",
+          "_clear_mcp_live",
+          "on_private_native_cursor_update",
+          "on_mcp_client_stopped",
+          "on_mcp_client_status",
+          "on_acp_agent_message",
+          "on_turn_changed",
+          "on_queue_view_update",
+          "on_input_started",
+          "present_started_input",
+          "on_input_failed",
+          "on_transcript_coverage",
+          "request_message_handling",
+          "on_transcript_source_work_finished",
+          "on_worker_state_changed",
+          "on_acp_agent_thinking",
+          "on_acp_request_permission",
+          "on_acp_plan",
+          "on_acp_tool_call_update",
+          "on_acp_available_commands_update",
+          "action_interrupt",
+          "action_focus_block",
+          "set_mode",
+          "on_acp_configuration_changed",
+          "_update_model_info",
+          "on_history_move",
+          "request_permissions",
+          "ask",
+          "command_target_context",
+          "update_slash_commands",
+          "command_catalog",
+          "on_mount",
+          "initialize_view",
+          "_history_scroll_changed",
+          "unresolved_inputs",
+          "on_input_dispositions_changed",
+          "inspect_input_delivery",
+          "on_comms_updated",
+          "_open_tabs_changed",
+          "on_goal_control",
+          "compact_context",
+          "open_queue_menu",
+          "_queue_edit_unavailable",
+          "_on_queue_choice",
+          "replace_queued",
+          "_settings_changed",
+          "post_welcome",
+          "watch_agent",
+          "on_resize",
+          "on_mouse_down",
+          "on_click",
+          "post",
+          "check_prune",
+          "prune_window",
+          "new_terminal",
+          "get_terminal_dimensions",
+          "shell",
+          "post_shell",
+          "move_cursor",
+          "action_cursor_up",
+          "action_cursor_down",
+          "cancel_turn",
+          "focus_prompt",
+          "jump_to_latest",
+          "action_select_block",
+          "action_copy_to_clipboard",
+          "action_copy_to_prompt",
+          "action_maximize_block",
+          "action_export_to_svg",
+          "refresh_block_cursor"
+        ]
+      },
+      {
+        "class": "ConversationCommsConsumer",
+        "members": [
+          "__init__",
+          "coordination_changed",
+          "cursor_presentation",
+          "queue_presentation",
+          "input_started",
+          "input_failed",
+          "prompt_cancelled",
+          "transcript_changed",
+          "turn_changed",
+          "goal_changed",
+          "compaction_changed",
+          "transcript_snapshot",
+          "mcp_receipt",
+          "compaction_published"
+        ]
+      },
+      {
+        "class": "CompactionRenderer",
+        "members": [
+          "__init__",
+          "selected_summary_progress",
+          "end"
+        ]
+      }
+    ]
+  },
+  "after": {
+    "src/toad/transcript_publication.py": [
+      {
+        "class": "TranscriptPublication",
+        "members": [
+          "__init__",
+          "native_current",
+          "source_bound",
+          "source_current",
+          "current",
+          "publish",
+          "report_failure",
+          "capture_application",
+          "application_current",
+          "publish_applied"
+        ]
+      },
+      {
+        "class": "SnapshotPublication",
+        "members": [
+          "__init__",
+          "admitted",
+          "publish_applied",
+          "publish_page"
+        ]
+      },
+      {
+        "class": "HandlingPublication",
+        "members": [
+          "publish_applied"
+        ]
+      },
+      {
+        "class": "CanonicalSourcePublication",
+        "members": [
+          "read_page",
+          "publish_applied",
+          "publish_source_page"
+        ]
+      },
+      {
+        "class": "ObservedSourcePublication",
+        "members": [
+          "__init__",
+          "read_page",
+          "publish_applied"
+        ]
+      },
+      {
+        "class": "SourcePublicationRequests",
+        "members": [
+          "__init__",
+          "request",
+          "submit",
+          "defer",
+          "resume",
+          "publish",
+          "cancel"
+        ]
+      },
+      {
+        "class": "CheckpointPublication",
+        "members": [
+          "__init__",
+          "current",
+          "admitted",
+          "publish_applied",
+          "report_failure",
+          "publish_source_page"
+        ]
+      },
+      {
+        "class": "TranscriptPresentation",
+        "members": [
+          "__init__",
+          "view",
+          "histories",
+          "reports_coverage",
+          "invalidate",
+          "prepare_reader",
+          "restore_native",
+          "reveal_retained",
+          "capture",
+          "publish",
+          "snapshot",
+          "painted",
+          "source_changed",
+          "changed",
+          "require_checkpoint",
+          "request",
+          "request_handling",
+          "retry",
+          "source_work_finished",
+          "close",
+          "suspend",
+          "covered",
+          "retire_presentations",
+          "_retire_presentations"
+        ]
+      }
+    ],
+    "src/toad/transcript_state.py": [
+      {
+        "class": "TranscriptState",
+        "members": [
+          "execute",
+          "reserve",
+          "request_latest",
+          "retirement_source",
+          "retire_preparation",
+          "resume",
+          "resume_if_parked",
+          "validate_snapshot",
+          "observed",
+          "for_projection",
+          "publish"
+        ]
+      },
+      {
+        "class": "ProvisionalTranscript",
+        "members": [
+          "successors",
+          "publish"
+        ]
+      },
+      {
+        "class": "LiveTranscript",
+        "members": [
+          "reserve",
+          "request_latest",
+          "successors",
+          "publish"
+        ]
+      },
+      {
+        "class": "SuspendedTranscript",
+        "members": [
+          "reports_coverage",
+          "publish",
+          "successors"
+        ]
+      },
+      {
+        "class": "ViewportRequest",
+        "members": [
+          "apply"
+        ]
+      },
+      {
+        "class": "IdleViewportRequest",
+        "members": [
+          "apply"
+        ]
+      },
+      {
+        "class": "LatestViewportRequest",
+        "members": [
+          "apply"
+        ]
+      },
+      {
+        "class": "WorkingTranscript",
+        "members": [
+          "__init__",
+          "request_latest",
+          "retirement_source",
+          "accepts_publication",
+          "successors",
+          "execute",
+          "schedule"
+        ]
+      },
+      {
+        "class": "DetachedTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "PruningTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "ClosingTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "RetiredProjectionTranscript",
+        "members": [
+          "successors"
+        ]
+      },
+      {
+        "class": "RetiredSourceTranscript",
+        "members": [
+          "successors",
+          "publish"
+        ]
+      },
+      {
+        "class": "ParkedSourceTranscript",
+        "members": [
+          "successors",
+          "publish",
+          "retirement_source",
+          "retire_preparation",
+          "resume",
+          "resume_if_parked",
+          "validate_snapshot"
+        ]
+      }
+    ],
+    "src/toad/transcript_source_preparation.py": [
+      {
+        "class": "HistorySourceSnapshot",
+        "members": [
+          "current"
+        ]
+      },
+      {
+        "class": "TranscriptSourceWorkFinished",
+        "members": [
+          "__init__"
+        ]
+      },
+      {
+        "class": "TranscriptSourcePreparation",
+        "members": [
+          "__init__",
+          "state",
+          "source_publication_available",
+          "source_snapshot",
+          "blocks_visible_read",
+          "reserve_source_work",
+          "defer_source_work",
+          "finish_source_work",
+          "retire_source",
+          "resume_source",
+          "_reader",
+          "prepare_scroll",
+          "prefetch_distance"
+        ]
+      }
+    ],
+    "src/toad/transcript_preparation.py": [
+      {
+        "class": "PreparedTranscriptPage",
+        "members": []
+      },
+      {
+        "class": "PageRequest",
+        "members": []
+      },
+      {
+        "class": "CommittedInterval",
+        "members": []
+      },
+      {
+        "class": "FilteredTranscriptBatch",
+        "members": []
+      },
+      {
+        "class": "TranscriptFilterWork",
+        "members": [
+          "identity",
+          "prepare"
+        ]
+      },
+      {
+        "class": "PreparedPageSource",
+        "members": [
+          "closed",
+          "get",
+          "prefetch",
+          "close"
+        ]
+      },
+      {
+        "class": "TranscriptPageProjection",
+        "members": [
+          "project"
+        ]
+      },
+      {
+        "class": "CategoryProjection",
+        "members": [
+          "project"
+        ]
+      },
+      {
+        "class": "TranscriptPageWork",
+        "members": [
+          "work_key",
+          "result_size",
+          "execute"
+        ]
+      },
+      {
+        "class": "TranscriptPageBuffer",
+        "members": [
+          "__init__",
+          "closed",
+          "close",
+          "get",
+          "prefetch"
+        ]
+      },
+      {
+        "class": "ProjectedTranscriptSource",
+        "members": [
+          "__init__",
+          "boundary",
+          "get",
+          "prefetch",
+          "close"
+        ]
+      }
+    ],
+    "src/toad/widgets/observed_thread_activity.py": [
+      {
+        "class": "ObservedThreadActivity",
+        "members": [
+          "__init__",
+          "on_mount",
+          "bind",
+          "on_unmount",
+          "refresh_observation",
+          "_observe",
+          "_publish"
+        ]
+      }
+    ],
+    "src/toad/widgets/conversation.py": [
+      {
+        "class": "Loading",
+        "members": []
+      },
+      {
+        "class": "PaintOnlyRefresh",
+        "members": [
+          "on_mount",
+          "automatic_refresh"
+        ]
+      },
+      {
+        "class": "ThreadLoading",
+        "members": [
+          "initial_contents",
+          "render"
+        ]
+      },
+      {
+        "class": "TurnActivity",
+        "members": [
+          "__init__",
+          "owner",
+          "on_mount",
+          "sync",
+          "render"
+        ]
+      },
+      {
+        "class": "CategorizedMount",
+        "members": [
+          "mount"
+        ]
+      },
+      {
+        "class": "Contents",
+        "members": [
+          "process_layout"
+        ]
+      },
+      {
+        "class": "ContentsGrid",
+        "members": [
+          "pre_layout"
+        ]
+      },
+      {
+        "class": "CursorContainer",
+        "members": [
+          "on_mount",
+          "_update_blink",
+          "render_lines"
+        ]
+      },
+      {
+        "class": "ConversationWindowSettings",
+        "members": [
+          "on_mount",
+          "on_screen_layout_refresh",
+          "rebind_screen",
+          "_settings_changed"
+        ]
+      },
+      {
+        "class": "Window",
+        "members": [
+          "action_focus_prompt"
+        ]
+      },
+      {
+        "class": "ConversationSessionBinding",
+        "members": [
+          "_turn_changed",
+          "queue_supported",
+          "model_selection_available",
+          "mode_selection_available",
+          "__init__",
+          "_initialize_session",
+          "release_native_session",
+          "prepare_retained_session",
+          "resume_retained_history",
+          "refresh_native_projection",
+          "start_native_session",
+          "watch_agent_ready"
+        ]
+      },
+      {
+        "class": "Conversation",
+        "members": [
+          "watch_visible_categories",
+          "remember_tool_expansion",
+          "update_title",
+          "agent_title",
+          "is_watching_directory",
+          "insert_path_into_prompt",
+          "watch_project_path",
+          "sync_project_path",
+          "_turn_changed",
+          "make_throbber",
+          "on_key",
+          "compose",
+          "_terminal",
+          "add_focusable_terminal",
+          "on_shell_terminal_terminate",
+          "on_directory_changed",
+          "on_terminal_finalized",
+          "on_terminal_long_running",
+          "on_terminal_alternate_screen_",
+          "on_terminal_focus",
+          "on_terminal_blur",
+          "on_flash",
+          "flash",
+          "terminal_action_state",
+          "focus_terminal",
+          "navigation",
+          "cursor_block",
+          "cursor_block_child",
+          "_read_thread_activity",
+          "on_observed_thread_activity",
+          "on_agent_ready",
+          "_apply_session_name",
+          "rename_session",
+          "_auto_name_from_prompt",
+          "on_session_info_update",
+          "on_unmount",
+          "on_agent_fail",
+          "on_work_started",
+          "on_work_finished",
+          "on_change_mode",
+          "on_provider_login",
+          "action_provider_login",
+          "on_change_model",
+          "on_user_input_submitted",
+          "submit_input",
+          "agent_turn_over",
+          "on_menu_option_selected",
+          "on_menu_dismissed",
+          "on_current_working_directory_changed",
+          "_sync_throbber",
+          "watch_busy_count",
+          "on_terminal_projection",
+          "on_update_status_line",
+          "on_rejected_session_update",
+          "_clear_mcp_live",
+          "on_private_native_cursor_update",
+          "on_mcp_client_stopped",
+          "on_mcp_client_status",
+          "on_acp_agent_message",
+          "on_turn_changed",
+          "on_queue_view_update",
+          "on_input_started",
+          "present_started_input",
+          "on_input_failed",
+          "on_transcript_coverage",
+          "request_message_handling",
+          "on_transcript_source_work_finished",
+          "on_worker_state_changed",
+          "on_acp_agent_thinking",
+          "on_acp_request_permission",
+          "on_acp_plan",
+          "on_acp_tool_call_update",
+          "on_acp_available_commands_update",
+          "action_interrupt",
+          "action_focus_block",
+          "set_mode",
+          "on_acp_configuration_changed",
+          "_update_model_info",
+          "on_history_move",
+          "request_permissions",
+          "ask",
+          "command_target_context",
+          "update_slash_commands",
+          "command_catalog",
+          "on_mount",
+          "initialize_view",
+          "_history_scroll_changed",
+          "unresolved_inputs",
+          "on_input_dispositions_changed",
+          "inspect_input_delivery",
+          "on_comms_updated",
+          "_open_tabs_changed",
+          "on_goal_control",
+          "compact_context",
+          "open_queue_menu",
+          "_queue_edit_unavailable",
+          "_on_queue_choice",
+          "replace_queued",
+          "_settings_changed",
+          "post_welcome",
+          "watch_agent",
+          "on_resize",
+          "on_mouse_down",
+          "on_click",
+          "post",
+          "check_prune",
+          "prune_window",
+          "new_terminal",
+          "get_terminal_dimensions",
+          "shell",
+          "post_shell",
+          "move_cursor",
+          "action_cursor_up",
+          "action_cursor_down",
+          "cancel_turn",
+          "focus_prompt",
+          "jump_to_latest",
+          "action_select_block",
+          "action_copy_to_clipboard",
+          "action_copy_to_prompt",
+          "action_maximize_block",
+          "action_export_to_svg",
+          "refresh_block_cursor"
+        ]
+      },
+      {
+        "class": "ConversationCommsConsumer",
+        "members": [
+          "__init__",
+          "coordination_changed",
+          "cursor_presentation",
+          "queue_presentation",
+          "input_started",
+          "input_failed",
+          "prompt_cancelled",
+          "transcript_changed",
+          "turn_changed",
+          "goal_changed",
+          "compaction_changed",
+          "transcript_snapshot",
+          "mcp_receipt",
+          "compaction_published"
+        ]
+      },
+      {
+        "class": "CompactionRenderer",
+        "members": [
+          "__init__",
+          "selected_summary_progress",
+          "end"
+        ]
+      }
+    ]
+  },
+  "parse_failures": []
+}
