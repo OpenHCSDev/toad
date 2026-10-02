@@ -7,3 +7,9 @@ Installed readonly original gate01 proof/admission relation PASS, old missing ow
 Measured limitation: primary publications all had selected_status=proven. This one gate did not induce a transient refusal or record a deferred selected_status=None→verified transition; those deferred cases are not claimed as live-tested. Original installed admission/empty-refresh controls are separate. No repeat provider/native gate for this receipt. Parent owns merge/default activation; full performance/lifecycle remains open.
 
 Canonical receipt and original actual artifacts are retained under evidence/pending503-cursor507-receiving-20261002.
+
+## Current merged298/302/Textual21 metadata integration
+
+Normal main7b7e9 integrated into126493d6; resolved adjacent pyproject pin conflict by retaining the qualified Coread7 ancestor and exactly current-main Textual23822923a02b75a1fad10751d97dc009c36b598b. Current-main diff remains only three Core pin lines and zero Toad source changes.
+
+The old immutable303 installed prefix/proof is historical native/Core qualification, not a claim that new merged UI/Textual21 was rebuilt or tested here. Sch is sole304 combined builder and saved-selector/scroll gate owner, with exactad7 donor/source proof supplied. No new package/model/9-input gate in this receiving merge.
