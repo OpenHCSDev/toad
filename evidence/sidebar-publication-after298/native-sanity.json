@@ -1,0 +1,17 @@
+{
+  "scope": "Source-native UI sanity after owner/caller analysis and coherent implementation; not changed installed qualification or CPU improvement",
+  "base": "7b7e9c27",
+  "command": "TMPDIR=$WT/.artifacts/sidebar-publication305-source-sanity/tmp PYTHONPATH=src:tests timeout60 $WT/.artifacts/runtime-sidebar298-order21-certified508-20261002/bin/python tests/sidebar_metadata_reflow_pilot.py",
+  "source_import": "current own WT src/toad; frozen69 Core74877/Text2382 dependencies, no global package edits",
+  "result": {
+    "widgets": 595,
+    "metadata_layouts": 0,
+    "disclosure_still_works": true,
+    "retired_navigation_rows": 0
+  },
+  "caller_source_parse": "SidebarObservation,SidebarProjection,SessionAdmissions,SessionAdmission,Conversation,ThreadCommsSidebar,SessionTabs,TabHistoryControls",
+  "original_snapshot_assignment": "sole SidebarObservation.read; initial/reset App",
+  "event_publishers": "SessionAdmissions.publish,Conversation.on_turn_changed,SidebarObservation.read conditional on admission output",
+  "pending": "Changed noneditable installed user journey after full coherent source batch; full CPU/busy/render/focus/TC1T9 scope remains draft305/native22",
+  "original_raw_proof": "PUBLIC02 preserved unchanged; no new capture"
+}
