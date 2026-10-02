@@ -222,7 +222,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             pass
         # Hidden screens may defer sidebar geometry until they resume. Rebind
         # the header before the resumed screen's first paint, not on a timer.
-        self._align_tabs_with_sidebar(False)
+        self.screen.align_tabs_to_sidebars()
         if conversation := self.query_one_optional(Conversation):
             if watcher := conversation._directory_watcher:
                 self.call_after_refresh(watcher.notify_if_visible)
