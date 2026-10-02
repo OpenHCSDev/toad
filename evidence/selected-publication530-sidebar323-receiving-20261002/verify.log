@@ -1,0 +1,37 @@
+{
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
+      "files": 339,
+      "python_files": 311,
+      "byte_equal": true
+    },
+    {
+      "module": "toad",
+      "head": "4d5248136c91a9763ea073d4bf62136deb49b7d3",
+      "files": 307,
+      "python_files": 276,
+      "byte_equal": true
+    },
+    {
+      "module": "textual",
+      "head": "94c14b574641eb08148c3ec88e8fad9dc63dd7e5",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true
+    }
+  ],
+  "native_full_trust": true,
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "protected_unchanged": 7924,
+  "journey": "pending"
+}
