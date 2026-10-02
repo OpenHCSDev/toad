@@ -21,7 +21,7 @@
     },
     {
       "module": "toad",
-      "head": "125f2fbcb5a53833e1328892bbf40783ca467581",
+      "head": "82bdf1d042c3520f747cbbb8dea543ad6b7e3dd0",
       "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
       "files": 307,
       "python_files": 276,
@@ -30,15 +30,15 @@
         "url": "https://github.com/OpenHCSDev/toad.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "125f2fbcb5a53833e1328892bbf40783ca467581",
-          "requested_revision": "125f2fbcb5a53833e1328892bbf40783ca467581"
+          "commit_id": "82bdf1d042c3520f747cbbb8dea543ad6b7e3dd0",
+          "requested_revision": "82bdf1d042c3520f747cbbb8dea543ad6b7e3dd0"
         }
       },
       "inventory_sha256": "cfbaca8872a9f8f283ea82818af2a7d98e1c426be5206ab25b43e195e351867d"
     },
     {
       "module": "textual",
-      "head": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e",
+      "head": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81",
       "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual",
       "files": 266,
       "python_files": 249,
@@ -47,8 +47,8 @@
         "url": "https://github.com/OpenHCSDev/textual.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e",
-          "requested_revision": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e"
+          "commit_id": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81",
+          "requested_revision": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81"
         }
       },
       "inventory_sha256": "f20a1056d45aa063a80507a66315fb620fc186b4edc73d81d6598a2569fa6c6b"
@@ -356,7 +356,7 @@
       "1.25.1"
     ]
   ],
-  "requirements_sha256": "1f033ec5ba6f223911d4e0f02a08cd42e86cff535b83d8ff130c93f1635fb39c",
+  "requirements_sha256": "53724ef8c66eb39493f3e5b9456a95fa4c6bfc7481cf9513c130ff999939d9d3",
   "protected_old_prefix_files": 7925,
   "protected_old_prefix_files_unchanged": true,
   "public_install_changed": false,

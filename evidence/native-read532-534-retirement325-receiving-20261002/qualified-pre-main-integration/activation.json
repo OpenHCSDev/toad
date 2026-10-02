@@ -2,8 +2,8 @@
   "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
   "pins": {
     "agent_comms": "457b1047855752f4d069ee1d39b01e30603efa41",
-    "toad": "125f2fbcb5a53833e1328892bbf40783ca467581",
-    "textual": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e"
+    "toad": "82bdf1d042c3520f747cbbb8dea543ad6b7e3dd0",
+    "textual": "2e3541265bf3eeab4c128dd22a4d0aacf13f6f81"
   },
   "sdk": "0.12.1",
   "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",

@@ -11,11 +11,11 @@
   "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
   "activation": {
     "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
-    "sha256": "d0d7d2e18c770064f4997ab83ed1728e09f3d0e3ae5caa85897213172e473f8d"
+    "sha256": "3297cba4d55ad965c7bfc01680bfd432a86f9ee2c7bd2a539351e5d99e372eeb"
   },
   "source_proof": {
     "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-read532-534-retirement325-20261002/source-proof.json",
-    "sha256": "6dc3fc6ca3a0e5e90f47c11b103c14688f125762fa4c20cbf24d6bd72c8c1d00"
+    "sha256": "f0406c978d882932561e93cb822f6f6fd3783098db3b4e415a5dee343e9df6d2"
   },
   "actual_gates": [
     {
