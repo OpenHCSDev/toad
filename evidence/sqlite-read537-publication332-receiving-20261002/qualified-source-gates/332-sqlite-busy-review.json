@@ -1,0 +1,10 @@
+{
+  "checks": {
+    "same_native_view": true,
+    "native_end_held_by_original_work": false,
+    "native_end_released_without_refresh": true,
+    "saved_history_still_attached": true,
+    "destination_is_native_end": true
+  },
+  "scope": "Private native saved history, actual End during SQL exclusion, automatic release; no input or performance claim"
+}

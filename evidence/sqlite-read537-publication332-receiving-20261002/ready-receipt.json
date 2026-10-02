@@ -1,0 +1,44 @@
+{
+  "state": "READY merged537/332 normal69 receiving; parent fresh idle/client admission, ONE publication and actual public UI/channel acceptance pending",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "prefix_reused_from": "Retired326 original metadata preserved, no active borrowers; current330/rollback327 unchanged",
+  "pins": {
+    "core": "cca41ab52a90e0353ad3340ca63a01a6b3bc0abc",
+    "toad": "04552f092843b1e83bea31e25de905f8c286e364",
+    "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "sdk": "0.12.1",
+  "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+  "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+  "normal_package_count": 69,
+  "new_environment": false,
+  "native_build": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "provider_calls": 0,
+  "public_effects": 0,
+  "protected_current330_rollback327_regular_files_unchanged": 8000,
+  "source_target_whole_schema_equal": true,
+  "source_target_product_equal": false,
+  "historical_carry": false,
+  "frozen_artifacts": {
+    "source-proof.json": "e163ad21a961323a49ba08cfdf270319dd159dd27ef56ed8588d41381efd24a2",
+    "operator-manifest.json": "1bf3937a4f27f3290df3736cd473c5d6e865d906c1893cfc4cd5a6c0aeb6d66e",
+    "operator-preparation/preparation-receipt.json": "414c97bfc4f0834e59b23286bd98c35613e5da6684b0cb1d84f9108a2a423962",
+    "operator-preparation/review-plan.json": "8328a2f3df04bd9ccb4f35821f9680ec390e4bf5eb1c976152ea91bda5500fd1",
+    "operator-preparation/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "source-equality.json": "b887222010bd5e7f8306af9a667c27d1fee3f3b0da9fb3f3edb62508e7c5e835",
+    "../runtime-selected-publication530-sidebar323-20261002/activation.json": "8ecf2460957ebf4f190e9be3753c74526e6590b314441c6a1a2956a6ef07af9e"
+  },
+  "qualified_source_gates": {
+    "332-receipt.json": "9cee7f4ea014bf68c6cdf7cd8bd8cd64f9bc88d23a3dfb9b0fcc86772807efcf",
+    "537-installed-sql537-03.log": "c81bff2974f472c9399ffb2e9c34f69a5310493551c3d7127cd051deab9713b9",
+    "332-semantic-assessment.json": "317513d917dc471eab5e3c102f3477eb53189759087b8f298537fe50238e0679",
+    "537-READY-CORE.md": "7afd8393cc33279dd5dc056d1383fb60ed5dcdfab23c7ef3f5e32770048f9ff4",
+    "537-after-ast.json": "b450431de6c5043deb04c7179e6748cd530bb2c198e292ac88bb583736d1f6a7",
+    "537-installed-source-proof.json": "136b3df12e1d1666ef0339cc0029347b46cdc739f7ea765a5005953ad081d861",
+    "332-sqlite-busy-review.json": "9aaaa33b5657c08b574b1d14e324f49d80b532d4b538e92f982922b148907142"
+  },
+  "scope": "Actual43s Native6 saved-history firstEnd blocked-read/release custody qualified; RAWcompletedFALSE wrongsecondEnd assertion preserved separately. No performance improvement or genericfullmotion claim. Original407 UI crash preserved. Parent alone publishes; no newprovider, native, privateUI run or repeated unchanged source gates.520OFF and331/29 independent."
+}

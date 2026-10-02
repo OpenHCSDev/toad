@@ -1,0 +1,19 @@
+{
+  "state": "READY revised single stopped-installation recipe/operator; NOT EXECUTED",
+  "package_ready_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/ready-receipt.json",
+  "package_ready_sha256": "d0bc2bf15289fbf079cca6d5b89ae80aaf48189e32b3be923dfc4a9edfde8995",
+  "operator_source": "0dd0aa3c8d614a33d29cd6027a44cf186d54f45b",
+  "operator_members": 51,
+  "operator_manifest_sha256": "4107a05d56b8717bd4ad2360888eefdfd330a8973b9e860133038e505bf106ed",
+  "runtime_installation_sha256": "bae4ac51739c6fc7deddb07865cb43ba75b8a89de3e75653ea523fa31226fd60",
+  "review_plan_sha256": "a5a9d5f1277e469a9e53fb235a6bc505d367381427a358e2177abf9fb8bdaafd",
+  "preparation_receipt_sha256": "d62df62506b9e805dd1bcc06837702fa68fe58632c639afc18a8a873da5fedf6",
+  "prepare_producer_sha256": "ea7b811c02b80fc671b2dae9469c70e38cc356b0d0795f4b69e0b0ec1eb5614a",
+  "candidate_precreated": false,
+  "prebound_plan": false,
+  "duplicate_goal_schema_operand": false,
+  "source_preimages_derive_inside_existing_stopped_installation": true,
+  "public_effects": 0,
+  "parent_execution_command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-preparation/publication-receipt.json --execute",
+  "superseded_operands": "Original standalone native-carry preparation and bind steps archived unchanged; no longer active producer contract. No source package/pins/activation changes."
+}

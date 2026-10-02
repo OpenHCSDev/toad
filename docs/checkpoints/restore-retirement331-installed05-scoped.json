@@ -247,5 +247,21 @@
     "added": 240,
     "deleted": 187,
     "history": "Later body retirement/source batch alone against1182f061 was7files217+/174-; whole PR also contains bound-cohort/effect-derived admission source."
+  },
+  "main_integration": {
+    "main": "b0ac76687e3ef86f51081977e6be7b22a6e8e0f8",
+    "previous_head": "9ee643a4732c545a8fd203cf82c0e8a0a1d4f3d3",
+    "qualified_product": "7e529b33dfb8582483cbf49e668f90cd5330d69d",
+    "all_src_toad_byte_identical": true,
+    "conflict_files": [
+      "pyproject.toml"
+    ],
+    "resolution": "Take reviewed Core542 7dd5c14c from main; retain qualified Text29 bf580381. uv.lock merged automatically and matches both declared source pins. No product conflict or change.",
+    "core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+    "textual": "bf58038114017e266e78761744e6a7868c1006de",
+    "core_dependency_declarations_unchanged": true,
+    "validation": "TOML source/lock consistency and product Git byte equality. No provider/test/capture rerun; installed05 remains older cd150 Core pair, not new joint runtime qualification.",
+    "textual29": "Published bf580381, OPEN/DRAFT/MERGEABLE; not merged. Kepler confirms parent reviewed 17 added /4 deleted production lines.",
+    "inherited_whitespace": "Two main evidence phased_owner_kernel.py files have extra EOF blank lines; preserved unchanged."
   }
 }

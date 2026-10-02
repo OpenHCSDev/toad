@@ -1,0 +1,48 @@
+{
+  "recorded_at": 1790962234.3712623,
+  "state": "Scoped actual333 startup/live-wave visible UI completion; remaining native compaction uncertainty is not closed",
+  "actual_wave": {
+    "duration_seconds": 125.66616020299261,
+    "application_st_exit": 0,
+    "raw_capture_returncode": 255,
+    "capture_completed": true,
+    "completed": true,
+    "before_observer_after_exports_complete": "Parent explicit observation",
+    "cleanup_remaining": [],
+    "cleanup_errors": [],
+    "original_helper": {
+      "pid": 283015,
+      "start_time": 43650306,
+      "unchanged": true
+    }
+  },
+  "visual_observation": {
+    "observer": "Parent",
+    "timing": "DURING live-wave run",
+    "seen": "Fresh channel replies visible; boundaries CompactionJournalError/Outcome uncertain remains"
+  },
+  "channel": {
+    "seq": 418,
+    "message_id": "660958a8c77d",
+    "commit_seconds": 1.462,
+    "new_input_count": 1,
+    "same_original_fanout": true,
+    "first_initial_window_already_open_arrival_claim": false,
+    "all_delivery_fixed_claim": false
+  },
+  "remaining_owner": "Mendel original journal/outcome failure",
+  "raw_files": {
+    "default-initial-raw-capture.json": {
+      "original_path": "/home/ts/.cache/agent-scratch/333-default-channel-20261002/capture/receipt.json",
+      "sha256": "13316110edd7c7b4e270dc7360bce6ff2df26040f88f1c14661d2a74f9ddecdc"
+    },
+    "default-live-wave-raw-capture.json": {
+      "original_path": "/home/ts/.cache/agent-scratch/333-default-live-wave-20261002/capture/receipt.json",
+      "sha256": "68eefdf46675b6b055912dbbfe9a07b3fb0c71335122aa148a5b660ae2b5b71c"
+    }
+  },
+  "raw_publication_phase_unchanged": true,
+  "new_provider_calls_from_this_readback": 0,
+  "original_input_replay": false,
+  "no_capture_rerun": true
+}

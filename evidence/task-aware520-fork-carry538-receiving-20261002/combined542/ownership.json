@@ -1,0 +1,13 @@
+{
+  "owner": "Schrodinger",
+  "purpose": "540+541+542 paired admission; existing69/native9f12; actual gate pending",
+  "core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "toad": "5d9fe0d07fed728993b6131846ff3eba51f5e18a",
+  "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "9f12ddf4e22d6d7a14074eb2ec22ba2f7ab376faa9a1f3b2320a0caf7d7ae3a2",
+  "native_tree": "d8ceeee18889e372ff72b4d068750fb06e2688762bcb95a098892761a5fd548a",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "optional_strategy_default": false
+}

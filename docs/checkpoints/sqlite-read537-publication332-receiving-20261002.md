@@ -1,0 +1,27 @@
+# SQLite read and source publication receiving
+
+Receive merged Core537 cca41ab52a90e0353ad3340ca63a01a6b3bc0abc and Toad33264220f10a1489071cc4914b90e8fc244a73de211. Their accepted source is cd150/ac128 and56580. Text28 merged3dd989/native00c2/SDK0.12.1 remain unchanged;520 and331/Text29 are separate.
+
+Use the retired326 normal69 prefix after original metadata preservation. Current330 and rollback327 stay immutable. Normal declared dependency installation, installed source/assets proof and the existing51-file preserve-only publisher prepare ONE parent execution. No new environment, native build, schema/reset/carry, provider input or public action.
+
+The actual qualified private Native6 saved-history physical run covered End while SQL was busy, holder release and the FIRST End request completing through the original source lifetime. Parent watched motion during the43s run; private SQL was held8.447s, st exited0, cleanup empty. Raw wrong-second-End assertion remains a failed oracle, with a separate semantic assessment; do not rewrite it or claim a generic full performance pass.
+
+Public330 publication/readback succeeded but actual fresh407 UI crashed with SQLite database locked. Preserve that original input/capture and raw publication phase. This receiving pair fixes the accepted read/source operation family; parent alone performs fresh idle/client admission, one publication and actual public acceptance.
+
+## Frozen receiving333
+
+Installed Toad04552f09, Corecca41ab5, Text3dd98997, native00c2, SDK0.12.1. Normal69 dependency check and allfour Git source/directURL/nativeasset inventories pass. All8000 current330/rollback327 regular files match their original hashes. Core source/stack/config equals acceptedcd150; Toad source/tools equals56580 and merged64220. Only receiving dependency metadata changes.
+
+Whole declared NativeSchema6 equals current330; product code differs. Frozen original51-file operator uses PreserveRuntimeInstallation/PreserveOwnerRuntime, no carry/reset. READY/source/activation/preparation and exact ONE parent command are archived under `evidence/sqlite-read537-publication332-receiving-20261002`. Preparation is not execution; parent freshly checks all idle owners and no clients before publication.
+
+## Actual publication readback
+
+Parent executed the ONE original publisher81690, terminal0,19 owners launched in46.856610s. Original raw UI-pending phase/hash remains unchanged. Existing pure readback ran once: all19 original thread births and entire settings exceptprocess are exact, all19 result PID/start identities alive, targetinterpreter captured, five links and root/rootID/native00c2 match. No thread progress/configuration differences at this observation.
+
+Published-source closure SHA471ae0f12ecd978020dd92c12d42c4927c2a49e4af9ff9b8d1277fc5bb6b118d; raw publisher SHA4eee321071dfa1b50be9164d0e31f7ee0aa3934ce45905a7e1cce131f93fb356. Both original files archived adjacent to preparation. Parent owns ordinary default physicalUI and ONE fresh configuredchannel acceptance next; this readback is not that acceptance. Original407/330 failedUI/proof stays intact. No repeatexecutor, input, provider call, public mutation or frozenmetadata change.
+
+## Scoped actual default live wave
+
+Parent ordinary333 startup and subsequent SAME fresh418/660958a8c77d live-wave capture completed. Live wave125.666s, applicationst0, all before/observer/after exports complete, helper283015/start43650306 unchanged, cleanup empty. Raw FFmpeg capture return255 and assessment remain intact. Parent watched fresh replies DURING this run. Initial window ended before send; no claim it observed already-open arrivals. ONE new418 commit1.462s, no repeated input.
+
+Boundaries still shows CompactionJournalError/Outcome uncertain; Mendel owns the original failure. This is scoped actual UI/startup/live-wave completion, not all-delivery or compaction correctness, latency improvement or smoothness. Both original raw capture receipts and a separate honest closure are archived. Publication UI-pending phase and frozen source/operator metadata are unchanged.

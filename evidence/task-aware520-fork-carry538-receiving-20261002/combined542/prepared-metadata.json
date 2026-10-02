@@ -1,0 +1,18 @@
+{
+  "state": "PREPARED matched542 metadata; final journey receipt and READY pending; NOT EXECUTABLE APPROVAL",
+  "installed_core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "activation_sha256": "c1dd66a77a23b5e72e0f0668daa77614cd080c147fe910cd9804ef8a7b296ba6",
+  "source_proof_sha256": "c2ecca62db75f895638e6355e749b4d445b02f07193a2e6c6a063b980f8970cd",
+  "operator_manifest_sha256": "27c007b51a295ac13363460073f1d2cb049721896d2bb75d8c71706807e3e038",
+  "operator_members": 51,
+  "runtime_installation_sha256": "68d2d0f88fd96c14bd63acea7a6cbd1254e7640775a1887c74691cff698b8d42",
+  "review_plan_sha256": "0e4204209175814a57cfaf1e94e82db199c1be2909adc32e12749483a14a5d83",
+  "preparation_receipt_sha256": "126b871003fe8531e91b480e3f43a5824073076e8826d364a361a432505110e1",
+  "producer_sha256": "7fb8b8dc3fb1c51795f79679b732973b1ace895e71d7551bd8cf766417a38614",
+  "pending": "Mendel actual542 configured native/ACP journey artifact",
+  "same_541_operator_bytes": true,
+  "public_effects": 0,
+  "parent_execution_command_after_ready": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/operator-preparation/publication-receipt.json --execute",
+  "original399f_operands_preserved": true,
+  "source_preimages_derive_inside_existing_stopped_installation": true
+}
