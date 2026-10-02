@@ -144,6 +144,33 @@ async def main():
             window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
             await pilot.pause()
             window.release_anchor()
+            for member in family:
+                await member.materialize_body()
+            await pilot.pause()
+            native_captures = Counter()
+
+            def observe_capture(frame, event, arg):
+                if event != 'call':
+                    return
+                if frame.f_code.co_name == 'render_subtree_strips':
+                    native_captures['bodies'] += 1
+                if (frame.f_code.co_name == '_arrange_root'
+                        and frame.f_locals.get('root') is app.screen):
+                    native_captures['whole_scenes'] += 1
+
+            sys.setprofile(observe_capture)
+            try:
+                operations = [member.retire_body() for member in family]
+            finally:
+                sys.setprofile(None)
+            # Borrow the original rows before preparation can yield and the
+            # first removal can invalidate sibling placement in the scene.
+            assert native_captures == Counter(bodies=len(family)), native_captures
+            assert all(not member.body_dormant for member in family)
+            assert all(await asyncio.gather(*operations))
+            await pilot.pause()
+            receipt['cohort_captured_before_preparation_and_pruning'] = len(family)
+            receipt['cohort_capture_whole_scene_arrangements'] = native_captures['whole_scenes']
             family_receipts = []
             for member in family:
                 # Retirement owns complete paint even when optional geometry
