@@ -1,0 +1,297 @@
+{
+  "scope": "Scoped342 preparation-before-native-mutation, actual original saved-history/paging/tab/draft/Undo resource checkpoint; not full smoothness/CPU/144Hz/busy multiagent/channel qualification",
+  "installed_source": "fc42dc3ead5a57915bb18572b0a19bd3b9dcc1b7",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-admitted-body342-20261002/source-proof.json",
+  "pins": [
+    {
+      "module": "agent_comms",
+      "head": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms",
+      "files": 339,
+      "python_files": 311,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+          "requested_revision": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833"
+        }
+      },
+      "inventory_sha256": "39caa2a4fba54256b0480508c6b5190e8b8b3f3a45bcd929af74f6ec32dd4fb6"
+    },
+    {
+      "module": "toad",
+      "head": "fc42dc3ead5a57915bb18572b0a19bd3b9dcc1b7",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad",
+      "files": 307,
+      "python_files": 276,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/toad.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "fc42dc3ead5a57915bb18572b0a19bd3b9dcc1b7",
+          "requested_revision": "fc42dc3ead5a57915bb18572b0a19bd3b9dcc1b7"
+        }
+      },
+      "inventory_sha256": "f7af3a4a0e6bbdf04db0679b46cf2493ba4163116982851ea08671e8fedf666a"
+    },
+    {
+      "module": "textual",
+      "head": "81ecfccd6622e727ec2c8d6eb6927e2a3cb9e7cd",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "81ecfccd6622e727ec2c8d6eb6927e2a3cb9e7cd",
+          "requested_revision": "81ecfccd6622e727ec2c8d6eb6927e2a3cb9e7cd"
+        }
+      },
+      "inventory_sha256": "f08767a20ef596d61e12141133f6ecdeba1a24293f81bb05ae6f0e160603f0e3"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual_diff_view",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "production_added": 111,
+  "production_deleted": 41,
+  "production_files": 6,
+  "capture": "/home/ts/.cache/agent-scratch/admitted-body342-frame-fence-public-20261002-01/capture",
+  "duration_seconds": 122.04722049902193,
+  "raw_capture_completed": true,
+  "raw_completed": false,
+  "raw_error": "RuntimeError: Required state capture before did not complete: {'started_seconds': 1.2382535159704275, 'manifest': {'pid': 724661, 'created': 1790974658.07, 'executable': '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14', 'rss_before': 106774528, 'started_ns': 1790974661249672360, 'profile_seconds': 0, 'gil_only': False, 'native': False, 'receipts': {'/home/ts/.cache/agent-scratch/admitted-body342-frame-fence-public-20261002-01/capture/before-state': 'pending', '/home/ts/.cache/agent-scratch/admitted-body342-frame-fence-public-20261002-01/capture/before-screen': 'pending'}, 'finished_ns': 1790974681313947384}, 'finished_seconds': 21.50952276098542}",
+  "initial_export_limit": "Before state and screenshot exports stayed pending for their20s observation. Initial screenshot blank; warm-ready22.776s. No cause assigned to product crash or cold-load regression; raw negative remains unchanged. Later original phase exports throughUndo+after completed.",
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 18,
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 701741,
+      "start_time": 44956949
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 701741,
+      "start_time": 44956949
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit": {
+    "pid": 724660,
+    "start_ticks": 45029801,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "terminal_exit_limit": "TransferredGroup receipt proves custody, not a normal UI exit returncode; FFmpeg255 is accepted SIGINT result.",
+  "writers": [
+    {
+      "action": "held-Prior-0",
+      "intervals": {
+        "count": 65,
+        "median_ms": 19.62,
+        "p95_ms": 130.07,
+        "p99_ms": 159.29,
+        "max_ms": 184.15
+      },
+      "writer_receipts": 66
+    },
+    {
+      "action": "held-Next-1",
+      "intervals": {
+        "count": 48,
+        "median_ms": 21.99,
+        "p95_ms": 159.72,
+        "p99_ms": 178.54,
+        "max_ms": 180.51
+      },
+      "writer_receipts": 49
+    },
+    {
+      "action": "held-Prior-2",
+      "intervals": {
+        "count": 95,
+        "median_ms": 16.23,
+        "p95_ms": 84.07,
+        "p99_ms": 167.11,
+        "max_ms": 298.67
+      },
+      "writer_receipts": 96
+    },
+    {
+      "action": "held-Next-3",
+      "intervals": {
+        "count": 75,
+        "median_ms": 18.47,
+        "p95_ms": 125.08,
+        "p99_ms": 161.97,
+        "max_ms": 184.01
+      },
+      "writer_receipts": 76
+    },
+    {
+      "action": "held-Prior-4",
+      "intervals": {
+        "count": 111,
+        "median_ms": 15.44,
+        "p95_ms": 61.61,
+        "p99_ms": 126.55,
+        "max_ms": 165.42
+      },
+      "writer_receipts": 112
+    }
+  ],
+  "native_writer_flushed": 760,
+  "native_writer_unmatched": 0,
+  "writer_limits": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+  "phase_ui_cpu_percent": {
+    "input-held-up": 82.20332852126529,
+    "input-held-down": 79.10096693652459,
+    "up": 72.58178726249412,
+    "down": 80.41253239392799,
+    "reverse": 74.52952065138973,
+    "input-held-up-done": 29.787512354489422,
+    "idle": 22.684649724880316
+  },
+  "cpu_limits": "Marked phases include export tails and diagnostic work. Exact writer windows use original physical keydown/keyup boundaries. Different source/admission/observer workload from339; no causal speed/overallCPU improvement claim.",
+  "samples": 1343,
+  "sampling_errors": 0,
+  "alignment_uncertainty_seconds": 0.06693395499954932,
+  "profile_limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant"
+  ],
+  "idle_observation": {
+    "mid_history_last10": {
+      "start_seconds": 45.799,
+      "end_seconds": 55.799,
+      "events": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      },
+      "absent_events": [
+        "request",
+        "full_admission",
+        "body_materialization",
+        "body_retirement_attempt",
+        "page_extension",
+        "scroll_observed"
+      ]
+    },
+    "end_last10": {
+      "start_seconds": 93.386,
+      "end_seconds": 103.386,
+      "events": {
+        "relocating": 20,
+        "relocated": 20,
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      },
+      "absent_events": [
+        "request",
+        "full_admission",
+        "body_materialization",
+        "body_retirement_attempt",
+        "page_extension",
+        "scroll_observed"
+      ]
+    }
+  },
+  "motion_review": {
+    "source_interval_seconds": [
+      36.4360822040122,
+      37.2360822040122
+    ],
+    "frames": 48,
+    "frame_sheet": "/home/ts/.cache/agent-scratch/admitted-body342-frame-fence-public-20261002-01/capture/during-input-up-frames.png",
+    "encoded_recorder_alive": true,
+    "viewed_before_exit_verified": false,
+    "timing": "Warm-start PNG viewed during; exact moving sheet encoded during, viewed near cleanup boundary; live process at moment of moving view not established. Additional original reverse/return reviewed after.",
+    "assessment": "Readable body/chrome, repeated positions then discrete large advances; no smooth/uninterrupted-motion acceptance. A-return original body/draft readable, End/idle not blank in reviewed images."
+  },
+  "source_sanity": {
+    "source": "f81884ce7b2ab97c970b137de7357ff1ebd0b788",
+    "boundary": "source native admission/custody checks only; actual installed motion not yet run",
+    "results": [
+      {
+        "case": "end",
+        "returncode": 0,
+        "seconds": 5.023149253975134,
+        "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/source342-sanity/end.log"
+      },
+      {
+        "case": "admission",
+        "returncode": 0,
+        "seconds": 4.972299148968887,
+        "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/source342-sanity/admission.log"
+      },
+      {
+        "case": "custody",
+        "returncode": 0,
+        "seconds": 5.072728129976895,
+        "log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/source342-sanity/custody.log"
+      }
+    ]
+  },
+  "source_read": "ExistingNRA279 parsed roots/all production plus nativeMarkdown/Animator/Screen; no parse omissions. PageView initial/extension/update slices are the original admission selections; constructor,extend,update,detached preparation all consume them. Generic .extend dynamic targets are ambiguous and selected native sites were read. Existing publication/cancel/source/reader guards remain at commit.",
+  "remaining": "Main-thread widget/style/arrangement and frame admission still produce stepwise motion; read source and original profile, not another unchanged capture. Initial export pending remains tool/startup observation gap. Whole IRC/shared controller338, busy compaction, cold/warm performance and original full scope retained."
+}

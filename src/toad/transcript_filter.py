@@ -117,6 +117,11 @@ class SeekingFilter(NoFilter):
             prepared = await source.boundary()
             if not snapshot.current(owner):
                 return False
+            projection = ProjectedTranscriptHistory(owner, source, prepared)
+            page = projection.pages[0]
+            await projection.prepare_fragments(
+                page.fragments[page.extension_slice(False)], lambda: snapshot.current(owner),
+            )
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False
@@ -124,7 +129,6 @@ class SeekingFilter(NoFilter):
                 viewport = snapshot.window.content_region
                 anchor = next((child for child in owner.fragment_views
                                if child in visible and visible[child][0].overlaps(viewport)), None)
-                projection = ProjectedTranscriptHistory(owner, source, prepared)
                 filtering.state = Filtered(projection)
                 async with snapshot.window.preserve_history(anchor):
                     await owner.mount(projection, before=owner.pages[0])
