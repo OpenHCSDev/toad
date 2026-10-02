@@ -27,6 +27,10 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
         return ()
 
     @property
+    def queue_supported(self) -> bool:
+        return False
+
+    @property
     @abstractmethod
     def queue(self):
         """The actual source owns its input queue projection."""
@@ -76,6 +80,11 @@ class ACPAgentPresentation(AgentPresentation):
     @property
     def queue(self):
         return self.agent.queue_attachment.projection
+
+    @property
+    def queue_supported(self) -> bool:
+        """Advertisement belongs to the original coordination declaration."""
+        return self.agent.coordination is not None
 
     @property
     def uses_managed_turns(self):

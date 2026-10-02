@@ -38,6 +38,8 @@ from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
 from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
+from toad.widget_actions import DeclaredWidgetActions
+from toad.prompt_actions import PromptAction, SubmitNowAction
 
 if TYPE_CHECKING:
     from toad.agent import AgentBase
@@ -113,7 +115,8 @@ class PromptContainer(containers.HorizontalGroup):
 class PromptSubmission:
     """Admit model and local command submission through the current prompt."""
 
-    def action_submit(self) -> None:
+    def schedule_submission(self, *, immediate: bool = False) -> None:
+        self._submit_immediate |= immediate
         # The callback is queued behind this widget's input events. Unlike a
         # timer, it preserves paste/typing order without adding a fixed latency.
         if not self._submit_pending:
@@ -121,7 +124,8 @@ class PromptSubmission:
             self.call_later(self._submit)
 
 
-class PromptTextArea(PromptSubmission, HighlightedTextArea):
+class PromptTextArea(DeclaredWidgetActions, PromptSubmission, HighlightedTextArea):
+    ACTIONS = PromptAction
     HELP = """\
 ## Prompt
 
@@ -140,15 +144,6 @@ See on-screen instructions for details.
         Binding("pagedown", "history_page_down", "Next messages", priority=True, show=False),
         Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
         Binding("ctrl+j", "line_feed", "New line", priority=True, show=False),
-        Binding("ctrl+enter,ctrl+y", "submit_now", "Send now", priority=True),
-        Binding(
-            "enter",
-            "submit",
-            "Send",
-            key_display="⏎",
-            priority=True,
-            tooltip="Send the prompt to the agent",
-        ),
         Binding(
             "shift+enter",
             "newline",
@@ -164,14 +159,6 @@ See on-screen instructions for details.
             priority=True,
             show=False,
         ),
-        Binding(
-            "ctrl+c",
-            "clear_input",
-            "Clear",
-            priority=True,
-            tooltip="Clear the prompt",
-            show=False,
-        ),
     ]
 
     app = getters.app(ToadApp)
@@ -179,8 +166,6 @@ See on-screen instructions for details.
     auto_completes: var[list[Option]] = var(list)
     multi_line = var(False, bindings=True)
     shell_mode = var(False, bindings=True)
-    agent_ready: var[bool] = var(False)
-    queue_supported = var(False, bindings=True)
     path_complete: var[PathComplete] = var(Initialize(lambda obj: PathComplete()))
     suggestions: var[list[str] | None] = var(None)
     suggestions_index: var[int] = var(0)
@@ -201,6 +186,14 @@ See on-screen instructions for details.
     @property
     def agent_busy(self) -> bool:
         return self.turns.owner.busy if self.turns is not None else False
+
+    @property
+    def agent_ready(self) -> bool:
+        return self.simple_input or self.shell_mode or self.query_ancestor(Prompt).agent_ready
+
+    @property
+    def queue_supported(self) -> bool:
+        return not self.simple_input and self.query_ancestor(Prompt).queue_supported
 
     class Submitted(Message):
         def __init__(self, markdown: str) -> None:
@@ -245,18 +238,6 @@ See on-screen instructions for details.
         elif event.key != "escape":
             self.suggestions = None
             self.suggestion = ""
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "submit_now":
-            return self.agent_ready and self.agent_busy and self.queue_supported
-        if action == "clear_input":
-            return bool(self.text)
-        return True
-
-    def action_clear_input(self) -> None:
-        self.clear()
-        self.suggestions = None
-        self.suggestion = ""
 
     def action_newline(self) -> None:
         self.insert("\n")
@@ -309,10 +290,6 @@ See on-screen instructions for details.
         except (OSError, ValueError, TimeoutError) as error:
             self.notify(str(error), title="Paste failed", severity="error")
 
-
-    def action_submit_now(self) -> None:
-        self._submit_immediate = True
-        self.action_submit()
 
     def _submit(self) -> None:
         self._submit_pending = False
@@ -483,10 +460,8 @@ class Prompt(containers.VerticalGroup):
     display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
-    agent_ready: var[bool] = var(False)
     agent: var[AgentBase | None] = var(None)
     model_history_scope = var("")
-    queue_supported = var(False)
     status: var[str | Content] = var("")
 
     app = getters.app(ToadApp)
@@ -515,6 +490,14 @@ class Prompt(containers.VerticalGroup):
         return self.turns.owner.busy if self.turns is not None else False
 
     @property
+    def agent_ready(self) -> bool:
+        return self.simple_input or self.shell_mode or (self.agent is not None and self.agent.ready)
+
+    @property
+    def queue_supported(self) -> bool:
+        return self.agent is not None and self.agent.presentation.queue_supported
+
+    @property
     def text(self) -> str:
         return self.prompt_text_area.text
 
@@ -533,6 +516,7 @@ class Prompt(containers.VerticalGroup):
     def watch_agent(self) -> None:
         if self.is_mounted:
             self.sync_configuration()
+            self.sync_session()
 
     def sync_configuration(self) -> None:
         """Render the original operational owners; no accepted selection lives here."""
@@ -602,13 +586,14 @@ class Prompt(containers.VerticalGroup):
             self.mode_switcher.highlighted = self.mode_switcher.get_option_index(current.id)
 
     def sync_turn(self) -> None:
-        self.set_class(self.agent_busy and self.queue_supported, "-queue-mode")
+        if not self.is_mounted:
+            return
         if (editor := self.query_one_optional(PromptTextArea)) is not None:
+            self.set_class(SubmitNowAction().available(editor), "-queue-mode")
             editor.refresh_bindings()
-
-    def watch_queue_supported(self, supported):
-        self.sync_turn()
-        self.sync_queue()
+        from toad.widgets.goal_bar import GoalBar
+        for goal_bar in self.parent.query(GoalBar):
+            goal_bar._queue_separator_update()
 
     def sync_queue(self) -> None:
         if self.is_mounted:
@@ -616,6 +601,7 @@ class Prompt(containers.VerticalGroup):
 
     def on_mount(self) -> None:
         self.sync_configuration()
+        self.sync_session()
         self.call_after_refresh(self.sync_queue)
 
     def _update_queue_summary(self) -> None:
@@ -650,20 +636,22 @@ class Prompt(containers.VerticalGroup):
         summary.update(Content(" | ".join(parts)))
 
     @on(messages.SendPromptNow)
-    def on_send_prompt_now(self, event):
+    async def on_send_prompt_now(self, event):
         event.stop()
         # Widget.focus() defers its focus change to the screen queue. Submission
         # can overtake it and fail the TextArea's has_focus guard after a click.
         self.screen.set_focus(self.prompt_text_area)
-        self.prompt_text_area.action_submit_now()
+        await self.prompt_text_area.run_action("submit_now")
 
-    def watch_agent_ready(self, ready: bool) -> None:
-        self.set_class(not ready, "-not-ready")
-        if ready and not self.simple_input:
-            self.query_one(AgentInfo).update(self.agent_info)
+    def sync_session(self) -> None:
+        if not self.is_mounted:
+            return
+        self.set_class(not self.agent_ready, "-not-ready")
+        self.watch_agent_info(self.agent_info)
+        self.sync_turn()
 
     def watch_agent_info(self, agent_info: Content) -> None:
-        if self.simple_input:
+        if self.simple_input or not self.is_mounted:
             return
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
@@ -808,8 +796,6 @@ class Prompt(containers.VerticalGroup):
                 yield self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind(
                     multi_line=Prompt.multi_line,
                     shell_mode=Prompt.shell_mode,
-                    agent_ready=Prompt.agent_ready,
-                    queue_supported=Prompt.queue_supported,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
                     slash_commands=Prompt.slash_commands,
