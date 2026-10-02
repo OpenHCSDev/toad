@@ -48,3 +48,28 @@ This2-production-file checkpoint deletes the second envelope constructor and
 compose algorithm. The channel paging/controller migration is still active;
 this is not a claim that scrolling or End is fixed. Batch sanity and the single
 changed installed journey follow the completed history family.
+
+## U3 amendment: application state and native resources
+
+Read every file in plans/ui_interface_abstractoin/toad-headless-ui.zip
+(README andU1-U8). U3 applies to this controller change: application source
+state belongs to the existing headless owner; widgets reference it and paint.
+Moving MountedMessageHistory wholesale into a Widget is insufficient if it
+leaves source selection, watermark, publication or phase authority there.
+Native children, measured extent, source-admission resources, prepared rows,
+anchors and focus remain legitimate frontend resources. Backend turn, goal,
+input disposition, message handling and original coverage stay backend-owned.
+
+Einstein ownsU1 event/publication extraction; Heisenberg retains Window/frame/
+anchor/viewport; parent ownsU7 harness/integration. This contribution keeps
+its existing338 family/context and coordinates their original hooks directly.
+No new frontend, application store, event codec or mirror is introduced here.
+Existing TranscriptPresentation, CoordinationTranscriptReader, AgentController,
+TranscriptSourcePreparation and PreparedPageSource are the owners being read
+for source/read/application versus native admission custody.
+
+The first envelope after-map parses276/276 Toad production modules with no
+omissions and finds one constructor/compose owner, two leaf body/ack methods
+and all8 source/import uses. Output: .artifacts/shared-history-source338/
+envelope-owner-after.json. Actual dynamic dispatch/paint is not proven by AST;
+it belongs to the completed family's joined installed journey.
