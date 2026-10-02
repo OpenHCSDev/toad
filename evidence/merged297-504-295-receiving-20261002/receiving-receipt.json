@@ -1,0 +1,71 @@
+{
+  "state": "SCOPED_READY merged297+504+295 normal immutable package; accepted affected journeys source-equal; parent default cutover",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged297-504-295-20261002",
+  "core": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+  "toad_installed": "fea779d1e9dab9a53cbf33f69653b40d6280f06d",
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "normal_packages": 69,
+  "prefix_allocated_kib": 72712,
+  "all4_inventories_and_direct_urls_equal": true,
+  "packaged_assets_native_trust": true,
+  "pip_check": "Using Python 3.14.2 environment at: .artifacts/runtime-merged297-504-295-20261002\nChecked 69 packages in 1ms\nAll installed packages are compatible\n",
+  "receiving_pin_changes": 0,
+  "receiving_production_changes": 0,
+  "protected_299_502_503_package_files_unchanged": 8517,
+  "new_native_build": false,
+  "new_provider_calls": 0,
+  "repeated_native_or_ui_journeys": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "migration": false,
+  "public_owner_or_user2932308_interruption": false,
+  "503_excluded": true,
+  "affected_source_equality": {
+    "core": {
+      "accepted_source": "ad73aefe4666678977de73a82ab9fc9528e98eec",
+      "merged": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+      "production_and_native_stack_diff": "",
+      "selected_backend_changed_files_from_current5c": [],
+      "only_current5c_production_changes": [
+        "src/agent_comms/cli_commands.py",
+        "src/agent_comms/turn_context.py",
+        "src/agent_comms/wire_log.py"
+      ],
+      "qualified_installed_cli_queries": 6
+    },
+    "toad": {
+      "merged_source": "fea779d1e9dab9a53cbf33f69653b40d6280f06d",
+      "accepted297_source": "9e833b462bb931ce544ea5a09ff609c571a0ae90",
+      "whole_production_diff": "",
+      "installed297_files_equal": 306,
+      "native_acp_st_elapsed_seconds": 10.717003490019124,
+      "accepted295_source": "0a999fdc8ef2cc4452f7a3ade4b1a566d77fa80d",
+      "only_changes_from295": [
+        "src/toad/agent_presentation.py",
+        "src/toad/command_catalog.py",
+        "src/toad/conversation_submission.py",
+        "src/toad/slash_command.py",
+        "src/toad/target_commands.py",
+        "src/toad/widgets/comms_chat.py",
+        "src/toad/widgets/conversation.py"
+      ],
+      "delta_equal_original_qualified297": true,
+      "295_physical_seconds": 113.50401202199282,
+      "changed_receiving_pin_lines": 0
+    },
+    "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+    "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+    "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+    "affected_journeys_not_repeated": true,
+    "503_excluded": true,
+    "503_artifacts_protected": true,
+    "parent_remaining": "default cutover/public saved startup while preserving current public user2932308 until finished"
+  },
+  "activation_metadata_sha256": "022a96002ff74f6f4d9a8817f561749226fe0fde77fb5edd705853d2fd6728a3",
+  "parent_remaining": "default cutover/public saved startup; any future bus checkpoint requires exact merged head and new explicit candidate instruction"
+}

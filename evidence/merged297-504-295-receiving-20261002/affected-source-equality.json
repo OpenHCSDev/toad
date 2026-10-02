@@ -1,0 +1,41 @@
+{
+  "core": {
+    "accepted_source": "ad73aefe4666678977de73a82ab9fc9528e98eec",
+    "merged": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+    "production_and_native_stack_diff": "",
+    "selected_backend_changed_files_from_current5c": [],
+    "only_current5c_production_changes": [
+      "src/agent_comms/cli_commands.py",
+      "src/agent_comms/turn_context.py",
+      "src/agent_comms/wire_log.py"
+    ],
+    "qualified_installed_cli_queries": 6
+  },
+  "toad": {
+    "merged_source": "fea779d1e9dab9a53cbf33f69653b40d6280f06d",
+    "accepted297_source": "9e833b462bb931ce544ea5a09ff609c571a0ae90",
+    "whole_production_diff": "",
+    "installed297_files_equal": 306,
+    "native_acp_st_elapsed_seconds": 10.717003490019124,
+    "accepted295_source": "0a999fdc8ef2cc4452f7a3ade4b1a566d77fa80d",
+    "only_changes_from295": [
+      "src/toad/agent_presentation.py",
+      "src/toad/command_catalog.py",
+      "src/toad/conversation_submission.py",
+      "src/toad/slash_command.py",
+      "src/toad/target_commands.py",
+      "src/toad/widgets/comms_chat.py",
+      "src/toad/widgets/conversation.py"
+    ],
+    "delta_equal_original_qualified297": true,
+    "295_physical_seconds": 113.50401202199282,
+    "changed_receiving_pin_lines": 0
+  },
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "affected_journeys_not_repeated": true,
+  "503_excluded": true,
+  "503_artifacts_protected": true,
+  "parent_remaining": "default cutover/public saved startup while preserving current public user2932308 until finished"
+}
