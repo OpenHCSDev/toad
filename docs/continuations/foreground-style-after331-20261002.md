@@ -30,3 +30,26 @@ Read source/all consumers, implement and delete the repeated work, then batch
 proportionate checks and the changed installed saved-history motion/profile
 journey. Inspect timed moving frames while that run is active. No unchanged
 capture or overall CPU/smoothness claim from source review.
+
+## Published source batch
+
+96956825 changes three production files,20 added/22 deleted. One existing
+MarkdownSyntaxRenderTask.prepare_body now returns PreparedMarkdown to runway,
+native delivery and renderer startup. PreparedConversationMarkdown no longer
+creates TokenRenderTask from filesystem-resolved tokens; startup no longer
+duplicates the syntax/highlight sequence. Custom parsers retain their original
+dispatch, and theme/source cancellation guards remain at delivery.
+
+AST parsed all Toad production modules without omissions. Before: direct
+TokenRenderTask calls in render_tasks,render_runtime,prepared_markdown. After:
+one preparation orchestration in render_tasks; both latter consumers call it.
+PreparationRuntime owns copied/serialized independent result delivery.
+Native parser/fence APIs were read in the frozen Text29 dependency. Dynamic
+dispatch remains subject to the original renderer/parser contracts.
+
+Final focused source checks passed: markdown_token_rules_pilot proves fresh
+root/create/delete link resolution and independent syntax; markdown_process_pilot
+proves native token/fence/heading parity and streamed partial fences without
+foreground highlighting. Logs: .artifacts/source335-sanity. Existing dependencies
+only, no new environment/provider/input/public mutation. The changed installed
+motion/profile gate is still required; no measured speed/smoothness claim.
