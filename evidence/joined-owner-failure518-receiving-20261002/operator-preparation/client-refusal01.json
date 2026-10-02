@@ -1,0 +1,32 @@
+{
+  "state": "REFUSED BEFORE PUBLICATION ADMISSION",
+  "reported_by": "parent executing exact frozen316 command",
+  "client": {
+    "pid": 3615800,
+    "start_time": 40750362,
+    "cmdline": "toad"
+  },
+  "raw_stderr": "Original parent tool output; not present in receiver. No reconstructed traceback.",
+  "publication_receipt_exists_at_observation": false,
+  "publication_preimages_exist_at_observation": false,
+  "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined-owner-failure518-20261002/operator-freeze/publish_retained_summary.py",
+  "source_sha256": "9fb0ca33b28798aa07c2f07412f05024ddc4df32afc7864c5298fe9e1825ce07",
+  "source_order": [
+    "operation.require_selection(snapshot, owners)",
+    "require_no_clients(audience)",
+    "publication receipt exclusive creation",
+    "private owner launch pin",
+    "restart_owners",
+    "after_stopped installation",
+    "cohort.publish"
+  ],
+  "classification": "Pre-admission refusal; stopped-batch recovery has not begun.",
+  "parent_report": "No mutation; original registry latest active/busy lists empty. Exact UI still open, parent owns normal shutdown/draft preservation.",
+  "actions_by_this_owner": {
+    "signals": 0,
+    "publication_attempts": 0,
+    "provider_calls": 0,
+    "input_replays": 0
+  },
+  "next": "Parent fresh attempt only after exact client exit; existing publisher fresh admission remains unchanged."
+}
