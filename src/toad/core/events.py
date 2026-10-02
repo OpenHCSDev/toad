@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from abc import abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 from typing import Annotated
-from weakref import WeakSet, ref
+from weakref import WeakMethod, WeakSet, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
@@ -192,7 +192,23 @@ class Subscription:
     """A subscriber owns this resource for as long as it wants publications."""
 
     stream: CoreEventStream
-    listener: Callable[[CoreEvent, Subscription], object]
+    listener: InitVar[Callable[[CoreEvent, Subscription], object]]
+    _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
+
+    def __post_init__(self, listener) -> None:
+        # Python owns these two callable forms. A borrowed bound receiver must
+        # stay weak; a standalone listener belongs to this subscriber resource.
+        try:
+            self._listener = WeakMethod(listener)
+        except TypeError:
+            self._listener = lambda: listener
+
+    def publish(self, event: CoreEvent) -> None:
+        listener = self._listener()
+        if listener is None:
+            self.close()
+        elif self.active:
+            listener(event, self)
 
     @property
     def active(self) -> bool:
@@ -229,5 +245,4 @@ class CoreEventStream:
 
     def publish(self, event: CoreEvent) -> None:
         for subscription in tuple(self.subscriptions):
-            if subscription.active:
-                subscription.listener(event, subscription)
+            subscription.publish(event)
