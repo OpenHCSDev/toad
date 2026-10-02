@@ -1,0 +1,28 @@
+{
+  "source_capture": "/home/ts/.cache/agent-scratch/compaction501-critical292-readonly-20261002-02/capture/phase-b-open-state-failure-metadata.json",
+  "current_thread": "agent-comms-ux",
+  "screen_frame": {
+    "state": "PresentedFrame",
+    "ready": true,
+    "presented": true,
+    "deferred_callbacks": 0
+  },
+  "history_lock_held": true,
+  "window_restoring": false,
+  "anchor": null,
+  "layout_ready": null,
+  "paint_ready": null,
+  "body_ready_count": 10,
+  "body_visible_count": 4,
+  "body_reconciling": false,
+  "body_pending": false,
+  "native_mutation_lock_captured": false,
+  "holder_or_tasks_captured": false,
+  "source_lifetime_failure_proven": false,
+  "gate": "physical ABA NOTcompleted; holder attribution unavailable in recorded capture",
+  "existing_owner_semantics": {
+    "serialization": "HistoryWindow.history_lock",
+    "native_mutation": "HistoryWindow.history_mutating -> native tree lock",
+    "readiness": "FramePresentation + actual visible resources; no universal implication serialization lock -> incomplete paint"
+  }
+}
