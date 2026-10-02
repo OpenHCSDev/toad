@@ -1,0 +1,418 @@
+{
+  "scope": "Partial public original read-only installed298 capture; changed sidebar resource path not reached; no warm-return or busy performance acceptance",
+  "source": "c8649098d5b6c3574b69211f193979a8cb406116",
+  "production_identical_to": "40342c50",
+  "raw_capture": "/home/ts/.cache/agent-scratch/sidebar298-public-native5-20261002-01/capture",
+  "completed": false,
+  "cause": "Sidebars collapsed at startup: no painted thread/channel targets. ThreadTarget next() raised StopIteration; this is not a B history timeout.",
+  "owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2912787,
+      "start_time": 38488391
+    },
+    "original_owner_alive": true
+  },
+  "owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2912787,
+      "start_time": 38488391
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": [],
+  "cleanup_errors": [],
+  "physical_review": [
+    "phase-input-mid-history-idle-done.png readable saved nra history, original draft and caret",
+    "phase-idle-done.png readable saved nra history and original draft; collapsed sidebar strips"
+  ],
+  "profile": {
+    "samples": 1031,
+    "errors": 0,
+    "alignment": 0.05791236599092372,
+    "input_checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "phases": [
+      {
+        "label": "warm-ready",
+        "start": 22.354166612029076,
+        "end": 23.54203257104382,
+        "cpu_percent": 6.734766611744207,
+        "hot": [
+          [
+            "<genexpr>",
+            1
+          ],
+          [
+            "run",
+            0
+          ],
+          [
+            "_bootstrap_inner",
+            0
+          ]
+        ]
+      },
+      {
+        "label": "warm-start",
+        "start": 23.54203257104382,
+        "end": 28.51809091604082,
+        "cpu_percent": 10.249075968185965,
+        "hot": [
+          [
+            "_decode",
+            1
+          ],
+          [
+            "_decode_row",
+            1
+          ],
+          [
+            "get_origin",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "draft",
+        "start": 28.51809091604082,
+        "end": 29.956670856045093,
+        "cpu_percent": 10.426949231584217,
+        "hot": [
+          [
+            "_worker",
+            1
+          ],
+          [
+            "_projections",
+            1
+          ],
+          [
+            "<genexpr>",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "travel-start",
+        "start": 29.956670856045093,
+        "end": 31.520763730048202,
+        "cpu_percent": 6.393482232551934,
+        "hot": [
+          [
+            "get_args",
+            1
+          ],
+          [
+            "is_current",
+            1
+          ],
+          [
+            "_decode",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "input-held-up",
+        "start": 31.520763730048202,
+        "end": 35.434532976010814,
+        "cpu_percent": 71.28677815837314,
+        "hot": [
+          [
+            "joined",
+            2
+          ],
+          [
+            "_call_with_frames_removed",
+            2
+          ],
+          [
+            "message_id",
+            2
+          ]
+        ]
+      },
+      {
+        "label": "input-held-up-done",
+        "start": 35.434532976010814,
+        "end": 52.01338155003032,
+        "cpu_percent": 18.09534592590019,
+        "hot": [
+          [
+            "iterencode",
+            3
+          ],
+          [
+            "_parent",
+            2
+          ],
+          [
+            "get_tokens_unprocessed",
+            2
+          ]
+        ]
+      },
+      {
+        "label": "input-mid-history-idle-done",
+        "start": 52.01338155003032,
+        "end": 53.43144179700175,
+        "cpu_percent": 9.167452530852705,
+        "hot": [
+          [
+            "encode",
+            1
+          ],
+          [
+            "visible",
+            1
+          ],
+          [
+            "_iterencode_dict",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "input-held-down",
+        "start": 53.43144179700175,
+        "end": 57.12375826900825,
+        "cpu_percent": 72.31232805320872,
+        "hot": [
+          [
+            "get_rule",
+            2
+          ],
+          [
+            "<genexpr>",
+            1
+          ],
+          [
+            "is_attached",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "input-held-down-done",
+        "start": 57.12375826900825,
+        "end": 59.41482880600961,
+        "cpu_percent": 31.862833911497713,
+        "hot": [
+          [
+            "stat",
+            2
+          ],
+          [
+            "executable",
+            1
+          ],
+          [
+            "message_id",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "focused",
+        "start": 59.41482880600961,
+        "end": 61.939826766029,
+        "cpu_percent": 9.10891825030348,
+        "hot": [
+          [
+            "registry_digest",
+            1
+          ],
+          [
+            "_decode_row",
+            1
+          ],
+          [
+            "get_args",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "up",
+        "start": 61.939826766029,
+        "end": 65.74515230004909,
+        "cpu_percent": 64.64624321907007,
+        "hot": [
+          [
+            "is_attached",
+            2
+          ],
+          [
+            "get_rule",
+            2
+          ],
+          [
+            "_parent",
+            2
+          ]
+        ]
+      },
+      {
+        "label": "up-done",
+        "start": 65.74515230004909,
+        "end": 67.14331822504755,
+        "cpu_percent": 87.25716870845193,
+        "hot": [
+          [
+            "get_origin",
+            2
+          ],
+          [
+            "_read_from_self",
+            2
+          ],
+          [
+            "_parent",
+            2
+          ]
+        ]
+      },
+      {
+        "label": "down",
+        "start": 67.14331822504755,
+        "end": 71.01321593299508,
+        "cpu_percent": 80.88069081443639,
+        "hot": [
+          [
+            "_parent",
+            8
+          ],
+          [
+            "_projections",
+            1
+          ],
+          [
+            "__exit__",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "down-done",
+        "start": 71.01321593299508,
+        "end": 72.6026388760074,
+        "cpu_percent": 32.08711704094508,
+        "hot": [
+          [
+            "select",
+            1
+          ],
+          [
+            "exists",
+            1
+          ],
+          [
+            "get_origin",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "reverse",
+        "start": 72.6026388760074,
+        "end": 76.53087119600968,
+        "cpu_percent": 67.96950339226504,
+        "hot": [
+          [
+            "_parent",
+            4
+          ],
+          [
+            "is_attached",
+            2
+          ],
+          [
+            "get_rule",
+            2
+          ]
+        ]
+      },
+      {
+        "label": "reverse-done",
+        "start": 76.53087119600968,
+        "end": 78.10693758702837,
+        "cpu_percent": 58.373175472979874,
+        "hot": [
+          [
+            "get",
+            1
+          ],
+          [
+            "__init__",
+            1
+          ],
+          [
+            "resolve_fraction_unit",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "end",
+        "start": 78.10693758702837,
+        "end": 80.98706056002993,
+        "cpu_percent": 57.983635270253295,
+        "hot": [
+          [
+            "_store_lock",
+            2
+          ],
+          [
+            "get_rule",
+            2
+          ],
+          [
+            "stat",
+            2
+          ]
+        ]
+      },
+      {
+        "label": "idle",
+        "start": 80.98706056002993,
+        "end": 97.79348971904255,
+        "cpu_percent": 8.09214132956188,
+        "hot": [
+          [
+            "_worker",
+            2
+          ],
+          [
+            "_iterencode_list",
+            1
+          ],
+          [
+            "_optimize_charset",
+            1
+          ]
+        ]
+      },
+      {
+        "label": "idle-done",
+        "start": 97.79348971904255,
+        "end": 99.42634068801999,
+        "cpu_percent": 7.349109152022018,
+        "hot": []
+      }
+    ]
+  },
+  "next_boundary": "Shared WarmScrollJourney supported physical Ctrl+B reveal, inherited by InputWarm/RetainedLifetime/ForkCompaction; recorder snapshots initial Toad config into own output before UI launch so native preference saves cannot reach global config."
+}

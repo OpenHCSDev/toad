@@ -31,7 +31,7 @@ from textual.widgets import Static
 
 from toad import messages
 from toad.navigation_target import NavigationOwner
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+from toad.sidebar_preparation import ThreadRowInput
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
@@ -130,17 +130,16 @@ class ChannelGroup(SidebarGroup):
                        if name in self._snapshot.all_people) if self.expanded else ()
         app = cast("ToadApp", self.app)
         view, snapshot = self._view, self._snapshot
-        inputs = tuple(ThreadRowInput(
+        inputs = {name: ThreadRowInput(
             snapshot.all_people[name],
             unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
             pinned=name in view.pinned_members,
             action_status=app.thread_actions.pending.get(name),
-        ) for name in wanted)
-        results = await app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
+        ) for name in wanted}
+        prepared_rows = await self.prepare_thread_rows(inputs, self._members)
         if (not self.is_attached or self._pruning or self._closing
                 or self._view is not view or self._snapshot is not snapshot):
             return
-        prepared_rows = dict(zip(wanted, results))
         # A tab may close while immutable row text is being prepared. The
         # shared roster survives that close; project live view routes only
         # after the await, rather than restoring a retired mode from a DTO.

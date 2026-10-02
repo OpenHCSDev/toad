@@ -3,7 +3,7 @@ from toad.acp.session_updates import SessionNotificationOwner
 from toad.acp.client_session import ClientRequestOwner
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.tool_calls import SessionToolCalls
-from toad.acp.agent_configuration import AgentConfiguration, ModelConfigurationSetting, ThinkingConfigurationSetting
+from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
 from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
@@ -15,7 +15,6 @@ from contextlib import suppress
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -44,14 +43,6 @@ from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import AgentDefinition
-
-
-class Model(NamedTuple):
-    """A model selectable for an agent session."""
-
-    id: str
-    name: str
-    description: str | None
 
 
 def generate_datetime_filename(
@@ -103,7 +94,6 @@ class Agent(AgentBase):
         self.presentation = ACPAgentPresentation(self)
         self.permissions = PermissionController(self)
         self.controller = AgentController(self)
-        self.configuration = AgentConfiguration(self)
         self.tools = SessionToolCalls(self)
         self.definition = agent
         self.session_id = session_id
@@ -301,6 +291,14 @@ class Agent(AgentBase):
         self.queue_attachment.invalidate()
         self._post_queue_view()
 
+
+    @property
+    def available_modes(self):
+        return self.controller.available_modes
+
+    @property
+    def current_mode(self):
+        return self.controller.current_mode
 
     async def set_mode(self, mode_id: str) -> str | None:
         return await self.session.set_mode(mode_id)

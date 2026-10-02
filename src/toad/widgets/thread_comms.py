@@ -15,7 +15,7 @@ from textual.content import Content
 from textual.widgets import Checkbox, Static
 
 from toad.session_tracker import ExactUnread, UnreadPresentation
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+from toad.sidebar_preparation import ThreadRowInput
 from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
 from toad.widgets.message_filter import MessageCategory
@@ -128,12 +128,12 @@ class RelationshipRows(SidebarGroup):
         entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
         model, owner = self.model, tree.owner
         row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
-        inputs = tuple(ThreadRowInput(
+        inputs = {key: ThreadRowInput(
             entries[key].person,
             unread=tree.unread(person_target(entries[key].person)),
             action_status=tree.app.thread_actions.pending.get(entries[key].target),
-        ) for key in row_keys) if self.expanded else ()
-        prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
+        ) for key in row_keys} if self.expanded else {}
+        prepared_rows = await self.prepare_thread_rows(inputs, self.rows)
         if not self.is_attached or self.model is not model or tree.owner != owner:
             return
         if not self.expanded:
@@ -143,7 +143,6 @@ class RelationshipRows(SidebarGroup):
             return
         was_hidden = not container.display
         container.display = True
-        prepared_rows = dict(zip(row_keys, prepared))
         empty = container.query_one_optional(".relationship-empty")
         if entries and empty is not None:
             await empty.remove()
