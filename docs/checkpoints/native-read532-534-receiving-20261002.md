@@ -21,3 +21,11 @@ Parent one-use session14078 terminated exit0; all19published in45.256554s. Raw r
 Existing readback ran once: all19 exact published PID/start identities alive, original logical births and ALLThread fields exceptprocess unchanged, target RetainedOwnerLaunch captured in RAM, five links target, originalroot/rootID retained and canonicalnative00c2 selected. Configuration/identity evidence is separate from UI/channel proof. Originalpublisher raw and allprotected registry/session preimages remain unmodified.
 
 Parent ordinarydefaultObserve is running; freshconfigured396 send1.806s is only submission evidence until outcomes close. No physical/capture/channelPASS claim here. Parentconfirmed current327epoch; HeisenbergNative28changedcapture remains separate and starts only after current ordinaryUIrun terminal.
+
+## Actual default and configured channel closure
+
+Parent ordinarydefault recorder session24084 terminated exit0; rawcompleted andcapture_completed TRUE,27.816s,25nativewriter events andmountedobservercomplete. Parent inspected after.png postterminal: actualhelper savedinbounds/Ready andReady peerstatuses. No DURINGmotion/smoothnessclaim. OriginalhelperPID4190555/start42598608 remainedalive; cleanupempty. Rawrecording receipt and allchild dispositions retained unchanged.
+
+Freshconfigured396 originalid32b7e800d523 committed1.806s; all10running recipients completed andpublished original replies31.003–50.581s. All90runningpeerclaimsignored,2stopped externaloriginals/20peerclaims remainpending, alerts0. Original385/372/UNKNOWN neverreplayed. This closes this freshchanneljourney, not latencycause or speedtarget;31–51s remains too slow.
+
+Parentoriginalsummary/default-visible closure andrawcapture archived underoperator-preparation. Future536 selected-once dispatcher/resourcefamily is Mendel-owned; Native28motion is Heisenberg/Kepler-owned and nowreleased againstcurrent327epoch. No additionalpackage, native build, provider or publication fromthisclosure.
