@@ -4,11 +4,13 @@ from __future__ import annotations
 import weakref
 import asyncio
 from abc import ABC, abstractmethod
+from contextlib import AsyncExitStack
 from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.worker import Worker, WorkerCancelled
+from textual.await_complete import AwaitComplete
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
@@ -191,44 +193,49 @@ class SnapshotPublication(TranscriptPublication):
         if not self.current() or self.agent is None:
             return
         view = self.owner.view
-        async with self.window.history_lock:
-            # Preparation may yield to another accepted source publication.
-            # Recheck the original operation against those actual resources;
-            # a pre-render absence check cannot authorize a second full page.
-            if not self.current() or not self.admitted():
-                return
-            if not self.source_current(self.page.after):
-                self.owner.require_checkpoint()
-                return
-            history = TranscriptHistory(self.page, self.agent.get_transcript_page,
-                                        fragments=fragments, committed=False)
-            self.owner.prepare_reader(history)
-            async with self.window.preserve_history(None):
-                accepted = False
-                try:
-                    await self.contents.mount(history)
-                    if not self.source_current(self.page.after):
-                        if self.current():
-                            self.owner.require_checkpoint()
-                        return
-                    # This accepted full source replaces exactly the old
-                    # history resources captured before its mount. Original
-                    # live inputs still need native identity evidence.
-                    evidence = CommitEvidence(
-                        self.captured, retained_history=history,
-                        native_inputs=frozenset(native_id for event in self.page.events
-                                                for native_id in event.native_inputs),
-                    )
-                    history.publish_committed()
-                    accepted = True
-                    retired = retirement_candidates(self.contents.children, evidence)
-                    await self.owner.retire_presentations(self.contents, view.output, retired)
-                finally:
-                    # A provisional mount owns no source coverage. Its cleanup
-                    # must finish before native frame admission is released.
-                    # Accepted source survives cancellation while old rows retire.
-                    if not accepted and history.is_attached:
-                        await history.remove()
+        async with AsyncExitStack() as retirement:
+            async with self.window.history_lock:
+                # Preparation may yield to another accepted source publication.
+                # Recheck the original operation against those actual resources;
+                # a pre-render absence check cannot authorize a second full page.
+                if not self.current() or not self.admitted():
+                    return
+                if not self.source_current(self.page.after):
+                    self.owner.require_checkpoint()
+                    return
+                history = TranscriptHistory(self.page, self.agent.get_transcript_page,
+                                            fragments=fragments, committed=False)
+                self.owner.prepare_reader(history)
+                async with self.window.preserve_history(None):
+                    accepted = False
+                    try:
+                        await self.contents.mount(history)
+                        if not self.source_current(self.page.after):
+                            if self.current():
+                                self.owner.require_checkpoint()
+                            return
+                        # This accepted full source replaces exactly the old
+                        # history resources captured before its mount. Original
+                        # live inputs still need native identity evidence.
+                        evidence = CommitEvidence(
+                            self.captured, retained_history=history,
+                            native_inputs=frozenset(native_id for event in self.page.events
+                                                    for native_id in event.native_inputs),
+                        )
+                        history.publish_committed()
+                        accepted = True
+                        retired = retirement_candidates(self.contents.children, evidence)
+                        retirement.push_async_callback(
+                            self.owner.retire_presentations(self.contents, view.output, retired)
+                        )
+                    finally:
+                        # A provisional mount owns no source coverage. Its cleanup
+                        # must finish before native frame admission is released.
+                        # Accepted source survives cancellation while old rows retire.
+                        if not accepted and history.is_attached:
+                            retirement.push_async_callback(
+                                self.owner.retire_presentations(self.contents, view.output, [history])
+                            )
         self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
 
 
@@ -434,48 +441,53 @@ class CheckpointPublication(CanonicalSourcePublication):
             self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
         )
-        async with window.history_lock:
-            retired = retirement_candidates(contents.children, evidence)
-            if (
-                not is_current()
-                or history is not next(iter(self.owner.histories), None)
-                or not plan.ready(prepared.history)
-                or not plan.permits(view, retired)
-            ):
-                return True
-            async with plan.publication(view, prepared):
-                replacement = None
-                accepted = False
-                try:
-                    if prepared.history is None:
-                        replacement = TranscriptHistory(
-                            page,
-                            self.agent.get_transcript_page,
-                            fragments=prepared.fragments,
-                            committed=False,
+        async with AsyncExitStack() as retirement:
+            async with window.history_lock:
+                retired = retirement_candidates(contents.children, evidence)
+                if (
+                    not is_current()
+                    or history is not next(iter(self.owner.histories), None)
+                    or not plan.ready(prepared.history)
+                    or not plan.permits(view, retired)
+                ):
+                    return True
+                async with plan.publication(view, prepared):
+                    replacement = None
+                    accepted = False
+                    try:
+                        if prepared.history is None:
+                            replacement = TranscriptHistory(
+                                page,
+                                self.agent.get_transcript_page,
+                                fragments=prepared.fragments,
+                                committed=False,
+                            )
+                            await contents.mount(replacement, before=0)
+                        if not is_current():
+                            return True
+                        # Identity-backed arrivals during a mount may now be covered;
+                        # ordinary late arrivals remain outside the captured cohort.
+                        retired = retirement_candidates(contents.children, evidence)
+                        if not plan.permits(view, retired):
+                            return True
+                        plan.commit(prepared, page.after)
+                        if replacement is not None:
+                            replacement.publish_committed()
+                        # Once retiring live widgets begins, the accepted source must
+                        # survive cancellation so their saved content stays reachable.
+                        accepted = True
+                        retirement.push_async_callback(
+                            self.owner.retire_presentations(contents, view.output, retired)
                         )
-                        await contents.mount(replacement, before=0)
-                    if not is_current():
-                        return True
-                    # Identity-backed arrivals during a mount may now be covered;
-                    # ordinary late arrivals remain outside the captured cohort.
-                    retired = retirement_candidates(contents.children, evidence)
-                    if not plan.permits(view, retired):
-                        return True
-                    plan.commit(prepared, page.after)
-                    if replacement is not None:
-                        replacement.publish_committed()
-                    # Once retiring live widgets begins, the accepted source must
-                    # survive cancellation so their saved content stays reachable.
-                    accepted = True
-                    await self.owner.retire_presentations(contents, view.output, retired)
-                finally:
-                    if (
-                        not accepted
-                        and replacement is not None
-                        and replacement.is_attached
-                    ):
-                        await replacement.remove()
+                    finally:
+                        if (
+                            not accepted
+                            and replacement is not None
+                            and replacement.is_attached
+                        ):
+                            retirement.push_async_callback(
+                                self.owner.retire_presentations(contents, view.output, [replacement])
+                            )
         if not window.is_attached or not contents.is_attached:
             return True
         if self.native_current():
@@ -683,7 +695,7 @@ class TranscriptPresentation:
             except WorkerCancelled:
                 pass
 
-    async def covered(self, message) -> None:
+    def covered(self, message) -> AwaitComplete:
         from toad.widgets.conversation import Contents
         from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
@@ -695,7 +707,7 @@ class TranscriptPresentation:
 
         view = self.view
         if view is None:
-            return
+            return AwaitComplete.nothing()
         contents = view.query_one_optional(Contents)
         if (
             contents is not None
@@ -716,27 +728,45 @@ class TranscriptPresentation:
                 ),
             )
             protected = protected_blocks(view, candidates)
-            await self.retire_presentations(contents, view.output,
+            retirement = self.retire_presentations(contents, view.output,
                 [child for child in candidates if child not in protected])
-            # The accepted frontier also invalidates its existing status view.
-            # A retained resume can reject an identical snapshot without any
-            # widget replacement; it still publishes canonical coverage here.
-            view.query_one(SessionDetails)._refresh_summary()
-            from toad.widgets.observed_thread_activity import ObservedThreadActivity
-            observed = view.query_one_optional(ObservedThreadActivity)
-            if observed is not None and observed.presentation is not None:
-                view.run_worker(partial(self.publish, HandlingPublication),
-                                group="transcript-handling", exclusive=True)
 
-    async def retire_presentations(self, contents, output, candidates) -> None:
-        """Join accepted page or snapshot retirement before its frame fence opens."""
+            async def complete() -> None:
+                await retirement
+                # The accepted frontier also invalidates its existing status view.
+                # A retained resume can reject an identical snapshot without any
+                # widget replacement; it still publishes canonical coverage here.
+                view.query_one(SessionDetails)._refresh_summary()
+                from toad.widgets.observed_thread_activity import ObservedThreadActivity
+                observed = view.query_one_optional(ObservedThreadActivity)
+                if observed is not None and observed.presentation is not None:
+                    view.run_worker(partial(self.publish, HandlingPublication),
+                                    group="transcript-handling", exclusive=True)
+
+            return AwaitComplete(complete())
+        return AwaitComplete.nothing()
+
+    def retire_presentations(self, contents, output, candidates) -> AwaitComplete:
+        """Withdraw covered native paint now; join teardown outside source locks.
+
+        CommitEvidence has already selected these exact resources. Their native
+        display lifetime ends synchronously, so accepted saved rows cannot paint
+        alongside them while an original stream finishes its paged publication.
+        The independent teardown owns cancellation custody; source transactions
+        register this receipt outside their mutation locks.
+        """
         if not candidates:
-            return
-        caller = asyncio.current_task()
+            return AwaitComplete.nothing()
+        for candidate in candidates:
+            candidate.display = False
         retirement = asyncio.create_task(
             self._retire_presentations(contents, output, candidates),
             name="accepted source retirement",
         )
+        return AwaitComplete(self._join_retirement(retirement))
+
+    async def _join_retirement(self, retirement) -> None:
+        caller = asyncio.current_task()
         while not retirement.done():
             try:
                 await asyncio.shield(retirement)

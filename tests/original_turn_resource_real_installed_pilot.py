@@ -29,7 +29,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 from l0a_native_installed_pilot import until, response_painted
 from runtime_fixture import ToadApp as FixtureApp, stop_test_children
 from saved_state_user_journey_pilot import screen_paint, submit_editor
-from original_owner_capture import OriginalTypedCapture
+from original_owner_capture import CurrentTypedCapture
 
 
 class ResourceJourneyApp(ToadApp):
@@ -87,7 +87,7 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
     assert stage.is_relative_to('/home/ts/wt')
     stage.mkdir(parents=True, exist_ok=False)
     evidence.mkdir(parents=True, exist_ok=True)
-    capture = OriginalTypedCapture(
+    capture = CurrentTypedCapture(
         root=Path(os.environ['AC_REAL_SOURCE_ROOT']),
         original_python=Path(os.environ['AC_REAL_ORIGINAL_PYTHON']),
     ).read(os.environ['AC_REAL_SOURCE_OWNER'])
@@ -148,7 +148,9 @@ async def main(*, readonly_acceptance=None, readonly_capture=None, app_type=Reso
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                'original_bytes': original.stat().st_size, 'original_inputs_replayed': 0,
                'completed_phases': [], 'core': core_head,
-               'toad': toad_head}
+               'toad': toad_head,
+               'launch_source': source.session_file, 'saved_source': str(original),
+               'saved_source_sha256': source_digest}
 
     async def cancel_tool(pilot, view, marker):
         # The original retained context may first need the native multi-segment

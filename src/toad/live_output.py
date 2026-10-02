@@ -149,11 +149,18 @@ class LiveOutput:
             await stream.settle()
 
     async def retire_presentations(self, candidates: Collection[Widget]) -> None:
-        """A source commit retires only streams whose actual blocks it replaces."""
+        """Transfer covered blocks to the source owner's native retirement.
+
+        Their accepted saved rows already own the content. Flushing another
+        append here can reenter that source's history lock while publication
+        holds it. Native Prune closes the original block's workers and stream;
+        the publication owner joins that teardown before releasing its fence.
+        Turn settlement still drains streams through finish().
+        """
         async with self.lock:
             for kind, stream in tuple(self.streams.items()):
                 if stream.block in candidates:
-                    await self.finish(kind)
+                    self.streams.pop(kind)
 
     def boundary(self) -> None:
         self.revision += 1

@@ -6,7 +6,7 @@ The window owns admission; documents implement their own retirement/restoration.
 """
 
 from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
-from collections.abc import Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
@@ -27,6 +27,7 @@ from textual.geometry import Size
 from textual._paint_state import PaintState
 from textual.worker import WorkerCancelled
 from textual.worker import Worker
+from textual.await_complete import AwaitComplete
 
 
 class ViewportBody:
@@ -112,11 +113,11 @@ class BodyMeasurement(ABC):
     def invalidated(self):
         return MeasuredBody(self.width, self.rows, self.widgets)
 
-    def updating(self):
-        return MeasuredBody(self.width, self.rows, self.widgets)
-
     async def materialize(self, body):
         await body.start_materialization(self).materialize(body)
+
+    async def before_publication(self) -> None:
+        """Settled resources have no outstanding native writer to join."""
 
     def released(self):
         return self
@@ -200,10 +201,10 @@ class MaterializingBody(MeasuredBody):
     def invalidated(self):
         return self
 
-    def updating(self):
-        return self
-
     async def materialize(self, body):
+        await self.before_publication()
+
+    async def before_publication(self) -> None:
         await self.worker.wait()
 
 
@@ -301,9 +302,6 @@ class MeasuredViewportBody(ViewportBody):
     def release_paint(self):
         self._body_measurement = self._body_measurement.released()
 
-    def begin_body_materialization(self):
-        self._body_measurement = self._body_measurement.updating()
-
     def invalidate_body(self):
         self._body_measurement = self._body_measurement.invalidated()
         if self._body_viewport is not None:
@@ -361,10 +359,18 @@ class MeasuredViewportBody(ViewportBody):
             return
         await self._body_measurement.materialize(self)
 
-    def start_materialization(self, previous):
+    def publish_body(self, work: Callable[[], Awaitable[None]]) -> AwaitComplete:
+        """Source updates and reentry share the original materialization worker."""
+        operation = self.start_materialization(self._body_measurement, work)
+        return AwaitComplete(operation.materialize(self))
+
+    def start_materialization(self, previous, work=None):
         async def materialize():
             try:
-                await self.materialize_native_body()
+                # Identity guards prevent an old commit; joining its actual
+                # worker also prevents old native writes after the new commit.
+                await previous.before_publication()
+                await (self.materialize_native_body() if work is None else work())
                 if self.is_attached and self._body_measurement is current:
                     self.native_body_committed()
             except BaseException:
@@ -535,23 +541,27 @@ class ViewportPresentation:
               for target in window.document_viewport.geometry_targets()),
         )))
 
-    def has_pending_mutations(self) -> bool:
-        return any(window.history_mutating() for window in self.frame_windows())
+    def has_pending_mutations(self, windows) -> bool:
+        return any(window.history_mutating() for window in windows)
 
     def prepare(self) -> bool:
         screen = self.screen
         if not screen.is_current:
             return True
-        if self.has_pending_mutations():
+        # This synchronous admission consumes one cohort from the original
+        # membership owner. Mutation, body readiness and follow checks don't
+        # independently select the same windows again within the same frame.
+        windows = tuple(self.frame_windows())
+        if self.has_pending_mutations(windows):
             return False
         # Visible source bodies must be ready on every frame, including rapid
         # PageDown/End frames outside a session activation.
-        for window in self.frame_windows():
+        for window in windows:
             if not window.document_viewport.visible_bodies_ready:
                 window.document_viewport.request()
                 return False
         changed = False
-        for window in self.frame_windows():
+        for window in windows:
             changed |= window.check_follow()
         if changed:
             # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
@@ -671,7 +681,7 @@ class DocumentViewport:
             roots, required, self.window.size.height, self.window.app.preparation.max_bytes,
         )
 
-    async def _trim_warm(self, *, required=(), ahead=()):
+    def _trim_warm(self, *, required=(), ahead=()):
         self.admitted_bodies = self.admission(required=required, ahead=ahead)
         admitted = self.admitted_bodies
         for key in tuple(self._warm):
@@ -814,7 +824,7 @@ class DocumentViewport:
                         sequence, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
-                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                admitted = self._trim_warm(required=required, ahead=ahead_owners)
                 # Admission retains a body's bounded presentation resource,
                 # not its live descendant tree. Offscreen warm bodies paint
                 # their retained rows on reentry; only visible or interaction
@@ -825,15 +835,17 @@ class DocumentViewport:
                 # the remaining visible dormant bodies reject that same frame.
                 restoring = tuple(owner for owner in required
                                   if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
+                restored = ()
                 if restoring:
                     anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
                     started = monotonic()
-                    await self._restore_bodies(restoring, anchor, demand)
-                    if any(owner in visible for owner in restoring):
+                    restored = await self._restore_bodies(restoring, anchor, demand)
+                    if any(owner in visible for owner in restored):
                         self.lookahead.delivered(monotonic() - started)
                 retiring = tuple(owner for owner in owners
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)
+                retired_owners = []
                 for first in range(0, len(retiring), self.budget.admission_items):
                     # Each call captures its original rows now; tasks only
                     # prepare detached rows and validate/prune afterward.
@@ -850,6 +862,7 @@ class DocumentViewport:
                         results = [task.result() for task in tasks]
                     for owner, retired in zip(batch, results):
                         if retired:
+                            retired_owners.append(owner)
                             key = ref(owner)
                             self._warm[key] = key
                             self._warm.move_to_end(key)
@@ -859,7 +872,8 @@ class DocumentViewport:
                         screen.frame_presentation.defer(self.window, self.request)
                 # Capturing rows changes the original body resource cost.
                 # The same warm LRU admits or releases that paint resource.
-                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                if retired_owners or restored:
+                    admitted = self._trim_warm(required=required, ahead=ahead_owners)
                 if active:
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
@@ -873,32 +887,33 @@ class DocumentViewport:
                             continue
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))
                         anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
-                        await self._restore_bodies(tuple(batch), anchor, demand)
+                        restored = await self._restore_bodies(tuple(batch), anchor, demand)
                         # Live content or a width change can change actual cost.
                         # Re-admit the completed native batch before the next one.
-                        admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                        if restored:
+                            admitted = self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 
     async def _restore_bodies(
         self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,
-    ) -> None:
-        async with self.window.history_lock:
-            if (not self.window.is_attached or not self.window.screen.is_current
-                    or not self.lookahead.accepts(demand)):
-                return
-            owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
-            restored = []
-            async with AsyncExitStack() as mutation:
-                if any(owner.body_measurement_stale for owner in owners):
-                    await mutation.enter_async_context(self.window.preserve_history(anchor))
-                for owner in owners:
-                    if not self.window.screen.is_current or not self.lookahead.accepts(demand):
-                        break
-                    if owner.is_attached and not owner._closing:
-                        if await owner.restore_body():
-                            restored.append(owner)
-            if restored:
-                # Reconstructed roots acquire capture custody only when their
-                # native layout is published, not at mount/update completion.
-                self.window.screen.frame_presentation.defer(self.window, self.request)
+    ) -> tuple[ViewportBody, ...]:
+        if (not self.window.is_attached or not self.window.screen.is_current
+                or not self.lookahead.accepts(demand)):
+            return ()
+        owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+        restored = []
+        async with AsyncExitStack() as mutation:
+            if any(owner.body_measurement_stale for owner in owners):
+                await mutation.enter_async_context(self.window.preserve_reader(anchor))
+            for owner in owners:
+                if not self.window.screen.is_current or not self.lookahead.accepts(demand):
+                    break
+                if owner.is_attached and not owner._closing:
+                    if await owner.restore_body():
+                        restored.append(owner)
+        if restored:
+            # Native child composition and nested page publication produce
+            # readiness. The same frame owns capture after compensated layout.
+            self.window.screen.frame_presentation.defer(self.window, self.request)
+        return tuple(restored)

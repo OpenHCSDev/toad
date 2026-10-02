@@ -230,7 +230,9 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         Updating Markdown itself preserves the outer scene, subscriptions and
         styles instead of destroying and reconstructing the entire fragment.
         """
-        self.begin_body_materialization()
+        await self.publish_body(partial(self._update_fragment, fragment))
+
+    async def _update_fragment(self, fragment: TranscriptFragment) -> None:
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
@@ -251,10 +253,8 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             leaf = self.children[-1]
             if isinstance(leaf, (AgentResponse, AgentThought)):
                 await leaf.update(new_events[0].text)
-                self.native_body_committed()
                 return
         await self.recompose()
-        self.native_body_committed()
 
 
 @dataclass(frozen=True)
@@ -412,14 +412,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
             from toad.widgets.conversation import Conversation
-            # The native page admission still owns its frame fence. Transfer
-            # identity-backed rows before releasing it; a queued message can
-            # otherwise paint saved and live resources together.
+            # Transfer covered native display inside the page admission. Join
+            # stream teardown on the original Conversation pump after these
+            # source/tree locks release, never while mount waits for coverage.
             # Standalone saved viewers have no live transcript to transfer.
             # Resolve custody from native ancestry, not a second owner field.
             for ancestor in self.ancestors:
                 if isinstance(ancestor, Conversation):
-                    await ancestor.transcript.covered(TranscriptCoverage(page.events, self))
+                    ancestor.transcript.covered(TranscriptCoverage(page.events, self)).call_next(ancestor)
                     break
 
     def publish_committed(self) -> None:
