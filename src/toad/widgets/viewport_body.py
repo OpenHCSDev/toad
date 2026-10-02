@@ -292,6 +292,11 @@ class DocumentViewport:
                 pending.extend(reversed(node.children))
 
     @property
+    def materialized_widget_count(self) -> int:
+        """Actual native body custody in this window's resource scope."""
+        return sum(owner.materialized_widget_count for owner in self.body_roots())
+
+    @property
     def visible_body_rows(self) -> float:
         """Measured native density, derived from the current viewport owners."""
         visible = self.window.screen._compositor.visible_widgets

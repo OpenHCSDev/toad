@@ -50,7 +50,7 @@ async def main(observe):
                     assert max(mounted) <= 32, mounted
                 assert history.pages[0].page.events == events, "Source history was truncated"
                 print(json.dumps({"peak_mounted_before_selection": max(mounted),
-                                  "widgets_before_selection": history.widget_count}), flush=True)
+                                  "widgets_before_selection": history.window.document_viewport.materialized_widget_count}), flush=True)
                 # A selected fragment away from the new viewport must survive
                 # later admission and trimming, including native text copying.
                 # Establish a real selectable endpoint before scrolling it out
@@ -72,7 +72,7 @@ async def main(observe):
                 app.screen.clear_selection()
             assert app._exception is None
             print(json.dumps({"boundary": "headless page admission plus pilot settlement, not terminal pixels",
-                              "peak_mounted_fragments": max(mounted), "final_widgets": history.widget_count,
+                              "peak_mounted_fragments": max(mounted), "final_widgets": history.window.document_viewport.materialized_widget_count,
                               "admissions": len(durations), "max_admission_ms": round(max(durations), 2)}))
         await asyncio.get_running_loop().shutdown_default_executor()
 

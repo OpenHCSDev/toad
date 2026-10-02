@@ -405,7 +405,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
         self._check_pending = False
-        self._saturated_widget_limit = 0
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
         self.window: HistoryWindow
@@ -490,25 +489,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @property
     def fragment_count(self) -> int:
         return sum(page.stop - page.start for page in self.pages)
-
-    @property
-    def widget_limit(self) -> int:
-        return self.budget.widget_limit(self.window.size.height)
-
-    @property
-    def widget_count(self) -> int:
-        # Body descendants have one native cost owner. Headers, pages, filters
-        # and pending native mounts remain part of this history's actual tree.
-        pending = list(self.children)
-        count = 0
-        while pending:
-            child = pending.pop()
-            if isinstance(child, ViewportBody):
-                count += child.materialized_widget_count
-            else:
-                count += 1
-                pending.extend(child.children)
-        return count
 
     @property
     def retained_source_bytes(self) -> int:
@@ -653,7 +633,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     or (is_current is not None and not is_current())):
                 return
             async with window.preserve_history(None):
-                self._saturated_widget_limit = 0
                 await self.filter.remove()
                 view.page = page
                 # Read current follow intent after preprocessing, never restore an
@@ -699,8 +678,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if (self.has_older and region.y >= viewport.y - self.prefetch_distance
                and not (self._follow_source_tail and (
                     self.fragment_count >= self.fragment_limit or len(self.pages) >= self.fragment_limit
-                   or self.widget_count >= self.widget_limit
-                   or self._saturated_widget_limit == self.widget_limit
               ))):
             self._request_page(True)
         elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
@@ -742,7 +719,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     or generation != self._generation or window.scroll_revision != scroll_revision):
                 return
             async with window.preserve_history(None):
-                self._saturated_widget_limit = 0
                 view = self.pages[-1]
                 if view.capture_admission().interval == CommittedInterval(page.before, page.after):
                     # The certified source interval already has native custody.
@@ -872,8 +848,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             )
             excess = self.fragment_count - limit
             trim_older = self._follow_source_tail or not older
-            while (excess > 0 or len(self.pages) > limit
-                   or self.widget_count > self.widget_limit) and (self.fragment_count > 1 or len(self.pages) > 1):
+            # This owner bounds source fragment/page custody. Rich children
+            # belong to DocumentViewport's measured admission and retirement;
+            # deleting their source slots by the same widget cost changes the
+            # extent and exposes the opposite edge again on the next layout.
+            while (excess > 0 or len(self.pages) > limit) and (self.fragment_count > 1 or len(self.pages) > 1):
                 selected = None
                 for side in (trim_older, not trim_older):
                     # A visible older projection protects the range between it
@@ -899,14 +878,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 evicted, side, available = selected
                 count = evicted.stop - evicted.start
                 remove_count = max(0, excess)
-                over_widgets = self.widget_count - self.widget_limit
-                if over_widgets > 0:
-                    self._saturated_widget_limit = self.widget_limit
-                    for index, child in enumerate(available, 1):
-                        over_widgets -= child.materialized_widget_count
-                        remove_count = max(remove_count, index)
-                        if over_widgets <= 0:
-                            break
                 remove_count = min(remove_count, len(available), self.fragment_count - 1)
                 if remove_count >= count and len(self.pages) > 1:
                     self.pages.popleft() if side else self.pages.pop()
