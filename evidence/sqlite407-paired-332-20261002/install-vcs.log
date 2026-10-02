@@ -1,0 +1,15 @@
+Using Python 3.14.2 environment at: .artifacts/runtime-command297-merged-20261002
+   Updating https://github.com/OpenHCSDev/toad.git (56580c8f3b0409b3bb7d574224a3be87ac072b57)
+    Updated https://github.com/OpenHCSDev/toad.git (56580c8f3b0409b3bb7d574224a3be87ac072b57)
+Resolved 72 packages in 1.92s
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@cd150be078c07b9f4b2d1af83e4cd28f1f584597
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@56580c8f3b0409b3bb7d574224a3be87ac072b57
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@cd150be078c07b9f4b2d1af83e4cd28f1f584597
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@56580c8f3b0409b3bb7d574224a3be87ac072b57
+Prepared 2 packages in 486ms
+Uninstalled 2 packages in 22ms
+Installed 2 packages in 6ms
+ - agent-comms==0.1.0 (from file:///home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/wheels-sqlite537/agent_comms-0.1.0-py3-none-any.whl)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@cd150be078c07b9f4b2d1af83e4cd28f1f584597)
+ - batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-command-source-closure-20261002/.artifacts/wheels-sqlite332/batrachian_toad-0.6.20-py3-none-any.whl)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@56580c8f3b0409b3bb7d574224a3be87ac072b57)
