@@ -61,7 +61,7 @@ class ObservedCommsService:
 class CoordinationAccess:
     """A validated core route owns cached access and guarded UI write admission."""
 
-    def __init__(self, changed: Callable[[], None], observed: Callable[[], None]) -> None:
+    def __init__(self, changed: Callable[[], None], observed: Callable[[], None], preparation) -> None:
         self.observation: ObservedCommsService | None = None
         self.changed = changed
         self.observed = observed
@@ -70,6 +70,7 @@ class CoordinationAccess:
         self.task: asyncio.Task[None] | None = None
         self.timer = None
         self.custody = ExitStack()
+        self.preparation = preparation
 
     @property
     def observed_service(self) -> Comms | None:
@@ -107,14 +108,12 @@ class CoordinationAccess:
         self.refresh()
 
     async def close(self) -> None:
-        try:
-            if self.timer is not None:
-                self.timer.stop()
-            if self.task is not None:
-                self.task.cancel()
-                await asyncio.gather(self.task, return_exceptions=True)
-        finally:
-            self.custody.close()
+        if self.timer is not None:
+            self.timer.stop()
+        if self.task is not None:
+            self.task.cancel()
+            await asyncio.gather(self.task, return_exceptions=True)
+        self.custody.close()
 
     def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
         from agent_comms.active_route import active_route_path
@@ -146,10 +145,10 @@ class CoordinationAccess:
     async def observe(self, revision: WireRevision | None,
                       route_stamp: tuple[tuple[int, int, int, int] | None, ...]) -> None:
         try:
-            service = await asyncio.to_thread(lambda: self.service)
+            service = await self.preparation.run_thread(lambda: self.service)
             route_stamp = self.current_route_stamp()
             revision = service.views.revision()
-            if not await asyncio.to_thread(root_is_current, service.root):
+            if not await self.preparation.run_thread(root_is_current, service.root):
                 raise ValueError("Observed Comms route changed before publication")
             if service is not self.observed_service or self.current_route_stamp() != route_stamp:
                 return

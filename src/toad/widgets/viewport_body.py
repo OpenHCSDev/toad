@@ -885,7 +885,6 @@ class DocumentViewport:
                                  if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
                         if not batch:
                             continue
-                        await asyncio.gather(*(owner.prepare_body() for owner in batch))
                         anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
                         restored = await self._restore_bodies(tuple(batch), anchor, demand)
                         # Live content or a width change can change actual cost.
@@ -902,6 +901,12 @@ class DocumentViewport:
                 or not self.lookahead.accepts(demand)):
             return ()
         owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+        # The same visible/runway cohort prepares detached work before it
+        # borrows reader compensation or starts a native reconstruction.
+        await asyncio.gather(*(owner.prepare_body() for owner in owners
+                               if owner.body_dormant and not owner.body_ready))
+        if not self.window.screen.is_current or not self.lookahead.accepts(demand):
+            return ()
         restored = []
         async with AsyncExitStack() as mutation:
             if any(owner.body_measurement_stale for owner in owners):

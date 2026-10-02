@@ -319,7 +319,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
         self.coordination_access = CoordinationAccess(
-            self._coordination_changed, lambda: self.coordination_observed.publish(None))
+            self._coordination_changed, lambda: self.coordination_observed.publish(None), self.preparation)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
@@ -330,13 +330,12 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self._sidebar_snapshot = None
 
     async def _close_all(self) -> None:
-        try:
-            await self.thread_navigation.close()
-            await self.thread_actions.close()
-            await super()._close_all()
-        finally:
-            # The route borrower outlives all windows and their ACP clients.
-            await self.coordination_access.close()
+        await self.thread_navigation.close()
+        await self.thread_actions.close()
+        await super()._close_all()
+        # Native clients and the preparation owner have joined actual I/O.
+        # A failed retirement keeps its route resource instead of certifying exit.
+        await self.coordination_access.close()
 
     async def on_unmount(self) -> None:
         self.terminal_attention.close()
