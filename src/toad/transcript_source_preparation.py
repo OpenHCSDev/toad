@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
 
-from textual.worker import WorkerCancelled
+from textual.worker import Worker, WorkerCancelled
 from textual.message import Message
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource
@@ -75,10 +75,10 @@ class TranscriptSourcePreparation:
         self._source_state = operation
         return operation
 
-    async def execute_source_work(self, work):
-        """Acquire source I/O without borrowing the native publication fence."""
+    def schedule_source_work(self, work) -> Worker | None:
+        """Own source I/O on the pager worker, never its caller's event pump."""
         if self.state.accepts_source_work:
-            return await self.reserve_source_work().execute(self, work)
+            return self.reserve_source_work().schedule(self, work)
 
     def source_failed(self, error) -> None:
         self.notify(str(error), title="History", severity="error")
@@ -116,8 +116,7 @@ class TranscriptSourcePreparation:
             self.call_after_refresh(self._check_edges)
 
     def _request_page(self, older: bool) -> None:
-        if self.state.accepts_source_work:
-            self.reserve_source_work().schedule(self, partial(self._load_page, older))
+        self.schedule_source_work(partial(self._load_page, older))
 
     def request_latest(self) -> None:
         self.window.document_viewport.destination()

@@ -22,6 +22,7 @@ from toad import messages
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from runtime_fixture import refresh_comms
 
 
 async def until(predicate):
@@ -125,7 +126,7 @@ async def main():
                 await until(lambda: chat._notification_task.done())
                 for _ in range(3):
                     chat._refresh_notifications()
-                    await chat._refresh()
+                    await refresh_comms(chat)
                 assert len(calls) == count
                 app.pop_screen()
                 await pilot.pause()

@@ -198,3 +198,71 @@ The native framework and resource references still require actual dynamic
 qualification; AST does not prove dispatch or paint. PR338 stays draft. Shared
 body preparation/trim policy remains active scope, rather than claiming the
 fixed wire row cap and complete IRC/DM resource policy are already replaced.
+
+The remaining exporter consumer also read the removed CommsChatView._history
+field and silently emitted empty wire history. It now reads original mounted
+messages from MountedMessageHistory, and observes source admission through
+TranscriptSourcePreparation for both leaves. Wire records have zero native
+fragment pages; their messages remain original wire records, not fabricated
+native pages. Existing native page fields and native-only observations retain
+their meaning. The source map includes all276 production,39 performance and8
+recording-tool modules, zero parse omissions (165 syntactic references/key sites).
+
+The original06 negative lacks native source/frame/lock evidence. Its only
+supported classification is a screen-barrier timeout during earlier-history
+movement, before End. The existing journey now captures the original native
+exporter before teardown on failure, and uses installed package CSS and the
+existing Linux driver when physically recorded. No timeout, End oracle or old
+failure is waived. Textual Timer._tick invokes refresh callbacks in its own
+timer task; periodic refresh does not await those reads on the widget pump.
+
+Heisenberg34402 completed the separate installed channel hide/return and native
+End journey with18 checks. That cohort includes the changed shared Window/frame
+lifetime and33868e5; it does not establish held-I/O receipt/End acceptance. The
+remaining affected check borrows that immutable prefix without an environment,
+source overlay, provider input or public mutation. No full338 Ready, smoothness
+or prepared-wire-body policy claim is made.
+
+Physical installed-import run01 retained22.832s of readable st footage and
+unchanged runtime identity, with one canonical input141. Its before/after
+snapshots show the source advancing from9 to120 mounted rows. The recorder's
+stationary journey then sent Ctrl+Q before this fixture had completed; exit1
+therefore cannot qualify End or establish an application deadlock. Raw:
+~/.cache/agent-scratch/kepler338-held-reader-physical-installed01; private
+originals: .artifacts/history-lifetime338/physical-installed01. No rerun of
+these originals is authorized or performed.
+
+The existing physical journey family now waits for this fixture's immutable
+outcome before the recorder quits. This is fixture completion custody, not
+another backend/UI state owner. Failure captures the existing native exporter
+before retirement at any scenario step. Original8s application assertions and
+the44s recorder budget remain unchanged; there is no fixed extra settling
+delay or weaker End assertion. One corrected affected check uses fresh private
+originals. Normal launcher acceptance remains the separate qualified34402 path.
+
+## Source I/O also leaves the input event pump
+
+The Timer callback runs separately, but the full caller trace found a different
+bypass: submit_input -> _paint_sent_receipt -> _refresh awaited catalog/history/
+roster/agent-info reads on the CommsChatView event pump. Releasing history_lock
+alone was therefore insufficient for normal idle-source sends.
+
+The existing TranscriptSourcePreparation now admits and schedules that work
+through WorkingTranscript.schedule. Initial refresh, periodic refresh, receipt
+refresh, edge paging and End share this admission. Deleted execute_source_work
+and the duplicate edge/End scheduling decisions. Initial refresh no longer
+creates an extra wrapper worker. The input handler awaits only the already-
+canonical receipt's native publication, then schedules the source read and
+returns. No waiter, future, queue, new type or backend state is introduced.
+
+Explicit completion in existing test consumers borrows the actual worker through
+runtime_fixture.refresh_comms; all21 Comms refresh call sites, the direct edge
+caller and the I/O-held fixture are migrated. Sidebar refresh is a different
+owner and remains unchanged. Changed18 Python files parse; diff whitespace
+checks pass. These catch migration damage, not behavioral readiness.
+
+Physical02 retained original inputs and empty cleanup/no leaked processes, but
+did not reach fixture completion before recorder custody expired. No End or
+full338 acceptance is claimed. Both old physical roots/movies remain untouched.
+The new source scheduling batch is not installed in the frozen344 prefix; its
+affected installed check needs the next normally packaged matching cohort.

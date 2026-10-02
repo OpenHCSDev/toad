@@ -12,6 +12,7 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
+from runtime_fixture import refresh_comms
 
 async def until(predicate):
     async with asyncio.timeout(12):
@@ -42,7 +43,7 @@ async def main():
             with patch('toad.comms_root.root_is_current', side_effect=AssertionError('hidden route check')):
                 # Exercise the real hidden callback, not a mocked visibility test.
                 for _ in range(40):
-                    await chat._refresh()
+                    await refresh_comms(chat)
                 assert not any(m.body == 'ARRIVED-WHILE-HIDDEN' for m,_ in chat.message_history.rows)
             await app.switch_mode(first)
             await until(lambda: any(m.body == 'ARRIVED-WHILE-HIDDEN' for m,_ in chat.message_history.rows))

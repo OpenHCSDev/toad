@@ -86,7 +86,7 @@ class LiveTranscript(TranscriptState):
         return WorkingTranscript(self, owner.paging_window())
 
     def request_latest(self, owner) -> None:
-        owner.reserve_source_work().schedule(owner, owner._jump_latest)
+        owner.schedule_source_work(owner._jump_latest)
 
     @classmethod
     def successors(cls):

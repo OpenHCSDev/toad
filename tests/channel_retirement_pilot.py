@@ -16,6 +16,7 @@ from runtime_fixture import ToadApp
 from toad import messages
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from runtime_fixture import refresh_comms
 
 
 async def main():
@@ -49,7 +50,7 @@ async def main():
             await pilot.press("enter")
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
-            await chat._refresh()
+            await refresh_comms(chat)
             await pilot.pause()
             assert [m.body for m,_ in chat.message_history.rows] == [m.body for m in rows]
             assert chat.prompt.prompt_text_area.disabled

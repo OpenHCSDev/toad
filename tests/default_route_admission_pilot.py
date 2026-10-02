@@ -31,6 +31,7 @@ from toad.acp.maintenance_ingress import admitted_prompt, admitted_spawn
 from toad.app import ToadApp
 from toad.comms_root import current_root, run_selected_write
 from toad.widgets.comms_chat import CommsChatView
+from runtime_fixture import refresh_comms
 
 
 @asynccontextmanager
@@ -80,7 +81,7 @@ async def main() -> None:
                     await pilot.pause()
                     await channel_target("#team").open(NavigationContext(app, app.selected_mode, sandbox, "user"))
                     view = app.screen.query_one(CommsChatView)
-                    await view._refresh()
+                    await refresh_comms(view)
                     await pilot.pause()
                     assert view.message_history.reader.comms.root == legacy
                     old.messaging.send("peer", "#team", "UNREAD-OLD")

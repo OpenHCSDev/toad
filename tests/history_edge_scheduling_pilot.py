@@ -5,6 +5,11 @@ all pages, registrations, messages, read witnesses and native rows remain real.
 """
 
 import asyncio
+import importlib.util
+import json
+import shlex
+import sys
+import time
 import os
 from pathlib import Path
 from threading import Event
@@ -14,9 +19,11 @@ from unittest.mock import patch
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from runtime_fixture import ToadApp
+from native_session_retention_pilot import InstalledApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
+from record_installed_tui import ObserveJourney
 
 
 async def until(condition):
@@ -41,8 +48,8 @@ async def pending_read(chat, pilot, body):
 
     with patch.object(reader.comms.views, 'channel_display_page', read):
         await until(lambda: history.state.accepts_source_work)
-        operation = history.reserve_source_work()
-        refresh = asyncio.create_task(operation.execute(history, chat._refresh_source))
+        refresh = await chat._refresh()
+        assert refresh is not None, "The original pager must admit the controlled read"
         try:
             await until(entered.is_set)
             assert not history.state.accepts_source_work
@@ -65,18 +72,72 @@ async def pending_read(chat, pilot, body):
             assert chat.prompt.text.endswith('hi')
         finally:
             release.set()
-            await refresh
+            await refresh.wait()
         await pilot.pause()
         assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
         assert not chat.window.history_lock.locked()
         await until(lambda: history.state.accepts_source_work)
 
 
+async def exercise(app, pilot, root):
+    await pilot.pause()
+    owner = app.selected_mode
+    await channel_target('#edge').open(NavigationContext(app, owner, root, 'edge-reader'))
+    chat = app.screen.query_one(CommsChatView)
+    history = chat.message_history
+    await until(lambda: history.checkpoint_available and bool(history.rows))
+    await pilot.pause()
+    assert history in chat.window.histories
+    # Tail replacement started from the original initial source. An
+    # already-painted later receipt survives its older read watermark.
+    history.reader.restart()
+    await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
+
+    # Actual earlier pages evict the original tail. A send from that
+    # reader position restarts the source and rejects the older read.
+    operation = history.reserve_source_work()
+    try:
+        chat.window.release_anchor()
+        async with asyncio.timeout(8):
+            while not history.has_newer:
+                assert history.has_older, "Original tail must be evicted before source exhaustion"
+                chat.window.scroll_home(animate=False, immediate=True)
+                await pilot.pause()
+                page = await history.reader.page(before=history.rows[0][0].view_cursor, limit=40)
+                await history.mount_page(page, older=True)
+    finally:
+        history.finish_source_work(operation)
+    assert history.has_newer
+    history.reader.restart()
+    await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
+    await until(lambda: history.checkpoint_available)
+    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+
+    chat.window.release_anchor()
+    # Each older-page publication preserves the actual reader anchor. A
+    # single Home therefore moves one edge, not through the whole source.
+    # Repeat movement as the user does until the real tail is unmounted.
+    async with asyncio.timeout(8):
+        while not history.has_newer:
+            chat.window.scroll_home(animate=False, immediate=True)
+            await pilot.pause(.05)
+    chat.window.focus()
+    await pilot.press('end')
+    await until(lambda: history.checkpoint_available and not history.has_newer)
+    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+    assert chat.window.follows_tail and app._exception is None
+    print('PASS: receipt/typing/restart/End on original native window', flush=True)
+    return history
+
+
 async def main():
     scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
     scratch.mkdir(parents=True, exist_ok=True)
-    directory = tempfile.mkdtemp(prefix='private-', dir=scratch)
+    directory = os.environ.get('TOAD_HISTORY_LIFETIME_DIRECTORY') or tempfile.mkdtemp(prefix='private-', dir=scratch)
     root = Path(directory)
+    if not root.resolve().is_relative_to(scratch.resolve()):
+        raise ValueError('History fixture must use its owned persistent scratch directory')
+    root.mkdir(parents=True, exist_ok=True)
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
     comms = wire(root / 'wire')
@@ -84,57 +145,59 @@ async def main():
                                  process_identity=ProcessIdentity.capture(os.getpid())))
     for index in range(140):
         comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
-    app = ToadApp(project_dir=str(root))
-    async with app.run_test(size=(100, 32)) as pilot:
-        await pilot.pause()
-        owner = app.selected_mode
-        await channel_target('#edge').open(NavigationContext(app, owner, root, 'edge-reader'))
-        chat = app.screen.query_one(CommsChatView)
-        history = chat.message_history
-        await until(lambda: history.checkpoint_available and bool(history.rows))
-        await pilot.pause()
-        assert history in chat.window.histories
-        # Tail replacement started from the original initial source. An
-        # already-painted later receipt survives its older read watermark.
-        history.reader.restart()
-        await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
-
-        # Actual earlier pages evict the original tail. A send from that
-        # reader position restarts the source and rejects the older read.
-        operation = history.reserve_source_work()
+    app = InstalledApp(project_dir=str(root))
+    headless = os.environ.get('L0A_HEADLESS', '1') != '0'
+    async with app.run_test(headless=headless, size=(100, 32)) as pilot:
         try:
-            chat.window.release_anchor()
-            async with asyncio.timeout(8):
-                while not history.has_newer:
-                    assert history.has_older, "Original tail must be evicted before source exhaustion"
-                    chat.window.scroll_home(animate=False, immediate=True)
-                    await pilot.pause()
-                    page = await history.reader.page(before=history.rows[0][0].view_cursor, limit=40)
-                    await history.mount_page(page, older=True)
+            history = await exercise(app, pilot, root)
+        except BaseException as error:
+            outcome = {'status': 'failed', 'error': repr(error)}
+            exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
+            spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            module.capture(expected_pid=os.getpid(), output_prefix=root / 'failed-history-state')
+            raise
+        else:
+            outcome = {'status': 'passed',
+                'scope': 'original I/O-held receipt/restart/typing/End assertions completed'}
         finally:
-            history.finish_source_work(operation)
-        assert history.has_newer
-        history.reader.restart()
-        await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
-        await until(lambda: history.checkpoint_available)
-        assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
-
-        chat.window.release_anchor()
-        # Each older-page publication preserves the actual reader anchor. A
-        # single Home therefore moves one edge, not through the whole source.
-        # Repeat movement as the user does until the real tail is unmounted.
-        async with asyncio.timeout(8):
-            while not history.has_newer:
-                chat.window.scroll_home(animate=False, immediate=True)
-                await pilot.pause(.05)
-        chat.window.focus()
-        await pilot.press('end')
-        await until(lambda: history.checkpoint_available and not history.has_newer)
-        assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
-        assert chat.window.follows_tail and app._exception is None
+            pending = root / 'journey-result.pending'
+            pending.write_text(json.dumps(outcome) + '\n')
+            pending.replace(root / 'journey-result.json')
+        if not headless:
+            # The existing recorder owns the physical window and quits through
+            # its real Ctrl+Q binding after retaining the visible final frame.
+            while not app._exit:
+                await asyncio.sleep(.05)
     assert not history.reader._pending
     print('PASS: original read admission, independent receipt paint, typing, restart fence, shared End and closed I/O')
 
 
+class HistorySourceLifetimeJourney(ObserveJourney):
+    """The existing recorder waits for its source fixture's actual outcome."""
+
+    @classmethod
+    def script(cls, args):
+        return 'exec --sync ' + shlex.join([sys.executable, str(Path(__file__).resolve()),
+            '--await-completion', os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY']]) + '\n'
+
+
+def await_completion(root):
+    """Observe immutable fixture completion, never backend or UI state."""
+    deadline = float(os.environ['TOAD_VIDEO_DEADLINE'])
+    result = root / 'journey-result.json'
+    while not result.exists():
+        if time.monotonic() >= deadline:
+            raise TimeoutError('Original source fixture did not complete within recorder custody')
+        time.sleep(.05)
+    outcome = json.loads(result.read_text())
+    if outcome['status'] != 'passed':
+        raise RuntimeError('Original source fixture failed: ' + outcome['error'])
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    if sys.argv[1:2] == ['--await-completion']:
+        await_completion(Path(sys.argv[2]))
+    else:
+        asyncio.run(main())
