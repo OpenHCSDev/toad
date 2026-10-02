@@ -1,0 +1,30 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+    "sha256": "b31196b8b00726a5a94126b6fd49e18318e027e3a865037cbe4a7552f522b96f"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/owned-turn-observation536-receiving-20261002/source-proof.json",
+    "sha256": "a96c172dc904ba74b2d70cd9b03503c6fe514b833f080198e4696e9bc28c63a4"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/owned-turn-observation536-receiving-20261002/qualified-source-gates/536-DISPATCH-CONSUMPTION.md",
+      "sha256": "bec5522f73aa29509dcc23e314504907f3897b79bae04243eb1762a1b718d20e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/owned-turn-observation536-receiving-20261002/qualified-source-gates/536-READY.md",
+      "sha256": "3bc727c8198a8dee9f9b81303311ad2c24c4870f8b1d7c040d653964a64ddd0e"
+    }
+  ]
+}
