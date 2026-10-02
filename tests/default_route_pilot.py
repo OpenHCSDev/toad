@@ -135,24 +135,24 @@ async def main() -> None:
                 view = app.screen.query_one(CommsChatView)
                 await view._refresh()
                 await pilot.pause()
-                assert view._wire.root == first
+                assert view.message_history.reader.comms.root == first
                 assert any(
                     "OLD-WIRE-ONLY" in str(message) for message, _ in view.message_history.rows
                 ), view.message_history.rows
 
                 # A read already in flight when the route flips must not paint
                 # a late page from the former wire into the successor view.
-                view._wire.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
+                view.message_history.reader.comms.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
                 entered, release = asyncio.Event(), asyncio.Event()
-                original_read = app.channel_history_reader.read
+                original_read = view.message_history.reader.read
 
                 async def delayed_read(*args, **kwargs):
                     entered.set()
                     await release.wait()
                     return await original_read(*args, **kwargs)
 
-                with patch.object(app.channel_history_reader, "read", delayed_read):
-                    view._revision = None
+                with patch.object(view.message_history.reader, "read", delayed_read):
+                    view.message_history.reader.restart()
                     pending = asyncio.create_task(view._refresh())
                     async with asyncio.timeout(5):
                         await entered.wait()
@@ -184,7 +184,7 @@ async def main() -> None:
                 new_view = new_app.screen.query_one(CommsChatView)
                 await new_view._refresh()
                 await pilot.pause()
-                assert new_view.display and new_view._wire.root == second
+                assert new_view.display and new_view.message_history.reader.comms.root == second
                 assert any(
                     "NEW-WIRE-ONLY" in str(message) for message, _ in new_view.message_history.rows
                 ), new_view.message_history.rows
@@ -197,7 +197,7 @@ async def main() -> None:
                 # UNKNOWN or an interrupted committed receipt, it is not a
                 # non-retryable outcome.
                 with patch.object(
-                    new_view._wire.messaging, 'send_user_message',
+                    new_view.message_history.reader.comms.messaging, 'send_user_message',
                     side_effect=ValueError("pre-append admission rejected"),
                 ) as rejected:
                     await new_view.submit_input(
@@ -212,7 +212,7 @@ async def main() -> None:
                 # An uncertain private send retains text for inspection and disables compose.
                 error = HumanInitialUnknownError(second_id, 17, "opaque-unknown-id")
                 with patch.object(
-                    new_view._wire.messaging, "send_user_message", side_effect=error
+                    new_view.message_history.reader.comms.messaging, "send_user_message", side_effect=error
                 ) as sender:
                     event = messages.UserInputSubmitted("UNCERTAIN-NO-RETRY")
                     await new_view.submit_input(event)

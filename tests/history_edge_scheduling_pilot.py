@@ -4,6 +4,7 @@ from toad.navigation_target import NavigationContext
 from toad.navigation_target import channel_target
 
 import asyncio
+from toad.mounted_message_history import HISTORY_PAGE_SIZE
 import json
 import os
 from pathlib import Path
@@ -42,7 +43,7 @@ async def main():
             owner = app.selected_mode
             mode = await channel_target("#edge").open(NavigationContext(app, owner, root, "edge-reader"))
             chat = app.screen.query_one(CommsChatView)
-            await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked()
+            await until(lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading) and not chat.message_history.lock.locked()
                         and not chat.message_history.edge_scheduled)
             await pilot.pause()
             assert chat.message_history.has_older and chat.window.max_scroll_y > 0
@@ -91,7 +92,7 @@ async def main():
                 chat.window.scroll_to(y=10, animate=False, immediate=True)
                 await pilot.pause()
                 page = MessagePage(tuple(message for message, _ in chat.message_history.rows[:2]) if duplicate else (), True, False)
-                with patch.object(chat.message_history, "read_page", return_value=page) as reads:
+                with patch.object(chat.message_history.reader, "page", return_value=page) as reads:
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
                     await until(lambda: reads.call_count > 0 and not chat.message_history.edge_scheduled)
@@ -100,7 +101,7 @@ async def main():
 
             chat.window.scroll_to(y=10, animate=False, immediate=True)
             await pilot.pause()
-            with patch.object(chat.message_history, "read_page", side_effect=OSError("blocked fixture source")) as reads:
+            with patch.object(chat.message_history.reader, "page", side_effect=OSError("blocked fixture source")) as reads:
                 chat.window.scroll_to(y=0, animate=False, immediate=True)
                 chat.message_history.on_scroll()
                 await until(lambda: reads.call_count > 0 and not chat.message_history.edge_scheduled)
@@ -113,7 +114,7 @@ async def main():
             await chat.message_history.lock.acquire()
             held = True
             try:
-                with patch.object(chat.message_history, "read_page", wraps=chat.message_history.read_page) as reads:
+                with patch.object(chat.message_history.reader, "page", wraps=chat.message_history.reader.page) as reads:
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
                     await asyncio.sleep(.04)
@@ -131,7 +132,7 @@ async def main():
             await chat.message_history.lock.acquire()
             held = True
             try:
-                with patch.object(chat.message_history, "read_page", return_value=MessagePage((), True, False)) as reads:
+                with patch.object(chat.message_history.reader, "page", return_value=MessagePage((), True, False)) as reads:
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
                     await asyncio.sleep(.04)
@@ -141,7 +142,7 @@ async def main():
                     chat.message_history.lock.release()
                     held = False
                     await until(lambda: reads.call_count > 0 and not chat.message_history.edge_scheduled)
-                    assert reads.call_count == 1 and reads.call_args.kwargs == {"after": newest}
+                    assert reads.call_count == 1 and reads.call_args.kwargs == {"after": newest, "limit": HISTORY_PAGE_SIZE}
             finally:
                 if held:
                     chat.message_history.lock.release()
@@ -152,7 +153,7 @@ async def main():
             await chat.message_history.lock.acquire()
             held = True
             try:
-                with patch.object(chat.message_history, "read_page", wraps=chat.message_history.read_page) as reads:
+                with patch.object(chat.message_history.reader, "page", wraps=chat.message_history.reader.page) as reads:
                     chat.window.release_anchor()
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
@@ -175,16 +176,16 @@ async def main():
             entered, release = Event(), Event()
             records = tuple(message.seq for message, _ in chat.message_history.rows)
             chat.message_history.has_older = True
-            original_page = chat.message_history.read_page
+            original_page = chat.message_history.reader.page
 
-            def delayed_page(*args, **kwargs):
+            async def delayed_page(*args, **kwargs):
                 entered.set()
-                if not release.wait(8):
+                if not await asyncio.to_thread(release.wait, 8):
                     raise TimeoutError("Test did not release edge read")
-                return original_page(*args, **kwargs)
+                return await original_page(*args, **kwargs)
 
             try:
-                with patch.object(chat.message_history, "read_page", delayed_page):
+                with patch.object(chat.message_history.reader, "page", delayed_page):
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
                     assert await asyncio.to_thread(entered.wait, 2)

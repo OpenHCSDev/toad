@@ -13,7 +13,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.channel_preparation import (
-    ChannelHistoryReader, HistoryReadRequest,
+    ChannelHistoryReader, InitialHistoryReadRequest,
 )
 
 
@@ -42,19 +42,15 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             comms.registry.declare(Thread("dave", frozenset(), str(root)))
             comms.messaging.send("carol", "dave", "older DM")
             comms.messaging.send("alice", "#team", "channel message")
-            request = HistoryReadRequest(
+            request = InitialHistoryReadRequest(
                 comms, ChannelConversation, "#team", root,
-                False, 0, True, None, 8, 40, 256 * 1024,
+                8, 40, 256 * 1024,
             )
             first = request.read()
             assert first.page is not None
             self.assertEqual([m.body for m in first.page.messages], ["channel message"])
             assert first.page.display_scope is not None
-            next_request = replace(
-                request, initialized=True, after=first.high_water,
-                known_revision=first.revision,
-                known_display=request.kind.display_identity(first.page),
-            )
+            next_request = request.advance(first, True)
             comms.channels.set_channel_any_mode("#team", True)
             self.assertEqual(comms.bus.log.latest_sequence(), first.high_water)
             expanded = next_request.read()
@@ -73,19 +69,17 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             for source in (old, comms):
                 source.registry.declare(Thread("alice", frozenset({"team"}), str(root)))
                 source.messaging.send("alice", "#team", source.root.name)
-            request = HistoryReadRequest(comms, ChannelConversation, "#team", root,
-                False, 0, True, None, 8, 40, 256 * 1024)
+            request = InitialHistoryReadRequest(comms, ChannelConversation, "#team", root,
+                8, 40, 256 * 1024)
             initial = request.read()
-            request = replace(request, initialized=True, after=initial.high_water,
-                known_revision=initial.revision, known_display=request.kind.display_identity(initial.page))
+            request = request.advance(initial, True)
             comms.views.attach_history(old.root)
             refreshed = request.read()
             self.assertEqual(refreshed.high_water, initial.high_water)
             self.assertTrue(refreshed.replace_tail)
             self.assertTrue(refreshed.page.has_older)
             # Detaching changes the same inclusion basis without a new live sequence.
-            detached_request = replace(request, known_revision=refreshed.revision,
-                known_display=request.kind.display_identity(refreshed.page))
+            detached_request = request.advance(refreshed, True)
             comms.bus.history.path.unlink()
             detached = detached_request.read()
             self.assertTrue(detached.replace_tail)
@@ -99,9 +93,9 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             for index in range(50):
                 comms.messaging.send("sender", "#one", f"Message {index}")
             comms.messaging.user_identity(str(root))
-            request = HistoryReadRequest(comms, ChannelConversation, "#one", root,
-                                         False, 0, True, None, 8, 40, 256 * 1024)
-            reader = ChannelHistoryReader()
+            request = InitialHistoryReadRequest(comms, ChannelConversation, "#one", root,
+                                         8, 40, 256 * 1024)
+            reader = ChannelHistoryReader(request)
             release = Event()
             try:
                 with patch.object(comms.views, 'channel_display_page', wraps=comms.views.channel_display_page) as page:
@@ -109,8 +103,8 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                     assert result.page is not None
                     self.assertLessEqual(len(result.page.messages), 8)
                     self.assertTrue(result.page.has_older)
-                    reused = await reader.read(replace(request, initialized=True, after=result.high_water,
-                                                       known_revision=result.revision))
+                    reader.accept(result, True)
+                    reused = await reader.read(reader.request(True))
                     self.assertIsNone(reused.page)
                     self.assertEqual(page.call_count, 1)
 
@@ -136,8 +130,12 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(reader._pending)
                     # Cancellation does not cancel the actual I/O; a different
                     # current-view request can still complete independently.
-                    active = await asyncio.wait_for(reader.read(replace(request, target="#two")), 2)
-                    self.assertEqual(active.request.target, "#two")
+                    other = ChannelHistoryReader(replace(request, target="#two"))
+                    try:
+                        active = await asyncio.wait_for(other.read(other.request(True)), 2)
+                        self.assertEqual(active.request.target, "#two")
+                    finally:
+                        await other.aclose()
                     release.set()
             finally:
                 release.set()

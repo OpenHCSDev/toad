@@ -87,3 +87,37 @@ both anchors and protected rows. Wire trimming stops at a protected boundary,
 so it cannot remove the active reader/selection/focus to meet its old cap.
 The cap and source preparation/controller replacement remain pending; this
 checkpoint does not claim that the whole duplicated paging policy is gone.
+
+
+## Headless source progression checkpoint
+
+ChannelHistoryReader now owns the logical source request and all actual page I/O,
+including edge reads. HistoryReadRequest owns the common source/context,
+revision read, external page boundary and transition. Its initial member reads
+the latest bounded source; its incremental member owns revision reuse, scanned
+high-water progression and original display-scope changes. These members carry
+those different algorithms rather than labeling a caller switch.
+
+Deleted the native controller's initialized, poll_cursor, revision and
+display_identity fields, request reconstruction and separate read_page
+algorithm. Deleted the App-wide reader import, field and shutdown consumer.
+A view holds one late-bound source-reader resource and closes its actual I/O
+on unmount. It paints original pages; its mounted rows, edge availability,
+anchors and read-receipt witnesses remain native resources. Receipt paint no
+longer writes a fake revision invalidation; the original bus append participates
+in HistoryViews.revision already. A discarded source projection restarts through
+its original request owner.
+
+Direct production consumers and existing physical/contract driver references
+are migrated together. No forwarding properties, old constructor, registry or
+source adapter remain. Scan watermark remains distinct from the mounted edge;
+scrolling back must not change which original bus rows were scanned.
+
+The before/after source evidence uses the existing NRA Package loader over all
+276 production modules with zero omissions: .artifacts/shared-history-source338/
+reader-owner-before.json and reader-owner-after.json. AST does not resolve
+arbitrary dynamic attributes; all source/control call sites identified here
+were read. Changed driver source is parsed, not executed at this checkpoint.
+The shared adaptive preparation/admission controller remains unfinished, so338
+is draft and has no new installed, End or performance acceptance claim. Final
+sanity and the joined actual saved-session/channel workflow follow that batch.

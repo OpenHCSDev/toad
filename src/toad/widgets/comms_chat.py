@@ -148,8 +148,17 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if self._bound_root is not None and root != self._bound_root:
             self.display = False
             return
-        self.message_history.service = (self.app.coordination_access.service if root == self.app.coordination_access.service.root
-                      else wire(root))
+        from toad.channel_preparation import ChannelHistoryReader, InitialHistoryReadRequest
+        from toad.mounted_message_history import (
+            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
+        )
+
+        comms = (self.app.coordination_access.service if root == self.app.coordination_access.service.root
+                 else wire(root))
+        self.message_history.reader = ChannelHistoryReader(InitialHistoryReadRequest(
+            comms, self.conversation_kind, self.target, Path(self.project_path),
+            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
+        ))
         self.agent_info = Content(self._target_label())
         self.agent_ready = True
         self.prepare_prompt()
@@ -206,7 +215,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         return self.message_history.style.block(message, direction=direction)
 
     async def on_unmount(self) -> None:
-        self.message_history.retire()
+        await self.message_history.retire()
 
 
 
@@ -218,7 +227,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
 
     def _refresh_notifications(self) -> None:
         """One bounded batch for the painted window; independent of bus revision."""
-        if (not self.is_attached or self.message_history.service is None
+        if (not self.is_attached or self.message_history.reader is None
                 or not self.display
                 or self._notification_task is not None and not self._notification_task.done()):
             return
@@ -232,21 +241,25 @@ class CommsChatView(DeliveryFailureView, Conversation):
     async def _read_thread_activity(self):
         from toad.comms_root import root_is_current
 
-        comms, target = self.message_history.service, self.target
-        if comms is None:
+        reader = self.message_history.reader
+        if reader is None:
             return None
+        comms, target = reader.comms, self.target
         if not root_is_current(comms.root):
             raise ValueError("Comms route changed")
         presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
-        if comms is not self.message_history.service or target != self.target or not root_is_current(comms.root):
+        if reader is not self.message_history.reader or target != self.target or not root_is_current(comms.root):
             raise ValueError("Comms route changed")
         return presentation
 
     async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
         from toad.comms_root import root_is_current
 
-        comms, target = self.message_history.service, self.target
-        if comms is None or not root_is_current(comms.root):
+        reader = self.message_history.reader
+        if reader is None:
+            return
+        comms, target = reader.comms, self.target
+        if not root_is_current(comms.root):
             return
         error = None
         try:
@@ -255,7 +268,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             )
         except Exception as failure:
             error, results = failure, {}
-        if (not self.is_attached or self.message_history.service is not comms or self.target != target
+        if (not self.is_attached or self.message_history.reader is not reader or self.target != target
                 or not self.query_ancestor(SessionView).is_current
                 or not root_is_current(comms.root)):
             return
@@ -271,13 +284,13 @@ class CommsChatView(DeliveryFailureView, Conversation):
                     feedback.show_result(results.get((message.seq, message.message_id), ()))
 
     async def _refresh(self) -> None:
-        if not self.is_attached or self.message_history.service is None:
+        if not self.is_attached or self.message_history.reader is None:
             return
         if not self.query_ancestor(SessionView).is_current:
             return
         from toad.comms_root import root_is_current
 
-        if not root_is_current(self.message_history.service.root):
+        if not root_is_current(self.message_history.reader.comms.root):
             self.display = False
             return
         self._refresh_notifications()
@@ -285,7 +298,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             return
         async with self.message_history.lock:
             try:
-                comms = self.message_history.service
+                comms = self.message_history.reader.comms
                 catalog = await asyncio.to_thread(comms.channels.catalog.read)
                 if not self.is_attached or not self.query_ancestor(SessionView).is_current:
                     return
@@ -294,24 +307,25 @@ class CommsChatView(DeliveryFailureView, Conversation):
                     self.prompt.prompt_text_area.disabled = True
                     self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
                     self.status = "Read-only saved view"
-                show_loading = not self.message_history.initialized
+                show_loading = self.message_history.reader.source.loading
                 if show_loading:
                     self.on_work_started()
                 try:
-                    read = await self.app.channel_history_reader.read(self.message_history.request())
+                    reader = self.message_history.reader
+                    read = await reader.read(reader.request(self.message_history.follows_tail))
                 finally:
                     if show_loading:
                         self.on_work_finished()
                 if not self.is_attached or not self.query_ancestor(SessionView).is_current:
                     return
-                if read.request != self.message_history.request():
+                if reader is not self.message_history.reader or read.request != reader.request(self.message_history.follows_tail):
                     return
                 if not root_is_current(comms.root):
                     self.display = False
                     return
                 self.update_slash_commands()
                 revision = read.revision
-                if revision == self.message_history.revision:
+                if reader.source.matches_revision(revision):
                     self.call_after_refresh(self.message_history.mark_visible)
                     if self.message_history.edge_on_resume:
                         self.call_after_refresh(self.message_history.on_scroll)
@@ -333,7 +347,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 self.status = message
                 return
 
-            self.message_history.revision = revision
+            reader.accept(read, follow)
 
             target = self.target
             info = await self.conversation_kind.agent_info(comms, target)
@@ -362,9 +376,9 @@ class CommsChatView(DeliveryFailureView, Conversation):
 
     def command_target_context(self):
         from toad.target_commands import TargetContext
-        if self.message_history.service is None:
+        if self.message_history.reader is None:
             return None
-        return TargetContext.decode(self.kind)(self.app, self.message_history.service, self.target, self._me, self.project_path,
+        return TargetContext.decode(self.kind)(self.app, self.message_history.reader.comms, self.target, self._me, self.project_path,
                              self.app.selected_mode)
 
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
@@ -378,9 +392,9 @@ class CommsChatView(DeliveryFailureView, Conversation):
         try:
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
 
-            if self.message_history.service is None or not root_is_current(self.message_history.service.root):
+            if self.message_history.reader is None or not root_is_current(self.message_history.reader.comms.root):
                 raise ValueError("Comms route changed; reopen this view before sending")
-            comms = self.message_history.service
+            comms = self.message_history.reader.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
             if self.conversation_kind.read_only(catalog, self.target):
                 self.prompt.text = event.body

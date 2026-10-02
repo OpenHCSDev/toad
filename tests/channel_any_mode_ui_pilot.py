@@ -57,7 +57,7 @@ async def main() -> None:
             await channel_target("#team").open(NavigationContext(app, owner, root, "alice"))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
-                while not chat.message_history.initialized:
+                while not (chat.message_history.reader is not None and not chat.message_history.reader.source.loading):
                     await pilot.pause(.02)
             assert [message.body for message, _ in chat.message_history.rows] == [
                 "exact route", "outbound from member", "inbound to member",

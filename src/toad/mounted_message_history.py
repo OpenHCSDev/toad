@@ -2,14 +2,13 @@
 from __future__ import annotations
 import asyncio
 from abc import abstractmethod
-from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
 from textual import containers
 from textual.widget import Widget
 from toad.message_viewport import AcknowledgementViewport
-from toad.channel_preparation import HistoryReadRequest, HistoryReadResult
+from toad.channel_preparation import ChannelHistoryReader, HistoryReadResult
 from toad.screens.session_view import SessionView
 from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
 
@@ -53,14 +52,10 @@ class MountedMessageHistory:
         self.rows: list[tuple[WireMessage, Widget]] = []
         self.has_older = False
         self.has_newer = False
-        self.initialized = False
-        self.poll_cursor = 0
         self.edge_scheduled = False
         self.edge_on_resume = False
         self.lock = asyncio.Lock()
-        self.service = None
-        self.revision = None
-        self.display_identity = None
+        self.reader: ChannelHistoryReader | None = None
         self.tail_receipt = None
         self.channel_receipts = {}
         self.historical_receipts = {}
@@ -89,34 +84,21 @@ class MountedMessageHistory:
     def projection_changed(self) -> None:
         """Wire history has no native transcript-category projection."""
 
-    def retire(self):
+    async def retire(self):
         self.tail_receipt = None
         self.channel_receipts.clear()
         self.historical_receipts.clear()
+        if self.reader is not None:
+            await self.reader.aclose()
 
     async def paint_receipt(self, receipt):
         async with self.lock:
             if self.has_newer:
                 await self.view.contents.remove_children(widget for _, widget in self.rows)
                 self.rows.clear()
-                self.initialized = False
+                self.reader.restart()
             await self.mount_page(MessagePage((receipt,), self.has_older, False), older=False)
             self.view.window.anchor()
-        self.revision = None
-
-    def read_page(
-        self,
-        comms,
-        *,
-        before: int | None = None,
-        after: int | None = None,
-        limit: int = HISTORY_PAGE_SIZE,
-    ) -> MessagePage:
-        return self.view.conversation_kind.page(
-            comms, self.view.target, worktree=str(self.view.project_path),
-            before=before, after=after, limit=limit, max_bytes=HISTORY_PAGE_BYTES,
-        )
-
 
     def painted_keys(self) -> tuple[tuple[str, int], ...]:
         if not self.attached or not self.current:
@@ -130,15 +112,9 @@ class MountedMessageHistory:
                           self.view.window.content_region)
 
 
-    def request(self) -> HistoryReadRequest:
-        assert self.service is not None
-        return HistoryReadRequest(
-            self.service, self.view.conversation_kind, self.view.target, Path(self.view.project_path),
-            self.initialized, self.poll_cursor,
-            not self.has_newer and self.view.window.follows_tail, self.revision,
-            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
-            self.display_identity,
-        )
+    @property
+    def follows_tail(self) -> bool:
+        return not self.has_newer and self.view.window.follows_tail
 
 
     async def toggle_style(self) -> None:
@@ -163,7 +139,7 @@ class MountedMessageHistory:
     async def mount_page(self, page: MessagePage, *, older: bool) -> None:
         from toad.comms_root import root_is_current
 
-        if self.service is None or not root_is_current(self.service.root):
+        if self.reader is None or not root_is_current(self.reader.comms.root):
             self.view.display = False
             return
         mounted = {message.view_key for message, _ in self.rows}
@@ -178,7 +154,7 @@ class MountedMessageHistory:
 
         pairs = [(message, self.block(message)) for message in records]
         async with self.view.window.history_lock:
-            if not root_is_current(self.service.root):
+            if not root_is_current(self.reader.comms.root):
                 self.view.display = False
                 return
             if self.rows:
@@ -190,7 +166,7 @@ class MountedMessageHistory:
                 # The first page has no original painted record to preserve.
                 anchor, protected = None, set()
             async with self.view.window.preserve_history(anchor):
-                if not root_is_current(self.service.root):
+                if not root_is_current(self.reader.comms.root):
                     self.view.display = False
                     return
                 await self.insert_page(page, pairs, older=older, protected=protected)
@@ -238,7 +214,7 @@ class MountedMessageHistory:
             self.edge_on_resume = True
             return
         self.edge_on_resume = False
-        if not self.initialized or not self.rows or self.edge_scheduled:
+        if self.reader is None or self.reader.source.loading or not self.rows or self.edge_scheduled:
             return
         scroll_y = self.view.window.scroll_y
         follows_tail = self.view.window.follows_tail
@@ -272,8 +248,11 @@ class MountedMessageHistory:
                     return
                 from toad.comms_root import root_is_current
 
-                comms = self.service
-                if comms is None or not root_is_current(comms.root):
+                if self.reader is None:
+                    return
+                reader = self.reader
+                comms = reader.comms
+                if not root_is_current(comms.root):
                     self.view.display = False
                     return
                 before = (self.rows[0][0].view_cursor, self.rows[-1][0].view_cursor,
@@ -286,19 +265,19 @@ class MountedMessageHistory:
                     if limit <= 0:
                         return
                     older = True
-                    page = await asyncio.to_thread(self.read_page, comms, before=self.rows[0][0].view_cursor, limit=limit)
+                    page = await reader.page(before=self.rows[0][0].view_cursor, limit=limit)
                 elif (
                     self.view.window.max_scroll_y - self.view.window.scroll_y
                     <= HISTORY_EDGE_THRESHOLD
                     and self.has_newer
                 ):
                     older = False
-                    page = await asyncio.to_thread(self.read_page, comms, after=self.rows[-1][0].view_cursor)
+                    page = await reader.page(after=self.rows[-1][0].view_cursor, limit=HISTORY_PAGE_SIZE)
                 else:
                     return
                 if not self.attached:
                     return
-                if (not self.current or self.service is not comms
+                if (not self.current or self.reader is not reader
                         or route != (self.view.target, self.view.kind, self.view.project_path)):
                     self.edge_on_resume = True
                     return
@@ -321,48 +300,28 @@ class MountedMessageHistory:
 
 
     async def publish(self, read: HistoryReadResult) -> bool:
-        """Refresh the bounded history window; return whether to follow the end."""
-        follow = not self.has_newer and self.view.window.follows_tail
-        high_water = read.high_water
-        if not self.initialized:
-            page = read.page
-            assert page is not None
-            await self.mount_page(page, older=False)
-            if loading := self.view.query_one_optional("#history-loading"):
-                await loading.remove()
-            self.has_older = page.has_older
-            self.display_identity = self.view.conversation_kind.display_identity(page)
-            self.initialized = True
-            self.poll_cursor = high_water
-            self.view.call_after_refresh(self.on_scroll)
-            return True
-
+        """Commit native rows; source advancement belongs to their reader."""
+        follow = self.follows_tail
         page = read.page
+        if page is None:
+            return follow
         if read.replace_tail:
-            assert page is not None
             self.tail_receipt = None
             self.channel_receipts.clear()
+            self.historical_receipts.clear()
             await self.view.contents.remove_children(widget for _, widget in self.rows)
             self.rows.clear()
             self.has_older = page.has_older
             self.has_newer = False
             await self.mount_page(page, older=False)
-            self.display_identity = self.view.conversation_kind.display_identity(page)
-            self.poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
+            if loading := self.view.query_one_optional("#history-loading"):
+                await loading.remove()
+            self.view.call_after_refresh(self.on_scroll)
             return True
-        if high_water <= self.poll_cursor:
-            return follow
-        if page is None:
-            return follow
-        self.display_identity = self.view.conversation_kind.display_identity(page)
-        follow = not self.has_newer and self.view.window.follows_tail
         if page.messages and follow:
             await self.mount_page(page, older=False)
-            self.poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
-        else:
-            if page.messages:
-                self.has_newer = True
-            self.poll_cursor = high_water
+        elif page.messages:
+            self.has_newer = True
         return follow
 
 
@@ -371,7 +330,7 @@ class MountedMessageHistory:
             return
         from toad.comms_root import root_is_current
 
-        if self.service is None or not root_is_current(self.service.root):
+        if self.reader is None or not root_is_current(self.reader.comms.root):
             self.view.display = False
             return
         visible = set(self.painted_keys())
@@ -398,11 +357,11 @@ class MountedMessageHistory:
     async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:
         from toad.comms_root import implicit_root, root_is_current, run_selected_write
         try:
-            if self.service is None or not root_is_current(self.service.root) or not self.current:
+            if self.reader is None or not root_is_current(self.reader.comms.root) or not self.current:
                 return
             displayed = page.historical_display.select({seq for _, seq in keys})
-            await asyncio.to_thread(run_selected_write, self.service.root,
-                self.service.views.mark_historical_view_read, displayed, implicit=implicit_root())
+            await asyncio.to_thread(run_selected_write, self.reader.comms.root,
+                self.reader.comms.views.mark_historical_view_read, displayed, implicit=implicit_root())
             for key in keys:
                 if self.historical_receipts.get(key) is page:
                     del self.historical_receipts[key]
@@ -414,11 +373,11 @@ class MountedMessageHistory:
 
     async def mark_page(self, page: MessagePage, original_page: MessagePage | None = None) -> None:
         try:
-            comms = self.service
             from toad.comms_root import root_is_current
 
-            if comms is None or not self.attached or not self.current:
+            if self.reader is None or not self.attached or not self.current:
                 return
+            comms = self.reader.comms
             if not root_is_current(comms.root):
                 self.view.display = False
                 return
@@ -438,10 +397,7 @@ class MountedMessageHistory:
                 async with self.lock:
                     await self.view.contents.remove_children(widget for _, widget in self.rows)
                     self.rows.clear()
-                    self.initialized = False
-                    self.poll_cursor = 0
-                    self.revision = None
-                    self.display_identity = None
+                    self.reader.restart()
                     self.has_older = False
                     self.has_newer = False
             self.tail_receipt = None

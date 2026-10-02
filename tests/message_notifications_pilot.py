@@ -84,7 +84,7 @@ async def main():
 
                 await channel_target("#comms").open(NavigationContext(app, native_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
-                await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked()
+                await until(lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading) and not chat.message_history.lock.locked()
                             and not chat.message_history.edge_scheduled)
                 await pilot.pause()
                 chat._refresh_notifications()

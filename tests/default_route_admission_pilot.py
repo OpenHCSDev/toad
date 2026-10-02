@@ -82,7 +82,7 @@ async def main() -> None:
                     view = app.screen.query_one(CommsChatView)
                     await view._refresh()
                     await pilot.pause()
-                    assert view.message_history.service.root == legacy
+                    assert view.message_history.reader.comms.root == legacy
                     old.messaging.send("peer", "#team", "UNREAD-OLD")
                     page = old.views.channel_display_page(
                         "#team", worktree=str(sandbox), limit=8
@@ -159,7 +159,7 @@ async def main() -> None:
                         not invoked
                     ), "stale old-root start reached its core operation"
                     assert (marker.read_bytes() if marker.exists() else b"") == before
-                    assert not view.display or not view.message_history.service.root == current_root()
+                    assert not view.display or not view.message_history.reader.comms.root == current_root()
                     try:
                         run_selected_write(
                             legacy, safe_spy, None, None, implicit=True

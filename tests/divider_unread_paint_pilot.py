@@ -42,7 +42,7 @@ async def main() -> None:
                 await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):
-                    while not chat.message_history.initialized:
+                    while not (chat.message_history.reader is not None and not chat.message_history.reader.source.loading):
                         await pilot.pause(.02)
                 block = next(widget for message, widget in chat.message_history.rows if message.seq == last.seq)
                 divider = block.query_one(MessageDivider)
@@ -58,7 +58,7 @@ async def main() -> None:
                 assert not body.region.overlaps(chat.window.content_region)
                 assert last.seq not in {seq for source, seq in chat.message_history.painted_keys() if not source}
 
-                page = chat.message_history.read_page(comms, after=last.seq - 1)
+                page = await chat.message_history.reader.page(after=last.seq - 1, limit=chat.message_history.reader.source.page_limit)
                 chat.message_history.channel_receipts[last.seq] = page
                 mark_visible(chat)
                 await pilot.pause(.2)

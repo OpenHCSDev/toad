@@ -808,8 +808,8 @@ async def main() -> None:
             await pilot.pause()
             assert abs(anchor.region.y - anchor_y) <= 1
             while not long_chat.message_history.has_newer:
-                page = long_chat.message_history.read_page(
-                    comms, before=long_chat.message_history.rows[0][0].seq
+                page = await long_chat.message_history.reader.page(
+                    before=long_chat.message_history.rows[0][0].seq, limit=HISTORY_PAGE_SIZE
                 )
                 await long_chat.message_history.mount_page(page, older=True)
             sequences = [message.seq for message, _ in long_chat.message_history.rows]
@@ -818,7 +818,7 @@ async def main() -> None:
             assert sequences[0] < previous_oldest
             assert long_chat.message_history.has_newer
             newest_before = sequences[-1]
-            page = long_chat.message_history.read_page(comms, after=newest_before)
+            page = await long_chat.message_history.reader.page(after=newest_before, limit=HISTORY_PAGE_SIZE)
             await long_chat.message_history.mount_page(page, older=False)
             assert long_chat.message_history.rows[-1][0].seq > newest_before
             assert len(long_chat.message_history.rows) == HISTORY_WINDOW_SIZE

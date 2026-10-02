@@ -115,7 +115,7 @@ async def main():
                 await release.wait()
                 return follow
 
-            chat.message_history.revision = None
+            chat.message_history.reader.restart()
             with patch.object(chat.message_history, "publish", delayed_refresh):
                 refresh = asyncio.create_task(chat._refresh())
                 async with asyncio.timeout(10):
