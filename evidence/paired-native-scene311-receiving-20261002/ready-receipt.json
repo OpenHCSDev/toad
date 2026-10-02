@@ -1,0 +1,47 @@
+{
+  "state": "READY FOR PARENT REVIEW/EXECUTION; ordinary-default scroll not yet verified",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002",
+  "pins": {
+    "agent_comms": "155b00076312626e025861efc3ed14549adca5c0",
+    "toad": "fbe0edd545331ce223ba3d27aeedbd977cafeb36",
+    "textual": "ec4ce83bc45fbb726849e4d54e81c8241c6d13ca",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "sdk": "0.12.1",
+  "packages": 69,
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "native_full_trust": true,
+  "protected318_and316_files_unchanged": 5700,
+  "E03_source_relation": {
+    "toad": "ZEROsrcdiff32cca305b531842008a56fb7a3b5db81d0b8d812",
+    "textual": "ZEROsrc/pyprojectdiff fc9be9e8720f334c8ac88c9d926d3817eec07e2f",
+    "core": "Current qualified155b, no new core/performance claim"
+  },
+  "E03_scope": "Retained paint and two stationary10s feedback windows/input7. Not smoothness, fullCPU or whole performance target. Raw88.36s/capture255 retained; no fullgenericPASS relabel.",
+  "whole_declared_schema_equal": true,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "owner_member": "PreserveOwnerRuntime",
+  "operator_members": 51,
+  "parent_command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/paired-native-scene311-20261002/operator-preparation/publication-receipt.json --execute",
+  "hashes": {
+    "source-proof.json": "bb055d036ccd5a64d7fcc6750a92b79bdad295482fa5f86dd394d48dd2b87282",
+    "operator-manifest.json": "8addad929ee77465f9878c13b2b7310fcc364b6cb96e3b39c579ad6960d03e22",
+    "operator-preparation/preparation-receipt.json": "c8e7d2757f3826f8bf6b08cddd2ab5b7cff26fb90b2e5ec502bfc08c040c903a",
+    "operator-preparation/review-plan.json": "27f4ba1ad1794c8f7be3127f07a123ee5201ed2281e3a681271958e347089f9b",
+    "operator-preparation/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae"
+  },
+  "qualified_gates": {
+    "current318-default-physical-closure.json": "33f45fd4bae28bcb8e9ce95c633f70f7dc5632b79c27545a54b5eb4ab6f70c5a",
+    "E03-qualified-receipt.json": "5377907cf1d647a870e1dc53204f0be9029583f23ca9b3236381945a6ecac92e"
+  },
+  "native_build": false,
+  "historical_carry": false,
+  "public_stops": 0,
+  "public_starts": 0,
+  "public_writes": 0,
+  "provider_calls": 0,
+  "E03_native_journey_repeated": false,
+  "remaining": "Parent reviews/executes preserve-only publisher after fresh actual idle/client admission, then ordinary-default scroll final. 525 remains independent."
+}
