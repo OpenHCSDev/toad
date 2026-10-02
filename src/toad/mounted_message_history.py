@@ -66,15 +66,8 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         self.style = IrcMessageStyle()
 
     @property
-    def attached(self):
-        return self.view.is_attached
-
-    @property
     def current(self):
-        return self.attached and self.view.query_ancestor(SessionView).is_current
-
-    def block(self, message):
-        return self.view.message_block(message)
+        return self.is_attached and self.view.query_ancestor(SessionView).is_current
 
     def capture_reader_admissions(self) -> tuple:
         # Every retained wire row is already mounted. Its original native
@@ -155,7 +148,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         self._scroll_changed()
 
     def painted_keys(self) -> tuple[tuple[str, int], ...]:
-        if not self.attached or not self.current:
+        if not self.is_attached or not self.current:
             return ()
         return tuple(message.view_key for message, _ in self.viewport(
             AcknowledgementViewport).visible_rows())
@@ -178,7 +171,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             records = [message for message, _ in self.rows]
             with self.app.batch_update():
                 await self.remove_children(widget for _, widget in self.rows)
-                self.rows = [(message, self.block(message)) for message in records]
+                self.rows = [(message, self.view.message_block(message)) for message in records]
                 await self.mount(*(widget for _, widget in self.rows))
             self.window.scroll_end(animate=False)
 
@@ -193,7 +186,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
                 or not root_is_current(self.reader.comms.root)):
             return
         mounted = {message.view_key for message, _ in self.rows}
-        pairs = [(message, self.block(message)) for message in page.messages
+        pairs = [(message, self.view.message_block(message)) for message in page.messages
                  if message.view_key not in mounted]
         if not pairs:
             if older:
@@ -333,7 +326,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             return True
 
     def mark_visible(self) -> None:
-        if self.ack_inflight or not self.attached:
+        if self.ack_inflight or not self.is_attached:
             return
         from toad.comms_root import root_is_current
 
@@ -382,7 +375,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         try:
             from toad.comms_root import root_is_current
 
-            if self.reader is None or not self.attached or not self.current:
+            if self.reader is None or not self.is_attached or not self.current:
                 return
             comms = self.reader.comms
             if not root_is_current(comms.root):
@@ -400,7 +393,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         except ValueError:
             # The peer, viewer, channel scope, or bus changed after page
             # fetch. Discard mounted history and fetch the current projection.
-            if self.attached:
+            if self.is_attached:
                 async with self.window.history_lock:
                     await self.remove_children(widget for _, widget in self.rows)
                     self.rows.clear()
@@ -411,5 +404,5 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             self.channel_receipts.clear()
         finally:
             self.ack_inflight = False
-            if self.attached:
+            if self.is_attached:
                 self.view.call_after_refresh(self.mark_visible)
