@@ -388,6 +388,18 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
         return tuple(child for page in self.pages for child in page.children)
 
+    def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
+        """Retain the original source ranges that a returning reader needs."""
+        return tuple(page.capture_admission() for page in self.pages)
+
+    def restore_reader_admissions(self, admissions) -> None:
+        for page in self.pages:
+            for admission in admissions:
+                page.restore_admission(admission)
+
+    def projection_changed(self) -> None:
+        self.filter.changed()
+
     def _require_publication(self) -> None:
         if not self.state.accepts_publication:
             raise _PublicationRetired
