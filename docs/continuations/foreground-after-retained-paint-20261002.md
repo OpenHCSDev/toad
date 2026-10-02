@@ -51,3 +51,21 @@ real frame inspection during the run. No unchanged baseline repeats.
 Parent owns public installation/lifecycle. Sch owns source/compaction; Arendt
 owns runtime/lifecycle. Heisenberg owns viewport/sidebar/native integration.
 Coordinate exact shared methods directly before crossing those boundaries.
+
+## Current source batch — not installed qualified
+
+ViewportPresentation now supplies the union of original reader anchors and
+DocumentViewport live body roots to Screen's existing retain_geometry layout
+transaction. The source-selected live resource needs its current box before
+capture; Rendered/Measured resources need no descendant layout. Workspace's
+separate anchor-only decision is deleted and delegates to that owner. Native
+Compositor already traverses these ancestry paths without painting offscreen
+branches. No geometry/size copy or target registry is retained.
+
+Paired Textual24 owns the original valid-full -> visible -> lazy-full lookup,
+with find_widget and can_render_subtree deriving the same geometry selection.
+The old unconditional full_map admission forced whole arrangement on capture
+even when the original current map could answer. Source batch19added/2deleted
+Toad; no check or installed speed claim yet. Existing native source/resize/style/
+capture/input/disposal check follows the coherent pair, then changed installed
+path last. No unchanged public recording.

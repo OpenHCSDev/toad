@@ -508,6 +508,20 @@ class ViewportPresentation:
         return (window for window in self.windows
                 if window.document_viewport.accepts_frame())
 
+    def geometry_targets(self) -> tuple[Widget, ...]:
+        """Keep reader anchors and live body boxes in the same native layout.
+
+        Capturing an offscreen body needs its current box, not another full
+        scene arrangement. Retained rows already own their extent; they do not
+        require a live descendant layout just to scroll back into view.
+        """
+        return tuple(dict.fromkeys((
+            *(target for window in self.anchors
+              for target in window.history_geometry_targets()),
+            *(target for window in self.frame_windows()
+              for target in window.document_viewport.geometry_targets()),
+        )))
+
     def has_pending_mutations(self) -> bool:
         return any(window.history_mutating() for window in self.frame_windows())
 
@@ -607,6 +621,10 @@ class DocumentViewport:
                 yield node
             else:
                 pending.extend(reversed(node.children))
+
+    def geometry_targets(self) -> tuple[Widget, ...]:
+        """Native controls retain their box until their body captures its rows."""
+        return tuple(owner for owner in self.body_roots() if not owner.body_dormant)
 
     @property
     def materialized_widget_count(self) -> int:
