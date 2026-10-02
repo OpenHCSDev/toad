@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.core import input_events
 from toad.conversation_turn import ConversationTurn
 
 from pathlib import Path
@@ -32,7 +33,8 @@ from toad.widgets.question import Ask, Question
 from toad.widgets.slash_complete import SlashComplete
 from toad.widgets.model_switcher import ModelSwitcher
 from toad.widgets.prompt_popup import PromptPopup, CompletionPopup, InfoPopup
-from toad.messages import UserInputSubmitted
+from toad.core.input_events import UserInputSubmitted
+from toad.core_event_carrier import CoreEventReceiver
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
@@ -45,13 +47,13 @@ if TYPE_CHECKING:
     from toad.agent import AgentBase
 
 
-class ModeSwitcher(SelectionOptionList):
+class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
     BINDING_GROUP_TITLE = "Mode switcher"
     BINDINGS = [Binding("escape", "dismiss", "Dismiss mode switcher")]
 
     @on(OptionList.OptionSelected)
     def on_option_selected(self, event: OptionList.OptionSelected):
-        self.post_message(messages.ChangeMode(event.option_id))
+        self.publish_core(input_events.ChangeMode(event.option_id))
         self.blur()
 
     def action_dismiss(self):
@@ -124,7 +126,7 @@ class PromptSubmission:
             self.call_later(self._submit)
 
 
-class PromptTextArea(DeclaredWidgetActions, PromptSubmission, HighlightedTextArea):
+class PromptTextArea(CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea):
     ACTIONS = PromptAction
     HELP = """\
 ## Prompt
@@ -321,7 +323,7 @@ See on-screen instructions for details.
                 self.suggestion = ""
             return
         shell = self.shell_mode
-        self.post_message(UserInputSubmitted(self.text, shell, immediate=immediate))
+        self.publish_core(UserInputSubmitted(self.text, shell, immediate=immediate))
         self.clear()
         if shell:
             self.post_message(self.CancelShell())

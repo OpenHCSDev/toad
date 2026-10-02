@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
 
 from toad.conversation_submission import ConversationSubmissions
@@ -621,12 +622,12 @@ class ConversationSessionBinding(containers.Vertical):
         if ready and self._initial_prompt is not None:
             prompt = self._initial_prompt
             if prompt.startswith("!"):
-                self.post_message(
-                    messages.UserInputSubmitted(self._initial_prompt[1:], shell=True)
+                self.publish_core(
+                    input_events.UserInputSubmitted(self._initial_prompt[1:], shell=True)
                 )
             else:
-                self.post_message(
-                    messages.UserInputSubmitted(self._initial_prompt, shell=False)
+                self.publish_core(
+                    input_events.UserInputSubmitted(self._initial_prompt, shell=False)
                 )
             self._initial_prompt = None
         if ready:
@@ -890,7 +891,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     def on_directory_changed(self, event: DirectoryChanged) -> None:
         event.stop()
         if self.turns.owner.accepts_prompt:
-            self.post_message(messages.ProjectDirectoryUpdated())
+            self.publish_core(input_events.ProjectDirectoryUpdated())
         else:
             self._directory_changed = True
 
@@ -905,7 +906,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         if self._directory_changed or not self.is_watching_directory:
             self.prompt.project_directory_updated()
             self._directory_changed = False
-            self.post_message(messages.ProjectDirectoryUpdated())
+            self.publish_core(input_events.ProjectDirectoryUpdated())
 
     @on(Terminal.LongRunning)
     def on_terminal_long_running(self, event: Terminal.LongRunning) -> None:
@@ -1104,21 +1105,19 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
         await message.event.explain(self)
 
-    @on(messages.WorkStarted)
     def on_work_started(self) -> None:
         self.busy_count += 1
 
-    @on(messages.WorkFinished)
     def on_work_finished(self) -> None:
         self.busy_count -= 1
 
     @work
-    @on(messages.ChangeMode)
-    async def on_change_mode(self, event: messages.ChangeMode) -> None:
-        await self.set_mode(event.mode_id)
+    @handles(input_events.ChangeMode)
+    async def on_change_mode(self, event: CoreEventMessage) -> None:
+        await self.set_mode(event.event.mode_id)
 
-    @on(messages.ProviderLogin)
-    def on_provider_login(self, event: messages.ProviderLogin):
+    @handles(input_events.ProviderLogin)
+    def on_provider_login(self, event: CoreEventMessage):
         event.stop()
         self.action_provider_login()
 
@@ -1197,11 +1196,11 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 prompt.focus()
 
     @work
-    @on(messages.ChangeModel)
-    async def on_change_model(self, event: messages.ChangeModel) -> None:
+    @handles(input_events.ChangeModel)
+    async def on_change_model(self, event: CoreEventMessage) -> None:
         if (agent := self.agent) is None:
             return
-        error = await agent.set_model(event.model_id)
+        error = await agent.set_model(event.event.model_id)
         if agent is not self.agent:
             return
         if error is not None:
@@ -1242,12 +1241,12 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 style="success",
             )
 
-    @on(messages.UserInputSubmitted)
-    async def on_user_input_submitted(self, event: messages.UserInputSubmitted) -> None:
+    @handles(input_events.UserInputSubmitted)
+    async def on_user_input_submitted(self, event: CoreEventMessage) -> None:
         event.stop()
-        await self.submit_input(event)
+        await self.submit_input(event.event)
 
-    async def submit_input(self, event: messages.UserInputSubmitted) -> None:
+    async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
         """Wire views override the same submission boundary."""
         await self.submissions.submit(event)
 
@@ -1274,7 +1273,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
         if self._directory_changed or not self.is_watching_directory:
             self._directory_changed = False
-            self.post_message(messages.ProjectDirectoryUpdated())
+            self.publish_core(input_events.ProjectDirectoryUpdated())
             self.prompt.project_directory_updated()
 
         self._turn_count += 1
@@ -1593,11 +1592,11 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 self.agent.get_info() if self.agent is not None else Content()
             )
 
-    @on(messages.HistoryMove)
-    async def on_history_move(self, message: messages.HistoryMove) -> None:
+    @handles(input_events.HistoryMove)
+    async def on_history_move(self, message: CoreEventMessage) -> None:
         message.stop()
-        history = self.input_histories.history(message.history_kind)
-        entry = await history.navigate(message.direction, message.body)
+        history = self.input_histories.history(message.event.history_kind)
+        entry = await history.navigate(message.event.direction, message.event.body)
         history.present(self.prompt, entry)
 
     @work

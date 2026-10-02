@@ -4,6 +4,7 @@ from agent_comms.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual.message import Message
 from weakref import WeakMethod, ref
+from functools import cached_property
 
 from toad.core.events import CoreEvent, CoreEventStream, Subscription
 
@@ -39,6 +40,23 @@ class CoreEventReceiver(MroDispatch):
         subscription = stream.subscribe(self.post_core_event)
         self._core_subscriptions.add(subscription)
         return subscription
+
+    @cached_property
+    def core_publications(self) -> CoreEventStream:
+        """Acquire this native source's publication resource on first use."""
+        stream = CoreEventStream(self)
+        self.subscribe_core(stream)
+        return stream
+
+    def publish_core(self, event: CoreEvent) -> None:
+        self.core_publications.publish(event)
+
+    async def consume_handlers(self, message, handlers):
+        # Textual callbacks may return native Worker resources. Publications
+        # retain their identity; callback returns do not replace their data.
+        for handler in handlers:
+            await invoke(handler, message)
+        return message
 
     def observe_core(self, stream: CoreEventStream) -> Subscription:
         """Broadcast observations terminate at their original native recipient."""

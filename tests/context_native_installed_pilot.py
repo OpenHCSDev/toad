@@ -1,4 +1,5 @@
 """Physical Pi/ACP context measurement and actual visible status, loopback only."""
+from toad.core import input_events
 import asyncio
 from importlib.resources import files
 from pathlib import Path
@@ -18,7 +19,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: view.agent_ready)
     assert not agent.context_measurement.available
     assert 'Native owner has not reported' in view.status.plain
-    await view.submit_input(messages.UserInputSubmitted('CONTEXT_MEASUREMENT_NATIVE'))
+    await view.submit_input(input_events.UserInputSubmitted('CONTEXT_MEASUREMENT_NATIVE'))
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: agent.context_measurement.available)
     measurement = agent.context_measurement

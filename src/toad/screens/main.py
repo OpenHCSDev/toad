@@ -1,3 +1,4 @@
+from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
 from toad.core_event_carrier import CoreEventReceiver
@@ -456,7 +457,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         if self.id is not None:
             self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.id, +1))
 
-    @on(messages.ProjectDirectoryUpdated)
+    @handles(input_events.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
         if self._project_panel is not None:
             self._project_panel.invalidate()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.core import input_events
 from toad.navigation_target import NavigationContext
 
 from agent_comms.acp_extension import (
@@ -438,16 +439,16 @@ async def main() -> None:
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            created_conversation.post_message(
-                messages.UserInputSubmitted("  Name this\nfrom my first prompt  ")
+            created_conversation.publish_core(
+                input_events.UserInputSubmitted("  Name this\nfrom my first prompt  ")
             )
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            created_conversation.post_message(
-                messages.UserInputSubmitted("Do not rename this twice")
+            created_conversation.publish_core(
+                input_events.UserInputSubmitted("Do not rename this twice")
             )
             await pilot.pause()
             assert (

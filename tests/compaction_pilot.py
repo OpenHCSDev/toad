@@ -6,7 +6,7 @@ from pathlib import Path
 from toad.core.events import Update, CommsUpdated
 from toad.acp.agent import Agent
 from runtime_fixture import ToadApp
-from toad.messages import UserInputSubmitted
+from toad.core.input_events import UserInputSubmitted
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation, TurnActivity
 from time import time
@@ -47,7 +47,7 @@ async def main():
             await conversation.post(AgentResponse('An earlier answer.'))
             agent = CompactAgent(conversation)
             conversation.set_reactive(Conversation.agent, agent)
-            conversation.post_message(UserInputSubmitted('/compact', False))
+            conversation.publish_core(UserInputSubmitted('/compact', False))
             await asyncio.wait_for(agent.started.wait(), 3)
             processed = asyncio.Event()
             conversation.call_later(processed.set)

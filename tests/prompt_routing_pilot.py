@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 from toad.app import ToadApp
-from toad.messages import UserInputSubmitted
+from toad.core.input_events import UserInputSubmitted
 
 
 async def main():
