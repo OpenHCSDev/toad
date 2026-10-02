@@ -77,3 +77,27 @@ custody; it does not qualify hidden-channel switching or installed motion.
 Source/native lifecycle evidence remains in .artifacts/source344-logical-viewport-lifetime.
 No current capture/test client remains. The final changed installed channel/DM
 switch closure is still required for344Ready, without repeating frozen32 film.
+
+## Late hydration uses the same window membership
+
+CommsScreen can finish mounting its conversation after the logical tab has
+already retired. A newly constructed DocumentViewport starts unsuspended, so
+the earlier SessionView retirement cannot reach it. The original native display
+ancestry still records that its parent is hidden. WindowMembership now derives
+displayed admission from that ancestry and the current physical screen.
+
+DocumentViewport's existing accepts_frame combines that native membership with
+its suspended resource lifetime. Frame geometry, requests, scroll observation,
+reconciliation and every restoration admission consume that same answer. The
+old physical-screen-only restoration checks and inactive reconciliation branch
+are deleted. Hidden reader anchors no longer become frame geometry targets.
+No selected-source flag, copied visibility, window registry or timer was added.
+Archive windows on their own current modal screen use the same native ancestry.
+
+The source reader and publication identities remain Kepler338. This closes
+frontend admission even when a hidden hydration produced no source rows. The
+existing NRA before/after family output remains under
+`.artifacts/source344-logical-viewport-lifetime`; dynamic attribute resolution
+still requires source reading. This extension is published work in progress.
+Final batched sanity and changed installed channel/native return qualification
+remain required; the frozen Text32 film does not qualify this source extension.
