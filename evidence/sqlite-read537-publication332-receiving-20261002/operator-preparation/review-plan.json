@@ -1,0 +1,34 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002/activation.json",
+    "sha256": "8ecf2460957ebf4f190e9be3753c74526e6590b314441c6a1a2956a6ef07af9e"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/sqlite-read537-publication332-receiving-20261002/source-proof.json",
+    "sha256": "e163ad21a961323a49ba08cfdf270319dd159dd27ef56ed8588d41381efd24a2"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/sqlite-read537-publication332-receiving-20261002/qualified-source-gates/537-READY-CORE.md",
+      "sha256": "7afd8393cc33279dd5dc056d1383fb60ed5dcdfab23c7ef3f5e32770048f9ff4"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/sqlite-read537-publication332-receiving-20261002/qualified-source-gates/332-receipt.json",
+      "sha256": "9cee7f4ea014bf68c6cdf7cd8bd8cd64f9bc88d23a3dfb9b0fcc86772807efcf"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/sqlite-read537-publication332-receiving-20261002/qualified-source-gates/332-semantic-assessment.json",
+      "sha256": "317513d917dc471eab5e3c102f3477eb53189759087b8f298537fe50238e0679"
+    }
+  ]
+}
