@@ -13,6 +13,7 @@ from weakref import WeakSet
 from textual.widget import Widget
 from textual.containers import VerticalScroll
 from toad.widgets.viewport_body import DocumentViewport
+from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
@@ -222,6 +223,34 @@ class HistoryWindow(VerticalScroll):
     def history_mutating(self) -> bool:
         """Native tree locking is the publication fence, not source status."""
         return self.lock.is_locked
+
+    def protect_history(
+        self, items, *, older: bool, fallback: Widget,
+    ) -> tuple[Widget, set[Widget]]:
+        """Keep the reader's painted records and interaction owners during paging.
+
+        Source leaves supply their mounted presentations, not another copy of
+        the scene. Both native and wire pages borrow this one published geometry
+        and the window's original selection/focus before admitting or trimming.
+        """
+        items = tuple(items)
+        visible = self.screen._compositor.visible_widgets
+        viewport = self.content_region
+        retained = []
+        for item in items:
+            if item in visible:
+                region, clip = visible[item]
+                if (region.overlaps(viewport) and region.overlaps(clip)
+                        and clip.overlaps(viewport)):
+                    retained.append(item)
+        anchor = retained[0 if older else -1] if retained else fallback
+        endpoints = set(self.screen.selections)
+        if self.screen.focused is not None:
+            endpoints.add(self.screen.focused)
+        protected = protected_presentations(items, endpoints)
+        protected.update(retained)
+        protected.add(anchor)
+        return anchor, protected
 
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):

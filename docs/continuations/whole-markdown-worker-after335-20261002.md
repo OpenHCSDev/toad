@@ -70,3 +70,26 @@ Heisenberg retains full shared Window/frame/anchor/viewport integration after th
 owner cancelled the proposed transfer. Parent owns harness/live integration.
 Kepler retains channel-controller/native layout contribution; shared source hooks
 are coordinated directly, preserving one mounted history owner set.
+
+## Shared history and headless boundary
+
+The folded toad-headless-ui.zip U3/U7 scope keeps application semantic state at
+its existing headless authority. Window/frame geometry, native selection/focus,
+body/render resources and preparation remain frontend resources. Einstein owns
+U1 event-family migration; Kepler owns the existing channel history/source
+capability; Heisenberg owns shared scrolling/frame integration. No competing
+widget semantic state, new frontend or parallel event stream is introduced.
+
+HistoryWindow.protect_history now owns the current painted anchor and protected
+native interaction resources for page admission. TranscriptHistory._load_page
+uses it and deletes its local geometry/selection decision sequence. The helper
+uses published compositor regions and the existing protected_presentations
+ancestry mechanism, not another geometry map. Kepler's corresponding wire-page
+migration is pending in338; this working checkpoint is not complete cross-view
+qualification until that consumer uses the same owner.525 production/native
+modules parsed with existing NRA tools for this related family, no omissions.
+
+The parent owns the existing recorder REVIEW-only change needed to inspect a
+failed capture after completion. Existing raw335 failure and film stay untouched.
+Core state/events journeys and frontend motion/writer evidence are distinct;
+this frontend's later gate confirms actual rendering, not a second semantic owner.
