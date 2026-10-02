@@ -13,3 +13,9 @@ Accepted548 actual RAM/OFD lifetime,547 native custody and final309 physical ret
 Current334/333 and failed337 remain untouched. This is a NEW operation; no public receipt/preimages exist at freeze. Original publisher freshly checks complete audience/settings, idle/client absence, original route/defaults and its EX resource at execution. Old334 clients lack the new borrower lease and must be absent at first publication. Parent alone executes and owns default physical acceptance. No public readiness claim yet.
 
 345 and incomplete549/551 are excluded. Frozen prefix, proof and NEW operation are protected until publication/readback closes.
+
+## Original pre-effect failures
+
+81259 refused private directory permissions before receipt/pin/stop. Parent corrected only the reviewed owned directory and preserved that original failure. Future preparation source now constructs its owned directory with PrivateDirectoryRole.permissions and requires the role before reading/writing review operands; existing wrong permissions refuse rather than being silently repaired. One small filesystem batch verifies new private directory creation and wrong-existing-mode refusal. Frozen execution artifacts are unchanged.
+
+39568 then refused before AdmittedOwnerBatch.fence because publisher audience copied role/status/liveness while the original restart family excludes external execution. Its preflight receipt now exists; that exact operation is immutable and must not repeat. A separate source-family correction derives every related audience consumer from the existing OwnerRestartRequest/ThreadExecution owners. Current334/bootstrap originals remain, with no retirement or publication.
