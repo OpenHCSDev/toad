@@ -181,18 +181,22 @@ class MountedMessageHistory:
             if not root_is_current(self.service.root):
                 self.view.display = False
                 return
-            anchor = self.rows[0 if older else -1][1] if self.rows else None
+            anchor, protected = self.view.window.protect_history(
+                (widget for _, widget in self.rows), older=older,
+                fallback=self.rows[0 if older else -1][1] if self.rows else None,
+            )
             async with self.view.window.preserve_history(anchor):
                 if not root_is_current(self.service.root):
                     self.view.display = False
                     return
-                await self.insert_page(page, pairs, older=older)
+                await self.insert_page(page, pairs, older=older, protected=protected)
         self.view.conversation_kind.remember_page(self, page, older)
         self.view.window.check_follow()
 
 
     async def insert_page(
         self, page: MessagePage, pairs: list[tuple[WireMessage, Widget]], *, older: bool,
+        protected: set[Widget],
     ) -> None:
         tray = self.view.query_one("#comms-activity", containers.VerticalGroup)
         before = self.rows[0][1] if older and self.rows else tray
@@ -202,6 +206,8 @@ class MountedMessageHistory:
             self.rows[0:0] = pairs
             self.has_older = page.has_older
             while len(self.rows) > HISTORY_WINDOW_SIZE:
+                if self.rows[-1][1] in protected:
+                    break
                 _, widget = self.rows.pop()
                 await widget.remove()
                 self.has_newer = True
@@ -214,6 +220,8 @@ class MountedMessageHistory:
             self.view.contents.sort_children(key=lambda widget: order.get(widget, (2, 0, 0)))
             self.has_newer = page.has_newer
             while len(self.rows) > HISTORY_WINDOW_SIZE:
+                if self.rows[0][1] in protected:
+                    break
                 _, widget = self.rows.pop(0)
                 await widget.remove()
                 self.has_older = True

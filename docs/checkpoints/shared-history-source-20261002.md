@@ -79,3 +79,11 @@ than keeping one consolidated mirror of Message.body. Native BlockContent/
 selection/export consumers use the leaf clipboard/prompt methods, which read
 the original message; neither wire body is a MarkdownBlockContent. Historical
 identity routing and message timestamps remain original-message projections.
+
+Wire page publication now uses HistoryWindow.protect_history, shared with
+native transcript publication, instead of choosing a transport edge as its
+reader anchor. One original visible/clip and selection/focus acquisition owns
+both anchors and protected rows. Wire trimming stops at a protected boundary,
+so it cannot remove the active reader/selection/focus to meet its old cap.
+The cap and source preparation/controller replacement remain pending; this
+checkpoint does not claim that the whole duplicated paging policy is gone.
