@@ -1,0 +1,47 @@
+{
+  "fragment_arrangements": 0,
+  "profiled_100_reflows_seconds": 0.30699427699437365,
+  "fragments": 4,
+  "native_cache_capacity": 64,
+  "live_body_boxes_in_original_viewport_layout": 4,
+  "provider_calls": 0,
+  "boundary": "actual saved source/Toad widgets/native compositor, source only",
+  "source_update_painted": true,
+  "style_invalidated": true,
+  "resize_invalidated": true,
+  "rendered_family_reentry": [
+    {
+      "body": "TranscriptFragmentView",
+      "rendered_lines": 10,
+      "nonblank_lines": 4,
+      "reentry_ms": 0.1671460340730846,
+      "rebuild_calls": {},
+      "real_style_change_rebuilt_once": true
+    },
+    {
+      "body": "PreparedConversationMarkdown",
+      "rendered_lines": 5,
+      "nonblank_lines": 2,
+      "reentry_ms": 0.22218102822080255,
+      "rebuild_calls": {},
+      "real_style_change_rebuilt_once": true
+    },
+    {
+      "body": "StreamingMarkdown",
+      "rendered_lines": 5,
+      "nonblank_lines": 2,
+      "reentry_ms": 0.20135100930929184,
+      "rebuild_calls": {},
+      "real_style_change_rebuilt_once": true
+    }
+  ],
+  "offscreen_warm_admission_keeps_rows_not_controls": true,
+  "stationary_admission_preserves_rendered_resource": true,
+  "native_input_materialized_original_body": true,
+  "retirement_and_restore_invalidated": true,
+  "final_disposal_releases_scene": true,
+  "toad_source_head": "fa88c45e",
+  "textual_source_head": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0",
+  "qualification": "Joined SOURCE native family only; explicit source paths and existing E03 dependencies; not installed speed, CPU or frame acceptance",
+  "original_source_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/retained-body-current-geometry-319-20261002/receipt.json"
+}
