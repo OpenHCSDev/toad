@@ -18,12 +18,14 @@ from unittest.mock import patch
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
+from agent_comms.thread_execution import ExternalThreadExecution
 from agent_comms.comms import wire
 from native_session_retention_pilot import InstalledApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
-from record_installed_tui import ObserveJourney
+from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
+                                 marker_command, phase_events, main as record_main)
 
 
 async def until(condition):
@@ -130,6 +132,37 @@ async def exercise(app, pilot, root):
     return history
 
 
+def seed_channel(comms, project):
+    """Seed fresh wire originals in the existing fixture's private bus."""
+    comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(project),
+                                 process_identity=ProcessIdentity.capture(os.getpid()),
+                                 execution=ExternalThreadExecution))
+    for index in range(140):
+        comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
+
+
+async def exercise_with_evidence(app, pilot, root):
+    """One acceptance and failure-export lifetime for both physical entries."""
+    try:
+        history = await exercise(app, pilot, root)
+    except BaseException as error:
+        outcome = {'status': 'failed', 'error': repr(error)}
+        exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
+        spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.capture(expected_pid=os.getpid(), output_prefix=root / 'failed-history-state')
+        raise
+    else:
+        outcome = {'status': 'passed',
+            'scope': 'original I/O-held receipt/restart/typing/End assertions completed'}
+        return history
+    finally:
+        pending = root / 'journey-result.pending'
+        pending.write_text(json.dumps(outcome) + '\n')
+        pending.replace(root / 'journey-result.json')
+
+
 async def main():
     scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
     scratch.mkdir(parents=True, exist_ok=True)
@@ -141,30 +174,11 @@ async def main():
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
     comms = wire(root / 'wire')
-    comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(root),
-                                 process_identity=ProcessIdentity.capture(os.getpid())))
-    for index in range(140):
-        comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
+    seed_channel(comms, root)
     app = InstalledApp(project_dir=str(root))
     headless = os.environ.get('L0A_HEADLESS', '1') != '0'
     async with app.run_test(headless=headless, size=(100, 32)) as pilot:
-        try:
-            history = await exercise(app, pilot, root)
-        except BaseException as error:
-            outcome = {'status': 'failed', 'error': repr(error)}
-            exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
-            spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            module.capture(expected_pid=os.getpid(), output_prefix=root / 'failed-history-state')
-            raise
-        else:
-            outcome = {'status': 'passed',
-                'scope': 'original I/O-held receipt/restart/typing/End assertions completed'}
-        finally:
-            pending = root / 'journey-result.pending'
-            pending.write_text(json.dumps(outcome) + '\n')
-            pending.replace(root / 'journey-result.json')
+        history = await exercise_with_evidence(app, pilot, root)
         if not headless:
             # The existing recorder owns the physical window and quits through
             # its real Ctrl+Q binding after retaining the visible final frame.
@@ -183,6 +197,86 @@ class HistorySourceLifetimeJourney(ObserveJourney):
             '--await-completion', os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY']]) + '\n'
 
 
+class RetainedHistorySourceJourney(InputWarmJourney):
+    """Warm native motion and wire receipt lifetime in one original App."""
+
+    review_artifacts = (*InputWarmJourney.review_artifacts,
+                        'history-source-lifetime-review.json')
+
+    @classmethod
+    def history_thread(cls, args):
+        return 'resource436'
+
+    @classmethod
+    def closing_commands(cls, args):
+        return (marker_command() + 'source-start',
+                HistorySourceLifetimeJourney.script(args).strip(),
+                marker_command() + 'source-complete')
+
+    @classmethod
+    def review(cls, output, receipt):
+        result = super().review(output, receipt)
+        outcome = json.loads((Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
+                              / 'journey-result.json').read_text())
+        result['source_lifetime'] = outcome
+        (output / 'history-source-lifetime-review.json').write_text(json.dumps(outcome) + '\n')
+        return result
+
+    @classmethod
+    def validate_review(cls, review):
+        super().validate_review(review)
+        if review['source_lifetime']['status'] != 'passed':
+            raise RuntimeError('Original held-reader receipt/End acceptance failed')
+
+
+async def retained_app(project):
+    """The source-entry wrapper imports the selected installed product only."""
+    from toad.agent_schema import AgentDefinition
+
+    definition = AgentDefinition(identity='real-resource436', name='Real resource acceptance',
+        short_name='resource', run_command={'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])})
+    app = InstalledApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
+    root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
+    output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
+    async with app.run_test(headless=False, size=(160, 44)) as pilot:
+        # The original marker is appended only after its native screenshot and
+        # DTO have completed. Do not race Pilot input with the recorder's keys.
+        async with asyncio.timeout(float(os.environ['TOAD_VIDEO_DEADLINE']) - time.monotonic()):
+            while not any(event['label'] == 'source-start' for event in phase_events(output)):
+                await asyncio.sleep(.05)
+        history = await exercise_with_evidence(app, pilot, root)
+        while not app._exit:
+            await asyncio.sleep(.05)
+    assert not history.reader._pending
+
+
+async def record_retained(service, project, evidence, environment, *, recording_args,
+                          recording_timeout):
+    """Existing original-turn fixture callback; owns no second App or root."""
+    seed_channel(service, project)
+    env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project))
+    env.pop('NO_COLOR', None)
+    runtime = Path(sys.executable).parent
+    env['AGENT_COMMS_RUNTIME_ROOT'] = str(runtime)
+    command = [sys.executable, str(Path(__file__).resolve()), '--record', *recording_args,
+        '--capture-target', 'source', '--private-root', str(service.root),
+        '--journey', 'retained_history_source', '--peer-thread', 'resource236b',
+        '--capture-state', '--scroll-travel', '--output', str(evidence / 'capture'),
+        '--', sys.executable, str(Path(__file__).resolve()), '--retained-app', str(project)]
+    (evidence / 'joint-command.json').write_text(json.dumps(command, indent=2) + '\n')
+    owner = ProcessOwner(service.registry)
+    try:
+        with (evidence / 'joint-recorder.log').open('w') as log:
+            # Both the recording budget and bounded child custody are chosen
+            # by its sole installed operator; this callback changes neither.
+            await asyncio.to_thread(owner.run, command, env, timeout=recording_timeout,
+                                    stdout=log, stderr=log)
+    finally:
+        cleanup = await asyncio.to_thread(owner.cleanup)
+        (evidence / 'joint-cleanup.json').write_text(json.dumps(cleanup, indent=2) + '\n')
+    assert not cleanup['remaining_owned_pids'] and not cleanup['errors'], cleanup
+
+
 def await_completion(root):
     """Observe immutable fixture completion, never backend or UI state."""
     deadline = float(os.environ['TOAD_VIDEO_DEADLINE'])
@@ -199,5 +293,10 @@ def await_completion(root):
 if __name__ == '__main__':
     if sys.argv[1:2] == ['--await-completion']:
         await_completion(Path(sys.argv[2]))
+    elif sys.argv[1:2] == ['--retained-app']:
+        asyncio.run(retained_app(Path(sys.argv[2])))
+    elif sys.argv[1:2] == ['--record']:
+        del sys.argv[1]
+        record_main()
     else:
         asyncio.run(main())
