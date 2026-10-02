@@ -203,7 +203,8 @@ class Agent(AgentBase):
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""
-        self.post_message(messages.UpdateStatusLine(self.context_measurement.status()))
+        from toad.core.events import UpdateStatusLine
+        self.events.publish(UpdateStatusLine())
 
     async def stop(self) -> None:
         """Gracefully stop the process."""

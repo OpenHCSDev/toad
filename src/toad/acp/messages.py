@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from asyncio import Future
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -21,8 +20,6 @@ from .permission_controller import PermissionRequest
 
 if TYPE_CHECKING:
     from toad.live_output import OutputStream
-    from textual.content import Content
-    from toad.agent import AgentBase
     from toad.acp.agent_controller import SurfaceBinding
     from toad.acp.terminal_controller import TerminalController
     from toad.terminal_execution import TerminalExecution
@@ -40,32 +37,6 @@ class TerminalProjection(AgentMessage):
     controller: TerminalController
     terminal_id: str
     execution: TerminalExecution
-
-
-class InputDispositionsChanged(AgentMessage):
-    """Invalidate delivery display; the producer ledger owns its contents."""
-
-
-class RejectedSessionUpdate(AgentMessage):
-    """Invalid ACP input was logged and excluded from the conversation."""
-
-
-@dataclass
-class McpClientStopped(AgentMessage):
-    """The owning connection stopped; its live projection is no longer valid."""
-
-    agent: object
-
-
-@dataclass
-class Thinking(AgentMessage):
-    type: str
-    text: str
-
-
-@dataclass
-class UpdateStatusLine(AgentMessage):
-    status_line: str | Content
 
 
 @dataclass
@@ -122,20 +93,6 @@ class AvailableCommandsUpdate(AgentMessage):
 
 
 @dataclass
-class ConfigurationChanged(AgentMessage):
-    """Invalidate selection presentation; the original agent owns all values."""
-
-    agent: AgentBase
-
-
-@dataclass
-class SessionInfoUpdate(AgentMessage):
-    """Agent-provided title for its current session."""
-
-    title: str | None
-
-
-@dataclass
 class CommsUpdated(AgentMessage):
     """The exact shared record plus local attachment context."""
 
@@ -146,11 +103,3 @@ class CommsUpdated(AgentMessage):
     recover_draft: bool = False
     queue_scope: QueueScope | None = None
 
-
-@dataclass
-class UsageUpdage(AgentMessage):
-    """Context window change"""
-
-    used: int
-    size: int
-    cost: tuple[float, str] | None

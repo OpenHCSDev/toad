@@ -20,6 +20,7 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from runtime_fixture import ToadApp
 
 from toad.acp import messages as acp
+from toad.core import events as core_events
 from toad.acp.agent import Agent
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.message_divider import AgentActivityDivider, MessageDivider
@@ -79,7 +80,7 @@ async def main() -> None:
                 "Empty turns should not create headers"
             )
             await view.on_acp_agent_thinking(
-                acp.Thinking("text", "Preparing the worktree")
+                core_events.Thinking("text", "Preparing the worktree")
             )
             await pilot.pause()
             thought = view.contents.query_one(AgentThought)
@@ -91,7 +92,7 @@ async def main() -> None:
             )
             assert previous.region.bottom <= thought.region.y
             assert previous.render().cell_length == previous.size.width
-            await view.on_acp_agent_thinking(acp.Thinking("text", "\nNext step"))
+            await view.on_acp_agent_thinking(core_events.Thinking("text", "\nNext step"))
             tool = {
                 "toolCallId": "first-tool",
                 "title": "Read fixture",
@@ -101,7 +102,7 @@ async def main() -> None:
             await view.on_acp_tool_call_update(
                 acp.ToolCallUpdate({**tool, "status": "completed"}, {})
             )
-            await view.on_acp_agent_thinking(acp.Thinking("text", "Check the result"))
+            await view.on_acp_agent_thinking(core_events.Thinking("text", "Check the result"))
             assert len(view.contents.query(AgentActivityDivider)) == 1
             await view.on_input_started(
                 acp.CommsUpdated(
@@ -114,11 +115,11 @@ async def main() -> None:
             )
             await start("first")
             await view.on_acp_agent_thinking(
-                acp.Thinking("text", "Process the follow-up")
+                core_events.Thinking("text", "Process the follow-up")
             )
             await start("first")
             await view.on_acp_agent_thinking(
-                acp.Thinking("text", "\nStill the same activity")
+                core_events.Thinking("text", "\nStill the same activity")
             )
             assert len(view.contents.query(AgentActivityDivider)) == 2
             await view.post(UserInput("Use a tool first"))
@@ -143,7 +144,7 @@ async def main() -> None:
             await view.post(UserInput("Answer with text first"))
             await start("text-first")
             await view.on_acp_agent_message(acp.Update("text", "Text reply"))
-            await view.on_acp_agent_thinking(acp.Thinking("text", "Later activity"))
+            await view.on_acp_agent_thinking(core_events.Thinking("text", "Later activity"))
             assert len(view.contents.query(AgentActivityDivider)) == 3, "Text already carries an Agent header"
 
             long_thought = "\n\n".join(f"Step {index}: " + "reasoning " * 30 for index in range(10))

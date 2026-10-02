@@ -34,6 +34,7 @@ from textual.widgets._footer import FooterKey
 
 from toad import messages, paths
 from toad.acp import messages as acp_messages
+from toad.core import events as core_events
 from toad.acp.agent import Agent as ACPAgent
 from toad.db import DB
 from toad.pill import pill
@@ -535,14 +536,14 @@ async def main() -> None:
             assert flash.visible
             assert flash.rich_style.color != flash.rich_style.bgcolor
             flash.visible = False
-            conversation.post_message(
-                acp_messages.SessionInfoUpdate("Agent-owned title")
+            conversation.agent.events.publish(
+                core_events.SessionInfoUpdate("Agent-owned title")
             )
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).title == "Agent-owned title"
             )
-            conversation.post_message(acp_messages.SessionInfoUpdate(None))
+            conversation.agent.events.publish(core_events.SessionInfoUpdate(None))
             await pilot.pause()
             assert app.session_tracker.get_session(owner_mode).title == ""
             assert me in open_rows(app.screen)[0].render().plain
@@ -607,8 +608,8 @@ async def main() -> None:
             assert settled.state == "idle"
             assert settled.summary == "Ready for review"
             conversation.set_reactive(type(conversation).agent, previous_agent)
-            conversation.post_message(
-                acp_messages.Thinking("agent_thought_chunk", "Inspecting the workspace")
+            conversation.agent.events.publish(
+                core_events.Thinking("agent_thought_chunk", "Inspecting the workspace")
             )
             await pilot.pause()
             thought = conversation.query_one(AgentThought)

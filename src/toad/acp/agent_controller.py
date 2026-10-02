@@ -72,6 +72,9 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     @abstractmethod
     def post(self, message) -> bool: ...
 
+    def close(self) -> None:
+        """An absent frontend has no subscription to release."""
+
 
 class DetachedSurfaceBinding(SurfaceBinding):
     def post(self, message):
@@ -79,8 +82,15 @@ class DetachedSurfaceBinding(SurfaceBinding):
 
 
 class AttachedSurfaceBinding(SurfaceBinding):
-    def __init__(self, target):
+    def __init__(self, target, events):
         self._target = ref(target)
+        self.subscription = target.subscribe_core(events)
+
+    def close(self) -> None:
+        if (target := self.target) is not None:
+            target.retire_core(self.subscription)
+        else:
+            self.subscription.close()
 
     @property
     def target(self):
@@ -143,7 +153,7 @@ class AgentController(OperationalTerminalOwner):
         self.app = target.app
         self.transcripts.prepare_with(self.app.preparation)
         self.validation = ApplicationValidationOwner(self.app.render_processes)
-        self.surface = AttachedSurfaceBinding(target)
+        self.surface = AttachedSurfaceBinding(target, self.agent.events)
         self.agent.permissions.present(target)
         if self.agent.ready:
             self.start_operation(self.restore(self.surface))
@@ -152,6 +162,7 @@ class AgentController(OperationalTerminalOwner):
 
     def detach(self, target):
         if self.surface.owns(target):
+            self.surface.close()
             self.surface = DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
             self.terminals.detach()
@@ -201,13 +212,13 @@ class AgentController(OperationalTerminalOwner):
         binding.post(messages.CommsUpdated(snapshot, self.agent, session.session_id))
 
     def connection_closed(self):
-        from .messages import McpClientStopped
+        from toad.core.events import McpClientStopped
         agent = self.agent
         agent.session.closed()
         agent.permissions.cancel()
         agent._invalidate_attachment_views()
         agent.presentation.turns.reset()
-        agent.post_message(McpClientStopped(agent))
+        agent.events.publish(McpClientStopped())
 
     def reset_configuration(self):
         self.mode_state = None

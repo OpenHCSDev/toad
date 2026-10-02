@@ -180,7 +180,8 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(InputDeliveryChangedUpdate)
     def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:
-        self.agent.post_message(messages.InputDispositionsChanged())
+        from toad.core.events import InputDispositionsChanged
+        self.agent.events.publish(InputDispositionsChanged())
 
     @handles(CompactionPublishedUpdate)
     def compaction_published(self, update: CompactionPublishedUpdate) -> None:

@@ -57,6 +57,8 @@ from textual.widgets.markdown import MarkdownBlock
 
 from toad import jsonrpc, messages, paths
 from toad.acp import messages as acp_messages
+from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
 from toad.acp.status import StopReason, EndTurnStopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
@@ -628,7 +630,7 @@ from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
 
 
-class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
+class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSessionBinding):
     ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
@@ -1024,11 +1026,10 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             return
         await self._apply_session_name(make_session_title(prompt))
 
-    @on(acp_messages.SessionInfoUpdate)
+    @handles(core_events.SessionInfoUpdate)
     async def on_session_info_update(
-        self, message: acp_messages.SessionInfoUpdate
+        self, message: core_events.SessionInfoUpdate
     ) -> None:
-        message.stop()
         if (
             self.agent.coordination.wire_root
             if self.agent and self.agent.coordination
@@ -1318,18 +1319,17 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         message.stop()
         await message.binding.present_terminal(message, self)
 
-    @on(acp_messages.UpdateStatusLine)
-    async def on_update_status_line(self, message: acp_messages.UpdateStatusLine):
+    @handles(core_events.UpdateStatusLine)
+    async def on_update_status_line(self, message: core_events.UpdateStatusLine):
         # The shared widget can receive a queued status message after its
         # source changes. The selected Agent owns the measured value.
         if self.agent is not None:
             self.status = self.agent.context_measurement.status()
 
-    @on(acp_messages.RejectedSessionUpdate)
+    @handles(core_events.RejectedSessionUpdate)
     async def on_rejected_session_update(
-        self, message: acp_messages.RejectedSessionUpdate
+        self, message: core_events.RejectedSessionUpdate
     ) -> None:
-        message.stop()
         self.output.boundary()
         await self.post(
             Note(
@@ -1357,13 +1357,11 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         self._private_cursor_sequence = message.sequence
         self.native_history_status = message.update.status
 
-    @on(acp_messages.McpClientStopped)
+    @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(
-        self, message: acp_messages.McpClientStopped
+        self, message: core_events.McpClientStopped
     ) -> None:
-        message.stop()
-        if message.agent is self.agent:
-            await self._clear_mcp_live()
+        await self._clear_mcp_live()
 
     async def on_mcp_client_status(self, message: acp_messages.CommsUpdated) -> None:
         """Render the turn-bound receipt only inside an active server-owned turn."""
@@ -1493,9 +1491,8 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         if message.worker is self.transcript.worker and message.worker.is_finished:
             self.transcript.retry()
 
-    @on(acp_messages.Thinking)
-    async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
-        message.stop()
+    @handles(core_events.Thinking)
+    async def on_acp_agent_thinking(self, message: core_events.Thinking):
         self.turns.describe("Thinking…")
         activity = " ".join(message.text.splitlines()).strip() or "Thinking"
         await self.output.append(ThoughtStream(), message.text)
@@ -1571,11 +1568,8 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 style="success",
             )
 
-    @on(acp_messages.ConfigurationChanged)
-    def on_acp_configuration_changed(self, message: acp_messages.ConfigurationChanged):
-        message.stop()
-        if message.agent is not self.agent:
-            return
+    @handles(core_events.ConfigurationChanged)
+    async def on_acp_configuration_changed(self, message: core_events.ConfigurationChanged):
         self._update_model_info()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_configuration()
@@ -1683,10 +1677,10 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     def unresolved_inputs(self) -> list[dict]:
         return self.input_delivery["inputs"]
 
-    def on_input_dispositions_changed(
-        self, event: acp_messages.InputDispositionsChanged
+    @handles(core_events.InputDispositionsChanged)
+    async def on_input_dispositions_changed(
+        self, event: core_events.InputDispositionsChanged
     ) -> None:
-        event.stop()
         self.delivery_observation.invalidate()
 
     @on(InputDeliveryBar.Inspect)

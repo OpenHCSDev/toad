@@ -21,3 +21,15 @@ Existing refactor-audit Package.load parsed276 production+389 test modules, zero
 ## Remaining U1 scope
 
 ACP AgentMessage and agent lifecycle events still carry original live agent, terminal, output stream and permission resources. They cannot be wire-serialized as anonymous objects or given a duplicate identity registry. Continue from original AgentController/SurfaceBinding/PermissionController/TurnBinding ownership to move actual data publications across the same core stream/carrier; widget-only resource completion remains frontend-owned. Other application messages and app Signals remain to migrate. No U1/U2 Ready or installed qualification yet. Final affected sanity and installed saved-session UI/native path come after coherent source implementation.
+
+## ACP fact-family checkpoint
+
+Seven existing application publications now use the same core family: Thinking, SessionInfoUpdate, InputDispositionsChanged, RejectedSessionUpdate, UpdateStatusLine, ConfigurationChanged and McpClientStopped. Their old Textual declarations are deleted, with all producer/consumer references migrated. Unused UsageUpdage was declared but never produced or consumed and is deleted.
+
+ContextMeasurement already owns the status and the consumer already ignored the queued status_line field. Delete that copied rendered field rather than encoding Textual Content. Configuration and stopped-client events similarly invalidate original owners; they no longer carry another agent identity. SessionInfoUpdate.title remains nullable because the external ACP schema permits an explicit null title, not because it models an internal lifecycle.
+
+Existing AgentBase owns its event stream. Existing AttachedSurfaceBinding acquires the frontend subscription once and closes it on detach. CoreEventMessage borrows that original subscription; already queued work consults its current resource membership, so closing a surface prevents stale delivery after rebinding. No cached active flag, agent ID mirror, new attachment authority or independent generation. CoreEventReceiver retains subscription resources in a set and release is idempotent across detach/native unmount. The native Widget unmount cleanup still runs through Textual's original handler MRO.
+
+The seven fact handlers consume the original event via MroDispatch. Their old message.stop calls are removed; generic carrier owns native propagation. Async handlers keep the original native message-pump ordering. Source fixtures migrate their original event publications and attachment constructor to the same stream/subscription, with no compatibility aliases. Historical failed captures/receipts are untouched.
+
+Still unfinished: ACP output/permission/terminal/tool/plan/command/Comms publications, agent ready/failure and other application intents/Signals. Their original resources and external SDK types need complete owner separation, not anonymous serialization or a fake stable-ID registry. No whole U1/U2 completion or installed readiness is claimed by this source checkpoint.

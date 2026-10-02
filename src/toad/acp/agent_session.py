@@ -60,7 +60,8 @@ class AgentSession:
             await DB().session_update_last_used(self.pk)
 
     def coordinated_title(self, title):
-        self.agent.post_message(messages.SessionInfoUpdate(self.pending_name or title))
+        from toad.core.events import SessionInfoUpdate
+        self.agent.events.publish(SessionInfoUpdate(self.pending_name or title))
         if self.pending_name is not None:
             self.rename_coordination(self.pending_name)
             self.pending_name = None

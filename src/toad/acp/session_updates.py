@@ -9,6 +9,7 @@ from agent_comms.acp_extension import decode_updates
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
 from toad.acp import messages
+from toad.core import events
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.sdk_boundary import decode_session_update
@@ -67,7 +68,7 @@ class SessionUpdateEffect(MroDispatch):
     @handles(SessionInfoUpdate)
     def info(self, update):
         if 'title' in update.model_fields_set:
-            self.agent.post_message(messages.SessionInfoUpdate(update.title))
+            self.agent.events.publish(events.SessionInfoUpdate(update.title))
 
     @handles(UsageUpdate)
     def usage(self, update):
@@ -95,7 +96,7 @@ class UserContentEffect(MessageContentEffect):
 
 class ThoughtContentEffect(MessageContentEffect):
     def publish(self, content):
-        self.agent.post_message(messages.Thinking(content.type, content.text))
+        self.agent.events.publish(events.Thinking(content.type, content.text))
 
 
 class AgentContentEffect(MessageContentEffect):
@@ -144,7 +145,7 @@ class SessionNotificationOwner(ClientRequestOwner):
         self.agent.log(
             f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
             f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}")
-        self.agent.post_message(messages.RejectedSessionUpdate())
+        self.agent.events.publish(events.RejectedSessionUpdate())
 
     def publish(self, session_id, update):
         metadata = update.update.field_meta

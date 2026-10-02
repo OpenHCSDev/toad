@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
 from agent_comms.thread_presentation import ThreadPresentation
+from toad.core.events import CoreEventStream
 
 from textual.content import Content
 from textual.message import Message
@@ -73,6 +74,7 @@ class AgentBase(ABC):
 
     def __init__(self, project_root: Path) -> None:
         self.project_root_path = project_root
+        self.events = CoreEventStream()
         self.presentation = LocalAgentPresentation(self)
         from toad.acp.agent_configuration import AgentConfiguration
         self.configuration = AgentConfiguration(self)
