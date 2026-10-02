@@ -87,7 +87,6 @@ from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
 from toad.shell import CurrentWorkingDirectoryChanged, Shell
-from toad.slash_command import SlashCommand
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
     InputDeliveryBar,
@@ -99,7 +98,6 @@ from toad.widgets.agent_response import ResponseDelivery
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
-from toad.slash_command import AgentAdvertisedCommand, LocalCommand
 from toad.menus import MenuItem
 from toad.widgets.shell_terminal import ShellTerminal
 
@@ -475,7 +473,6 @@ class ConversationSessionBinding(containers.Vertical):
 
         self.set_reactive(ConversationSessionBinding.project_path, project_path)
         self.set_reactive(ConversationSessionBinding.working_directory, str(project_path))
-        self.agent_slash_commands: list[AgentAdvertisedCommand] = []
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
         self._filter_scroll_positions = {}
@@ -1574,9 +1571,6 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     async def on_acp_available_commands_update(
         self, message: acp_messages.AvailableCommandsUpdate
     ):
-        self.agent_slash_commands = [
-            AgentAdvertisedCommand.from_acp(record) for record in message.commands
-        ]
         self.update_slash_commands()
 
     async def action_interrupt(self) -> None:
@@ -1694,9 +1688,13 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
 
     def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()
-        ).commands
+        self.prompt.slash_commands = self.command_catalog.commands
+
+    @property
+    def command_catalog(self) -> CommandCatalog:
+        agent = self.agent
+        return CommandCatalog(agent.presentation.commands if agent is not None else (),
+                              self.command_target_context())
 
     async def on_mount(self) -> None:
         self.set_interval(1, lambda: self.goal_controls.poll())
@@ -1707,9 +1705,7 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
         self.trap_focus()
         self.watch(self.window, "scroll_y", self._history_scroll_changed, init=False)
         self.prompt.focus()
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()
-        ).commands
+        self.prompt.slash_commands = self.command_catalog.commands
         self.call_after_refresh(self.post_welcome)
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self.app.open_tabs_changed.subscribe(self, self._open_tabs_changed)
@@ -1856,6 +1852,9 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
                 self.call_later(self.goal_observation.refresh)
                 self.call_later(self.delivery_observation.refresh)
         self.update_title()
+
+        if self.is_mounted:
+            self.update_slash_commands()
 
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.
@@ -2198,34 +2197,6 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
             self.window.anchor()
             self.prompt.focus()
         self.refresh_bindings()
-
-    async def slash_command(self, text: str) -> bool:
-        """Resolve local declarations before forwarding advertised commands."""
-        name, _, arguments = text.partition(" ")
-        commands = {command.command: command for command in CommandCatalog(self.agent_slash_commands, self.command_target_context()).commands}
-        command = commands.get(name)
-        if command is None:
-            from toad.thread_actions import ThreadAction
-            try:
-                member = SlashCommand.decode(name.removeprefix("/"))
-            except ValueError:
-                try:
-                    ThreadAction.decode(name.removeprefix("/"))
-                except ValueError:
-                    return False
-            else:
-                if not issubclass(member, LocalCommand):
-                    return False
-            self.flash("Action is not available for the current target", style="error")
-            return True
-        if isinstance(command, AgentAdvertisedCommand):
-            return False
-        try:
-            return await command.parse_arguments(arguments).apply(self)
-        except (OSError, ValueError) as error:
-            self.flash(str(error), style="error")
-            return True
-
 
 class ConversationCommsConsumer(MroDispatch):
     def __init__(self, conversation, message):

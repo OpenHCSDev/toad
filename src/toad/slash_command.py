@@ -22,6 +22,7 @@ from textual.content import Content
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
+    from toad.target_commands import TargetContext
 
 
 class LocalCommand:
@@ -42,6 +43,12 @@ class CommandPresentation:
 
     def parse_arguments(self, arguments: str) -> SlashCommand:
         return type(self).parse(arguments)
+
+    def completion(self, context: TargetContext | None, available_actions):
+        return (self,)
+
+    def target_choices(self, context: TargetContext | None, available_actions):
+        return ()
 
     def highlight_input(self, text: str, arguments_started: bool) -> Content:
         content = Content(text)
@@ -92,6 +99,10 @@ class AgentAdvertisedCommand(SlashCommand):
     @classmethod
     def parse(cls, arguments: str) -> Self:
         raise ValueError("Advertised commands are decoded at the ACP boundary")
+
+    def parse_arguments(self, arguments: str) -> Self:
+        # The submission still owns the complete original text and arguments.
+        return self
 
     async def apply(self, conversation: Conversation) -> bool:
         return False

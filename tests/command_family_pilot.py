@@ -1,309 +1,181 @@
-"""Mounted command discovery/submission using real isolated core stores."""
+"""Installed command ownership through real saved native/ACP state and X input.
 
+Run with COMMAND297_PHYSICAL=1 under an owned isolated st/Xvfb display. The
+existing native fixture owns protocol, native history, loopback provider and
+owner retirement; this acceptance owns only observations and physical actions.
+"""
 from __future__ import annotations
-from toad.navigation_target import NavigationContext
-from toad.navigation_target import DirectTarget, channel_target
 
 import asyncio
-import os
 import json
-import sys
-from importlib.resources import files
+import os
 from pathlib import Path
-from tempfile import TemporaryDirectory
+import sys
+import time
 
-from agent_comms.comms import wire
-from agent_comms.threads import Thread
-from agent_comms.thread_status import StoppedThreadStatus
-from textual.geometry import Offset
-from runtime_fixture import ToadApp, wait_fork_dialog
-from toad.screens.main import MainScreen
-from toad.slash_command import (
-    AgentAdvertisedCommand,
-    LocalCommand,
-    NoArgumentsCommand,
-    SlashCommand,
-)
-from toad.command_catalog import CommandCatalog
-from toad.target_commands import TargetLocal, target_commands
-from toad.thread_actions import ArchiveAction, ForkAction, ThreadAction
-from toad.widgets.comms_fork_dialog import ForkDialog
-from textual.widgets import Static
-from toad.widgets.comms_menu import ContextMenuItem
-from toad.widgets.comms_sidebar import CommsSidebar
+from acp.schema import AvailableCommandsUpdate
+from l0a_native_installed_pilot import main as native_fixture, until
+from native_session_retention_pilot import InstalledApp, conversation_paint
+from runtime_fixture import wait_channel_roster
+from saved_state_user_journey_pilot import prepare_saved_state
+from toad.screens.comms import CommsScreen
+from toad.slash_command import NoArgumentsCommand
 from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.comms_sidebar import CommsRow
+from toad.widgets.comms_menu import ContextMenuItem
+from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.slash_complete import SlashComplete
 
 
-class CommandPilotApp(ToadApp):
-    """Exercise installed commands without unrelated internet telemetry tasks."""
+class InsertionCommand(NoArgumentsCommand):
+    """A new declaration needs no catalog, dispatcher or menu edit."""
+    help = "Run the declaration insertion control"
 
-    CSS_PATH = files("toad").joinpath("toad.tcss")
-
-
-
-async def until(pilot, predicate):
-    async with asyncio.timeout(8):
-        while not predicate():
-            await pilot.pause(0.02)
+    async def apply(self, conversation):
+        conversation.prompt.text = "declaration ran"
+        return True
 
 
-async def submit(pilot, conversation, text):
-    conversation.prompt.text = text
-    conversation.prompt.focus()
-    await pilot.press("enter")
-    await pilot.pause(0.05)
+async def external(*arguments):
+    process = await asyncio.create_subprocess_exec(
+        *arguments, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    async with asyncio.timeout(5):
+        stdout, stderr = await process.communicate()
+    assert process.returncode == 0, (arguments, stderr.decode())
+    return stdout.decode()
 
 
-async def main():
-    class InsertionCommand(NoArgumentsCommand):
-        help = "A single declaration becomes discoverable and executable"
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    assert os.environ.get("COMMAND297_PHYSICAL") == "1"
+    assert os.environ["DISPLAY"] != ":0"
+    assert type(app._driver).__name__ == "LinuxDriver"
+    evidence = Path(os.environ["L0A_EVIDENCE"])
+    started = time.monotonic()
+    events = []
+    window = (await external("xdotool", "search", "--sync", "--pid", str(os.getppid()))).splitlines()[0]
+    geometry = dict(line.split("=", 1) for line in
+                    (await external("xdotool", "getwindowgeometry", "--shell", window)).splitlines())
+    await external("xdotool", "windowfocus", "--sync", window)
 
-        async def apply(self, conversation):
-            conversation.prompt.text = "declaration ran"
-            return True
+    async def mark(name):
+        await pilot.pause(.12)
+        (evidence / f"{name}.txt").write_text("\n".join(strip.text for strip in app.screen._compositor.render_strips()))
+        (evidence / f"{name}.svg").write_text(app.export_screenshot())
+        await external("import", "-display", os.environ["DISPLAY"], "-window", "root", str(evidence / f"{name}.png"))
+        events.append({"phase": name, "seconds": time.monotonic() - started,
+                       "mode": app.selected_mode, "requests": len(requests)})
+        (evidence / "events.json").write_text(json.dumps(events, indent=2))
 
-    for member in SlashCommand.members_with(LocalCommand):
-        assert member.help and member().command
-        assert member.parse("" if issubclass(member, TargetLocal) else "1")
-    for member in ThreadAction.menu():
-        assert member.pending and member.menu_label()
-        assert member.tool.action_label == member.menu_label()
-    advertised = [
-        AgentAdvertisedCommand("model", "wrong collision help"),
-        AgentAdvertisedCommand("external", "Native agent command"),
-    ]
-    completions = CommandCatalog(advertised).commands
-    assert (
-        next(c for c in completions if c.command == "/model").help
-        != "wrong collision help"
-    )
-    assert next(c for c in completions if c.command == "/external").requires_agent
-    assert any(c.command == "/insertion" for c in completions)
+    async def click(widget, button=1):
+        await pilot.pause(.08)
+        region = widget.region
+        assert widget in app.screen._compositor.visible_widgets and region.width and region.height
+        # st has a two-pixel border. Derive cell geometry from the actual window
+        # and installed driver's actual terminal dimensions, not fixed XY values.
+        x = int(geometry["X"]) + 2 + (region.x + min(2, region.width // 2) + .5) * (int(geometry["WIDTH"]) - 4) / app.size.width
+        y = int(geometry["Y"]) + 2 + (region.y + .5) * (int(geometry["HEIGHT"]) - 4) / app.size.height
+        await external("xdotool", "mousemove", "--sync", str(round(x)), str(round(y)), "click", str(button))
+        await pilot.pause(.1)
 
-    artifacts = Path(__file__).resolve().parents[1] / ".artifacts"
-    with TemporaryDirectory(prefix="t3-commands-", dir=artifacts) as directory:
-        root = Path(directory)
-        os.environ.update(
-            AGENT_COMMS_ROOT=str(root / "wire"),
-            XDG_CONFIG_HOME=str(root / "config"),
-            XDG_STATE_HOME=str(root / "state"),
-            XDG_DATA_HOME=str(root / "data"),
-        )
-        comms = wire(root / "wire")
-        for name in ("actor", "pointer", "slash", "other"):
-            comms.registry.register(
-                Thread(name, frozenset({"team"}), str(root)), StoppedThreadStatus()
-            )
-        comms.channels.create_tag("team")
-        comms.messaging.send("pointer", "actor", "retained pointer history")
-        comms.messaging.send("slash", "actor", "retained slash history")
-        original_history = comms.views.full_history()
-        app = CommandPilotApp(project_dir=str(root))
-        async with app.run_test(size=(110, 38)) as pilot:
-            mode = (await app.session_navigation.new(lambda: MainScreen(root))).mode_name
-            conversation = app.selected_session.conversation
-            actor = app.selected_session.navigation_context.actor
-            if actor not in comms.registry.all_threads():
-                comms.registry.register(
-                    Thread(actor, frozenset({"team"}), str(root)), StoppedThreadStatus()
-                )
-            conversation.update_slash_commands()
-            # A fresh ACP SDK producer exercises the real JSON-RPC notification
-            # validator and mounted consumer; no provider is invoked.
-            producer = """import json
-from acp.schema import AvailableCommandsUpdate
-update=AvailableCommandsUpdate.model_validate({'sessionUpdate':'available_commands_update',
- 'availableCommands':[{'name':'model','description':'ACP collision'},
-                      {'name':'external','description':'Native command'}]})
-print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
- 'sessionId':'commands','update':update.model_dump(by_alias=True,exclude_none=True)}}))
-"""
-            process = await asyncio.create_subprocess_exec(
-                sys.executable, "-c", producer, stdout=asyncio.subprocess.PIPE
-            )
-            payload = await process.stdout.read()
-            assert await process.wait() == 0
-            from toad.acp.agent import Agent
+    async def submit(view, text):
+        await click(view.prompt.prompt_text_area)
+        assert app.focused is view.prompt.prompt_text_area
+        app.copy_to_clipboard(text)
+        await external("xdotool", "key", "--clearmodifiers", "ctrl+v")
+        await until(pilot, lambda: view.prompt.text == text)
+        if isinstance(app.focused.parent, SlashComplete):
+            await external("xdotool", "key", "Escape")
+        await external("xdotool", "key", "--clearmodifiers", "Return")
+        await pilot.pause(.15)
 
-            agent = Agent(
-                root,
-                {
-                    "name": "Commands",
-                    "identity": "commands",
-                    "short_name": "commands",
-                    "run_command": {"*": "true"},
-                    "protocol": "acp",
-                },
-                "commands",
-            )
-            agent.attach_surface(conversation)
-            await agent.server.call(json.loads(payload))
-            await until(
-                pilot,
-                lambda: any(
-                    c.command == "/external" for c in conversation.prompt.slash_commands
-                ),
-            )
-            assert (
-                next(
-                    c
-                    for c in conversation.prompt.slash_commands
-                    if c.command == "/model"
-                ).help
-                != "ACP collision"
-            )
-            assert await conversation.slash_command("/external argument") is False
-            print(
-                "PASS: fresh ACP SDK -> real JSON-RPC validation -> mounted advertised command completion; local collision and forwarding preserved",
-                flush=True,
-            )
-            await submit(pilot, conversation, "/insertion")
-            assert conversation.prompt.text == "declaration ran"
-            await submit(pilot, conversation, "/copy")
-            assert app.clipboard == actor
-            before = comms.views.full_history()
-            await submit(pilot, conversation, "/toad:clear nonsense")
-            assert comms.views.full_history() == before
-            print(
-                "PASS: mounted agent command insertion, local execution before agent readiness, collision ownership and invalid-argument consumption",
-                flush=True,
-            )
+    first = app.selected_session
+    view = first.conversation
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    assert "SAVED_READER_1" in Path(comms.registry.require("beta").session_file).read_text()
+    assert len(requests) == 2
+    await mark("01-saved-native")
+    before_history = comms.views.full_history()
 
-            dm = await DirectTarget('slash').open(NavigationContext(app, mode, root, 'actor'))
-            await pilot.pause()
-            await until(
-                pilot, lambda: app.screen.query_one_optional(CommsChatView) is not None
-            )
-            conversation = app.screen.query_one(CommsChatView)
-            await until(
-                pilot,
-                lambda: conversation._wire is not None and conversation.agent_ready,
-            )
-            conversation.update_slash_commands()
-            assert conversation.query_one(SlashComplete)
-            sidebar = app.screen.query_one(CommsSidebar)
-            sidebar.selected = "other"
-            sidebar._show_thread_menu("slash", Offset(3, 3), mode_name=dm)
-            await pilot.pause()
-            menu = {
-                item.action: item.render().plain
-                for item in app.screen.query(ContextMenuItem)
-            }
-            expected = {
-                c.command.removeprefix("/"): c.label(
-                    conversation.command_target_context()
-                )
-                for c in target_commands(conversation.command_target_context())
-            }
-            assert menu == expected, (menu, expected)
-            await app.screen.dismiss()
-            await submit(pilot, conversation, "/copy")
-            assert app.clipboard == "slash", (
-                "Sidebar selection must not change the slash target"
-            )
-            # Both entry points use the existing parameter dialog; cancel never
-            # creates an owner or changes the exact target's registry/history.
-            registry_before = comms.registry.all_threads()
-            await submit(pilot, conversation, f"/{ForkAction.declared_name}")
-            await wait_fork_dialog(app, pilot, seconds=8)
-            assert "@slash" in app.screen.query_one("#title", Static).render().plain
-            await pilot.press("escape")
-            await until(pilot, lambda: not isinstance(app.screen, ForkDialog))
-            sidebar._show_thread_menu("slash", Offset(3, 3), mode_name=dm)
-            await pilot.pause()
-            fork_item = next(item for item in app.screen.query(ContextMenuItem)
-                             if item.action == ForkAction.declared_name)
-            await pilot.click(fork_item)
-            await wait_fork_dialog(app, pilot, seconds=8)
-            assert "@slash" in app.screen.query_one("#title", Static).render().plain
-            await pilot.press("escape")
-            await until(pilot, lambda: not isinstance(app.screen, ForkDialog))
-            assert comms.registry.all_threads() == registry_before
-            assert comms.views.full_history() == original_history
-            await submit(pilot, conversation, f"/{ArchiveAction.declared_name}")
-            await until(
-                pilot,
-                lambda: comms.registry.status("slash").declared_name == "archived",
-            )
-            await until(pilot, lambda: not app.thread_actions.pending)
-            conversation.update_slash_commands()
-            assert f"/{ArchiveAction.declared_name}" not in {
-                c.command for c in conversation.prompt.slash_commands
-            }
-            await submit(pilot, conversation, f"/{ArchiveAction.declared_name}")
-            assert comms.views.full_history() == original_history, (
-                "Unavailable commands must not become messages"
-            )
-            print(
-                "PASS: mounted DM menu/slash label parity, exact open target, archive and stale availability; durable history unchanged",
-                flush=True,
-            )
+    async def advertise(names):
+        update = AvailableCommandsUpdate.model_validate({
+            "sessionUpdate": "available_commands_update",
+            "availableCommands": [{"name": name, "description": "ACP source control"} for name in names]})
+        # Existing SDK/JSON-RPC boundary on the selected actual ACP agent. This
+        # controlled notification does not pretend Pi advertised these names.
+        await agent.server.call({"jsonrpc": "2.0", "method": "session/update", "params": {
+            "sessionId": agent.session_id,
+            "update": update.model_dump(by_alias=True, exclude_none=True)}})
+        await until(pilot, lambda: [record.name for record in agent.controller.commands] == names)
 
-            channel = await channel_target('#team').open(NavigationContext(app, mode, root, 'actor'))
-            await pilot.pause()
-            await until(
-                pilot, lambda: app.screen.query_one_optional(CommsChatView) is not None
-            )
-            conversation = app.screen.query_one(CommsChatView)
-            await until(
-                pilot,
-                lambda: conversation._wire is not None and conversation.agent_ready,
-            )
-            conversation.update_slash_commands()
-            assert conversation.query_one(SlashComplete)
-            sidebar = app.screen.query_one(CommsSidebar)
-            sidebar._show_channel_menu("#team", Offset(3, 3))
-            await pilot.pause()
-            menu = {
-                item.action: item.render().plain
-                for item in app.screen.query(ContextMenuItem)
-            }
-            ctx = conversation.command_target_context()
-            expected = {
-                c.command.removeprefix("/"): c.label(ctx) for c in target_commands(ctx)
-            }
-            assert menu == expected, (menu, expected)
-            pin = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "pin"
-            )
-            await pilot.click(pin)
-            await until(
-                pilot, lambda: comms.channels.catalog.read().resolve("#team").pinned
-            )
-            await submit(pilot, conversation, "/pin")
-            await until(
-                pilot, lambda: not comms.channels.catalog.read().resolve("#team").pinned
-            )
-            await submit(pilot, conversation, "/pin @other")
-            await until(
-                pilot,
-                lambda: (
-                    "other" in comms.channels.catalog.read().pinned_threads("#team")
-                ),
-            )
-            await submit(pilot, conversation, "/pin @other")
-            await until(
-                pilot,
-                lambda: (
-                    "other" not in comms.channels.catalog.read().pinned_threads("#team")
-                ),
-            )
-            await submit(pilot, conversation, "/any_mode")
-            await until(
-                pilot, lambda: comms.channels.catalog.read().resolve("#team").any_mode
-            )
-            await submit(pilot, conversation, "/copy")
-            assert app.clipboard == "#team"
-            assert comms.views.full_history() == original_history
-            assert app._exception is None
-            print(
-                "PASS: mounted channel pointer/slash pin, any-mode and copy share declaration behavior; no prompt published",
-                flush=True,
-            )
+    await advertise(["pin", "model", "external"])
+    await until(pilot, lambda: any(command.command == "/external" for command in view.prompt.slash_commands))
+    assert not any(command.command == "/pin" for command in view.prompt.slash_commands)
+    assert next(command for command in view.prompt.slash_commands if command.command == "/model").help != "ACP source control"
+    await submit(view, "/pin")
+    assert len(requests) == 2 and comms.views.full_history() == before_history
+    await submit(view, "/copy")
+    assert app.clipboard == "beta"
+    await submit(view, "/insertion")
+    await until(pilot, lambda: view.prompt.text == "declaration ran")
+    view.prompt.text = ""  # Discard the declaration's test output, never a submitted input.
+    await mark("02-local-collision-newcase")
+
+    sidebar = await wait_channel_roster(app, pilot, "#team")
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "#team")
+    await click(row)
+    await until(pilot, lambda: isinstance(app.selected_session, CommsScreen))
+    channel = app.selected_session
+    await until(pilot, lambda: bool(channel.query(CommsChatView)))
+    chat = channel.query_one(CommsChatView)
+    await until(pilot, lambda: chat.agent_ready and "SAVED_CHANNEL_MESSAGE" in "\n".join(strip.text for strip in app.screen._compositor.render_strips()))
+    sidebar = await wait_channel_roster(app, pilot, "#team")
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "#team")
+    await click(row, button=3)
+    await until(pilot, lambda: bool(app.screen.query(ContextMenuItem)))
+    menu = {item.action: item.render().plain for item in app.screen.query(ContextMenuItem)}
+    context = chat.command_target_context()
+    assert menu == {command.command.removeprefix("/"): command.label(context) for command in context.command_choices()}
+    await mark("03-pointer-menu")
+    await click(next(item for item in app.screen.query(ContextMenuItem) if item.action == "pin"))
+    await until(pilot, lambda: comms.channels.catalog.read().resolve("#team").pinned)
+    await submit(chat, "/pin")
+    await until(pilot, lambda: not comms.channels.catalog.read().resolve("#team").pinned)
+    await submit(chat, "/copy")
+    assert app.clipboard == "#team"
+    assert comms.views.full_history() == before_history and len(requests) == 2
+    await mark("04-channel-original-target")
+
+    await click(next(label for label in app.screen.query(SessionLabel) if label.id == first.id))
+    await until(pilot, lambda: app.selected_session is first and "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    assert app.selected_session.conversation.agent is agent
+    await advertise(["external", "new_external"])
+    await until(pilot, lambda: any(command.command == "/new_external" for command in view.prompt.slash_commands))
+    assert {record.name for record in agent.controller.commands} == {"external", "new_external"}
+    assert not hasattr(view, "agent_slash_commands")
+    await mark("05-native-return-hot-publication")
+    release.set()
+    await submit(view, "/external ORIGINAL_ARGUMENT_297")
+    await until(pilot, lambda: len(requests) == 3 and "NATIVE_RESPONSE_3" in conversation_paint(app.screen))
+    (evidence / "provider-requests.json").write_text(json.dumps(requests, indent=2))
+    # Native owns the coordination envelope. Check the original command as one
+    # exact payload line, not equality with the entire composed provider input.
+    assert sum(block["text"].splitlines().count("/external ORIGINAL_ARGUMENT_297")
+               for block in requests[-1]["messages"][-1]["content"]) == 1
+    await until(pilot, lambda: comms.registry.require("beta").active_turn is None)
+    native = Path(comms.registry.require("beta").session_file)
+    assert "ORIGINAL_ARGUMENT_297" in native.read_text()
+    assert len(requests) == 3
+    await mark("06-original-forwarded-native-response")
+    (evidence / "command-acceptance.json").write_text(json.dumps({
+        "status": "PASS", "driver": type(app._driver).__name__, "display": os.environ["DISPLAY"],
+        "elapsed_seconds": time.monotonic() - started, "events": events,
+        "provider_requests": len(requests), "provider": "isolated localhost only",
+        "controlled_advertisement": "real ACP SDK JSON-RPC source publication; not Pi getCommands output",
+        "native_session": str(native), "physical_keyboard_and_pointer": True,
+    }, indent=2))
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance,
+        prepare_state=prepare_saved_state, headless=False,
+        provider_request_budget=3, fixture_stage=os.environ["COMMAND297_FIXTURE_STAGE"]))
