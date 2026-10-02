@@ -1,0 +1,16 @@
+{
+  "started_at": 1790939655.7959516,
+  "returned_at": 1790939656.8546689,
+  "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "message": {
+    "seq": 372,
+    "id": "c325cac723e0",
+    "from": "user",
+    "to": "#openhcs",
+    "ts": 1790939655.7969525,
+    "type": "info",
+    "text": "testing , please reply tersely if you receive this",
+    "sender_role": "user"
+  },
+  "purpose": "fresh original authorized configured-channel acceptance after525/528/319/Text24 installed; never replay"
+}

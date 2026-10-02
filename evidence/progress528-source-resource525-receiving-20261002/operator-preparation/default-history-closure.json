@@ -1,0 +1,448 @@
+{
+  "state": "Published and ordinary-default saved-history observe completed; scoped qualification",
+  "observed_at": 1790939929.1531422,
+  "publication": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/operator-preparation/publication-receipt.json",
+    "sha256": "d264aeecad48dba4f11d5b1b70ffb27acfe53ed6fa992d4d022485248c48b0f9",
+    "raw_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+    "duration_seconds": 43.344703912734985,
+    "owners": 19,
+    "operator_configuration_verification": "complete() compares whole original thread after replacing only process identity; original retained launch recaptured under target interpreter before success",
+    "runtime_policy": {
+      "classification": "runtime/preserve",
+      "original_files": [
+        {
+          "path": "/var/tmp/agent-comms-live-20260927-wzjtqhza/compaction-commits.sqlite3",
+          "sha256": "b42a055a46433dd706c907ee83c0e3f8bbae566e091fb4aa69df3df820c583ed",
+          "revision": {
+            "identity": {
+              "device": 2083,
+              "inode": 4589864
+            },
+            "size": 1880064,
+            "mtime_ns": 1790936358739729618,
+            "ctime_ns": 1790936358739729618
+          }
+        }
+      ],
+      "retired": [],
+      "copied_bytes": 0
+    },
+    "historical_carry": false,
+    "protected_originals_count": 40,
+    "stopped_phase_byte_invariants_count": 39
+  },
+  "current_source": {
+    "owner": "Schrodinger; parent owns preserve-only public cutover and configured channel qualification",
+    "purpose": "Joined525 source resource,528 original callback,319/Text24 scoped geometry checkpoint; no full smoothness claim",
+    "receiving_pr": 321,
+    "core": "87719d6fed318cf07c793c96ceabf9d54bd53c43",
+    "frontend": "2a3d006d635b23665a096d70fef91cf678c9098e",
+    "textual": "431b4e121bd2320d2b222e139cb0a3d568a84f6b",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002",
+    "gate_owner": "Distinct qualified525/528/319 source receipts; parent configured channel/default gate",
+    "publication_owner": "parent",
+    "toad": "2a3d006d635b23665a096d70fef91cf678c9098e",
+    "original_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002"
+  },
+  "five_links": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "current_published_epochs": [
+    {
+      "thread": "agent-comms-ux",
+      "previous_pid": 3803278,
+      "current_process": {
+        "pid": 3857840,
+        "start_time": 41504508
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "nra-architecture",
+      "previous_pid": 3803280,
+      "current_process": {
+        "pid": 3857854,
+        "start_time": 41504646
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "nra-class-first-name-review",
+      "previous_pid": 3803283,
+      "current_process": {
+        "pid": 3857859,
+        "start_time": 41504789
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "previous_pid": 3803296,
+      "current_process": {
+        "pid": 3857869,
+        "start_time": 41504930
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "nra-ordered-branch-call-review",
+      "previous_pid": 3803376,
+      "current_process": {
+        "pid": 3857874,
+        "start_time": 41505074
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "nra-roster-heuristic-map",
+      "previous_pid": 3803408,
+      "current_process": {
+        "pid": 3857936,
+        "start_time": 41505219
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "refactor-r1",
+      "previous_pid": 3803462,
+      "current_process": {
+        "pid": 3858008,
+        "start_time": 41505360
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-architecture-memory",
+      "previous_pid": 3803476,
+      "current_process": {
+        "pid": 3858088,
+        "start_time": 41505509
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-pr159-viewer-bind-owner",
+      "previous_pid": 3803488,
+      "current_process": {
+        "pid": 3858102,
+        "start_time": 41505651
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "nominal-refactor-advisor-2",
+      "previous_pid": 3803490,
+      "current_process": {
+        "pid": 3858105,
+        "start_time": 41505796
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-helper",
+      "previous_pid": 3803527,
+      "current_process": {
+        "pid": 3858116,
+        "start_time": 41505937
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-helper2",
+      "previous_pid": 3803634,
+      "current_process": {
+        "pid": 3858123,
+        "start_time": 41506079
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "comms428",
+      "previous_pid": 3803665,
+      "current_process": {
+        "pid": 3858136,
+        "start_time": 41506222
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-audit-merged-runtime",
+      "previous_pid": 3803724,
+      "current_process": {
+        "pid": 3858281,
+        "start_time": 41506364
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-audit-merged-models",
+      "previous_pid": 3803738,
+      "current_process": {
+        "pid": 3858396,
+        "start_time": 41506505
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-audit-merged-boundaries",
+      "previous_pid": 3803749,
+      "current_process": {
+        "pid": 3858412,
+        "start_time": 41506646
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "openhcs-audit-open-prs",
+      "previous_pid": 3803777,
+      "current_process": {
+        "pid": 3858436,
+        "start_time": 41506799
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "compaction499-live-architecture-memory",
+      "previous_pid": 3803790,
+      "current_process": {
+        "pid": 3858470,
+        "start_time": 41506942
+      },
+      "published_pid_matches": true,
+      "alive": true
+    },
+    {
+      "thread": "compaction501-live-architecture-memory",
+      "previous_pid": 3803925,
+      "current_process": {
+        "pid": 3858480,
+        "start_time": 41507091
+      },
+      "published_pid_matches": true,
+      "alive": true
+    }
+  ],
+  "default_ui": {
+    "raw_receipt": "/home/ts/.cache/agent-scratch/321-default-history-20261002/capture/receipt.json",
+    "raw_receipt_sha256": "19117c0dd6b76933354ad2baaf5775f2f1b3d9062e4341d46bd220cc6aa7cc16",
+    "duration_seconds": 46.14225701300893,
+    "capture_completed": true,
+    "raw_capture_returncode": 255,
+    "raw_assessment": "unreviewed",
+    "raw_review_timing": "deferred",
+    "runtime_unchanged": true,
+    "original_owner_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "openhcs-helper",
+      "identity": {
+        "pid": 3858116,
+        "start_time": 41505937
+      },
+      "original_owner_alive": true
+    },
+    "original_owner_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "openhcs-helper",
+      "identity": {
+        "pid": 3858116,
+        "start_time": 41505937
+      },
+      "original_owner_alive": true
+    },
+    "remaining_owned_pids": [],
+    "cleanup_errors": [],
+    "physical_observation": "Parent reports DURING active recorder3863694: ordinary saved-helper visible Ready/history loaded with collapsed coordination. This closure author did not inspect during that run; raw recorder assessment remains unchanged."
+  },
+  "fresh_channel_observation": {
+    "seq": 372,
+    "timestamp": 1790939655.7969525,
+    "reported_by": "parent user handoff",
+    "published_reply_count": 10,
+    "reply_creation_seconds_range": [
+      34.72239303588867,
+      64.03486514091492
+    ],
+    "original_claims": [
+      {
+        "assignment_id": "cohort-v1:55cd36e60bc8b9a9a08e89cbdbb5ac336ebb31f8a6d832feaf398dcdf8968878",
+        "recipient": "Linnaeus",
+        "execution_id": null,
+        "disposition": "triage_pending"
+      },
+      {
+        "assignment_id": "cohort-v1:79f85105d34163bffd6768726c906b952695020f268262bba0749bf8dfdce766",
+        "recipient": "compaction499-live-architecture-memory",
+        "execution_id": "wirev13b14eb9267cde5af762ff1a7e8836345c15795274632191d355138f5bb615fa8",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:5f8bb36b5f85b3312afd705ce1f672df0e4424c8110051f4b1be8b848f37cc5c",
+        "recipient": "compaction501-live-architecture-memory",
+        "execution_id": "wirev1110477a9a622ec10bfaf000fe87833a5b286cc9c6d3e8fb145f85701325c841a",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:58a3490db382b3c392a94da92a8aaeb3982da8b3697be51e2c235979db487763",
+        "recipient": "openhcs-architecture-memory",
+        "execution_id": "wirev165b443f49202cb9fd3e7271ab76727379a95f42063fb5d48ed18b56691d1c002",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:d72fc4e25d796e19ef45d5fd6cf4217cbd34cf32d9d3b113a091069193e10207",
+        "recipient": "openhcs-audit-merged-boundaries",
+        "execution_id": "wirev171e051cb99661f5515454e007afa13c094b16cbd42e5b4da88266a4b20b7589d",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:7965e0569cb94260e4e976697b8bafd60837e05e6b86fc11b0aea1f43686ede7",
+        "recipient": "openhcs-audit-merged-models",
+        "execution_id": "wirev184ca8a662eec7a67d24e633eb307544c1d5be266c5b1e687df0c677dca513665",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:00430f5b479cc767c365b4203f0db734be507a0ddae041ff0796f3454598267b",
+        "recipient": "openhcs-audit-merged-runtime",
+        "execution_id": "wirev180181eda9b2f9231d05a31b43d7a5d8e2a0fcb67281850dffb7317360b73ba18",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:4f5d7c6fd4e9f38afd60e69621aac0635b63cef7f18b2d83aeed00fb8c553cff",
+        "recipient": "openhcs-audit-open-prs",
+        "execution_id": "wirev125a063ea403b2527e70ac5a0002ba606f2d4e68395f3780cbb070b105ff41398",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:5ca47bac51d27b7f6d42052daefeed1741eb2092be81703caa033b2dc216c300",
+        "recipient": "openhcs-headless-bootstrap-worker",
+        "execution_id": null,
+        "disposition": "triage_pending"
+      },
+      {
+        "assignment_id": "cohort-v1:f38c6c053f7755660bceb6204e5f09908df8ae1c3a3326d4f279d892f05d122b",
+        "recipient": "openhcs-helper",
+        "execution_id": "wirev1f90b9359fc3a17102ee05b6b4244ff9bebf1e5b6a0ec92d79e9996d85fb68055",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:56c98277cfbe5ba056ca039a75dd4b80825a85d7ca9fae013c370d7032f9eff5",
+        "recipient": "openhcs-helper2",
+        "execution_id": "wirev1de4048a24f26133d187a184f127fe006a430db40f3f6422351804f449c66527d",
+        "disposition": "completed"
+      },
+      {
+        "assignment_id": "cohort-v1:65d027a4cd343d42d21173e0c09b060f7ad36144d61ada604d87fe66e8b6fb87",
+        "recipient": "openhcs-pr159-viewer-bind-owner",
+        "execution_id": "wirev145fad8676e011f535de7748fed62849b5294b8ade276644938e54ff9f275b89d",
+        "disposition": "completed"
+      }
+    ],
+    "external_cli_absent": 2,
+    "peer_claims": "99 underway at parent observation; not asserted all complete",
+    "scope": "configured path works; reply latency remains Mendel-owned; no overall speed claim",
+    "message_id": "c325cac723e0",
+    "observed_at": 1790939727.6644924,
+    "source": "original parent send and source-observation files; no fresh provider/source query",
+    "original_completed_claims": 10,
+    "original_pending_claims": 2,
+    "published_rows": [
+      {
+        "seq": 373,
+        "id": "f03cecff18db",
+        "sender": "openhcs-audit-merged-runtime",
+        "ts": 1790939690.5193455
+      },
+      {
+        "seq": 374,
+        "id": "758681c21790",
+        "sender": "compaction501-live-architecture-memory",
+        "ts": 1790939710.4235
+      },
+      {
+        "seq": 375,
+        "id": "7f1065c063f9",
+        "sender": "openhcs-helper2",
+        "ts": 1790939710.5960598
+      },
+      {
+        "seq": 376,
+        "id": "ebe9898e2981",
+        "sender": "openhcs-audit-merged-boundaries",
+        "ts": 1790939710.9923813
+      },
+      {
+        "seq": 377,
+        "id": "30044ed1b743",
+        "sender": "openhcs-helper",
+        "ts": 1790939711.0651233
+      },
+      {
+        "seq": 378,
+        "id": "eda7414e3b5c",
+        "sender": "openhcs-architecture-memory",
+        "ts": 1790939711.1110003
+      },
+      {
+        "seq": 379,
+        "id": "a5d8c332d375",
+        "sender": "openhcs-audit-merged-models",
+        "ts": 1790939711.1660662
+      },
+      {
+        "seq": 380,
+        "id": "2c87508d7405",
+        "sender": "openhcs-pr159-viewer-bind-owner",
+        "ts": 1790939711.4257734
+      },
+      {
+        "seq": 381,
+        "id": "9b6026f8c76a",
+        "sender": "compaction499-live-architecture-memory",
+        "ts": 1790939712.9351213
+      },
+      {
+        "seq": 382,
+        "id": "c27ddec63388",
+        "sender": "openhcs-audit-open-prs",
+        "ts": 1790939719.8318176
+      }
+    ]
+  },
+  "new_ui_runs": 0,
+  "new_provider_inputs": 0,
+  "new_publication_execution": 0,
+  "scope": "Source-resource/native-progress/geometry checkpoint. No full smoothness/CPU assertion; no original input/native/UNKNOWN replay.",
+  "merged_toad": "a90f8b7a7653e4493ac3a65eea428cac82460396",
+  "frozen_installed_src_config_tools_equal_merged": true
+}
