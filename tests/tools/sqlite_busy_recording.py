@@ -82,7 +82,7 @@ def control(operation):
 
 
 async def capture(service, project, evidence, environment):
-    output = Path(environment['XDG_STATE_HOME']).parent / 'capture'
+    output = evidence / 'capture'
     directory = evidence / 'sql-process-input'
     directory.mkdir()
     for name in ('request', 'reply'):
