@@ -1,0 +1,8 @@
+{
+  "core": "87c279af0a3868d444e7dbe401642d185eae9c4a",
+  "toad": "f4a17dda852d12c972b9d015dfb4185543b2bac7",
+  "textual": "6405228dc99ec5471c0bf8c10ddae5854971be45",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002"
+}

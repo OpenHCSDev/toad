@@ -1,0 +1,267 @@
+{
+  "state": "SCOPED usage/source qualification; full warm undo/exit and smoothness NOT qualified",
+  "source": {
+    "toad": "7e529b33dfb8582483cbf49e668f90cd5330d69d",
+    "core": "cd150be078c07b9f4b2d1af83e4cd28f1f584597",
+    "textual": "bf58038114017e266e78761744e6a7868c1006de",
+    "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-restore-retirement331-native29-20261002/source-proof.json",
+    "post_gate_changes": "Recorder only: original process completion, interruption finalization, ReviewTiming live encoding ownership. No product source change after 7e529."
+  },
+  "raw_receipt": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-05/capture/receipt.json",
+  "raw_verdict": {
+    "completed": false,
+    "capture_completed": false,
+    "error": "TimeoutError: Recording interaction budget exhausted"
+  },
+  "supervisor_exit": 1,
+  "product_phases_reached": [
+    "warm-ready",
+    "sidebar-revealed",
+    "warm-start",
+    "draft",
+    "travel-start",
+    "input-held-up",
+    "input-held-up-done",
+    "input-mid-history-idle-done",
+    "input-held-down",
+    "input-held-down-done",
+    "focused",
+    "up",
+    "up-done",
+    "down",
+    "down-done",
+    "reverse",
+    "reverse-done",
+    "end",
+    "idle",
+    "idle-done",
+    "switch-b",
+    "b-open",
+    "return-a",
+    "a-return"
+  ],
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "not_qualified": [
+    "undo state after physically sent ctrl-z",
+    "after/final required export",
+    "normal application exit",
+    "whole warm journey",
+    "busy public workload",
+    "144Hz or smooth scrolling",
+    "matched before/after CPU or pixel latency"
+  ],
+  "observer_failure": {
+    "automatic_clip_encodes": 43,
+    "encoding_seconds": 158.54753628734034,
+    "cause": "recording observation always called live_review despite DeferredReviewTiming; growing MP4 decode took place in physical command waits. Completion fix correctly reported exited sleep; actual recording deadline then stopped the undo marker.",
+    "source_fix": "ReviewTiming now owns observe() as well as generate(). Deferred live observation retains native frame tracing and does not inline-encode contacts. During-run original timed-frame inspection remains required. No recording limit increase."
+  },
+  "motion_review": {
+    "reviewed_during_recording": true,
+    "review_monotonic": 443095.047443112,
+    "recorder_pid": 467446,
+    "ui_pid": 467613,
+    "alive_at_review": true,
+    "capture_epoch_observed_original_env": 442981.531216981,
+    "exact_input_up_key_window_seconds": [
+      29.841222952,
+      32.906484071
+    ],
+    "frames": [
+      {
+        "path": "during-input-up-31-frames.png",
+        "seconds": [
+          31,
+          32
+        ],
+        "count": 60,
+        "finding": "Readable saved body during real held input-focused PageUp. Several discrete upward advances with repeated frames between them; no smoothness claim."
+      },
+      {
+        "path": "during-input-down-62-frames.png",
+        "seconds": [
+          62,
+          63
+        ],
+        "count": 60,
+        "exact_input_down_key_window_seconds": [
+          60.058248043,
+          64.005569147
+        ],
+        "finding": "During held input-focused PageDown body stays readable and progresses in discrete steps/repeated positions; not smoothness."
+      },
+      {
+        "path": "live-39-33-frames.png",
+        "seconds": [
+          121.6,
+          122.0
+        ],
+        "count": 24,
+        "exact_reverse_key_window_seconds": [
+          115.852123269,
+          122.192131739
+        ],
+        "finding": "Reviewed while recorder467446/UI467613 alive; readable body advances in discrete chunks/repeated positions during actual held reverse."
+      }
+    ],
+    "second_review_monotonic": 443185.19836354,
+    "alive_second_review": true,
+    "end_stationary_frame": {
+      "path": "phase-idle-done.png",
+      "viewed_during": true,
+      "finding": "End body/chrome readable, draft present; static frame is not motion proof."
+    }
+  },
+  "parent_review": {
+    "timing": "DURING recorder467446 alive",
+    "source_seconds": [
+      23,
+      [
+        50,
+        54
+      ]
+    ],
+    "finding": "Stationary sampled segments; not motion acceptance."
+  },
+  "key_frame_delivery": {
+    "json": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-05/capture/held-key-frame-delivery.json",
+    "svg": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-05/capture/held-key-frame-delivery.svg",
+    "phases": [
+      {
+        "action": "Prior_1",
+        "intervals": {
+          "count": 50,
+          "median_ms": 19.63,
+          "p95_ms": 224.29,
+          "p99_ms": 331.59,
+          "max_ms": 467.88
+        },
+        "writer_receipts": 51
+      },
+      {
+        "action": "Next_1",
+        "intervals": {
+          "count": 115,
+          "median_ms": 16.55,
+          "p95_ms": 90.65,
+          "p99_ms": 499.25,
+          "max_ms": 500.76
+        },
+        "writer_receipts": 116
+      },
+      {
+        "action": "Prior_2",
+        "intervals": {
+          "count": 138,
+          "median_ms": 18.16,
+          "p95_ms": 140.57,
+          "p99_ms": 222.31,
+          "max_ms": 384.21
+        },
+        "writer_receipts": 139
+      },
+      {
+        "action": "Next_2",
+        "intervals": {
+          "count": 98,
+          "median_ms": 21.13,
+          "p95_ms": 266.24,
+          "p99_ms": 302.07,
+          "max_ms": 520.85
+        },
+        "writer_receipts": 99
+      },
+      {
+        "action": "Prior_3",
+        "intervals": {
+          "count": 237,
+          "median_ms": 17.31,
+          "p95_ms": 99.4,
+          "p99_ms": 136.51,
+          "max_ms": 186.66
+        },
+        "writer_receipts": 238
+      }
+    ],
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "profile": {
+    "receipt": "/home/ts/.cache/agent-scratch/foreground331-retirement-joined-native29-20261002-05/capture/profile-review.json",
+    "quality": "no reported sampling errors",
+    "alignment_uncertainty_seconds": 0.07628672499326059,
+    "limits": [
+      "Phase kernel CPU includes state-export tails and observer overhead, not exact held-key CPU.",
+      "Chrome transition groups are not samples/call counts/durations.",
+      "Native writer completion is not terminal pixel presentation or changed-pixel FPS.",
+      "No causal speed gain inferred from an unmatched workload."
+    ]
+  },
+  "cleanup": {
+    "private_owners_alive": {
+      "resource436": false,
+      "resource236b": false,
+      "user": false
+    },
+    "native_input_rows": 0,
+    "settings_unchanged": true,
+    "recorder_remaining_owned_pids": [],
+    "recorder_cleanup_errors": [],
+    "public_helper_witness_released": true,
+    "all_owned_clients_closed": true
+  },
+  "remaining_source_work": "Native Markdown mount/style/layout during materialization remains a foreground source lead; Kepler native geometry30 is disjoint/frozen. Full CPU/raster/cold/warm/runway/velocity/growingEnd/void/editor/focus/sidebar/animation/TC1/T9/T4 remains in receiving scope.",
+  "A_B_A_original_resource_observation": {
+    "A_loaded_pages": 1,
+    "B_loaded_pages": 1,
+    "source_mode_retained": true,
+    "editor_retained": true,
+    "window_retained": true,
+    "draft_retained": true,
+    "reader_retained": true,
+    "retained_ready_body_ids": [
+      139866956354640,
+      139866956357200,
+      139866956363280,
+      139866960855760,
+      139866960858000,
+      139866960858320,
+      139866960863120,
+      139866960864400,
+      139866960864720,
+      139866960865040,
+      139866960866320
+    ],
+    "scope": "Available original phases only. Missing undo is not replaced and original warm reviewer cannot pass."
+  },
+  "production_diff_against_current_main": {
+    "base": "d36801cd4e0c581ac615a0c60ceeb0cd902e77f6",
+    "files": 8,
+    "added": 240,
+    "deleted": 187,
+    "history": "Later body retirement/source batch alone against1182f061 was7files217+/174-; whole PR also contains bound-cohort/effect-derived admission source."
+  },
+  "main_integration": {
+    "main": "b0ac76687e3ef86f51081977e6be7b22a6e8e0f8",
+    "previous_head": "9ee643a4732c545a8fd203cf82c0e8a0a1d4f3d3",
+    "qualified_product": "7e529b33dfb8582483cbf49e668f90cd5330d69d",
+    "all_src_toad_byte_identical": true,
+    "conflict_files": [
+      "pyproject.toml"
+    ],
+    "resolution": "Take reviewed Core542 7dd5c14c from main; retain qualified Text29 bf580381. uv.lock merged automatically and matches both declared source pins. No product conflict or change.",
+    "core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+    "textual": "bf58038114017e266e78761744e6a7868c1006de",
+    "core_dependency_declarations_unchanged": true,
+    "validation": "TOML source/lock consistency and product Git byte equality. No provider/test/capture rerun; installed05 remains older cd150 Core pair, not new joint runtime qualification.",
+    "textual29": "Published bf580381, OPEN/DRAFT/MERGEABLE; not merged. Kepler confirms parent reviewed 17 added /4 deleted production lines.",
+    "inherited_whitespace": "Two main evidence phased_owner_kernel.py files have extra EOF blank lines; preserved unchanged."
+  }
+}

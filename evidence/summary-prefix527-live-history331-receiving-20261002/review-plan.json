@@ -1,0 +1,34 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+    "sha256": "35a174e79b59e97068afe3e9bf2b51741760f3867c89b7a35de4d5a8d8ab87a9"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/source-proof.json",
+    "sha256": "12db0e17c13f6597785e5f1dd9e286936df91e9dc4f3127ad553554631fde85d"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/qualified-source-gates/527-functional02.json",
+      "sha256": "c252dd77978643a4e57b2bf3b10daac80f9e597f6d0bd4578972019bd48fb0cc"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/qualified-source-gates/527-prefix-capability.json",
+      "sha256": "975316e05be79dbee4162a62cc3bfdd30339c8fe93c7e9ed793a9f6988b7a687"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-prefix527-live-history331-receiving-20261002/qualified-source-gates/331-scoped05.json",
+      "sha256": "c7f085267e774929e07d87759c780bec136125fe690ba059bbd48f4f99f4ad9e"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "state": "Published carry actual six typed journal readers and original preimage identity relation PASS",
+  "observed_at": 1790968925.744655,
+  "target_python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "raw_publication_sha256": "56d1fb24bfb2d2910a04f762cfb9551452395b7b3474301b96c5078237d89de7",
+  "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "typed_reader_counts": {
+    "operations": 7,
+    "selected_summary_attempts": 15,
+    "publications": 7,
+    "private_raw_inputs": 639,
+    "enrolled_private_sessions": 0,
+    "native_fork_creation": 0
+  },
+  "native_fork_creation_empty": true,
+  "authentic_preimage_hashes": {
+    "coordination.sqlite3": "a6bb6536cf57a1062b9347be1e82be05088a67ea3d6f9b0d1d490c06082132b1",
+    "native_prompt_bindings.sqlite3": "bf9dfcc0467c565918226a4f7ae0624649ebd59b1e17faaf7520b4d3e5ae9d41",
+    "compaction-commits.sqlite3": "6b775e2522ac32b1514bcf2afe95eb9cfd08879ad586d6a605d68095c91a81a5"
+  },
+  "all_original_journal_rowids_cells_source_and_unknown_equal": true,
+  "original_identity_rows_sha256": "819d6fe8db4fafdbbeb09c265a8845e3199963a8f0424237b9464ce0e57afa1e",
+  "same_installed_original_identity_rows_sha256": "819d6fe8db4fafdbbeb09c265a8845e3199963a8f0424237b9464ce0e57afa1e",
+  "source_release": [
+    9,
+    3,
+    3,
+    6
+  ],
+  "target_release": [
+    9,
+    3,
+    3,
+    6
+  ],
+  "schema_relation": "Same Native6 release; only declared empty native_fork_creation addition. No retroactive proof or input admission minted.",
+  "read_owner": "CompactionJournal.observe_readonly + all TypedTable JournalTable members; no writer constructor/transaction",
+  "public_writes": 0,
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "publication_repeated": false
+}
