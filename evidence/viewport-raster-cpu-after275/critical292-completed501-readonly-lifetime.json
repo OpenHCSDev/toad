@@ -183,5 +183,15 @@
       "sha256": "2e82f1744edaefca4752f8884fa48c82c7aa044bc2c421781a78e67f72034433",
       "bytes": 2403
     }
+  },
+  "exit_classification": {
+    "operator_returncode": 0,
+    "terminal_pid": 2737778,
+    "terminal_recorded_returncode": 0,
+    "ui_pid": 2737779,
+    "ui_returncode_independently_recorded": false,
+    "ffmpeg_pid": 2737783,
+    "ffmpeg_returncode": 255,
+    "explanation": "record() assigns capture to owner.start ffmpeg; capture.stop(SIGINT) and capture_returncode read that exact process. Receipt cleanup records terminal ST2737778 return0 and FFmpeg2737783 return255. Native Toad2737779 was alive at completion, closed through Ctrl+Q then ObservedProcess cleanup, but separate UI exit code is not recorded."
   }
 }
