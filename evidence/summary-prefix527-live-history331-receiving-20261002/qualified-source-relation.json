@@ -1,0 +1,36 @@
+[
+  {
+    "repo": "/home/ts/wt/comms-task-aware-native-bundle-20261002",
+    "qualified": "a36173356f6e3fe43a9cb35e56c5324fc784d3a3",
+    "merged": "f8ee2257f815f885e602a037da714977b480d60b",
+    "paths": [
+      "src",
+      "stack",
+      "pyproject.toml"
+    ],
+    "byte_equal": true
+  },
+  {
+    "repo": "/home/ts/wt/toad-prompt-action-owner-20261002",
+    "qualified": "7e529b33dfb8582483cbf49e668f90cd5330d69d",
+    "merged": "526b5163fea7d3d1aacf8efb1cf70fccb901b43f",
+    "paths": [
+      "src"
+    ],
+    "byte_equal": true
+  },
+  {
+    "repo": "/home/ts/wt/textual-native-subtree-retirement-20261001",
+    "qualified": "bf58038114017e266e78761744e6a7868c1006de",
+    "merged": "6405228dc99ec5471c0bf8c10ddae5854971be45",
+    "paths": [
+      "src",
+      "pyproject.toml"
+    ],
+    "byte_equal": true
+  },
+  {
+    "additional_core544": "87c279af0a3868d444e7dbe401642d185eae9c4a",
+    "scope": "Merged original measurement lifetime; source reviewed by parent; no speed claim."
+  }
+]
