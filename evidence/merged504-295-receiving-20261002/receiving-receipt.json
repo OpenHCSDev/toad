@@ -1,0 +1,59 @@
+{
+  "state": "SCOPED_READY immutable normal receiving: accepted504CLI/295physical exact source equality plus all4 installed package inventories; parent default startup/UI gate",
+  "core": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+  "toad_installed": "dc6c484ce78428eb3d0fe8c7ddda1c56f4f8f1fa",
+  "toad_main": "b4a7424ca487bf7d0748f13d26b3361d78b6f4b0",
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged504-295-20261002",
+  "normal_package_count": 69,
+  "prefix_allocated_kib": 72712,
+  "all4_production_inventories_equal": true,
+  "direct_urls_equal": true,
+  "declared_assets_native_trust": true,
+  "pip_check": "Using Python 3.14.2 environment at: .artifacts/runtime-merged504-295-20261002\nChecked 69 packages in 4ms\nAll installed packages are compatible\n",
+  "three_pin_lines": true,
+  "changed_runtime_schema": false,
+  "new_native_build": false,
+  "503_not_included": true,
+  "existing_prefix_files_preserved": 5678,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "provider_calls": 0,
+  "repeated_paid_gate": false,
+  "existing_accepted_journeys": {
+    "core": {
+      "accepted_source": "ad73aefe4666678977de73a82ab9fc9528e98eec",
+      "merged": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+      "production_and_native_stack_diff": "",
+      "selected_backend_changed_files_from_current5c": [],
+      "only_current5c_production_changes": [
+        "src/agent_comms/cli_commands.py",
+        "src/agent_comms/turn_context.py",
+        "src/agent_comms/wire_log.py"
+      ],
+      "qualified_installed_cli_queries": 6
+    },
+    "toad": {
+      "accepted_installed_source": "0a999fdc8ef2cc4452f7a3ade4b1a566d77fa80d",
+      "receiving": "dc6c484ce78428eb3d0fe8c7ddda1c56f4f8f1fa",
+      "production_diff": "",
+      "physical_seconds": 113.50401202199282,
+      "physical_completed": true
+    },
+    "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+    "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+    "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+    "affected_journeys_not_repeated": true,
+    "503_excluded": true,
+    "503_artifacts_protected": true,
+    "parent_remaining": "public default saved startup/UI after activation"
+  },
+  "default_links_changed": false,
+  "parent_remaining": "Public saved-history startup/default UI after activation; parent sole owner",
+  "activation_metadata_sha256": "c4fafffc568e440c2d21e3e8719124f9205a2b3e3d5796647aa858239516db46"
+}

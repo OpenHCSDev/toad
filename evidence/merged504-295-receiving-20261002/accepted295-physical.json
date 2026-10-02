@@ -1,0 +1,457 @@
+{
+  "qualification": "SCOPED_READY: one original admitted restoration cohort; full CPU/smoothness/resource assignment remains open",
+  "source": {
+    "toad_installed": "0a999fdc8ef2cc4452f7a3ade4b1a566d77fa80d",
+    "production_checkpoint": "b4587a562bae72a79e5d5fec778dc8b3360b0573",
+    "normal_main_integrated": "b9ebd4c0",
+    "production_byte_equal_to_checkpoint": true,
+    "core": "5c74f0ec700e4d83886e2f6fdaea4e1e19ad0d77",
+    "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+    "sdk": "0.12.1",
+    "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+    "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+    "normal_packages": 69,
+    "all_source_assets_byte_equal": true,
+    "normal_installed_prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-viewport295-cohort-native5-20261002"
+  },
+  "production_change": {
+    "file": "src/toad/widgets/viewport_body.py",
+    "deleted": 10,
+    "added": 12,
+    "existing_owner": "DocumentViewport._restore_bodies",
+    "demand_authority": "DirectionalPreparation.accepts(PreparationDemand)",
+    "deleted_independent_work": "ahead per-body lock/compensation loop; foreground and ahead now inherit one restoration transaction",
+    "new_semantic_state": false
+  },
+  "capture": {
+    "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture",
+    "duration_seconds": 113.50401202199282,
+    "completed": true,
+    "capture_completed": true,
+    "runtime_unchanged": true,
+    "recorder_exit": 0,
+    "ffmpeg_exit": 255,
+    "ffmpeg_exit_meaning": "normal SIGINT finalization accepted by existing recorder",
+    "ui_exit": "not independently recorded; do not infer a separate UI code",
+    "warm_checks": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_admitted_older_source": true,
+      "held_page_down_admitted_newer_source": true,
+      "reverse_page_up_admitted_older_source": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true
+    },
+    "input_paging_checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "phases": {
+      "phase-warm-ready": {
+        "mode": "session-1",
+        "thread": "compaction501-live-architecture-memory",
+        "scroll_y": 134,
+        "maximum": 134,
+        "follows_tail": true,
+        "history_lock_held": false,
+        "restoring": false,
+        "resources": {
+          "pending": false,
+          "reconciling": false,
+          "body_evictions": 0,
+          "visible_dormant": 0,
+          "outer_materialized_widgets": 44
+        }
+      },
+      "phase-input-mid-history-idle-done": {
+        "mode": "session-1",
+        "thread": "compaction501-live-architecture-memory",
+        "scroll_y": 170.0,
+        "maximum": 418,
+        "follows_tail": false,
+        "history_lock_held": false,
+        "restoring": false,
+        "resources": {
+          "pending": false,
+          "reconciling": false,
+          "body_evictions": 34,
+          "visible_dormant": 0,
+          "outer_materialized_widgets": 317
+        }
+      },
+      "phase-idle-done": {
+        "mode": "session-1",
+        "thread": "compaction501-live-architecture-memory",
+        "scroll_y": 126,
+        "maximum": 126,
+        "follows_tail": true,
+        "history_lock_held": false,
+        "restoring": false,
+        "resources": {
+          "pending": false,
+          "reconciling": false,
+          "body_evictions": 161,
+          "visible_dormant": 0,
+          "outer_materialized_widgets": 34
+        }
+      },
+      "phase-a-return": {
+        "mode": "session-1",
+        "thread": "compaction501-live-architecture-memory",
+        "scroll_y": 126,
+        "maximum": 126,
+        "follows_tail": true,
+        "history_lock_held": false,
+        "restoring": false,
+        "resources": {
+          "pending": false,
+          "reconciling": false,
+          "body_evictions": 161,
+          "visible_dormant": 0,
+          "outer_materialized_widgets": 34
+        }
+      }
+    },
+    "cleanup_remaining": [],
+    "cleanup_errors": [],
+    "private_owners_retired": true,
+    "native_inputs": 0,
+    "copied_native_sources_unchanged": true
+  },
+  "original_capture": {
+    "producer": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002/bin/python",
+    "capability": "CurrentTypedCapture447 original producer/RetainedOwnerLaunch",
+    "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "sources": [
+      {
+        "name": "compaction501-live-architecture-memory",
+        "original": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+        "copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/private-cohort295-native5-20261002-02/sources/compaction501-live-architecture-memory/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+        "bytes": 42145087,
+        "sha256": "e600d879d6e35ce6a268494525009572b98f3505394a478b0a8cc896559cb749",
+        "owner": {
+          "pid": 2913431,
+          "start_time": 38490785
+        },
+        "typed_source_settings": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/private-cohort295-native5-20261002-02/sources/compaction501-live-architecture-memory/thread.json",
+        "original_unchanged": true,
+        "original_epoch_witness_released_after_copy": true
+      },
+      {
+        "name": "agent-comms-ux",
+        "original": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl",
+        "copy": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/private-cohort295-native5-20261002-02/sources/agent-comms-ux/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl",
+        "bytes": 146073899,
+        "sha256": "5a2506b45cec80b9282cc9817101e2d88740588139e6e3a54f580b0a88616ba4",
+        "owner": {
+          "pid": 2912741,
+          "start_time": 38488251
+        },
+        "typed_source_settings": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/private-cohort295-native5-20261002-02/sources/agent-comms-ux/thread.json",
+        "original_unchanged": true,
+        "original_epoch_witness_released_after_copy": true
+      }
+    ],
+    "original_epoch_witness_released": true,
+    "public_root_mutations": false,
+    "provider_inputs": 0,
+    "native_replay": 0,
+    "launch_credentials_written": false
+  },
+  "source_sanity": {
+    "cadence": {
+      "foreground_delivery_seconds": 0.5204030849854462,
+      "delivery_after_background_seconds": 0.5204030849854462,
+      "foreground_measured": true,
+      "background_preserved_horizon": true,
+      "boundary": "actual source UI/widget/worker journey; not installed physical capture"
+    },
+    "demand_custody": {
+      "observations": [
+        {
+          "original_demand": true,
+          "original_still_current": false,
+          "accepted": false
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        },
+        {
+          "original_demand": false,
+          "original_still_current": false,
+          "accepted": true
+        }
+      ],
+      "original_native_body": "AgentResponse",
+      "native_pageup": true,
+      "provider_inputs": 0,
+      "scope": "native source counter; not physical installed acceptance"
+    }
+  },
+  "physical_review": {
+    "personally_reviewed": [
+      "phase-a-return.png",
+      "phase-idle-done.png",
+      "review-input-up-frames.png"
+    ],
+    "input_up_interval_seconds": [
+      31.1,
+      35.1
+    ],
+    "assessment": "Readable selected original A and End/idle; held input PageUp progresses through saved history after initial pause with later jumps. No full smoothness or frame-budget claim.",
+    "source_boundary": "Private copied original native journals and matched real ACP/native/UI; public wire claims and public 19-owner workload were not copied. No canonical fresh-answer/public busy equivalence claim."
+  },
+  "profile": {
+    "gil_samples": 1252,
+    "sampling_errors": 0,
+    "alignment_uncertainty_seconds": 0.07779355398728513,
+    "cpu": [
+      {
+        "phase": "warm-ready",
+        "start_seconds": 22.2995820659562,
+        "end_seconds": 23.388976016954985,
+        "cpu_seconds": 0.16999999999999993,
+        "average_cpu_percent": 15.605006787869508
+      },
+      {
+        "phase": "warm-start",
+        "start_seconds": 23.388976016954985,
+        "end_seconds": 28.321652587968856,
+        "cpu_seconds": 0.9199999999999999,
+        "average_cpu_percent": 18.651131627121895
+      },
+      {
+        "phase": "draft",
+        "start_seconds": 28.321652587968856,
+        "end_seconds": 29.68169759400189,
+        "cpu_seconds": 0.22000000000000064,
+        "average_cpu_percent": 16.175935283325266
+      },
+      {
+        "phase": "travel-start",
+        "start_seconds": 29.68169759400189,
+        "end_seconds": 31.118548475962598,
+        "cpu_seconds": 0.35999999999999943,
+        "average_cpu_percent": 25.054792012150067
+      },
+      {
+        "phase": "input-held-up",
+        "start_seconds": 31.118548475962598,
+        "end_seconds": 34.945209778961726,
+        "cpu_seconds": 2.5199999999999996,
+        "average_cpu_percent": 65.85375084084293
+      },
+      {
+        "phase": "input-held-up-done",
+        "start_seconds": 34.945209778961726,
+        "end_seconds": 51.45221003697952,
+        "cpu_seconds": 4.380000000000001,
+        "average_cpu_percent": 26.534197198382802
+      },
+      {
+        "phase": "input-mid-history-idle-done",
+        "start_seconds": 51.45221003697952,
+        "end_seconds": 52.8520998180029,
+        "cpu_seconds": 0.21999999999999886,
+        "average_cpu_percent": 15.715522963470024
+      },
+      {
+        "phase": "input-held-down",
+        "start_seconds": 52.8520998180029,
+        "end_seconds": 56.55742896697484,
+        "cpu_seconds": 1.75,
+        "average_cpu_percent": 47.22927247868235
+      },
+      {
+        "phase": "input-held-down-done",
+        "start_seconds": 56.55742896697484,
+        "end_seconds": 58.79171903000679,
+        "cpu_seconds": 0.5300000000000011,
+        "average_cpu_percent": 23.721181451292274
+      },
+      {
+        "phase": "focused",
+        "start_seconds": 58.79171903000679,
+        "end_seconds": 61.29279678396415,
+        "cpu_seconds": 0.5599999999999987,
+        "average_cpu_percent": 22.390347485756166
+      },
+      {
+        "phase": "up",
+        "start_seconds": 61.29279678396415,
+        "end_seconds": 65.02905391296372,
+        "cpu_seconds": 2.5700000000000003,
+        "average_cpu_percent": 68.78541575879579
+      },
+      {
+        "phase": "up-done",
+        "start_seconds": 65.02905391296372,
+        "end_seconds": 66.45013794995612,
+        "cpu_seconds": 0.5700000000000003,
+        "average_cpu_percent": 40.11022467090381
+      },
+      {
+        "phase": "down",
+        "start_seconds": 66.45013794995612,
+        "end_seconds": 70.22708703699755,
+        "cpu_seconds": 2.75,
+        "average_cpu_percent": 72.81008921817734
+      },
+      {
+        "phase": "down-done",
+        "start_seconds": 70.22708703699755,
+        "end_seconds": 71.70625136396848,
+        "cpu_seconds": 0.2699999999999996,
+        "average_cpu_percent": 18.253549999607696
+      },
+      {
+        "phase": "reverse",
+        "start_seconds": 71.70625136396848,
+        "end_seconds": 75.5696781759616,
+        "cpu_seconds": 2.7200000000000024,
+        "average_cpu_percent": 70.40381848457402
+      },
+      {
+        "phase": "reverse-done",
+        "start_seconds": 75.5696781759616,
+        "end_seconds": 77.05227526498493,
+        "cpu_seconds": 1.1799999999999997,
+        "average_cpu_percent": 79.5900658875118
+      },
+      {
+        "phase": "end",
+        "start_seconds": 77.05227526498493,
+        "end_seconds": 79.67564030800713,
+        "cpu_seconds": 1.1999999999999993,
+        "average_cpu_percent": 45.74277617946601
+      },
+      {
+        "phase": "idle",
+        "start_seconds": 79.67564030800713,
+        "end_seconds": 96.2217553909868,
+        "cpu_seconds": 2.759999999999998,
+        "average_cpu_percent": 16.680652746330168
+      },
+      {
+        "phase": "idle-done",
+        "start_seconds": 96.2217553909868,
+        "end_seconds": 97.60724479297642,
+        "cpu_seconds": 0.20000000000000284,
+        "average_cpu_percent": 14.435332360738023
+      },
+      {
+        "phase": "switch-b",
+        "start_seconds": 97.60724479297642,
+        "end_seconds": 102.91407954698661,
+        "cpu_seconds": 2.6000000000000014,
+        "average_cpu_percent": 48.99342301991349
+      },
+      {
+        "phase": "b-open",
+        "start_seconds": 102.91407954698661,
+        "end_seconds": 104.04473299597157,
+        "cpu_seconds": 0.8599999999999994,
+        "average_cpu_percent": 76.06220993462344
+      },
+      {
+        "phase": "return-a",
+        "start_seconds": 104.04473299597157,
+        "end_seconds": 107.43452534195967,
+        "cpu_seconds": 1.1400000000000006,
+        "average_cpu_percent": 33.63037860856634
+      },
+      {
+        "phase": "a-return",
+        "start_seconds": 107.43452534195967,
+        "end_seconds": 110.9305496159941,
+        "cpu_seconds": 0.6599999999999966,
+        "average_cpu_percent": 18.878587454381545
+      }
+    ],
+    "limits": [
+      "kernel per-phase UI CPU includes diagnostic/export overhead",
+      "private two-owner workload differs from prior public03; no before/after CPU reduction claim",
+      "Chrome B/E stack transition groups are not GIL samples, durations or CPU"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/receipt.json",
+      "bytes": 560075,
+      "sha256": "3ddbd23ff800ef3f3719d00c17c4db24f828d2c10fe2dd08cc55d6a881c72ab4"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/operator-receipt.json",
+      "bytes": 523,
+      "sha256": "5ee7a455aa3ee7f79321561d2335605bd6b2733966b58fc4d42dd74a7194f370"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/input-paging-review.json",
+      "bytes": 540,
+      "sha256": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/profile-review.json",
+      "bytes": 320142,
+      "sha256": "d68c81cd2fb98c5719aee4d230cb7711cc5db0decb95820bb7094c34ad6ba900"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/terminal.mp4",
+      "bytes": 15839605,
+      "sha256": "b4ce8f4b6efd67d94a643946d3ee592452992ad40dba8a2a70fbaae2d06b6613"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/review-input-up-frames.png",
+      "bytes": 3197475,
+      "sha256": "f043505b60fe8f99c92fc0cee38f96511b608491585c587e27cddb4095600c2c"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/phase-idle-done.png",
+      "bytes": 106907,
+      "sha256": "dc1f9ddab2adc9d4f4b6fd90b726a18486c024ec25c6da5e2379dd4e80b431b7"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/viewport295-cohort-native5-20261002-01/capture/phase-a-return.png",
+      "bytes": 108984,
+      "sha256": "ac24ce46a8c845e343efa96b3545c8f32f098e08871daf5ed8179bf918b3db6a"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/private-cohort295-native5-20261002-02/original-copy.json",
+      "bytes": 2413,
+      "sha256": "b3b4f8037e09f7a6eefb4bcfe52fc3d0e468aefb7812d09226514064cf60cff7"
+    },
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-viewport295-cohort-native5-20261002/source-proof.json",
+      "bytes": 7606,
+      "sha256": "7baf43360ad764487ded7bbce884b0da73d26b1cb672943ec8477c7f70356869"
+    }
+  ],
+  "remaining_scope": "Full295/21 CPU/raster/warm/firstpaint/runway/growingend/sidebar/focus/TC1/T9 remains in docs/continuations/viewport-performance-after284-20261002.md; scoped cohort readiness does not close it."
+}
