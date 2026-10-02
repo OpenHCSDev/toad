@@ -1,0 +1,34 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-progress528-source-resource525-20261002/activation.json",
+    "sha256": "094ff207d77d8d0ee882432771d2b80849f29f634396f6b47324b3cc857575e8"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/source-proof.json",
+    "sha256": "96e76ae027cdaa1414b9863623973e4db658f43add7a8f2d0ec441d8a224c53a"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/qualified-source-gates/525-installed-saved-resource.json",
+      "sha256": "2a33759f3db8b67bf337f212654eabab023a7ae3243cff7edc3a3268bf15e507"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/qualified-source-gates/528-installed-native-acp.json",
+      "sha256": "3dd4d0236ff2e5f9107a7d3aaecaa36c076d0892e4bf25e6d59b6702af3cb9a3"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/progress528-source-resource525-20261002/qualified-source-gates/319-geometry-qualified.json",
+      "sha256": "1b9d2d206fe73dfc71bb01bbbf26abb60870392c8ac1cf50240ee038a10c2e6d"
+    }
+  ]
+}

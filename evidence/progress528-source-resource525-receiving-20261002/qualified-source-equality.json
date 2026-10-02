@@ -1,0 +1,29 @@
+{
+  "toad_qualified319": {
+    "source": "222b8d320baa96c2c3db5cc1416a641fc998b72a",
+    "target": "2a3d006d635b23665a096d70fef91cf678c9098e",
+    "paths": [
+      "src"
+    ],
+    "diff_bytes": 0
+  },
+  "textual_qualified24": {
+    "source": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0",
+    "target": "431b4e121bd2320d2b222e139cb0a3d568a84f6b",
+    "paths": [
+      "src",
+      "pyproject.toml"
+    ],
+    "diff_bytes": 0
+  },
+  "core_native_operator_dependencies": {
+    "source": "155b00076312626e025861efc3ed14549adca5c0",
+    "target": "87719d6fed318cf07c793c96ceabf9d54bd53c43",
+    "paths": [
+      "stack/pi-native.sha256",
+      "pyproject.toml",
+      "tools/cutover"
+    ],
+    "diff_bytes": 0
+  }
+}

@@ -1,0 +1,415 @@
+{
+  "qualification": "SCOPED current native geometry lookup and live-body capture targets; not overall smoothness or144Hz",
+  "installed": {
+    "core": "155b00076312626e025861efc3ed14549adca5c0",
+    "toad": "222b8d320baa96c2c3db5cc1416a641fc998b72a",
+    "textual": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0",
+    "sdk": "0.12.1",
+    "native": "5184",
+    "reused_owned_prefix": {
+      "selection": "AGENT_COMMS_RUNTIME_ROOT",
+      "bin_directory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin",
+      "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+      "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+      "launcher_links": {
+        "command": {
+          "selected_path": "/home/ts/bin/toad-comms",
+          "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+          "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+        },
+        "acp": {
+          "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+          "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-paired-native-scene311-20261002/bin/agent-comms-acp",
+          "sha256": "a2f5de65dae56a9c4c78e3a04ffaeeccaa14f9591e9deb28b16c09253ef0626d"
+        }
+      },
+      "entrypoints": {
+        "toad": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/toad",
+          "sha256": "d7111af4a7460158fd5f888afaa63f7f90430c4e82965c4cbb7de2d106c3d770"
+        },
+        "agent-comms-acp": {
+          "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/agent-comms-acp",
+          "sha256": "6882477c6696c8babf68884c055ce8dee49e4e20e4bcc9c2c5cfcba9b10cca1c"
+        }
+      },
+      "activation_path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/activation.json",
+      "activation_sha256": "40de5a187eb3b2a54a78dbb5b97a61cef40a6016bdcdd637cf7e29934e3e5185",
+      "activation": {
+        "stage": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002",
+        "pins": {
+          "agent_comms": "155b00076312626e025861efc3ed14549adca5c0",
+          "toad": "222b8d320baa96c2c3db5cc1416a641fc998b72a",
+          "textual": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0"
+        },
+        "sdk": "0.12.1",
+        "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+        "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+        "state": "normal69 installed source/directURLs/assets/fulltrust verified; performance candidate not activated, public cohort now approved Native6, actual changed candidate public physical gate pending",
+        "staging_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-native-current-geometry319-20261002/source-proof.json",
+        "bins": {
+          "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/python",
+          "toad": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/toad",
+          "agent-comms": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/agent-comms",
+          "agent-comms-acp": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/agent-comms-acp",
+          "agent-comms-agent": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/agent-comms-agent",
+          "pi-comms-native": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/pi-comms-native"
+        },
+        "native_cli": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+        "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+        "native_tree": "5c9d304db96618de00d96b0c5143bb24cdeb935c802e29f97ef988ec38131df7",
+        "native_configuration_note": "Approved default Core155 Native6/native5184. Toad222b current viewport geometry targets, Text24 276e original geometry selection. Candidate only; no root/route/provider-input/owner mutation. Actual busy-public own st path required; registry-derived original epoch on admission, no stale override."
+      },
+      "observed": {
+        "python": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/bin/python",
+        "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002",
+        "packages": {
+          "toad": {
+            "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/lib/python3.14/site-packages/toad/__init__.py",
+            "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+            "source_tree_sha256": "97af133a8c2cd9053b461ac5ca79ae49423872ad9a01c68e41905ed1f56cc7ef",
+            "distribution": "batrachian-toad",
+            "version": "0.6.20",
+            "direct_url": {
+              "url": "https://github.com/OpenHCSDev/toad.git",
+              "vcs_info": {
+                "vcs": "git",
+                "commit_id": "222b8d320baa96c2c3db5cc1416a641fc998b72a",
+                "requested_revision": "222b8d320baa96c2c3db5cc1416a641fc998b72a"
+              }
+            }
+          },
+          "textual": {
+            "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/lib/python3.14/site-packages/textual/__init__.py",
+            "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+            "source_tree_sha256": "d877d1b26065cbd665edbaf6d1308d62d216319a9b1a55da6ec1cef540c19e61",
+            "distribution": "textual",
+            "version": "8.2.8",
+            "direct_url": {
+              "url": "https://github.com/OpenHCSDev/textual.git",
+              "vcs_info": {
+                "vcs": "git",
+                "commit_id": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0",
+                "requested_revision": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0"
+              }
+            }
+          },
+          "agent_comms": {
+            "origin": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-strips-E-feedback-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+            "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+            "source_tree_sha256": "211aff2c2c9dfd7e86ba12394e364f94e60919f9ed8349970d670dc51c0282e7",
+            "distribution": "agent-comms",
+            "version": "0.1.0",
+            "direct_url": {
+              "url": "https://github.com/OpenHCSDev/agent-comms.git",
+              "vcs_info": {
+                "vcs": "git",
+                "commit_id": "155b00076312626e025861efc3ed14549adca5c0",
+                "requested_revision": "155b00076312626e025861efc3ed14549adca5c0"
+              }
+            }
+          }
+        },
+        "route": {
+          "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+          "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+          "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent"
+        },
+        "native_launch": {
+          "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+          "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+          "native_package": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent"
+        }
+      }
+    },
+    "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-native-current-geometry319-20261002/source-proof.json",
+    "source_proof_sha256": "d074b1e8e9760b3e0ce2e78a57a9e4121c5f928ed730fbcbf40da2e73c8d5ae5"
+  },
+  "raw": "/home/ts/.cache/agent-scratch/native-current-body-geometry319-public-20261002-01/capture",
+  "duration_seconds": 106.15330082498258,
+  "completed": true,
+  "capture_completed": true,
+  "operator_exit": 0,
+  "capture_process_returncode": 255,
+  "capture_returncode_scope": "FFmpeg recorder accepted SIGINT255; not independent UIexit0 proof",
+  "input_paging": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "stationary_last10": [
+    {
+      "label": "input-mid-history-idle-done",
+      "start_seconds": 21.33310694800457,
+      "end_seconds": 31.33310694800457,
+      "event_counts": {
+        "sidebar_publication_done": 10,
+        "sidebar_publication_start": 9
+      }
+    },
+    {
+      "label": "mid-history-idle-done",
+      "start_seconds": 69.5293864159612,
+      "end_seconds": 79.5293864159612,
+      "event_counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    }
+  ],
+  "native_key_processing_writer_intervals": [
+    {
+      "phase": "input_up",
+      "native_key_processing_start_seconds": 10.058453689,
+      "native_key_processing_end_seconds": 12.852283032,
+      "key_handler_events": 54,
+      "writer_completions": 37,
+      "inter_writer_median_ms": 38.2447615,
+      "inter_writer_p95_ms": 236.990023,
+      "inter_writer_p99_ms": 247.580435,
+      "inter_writer_worst_ms": 378.971256
+    },
+    {
+      "phase": "input_down",
+      "native_key_processing_start_seconds": 37.605325182,
+      "native_key_processing_end_seconds": 41.027849065,
+      "key_handler_events": 70,
+      "writer_completions": 41,
+      "inter_writer_median_ms": 47.4711165,
+      "inter_writer_p95_ms": 254.715626,
+      "inter_writer_p99_ms": 265.313661,
+      "inter_writer_worst_ms": 296.171754
+    },
+    {
+      "phase": "history_reverse",
+      "native_key_processing_start_seconds": 53.242377285,
+      "native_key_processing_end_seconds": 57.320245575,
+      "key_handler_events": 85,
+      "writer_completions": 57,
+      "inter_writer_median_ms": 31.985534,
+      "inter_writer_p95_ms": 208.455453,
+      "inter_writer_p99_ms": 278.813375,
+      "inter_writer_worst_ms": 422.842639
+    }
+  ],
+  "enqueue_to_writer": {
+    "count": 429,
+    "median_ms": 1.35,
+    "p95_ms": 14.95,
+    "p99_ms": 22.58,
+    "max_ms": 40.62
+  },
+  "kernel_ui_phase_cpu_and_faults": [
+    {
+      "start": "travel-start",
+      "end": "input-held-up",
+      "duration_seconds": 1.2208287440007553,
+      "ui_cpu_percent": 103.20857910593399,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 6950
+    },
+    {
+      "start": "input-held-up",
+      "end": "input-held-up-done",
+      "duration_seconds": 5.387966598966159,
+      "ui_cpu_percent": 78.87947933484753,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 10953
+    },
+    {
+      "start": "input-held-up-done",
+      "end": "input-mid-history-idle-done",
+      "duration_seconds": 17.93546603503637,
+      "ui_cpu_percent": 41.70507744481273,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 18981
+    },
+    {
+      "start": "input-mid-history-idle-done",
+      "end": "input-held-down",
+      "duration_seconds": 3.3139422709937207,
+      "ui_cpu_percent": 26.25272044160028,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 191
+    },
+    {
+      "start": "input-held-down",
+      "end": "input-held-down-done",
+      "duration_seconds": 7.028910641965922,
+      "ui_cpu_percent": 68.85846536592612,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 13814
+    },
+    {
+      "start": "input-held-down-done",
+      "end": "before-history-focus",
+      "duration_seconds": 3.5346754700294696,
+      "ui_cpu_percent": 47.81202728028403,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 3447
+    },
+    {
+      "start": "before-history-focus",
+      "end": "history-held-up",
+      "duration_seconds": 4.684606953000184,
+      "ui_cpu_percent": 26.256204892755537,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 537
+    },
+    {
+      "start": "history-held-up",
+      "end": "history-held-up-done",
+      "duration_seconds": 7.940228512976319,
+      "ui_cpu_percent": 67.2524725361884,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 19676
+    },
+    {
+      "start": "history-held-up-done",
+      "end": "mid-history-idle-done",
+      "duration_seconds": 21.693915618991014,
+      "ui_cpu_percent": 32.774166383204026,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 5411
+    },
+    {
+      "start": "mid-history-idle-done",
+      "end": "end-done",
+      "duration_seconds": 20.14609278802527,
+      "ui_cpu_percent": 38.369723009489334,
+      "major_fault_delta": 0,
+      "minor_fault_delta": 15259
+    }
+  ],
+  "resources": [
+    {
+      "phase": "phase-input-mid-history-idle-done-state.json",
+      "states": {
+        "RenderedBody": 39,
+        "LiveBody": 7
+      },
+      "rendered_all_ready": true,
+      "retained_paint_bytes": 255365,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "scroll_y": 101,
+      "maximum": 228,
+      "follows_tail": false
+    },
+    {
+      "phase": "phase-mid-history-idle-done-state.json",
+      "states": {
+        "LiveBody": 20,
+        "RenderedBody": 4
+      },
+      "rendered_all_ready": true,
+      "retained_paint_bytes": 215604,
+      "pending": true,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "scroll_y": 104,
+      "maximum": 270,
+      "follows_tail": false
+    },
+    {
+      "phase": "phase-end-done-state.json",
+      "states": {
+        "LiveBody": 4,
+        "RenderedBody": 18
+      },
+      "rendered_all_ready": true,
+      "retained_paint_bytes": 109520,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "scroll_y": 128,
+      "maximum": 128,
+      "follows_tail": true
+    }
+  ],
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3803280,
+      "start_time": 41311865
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3803280,
+      "start_time": 41311865
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "candidate_prefix_process_scan": []
+  },
+  "during_run_review": {
+    "own": [
+      "live5-6 consecutive frames11\u201312s: source progresses in discrete jumps with sparse body content before fills; not smooth",
+      "live19-19 consecutive frames56\u201357s: later reverse body movement remains discrete"
+    ],
+    "parent": "live7-12 sheet viewed while recorder3833972 alive at54s; narrow grid/motion limits preserved",
+    "limits": "Contact frames are not continuous playback. Physical phase markers include state capture beyond1.5s nominal hold. Native handler intervals are received key processing, not exact physical keydown/up or input-to-paint."
+  },
+  "source_contract": {
+    "positive": "Original native current full/visible/lazy geometry selector shared by find_widget and subtree admission; original viewport layout supplies Live body boxes; source/style/resize/interaction/disposal joined family passes; retained controls/pixels ready at stationary exports.",
+    "negative": "No duplicate size/map/cache/registry/renderer/pool; no originalinput,provider,restart,publicmutation. No whole-CPU/smoothness/144Hz claim; lazy sparse/discrete frames remain a product limitation."
+  },
+  "profile": {
+    "samples": 1472,
+    "reported_errors": 1,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "alignment_nominal_uncertainty_seconds": 0.06366390801034869
+  },
+  "comparison": {
+    "baseline_raw": "/home/ts/.cache/agent-scratch/native-retained-body-E-feedback-native6-public-20261002-03/capture",
+    "marked_ui_up_cpu": [
+      91.16,
+      78.88
+    ],
+    "native_input_up_writer_median_ms": [
+      44.725282,
+      38.2447615
+    ],
+    "native_input_up_writer_p95_ms": [
+      194.820233,
+      236.990023
+    ],
+    "native_reverse_writer_median_ms": [
+      50.0856825,
+      31.985534
+    ],
+    "native_reverse_writer_p95_ms": [
+      218.918943,
+      208.455453
+    ],
+    "limit": "Different marked/key-processing lengths, keycounts, state export costs, workload andCorepin. Observed lower CPU/medians do not establish a controlled causal overall gain; Up p95 worsened."
+  },
+  "remaining_owner": "Heisenberg319 foreground/native/body/layout/paint and full original performance scope; Kepler24 native geometry contributor; next meaningful source change uses SAME profile; no unchanged recapture",
+  "raw_sha256": {
+    "receipt.json": "0a89fe0eba1334d7b9ad362f74697eb39a122c0d9bd23735734f46fb79919438",
+    "events.jsonl": "056d183b64e588cde92da0a5c42196fa7ed0ce37a8dd96247d919cded602a5e0",
+    "scroll-travel.jsonl": "9e4ca482cab059ef49901708c3af53abca17cfb206042bd75c3070823edff0c0",
+    "frame-delivery.json": "665ab07dc8f60fbf6942eea7bacb00c085506303cfaf475ad19bdcaa8ec1ed60",
+    "terminal.mp4": "a01b711db591c789144f1e37813fb6f5698e648043053e58505027eb325fa69e"
+  }
+}
