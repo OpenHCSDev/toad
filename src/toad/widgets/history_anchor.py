@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import cached_property
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 import asyncio
 from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
@@ -226,8 +226,12 @@ class HistoryWindow(VerticalScroll):
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
         """Fence a native source mutation inside its reader layout lifetime."""
-        async with self.preserve_reader(widget):
+        async with AsyncExitStack() as reader:
             async with self.lock:
+                # Acquire the native mutation before borrowing an outstanding
+                # anchor. Its owner cannot finish layout while this mutation
+                # holds the tree fence. Release that fence before compensation.
+                await reader.enter_async_context(self.preserve_reader(widget))
                 yield
 
     @asynccontextmanager

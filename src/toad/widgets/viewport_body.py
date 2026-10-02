@@ -116,6 +116,9 @@ class BodyMeasurement(ABC):
     async def materialize(self, body):
         await body.start_materialization(self).materialize(body)
 
+    async def before_publication(self) -> None:
+        """Settled resources have no outstanding native writer to join."""
+
     def released(self):
         return self
 
@@ -199,6 +202,9 @@ class MaterializingBody(MeasuredBody):
         return self
 
     async def materialize(self, body):
+        await self.before_publication()
+
+    async def before_publication(self) -> None:
         await self.worker.wait()
 
 
@@ -361,6 +367,9 @@ class MeasuredViewportBody(ViewportBody):
     def start_materialization(self, previous, work=None):
         async def materialize():
             try:
+                # Identity guards prevent an old commit; joining its actual
+                # worker also prevents old native writes after the new commit.
+                await previous.before_publication()
                 await (self.materialize_native_body() if work is None else work())
                 if self.is_attached and self._body_measurement is current:
                     self.native_body_committed()
