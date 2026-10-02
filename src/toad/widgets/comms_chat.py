@@ -312,13 +312,13 @@ class CommsChatView(DeliveryFailureView, Conversation):
                     self.on_work_started()
                 try:
                     reader = self.message_history.reader
-                    read = await reader.read(reader.request(self.message_history.follows_tail))
+                    read = await reader.read(self.message_history.follows_tail)
                 finally:
                     if show_loading:
                         self.on_work_finished()
                 if not self.is_attached or not self.query_ancestor(SessionView).is_current:
                     return
-                if reader is not self.message_history.reader or read.request != reader.request(self.message_history.follows_tail):
+                if reader is not self.message_history.reader or not reader.current(read, self.message_history.follows_tail):
                     return
                 if not root_is_current(comms.root):
                     self.display = False

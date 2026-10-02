@@ -169,8 +169,8 @@ class ChannelHistoryReader:
     def comms(self) -> Comms:
         return self.source.comms
 
-    def request(self, follow_tail: bool) -> HistoryReadRequest:
-        return self.source.for_view(follow_tail)
+    def current(self, result: HistoryReadResult, follow_tail: bool) -> bool:
+        return result.request == self.source.for_view(follow_tail)
 
     def accept(self, result: HistoryReadResult, follow_tail: bool) -> None:
         self.source = result.request.advance(result, follow_tail)
@@ -178,8 +178,8 @@ class ChannelHistoryReader:
     def restart(self) -> None:
         self.source = self.source.restart()
 
-    async def read(self, request: HistoryReadRequest) -> HistoryReadResult:
-        return await self._run(request.read)
+    async def read(self, follow_tail: bool) -> HistoryReadResult:
+        return await self._run(self.source.for_view(follow_tail).read)
 
     async def page(self, *, before: int | None = None, after: int | None = None,
                    limit: int) -> MessagePage:

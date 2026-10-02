@@ -99,15 +99,18 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             release = Event()
             try:
                 with patch.object(comms.views, 'channel_display_page', wraps=comms.views.channel_display_page) as page:
-                    result = await reader.read(request)
+                    result = await reader.read(True)
                     assert result.page is not None
                     self.assertLessEqual(len(result.page.messages), 8)
                     self.assertTrue(result.page.has_older)
                     reader.accept(result, True)
-                    reused = await reader.read(reader.request(True))
+                    reused = await reader.read(True)
                     self.assertIsNone(reused.page)
                     self.assertEqual(page.call_count, 1)
 
+                # A fresh original publication makes the ordinary incremental
+                # read necessary; no caller can substitute another source.
+                comms.messaging.send("sender", "#one", "arrived before cancellation")
                 # A cancelled UI waiter does not release an in-flight kernel read.
                 entered = Event()
                 original = comms.views.channel_display_page
@@ -122,7 +125,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                     return original(target, **kwargs)
 
                 with patch.object(comms.views, 'channel_display_page', side_effect=gated) as page:
-                    first = asyncio.create_task(reader.read(request))
+                    first = asyncio.create_task(reader.read(True))
                     self.assertTrue(await asyncio.to_thread(entered.wait, 2))
                     first.cancel()
                     with self.assertRaises(asyncio.CancelledError):
@@ -132,7 +135,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                     # current-view request can still complete independently.
                     other = ChannelHistoryReader(replace(request, target="#two"))
                     try:
-                        active = await asyncio.wait_for(other.read(other.request(True)), 2)
+                        active = await asyncio.wait_for(other.read(True), 2)
                         self.assertEqual(active.request.target, "#two")
                     finally:
                         await other.aclose()
