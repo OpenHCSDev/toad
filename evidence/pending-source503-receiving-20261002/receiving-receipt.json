@@ -1,0 +1,15 @@
+{
+  "state": "normal69 source/package receiving proof PASS; original configured batch/receipt/proof path PASS; whole current-cursor gate FAILED",
+  "receiving_head": "ce788178a143bbab3f6fda43b5a73ccda2d53f77",
+  "installed_core": "4701ee10a54d8151724f102cd1861a97ce385452",
+  "core_review_head": "fbf53867",
+  "prefix": "/home/ts/wt/comms-channel-reply-batch-policy-20261002/.artifacts/runtime-pending-source503-20261002",
+  "source_proof": "evidence/pending-source503-receiving-20261002/source-proof.json",
+  "whole_failed_raw": "/home/ts/wt/b503c01/receipt.json",
+  "remaining_owner": "Arendt489 existing cursor/coverage publication",
+  "provider_repeat": false,
+  "default_changed": false,
+  "native_rebuild": false,
+  "schema_migration": false,
+  "scope": "pin-only main295 receiving; parent decides useful checkpoint activation separately"
+}
