@@ -1039,6 +1039,7 @@ def cpu_snapshot(root_pid):
             fields = (path / "stat").read_text().rsplit(")", 1)[1].split()
             result[str(pid)] = {"start_ticks": int(fields[19]),
                 "cpu_seconds": (int(fields[11]) + int(fields[12])) / os.sysconf("SC_CLK_TCK"),
+                "minor_faults": int(fields[7]), "major_faults": int(fields[9]),
                 "command": (path / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
         except (OSError, ValueError, IndexError):
             continue
@@ -1221,21 +1222,25 @@ def artifacts(output, args, env, owner, *, start, seconds, label=None, consecuti
     video = output / "terminal.mp4"
     common = ["ffmpeg", "-nostdin", "-y", "-loglevel", "warning", "-threads", "1",
               "-filter_threads", "1", "-filter_complex_threads", "1"]
-    interval = ["-ss", str(start), "-t", str(seconds), "-i", str(video)]
+    # A live fragmented MP4 has no final seek index. Input seeking can silently
+    # return earlier packets and stamp them as the requested interval. Select
+    # the original decoded timestamps for both motion-review consumers.
+    interval = ["-i", str(video)]
+    trim = f"trim=start={start}:duration={seconds},setpts=PTS-STARTPTS,"
     slow = output / (f"{label}-slow.mp4" if label else "slow.mp4")
     sheet = output / (f"{label}-frames.png" if label else "frames.png")
     if not consecutive:
         owner.run(common + interval + [
-            "-vf", f"setpts={args.slowdown}*(PTS-STARTPTS)", "-r", str(args.fps),
+            "-vf", trim + f"setpts={args.slowdown}*PTS", "-r", str(args.fps),
             "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", "-threads", "1",
             str(slow),
         ], env, timeout=60)
     fps = args.fps if consecutive else args.review_fps
     frames = min(args.review_frames, max(1, math.ceil(seconds * fps)))
     rows = math.ceil(frames / args.sheet_columns)
-    # Input seeking resets PTS. Add the source offset before drawing timestamps.
+    # Trimming resets PTS. Add the original source offset to the frame labels.
     stamp = r"drawtext=text='%{pts\:hms}':fontsize=14:fontcolor=white:box=1:boxcolor=black:x=4:y=4"
-    filters = (f"fps={fps},settb=AVTB,setpts=PTS+{start}/TB,{stamp},"
+    filters = (trim + f"fps={fps},settb=AVTB,setpts=PTS+{start}/TB,{stamp},"
                f"scale=640:-2,tile={args.sheet_columns}x{rows}:nb_frames={frames}")
     owner.run(common + interval + ["-vf", filters, "-frames:v", "1", "-threads", "1",
                                   "-update", "1", str(sheet)], env, timeout=60)

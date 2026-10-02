@@ -57,6 +57,13 @@ async def main():
                 await pilot.pause(.05)
 
             await settle()
+            live_targets = tuple(owner for owner in viewport.body_roots()
+                                 if not owner.body_dormant)
+            assert live_targets
+            assert set(live_targets) <= set(app.screen._layout_geometry_targets())
+            app.screen._refresh_layout(app.size)
+            current_scene = app.screen._compositor
+            assert all(owner in current_scene._visible_map for owner in live_targets)
             await viewport.suspend_source()
             window.release_anchor()
             window.scroll_to(y=0, animate=False, immediate=True)
@@ -95,6 +102,7 @@ async def main():
             receipt = dict(fragment_arrangements=observed['fragment_arrangements'],
                            profiled_100_reflows_seconds=perf_counter() - started,
                            fragments=len(bodies), native_cache_capacity=scene.max_subtree_geometry_entries,
+                           live_body_boxes_in_original_viewport_layout=len(live_targets),
                            provider_calls=0,
                            boundary='actual saved source/Toad widgets/native compositor, source only')
             (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')

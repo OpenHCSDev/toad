@@ -191,8 +191,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return self.is_current
 
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
-        return tuple(target for window in self.viewport_presentation.anchors
-                     for target in window.history_geometry_targets())
+        return self.viewport_presentation.geometry_targets()
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import WindowRestoration
