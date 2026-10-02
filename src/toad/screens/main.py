@@ -324,6 +324,9 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             recovery.set_identity(self._comms_thread, self.coordination_root)
         if comms_tree := self.query_one_optional(ThreadCommsSidebar):
             comms_tree.set_identity(self._comms_thread, self.coordination_root)
+        from toad.widgets.context_explorer import ContextExplorer
+        if context := self.query_one_optional(ContextExplorer):
+            context.set_identity(self._comms_thread, self.coordination_root)
 
     @property
     def coordination_root(self) -> str | None:

@@ -694,7 +694,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         for block in self.contents.children:
             apply_block_filter(block, selected)
         for history in tuple(window.histories):
-            history.filter.changed()
+            history.projection_changed()
         revision = window.scroll_revision
 
         def restore_position():

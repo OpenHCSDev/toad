@@ -78,6 +78,17 @@ class MountedMessageHistory:
     def block(self, message):
         return self.view.message_block(message)
 
+    def capture_reader_admissions(self) -> tuple:
+        # Every retained wire row is already mounted. Its original native
+        # window position needs no transcript fragment range to reconstruct.
+        return ()
+
+    def restore_reader_admissions(self, admissions) -> None:
+        """Retained wire rows have no unmounted local fragment admission."""
+
+    def projection_changed(self) -> None:
+        """Wire history has no native transcript-category projection."""
+
     def retire(self):
         self.tail_receipt = None
         self.channel_receipts.clear()

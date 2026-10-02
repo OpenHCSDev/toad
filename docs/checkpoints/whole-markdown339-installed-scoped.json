@@ -1,0 +1,283 @@
+{
+  "scope": "Scoped whole-Markdown worker/native history owner checkpoint; not whole smoothness, cross-view controller, CPU improvement or 144Hz acceptance",
+  "installed_toad": "e00ef7522fbee8e297e909e93f6cb076db54f964",
+  "pins": {
+    "agent_comms": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+    "toad": "e00ef7522fbee8e297e909e93f6cb076db54f964",
+    "textual": "81ecfccd6622e727ec2c8d6eb6927e2a3cb9e7cd"
+  },
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-whole-markdown339-20261002/source-proof.json",
+  "capture": "/home/ts/.cache/agent-scratch/whole-markdown339-shared-window-public-20261002-01/capture",
+  "duration_seconds": 108.81406125600915,
+  "raw_capture_completed": true,
+  "raw_completed": false,
+  "raw_error": "RuntimeError: Required state capture before did not complete: {'started_seconds': 1.2336758950259537, 'manifest': {'pid': 653931, 'created': 1790972350.76, 'executable': '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14', 'rss_before': 107159552, 'started_ns': 1790972354140498812, 'profile_seconds': 0, 'gil_only': False, 'native': False, 'receipts': {'/home/ts/.cache/agent-scratch/whole-markdown339-shared-window-public-20261002-01/capture/before-state': 'error', '/home/ts/.cache/agent-scratch/whole-markdown339-shared-window-public-20261002-01/capture/before-screen': 'complete'}, 'finished_ns': 1790972354305307099}, 'finished_seconds': 1.6340449360432103}",
+  "failure_cause": "Initial state export read app.screen before mount; ScreenStackError No screens on stack. Application mount succeeded later; warm-ready6.921s. Original failure preserved.",
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 18,
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 507032,
+      "start_time": 44408504
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 507032,
+      "start_time": 44408504
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit": {
+    "pid": 653930,
+    "start_ticks": 44799069,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "terminal_exit_limit": "ObservedProcess transfer provides identity/custody, not normal application exit proof. FFmpeg255 is accepted SIGINT result.",
+  "writer_key_windows": [
+    {
+      "action": "input-up",
+      "start_ns": 448013119722959,
+      "end_ns": 448015400643157,
+      "video_start_seconds": 21.098450936,
+      "video_end_seconds": 23.379371134
+    },
+    {
+      "action": "input-down",
+      "start_ns": 448035763075309,
+      "end_ns": 448038029699994,
+      "video_start_seconds": 43.741803286,
+      "video_end_seconds": 46.008427971
+    },
+    {
+      "action": "history-up",
+      "start_ns": 448045112301299,
+      "end_ns": 448047360848014,
+      "video_start_seconds": 53.091029276,
+      "video_end_seconds": 55.339575991
+    },
+    {
+      "action": "history-down",
+      "start_ns": 448050865161526,
+      "end_ns": 448053110616792,
+      "video_start_seconds": 58.843889503,
+      "video_end_seconds": 61.089344769
+    },
+    {
+      "action": "reverse",
+      "start_ns": 448056461736896,
+      "end_ns": 448058736771359,
+      "video_start_seconds": 64.440464873,
+      "video_end_seconds": 66.715499336
+    }
+  ],
+  "writer_phases": [
+    {
+      "action": "input-up",
+      "intervals": {
+        "count": 48,
+        "median_ms": 21.29,
+        "p95_ms": 164.47,
+        "p99_ms": 192.98,
+        "max_ms": 198.84
+      },
+      "writer_receipts": 49
+    },
+    {
+      "action": "input-down",
+      "intervals": {
+        "count": 47,
+        "median_ms": 19.85,
+        "p95_ms": 178.84,
+        "p99_ms": 187.6,
+        "max_ms": 192.37
+      },
+      "writer_receipts": 48
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 88,
+        "median_ms": 15.98,
+        "p95_ms": 90.0,
+        "p99_ms": 168.51,
+        "max_ms": 249.18
+      },
+      "writer_receipts": 89
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 86,
+        "median_ms": 16.31,
+        "p95_ms": 57.43,
+        "p99_ms": 184.03,
+        "max_ms": 194.3
+      },
+      "writer_receipts": 87
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 118,
+        "median_ms": 15.61,
+        "p95_ms": 35.0,
+        "p99_ms": 107.09,
+        "max_ms": 139.83
+      },
+      "writer_receipts": 119
+    }
+  ],
+  "writer_boundary": "Native writer completion, not changed pixels or emulator input-to-paint. Exact driver keydown/keyup windows exclude state export tails.",
+  "profile": {
+    "sample_count": 1300,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.06175303499097936
+  },
+  "cpu_marker_phases": [
+    {
+      "label": "input-held-up",
+      "video_start_seconds": 20.04252332204487,
+      "video_end_seconds": 24.314362004050054,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 3.629999999999999,
+          "average_cpu_percent": 84.97511891755457
+        }
+      ]
+    },
+    {
+      "label": "input-held-up-done",
+      "video_start_seconds": 24.314362004050054,
+      "video_end_seconds": 41.07301506999647,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 5.020000000000001,
+          "average_cpu_percent": 29.954674640294577
+        }
+      ]
+    },
+    {
+      "label": "input-held-down",
+      "video_start_seconds": 42.734738030005246,
+      "video_end_seconds": 46.70311661902815,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 2.990000000000002,
+          "average_cpu_percent": 75.34563381303296
+        }
+      ]
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 52.03423032001592,
+      "video_end_seconds": 56.08606344804866,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 3.1400000000000006,
+          "average_cpu_percent": 77.49578772817192
+        }
+      ]
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 57.81401489203563,
+      "video_end_seconds": 61.747961748042144,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 3.169999999999998,
+          "average_cpu_percent": 80.58065134153782
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 63.38541628001258,
+      "video_end_seconds": 67.48374332103413,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 2.9200000000000017,
+          "average_cpu_percent": 71.24858438022953
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 72.16821829305263,
+      "video_end_seconds": 89.14319421601249,
+      "ui": [
+        {
+          "pid": "653931",
+          "cpu_seconds": 3.759999999999998,
+          "average_cpu_percent": 22.150252330634128
+        }
+      ]
+    }
+  ],
+  "cpu_limits": "Markers include exports; workload differs from335, so no causal before/after CPU gain. Idle after End distinct from mid-history.",
+  "visual": {
+    "assessment": "Readable history/chrome; repeated positions followed by discrete large advances. No whole-chat blank in reviewed intervals. Smoothness and uninterrupted lazy-loading animation NOT accepted.",
+    "during_verified": "during-input-up-frames.png21.442523\u201322.242523s encoded and viewed while recorder alive; within original21.098451\u201323.379371 key window.",
+    "reverse": "during-reverse-frames.png64.785416\u201365.585416s encoded while alive; exact viewing lifetime not proved. Re-reviewed AFTER within64.440465\u201366.715499 key window.",
+    "after_review": "Merged340 --review-recording generated six48-frame0.8s sheets/slowclips. Viewed input-up/down/reverse/End sheets; auto marker-start sheets precede key injection by about1s and cannot alone establish held-key motion. Existing during sheets supply actual key-window motion.",
+    "review_tool": "PR340 merged2a89a95f, installed locally via normal fa490d06 merge; no additional UI/provider capture."
+  },
+  "exporter_fix": "Both original state and screenshot capture now acquire existing App._mounted_event; removes ordinary-export bypass. Tools-only source change; no claim it was present in this original run.",
+  "source_sanity": "Existing three worker/reuse pilots passed before installed run. Five explicit exporter/recorder/native App roots parsed with NRA without omissions. Two changed exporter files compile. No new UI/native run.",
+  "unfinished": "FullCPU/raster/cold/warm/firstpaint/runway/velocity/growingEnd/void/focus/sidebar/busy/animation/TC1/T9/T4 retained;338 channel controller/source registration pending; EinsteinU1 application event owner disjoint.",
+  "sha256": {
+    "receipt.json": "69b24ed70a405173a71a6818c6a018b94533cb9bca4991a0e2cf241e625cc7ef",
+    "terminal.mp4": "b0bc653859ef495901c41369a7f80b9e1e624269c2e578aeebe407d9cac6a448",
+    "cpu-profile.json": "875f18a78c7cbb1ecf732b3d4ec6272e6e1e178f1a48b7f52feed5d0a117a118",
+    "before-state-error.json": "a17713bd01fbd6eaa796a6b77f07c6c8cad7922a8a6bbc964adeda55facb4140",
+    "events.jsonl": "05844bc5c87ae9b3009050ba3eae001b168c10c1541a89b8a1ba4b72cf67c820",
+    "driver.log": "b22e1467d575fc1f78c20e266495176d7c38318968eef8fcb454e05cde717ed0",
+    "review-receipt.json": "992338ae3c3d255a689ae3555cddf64b885e5a679fe19af7091531c3774f5f31",
+    "warm-scroll-review.json": "e234b0e95b4296e939f717dcda5d95a78e04f86876865d8da7aeac0df48c32e8",
+    "input-paging-review.json": "5a8ca1394acee269c02cb4555a7921baf8ccc77c0a64395d74aaf0af63e2addd",
+    "exact-held-frame-delivery.json": "25d2aa3146dba63e307ff1d1edf0ffb5263a6503d3caac00f2f165e10b21bbce",
+    "after-state.pickle": "89f937b1fe641672abff277429810f467ea12eecf48b6316beb796b5244862db"
+  }
+}
