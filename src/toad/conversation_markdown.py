@@ -1,12 +1,8 @@
-import asyncio
-import os
 import re
 from abc import abstractmethod
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 from threading import local
-from urllib.parse import quote, unquote, urlsplit
 
 from agent_comms.declared_family import DeclaredFamily
 from markdown_it import MarkdownIt
@@ -18,6 +14,7 @@ from textual.widgets import Markdown
 
 from toad.layout import trim_trailing_margin
 from toad.block_content import MarkdownBlockContent
+from toad.project_link import ProjectLink
 
 
 class ConversationCodeFence(MarkdownBlockContent, Markdown.BLOCKS["fence"]):
@@ -34,79 +31,6 @@ _PATH_PATTERN = re.compile(
     r"(?P<location>:\d+(?::\d+)?)?"
     r"(?![\w/])"
 )
-
-
-def _resolve_path(root: Path, value: str) -> Path | None:
-    candidate = Path(value).expanduser()
-    if not candidate.is_absolute():
-        candidate = root / candidate
-    try:
-        candidate = candidate.resolve()
-        return candidate if candidate.is_file() else None
-    except (OSError, RuntimeError):
-        return None
-
-
-def _linked_file(root: Path, href: str) -> Path | None:
-    """Resolve an explicit Markdown file link without treating web URLs as files."""
-    parsed = urlsplit(href)
-    if parsed.scheme == "file":
-        if parsed.netloc not in {"", "localhost"}:
-            return None
-        return _resolve_path(root, unquote(parsed.path))
-    if parsed.scheme or parsed.netloc:
-        return None
-    return _resolve_path(root, unquote(parsed.path)) if parsed.path else None
-
-
-def _searchable_basename(href: str) -> str | None:
-    """Only simple filenames qualify for a deferred, ambiguity-checked lookup."""
-    parsed = urlsplit(href)
-    if parsed.scheme or parsed.netloc or parsed.fragment or parsed.query:
-        return None
-    name = unquote(parsed.path)
-    return (name if name and Path(name).name == name and Path(name).suffix
-            and not name.startswith(".") else None)
-
-
-def _unique_project_file(root: Path, name: str) -> tuple[Path | None, str]:
-    """Find one project file only when the user actually opens its link.
-
-    Never select the first of several same-named files. The bounded walk skips
-    generated/hidden trees and cannot block streaming Markdown parsing.
-    """
-    if _searchable_basename(name) != name:
-        return None, "invalid"
-    ignored = {"node_modules", "__pycache__", "dist", "build", "coverage"}
-    found: Path | None = None
-    directories = files_seen = 0
-    try:
-        for current, directories_here, files in os.walk(root, followlinks=False):
-            directories += 1
-            files_seen += len(files)
-            if directories > 800 or files_seen > 8000:
-                return None, "limit"
-            directories_here[:] = [directory for directory in directories_here
-                                   if not directory.startswith(".") and directory not in ignored]
-            if name not in files:
-                continue
-            path = _resolve_path(root, str(Path(current) / name))
-            if path is None:
-                continue
-            if found is not None and path != found:
-                return None, "ambiguous"
-            found = path
-    except OSError:
-        return None, "unavailable"
-    return (found, "found") if found else (None, "missing")
-
-
-def _file_lookup_notice(name: str, root: Path, reason: str) -> str:
-    if reason == "ambiguous":
-        return f"Several files named {name} exist under {root}; use a full path."
-    if reason == "limit":
-        return f"Project file search is too large for {name}; use a full path."
-    return f"No project file named {name} found under {root}."
 
 
 @dataclass(slots=True)
@@ -142,10 +66,7 @@ class LinkOpenTokenRule(ProjectTokenRule):
     @classmethod
     def resolve(cls, renderer, token, context):
         href = str(token.attrGet("href") or "")
-        if path := _linked_file(context.root, href):
-            token.attrSet("href", f"toad-file:{quote(str(path))}")
-        elif name := _searchable_basename(href):
-            token.attrSet("href", f"toad-file-search:{quote(name)}")
+        token.attrSet("href", ProjectLink.from_href(lambda: context.root, href).href)
         context.linked += 1
         return [token]
 
@@ -173,21 +94,13 @@ class PathTokenRule(ProjectTokenRule):
         children: list[Token] = []
         position = 0
         for match in cls.matches(token):
-            path = _resolve_path(context.root, match.group("path"))
-            if path is None:
-                name = _searchable_basename(match.group("path"))
-                if name is None:
-                    continue
-                href = f"toad-file-search:{quote(name)}"
-            else:
-                href = f"toad-file:{quote(str(path))}"
+            link = ProjectLink.from_path(context.root, match.group("path"))
+            linked = link.inline_tokens(cls.content(token, match))
+            if not linked:
+                continue
             if match.start() > position:
                 children.append(Token("text", "", 0, content=token.content[position:match.start()]))
-            children.extend((
-                Token("link_open", "a", 1, attrs={"href": href}),
-                cls.content(token, match),
-                Token("link_close", "a", -1),
-            ))
+            children.extend(linked)
             position = match.end()
         if not position:
             return [token]
@@ -301,32 +214,9 @@ class ConversationMarkdown(Markdown):
         return _ThreadLocalPathParser(ProjectPathOwner.containing(self).project_root.resolve())
 
     async def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
-        screen = self.screen
         from toad.project_path_owner import ProjectPathOwner
-        root = ProjectPathOwner.containing(self).project_root.resolve()
-        if event.href.startswith("toad-file:"):
-            path = Path(unquote(event.href.removeprefix("toad-file:")))
-        elif event.href.startswith("toad-file-search:"):
-            name = unquote(event.href.removeprefix("toad-file-search:"))
-            path, status = await asyncio.to_thread(_unique_project_file, root, name)
-            if path is None:
-                self.notify(_file_lookup_notice(name, root, status),
-                            title="File preview", severity="warning")
-                return
-        elif path := _linked_file(root, event.href):
-            pass
-        elif (urlsplit(event.href).scheme in {"", "file"}
-              and Path(urlsplit(event.href).path).suffix):
-            self.notify(f"File not found: {event.href} (project: {root})",
-                        title="File preview", severity="warning")
-            return
-        else:
-            self.app.open_url(event.href)
-            return
-        event.stop()
-        # Navigation may retire this widget. Its message pump must return before
-        # the application waits for the departing conversation to be removed.
-        self.app.run_worker(partial(self.app.session_navigation.preview, path))
+        link = ProjectPathOwner.link_from(self, event.href)
+        await link.preview(self, event)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
