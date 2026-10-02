@@ -107,3 +107,15 @@ class RecoverySessionPanel(SessionPanel[RecoveryView]):
 
     def make_widget(self, screen: "MainScreen") -> RecoveryView:
         return RecoveryView(screen._comms_thread, wire_root=screen.coordination_root)
+
+
+class ContextSessionPanel(SessionPanel):
+    """The last right-sidebar panel; only reader intent survives retirement."""
+    def __init__(self):
+        self.intents = {}
+
+    def make_widget(self, screen):
+        from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent
+        key = (screen.coordination_root, screen._comms_thread)
+        intent = self.intents.setdefault(key, ContextTreeIntent())
+        return ContextExplorer(screen._comms_thread, screen.coordination_root, intent=intent)
