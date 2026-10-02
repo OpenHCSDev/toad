@@ -1,0 +1,217 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/native-retained-body-E-public-20261002-01/capture",
+  "duration_seconds": 115.63820957095595,
+  "qualification": "NEGATIVE E engagement and missing delivery trace, not smoothness acceptance",
+  "body_exports": [
+    {
+      "phase": "phase-a-return-state.json",
+      "bodies": 30,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-b-open-state.json",
+      "bodies": 30,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-down-done-state.json",
+      "bodies": 34,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-down-state.json",
+      "bodies": 49,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-draft-state.json",
+      "bodies": 22,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-end-state.json",
+      "bodies": 50,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-focused-state.json",
+      "bodies": 35,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-idle-done-state.json",
+      "bodies": 18,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-idle-state.json",
+      "bodies": 18,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-input-held-down-done-state.json",
+      "bodies": 36,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-input-held-down-state.json",
+      "bodies": 45,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-input-held-up-done-state.json",
+      "bodies": 40,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-input-held-up-state.json",
+      "bodies": 22,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-input-mid-history-idle-done-state.json",
+      "bodies": 45,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-return-a-state.json",
+      "bodies": 30,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-reverse-done-state.json",
+      "bodies": 38,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-reverse-state.json",
+      "bodies": 35,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-sidebar-revealed-state.json",
+      "bodies": 22,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-switch-b-state.json",
+      "bodies": 18,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-travel-start-state.json",
+      "bodies": 22,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-undo-state.json",
+      "bodies": 30,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-up-done-state.json",
+      "bodies": 37,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-up-state.json",
+      "bodies": 35,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-warm-ready-state.json",
+      "bodies": 18,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    },
+    {
+      "phase": "phase-warm-start-state.json",
+      "bodies": 22,
+      "states": [
+        "LiveBody"
+      ],
+      "paint_bytes": 0
+    }
+  ],
+  "observer_failure": "before-state-error AttributeError None.flush; no actual enqueue/flush timeline",
+  "visual_during": "Consecutive reverse frames69.0\u201370.0 inspected while original recorder/UI alive; partially finalized sheet, readable stepwise motion, not full motion acceptance",
+  "scope": "Warm16 and inputpaging7 predicates passed, not E or actual frame-rate proof",
+  "source_reasons": [
+    "DocumentViewport retained warm admission as live DOM; all admitted offscreen bodies excluded from retirement",
+    "Native subtree capture required optional geometry-LRU membership",
+    "Native Load dispatch precedes driver acquisition, so next-callback scheduling alone cannot establish observer attachment"
+  ],
+  "fix": "Existing viewport retains paint and reserves live DOM only for visible/protected bodies; original native full arrangement captures without LRU; original App mounted completion owns observer acquisition",
+  "original_receipt_untouched": true
+}

@@ -7,10 +7,9 @@ from dataclasses import dataclass
 from typing import cast
 
 from rich.console import RenderableType
-from rich.cells import cell_len
 from rich.protocol import is_renderable
 from textual import events
-from textual.geometry import Size
+from textual.geometry import Region, Size
 from textual.screen import Screen
 from textual.selection import Selection
 from textual.strip import Strip
@@ -176,7 +175,7 @@ class WorkerStatic(Static):
             # including tabs and final blank lines. Rich's terminal rendering
             # can drop that last blank row; it must not truncate clipboard text.
             return selection.extract(self._source.code), "\n"
-        text = "\n".join(line.text for line in self._prepared.lines)
+        text = self._prepared.text
         return selection.extract(text), "\n"
 
     def get_content_width(self, container: Size, viewport: Size) -> int:
@@ -197,18 +196,11 @@ class WorkerStatic(Static):
         y -= extra if vertical == "bottom" else extra // 2 if vertical == "middle" else 0
         if not 0 <= y < len(prepared.lines):
             return Strip.blank(width, self.visual_style.rich_style)
-        strip = prepared.lines[y]
         selection = self.text_selection
-        span = selection.get_span(y) if selection is not None else None
-        if span is not None:
-            start, end = span
-            text = strip.text
-            start = cell_len(text[:start])
-            end = strip.cell_length if end == -1 else cell_len(text[:end])
-            selection_style = Style.from_styles(self.screen.get_component_styles("screen--selection")).rich_style
-            strip = Strip.join((strip.crop(0, start), strip.crop(start, end).apply_style(selection_style),
-                                strip.crop(end, strip.cell_length)))
-        strip = strip.apply_offsets(0, y)
+        selection_style = (Style.from_styles(self.screen.get_component_styles("screen--selection")).rich_style
+                           if selection is not None else None)
+        strip = prepared.render_lines(Region(0, y, prepared.width, 1), selection=selection,
+                                      selection_style=selection_style)[0]
         space = max(0, width - strip.cell_length)
         left = space if horizontal == "right" else space // 2 if horizontal == "center" else 0
         if left:

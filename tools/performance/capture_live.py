@@ -30,6 +30,12 @@ def main():
     parser.add_argument("--screen", action="store_true", help="Export through Textual's screenshot API")
     parser.add_argument("--scroll-travel", action="store_true",
                         help="Install bounded native scroll-travel observation in the owned UI")
+    parser.add_argument("--frame-trace", action="store_true",
+                        help="Export the existing driver frame enqueue/writer trace")
+    parser.add_argument("--install-frame-trace", action="store_true",
+                        help="Install that observer once on this capture's original driver")
+    parser.add_argument("--frames-only", action="store_true",
+                        help="Export frame events without the widget/DTO census")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.state or args.screen):
@@ -41,6 +47,10 @@ def main():
         parser.error("Visible history waiting requires --state")
     if args.wait_history_seconds and not args.wait_history_thread:
         parser.error("Visible history waiting requires --wait-history-thread")
+    if args.install_frame_trace and not args.frame_trace:
+        parser.error("Installing frame observation requires --frame-trace")
+    if args.frames_only and not (args.frame_trace and args.state):
+        parser.error("Frame-only capture requires --frame-trace and --state")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
     args.output_dir = args.output_dir.expanduser().resolve()
@@ -69,6 +79,15 @@ def main():
             tools = Path(__file__).resolve().parent
             script = Path(str(prefix) + "-remote.py")
             lines = ["import importlib.util as _capture_import"]
+            if args.frame_trace:
+                lines.extend((
+                    "import sys as _capture_sys",
+                    "if 'sidebar_validation_driver' not in _capture_sys.modules:",
+                    f"    _spec = _capture_import.spec_from_file_location('sidebar_validation_driver', {str(tools / 'sidebar_validation_driver.py')!r})",
+                    "    _module = _capture_import.module_from_spec(_spec)",
+                    "    _capture_sys.modules[_spec.name] = _module",
+                    "    _spec.loader.exec_module(_module)",
+                ))
             if args.scroll_travel:
                 lines.extend((
                     f"_spec = _capture_import.spec_from_file_location('scroll_travel_observation', {str(tools / 'scroll_travel_observation.py')!r})",
@@ -80,7 +99,9 @@ def main():
             for enabled, module, suffix, options in (
                 (args.state, "capture_state", "state",
                  f", wait_history_seconds={args.wait_history_seconds!r}, wait_interval={args.wait_history_interval!r}"
-                 f", wait_history_thread={args.wait_history_thread!r}"),
+                 f", wait_history_thread={args.wait_history_thread!r}"
+                 f", frame_trace={args.frame_trace!r}, install_frame_trace={args.install_frame_trace!r}"
+                 f", frames_only={args.frames_only!r}"),
                 (args.screen, "capture_screen", "screen", ""),
             ):
                 if not enabled:
