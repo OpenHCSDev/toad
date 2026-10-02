@@ -1,0 +1,222 @@
+{
+  "scope": "Actual public327 ordinary saved-history startup/visible Ready and configured396 fanout; not motion/overallCPU/S1/S4 or latencycause proof",
+  "capture": {
+    "parent_tool_session": 24084,
+    "parent_tool_exit_code": 0,
+    "raw_receipt": "/home/ts/.cache/agent-scratch/327-default-history-20261002/capture/receipt.json",
+    "raw_receipt_sha256": "a3b8a72516079022ba3a7114f7aeb400fb1b7a5c6b12e272426a31d56ed3d2f8",
+    "completed": true,
+    "capture_completed": true,
+    "duration_seconds": 27.81605025101453,
+    "raw_recorder_returncode": null,
+    "runtime_unchanged": true,
+    "original_owner_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "openhcs-helper",
+      "identity": {
+        "pid": 4190555,
+        "start_time": 42598608
+      },
+      "original_owner_alive": true
+    },
+    "original_owner_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "openhcs-helper",
+      "identity": {
+        "pid": 4190555,
+        "start_time": 42598608
+      },
+      "original_owner_alive": true
+    },
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2438,
+          "start_ticks": 42615502,
+          "returncode": 0
+        },
+        {
+          "pid": 2442,
+          "start_ticks": 42615719,
+          "returncode": 0
+        },
+        {
+          "pid": 2444,
+          "start_ticks": 42615730,
+          "returncode": 0
+        },
+        {
+          "pid": 2445,
+          "start_ticks": 42615736,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 2469,
+          "start_ticks": 42615807,
+          "returncode": 0
+        },
+        {
+          "pid": 2471,
+          "start_ticks": 42615820,
+          "returncode": 0
+        },
+        {
+          "pid": 2472,
+          "start_ticks": 42615844,
+          "returncode": 0
+        },
+        {
+          "pid": 2473,
+          "start_ticks": 42615863,
+          "returncode": 255
+        },
+        {
+          "pid": 2892,
+          "start_ticks": 42617265,
+          "returncode": 0
+        },
+        {
+          "pid": 2897,
+          "start_ticks": 42617293,
+          "returncode": 0
+        },
+        {
+          "pid": 2937,
+          "start_ticks": 42617334,
+          "returncode": 0
+        },
+        {
+          "pid": 3197,
+          "start_ticks": 42618572,
+          "returncode": 0
+        },
+        {
+          "pid": 3203,
+          "start_ticks": 42618603,
+          "returncode": 0
+        },
+        {
+          "pid": 3209,
+          "start_ticks": 42618690,
+          "returncode": 0
+        },
+        {
+          "pid": 3222,
+          "start_ticks": 42618881,
+          "returncode": 0
+        },
+        {
+          "pid": 3373,
+          "start_ticks": 42619123,
+          "returncode": 0
+        }
+      ]
+    },
+    "native_writer_events": 25,
+    "mounted_observer_complete": true
+  },
+  "visual": {
+    "observer": "Parent",
+    "review_timing": "after recorder terminal",
+    "image": "/home/ts/.cache/agent-scratch/327-default-history-20261002/capture/after.png",
+    "sha256": "2c13c05071c5ac81a9ebf4d37516f6b4d91a3ccc873cc3d22d1545b11d0c8065",
+    "visible": "openhcs-helper saved inbound history, Ready session detail and Ready peer statuses",
+    "during_motion_claim": false
+  },
+  "configured_channel": {
+    "state": "Actual configured default327 channel journey complete for ten running recipients",
+    "source_message": {
+      "seq": 396,
+      "from": "user",
+      "to": "#openhcs",
+      "ts": 1790950445.5800812,
+      "type": "info",
+      "text": "testing the new history-loading build; please reply tersely if you receive this",
+      "sender_role": "user",
+      "id": "32b7e800d523"
+    },
+    "commit_seconds": 1.806138277053833,
+    "reply_count": 10,
+    "reply_seconds": [
+      {
+        "sender": "openhcs-audit-merged-models",
+        "seconds": 31.003230571746826
+      },
+      {
+        "sender": "openhcs-architecture-memory",
+        "seconds": 31.91946506500244
+      },
+      {
+        "sender": "compaction501-live-architecture-memory",
+        "seconds": 32.04199481010437
+      },
+      {
+        "sender": "openhcs-helper2",
+        "seconds": 41.71538233757019
+      },
+      {
+        "sender": "openhcs-audit-merged-runtime",
+        "seconds": 41.73604726791382
+      },
+      {
+        "sender": "openhcs-helper",
+        "seconds": 41.76093125343323
+      },
+      {
+        "sender": "openhcs-audit-open-prs",
+        "seconds": 50.24036169052124
+      },
+      {
+        "sender": "openhcs-pr159-viewer-bind-owner",
+        "seconds": 50.51870274543762
+      },
+      {
+        "sender": "compaction499-live-architecture-memory",
+        "seconds": 50.54725956916809
+      },
+      {
+        "sender": "openhcs-audit-merged-boundaries",
+        "seconds": 50.58094644546509
+      }
+    ],
+    "original_claims": {
+      "triage_pending": 2,
+      "completed": 10
+    },
+    "peer_claims": {
+      "triage_pending": 20,
+      "ignored": 90
+    },
+    "external_pending": [
+      "Linnaeus",
+      "openhcs-headless-bootstrap-worker"
+    ],
+    "observed_at": 1790950542.3193848,
+    "original385_replayed": false,
+    "limits": "One real configured channel input. 31\u201351s still too slow; no controlled latency or scrolling gain claimed.",
+    "new_alerts": []
+  },
+  "published_pin_source": {
+    "owner": "Schrodinger",
+    "purpose": "one receiving533/534+325/Text27 normal69; parent publication only",
+    "core": "457b1047855752f4d069ee1d39b01e30603efa41",
+    "toad": "125f2fbcb5a53833e1328892bbf40783ca467581",
+    "textual": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+    "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+    "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+    "qualified_textual_head": "3f389f37f7a8ba42f498d18075ff0a1cfda4f896",
+    "qualified_toad_head": "4c7dcfb4e85c1cf36f8cbd3a2f8db64ce4b5211f"
+  },
+  "source_gates_repeated": false,
+  "publication_repeated": false,
+  "original_inputs_replayed": false,
+  "remaining": "31\u201351s replies still too slow; full smoothness, CPU and S1/S4 open. 536 shareddispatch selected-handler owner correction underway, no new env/native now; Native28 separate changed motion capture authorized after this terminal."
+}

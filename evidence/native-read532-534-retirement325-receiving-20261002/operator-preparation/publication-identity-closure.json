@@ -1,0 +1,700 @@
+{
+  "state": "Published target identity/link/route readback complete; ordinary default physical verification remains parent-owned",
+  "observed_at": 1790950401.011691,
+  "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_publication_sha256": "bf209a935fca2b447fbc5dd63b8bd52787fbc516b6791d57aa74b291dcbaed9c",
+  "publisher_duration_seconds": 45.2565541267395,
+  "publisher_processes_remaining": [],
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "owners": [
+    {
+      "name": "agent-comms-ux",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "agent-comms-ux",
+            "created_at": 1790049004.0955005
+          },
+          "generation": 1934
+        },
+        "process": {
+          "pid": 4061774,
+          "start_time": 42142830
+        },
+        "admission_generation": 1898
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "agent-comms-ux",
+            "created_at": 1790049004.0955005
+          },
+          "generation": 1972
+        },
+        "process": {
+          "pid": 4190281,
+          "start_time": 42597215
+        },
+        "admission_generation": 1936
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "nra-architecture",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-architecture",
+            "created_at": 1790049182.3907015
+          },
+          "generation": 1935
+        },
+        "process": {
+          "pid": 4061914,
+          "start_time": 42142967
+        },
+        "admission_generation": 1899
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-architecture",
+            "created_at": 1790049182.3907015
+          },
+          "generation": 1973
+        },
+        "process": {
+          "pid": 4190294,
+          "start_time": 42597351
+        },
+        "admission_generation": 1937
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "nra-class-first-name-review",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-class-first-name-review",
+            "created_at": 1790229371.6420214
+          },
+          "generation": 1936
+        },
+        "process": {
+          "pid": 4061916,
+          "start_time": 42143107
+        },
+        "admission_generation": 1900
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-class-first-name-review",
+            "created_at": 1790229371.6420214
+          },
+          "generation": 1974
+        },
+        "process": {
+          "pid": 4190304,
+          "start_time": 42597489
+        },
+        "admission_generation": 1938
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "nra-domain-mapping",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-domain-mapping",
+            "created_at": 1790116627.8997042
+          },
+          "generation": 1937
+        },
+        "process": {
+          "pid": 4061919,
+          "start_time": 42143248
+        },
+        "admission_generation": 1901
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-domain-mapping",
+            "created_at": 1790116627.8997042
+          },
+          "generation": 1975
+        },
+        "process": {
+          "pid": 4190333,
+          "start_time": 42597629
+        },
+        "admission_generation": 1939
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "nra-ordered-branch-call-review",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-ordered-branch-call-review",
+            "created_at": 1790232054.218321
+          },
+          "generation": 1938
+        },
+        "process": {
+          "pid": 4061965,
+          "start_time": 42143390
+        },
+        "admission_generation": 1902
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-ordered-branch-call-review",
+            "created_at": 1790232054.218321
+          },
+          "generation": 1976
+        },
+        "process": {
+          "pid": 4190335,
+          "start_time": 42597766
+        },
+        "admission_generation": 1940
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "nra-roster-heuristic-map",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-roster-heuristic-map",
+            "created_at": 1790218471.1256046
+          },
+          "generation": 1939
+        },
+        "process": {
+          "pid": 4061969,
+          "start_time": 42143532
+        },
+        "admission_generation": 1903
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "nra-roster-heuristic-map",
+            "created_at": 1790218471.1256046
+          },
+          "generation": 1977
+        },
+        "process": {
+          "pid": 4190348,
+          "start_time": 42597902
+        },
+        "admission_generation": 1941
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "refactor-r1",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "refactor-r1",
+            "created_at": 1790606381.4139948
+          },
+          "generation": 1940
+        },
+        "process": {
+          "pid": 4061971,
+          "start_time": 42143671
+        },
+        "admission_generation": 1904
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "refactor-r1",
+            "created_at": 1790606381.4139948
+          },
+          "generation": 1978
+        },
+        "process": {
+          "pid": 4190495,
+          "start_time": 42598041
+        },
+        "admission_generation": 1942
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-architecture-memory",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-architecture-memory",
+            "created_at": 1790654215.0835924
+          },
+          "generation": 1941
+        },
+        "process": {
+          "pid": 4061985,
+          "start_time": 42143815
+        },
+        "admission_generation": 1905
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-architecture-memory",
+            "created_at": 1790654215.0835924
+          },
+          "generation": 1979
+        },
+        "process": {
+          "pid": 4190497,
+          "start_time": 42598186
+        },
+        "admission_generation": 1943
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-pr159-viewer-bind-owner",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-pr159-viewer-bind-owner",
+            "created_at": 1790657026.7285714
+          },
+          "generation": 1942
+        },
+        "process": {
+          "pid": 4062131,
+          "start_time": 42143952
+        },
+        "admission_generation": 1906
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-pr159-viewer-bind-owner",
+            "created_at": 1790657026.7285714
+          },
+          "generation": 1980
+        },
+        "process": {
+          "pid": 4190535,
+          "start_time": 42598329
+        },
+        "admission_generation": 1944
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "nominal-refactor-advisor-2",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "nominal-refactor-advisor-2",
+            "created_at": 1790700391.614946
+          },
+          "generation": 1943
+        },
+        "process": {
+          "pid": 4062134,
+          "start_time": 42144092
+        },
+        "admission_generation": 1907
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "nominal-refactor-advisor-2",
+            "created_at": 1790700391.614946
+          },
+          "generation": 1981
+        },
+        "process": {
+          "pid": 4190548,
+          "start_time": 42598469
+        },
+        "admission_generation": 1945
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-helper",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-helper",
+            "created_at": 1790708584.4423254
+          },
+          "generation": 1944
+        },
+        "process": {
+          "pid": 4062136,
+          "start_time": 42144229
+        },
+        "admission_generation": 1908
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-helper",
+            "created_at": 1790708584.4423254
+          },
+          "generation": 1982
+        },
+        "process": {
+          "pid": 4190555,
+          "start_time": 42598608
+        },
+        "admission_generation": 1946
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-helper2",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-helper2",
+            "created_at": 1790713653.7134795
+          },
+          "generation": 1945
+        },
+        "process": {
+          "pid": 4062189,
+          "start_time": 42144368
+        },
+        "admission_generation": 1909
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-helper2",
+            "created_at": 1790713653.7134795
+          },
+          "generation": 1983
+        },
+        "process": {
+          "pid": 4190572,
+          "start_time": 42598749
+        },
+        "admission_generation": 1947
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "comms428",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "comms428",
+            "created_at": 1790725198.0008519
+          },
+          "generation": 1946
+        },
+        "process": {
+          "pid": 4062244,
+          "start_time": 42144510
+        },
+        "admission_generation": 1910
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "comms428",
+            "created_at": 1790725198.0008519
+          },
+          "generation": 1984
+        },
+        "process": {
+          "pid": 4190639,
+          "start_time": 42598893
+        },
+        "admission_generation": 1948
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-merged-runtime",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-merged-runtime",
+            "created_at": 1790873422.6705143
+          },
+          "generation": 1947
+        },
+        "process": {
+          "pid": 4062246,
+          "start_time": 42144648
+        },
+        "admission_generation": 1911
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-merged-runtime",
+            "created_at": 1790873422.6705143
+          },
+          "generation": 1985
+        },
+        "process": {
+          "pid": 4190843,
+          "start_time": 42599043
+        },
+        "admission_generation": 1949
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-merged-models",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-merged-models",
+            "created_at": 1790873447.6164267
+          },
+          "generation": 1948
+        },
+        "process": {
+          "pid": 4062249,
+          "start_time": 42144789
+        },
+        "admission_generation": 1912
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-merged-models",
+            "created_at": 1790873447.6164267
+          },
+          "generation": 1986
+        },
+        "process": {
+          "pid": 4190846,
+          "start_time": 42599186
+        },
+        "admission_generation": 1950
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-merged-boundaries",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-merged-boundaries",
+            "created_at": 1790873473.1996155
+          },
+          "generation": 1949
+        },
+        "process": {
+          "pid": 4062407,
+          "start_time": 42144931
+        },
+        "admission_generation": 1913
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-merged-boundaries",
+            "created_at": 1790873473.1996155
+          },
+          "generation": 1987
+        },
+        "process": {
+          "pid": 4190883,
+          "start_time": 42599327
+        },
+        "admission_generation": 1951
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "openhcs-audit-open-prs",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-open-prs",
+            "created_at": 1790873496.352646
+          },
+          "generation": 1950
+        },
+        "process": {
+          "pid": 4062409,
+          "start_time": 42145074
+        },
+        "admission_generation": 1914
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "openhcs-audit-open-prs",
+            "created_at": 1790873496.352646
+          },
+          "generation": 1988
+        },
+        "process": {
+          "pid": 4190886,
+          "start_time": 42599474
+        },
+        "admission_generation": 1952
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "compaction499-live-architecture-memory",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "compaction499-live-architecture-memory",
+            "created_at": 1790895107.1284342
+          },
+          "generation": 1951
+        },
+        "process": {
+          "pid": 4062412,
+          "start_time": 42145212
+        },
+        "admission_generation": 1915
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "compaction499-live-architecture-memory",
+            "created_at": 1790895107.1284342
+          },
+          "generation": 1989
+        },
+        "process": {
+          "pid": 4190920,
+          "start_time": 42599615
+        },
+        "admission_generation": 1953
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    },
+    {
+      "name": "compaction501-live-architecture-memory",
+      "before": {
+        "identity": {
+          "incarnation": {
+            "name": "compaction501-live-architecture-memory",
+            "created_at": 1790900050.675298
+          },
+          "generation": 1952
+        },
+        "process": {
+          "pid": 4062425,
+          "start_time": 42145354
+        },
+        "admission_generation": 1916
+      },
+      "after": {
+        "identity": {
+          "incarnation": {
+            "name": "compaction501-live-architecture-memory",
+            "created_at": 1790900050.675298
+          },
+          "generation": 1990
+        },
+        "process": {
+          "pid": 4190975,
+          "start_time": 42599757
+        },
+        "admission_generation": 1954
+      },
+      "alive": true,
+      "settings_equal_except_process": true,
+      "target_interpreter_capture": true
+    }
+  ],
+  "owner_count": 19,
+  "all_same_thread_births": true,
+  "all_new_process_identities_alive": true,
+  "all_settings_equal_except_process": true,
+  "five_links": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "same_original_root_and_root_id": true,
+  "source_target_schema_equal": true,
+  "source_target_product_equal": false,
+  "public_writes": 0,
+  "stops": 0,
+  "starts": 0,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "publication_repeated": false,
+  "physical_verification": "Pending parent/Heisenberg terminal-authorized run; no claim from this readback",
+  "all_configuration_and_birth_fields_equal": true,
+  "post_launch_thread_progress_changes": [],
+  "progress_interpretation": "Canonical turn generation/finished-turn fields advanced after publisher verified exact original settings. This readback does not attribute their trigger or claim absence of autonomous turn effects. Configuration fields did not change.",
+  "terminal_evidence": "Completed original publisher receipt and no publisher process required by readback; parent tool disposition recorded separately",
+  "schema_equality_scope": "Complete schema declarations equal; product source5c55 and457 differ by qualified532/533/534 changes.",
+  "parent_publication_tool": {
+    "session": 14078,
+    "exit_code": 0,
+    "evidence": "Parent explicitly reported actual terminal exit0,19published; completed original receipt/process absence confirmed by one readback."
+  },
+  "default_and_channel_scope": "Parent ordinary default observation running; freshconfigured396 send1.806s, recipient/fullfanout results not yet qualified. Readback proves identities/configs/links/route, not physical UI or channel latency.",
+  "merged_pr": {
+    "number": 327,
+    "merge_oid": "984b25f93c173449beb292f0f7eaa149051ec1f7",
+    "installed_source": "125f2fbcb5a53833e1328892bbf40783ca467581"
+  }
+}

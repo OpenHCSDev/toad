@@ -1,0 +1,41 @@
+{
+  "state": "READY normalinstalled receiving/preserve-only operator; parent execution/default/channel acceptance pending",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "prefix_reused_from": "Released old324; historicaldirname retained as storage resource only",
+  "pins": {
+    "core": "8f0e4d92e93000c4c7b7bf83e4da56544c10eb66",
+    "toad": "50e261802c4a1565878e2bb8b65ea2e077cf478d",
+    "textual": "667dc59ebcaddd08b7f9a20e8e083a7391624d1e",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "qualified_core_production": "bc27f626396599baef611948178a577a96664605",
+  "qualified_production_byte_equal": true,
+  "native_manifest": "00c2c11feaaf6e53b543d1570ae6029f8395e64ebafcdac54c352082cbc460c7",
+  "native_tree": "e0f93fec172aced120c0ce3e90345a27ece91ac2a0436bad3353169922dfecc7",
+  "normal_package_count": 69,
+  "sdk": "0.12.1",
+  "new_environment": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "native_build": false,
+  "provider_calls": 0,
+  "public_mutations": 0,
+  "source_target_declared_schema_equal": true,
+  "source_target_product_equal": false,
+  "historical_carry": false,
+  "protected_current327_rollback326_regular_files_unchanged": 7981,
+  "frozen_artifacts": {
+    "source-proof.json": "a96c172dc904ba74b2d70cd9b03503c6fe514b833f080198e4696e9bc28c63a4",
+    "../runtime-summary529-geometry322-20261002/activation.json": "b31196b8b00726a5a94126b6fd49e18318e027e3a865037cbe4a7552f522b96f",
+    "operator-manifest.json": "5b219275de92d9bae07e655c44ddc69b36f3b6966ce292b923aef5e3b46bab35",
+    "operator-preparation/preparation-receipt.json": "ca1ade0288a81bc1a1e9516d72a98a23815752894f6fa6adb3866f3426844857",
+    "operator-preparation/review-plan.json": "fe7ef3b3054cfb4a12c15b2d1a59ab3720f5ec462db49aa6d11ad8b226ea5ac4",
+    "operator-preparation/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae"
+  },
+  "qualified_source_gates": {
+    "536-DISPATCH-CONSUMPTION.md": "bec5522f73aa29509dcc23e314504907f3897b79bae04243eb1762a1b718d20e",
+    "536-dispatch-installed-source-proof.json": "1f23e6761e9c59e223e246b6069c957affdd50a44fbb3a4c1dc3ad150f8cc611",
+    "536-READY.md": "3bc727c8198a8dee9f9b81303311ad2c24c4870f8b1d7c040d653964a64ddd0e"
+  },
+  "scope": "Existing3owner family34deleted67added, no preprobe/retraversal; original6child/resource plus final4installedhandler/cancel qualification preserved. No repeated child/provider/full gates. Public39631\u201351s latency not attributed or claimed fixed; Native28 separate."
+}

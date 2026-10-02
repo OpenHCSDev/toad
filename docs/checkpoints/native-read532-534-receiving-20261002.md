@@ -13,3 +13,19 @@ Existing51-file stopped publisher frozen unchanged from reviewed48d owner. Authe
 ## Final normal main integration
 
 Normally merged Toad325 `2f82b2f976b390d87b43ae52ed7c93e2f937d4f6`; declared merged Text27 `667dc59ebcaddd08b7f9a20e8e083a7391624d1e`. All Toad src/tools still equal scoped Ready4c7; all Text src/pyproject equal qualified2e354. Same inactive69prefix updated by normal installer and source/directURL/native trust proof refreshed. Original82/2e package qualification metadata retained under `qualified-pre-main-integration`; no new prefix, native build, provider or full capture. Existing51publisher unchanged; final exact command frozen in preparation receipt. Public326 unchanged.
+
+## Actual publication and one readback
+
+Parent one-use session14078 terminated exit0; all19published in45.256554s. Raw receipt phase remains `retained-batch-launched-configurations-verified-public-ui-pending`; its SHA is `bf209a935fca2b447fbc5dd63b8bd52787fbc516b6791d57aa74b291dcbaed9c`. No repeat publication. PR327 merged984b25f9; installed product/config125f2fbc.
+
+Existing readback ran once: all19 exact published PID/start identities alive, original logical births and ALLThread fields exceptprocess unchanged, target RetainedOwnerLaunch captured in RAM, five links target, originalroot/rootID retained and canonicalnative00c2 selected. Configuration/identity evidence is separate from UI/channel proof. Originalpublisher raw and allprotected registry/session preimages remain unmodified.
+
+Parent ordinarydefaultObserve is running; freshconfigured396 send1.806s is only submission evidence until outcomes close. No physical/capture/channelPASS claim here. Parentconfirmed current327epoch; HeisenbergNative28changedcapture remains separate and starts only after current ordinaryUIrun terminal.
+
+## Actual default and configured channel closure
+
+Parent ordinarydefault recorder session24084 terminated exit0; rawcompleted andcapture_completed TRUE,27.816s,25nativewriter events andmountedobservercomplete. Parent inspected after.png postterminal: actualhelper savedinbounds/Ready andReady peerstatuses. No DURINGmotion/smoothnessclaim. OriginalhelperPID4190555/start42598608 remainedalive; cleanupempty. Rawrecording receipt and allchild dispositions retained unchanged.
+
+Freshconfigured396 originalid32b7e800d523 committed1.806s; all10running recipients completed andpublished original replies31.003–50.581s. All90runningpeerclaimsignored,2stopped externaloriginals/20peerclaims remainpending, alerts0. Original385/372/UNKNOWN neverreplayed. This closes this freshchanneljourney, not latencycause or speedtarget;31–51s remains too slow.
+
+Parentoriginalsummary/default-visible closure andrawcapture archived underoperator-preparation. Future536 selected-once dispatcher/resourcefamily is Mendel-owned; Native28motion is Heisenberg/Kepler-owned and nowreleased againstcurrent327epoch. No additionalpackage, native build, provider or publication fromthisclosure.
