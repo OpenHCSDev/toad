@@ -266,3 +266,14 @@ did not reach fixture completion before recorder custody expired. No End or
 full338 acceptance is claimed. Both old physical roots/movies remain untouched.
 The new source scheduling batch is not installed in the frozen344 prefix; its
 affected installed check needs the next normally packaged matching cohort.
+
+Parent assigned Heisenberg one normally integrated347/338 candidate and one
+physical motion/receipt/End journey with the existing CPU and writer evidence.
+The old344/cb48 holder is released for that integration; its source proof,
+original receipts and both failed338 recordings remain preserved. There is no
+second package, environment, worktree or repeat of those original inputs.
+The scheduling checkpoint4b9461b4 changes three production files by10 additions
+and10 deletions. Its before/after NRA owner map covers276 production,39
+performance and389 test modules, zero parse omissions. Per-name matches include
+unrelated refresh methods; receiver ownership was read at the migrated callers,
+and dynamic dispatch and physical paint still require the combined journey.
