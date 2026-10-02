@@ -46,6 +46,10 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         return cls(option)
 
     @property
+    def available(self) -> bool:
+        return self.option is not None
+
+    @property
     def current(self) -> str:
         return self.option.current_value if self.option else ""
 

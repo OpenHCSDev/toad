@@ -394,6 +394,14 @@ class ConversationSessionBinding(containers.Vertical):
     model_history_scope = var("")
     queue_supported = var(False)
 
+    @property
+    def model_selection_available(self) -> bool:
+        return self.agent is not None and self.agent.configuration.model.available
+
+    @property
+    def mode_selection_available(self) -> bool:
+        return self.agent is not None and bool(self.agent.available_modes)
+
     input_delivery: var[dict] = var(empty_delivery)
 
 

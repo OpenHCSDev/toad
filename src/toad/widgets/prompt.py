@@ -579,7 +579,7 @@ class Prompt(containers.VerticalGroup):
 
     @on(events.Click, "AgentInfo")
     def on_agent_info_click(self):
-        if self.agent is not None and self.agent.configuration.model.choices:
+        if self.agent is not None and self.agent.configuration.model.available:
             self.model_switcher.focus()
 
     def update_modes(self) -> None:
