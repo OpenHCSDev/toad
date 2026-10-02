@@ -247,7 +247,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.
-        self.app.coordination_observed.subscribe(self, self._observed)
+        self.observe_core(self.app.coordination_access.events)
         self.observe_core(self.app.events)
         if self._live:
             self._bind_screen_identity()
@@ -316,11 +316,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             group.display = False
         self.refresh_relationships(force=True)
 
-    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged)
-    async def app_observed(self, event: CoreEventMessage) -> None:
-        self._observed(event.event)
-
-    def _observed(self, _value):
+    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
+    async def _observed(self, event: CoreEventMessage) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
             return
         if self._live:

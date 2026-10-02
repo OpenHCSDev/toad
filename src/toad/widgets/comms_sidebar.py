@@ -34,7 +34,7 @@ from textual.widgets import Static
 from toad import messages
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
-from toad.core.events import SessionSelected, ThreadActionsChanged
+from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner
 from toad.sidebar_preparation import ThreadRowInput
@@ -501,6 +501,10 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     @handles(ThreadActionsChanged)
     async def thread_actions_changed(self, event: CoreEventMessage) -> None:
         await self.observation.actions_changed(event.event)
+
+    @handles(CoordinationObserved)
+    async def coordination_observed(self, event: CoreEventMessage) -> None:
+        await self.observation.coordination_updated(event.event)
 
     def sidebar_visibility_changed(self) -> None:
         self.projection.sync_spinner()

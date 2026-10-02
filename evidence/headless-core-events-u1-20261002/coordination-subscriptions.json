@@ -1,0 +1,133 @@
+{
+  "before": [
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 97,
+      "source": "self.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 98,
+      "source": "self.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 113,
+      "source": "self.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 91,
+      "source": "self.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 340,
+      "source": "view.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 341,
+      "source": "view.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 349,
+      "source": "view.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 362,
+      "source": "view.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 319,
+      "source": "self.coordination_observed"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 321,
+      "source": "self.coordination_observed"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 59,
+      "source": "app.coordination_observed"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 51,
+      "source": "self.app.coordination_observed"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 250,
+      "source": "self.app.coordination_observed"
+    }
+  ],
+  "current": [
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 15,
+      "source": "class CoreEventMessage"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 31,
+      "source": "class CoreEventReceiver"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 46,
+      "source": "class TranscriptSourcePreparation"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 98,
+      "source": "self.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 99,
+      "source": "self.observe_core_callback"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 114,
+      "source": "self.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 92,
+      "source": "self.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 340,
+      "source": "view.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 341,
+      "source": "view.observe_core_callback"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 349,
+      "source": "view.retire_core_observations"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 362,
+      "source": "view.retire_core_observations"
+    },
+    {
+      "path": "src/toad/comms_root.py",
+      "line": 62,
+      "source": "class CoordinationAccess"
+    }
+  ],
+  "omissions": [],
+  "limits": "AST lexical subscriber/owner relationships read semantically; dynamic callback resolution not proven by AST"
+}

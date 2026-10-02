@@ -43,7 +43,7 @@ async def main():
             await container.mount(tree)
             panel.collapsed = False
             await pilot.pause()
-            app.coordination_observed.unsubscribe(tree)
+            tree.retire_core_observations(app.coordination_access.events)
             for subscription in tuple(tree._core_subscriptions):
                 if subscription.stream is app.events:
                     tree.retire_core(subscription)

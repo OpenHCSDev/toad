@@ -1,18 +1,27 @@
 """The Textual message pump carries application publications unchanged."""
 
 from agent_comms.mro_dispatch import MroDispatch
+from textual._callback import invoke
 from textual.message import Message
+from weakref import WeakMethod, ref
 
 from toad.core.events import CoreEvent, CoreEventStream, Subscription
+
+
+async def dispatch_publication(receiver, message) -> None:
+    await receiver.consume_handlers(message, receiver.handlers_for(message.event))
 
 
 class CoreEventMessage(Message):
     """One frontend carrier, independent of the event's nominal case."""
 
-    def __init__(self, event: CoreEvent, subscription: Subscription) -> None:
+    def __init__(self, event: CoreEvent, subscription: Subscription,
+                 consume=dispatch_publication) -> None:
         super().__init__()
         self.event = event
         self.subscription = subscription
+        # The native pump owns this delivery callback, never the wire event.
+        self.consume = consume
 
     @property
     def publisher(self) -> object:
@@ -44,6 +53,37 @@ class CoreEventReceiver(MroDispatch):
         subscription.close()
         self._core_subscriptions.discard(subscription)
 
+    def retire_core_observations(self, stream: CoreEventStream) -> None:
+        for subscription in tuple(self._core_subscriptions):
+            if subscription.stream is stream:
+                self.retire_core(subscription)
+
+    def observe_core_callback(self, stream: CoreEventStream, callback) -> Subscription:
+        """An original deferred operation receives relief inside its native pump."""
+        recipient = ref(self)
+        try:
+            borrowed_callback = WeakMethod(callback)
+        except TypeError:
+            borrowed_callback = lambda: callback
+
+        async def consume(receiver, message) -> None:
+            callback = borrowed_callback()
+            if callback is not None:
+                await invoke(callback, message.event)
+
+        def publish(event, subscription) -> None:
+            receiver = recipient()
+            if receiver is None:
+                subscription.close()
+                return
+            message = CoreEventMessage(event, subscription, consume)
+            message.bubble = False
+            receiver.post_message(message)
+
+        subscription = stream.subscribe(publish)
+        self._core_subscriptions.add(subscription)
+        return subscription
+
     def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
         return self.post_message(CoreEventMessage(event, subscription))
 
@@ -56,7 +96,7 @@ class CoreEventReceiver(MroDispatch):
         if not message.subscription.active:
             message.stop()
             return
-        await self.consume_handlers(message, self.handlers_for(message.event))
+        await message.consume(self, message)
 
     def _on_unmount(self) -> None:
         for subscription in self._core_subscriptions:

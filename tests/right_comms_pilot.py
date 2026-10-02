@@ -9,8 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from textual.app import App, ComposeResult
-from textual.signal import Signal
-from toad.core.events import CoreEventStream
+from toad.core.events import CoreEventStream, CoordinationObserved
 from toad.sidebar_preparation import prepare_thread_presentation, ThreadRowInput
 from toad.session_tracker import ExactUnread
 from toad.render_choices import LocalRenderer
@@ -131,9 +130,8 @@ class FixtureApp(App):
         self.sidebar_layout = SidebarLayout()
         self.preparation = PreparationRuntime(LocalRenderer.start())
         self.thread_actions = SimpleNamespace(pending={})
-        self.coordination_access = SimpleNamespace(service=SimpleNamespace(root=Path(source.root)))
+        self.coordination_access = SimpleNamespace(service=SimpleNamespace(root=Path(source.root)), events=CoreEventStream(self))
         self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={})
-        self.coordination_observed = Signal(self, "fixture-observed")
         self.events = CoreEventStream(self)
         self.opened = []
 
@@ -199,7 +197,7 @@ async def main():
             source.people["child-00"] = replace(
                 original, activity=replace(original.activity, timestamp=100))
             source.version += 1
-            app.coordination_observed.publish(None)
+            app.coordination_access.events.publish(CoordinationObserved())
             await pilot.pause()
             async with asyncio.timeout(5):
                 while children.model.entries[0].target != "child-00":
@@ -218,7 +216,7 @@ async def main():
             before = source.reads
             panel.collapsed = True
             source.version += 1
-            app.coordination_observed.publish(None)
+            app.coordination_access.events.publish(CoordinationObserved())
             await pilot.pause()
             assert source.reads == before
             panel.collapsed = False

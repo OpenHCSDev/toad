@@ -13,6 +13,7 @@ from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
+from toad.core.events import CoreEventStream, CoordinationObserved
 
 if TYPE_CHECKING:
     from agent_comms.active_route import CommsRoute
@@ -61,10 +62,10 @@ class ObservedCommsService:
 class CoordinationAccess:
     """A validated core route owns cached access and guarded UI write admission."""
 
-    def __init__(self, changed: Callable[[], None], observed: Callable[[], None]) -> None:
+    def __init__(self, changed: Callable[[], None]) -> None:
         self.observation: ObservedCommsService | None = None
         self.changed = changed
-        self.observed = observed
+        self.events = CoreEventStream(self)
         self.revision: WireRevision | None = None
         self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self.task: asyncio.Task[None] | None = None
@@ -152,7 +153,7 @@ class CoordinationAccess:
             # a change notification never certifies a presentation or a send.
             pass
         self.revision, self.route_stamp = revision, route_stamp
-        self.observed()
+        self.events.publish(CoordinationObserved())
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. The existing

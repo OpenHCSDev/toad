@@ -56,7 +56,7 @@ class SidebarObservation:
         self.sidebar.subscribe_core(app.session_tracker.events)
         self.sidebar.observe_core(app.events)
         app.settings_changed_signal.subscribe(self.sidebar, self.settings_changed)
-        app.coordination_observed.subscribe(self.sidebar, self.coordination_updated)
+        self.sidebar.observe_core(app.coordination_access.events)
         self.sidebar.navigation.prepare()
         from toad.screens.workspace import WorkspaceScreen
         if isinstance(screen, WorkspaceScreen):

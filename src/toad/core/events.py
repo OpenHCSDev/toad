@@ -102,6 +102,11 @@ class SidebarLayoutChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
+class CoordinationObserved(CoreEvent):
+    """The original route/revision observer permits another guarded read."""
+
+
+@dataclass(frozen=True)
 class Thinking(CoreEvent):
     type: str
     text: str

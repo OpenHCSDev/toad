@@ -48,7 +48,7 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
         # The shared coordination observer already owns source revision and
         # expiry. Rebuilding the same proof on a second cadence burns CPU and
         # competes with the original receipt/read transactions.
-        self.app.coordination_observed.subscribe(self, self.refresh_observation)
+        self.observe_core(self.app.coordination_access.events)
         self.observe_core(self.app.events)
         self.refresh_observation()
 
@@ -67,7 +67,7 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
         if self._read_task is not None:
             self._read_task.cancel()
 
-    @handles(core_events.SessionSelected, core_events.ThreadActionsChanged)
+    @handles(core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
     async def app_observed(self, event: CoreEventMessage) -> None:
         self.refresh_observation()
 

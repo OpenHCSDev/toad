@@ -337,8 +337,8 @@ class SourcePublicationRequests:
         if self.pending.empty():
             self.pending.put_nowait(publication)
         view = self.owner.view
-        view.app.coordination_observed.unsubscribe(view)
-        view.app.coordination_observed.subscribe(view, self.resume)
+        view.retire_core_observations(view.app.coordination_access.events)
+        view.observe_core_callback(view.app.coordination_access.events, self.resume)
 
     def resume(self, _event=None) -> bool:
         """Resume retained work only at an existing source/preparation signal."""
@@ -346,7 +346,7 @@ class SourcePublicationRequests:
             return False
         if self.worker is None or self.worker.is_finished:
             view = self.owner.view
-            view.app.coordination_observed.unsubscribe(view)
+            view.retire_core_observations(view.app.coordination_access.events)
             self.worker = view.run_worker(self.publish, group="transcript-source")
         return True
 
@@ -359,7 +359,7 @@ class SourcePublicationRequests:
     def cancel(self) -> Worker[None] | None:
         view = self.owner.view
         if view is not None:
-            view.app.coordination_observed.unsubscribe(view)
+            view.retire_core_observations(view.app.coordination_access.events)
         while not self.pending.empty():
             self.pending.get_nowait()
         worker, self.worker = self.worker, None

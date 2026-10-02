@@ -316,9 +316,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
-        self.coordination_access = CoordinationAccess(
-            self._coordination_changed, lambda: self.coordination_observed.publish(None))
+        self.coordination_access = CoordinationAccess(self._coordination_changed)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
