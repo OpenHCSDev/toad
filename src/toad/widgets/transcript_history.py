@@ -412,14 +412,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
             from toad.widgets.conversation import Conversation
-            # The native page admission still owns its frame fence. Transfer
-            # identity-backed rows before releasing it; a queued message can
-            # otherwise paint saved and live resources together.
+            # Transfer covered native display inside the page admission. Join
+            # stream teardown on the original Conversation pump after these
+            # source/tree locks release, never while mount waits for coverage.
             # Standalone saved viewers have no live transcript to transfer.
             # Resolve custody from native ancestry, not a second owner field.
             for ancestor in self.ancestors:
                 if isinstance(ancestor, Conversation):
-                    await ancestor.transcript.covered(TranscriptCoverage(page.events, self))
+                    ancestor.transcript.covered(TranscriptCoverage(page.events, self)).call_next(ancestor)
                     break
 
     def publish_committed(self) -> None:
