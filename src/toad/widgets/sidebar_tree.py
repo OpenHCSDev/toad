@@ -85,6 +85,23 @@ class SidebarGroup(VerticalGroup):
     async def _reconcile_members(self) -> None:
         """Specializations reconcile their model-owned members here."""
 
+    async def prepare_thread_rows(self, inputs, rows):
+        """Prepare changed row inputs; retained native rows own their frames."""
+        from toad.sidebar_preparation import ThreadRowsWork
+
+        prepared, pending = {}, {}
+        for key, source in inputs.items():
+            row = rows.get(key)
+            current = row.thread_preparation(source) if row is not None else None
+            if current is None:
+                pending[key] = source
+            else:
+                prepared[key] = current
+        if pending:
+            values = await self.app.preparation.submit(ThreadRowsWork(tuple(pending.values())))
+            prepared.update(zip(pending, values))
+        return prepared
+
     async def reconcile_rows(self, keys, rows, create, update, *, replace=None):
         """Retain rows by identity; specialize their construction and content only.
 
