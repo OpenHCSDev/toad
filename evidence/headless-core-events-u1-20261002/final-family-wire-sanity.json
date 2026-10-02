@@ -1,0 +1,30 @@
+{
+  "cases": [
+    "HistoryMove",
+    "UserInputSubmitted",
+    "ChangeMode",
+    "ChangeModel",
+    "ProviderLogin",
+    "ProjectDirectoryUpdated",
+    "ChangeDirectory",
+    "OpenAgentDetails",
+    "SelectTarget",
+    "SelectHistoricalIdentity",
+    "GoalControlActivated",
+    "SessionTitleChanged",
+    "SessionSubtitleChanged",
+    "SessionPathChanged",
+    "ThreadActivityChanged",
+    "DirectoryChanged",
+    "CurrentWorkingDirectoryChanged",
+    "CommandComplete",
+    "MessageHandlingRequested",
+    "TranscriptSourceWorkFinished",
+    "TranscriptCoverage"
+  ],
+  "textual_imports": [],
+  "scope": "Source overlay final expanded event wire family; real installed application validation pending",
+  "production_head": "a929f9bd",
+  "resource_fields_serialized": false,
+  "coverage_behavior_headless": true
+}
