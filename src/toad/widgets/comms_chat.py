@@ -370,7 +370,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                              self.app.selected_mode)
 
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/") and await self.slash_command(event.body.strip()):
+        if event.body.strip().startswith("/") and await self.command_catalog.execute(event.body.strip(), self):
             return
         if not event.body.strip():
             return

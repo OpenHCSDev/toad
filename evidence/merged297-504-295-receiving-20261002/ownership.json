@@ -1,0 +1,14 @@
+{
+  "owner": "Kepler merged297+504+295 receiving; parent activation",
+  "core": "5395eb6afc403224daaecfd3774ef43e2f200da8",
+  "toad": "fea779d1e9dab9a53cbf33f69653b40d6280f06d",
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-merged297-504-295-20261002",
+  "state": "SCOPED_READY merged297+504+295 normal immutable package; accepted affected journeys source-equal; parent default cutover",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "private_fixtures": [],
+  "protected_existing_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
+  "allocation_budget_mib": 100
+}

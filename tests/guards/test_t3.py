@@ -34,6 +34,15 @@ def test_command_owners_have_no_parallel_dispatch():
         assert not isinstance(node, ast.Attribute) or node.attr != "is_thread", node.lineno
         assert not isinstance(node, ast.AnnAssign) or not isinstance(node.target, ast.Name) or node.target.id != "is_thread", node.lineno
 
+    conversation = ast.parse((ROOT / "widgets/conversation.py").read_text())
+    assert not any(isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                   and node.name == "slash_command" for node in ast.walk(conversation))
+    assert not any(isinstance(node, ast.Attribute) and node.attr == "agent_slash_commands"
+                   for node in ast.walk(conversation))
+    assert not any(isinstance(node, (ast.ClassDef, ast.FunctionDef))
+                   and node.name in {"TargetLocal", "target_commands", "target_completion"}
+                   for node in ast.walk(ast.parse(targets.read_text())))
+
 
 def test_catalog_action_consumers_do_not_classify_configured_names():
     """The original C0 case and its completion/result consumers stay deleted."""

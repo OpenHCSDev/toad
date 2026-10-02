@@ -1,0 +1,97 @@
+{
+  "tested_head": "9e833b462bb931ce544ea5a09ff609c571a0ae90",
+  "source_production_diff": {
+    "base": "b4a7424c",
+    "files": 7,
+    "added": 99,
+    "deleted": 78
+  },
+  "fixture_diff": {
+    "existing_command_family_pilot_added": 167,
+    "deleted": 295
+  },
+  "assessment": "affected installed workflow accepted; not public/default activation or performance acceptance",
+  "frame_review": {
+    "reviewed": [
+      "01-saved-native.png",
+      "02-local-collision-newcase.png",
+      "03-pointer-menu.png",
+      "06-original-forwarded-native-response.png"
+    ],
+    "observed": "Actual st glyphs show retained native history, local unavailable-action feedback, original channel menu and one original external input plus native response. Sender/source context remains beta on native return; channel actions target #team.",
+    "negative_controls": "gate01/02 wrapper root admission failures; gate03/04/05/06/07 fixture observation assertions retained separately; none was claimed acceptance",
+    "startup_limit": "Video12-17s shows initial loading and a provisional Bus input verification unavailable notice; by saved-history acceptance and final response the retained transcript paints. This gate does not claim the notice never occurs or prove every bus-cursor transition."
+  },
+  "video": {
+    "path": "/home/ts/.cache/agent-scratch/toad297-command-source-20261002/gate08/terminal.mp4",
+    "nominal_frame_rate": "60/1",
+    "frames": 2099,
+    "seconds": 35,
+    "review_interval_seconds": [
+      12,
+      30
+    ],
+    "timestamp_basis": "video PTS; callback events use their separate acceptance-relative clock, not claimed as a shared video clock"
+  },
+  "limits": [
+    "Isolated localhost configured model, zero paid calls; two native turns prepare saved history and one original new external command reaches native.",
+    "ACP command advertisement is a typed SDK JSON-RPC boundary control on the actual selected ACP agent, not native getCommands output.",
+    "Installed Application/LinuxDriver under plain st on isolated Xvfb; existing fixture owns configuration and lifecycle. This is not a public toad-comms launcher/cutover gate.",
+    "Native --no-extensions path; existing native bundle unchanged/fulltrust validated; does not add a production-extension discovery claim."
+  ],
+  "scratch_owner": "Mendel",
+  "protected_private_history": "/home/ts/.cache/agent-scratch/c297/08",
+  "artifact_sha256": {
+    "04-channel-original-target.png": "39d4584925cd119497f607ba154157eb8c4c622fbc35aad6c7e4f79a70d3965c",
+    "03-pointer-menu.png": "58766e97aad082ca142069769b8ca2fe09f3ffcdf01df109167df136088f99cd",
+    "02-local-collision-newcase.png": "03a9a244920a384523b63ec31c4cba47975afc34fd293994b850fb2ff37abfa5",
+    "frames.png": "7982dd9f0983c96899512e65440172be1ecbceda4cfb630a1e9fe42d4004b2d2",
+    "05-native-return-hot-publication.png": "56cb4c88a0a5ed2f6227e0ea219cf8e33b198060a1891cc63def77ec433b7e9c",
+    "01-saved-native.png": "8fb0fec5f9dbe900759e8204a57b43fc480887302fd04be2b138d372b1c587a4",
+    "06-original-forwarded-native-response.png": "3b29c91fdc0075a51838ed298c08a1df21dd98c5b88e02659967ac24510baabf"
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2994877,
+        "start_ticks": 38715046,
+        "returncode": 0
+      },
+      {
+        "pid": 2994916,
+        "start_ticks": 38715054,
+        "returncode": 0
+      },
+      {
+        "pid": 2994940,
+        "start_ticks": 38715056,
+        "returncode": 0
+      },
+      {
+        "pid": 2994962,
+        "start_ticks": 38715116,
+        "returncode": 0
+      }
+    ]
+  },
+  "review_artifacts": {
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad297-command-source-20261002/gate08/terminal.mp4",
+      "sha256": "0e257ff381d38e098f815f29055d24b929680c6c89325268ec810674b63dd917",
+      "bytes": 626826
+    },
+    "slow.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad297-command-source-20261002/gate08/slow.mp4",
+      "sha256": "3080682bfe8ba84bfa005378305a1e9899091416069369946da7254c24744e24",
+      "bytes": 1407934
+    },
+    "frames.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad297-command-source-20261002/gate08/frames.png",
+      "sha256": "7982dd9f0983c96899512e65440172be1ecbceda4cfb630a1e9fe42d4004b2d2",
+      "bytes": 622243
+    }
+  }
+}
