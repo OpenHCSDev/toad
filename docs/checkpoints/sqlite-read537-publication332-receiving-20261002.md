@@ -19,3 +19,9 @@ Whole declared NativeSchema6 equals current330; product code differs. Frozen ori
 Parent executed the ONE original publisher81690, terminal0,19 owners launched in46.856610s. Original raw UI-pending phase/hash remains unchanged. Existing pure readback ran once: all19 original thread births and entire settings exceptprocess are exact, all19 result PID/start identities alive, targetinterpreter captured, five links and root/rootID/native00c2 match. No thread progress/configuration differences at this observation.
 
 Published-source closure SHA471ae0f12ecd978020dd92c12d42c4927c2a49e4af9ff9b8d1277fc5bb6b118d; raw publisher SHA4eee321071dfa1b50be9164d0e31f7ee0aa3934ce45905a7e1cce131f93fb356. Both original files archived adjacent to preparation. Parent owns ordinary default physicalUI and ONE fresh configuredchannel acceptance next; this readback is not that acceptance. Original407/330 failedUI/proof stays intact. No repeatexecutor, input, provider call, public mutation or frozenmetadata change.
+
+## Scoped actual default live wave
+
+Parent ordinary333 startup and subsequent SAME fresh418/660958a8c77d live-wave capture completed. Live wave125.666s, applicationst0, all before/observer/after exports complete, helper283015/start43650306 unchanged, cleanup empty. Raw FFmpeg capture return255 and assessment remain intact. Parent watched fresh replies DURING this run. Initial window ended before send; no claim it observed already-open arrivals. ONE new418 commit1.462s, no repeated input.
+
+Boundaries still shows CompactionJournalError/Outcome uncertain; Mendel owns the original failure. This is scoped actual UI/startup/live-wave completion, not all-delivery or compaction correctness, latency improvement or smoothness. Both original raw capture receipts and a separate honest closure are archived. Publication UI-pending phase and frozen source/operator metadata are unchanged.
