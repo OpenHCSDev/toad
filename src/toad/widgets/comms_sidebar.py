@@ -114,7 +114,10 @@ class ChannelGroup(SidebarGroup):
     async def _sync_and_select(self) -> None:
         await self._sync_members()
         if self.is_attached and not self._pruning and not self._closing:
-            self.query_ancestor(CommsSidebar).navigation.apply(force=True)
+            self.query_ancestor(CommsSidebar).navigation.apply()
+
+    def rows_changed(self) -> None:
+        self.query_ancestor(CommsSidebar).navigation.rows_changed()
 
     async def _reconcile_members(self) -> None:
         if not self.is_attached or self._pruning or self._closing:

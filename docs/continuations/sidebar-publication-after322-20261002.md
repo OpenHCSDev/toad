@@ -37,3 +37,26 @@ delete replaced decisions, batch necessary checks last, then one changed
 installed busy real application journey with consecutive frames inspected
 DURING. App writer flush timing is not terminal presentation FPS; stationary
 heartbeat is not motion. No unchanged capture or provider input by this lane.
+
+
+## Published working source — not yet installed-qualified
+
+Deleted SidebarPaint and its stored whole-snapshot comparison, including the
+route-reset consumer. Snapshot remains original source custody. Prepared native
+ThreadStatusRow output now returns unchanged without reapplying classes,
+tooltip or content. Unavailable relationship rows release that same prepared
+resource and signature together; the old foreign signature write is removed.
+
+SidebarGroup's actual native add/remove/reorder lifetime invalidates the
+existing SidebarNavigation painted selection/mode through its original owner.
+Deleted the force switches and all callers, including the metadata pilot.
+Projection publications now derive unchanged navigation from retained native
+rows instead of forcing another full roster walk every poll. Top-level channel
+replacement/order uses the same native-row invalidation. No new DTO, hash,
+index, snapshot mirror, timer, cache or independent status authority.
+
+Working batch is source-only WIP until the complete affected row/disclosure/
+route/resource family checks and one changed installed real-path gate. The
+same profile still has native scroll reflow losing offscreen targets; Kepler
+owns that existing Screen/reflow_visible caller family in Textual26. The
+previous322/25 recording stays frozen and is not proof of this new source.

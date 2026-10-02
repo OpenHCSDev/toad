@@ -95,7 +95,7 @@ async def main():
                 assert all(row in sidebar.projection.thread_rows
                            for row in group.member_container.children)
                 with patch.object(sidebar, "query", wraps=sidebar.query) as query:
-                    sidebar.navigation.mode_changed(app.selected_mode, force=True)
+                    sidebar.navigation.mode_changed(app.selected_mode)
                     assert query.call_count == 0
                 assert all(row.current == (row.mode_name == app.selected_mode)
                            for row in sidebar.projection.thread_rows)

@@ -169,7 +169,7 @@ class RelationshipRows(SidebarGroup):
             if not entry.available:
                 row.remove_class("-busy", "-unread", "-current")
                 row.add_class("-wire-thread")
-                row._thread_signature = None
+                row.retire_thread_preparation()
                 _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
             elif entry.person is not None:
                 row.apply_thread_preparation(prepared_rows[key])
