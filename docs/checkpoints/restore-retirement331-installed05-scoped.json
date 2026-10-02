@@ -217,5 +217,35 @@
     "public_helper_witness_released": true,
     "all_owned_clients_closed": true
   },
-  "remaining_source_work": "Native Markdown mount/style/layout during materialization remains a foreground source lead; Kepler native geometry30 is disjoint/frozen. Full CPU/raster/cold/warm/runway/velocity/growingEnd/void/editor/focus/sidebar/animation/TC1/T9/T4 remains in receiving scope."
+  "remaining_source_work": "Native Markdown mount/style/layout during materialization remains a foreground source lead; Kepler native geometry30 is disjoint/frozen. Full CPU/raster/cold/warm/runway/velocity/growingEnd/void/editor/focus/sidebar/animation/TC1/T9/T4 remains in receiving scope.",
+  "A_B_A_original_resource_observation": {
+    "A_loaded_pages": 1,
+    "B_loaded_pages": 1,
+    "source_mode_retained": true,
+    "editor_retained": true,
+    "window_retained": true,
+    "draft_retained": true,
+    "reader_retained": true,
+    "retained_ready_body_ids": [
+      139866956354640,
+      139866956357200,
+      139866956363280,
+      139866960855760,
+      139866960858000,
+      139866960858320,
+      139866960863120,
+      139866960864400,
+      139866960864720,
+      139866960865040,
+      139866960866320
+    ],
+    "scope": "Available original phases only. Missing undo is not replaced and original warm reviewer cannot pass."
+  },
+  "production_diff_against_current_main": {
+    "base": "d36801cd4e0c581ac615a0c60ceeb0cd902e77f6",
+    "files": 8,
+    "added": 240,
+    "deleted": 187,
+    "history": "Later body retirement/source batch alone against1182f061 was7files217+/174-; whole PR also contains bound-cohort/effect-derived admission source."
+  }
 }
