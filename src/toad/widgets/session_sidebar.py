@@ -64,6 +64,8 @@ class ThreadStatusRow(HoverSelection):
         return None
 
     def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:
+        if self._thread_presentation is prepared:
+            return
         self._thread_presentation = prepared
         source = prepared.source
         self.thread_name = source.name
@@ -71,6 +73,14 @@ class ThreadStatusRow(HoverSelection):
                              "-unread": source.unread.highlighted, "-asking": False})
         self.tooltip = prepared.tooltip
         self.paint_thread_frame(prepared)
+
+    def retire_thread_preparation(self) -> None:
+        """Release row output when its source becomes unavailable."""
+        if self._thread_presentation is not None:
+            self.update_classes({"-wire-thread": False, "-busy": False,
+                                 "-unread": False, "-asking": False})
+        self._thread_presentation = None
+        self._thread_signature = None
 
     def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:
         """Paint a prepared frame without repeating source publication."""

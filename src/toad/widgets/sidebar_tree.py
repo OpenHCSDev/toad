@@ -85,6 +85,9 @@ class SidebarGroup(VerticalGroup):
     async def _reconcile_members(self) -> None:
         """Specializations reconcile their model-owned members here."""
 
+    def rows_changed(self) -> None:
+        """Specializations invalidate navigation after native row changes."""
+
     async def prepare_thread_rows(self, inputs, rows):
         """Prepare changed row inputs; retained native rows own their frames."""
         from toad.sidebar_preparation import ThreadRowsWork
@@ -133,9 +136,12 @@ class SidebarGroup(VerticalGroup):
             if not self.is_attached or self._closing or self._pruning:
                 return ()
         ordered = tuple(rows[key] for key in keys)
-        if ordered and tuple(self.member_container.children) != ordered:
+        reordered = bool(ordered) and tuple(self.member_container.children) != ordered
+        if reordered:
             positions = {row: index for index, row in enumerate(ordered)}
             self.member_container.sort_children(key=positions.__getitem__)
+        if retired or mounted or reordered:
+            self.rows_changed()
         return ordered
 
 

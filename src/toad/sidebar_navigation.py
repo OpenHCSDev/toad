@@ -116,8 +116,13 @@ class SidebarNavigation:
         return (self.selection_applied and self.painted_selection == self.state.selected
                 and (painted is None or painted.is_attached))
 
-    def apply(self, *, force: bool = False) -> None:
-        if not force and self.selection_current():
+    def rows_changed(self) -> None:
+        """Native row replacement invalidates retained navigation paint."""
+        self.selection_applied = False
+        self.painted_mode = None
+
+    def apply(self) -> None:
+        if self.selection_current():
             return
         self.selected_row = None
         for index, row in enumerate(self.sidebar.projection.rows):
@@ -136,7 +141,7 @@ class SidebarNavigation:
             return self.state.restore_scroll(*self.scroll_containers)
         return False
 
-    def mode_changed(self, mode_name: str, *, force: bool = False) -> None:
+    def mode_changed(self, mode_name: str) -> None:
         from toad.screens.comms import CommsScreen
 
         if not self.sidebar.accepts_publication():
@@ -148,7 +153,7 @@ class SidebarNavigation:
             self.sidebar.projection.pause_spinner()
             return
         target = self.sidebar.screen.target if isinstance(self.sidebar.screen, CommsScreen) and self.sidebar.screen.is_active else None
-        if not force and self.painted_mode == (mode_name, target):
+        if self.painted_mode == (mode_name, target):
             return
         for row in self.sidebar.projection.thread_rows:
             row.current = row.mode_name == mode_name
@@ -173,4 +178,3 @@ class SidebarNavigation:
         self.sidebar._cursor = rows.index(target)
         self.sidebar._apply_cursor(rows)
         target.focus()
-
