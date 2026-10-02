@@ -120,9 +120,15 @@ async def main():
         assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
 
         chat.window.release_anchor()
-        chat.window.scroll_home(animate=False, immediate=True)
-        await until(lambda: history.has_newer)
-        chat.window.jump_to_latest()
+        # Each older-page publication preserves the actual reader anchor. A
+        # single Home therefore moves one edge, not through the whole source.
+        # Repeat movement as the user does until the real tail is unmounted.
+        async with asyncio.timeout(8):
+            while not history.has_newer:
+                chat.window.scroll_home(animate=False, immediate=True)
+                await pilot.pause(.05)
+        chat.window.focus()
+        await pilot.press('end')
         await until(lambda: history.checkpoint_available and not history.has_newer)
         assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
         assert chat.window.follows_tail and app._exception is None

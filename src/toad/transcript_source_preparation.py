@@ -13,9 +13,7 @@ from toad.transcript_preparation import PreparedPageSource
 if TYPE_CHECKING:
     from collections.abc import Callable
     from textual.screen import Screen
-    from toad.widgets.conversation import Window
-    from toad.widgets.message_filter import MessageCategory
-    from toad.widgets.transcript_history import TranscriptHistory
+    from toad.widgets.history_anchor import HistoryWindow
 
 
 @dataclass(frozen=True)
@@ -23,11 +21,11 @@ class HistorySourceSnapshot:
     """One original source/view identity for page and filter publication."""
 
     generation: int
-    window: Window
+    window: HistoryWindow
     screen: Screen
     source: object
 
-    def current(self, owner: TranscriptHistory) -> bool:
+    def current(self, owner: TranscriptSourcePreparation) -> bool:
         if not owner.source_publication_available:
             return False
         return self == owner.source_snapshot()
