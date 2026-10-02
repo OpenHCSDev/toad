@@ -1,0 +1,22 @@
+{
+  "recorded_at": 1790954718.5008457,
+  "publisher_terminal": {
+    "source": "parent explicit report",
+    "session": 20180,
+    "exit_code": 0
+  },
+  "publication_readback": "PASS: 19 original thread births/configurations, matching live target process identities, five links, root/rootID/native00c2",
+  "thread_progress": "Only canonical turn_generation and last_finished_turn_id advanced; configurations preserved.",
+  "actual_ui": "FAILED: parent reports WorkerFailed OperationalError(database is locked) during transcript_publication on original fresh channel407 after Ready/all10Thinking",
+  "actual_ui_source": "/home/ts/.cache/agent-scratch/330-default-channel-20261002/capture/terminal.log",
+  "sqlite_integration_owner": "Mendel",
+  "physical_pass": false,
+  "new_provider_calls": 0,
+  "input_replay": false,
+  "publisher_repeated": false,
+  "raw_files": {
+    "publication-receipt.json": "5470799f1a5fa9a40d3ab6560ba67bb452a88f8a879fdffd86884b068f917816",
+    "publication-identity-closure.json": "0206d423ed60341be1158f2e8ed258cb91dcb966398c2adb235b95d5e7334b93"
+  },
+  "raw_receipt_phase_preserved": true
+}
