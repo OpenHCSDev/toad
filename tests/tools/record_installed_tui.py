@@ -147,6 +147,7 @@ class OwnedProcess:
         return [identity.pid for identity in self.members()]
 
     def receipt(self):
+        self.process.poll()
         return {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time,
                 "returncode": self.process.returncode}
 
@@ -1634,6 +1635,12 @@ def record(args):
             if capture.process.returncode not in (0, 255):
                 raise RuntimeError(f"Video recorder exited {capture.process.returncode}")
             receipt["capture_completed"] = True
+            # Capture completion only answers whether video was retained.
+            # Requested state exports are independent application evidence.
+            for name, observation in receipt.get("state_captures", {}).items():
+                if "error" in observation or any(
+                        status != "complete" for status in observation["manifest"]["receipts"].values()):
+                    raise RuntimeError(f"Required state capture {name} did not complete: {observation}")
             receipt["runtime_after"] = selection.receipt(owner, env, command)
             receipt["runtime_unchanged"] = receipt["runtime_before"] == receipt["runtime_after"]
             # Quit through the installed application; persistent owners are excluded.
@@ -1642,6 +1649,9 @@ def record(args):
                 terminal.process.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 pass
+            receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
+            if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
+                raise RuntimeError(f"Installed terminal did not exit successfully: {receipt['terminal_exit']}")
             transferred_program.stop()
             if transferred_terminal is not None:
                 transferred_terminal.stop()
@@ -1720,6 +1730,12 @@ def record(args):
             except (OSError, subprocess.SubprocessError) as error:
                 receipt["capture_cleanup_error"] = str(error)
         receipt["cleanup"] = owner.cleanup()
+        if terminal is not None and (not args.profile or transferred_terminal is not None):
+            # Read the actual parent's exit result. Transferred observation
+            # deliberately cannot invent an exit code for the profiled UI.
+            receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
+            if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
+                receipt["completed"] = False
         try:
             receipt["original_owner_after"] = target.observe()
         except (OSError, ValueError) as error:

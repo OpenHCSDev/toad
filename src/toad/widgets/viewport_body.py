@@ -829,15 +829,17 @@ class DocumentViewport:
                 # the remaining visible dormant bodies reject that same frame.
                 restoring = tuple(owner for owner in required
                                   if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
+                restored = ()
                 if restoring:
                     anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
                     started = monotonic()
-                    await self._restore_bodies(restoring, anchor, demand)
-                    if any(owner in visible for owner in restoring):
+                    restored = await self._restore_bodies(restoring, anchor, demand)
+                    if any(owner in visible for owner in restored):
                         self.lookahead.delivered(monotonic() - started)
                 retiring = tuple(owner for owner in owners
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)
+                retired_owners = []
                 for first in range(0, len(retiring), self.budget.admission_items):
                     # Each call captures its original rows now; tasks only
                     # prepare detached rows and validate/prune afterward.
@@ -854,6 +856,7 @@ class DocumentViewport:
                         results = [task.result() for task in tasks]
                     for owner, retired in zip(batch, results):
                         if retired:
+                            retired_owners.append(owner)
                             key = ref(owner)
                             self._warm[key] = key
                             self._warm.move_to_end(key)
@@ -863,7 +866,8 @@ class DocumentViewport:
                         screen.frame_presentation.defer(self.window, self.request)
                 # Capturing rows changes the original body resource cost.
                 # The same warm LRU admits or releases that paint resource.
-                admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                if retired_owners or restored:
+                    admitted = await self._trim_warm(required=required, ahead=ahead_owners)
                 if active:
                     # Do not materialize a runway body that cannot be retained.
                     # The original demand owns incoming direction priority.
@@ -877,20 +881,21 @@ class DocumentViewport:
                             continue
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))
                         anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
-                        await self._restore_bodies(tuple(batch), anchor, demand)
+                        restored = await self._restore_bodies(tuple(batch), anchor, demand)
                         # Live content or a width change can change actual cost.
                         # Re-admit the completed native batch before the next one.
-                        admitted = await self._trim_warm(required=required, ahead=ahead_owners)
+                        if restored:
+                            admitted = await self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 
     async def _restore_bodies(
         self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,
-    ) -> None:
+    ) -> tuple[ViewportBody, ...]:
         async with self.window.history_lock:
             if (not self.window.is_attached or not self.window.screen.is_current
                     or not self.lookahead.accepts(demand)):
-                return
+                return ()
             owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
             restored = []
             async with AsyncExitStack() as mutation:
@@ -906,3 +911,4 @@ class DocumentViewport:
                 # Reconstructed roots acquire capture custody only when their
                 # native layout is published, not at mount/update completion.
                 self.window.screen.frame_presentation.defer(self.window, self.request)
+            return tuple(restored)
