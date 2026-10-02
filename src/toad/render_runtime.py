@@ -6,7 +6,7 @@ from typing import TypeVar
 
 from toad.render_backend import Renderer
 from toad.render_service import RenderServiceConfig
-from toad.render_tasks import MarkdownSyntaxRenderTask, PatchRenderTask, RenderTask
+from toad.render_tasks import MarkdownRenderTask, PatchRenderTask, RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
 
 ResultT = TypeVar("ResultT")
@@ -97,9 +97,9 @@ class PersistentRenderClient(Renderer):
         source files are opened, no user history is fetched and nothing is mounted.
         """
         await asyncio.gather(
-            MarkdownSyntaxRenderTask(
-                "```python\npass\n```\n\n```json\n{}\n```\n",
-            ).prepare_body(self, ansi, dark),
+            self.submit(MarkdownRenderTask(
+                "```python\npass\n```\n\n```json\n{}\n```\n", ansi, dark,
+            )),
             self.submit(PatchRenderTask(
                 "--- warmup.py\n+++ warmup.py\n@@ -1 +1 @@\n-pass\n+value = 1\n", ansi, dark,
             )),

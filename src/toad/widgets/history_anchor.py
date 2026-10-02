@@ -13,10 +13,12 @@ from weakref import WeakSet
 from textual.widget import Widget
 from textual.containers import VerticalScroll
 from toad.widgets.viewport_body import DocumentViewport
+from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
-    from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageAdmission
+    from toad.widgets.transcript_history import TranscriptPageAdmission
+    from toad.transcript_source_preparation import TranscriptSourcePreparation
 
 
 class WindowRestoration(ABC):
@@ -65,11 +67,11 @@ class ReaderPosition(WindowRestoration):
         if window.follows_tail:
             return TailReaderPosition()
         return OffsetReaderPosition(window.scroll_y, tuple(
-            page.capture_admission()
-            for history in window.histories for page in history.pages
+            admission for history in window.histories
+            for admission in history.capture_reader_admissions()
         ))
 
-    def prepare_history(self, history: "TranscriptHistory") -> None:
+    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Tail readers use ordinary newest-page admission."""
 
 
@@ -84,10 +86,8 @@ class OffsetReaderPosition(ReaderPosition):
     y: float
     admissions: tuple["TranscriptPageAdmission", ...]
 
-    def prepare_history(self, history: "TranscriptHistory") -> None:
-        for page in history.pages:
-            for admission in self.admissions:
-                page.restore_admission(admission)
+    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
+        history.restore_reader_admissions(self.admissions)
 
     def _restore(self, window: "HistoryWindow") -> None:
         window.release_anchor()
@@ -156,7 +156,7 @@ class HistoryWindow(VerticalScroll):
         return asyncio.Lock()
 
     @cached_property
-    def histories(self) -> WeakSet[TranscriptHistory]:
+    def histories(self) -> WeakSet[TranscriptSourcePreparation]:
         """Mounted pagers register themselves; status checks need no DOM scan."""
         return WeakSet()
 
@@ -222,6 +222,34 @@ class HistoryWindow(VerticalScroll):
     def history_mutating(self) -> bool:
         """Native tree locking is the publication fence, not source status."""
         return self.lock.is_locked
+
+    def protect_history(
+        self, items, *, older: bool, fallback: Widget,
+    ) -> tuple[Widget, set[Widget]]:
+        """Keep the reader's painted records and interaction owners during paging.
+
+        Source leaves supply their mounted presentations, not another copy of
+        the scene. Both native and wire pages borrow this one published geometry
+        and the window's original selection/focus before admitting or trimming.
+        """
+        items = tuple(items)
+        visible = self.screen._compositor.visible_widgets
+        viewport = self.content_region
+        retained = []
+        for item in items:
+            if item in visible:
+                region, clip = visible[item]
+                if (region.overlaps(viewport) and region.overlaps(clip)
+                        and clip.overlaps(viewport)):
+                    retained.append(item)
+        anchor = retained[0 if older else -1] if retained else fallback
+        endpoints = set(self.screen.selections)
+        if self.screen.focused is not None:
+            endpoints.add(self.screen.focused)
+        protected = protected_presentations(items, endpoints)
+        protected.update(retained)
+        protected.add(anchor)
+        return anchor, protected
 
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):

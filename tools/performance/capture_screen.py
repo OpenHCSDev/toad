@@ -21,7 +21,8 @@ def capture(*, expected_pid, output_prefix):
         if app is None:
             raise RuntimeError("No app context")
 
-        def export():
+        async def export():
+            await app._mounted_event.wait()
             started = time.monotonic_ns()
             try:
                 with app._context():
@@ -38,7 +39,7 @@ def capture(*, expected_pid, output_prefix):
             with os.fdopen(fd, "w") as output:
                 json.dump(receipt, output)
 
-        asyncio.get_running_loop().call_soon(export)
+        app.run_worker(export(), name="capture-screen-mount-acquisition")
     except Exception:
         fd = os.open(prefix + "-error.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as output:

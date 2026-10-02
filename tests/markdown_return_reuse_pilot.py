@@ -11,7 +11,7 @@ from time import perf_counter
 
 from runtime_fixture import ToadApp
 from sidebar_retirement_pilot import until, viewport_text
-from toad.render_tasks import MarkdownSyntaxRenderTask
+from toad.render_tasks import MarkdownRenderTask
 from toad.work_preparation import RenderPreparation
 from toad.widgets.agent_response import AgentResponse
 from textual.widgets._markdown import MarkdownParagraph
@@ -32,7 +32,8 @@ async def main():
             view = app.selected_session.conversation
             sources = [f"RETURN_SOURCE_{index} file-{index}.py\n\n" + "**retained syntax** " * 20
                        for index in range(2)]
-            keys = [await RenderPreparation(MarkdownSyntaxRenderTask(source)).identity(app.preparation)
+            keys = [await RenderPreparation(MarkdownRenderTask(source, app.native_ansi_color,
+                                                             app.current_theme.dark)).identity(app.preparation)
                     for source in sources]
             retained = {}
             mounted = []
