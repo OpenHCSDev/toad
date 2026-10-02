@@ -278,3 +278,29 @@ Heartbeat gaps, handler elapsed time, UI-thread CPU, headless settlement, termin
 flush and physical pixels are distinct measurements. Inclusive spans overlap.
 Do not hide maxima, GC outliers, source changes, profiler overhead or resource
 contention behind a passing action count.
+
+## Review actual scrolling footage
+
+Use the existing `tests/tools/record_installed_tui.py --review-recording CAPTURE`
+command to review a retained real-terminal recording. It does not launch Toad,
+ACP, a provider or an X display. The selected recorded journey owns its gesture
+markers: held PageUp, PageDown, reversal and End are selected automatically when
+available; `--review-phase LABEL` selects a particular original marker.
+
+```sh
+APP_PYTHON tests/tools/record_installed_tui.py \
+  --review-recording CAPTURE --review-frames 48 --review-seconds 0.8
+```
+
+Each interval produces a slowed clip and a sheet of consecutive source frames,
+labelled with original video timestamps. `review-receipt.json` places the selected
+intervals beside original kernel CPU and sampled-stack evidence, and references
+the existing writer-rate timeline. Recorded FPS is sampling frequency; writer
+receipts measure delivery, and neither alone measures visible fluidity. Inspect
+the consecutive frames and correlate holds with the profile.
+
+A completed video from a failed application journey is reviewable. Its raw
+receipt, error and application result remain unchanged. Review success means the
+artifacts were generated and resources closed; it does not make the application
+pass or claim someone inspected its motion. Reviewing footage after recording
+is valid and avoids adding encoder work during the measured interaction.
