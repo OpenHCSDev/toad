@@ -294,5 +294,11 @@
     "Only inputUp21\u201322s consecutive-frame sheet inspected DURING; Down65/Reverse73 sheets inspected AFTER",
     "No provider inputs, original input replay, public posting or owner restart",
     "No536/default activation claim"
-  ]
+  ],
+  "normal_main_integration": {
+    "main": "4232d469",
+    "merge": "63701bdd",
+    "production_byte_equal_to_tested": "3f1d7e2763b5a9bb6253dcaf5d535aa4348256b1",
+    "dependency_delta": "Core8f0e4d92 from qualified329 main; physical gate used currentpublic327 Core457. No536/publicactivation claim; parent combined receiving owns newdefault path."
+  }
 }
