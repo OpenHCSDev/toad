@@ -1,0 +1,84 @@
+{
+  "state": "READY",
+  "scope": "Normal joined516/515/518 candidate; actual original-c601 failure/recovery and targetCLI ABI verified",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002",
+  "pins": {
+    "core": "48d408a46d73f9123b71a7ccdc81b86e8d8aa7c2",
+    "toad": "990d091f48f9395cd0d4c08141170a3e170032e2",
+    "textual": "23822923a02b75a1fad10751d97dc009c36b598b",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+  },
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "native_full_trust": true,
+  "original_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native-configuration516-20261002",
+  "actual_handoff": {
+    "state": "PASS",
+    "original_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native-configuration516-20261002",
+    "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002",
+    "target_module": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-joined-owner-failure518-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "original_core": "c6019afd34313db81504a364e3cc4024470a3034",
+    "target_core": "48d408a46d73f9123b71a7ccdc81b86e8d8aa7c2",
+    "steps": [
+      "Original c601 actual native worker attached with original configuration",
+      "Target handoff decoded by original c601 through same RAM/OFD child; exact original configuration restored",
+      "Normal installed target CLI restarted original c601 owner into joined target; original native config/settings/goal retained"
+    ],
+    "seconds": 11.477854254015256,
+    "actual_source_to_target_handoff": true,
+    "original_config_retained": true,
+    "source_fields_qualified": [
+      "RestartEnvironment.native_config",
+      "RestartEnvironment.agent_directory",
+      "RetainedOwnerLaunch.configuration"
+    ],
+    "original_input_proofs_unchanged": true,
+    "provider_calls": 0,
+    "native_inputs": 0,
+    "public_mutations": 0,
+    "source_overlay": false
+  },
+  "original_qualified_files_unchanged": 3968,
+  "shared_callback_qualification": "Existing65a actual callbacks/CLI reused: all three owners and ContextManifest declaration byte-identical; no changed ABI requiring repeated callback journey",
+  "callback_source_equality_paths": [
+    "src/agent_comms/native_turn_context.py",
+    "src/agent_comms/selected_participant.py",
+    "src/agent_comms/turn_progress.py",
+    "src/agent_comms/turn_context.py"
+  ],
+  "cleanup_bytes": 146722595,
+  "public_changes": false,
+  "native_rebuild": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "checks_not_repeated": [
+    "provider journey",
+    "unchanged five release checks",
+    "unchanged callback/CLI qualification",
+    "broad suites"
+  ],
+  "limits": [
+    "Not public activation; parent owns publication",
+    "Local controlled installation failure has no actual target installation effects",
+    "Source/target process-runtime and configuration relation qualified, no provider input"
+  ],
+  "receipts_sha256": {
+    "source-target-driver-construction-failure01.log": "08bedcf117c5abf8730f3b4a29a864f899b68d83181e51a038ec50126fd7ecdc",
+    "activation.json": "570a44566f6c00191d055bf71ed24da0196843e24b4d1cb0cef0bc35d8290241",
+    "verify.py": "f61754e9b8252f73f681943ca34ef50976dcc4de3ee1746585f734f81dc9f8a0",
+    "source_target_control.py": "16c1ba6cb6696b364ff588359a90857ba94af810e15b69a3fe664e3932fffc2f",
+    "agent_comms-inventory.json": "c248cd0d3adea9c1be7d11204915f4aa73246be704f7f5437add57dcffa352cc",
+    "requirements.txt": "a5999df83e82953bc780244c67bd80814cee80f229aa53734b4695df66338743",
+    "source-proof.json": "1b6c14ef6eb2814f25722a0d149a885ca976e984699b9657158b0953bb54264b",
+    "textual-inventory.json": "817d7504618a823e4f1592be340fb9b3d2f04d6d8f1d341a3c6bf6394fb2378e",
+    "toad-inventory.json": "79feace0411a052f409f0e0f61422026150142a727ed6e9ece471b6fb3721300",
+    "original-shared-callback-cli-receipt.json": "880c92d2810e0e73c2f2f88ee40ca6755370b0af9c4ba038e6b406eb2086d059",
+    "verify.log": "83f4712d4bb2b0441683744fd65c67d35a77a77279ad7993632634b16275ad38",
+    "source-target-receipt.json": "6dd2c747d1e0358944af67beac3e0e6121a18ad39f3b7525149d0df960b27a8b",
+    "textual_diff_view-inventory.json": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396",
+    "ownership.json": "d569143b28799bc0060021b585b71d5766a1250cbdc9c2d8344ffec52758dafb",
+    "owned-disposable-cleanup.json": "745d757011b0f30c2a15cd13108e3fbefedf0383f1fa839ddaefa21ea55d9948",
+    "source-target.log": "2b4bf79cd0cbf409ad3517e97fc4411d9110b4fc54da373afa7326cef1603fc5"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "owner": "Schrodinger",
+  "process_launcher_route_borrowers": [],
+  "removed": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-prompt-action-owner-20261002",
+      "bytes_removed": 73622306
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-sidebar-prompt-actions-20261002",
+      "bytes_removed": 73100289
+    }
+  ],
+  "total_bytes": 146722595,
+  "preserved": [
+    "65a qualified prefix",
+    "c601 qualified original prefix",
+    "all unique inputs/history/proofs",
+    "direct URL metadata"
+  ],
+  "free_bytes_after": 7468834816
+}
