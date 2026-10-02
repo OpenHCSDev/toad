@@ -20,6 +20,8 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from runtime_fixture import ToadApp
 
 from toad.acp import messages as acp
+from acp.schema import ToolCall
+from toad.acp.status import ToolCallStatus
 from toad.core import events as core_events
 from toad.acp.agent import Agent
 from toad.widgets.agent_thought import AgentThought
@@ -98,9 +100,9 @@ async def main() -> None:
                 "title": "Read fixture",
                 "status": "in_progress",
             }
-            await view.on_acp_tool_call_update(acp.ToolCall(tool))
+            await view.on_acp_tool_call_update(core_events.ToolCall(ToolCallStatus.from_acp(ToolCall.model_validate(tool, strict=True))))
             await view.on_acp_tool_call_update(
-                acp.ToolCallUpdate({**tool, "status": "completed"}, {})
+                core_events.ToolCall(ToolCallStatus.from_acp(ToolCall.model_validate({**tool, "status": "completed"}, strict=True)))
             )
             await view.on_acp_agent_thinking(core_events.Thinking("text", "Check the result"))
             assert len(view.contents.query(AgentActivityDivider)) == 1
@@ -129,7 +131,7 @@ async def main() -> None:
                 "title": "Read first",
                 "status": "in_progress",
             }
-            await view.on_acp_tool_call_update(acp.ToolCall(tool))
+            await view.on_acp_tool_call_update(core_events.ToolCall(ToolCallStatus.from_acp(ToolCall.model_validate(tool, strict=True))))
             await pilot.pause()
             headers = list(view.contents.query(AgentActivityDivider))
             assert len(headers) == 3 and headers[-1].message_category is ToolCategory

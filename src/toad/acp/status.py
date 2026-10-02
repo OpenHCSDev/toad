@@ -1,9 +1,9 @@
 """Specification-spelled reasons and statuses own their presentation behavior."""
 from agent_comms.declared_family import DeclaredFamily
 from dataclasses import dataclass
+from typing import Annotated
 from acp.schema import ToolCall
-from textual.content import Content
-from toad.pill import pill
+from toad.acp.sdk_boundary import ToolCallWire
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
@@ -39,7 +39,7 @@ class CancelledStopReason(StopReason):
 
 @dataclass(frozen=True)
 class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
-    call: ToolCall
+    call: Annotated[ToolCall, ToolCallWire]
 
     @classmethod
     def from_acp(cls, call: ToolCall):
@@ -53,11 +53,11 @@ class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
 
     @classmethod
     def header(cls, view):
+        from textual.content import Content
         return Content()
 
     @classmethod
     def activity(cls, view, title):
-        from toad import messages
         if cls.busy:
             view.turns.describe(' '.join(title.splitlines()))
         if cls.boundary:
@@ -69,6 +69,7 @@ class PendingToolCallStatus(ToolCallStatus):
 
     @classmethod
     def header(cls, view):
+        from textual.content import Content
         return Content(' ⌛')
 
 
@@ -77,6 +78,8 @@ class InProgressToolCallStatus(ToolCallStatus):
 
     @classmethod
     def header(cls, view):
+        from textual.content import Content
+        from toad.pill import pill
         return Content.assemble(' ', pill('running', '$warning-muted', '$warning', filled=not view.app.theme.startswith('ansi-')))
 
 
@@ -85,6 +88,7 @@ class CompletedToolCallStatus(ToolCallStatus):
 
     @classmethod
     def header(cls, view):
+        from textual.content import Content
         return Content.from_markup(' [$success]✔')
 
 
@@ -93,4 +97,6 @@ class FailedToolCallStatus(ToolCallStatus):
 
     @classmethod
     def header(cls, view):
+        from textual.content import Content
+        from toad.pill import pill
         return Content.assemble(' ', pill('failed', '$error-muted', '$error', filled=not view.app.theme.startswith('ansi-')))

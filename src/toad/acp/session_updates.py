@@ -91,7 +91,7 @@ class MessageContentEffect(MroDispatch):
 
 class UserContentEffect(MessageContentEffect):
     def publish(self, content):
-        self.agent.post_message(messages.UserMessage(content.type, content.text))
+        self.agent.events.publish(events.UserMessage(content.type, content.text))
 
 
 class ThoughtContentEffect(MessageContentEffect):

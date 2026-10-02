@@ -182,8 +182,8 @@ class AgentController(OperationalTerminalOwner):
         agent.configuration.publish()
         agent.events.publish(AvailableCommandsUpdate())
         if self.plan_entries is not None:
-            from .messages import Plan
-            binding.post(Plan(self.plan_entries))
+            from toad.core.events import Plan
+            agent.events.publish(Plan(self.plan_entries))
         agent._post_queue_view()
         agent._post_private_cursor()
         if agent.coordination is not None:
@@ -250,9 +250,9 @@ class AgentController(OperationalTerminalOwner):
 
     def publish_plan(self, entries: list[PlanItem]) -> None:
         """Keep the latest typed source value while its optional view is absent."""
-        from .messages import Plan
+        from toad.core.events import Plan
         self.plan_entries = entries
-        self.agent.post_message(Plan(entries))
+        self.agent.events.publish(Plan(entries))
 
     def publish_commands(self, commands):
         from toad.core.events import AvailableCommandsUpdate

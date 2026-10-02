@@ -11,10 +11,31 @@ from weakref import WeakSet
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
+from toad.plan import PlanItem
+from toad.acp.status import ToolCallStatus
 
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
+
+
+@dataclass(frozen=True)
+class Plan(CoreEvent):
+    """An ordered snapshot of the original admitted plan items."""
+
+    entries: list[PlanItem]
+
+
+@dataclass(frozen=True)
+class ToolCall(CoreEvent):
+    """The original tool owner assembled this exact SDK call snapshot."""
+
+    tool_call: ToolCallStatus
+
+    @property
+    def tool_id(self) -> str:
+        from toad.acp.encode_tool_call_id import encode_tool_call_id
+        return encode_tool_call_id(self.tool_call.call.tool_call_id)
 
 
 @dataclass(frozen=True)
@@ -31,6 +52,14 @@ class SessionClosedEvent(SessionChangedEvent):
 
 @dataclass(frozen=True)
 class Thinking(CoreEvent):
+    type: str
+    text: str
+
+
+@dataclass(frozen=True)
+class UserMessage(CoreEvent):
+    """An admitted external user chunk; history keeps its original authority."""
+
     type: str
     text: str
 

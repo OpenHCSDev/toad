@@ -1,4 +1,5 @@
-from toad.core import session_requests
+from toad.core import session_requests, events as core_events
+from toad.core_event_carrier import CoreEventReceiver
 import asyncio
 from functools import partial
 from pathlib import Path
@@ -103,7 +104,7 @@ class MCPInventoryProvider(Provider):
                            help="Read-only package snapshot")
 
 
-class MainScreen(SessionView, NavigationOwner, can_focus=False):
+class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -477,10 +478,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     async def open_file_preview(self, path: Path) -> None:
         await self.app.session_navigation.preview(path)
 
-    @on(acp_messages.Plan)
-    async def on_acp_plan(self, message: acp_messages.Plan):
-        message.stop()
-
+    @handles(core_events.Plan)
+    async def on_acp_plan(self, message: core_events.Plan):
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         self.query_one(SessionThreadSidebar).update_plan(message.entries)

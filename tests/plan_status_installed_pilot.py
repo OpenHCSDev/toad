@@ -68,7 +68,7 @@ async def main():
                 assert not plan.all_complete
                 for entry, raw in zip(plan.entries, stages[0]["entries"]):
                     assert entry.status is PlanStatus.decode(raw["status"])
-                    assert entry.content.plain == raw["content"]
+                    assert entry.content == raw["content"]
                     assert entry.status.marker().plain.strip() in viewport_text(plan)
                 await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
                 assert sidebar.query_one(Plan).entries is plan.entries
@@ -114,8 +114,8 @@ async def main():
                 except TimeoutError:
                     mounted = sidebar.query_one(Plan)
                     print("PLAN_REVEAL_DIAGNOSTIC", {
-                        "source": [entry.content.plain for entry in sidebar.plan.entries],
-                        "mounted": [entry.content.plain for entry in mounted.entries],
+                        "source": [entry.content for entry in sidebar.plan.entries],
+                        "mounted": [entry.content for entry in mounted.entries],
                         "region": str(mounted.region),
                         "visible": mounted in mounted.screen._compositor.visible_widgets,
                         "paint": viewport_text(mounted) if mounted in mounted.screen._compositor.visible_widgets else "<absent>",
@@ -126,7 +126,7 @@ async def main():
                 await asyncio.wait_for(sending, 10)
                 await until(pilot, lambda: len([note for note in view.query(Note)
                             if "Invalid ACP update rejected" in note.render().plain]) == 3)
-                assert plan.entries[0].content.plain == stages[0]["entries"][0]["content"]
+                assert plan.entries[0].content == stages[0]["entries"][0]["content"]
                 assert sidebar.query_one(Plan).entries is plan.entries
                 assert app._exception is None
                 print("ACP_EMPTY_RESET_INACTIVE_PANEL_REVEAL_AND_ALREADY_COMPLETED_REAPPEARANCE_PAINTED", flush=True)
@@ -141,7 +141,7 @@ async def main():
                 detached_plan = [{"entries": [{"content": "DETACHED_PLAN_ITEM", "priority": "high", "status": "pending"}]}]
                 await asyncio.wait_for(agent.send_prompt(json.dumps(detached_plan)), 10)
                 await until(pilot, lambda: agent.controller.plan_entries is not None and
-                            agent.controller.plan_entries[0].content.plain == "DETACHED_PLAN_ITEM")
+                            agent.controller.plan_entries[0].content == "DETACHED_PLAN_ITEM")
                 await app.select_session(source.id)
                 view = source.conversation
                 await until(pilot, lambda: bool(view.query(Plan)))

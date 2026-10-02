@@ -35,6 +35,8 @@ from textual.widgets._footer import FooterKey
 from toad import messages, paths
 from toad.acp import messages as acp_messages
 from toad.core import events as core_events
+from toad.acp.status import ToolCallStatus
+from acp.schema import ToolCall as SDKToolCall
 from toad.acp.agent import Agent as ACPAgent
 from toad.db import DB
 from toad.pill import pill
@@ -623,17 +625,13 @@ async def main() -> None:
             await pilot.press("ctrl+c")
             await pilot.pause()
             assert prompt_input.text == ""
-            conversation.post_message(
-                acp_messages.ToolCall(
-                    {
-                        "sessionUpdate": "tool_call",
-                        "toolCallId": "pilot-tool",
-                        "title": "Run tests",
-                        "kind": "execute",
-                        "status": "in_progress",
-                    }
-                )
-            )
+            conversation.agent.events.publish(core_events.ToolCall(
+                ToolCallStatus.from_acp(SDKToolCall.model_validate({
+                    "toolCallId": "pilot-tool",
+                    "title": "Run tests",
+                    "kind": "execute",
+                    "status": "in_progress",
+                }, strict=True))))
             await pilot.pause()
             tool = conversation.query_one(ToolCall)
             assert "Run tests" in tool.tool_call_header_content.plain

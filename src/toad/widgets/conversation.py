@@ -1504,8 +1504,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.request_permissions(message.request)
         self.output.boundary()
 
-    @on(acp_messages.Plan)
-    async def on_acp_plan(self, message: acp_messages.Plan):
+    @handles(core_events.Plan)
+    async def on_acp_plan(self, message: core_events.Plan):
         from toad.widgets.plan import Plan
 
         if self.contents.children and isinstance(
@@ -1515,10 +1515,9 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         else:
             await self.post(Plan(message.entries))
 
-    @on(acp_messages.ToolCallUpdate)
-    @on(acp_messages.ToolCall)
+    @handles(core_events.ToolCall)
     async def on_acp_tool_call_update(
-        self, message: acp_messages.ToolCall | acp_messages.ToolCallUpdate
+        self, message: core_events.ToolCall
     ):
         from toad.widgets.tool_call import ToolCall
 

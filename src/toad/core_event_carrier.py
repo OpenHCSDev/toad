@@ -35,13 +35,10 @@ class CoreEventReceiver(MroDispatch):
         return self.post_message(CoreEventMessage(event, subscription))
 
     async def on_core_event_message(self, message: CoreEventMessage) -> None:
-        message.stop()
         if not message.subscription.active:
+            message.stop()
             return
-        handlers = tuple(self.handlers_for(message.event))
-        if not handlers:
-            raise TypeError(f"No core event handler on {type(self).__name__}: {type(message.event).__name__}")
-        await self.consume_handlers(message.event, handlers)
+        await self.dispatch(message.event)
 
     def _on_unmount(self) -> None:
         for subscription in self._core_subscriptions:

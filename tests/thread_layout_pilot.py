@@ -19,7 +19,10 @@ from toad.widgets.route_header import RouteHeader
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.conversation import TurnActivity
-from toad.acp.messages import ToolCall as ToolUpdate, CommsUpdated
+from toad.acp.messages import CommsUpdated
+from toad.core.events import ToolCall as ToolUpdate
+from toad.acp.status import ToolCallStatus
+from acp.schema import ToolCall as SDKToolCall
 from agent_comms.acp_extension import TurnSettledUpdate, TurnStartedUpdate
 
 async def main():
@@ -82,7 +85,7 @@ async def main():
             await pilot.pause()
             assert long.size.height >= 20 and long.max_scroll_y == 0
             view.post_message(CommsUpdated(TurnStartedUpdate('test-turn', started_at=None, activity=None, activity_detail=None)))
-            view.post_message(ToolUpdate({'toolCallId': 'running', 'title': 'Running tests', 'status': 'in_progress'}))
+            view.agent.events.publish(ToolUpdate(ToolCallStatus.from_acp(SDKToolCall.model_validate({'toolCallId': 'running', 'title': 'Running tests', 'status': 'in_progress'}, strict=True))))
             await pilot.pause()
             activity = view.query_one(TurnActivity)
             assert activity.display and activity.render().plain == 'Running tests'
