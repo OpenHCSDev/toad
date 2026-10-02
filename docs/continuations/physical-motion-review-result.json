@@ -1,0 +1,66 @@
+{
+  "review_passed": true,
+  "raw_application_passed": false,
+  "source_files_unchanged": [
+    "receipt.json",
+    "terminal.mp4",
+    "profile-review.json",
+    "cpu-profile.json",
+    "frame-delivery.json",
+    "events.jsonl"
+  ],
+  "selected_intervals": [
+    {
+      "label": "input-held-up",
+      "start": 35.49169157497818,
+      "seconds": 0.8
+    },
+    {
+      "label": "input-held-down",
+      "start": 57.89734209299786,
+      "seconds": 0.8
+    },
+    {
+      "label": "up",
+      "start": 67.79400806699414,
+      "seconds": 0.8
+    },
+    {
+      "label": "down",
+      "start": 73.45800882595358,
+      "seconds": 0.8
+    },
+    {
+      "label": "reverse",
+      "start": 79.20343310496537,
+      "seconds": 0.8
+    },
+    {
+      "label": "end",
+      "start": 84.99421535496367,
+      "seconds": 0.8
+    }
+  ],
+  "consecutive_frames_per_interval": 48,
+  "correlated_cpu_phases": 6,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "receipt_sha256": "b4caa1c26adfb3986424e96882b3325bb4e616726b83708ad6f453fb1a5fafcf",
+  "inspection": {
+    "reviewed": [
+      "input-held-up",
+      "reverse"
+    ],
+    "finding": "History remains visible. Repeated body positions followed by discrete advances are visible; uninterrupted animation is not established."
+  },
+  "existing_parser_roots": {
+    "tests/tools": 8,
+    "tools/performance": 39
+  },
+  "parse_omissions": 0,
+  "limits": [
+    "Source AST has no dynamic dispatch proof.",
+    "Writer receipts are not terminal pixels.",
+    "Review artifact success does not change application failure."
+  ]
+}

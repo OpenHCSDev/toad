@@ -1,0 +1,62 @@
+[
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 65,
+    "declaration": "ReviewTiming"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 77,
+    "declaration": "InlineReviewTiming"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 94,
+    "declaration": "DeferredReviewTiming"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 430,
+    "declaration": "PhysicalJourney"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 518,
+    "declaration": "ScrollJourney"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 731,
+    "declaration": "InputWarmJourney"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 1184,
+    "declaration": "profile_review"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 1267,
+    "declaration": "artifacts"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 1301,
+    "declaration": "frame_review"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 1367,
+    "declaration": "review_recording"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 1379,
+    "consumer": "InlineReviewTiming.generate"
+  },
+  {
+    "file": "tests/tools/record_installed_tui.py",
+    "line": 1737,
+    "consumer": "args.review_timing.generate"
+  }
+]
