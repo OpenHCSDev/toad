@@ -173,5 +173,155 @@ async def main():
     )
 
 
+async def installed_handling(root: Path):
+    """Actual native saved source and LinuxDriver; no provider or public owner."""
+    import hashlib
+    import subprocess
+    import sys
+    import time
+    from toad.app import ToadApp as InstalledApplication
+    from toad.widgets.wire_message_handling import WireMessageHandling
+    from toad.widgets.incoming_message import IncomingMessage
+    from toad.widgets.outgoing_message import OutgoingMessage
+    from toad.widgets.message_notifications import MessageNotifications
+    from textual.widgets import Select
+    from agent_comms.field_codec import FieldCodec
+    from agent_comms.bus_publication import stable_thread_lookup
+
+    root.mkdir(parents=True, exist_ok=False)
+    os.environ.update(AGENT_COMMS_ROOT=str(root / "live"),
+                      XDG_CONFIG_HOME=str(root / "config"),
+                      XDG_STATE_HOME=str(root / "state"),
+                      XDG_DATA_HOME=str(root / "data"))
+    assert os.environ.get("DISPLAY") and os.environ["DISPLAY"] != ":0"
+    activation = json.loads((Path(sys.prefix) / "activation.json").read_text())
+    started = time.monotonic()
+    receipt = {"state": "running", "prefix": sys.prefix,
+               "pins": activation["pins"], "checks": [],
+               "provider_calls": 0, "public_mutations": 0}
+    old = wire(root / "old")
+    script = """
+import {pathToFileURL} from 'node:url';
+import {join} from 'node:path';
+const {SessionManager}=await import(pathToFileURL(join(process.argv[1],'dist/core/session-manager.js')));
+const manager=SessionManager.create(process.argv[2],join(process.argv[2],'sessions'));
+manager.appendMessage({role:'user',content:'Original saved user request',timestamp:1});
+console.log(manager.getSessionFile());
+"""
+    for index, name in enumerate(("alpha", "beta")):
+        project = root / name
+        project.mkdir()
+        session = subprocess.check_output(
+            ["node", "--input-type=module", "-e", script,
+             activation["native_package"], str(project)], text=True, timeout=10).strip()
+        old.registry.declare(Thread(name, frozenset({"team"}), str(project),
+                                    session_file=session, created_at=10.0 + index))
+    original_out = old.messaging.send_message("alpha", "beta", "ORIGINAL outgoing alpha to beta")
+    original_in = old.messaging.send_message("beta", "alpha", "ORIGINAL incoming beta to alpha")
+    live = wire(root / "live")
+    for index, name in enumerate(("alpha", "beta")):
+        live.registry.declare(Thread(name, frozenset({"team"}), str(root / "live-project"),
+                                     created_at=20.0 + index))
+    live.messaging.send_message("alpha", "beta", "WRONG live outgoing")
+    live.messaging.send_message("beta", "alpha", "WRONG live incoming")
+    live.views.attach_history(old.root)
+    threads = live.views.historical_threads()
+    frozen = {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+              for source in (root / "old", root / "live")
+              for p in source.rglob("*") if p.is_file()}
+    (root / "protected-before.json").write_text(json.dumps(frozen, indent=2) + "\n")
+    app = InstalledApplication(project_dir=str(root / "live-project"), mode="store")
+
+    async def physical(pilot, widget):
+        window = subprocess.check_output(["xdotool", "search", "--class", "st"],
+                                         text=True).splitlines()[-1]
+        geometry = subprocess.check_output(["xdotool", "getwindowgeometry", "--shell", window],
+                                           text=True)
+        dims = dict(line.split("=", 1) for line in geometry.splitlines() if "=" in line)
+        x, y = widget.region.x + 2, widget.region.y
+        px = 2 + int((x + .5) * (int(dims["WIDTH"]) - 4) / app.size.width)
+        py = 2 + int((y + .5) * (int(dims["HEIGHT"]) - 4) / app.size.height)
+        subprocess.run(["xdotool", "mousemove", "--window", window, str(px), str(py),
+                        "click", "1"], check=True)
+        await pilot.pause(.1)
+
+    def screenshot(name):
+        subprocess.run(["import", "-window", "root", str(root / (name + ".png"))],
+                       check=True, timeout=5)
+        (root / (name + ".svg")).write_text(app.export_screenshot())
+
+    async def inspected(pilot, selected):
+        screen = app.screen
+        await until(pilot, lambda: bool(WireMessageHandling.within(screen)))
+        bodies = WireMessageHandling.within(screen)
+        assert {type(body) for body in bodies} == {IncomingMessage, OutgoingMessage}
+        refs = WireMessageHandling.references_in(bodies)
+        assert set(refs) == {original_out.reference, original_in.reference}
+        item = threads[selected]
+        original_service = __import__("agent_comms.comms", fromlist=["Comms"]).Comms(
+            Path(item.source.root), private_initial_writes=False, private_claim_writes=False)
+        from agent_comms import HistoricalMessage
+        messages = tuple(HistoricalMessage.project(message, item.source,
+                           live.bus.history.sources().index(item.source), item.source.provenance)
+                         for message in original_service.bus.log.messages_for_references(refs))
+        expected = original_service.views.message_notifications(messages)
+        assert all(not message.notification_references() for message in messages)
+        await until(pilot, lambda: all(body.query_one(MessageNotifications)._notifications is not None
+                                     for body in bodies))
+        rows = []
+        for body in bodies:
+            feedback = body.query_one(MessageNotifications)
+            reference = body.message_reference
+            assert feedback._notifications == expected[reference.seq, reference.message_id]
+            assert all(n.recipient_identity.recipient_lookup not in {
+                stable_thread_lookup(live.registry.require("alpha").created_at),
+                stable_thread_lookup(live.registry.require("beta").created_at),
+            } for n in feedback._notifications)
+            rows.append({"widget": type(body).__name__, "reference": FieldCodec.encode(reference),
+                         "title": str(feedback.title), "details": str(feedback.details.render())})
+        receipt["checks"].append({"selected": item.thread.name,
+                                  "original_created_at": item.thread.created_at,
+                                  "source": item.source.key, "rows": rows})
+        await physical(pilot, bodies[-1].query_one(MessageNotifications).query_one("CollapsibleTitle"))
+        await pilot.pause(.2)
+        screenshot("historical-" + item.thread.name)
+
+    try:
+        async with app.run_test(headless=False, size=None) as pilot:
+            await app.push_screen(HistoricalSessions(live, threads))
+            await inspected(pilot, 0)
+            selector = app.screen.query_one("#saved-identity", Select)
+            await physical(pilot, selector)
+            subprocess.run(["xdotool", "key", "Down", "Return"], check=True)
+            await until(pilot, lambda: selector.value == 1)
+            await inspected(pilot, 1)
+            await physical(pilot, selector)
+            subprocess.run(["xdotool", "key", "Up", "Return"], check=True)
+            await until(pilot, lambda: selector.value == 0)
+            await inspected(pilot, 0)
+            subprocess.run(["xdotool", "key", "Escape"], check=True)
+            await until(pilot, lambda: not isinstance(app.screen, HistoricalSessions))
+            assert app._exception is None
+        changed = [path for path, digest in frozen.items()
+                   if hashlib.sha256(Path(path).read_bytes()).hexdigest() != digest]
+        assert not changed, changed
+        receipt.update(state="passed", protected_files=len(frozen),
+                       original_and_live_bytes_unchanged=True,
+                       native_source="actual SessionManager journals + canonical archived wire")
+    except BaseException as error:
+        receipt.update(state="failed", error=f"{type(error).__name__}: {error}")
+        raise
+    finally:
+        receipt["elapsed_seconds"] = time.monotonic() - started
+        (root / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    import sys
+    try:
+        asyncio.run(installed_handling(Path(sys.argv[2])) if sys.argv[1:2] == ["--installed-handling"] else main())
+    except BaseException:
+        import traceback
+        if sys.argv[1:2] == ["--installed-handling"]:
+            Path(sys.argv[2]).with_suffix(".terminal-error.txt").write_text(traceback.format_exc())
+        raise

@@ -78,6 +78,7 @@ from toad.session_observation import GoalObservation, InputDeliveryObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.wire_message_handling import WireMessageHandling
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
@@ -1527,6 +1528,11 @@ class Conversation(DeclaredWidgetActions, ConversationSessionBinding):
     async def on_transcript_coverage(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
+
+    @on(WireMessageHandling.Requested)
+    def request_message_handling(self, message: WireMessageHandling.Requested) -> None:
+        message.stop()
+        self.transcript.request_handling()
 
     def on_transcript_source_work_finished(self, message) -> None:
         message.stop()
