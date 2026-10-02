@@ -1,0 +1,22 @@
+{
+  "state": "READY original preserve-only operation; NOT EXECUTED",
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "target_prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-sidebar-owner308-20261002",
+  "source_core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "target_core": "c2a68017f7d3280e6a30789cd7c5d907b12f959a",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-manifest.json",
+  "operator_manifest_sha256": "34b21c566efc5c32ff576abbcbf087b5129b63b4785fc512ebd5b205f7b769d6",
+  "operator_members": 51,
+  "whole_schema_equal": true,
+  "product_equal": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+  "plan_sha256": "aacc59cd0f8962df47c72ccd461bf58df89abc5a5ab97dda2c108ceefac38979",
+  "source_proof_sha256": "c4ed782ffca0e241f76ca78d4fc7d07020692db56a05fbe973f0bf3ee130fbfa",
+  "declaration_relation_sha256": "45b2a8ae691863b1ec65f2b3c745238e4ac25b57a0066e9273024028424fc7a3",
+  "commands": {
+    "parent_execute_once": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-sidebar-owner308-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/source-coverage545-input-policy546-receiving-20261002/operator-preparation/publication-receipt.json --execute"
+  },
+  "execution_condition": "Parent alone, after user client closes normally and fresh original audience idle/client0; existing executor checks exact hashes, original route/links and audience before admission. Capture launches and preserve originals inside existing stopped lifetime. No manual stop, carry/reset/input replay. Existing receipt means disposition, never repeat.",
+  "public_effects": 0
+}

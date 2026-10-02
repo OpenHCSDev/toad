@@ -1,0 +1,21 @@
+{
+  "source": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "target": "c2a68017f7d3280e6a30789cd7c5d907b12f959a",
+  "source_release_versions": [
+    9,
+    3,
+    3,
+    6
+  ],
+  "target_release_versions": [
+    9,
+    3,
+    3,
+    6
+  ],
+  "whole_schema_equal": true,
+  "source_product_equal": false,
+  "carry_reset_required": false,
+  "original_stores_opened": false,
+  "public_changes": 0
+}
