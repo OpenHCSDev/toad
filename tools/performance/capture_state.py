@@ -387,8 +387,12 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                                             "retained_widget_count": body.retained_widget_count,
                                             "native_widget_count": body.materialized_widget_count,
                                             "retained_source_bytes": body.retained_source_bytes,
-                                            "measurement": (asdict(body._body_measurement)
-                                                            if body._body_measurement is not None else None)}
+                                            "measurement": {
+                                                "state": type(body._body_measurement).__name__,
+                                                "width": body._body_measurement.width,
+                                                "rows": body._body_measurement.rows,
+                                                "widgets": body._body_measurement.widgets,
+                                                "paint_bytes": body.retained_paint_bytes}}
                                            for body in owners],
                             }
                         view["history_windows"].append(window)

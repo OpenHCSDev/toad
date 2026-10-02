@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=f9135463a133dc213e1c72d227e695b4f8ca67f7#f9135463a133dc213e1c72d227e695b4f8ca67f7" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=9ccc04c8ca5df864fdf9018211629bf3f2bd25d2#9ccc04c8ca5df864fdf9018211629bf3f2bd25d2" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "nominal-refactor-audit" },
@@ -305,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=f9135463a133dc213e1c72d227e695b4f8ca67f7" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=9ccc04c8ca5df864fdf9018211629bf3f2bd25d2" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -319,7 +319,7 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=f7770efdf607395c4bdfa0a920f895927cdd3fee" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=0b09964dab647fd644ea6a0639a83c04b3c9eaec" },
     { name = "textual-diff-view", git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
@@ -1549,7 +1549,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=f7770efdf607395c4bdfa0a920f895927cdd3fee#f7770efdf607395c4bdfa0a920f895927cdd3fee" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=0b09964dab647fd644ea6a0639a83c04b3c9eaec#0b09964dab647fd644ea6a0639a83c04b3c9eaec" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
