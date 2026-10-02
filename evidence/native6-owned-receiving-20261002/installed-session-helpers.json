@@ -1,0 +1,12 @@
+[
+  {
+    "owner": "agent_comms.native_fork.ForkSessionHelper",
+    "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native6-owned-candidate-20261002/lib/python3.14/site-packages/agent_comms/_pi_helpers/fork_session.mjs",
+    "sha256": "723cfbec5614a8043c52c3e2fa57fb09d1fbb96db4c033bb33bd11acd2ec4ea1"
+  },
+  {
+    "owner": "agent_comms.native_session_reopen.ReopenSessionHelper",
+    "path": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native6-owned-candidate-20261002/lib/python3.14/site-packages/agent_comms/_pi_helpers/reopen_session.mjs",
+    "sha256": "0172dd1d80483fd372fce8626533a97c4b6a340c342d1f451642bc9f009f55c6"
+  }
+]

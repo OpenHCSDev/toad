@@ -1,0 +1,14 @@
+{
+  "source_sha": "b33c4c7377f08b6dc3169f81c7c94a12b309703b",
+  "path": "/home/ts/wt/comms-retained-human-main-20261001/tests/shared_bus_restart_native.py",
+  "driver_sha256": "fae7388411d5e030fb4b49fc9bb09e7bcf5ae3a640ece4dd9350a59a7908bf71",
+  "production_equal_to_installed_core": "0e50c9796af1e5034d981f521122339dc4619a20",
+  "changed_production_files": [],
+  "gate_owner": "Einstein",
+  "mode": "configured-saved-preparation",
+  "configured_owner": "openhcs-architecture-memory",
+  "owners": 1,
+  "collective": true,
+  "wave_size": 1,
+  "path_semantics": "ordinary existing ACP saved fork, cancellation with actual stage reported, distinct fresh continuation; no replay"
+}
