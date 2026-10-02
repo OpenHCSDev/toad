@@ -13,3 +13,11 @@ Existing51 frozen541 preserve-only operator ready; authentic current334/target w
 ## Merged pins
 
 Core545/546 merged732e8670 is byte-identical to qualifiedc2a in allsrc/stack/pyproject/uv.lock. The same inactive holder now normally installs732e8670 and pairedToad08375dbe. New installed/directURL metadata and operator hashes match; original2.454081s affected receipt remains unchanged, no provider/native/environment build or original-source rerun. Originalc2 operands remain archived. Current334 stays live and333 protected;336 publication claim retired by parent, its receipt/prefix remain retained. Parent chooses sole direct337 publication after original current audience idle and user client/drafts preserved.
+
+## Failed publication and restored availability
+
+The one admitted337 publisher failed after retiring its captured20 owners. A separately owned acceptance client appeared after the initial absence check; the second check refused before original capture or installation. The original receipt remains `preflight-complete`; original capture directory is absent. Recovery then incorrectly required original-file proof recorded only by that later stage. No337 route, package or default link was installed.
+
+Only the captured20 original owners were freshly started using existing `OwnerLifecycle.start` and original334 ActiveRoute/native9f. This is a fresh configured start, not restoration of lost process environment. All20 births and stored settings except process match, all40 observed durable hashes are unchanged, and actual process root/rootID/package/source-interpreter capture matches334. One historical participant has no stored provider/model; no claim of universal provider configuration is made. Original sessions/uncertain inputs and failed publication remain unchanged; no input/provider retry occurred.
+
+Parent's ordinary recovered334 helper read completed18.619s with application0, required exports and empty cleanup. The final physical frame shows saved history and Ready. This qualifies recovered334 availability only, not337 installation or channel/provider behavior. The publisher client admission and early stopped recovery lifetime remain owned follow-up work. Raw failure and separate fresh-start receipts are preserved in `evidence/source-coverage545-input-policy546-receiving-20261002/failed-publication-recovery/`.

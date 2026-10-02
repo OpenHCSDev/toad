@@ -1,0 +1,931 @@
+{
+  "state": "Failed after-stopped client fence; no repeat attempted",
+  "receipt_sha256": "c9adbda4e844b1807a9de39c14e693a6be9ec13eb3be31f39b8442cead7125b2",
+  "raw_phase": "preflight-complete",
+  "owners": [
+    {
+      "name": "agent-comms-ux",
+      "birth_matches": true,
+      "process": {
+        "pid": 507029,
+        "start_time": 44408366
+      },
+      "alive": false,
+      "owner_generation": 2108,
+      "admission_generation": 2072,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "agent-comms-ux",
+        "tags": [
+          "comms"
+        ],
+        "worktree": "/home/ts/.agent-comms",
+        "created_at": 1790049004.0955005,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-22T03-50-07-145Z_01a0c73c-3628-7073-880c-e0df5f56e98e.jsonl",
+        "title": "agent-comms-ux",
+        "parent": null,
+        "task": "Set your persistent project directory to /home/ts/.agent-comms immediately using comms_set_project. You are the dedicated agent-comms UX/code thread. After the project switch resumes, inspect the coordination context, confirm you are tagged for #comms rather than #openhcs, and wait for a concrete task. Do not modify files yet.",
+        "process_identity": {
+          "pid": 507029,
+          "start_time": 44408366
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "off",
+        "goal": {
+          "text": "Inventory all comms, toad, and textual Git worktrees under /home/ts/wt, sorted by most recent source touch; coordinate with dedicated-worktree-cleanup-20261001 before overlapping cleanup. Produce a persistent safety inventory of branches, dirty/untracked work, active ownership and saved-session dependencies. Propose reducing hundreds of worktrees to roughly ten reusable isolated worktrees by preserving branches and explicitly backed-up uncommitted work; do not merge unrelated branches together or stash/remove active or unreviewed work without approval. Execute safe approved consolidation and report preserved paths and remaining blockers.",
+          "id": "aa78e918e8e24c5abcb9666dc586b339",
+          "progress": "Goal attempt unresolved; inspect diagnostics before Retry.",
+          "revision": 2,
+          "reported_turn": null,
+          "mention_source": {
+            "goal_id": "aa78e918e8e24c5abcb9666dc586b339",
+            "text_revision": 1,
+            "text_digest": "fdc432e974e0eba98f3765b647008bdb0213faf8992f030e051260f9d75e592c",
+            "owner_name": "agent-comms-ux",
+            "owner_created_at": 1790049004.0955005,
+            "bindings": []
+          },
+          "state": {
+            "kind": "blocked",
+            "block_reason": "Goal attempt unresolved; inspect diagnostics before Retry."
+          }
+        },
+        "previous_worktrees": [
+          "/home/ts/code/projects/openhcs"
+        ],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 942,
+        "last_finished_turn_id": "677e7d84a1694f5aa74f932501e14c0d"
+      }
+    },
+    {
+      "name": "nra-architecture",
+      "birth_matches": true,
+      "process": {
+        "pid": 507032,
+        "start_time": 44408504
+      },
+      "alive": false,
+      "owner_generation": 2109,
+      "admission_generation": 2073,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "nra-architecture",
+        "tags": [
+          "nra"
+        ],
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "created_at": 1790049182.3907015,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+        "title": null,
+        "parent": "agent-comms-ux",
+        "task": "Set your persistent project directory to /home/ts/code/projects/nominal-refactor-advisor immediately using comms_set_project. You are the dedicated Nominal Refactor Advisor architecture thread. After the project switch resumes, confirm you are tagged for #nra rather than #comms or #openhcs, and wait for a concrete task. Do not modify files yet.",
+        "process_identity": {
+          "pid": 507032,
+          "start_time": 44408504
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [
+          "/home/ts/.agent-comms"
+        ],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 91,
+        "last_finished_turn_id": "82370a439a014a7cbfb4f051ffed76a1"
+      }
+    },
+    {
+      "name": "nra-class-first-name-review",
+      "birth_matches": true,
+      "process": {
+        "pid": 507046,
+        "start_time": 44408645
+      },
+      "alive": false,
+      "owner_generation": 2110,
+      "admission_generation": 2074,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "nra-class-first-name-review",
+        "tags": [
+          "nra"
+        ],
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "created_at": 1790229371.6420214,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T05-56-25-895Z_01a0d1fc-92a7-73f8-bb18-c7b0ea66b194.jsonl",
+        "title": null,
+        "parent": "nra-architecture",
+        "task": "Independent READ-ONLY private review of exact outside-Git pair `/tmp/nra-class-first-prototype/enum_function_questions.py` SHA256 `5c38a5207986be90b10303205e1dc6f034c634c37907ce950ed0ddb341e14088`, `/tmp/nra-class-first-prototype/test_enum_function_questions.py` SHA256 `43f8a732b120895833b5f92316879fce56124ffbb527869c03f285ab8dc4d09f`. Five serial Python3.14 tests + Ruff passed. Audit source path/revision authenticity at consumption, forged nested fields, complete in-bound class/Enum member/function evidence incl unsupported/unprojected classes, reused NRA class & syntax owners DOF=1, lexical name-alignment never claimed binding, duplicate/ambiguity, comments and physical path/quiescence. Try adversarial fixtures (no files modified): enum aliases/duplicates, function definitions in classes, unsupported RHS, variable rebinding, overloaded names, unicode or nested functions. Identify precise blocking defects with minimal correction; do not edit code/repos/Git/Toad, no goal tools. Report directly to nra-architecture, no polling/wait.",
+        "process_identity": {
+          "pid": 507046,
+          "start_time": 44408645
+        },
+        "model": "openai-codex/gpt-6-sol",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 36,
+        "last_finished_turn_id": "4b4cfaef7d39b6d4173978126fb80648"
+      }
+    },
+    {
+      "name": "nra-domain-mapping",
+      "birth_matches": true,
+      "process": {
+        "pid": 507056,
+        "start_time": 44408785
+      },
+      "alive": false,
+      "owner_generation": 2111,
+      "admission_generation": 2075,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "nra-domain-mapping",
+        "tags": [
+          "nra"
+        ],
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "created_at": 1790116627.8997042,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+        "title": null,
+        "parent": "nra-architecture",
+        "task": "Investigate domain-driven semantic mapping tools and techniques that could strengthen NominalRefactorAdvisor, especially recovering latent domain concepts from untyped dicts/records whose shape is visible only through access sites. FIRST set a persistent goal covering primary-source research, direct NRA architecture inspection, a capability/gap map, and an evidence-backed integration proposal. Work read-only initially in `/home/ts/code/projects/nominal-refactor-advisor`; do not edit existing files or touch dirty work. Examine current NRA observation/detection/semantic-descent/factorization capabilities directly. Research established tools/approaches (static analysis, shape/record inference, dataflow, abstract interpretation, type inference, code property graphs, schema mining, DDD/context mapping, runtime tracing where relevant) using primary docs/papers. Distinguish structural shape inference from semantic domain naming/provenance and explain what remains human/contract supplied. Propose a deterministic pipeline for mapping access evidence to candidate domain meanings, questions, consumers, collisions, and typed declarations, including uncertainty/exclusion receipts and architectural ownership boundaries. Report concise milestone updates directly to `#nra` via comms_send, and send a detailed recommendation to `nra-architecture`. Do not implement until parent review; do not open or merge a PR.",
+        "process_identity": {
+          "pid": 507056,
+          "start_time": 44408785
+        },
+        "model": "openai-codex/gpt-6-sol",
+        "thinking_level": "off",
+        "goal": {
+          "text": "Refine the accepted NRA domain-mapping architecture to model NRA as an evidence-preserving lens: humans provide the program\u2019s intended domain rules and authoritative declarations, the LLM applies semantic-completeness theory to those supplied rules and structural evidence to identify underabstraction, and deterministic NRA authorities certify observations, provenance, uncertainty, and transformations without pretending structural analysis alone invents business meaning. @nra-architecture is coodrintor",
+          "id": "f24503310f684e5fa0280cb0d3463727",
+          "progress": "Verified and delivered the scoped domain-mapping refinement to coordinator: source-pinned PR #60 evidence-lens packet SHA ef6c3d6d4524b4d374d486f4cbd3541484322590b5ad794f4b58bb0ef20485ac and exact architecture/skill/protocol seams SHA 7a5b36947fb16e299879fcc561bce16ec1675e9ba19bc2a141533a691cf4e7d6. The model preserves human normative domain rules and authoritative declarations, LLM candidate tracing/semantic-completeness reasoning, and NRA deterministic source/provenance/OPEN/DSL checks; it identifies the omitted human input and rule/admission receipt in the maintained protocol and a two-world #60 counterexample. Scope complete as a read-only domain-mapping handoff; parent-owned skill/docs integration, merge, runtime parity and publication remain unclaimed.",
+          "revision": 13,
+          "reported_turn": "8b9a1b1029fb45199ba288de5b7f5bd6",
+          "mention_source": null,
+          "state": {
+            "kind": "completed"
+          }
+        },
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 33,
+        "last_finished_turn_id": "f0475f70466864477a8c36d2760b0e09"
+      }
+    },
+    {
+      "name": "nra-ordered-branch-call-review",
+      "birth_matches": true,
+      "process": {
+        "pid": 507071,
+        "start_time": 44408932
+      },
+      "alive": false,
+      "owner_generation": 2112,
+      "admission_generation": 2076,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "nra-ordered-branch-call-review",
+        "tags": [
+          "nra"
+        ],
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "created_at": 1790232054.218321,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T06-41-01-603Z_01a0d225-66a2-7297-99ec-8ea7702f4404.jsonl",
+        "title": null,
+        "parent": "nra-architecture",
+        "task": "Independent READ-ONLY review of NEW private outside-Git ordered original branch/call pair `/tmp/nra-class-first-prototype/ordered_case_calls.py` SHA256 `d7b64a399a4ecc2ffc4d645edf4d6263ecdd009717f143cfcfe7385f411eb9cb`, tests SHA256 `e4c4736a41d50226672917872f8163a7d1be08df0fd41ee838ce7e22aba06dbb`, against frozen prerequisite name packet `enum_function_questions.py` SHA `9f534408661250bfceaee22415aa88510b450fdb46ae391995bceddbd52d3c4f` and tests SHA `de3c158c3c36454964ac5150a0e3003e6cba4e9bfbe70d12cb6cb535bfbc52fd`. Six Python3.14 tests/Ruff passed; new slice NOT CLEAN. Audit actual elif vs else-if and separated priority roots, exact subject equality/duplicate literals, original owner/body/header boundary, every original in-arm/default Call retained, canonical event/context/repo binding/callee identity, all OPEN rows and report-bound rederivation, forged nested fields, unknown fallback. Find precise false positives/row loss or source authority duplication with read-only adversarial fixtures; do not edit any files/Git/Toad or use goal tools. Report directly CLEAN narrow or NON-CLEAN with fixture; do not poll/wait.",
+        "process_identity": {
+          "pid": 507071,
+          "start_time": 44408932
+        },
+        "model": "openai-codex/gpt-6-sol",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 30,
+        "last_finished_turn_id": "32faffdf70648221be25723a97630b25"
+      }
+    },
+    {
+      "name": "nra-roster-heuristic-map",
+      "birth_matches": true,
+      "process": {
+        "pid": 507112,
+        "start_time": 44409073
+      },
+      "alive": false,
+      "owner_generation": 2113,
+      "admission_generation": 2077,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "nra-roster-heuristic-map",
+        "tags": [
+          "nra"
+        ],
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "created_at": 1790218471.1256046,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-24T02-54-37-390Z_01a0d156-1f4d-7042-a6bd-b9a7a8f962cf.jsonl",
+        "title": null,
+        "parent": "nra-architecture",
+        "task": "READ-ONLY independent NRA codebase capability/gap map for new goal 2e141a3e80cf44fda6cf11ab6f9158e2. Inspect current merged NRA source (detector registry, AST syntax index, observation graph, product-flow, class/lexical indexes, record_access and private axis/dossier outside Git) for existing reusable observation families that can expose mirrored raw sets/lists/dicts of names/enum cases vs their original nominal owner, stringly states, boolean flag combinations, manual case dispatch, duplicated domain rosters, god-component/delegation source clues. Distinguish AST shape search lead from binding/meaning/equivalence and existing detector findings. Propose a smallest DOF=1 provenance-preserving finite private observation with candidate indices, unmatched rows and counterexamples; no second parser/census, no premature metaclass/MRO prescription. Identify exact source paths/symbols and a bounded test fixture. Do not edit/write/format/test/Git/PR/Toad; main checkout dirty, preserve frozen /tmp slices. Send one concise source-backed map and prioritized first slice to @nra-architecture; no polling/waiting.",
+        "process_identity": {
+          "pid": 507112,
+          "start_time": 44409073
+        },
+        "model": "openai-codex/gpt-6-sol",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 35,
+        "last_finished_turn_id": "058049c43b450914331a3c2671810772"
+      }
+    },
+    {
+      "name": "refactor-r1",
+      "birth_matches": true,
+      "process": {
+        "pid": 507252,
+        "start_time": 44409217
+      },
+      "alive": false,
+      "owner_generation": 2114,
+      "admission_generation": 2078,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "refactor-r1",
+        "tags": [
+          "nra",
+          "refactor"
+        ],
+        "worktree": "/home/ts/wt/nra-refactor2-r1-20260928",
+        "created_at": 1790606381.4139948,
+        "session_file": null,
+        "title": null,
+        "parent": null,
+        "task": "Round2 R1a/b/c raw-record projection and detectors; isolated worktree, draft PR, no live install",
+        "process_identity": {
+          "pid": 507252,
+          "start_time": 44409217
+        },
+        "model": "openrouter/z-ai/glm-5.3-flash",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 29,
+        "last_finished_turn_id": "8518a37b740a5195d1a01d4cac7a5804"
+      }
+    },
+    {
+      "name": "openhcs-architecture-memory",
+      "birth_matches": true,
+      "process": {
+        "pid": 507274,
+        "start_time": 44409358
+      },
+      "alive": false,
+      "owner_generation": 2115,
+      "admission_generation": 2079,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-architecture-memory",
+        "tags": [
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790654215.0835924,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-29T04-00-11-362Z_01a0eb51-f263-778e-b2f4-a2d3a9b65d01.jsonl",
+        "title": null,
+        "parent": "nra-architecture",
+        "task": "You are a user-requested OpenHCS continuity fork of nra-architecture after the user's OpenHCS threads were deleted. Set your persistent project directory to /home/ts/code/projects/openhcs using comms_set_project, then stop and wait for the user's direct task in #openhcs. Preserve inherited OpenHCS architecture memory (notably PR60/domain ownership/semantic-completeness work), but distinguish remembered historical evidence from the current checkout and verify source/revisions before claims. Do not edit files, start a goal, take over NRA PRs #8/#10, or message unrelated channels. Reply briefly to the user that you are available once routed.",
+        "process_identity": {
+          "pid": 507274,
+          "start_time": 44409358
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": {
+          "text": "Audit OpenHCS currently open PRs and recent merged PRs for code quality, declaration ownership, inheritance, polymorphism and architecture respect using the NRA/refactor-audit skills and source-backed evidence. Publish a substantive audit comment on every PR in the bounded corpus. For substantiated problems in merged PRs, explain GitHub's reopening limitation and open/link corrective follow-up PRs as appropriate; reopen closed issues when justified. Reconcile every open issue with current PRs and acceptance evidence, map uncovered work to explicit PRs, close issues only when their acceptance is verified and no relevant blocker remains, then report what remains open. Preserve dirty primary checkout and other agents' active work, use isolated worktrees, coordinate ownership and live resource constraints, no polling.",
+          "id": "f96fa5d0631d4cc0a7223c9972967eea",
+          "progress": "Goal origin turn did not finish successfully.\n\nAdaptive native compaction did not establish a safe outcome; inspect the exact commit journal.",
+          "revision": 4,
+          "reported_turn": null,
+          "mention_source": {
+            "goal_id": "f96fa5d0631d4cc0a7223c9972967eea",
+            "text_revision": 1,
+            "text_digest": "abd9b28d0aab0dad5466e8615c5d7ad706728adb98feb5f3372db66a15aa670d",
+            "owner_name": "openhcs-architecture-memory",
+            "owner_created_at": 1790654215.0835924,
+            "bindings": []
+          },
+          "state": {
+            "kind": "blocked",
+            "block_reason": "Adaptive native compaction did not establish a safe outcome; inspect the exact commit journal."
+          }
+        },
+        "previous_worktrees": [
+          "/home/ts/code/projects/nominal-refactor-advisor"
+        ],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 104,
+        "last_finished_turn_id": "0b03c7f2ef9df91c0f5b0f9c5f04b216"
+      }
+    },
+    {
+      "name": "openhcs-pr159-viewer-bind-owner",
+      "birth_matches": true,
+      "process": {
+        "pid": 507276,
+        "start_time": 44409501
+      },
+      "alive": false,
+      "owner_generation": 2116,
+      "admission_generation": 2080,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-pr159-viewer-bind-owner",
+        "tags": [
+          "openhcs"
+        ],
+        "worktree": "/home/ts/.agent-comms",
+        "created_at": 1790657026.7285714,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T06-28-33-914Z_01a0ebd9-c9fa-7018-9041-3f4fca04885f.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "Own OpenHCS PR #159 (draft plan for issue #135) as a dedicated implementation thread. Work in an isolated worktree based on the PR head; do not edit the dirty primary OpenHCS checkout or PR #160. Read docs/plans/issue135_viewer_bind_receipt_20260929.md and the six-surface index, inspect current main, pinned ZMQRuntime bind implementation, Napari/Fiji listener lifecycle, client host vs bind semantics, and draft #153/#154 crossings. Produce a source-backed fix with tests of actual TCP data/control listening interfaces, IPC and intentional remote behavior; do not assume a requested connection host is a bind host. If an irreducible product-policy choice remains, ask this parent/user precisely before changing behavior. Push updates to PR #159 only after tests and report exact SHA, CI state and any OPEN gates directly to openhcs-architecture-memory. Do not poll or sleep for responses. Do not claim a full NRA scan or semantic proof without completing it.",
+        "process_identity": {
+          "pid": 507276,
+          "start_time": 44409501
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [
+          "/home/ts/code/projects/openhcs"
+        ],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 102,
+        "last_finished_turn_id": "32feaf7dc5a1dbec1d4c2889d03e2fdd"
+      }
+    },
+    {
+      "name": "nominal-refactor-advisor-2",
+      "birth_matches": true,
+      "process": {
+        "pid": 507279,
+        "start_time": 44409643
+      },
+      "alive": false,
+      "owner_generation": 2117,
+      "admission_generation": 2081,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "nominal-refactor-advisor-2",
+        "tags": [
+          "acp"
+        ],
+        "worktree": "/home/ts/code/projects/nominal-refactor-advisor",
+        "created_at": 1790700391.614946,
+        "session_file": null,
+        "title": null,
+        "parent": null,
+        "task": null,
+        "process_identity": {
+          "pid": 507279,
+          "start_time": 44409643
+        },
+        "model": "openrouter/z-ai/glm-5.3-flash",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": true,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 0,
+        "last_finished_turn_id": null
+      }
+    },
+    {
+      "name": "openhcs-helper",
+      "birth_matches": true,
+      "process": {
+        "pid": 507364,
+        "start_time": 44409783
+      },
+      "alive": false,
+      "owner_generation": 2118,
+      "admission_generation": 2082,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-helper",
+        "tags": [
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790708584.4423254,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T19-03-03-440Z_01a0ee8c-8c10-77cc-a306-2f47d15ba7d0.jsonl",
+        "title": null,
+        "parent": "openhcs-pr159-viewer-bind-owner",
+        "task": "await futher info",
+        "process_identity": {
+          "pid": 507364,
+          "start_time": 44409783
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "off",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 1,
+        "turn_generation": 107,
+        "last_finished_turn_id": "3831a15ebbf7aca07d959d007fa1a6c4"
+      }
+    },
+    {
+      "name": "openhcs-helper2",
+      "birth_matches": true,
+      "process": {
+        "pid": 507401,
+        "start_time": 44409924
+      },
+      "alive": false,
+      "owner_generation": 2119,
+      "admission_generation": 2083,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-helper2",
+        "tags": [
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790713653.7134795,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-09-29T20-27-32-549Z_01a0eed9-e545-72c7-a2fa-d3870585abee.jsonl",
+        "title": null,
+        "parent": "openhcs-helper",
+        "task": "",
+        "process_identity": {
+          "pid": 507401,
+          "start_time": 44409924
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 83,
+        "last_finished_turn_id": "c770e0d4117aad2ecb7c1073dbf7c1c5"
+      }
+    },
+    {
+      "name": "comms428",
+      "birth_matches": true,
+      "process": {
+        "pid": 507633,
+        "start_time": 44410061
+      },
+      "alive": false,
+      "owner_generation": 2120,
+      "admission_generation": 2084,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "comms428",
+        "tags": [
+          "comms"
+        ],
+        "worktree": "/home/ts/wt/comms428",
+        "created_at": 1790725198.0008519,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-29T23-39-56-904Z_01a0ef8a-0c69-75a1-86fe-53cd38ab0d18.jsonl",
+        "title": "comms428",
+        "parent": "openhcs-pr159-viewer-bind-owner",
+        "task": "",
+        "process_identity": {
+          "pid": 507633,
+          "start_time": 44410061
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [
+          "/home/ts/.agent-comms"
+        ],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 1,
+        "turn_generation": 24,
+        "last_finished_turn_id": "18dc8c1ca9574d618ce31ba840f26190"
+      }
+    },
+    {
+      "name": "openhcs-audit-merged-runtime",
+      "birth_matches": true,
+      "process": {
+        "pid": 508190,
+        "start_time": 44410207
+      },
+      "alive": false,
+      "owner_generation": 2121,
+      "admission_generation": 2085,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-audit-merged-runtime",
+        "tags": [
+          "audit",
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790873422.6705143,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "User authorizes architecture audit and substantive GitHub comment on every assigned PR. Audit OpenHCS MERGED PRs #374 #372 #371 #367 #365 #364 #359 (7 PRs), exact diffs plus determining parents/consumers/current main. Source snapshot inventory /var/tmp/openhcs-architecture-audit-20261001/merged.json; current main66ed7ef634. Read /home/ts/.pi/agent/skills/refactor-audit/SKILL.md + patterns README and applicable COMPLETE pattern files, and /home/ts/wt/nra-openhcs-r1-20261001/skills/nra-refactoring/SKILL.md + finding-owners/theory references. Check actual shared algorithms on meaningful ancestors, real cooperative MI/MRO, leaf hooks vs detached dispatch, raw mirrors/fallbacks/record bypass, new-case guards and independent-role boundaries. Fetch/read git objects or use owned isolated read-only worktree, never edit dirty primary or other owners' worktrees. No heavy scan, downloads, install or live runtime/tests; bounded source inspection. Publish ONE source-backed scoped audit comment per assigned PR with exact SHA/path:line, concrete findings or explicitly no blocker found within reviewed changed surface, applicable pattern IDs, tests/coverage limits; do NOT blanket approve entire architecture or infer bugs solely from syntax. Do not close/reopen issues or make followup PRs; parent integrates. Return comment URLs, per-PR finding severity and any issue closure blockers. Save structured report /var/tmp/openhcs-architecture-audit-20261001/runtime-report.json. No polling.",
+        "process_identity": {
+          "pid": 508190,
+          "start_time": 44410207
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 67,
+        "last_finished_turn_id": "dccd9ac98c29f581694edb4b49e885b1"
+      }
+    },
+    {
+      "name": "openhcs-audit-merged-models",
+      "birth_matches": true,
+      "process": {
+        "pid": 508248,
+        "start_time": 44410348
+      },
+      "alive": false,
+      "owner_generation": 2122,
+      "admission_generation": 2086,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-audit-merged-models",
+        "tags": [
+          "audit",
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790873447.6164267,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-46-206Z_01a0f860-273f-749b-b07a-3c8b4cf6290e.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "User authorizes architecture audit and substantive GitHub comment on every assigned PR. Audit OpenHCS MERGED PRs #362 #353 #351 #347 #344 #338 #333 #329 (8 PRs), exact diffs plus original determining owners/consumers/current main. Inventory /var/tmp/openhcs-architecture-audit-20261001/merged.json; main66ed7ef634. Read /home/ts/.pi/agent/skills/refactor-audit/SKILL.md + patterns README/applicable COMPLETE files and /home/ts/wt/nra-openhcs-r1-20261001/skills/nra-refactoring/SKILL.md + finding-owners/theory references. Verify inherited shared algorithms, genuine MI/substitutability, no case-dependent consumer switches or copied identities/rosters/shape guards, external numerical contracts and independent roles. Git-object/source inspection in own read-only worktree allowed, no primary edits. No heavy scan, downloads, live tests, scientific inputs or installs. Publish ONE substantive scoped audit comment per assigned PR with exact SHA/path:line, findings or no blocker found within changed surface, pattern IDs and specific evidence/proof limits. Do not close/reopen issues or open followup PRs. Return comment URLs and substantiated findings/new-case guard gaps; report /var/tmp/openhcs-architecture-audit-20261001/models-report.json. No polling.",
+        "process_identity": {
+          "pid": 508248,
+          "start_time": 44410348
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 66,
+        "last_finished_turn_id": "287c70be7daaf165340de9769de0c6be"
+      }
+    },
+    {
+      "name": "openhcs-audit-merged-boundaries",
+      "birth_matches": true,
+      "process": {
+        "pid": 590627,
+        "start_time": 44626236
+      },
+      "alive": false,
+      "owner_generation": 2123,
+      "admission_generation": 2087,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-audit-merged-boundaries",
+        "tags": [
+          "audit",
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790873473.1996155,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-12-126Z_01a0f860-8c7e-7129-8d3f-c358fe68ad60.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "User authorizes source architecture review/comments on each PR. Audit OpenHCS MERGED #349 #345 #343 #341 #334 #332 #331 #328 #326 #325 #317 #316 #206 (13 PRs; docs/test ones shorter). Inventory /var/tmp/openhcs-architecture-audit-20261001/merged.json, main66ed7ef634. Read /home/ts/.pi/agent/skills/refactor-audit/SKILL.md, pattern README and applicable COMPLETE patterns; /home/ts/wt/nra-openhcs-r1-20261001/skills/nra-refactoring/SKILL.md, finding-owners/theory. Read exact diffs and original owners, canonical declarations/derived views, meaningful parent algorithm/leaf variation, duplicated case roster/string/type dispatch, unsafe fallback, raw schema reads, behavior guards; distinguish external formats and independent roles. Inspect in own read-only worktree/git objects, no dirty primary or other agent changes. No live runtime/science/install/download/heavy scan. Publish one substantive source-backed scoped audit comment on each assigned PR with exact source SHA and path:line, findings or no blocker in reviewed surface, catalog pattern IDs/test limits. Never assert completed global NRA analysis. Parent alone closes/reopens issues/opens correction PRs. Return URLs, findings, acceptance blockers; report /var/tmp/openhcs-architecture-audit-20261001/boundaries-report.json. No polling.",
+        "process_identity": {
+          "pid": 590627,
+          "start_time": 44626236
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 60,
+        "last_finished_turn_id": "7bcdb53aa66796314338251a98d4c213"
+      }
+    },
+    {
+      "name": "openhcs-audit-open-prs",
+      "birth_matches": true,
+      "process": {
+        "pid": 508253,
+        "start_time": 44410632
+      },
+      "alive": false,
+      "owner_generation": 2124,
+      "admission_generation": 2088,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "openhcs-audit-open-prs",
+        "tags": [
+          "audit",
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790873496.352646,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-51-35-321Z_01a0f860-e719-7127-8b6d-b4a808991c79.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "User authorizes source architecture audit and comments on each PR. Audit snapshot OpenHCS OPEN PRs #383 #382 #378 #377 #358 #217 #207 #160 #125 #110 (10); inventory /var/tmp/openhcs-architecture-audit-20261001/open.json. Read /home/ts/.pi/agent/skills/refactor-audit/SKILL.md, pattern README and applicable COMPLETE files; /home/ts/wt/nra-openhcs-r1-20261001/skills/nra-refactoring/SKILL.md, finding-owners/theory references. Exact-head diff and shared parent/consumer tracing, no consumer case dispatch/mirrored roster, real cooperative MI/MRO and declaration-derived exposure, lack of relevant guard not just generic zero ratchet. Docs/test/maintenance PRs receive proportional review. Observe current PR comments to avoid treating acknowledged source-red diagnostics as supposedly complete fixes. Own read-only worktree/git objects; do not edit primary or active owners. No installs/downloads/heavy scan/live runtime/scientific tests. Publish one substantive scoped comment per PR with exact SHA, path:line and evidenced blockers or no architecture blocker within changed surface; clearly name outstanding acceptance, no global clean claim. Parent handles issue closure/followup creation; do not close/reopen issues. Return URLs/report /var/tmp/openhcs-architecture-audit-20261001/open-report.json and substantive defects. No polling.",
+        "process_identity": {
+          "pid": 508253,
+          "start_time": 44410632
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 68,
+        "last_finished_turn_id": "d12f23aeac2a03e3f4f0185eaaa4ab59"
+      }
+    },
+    {
+      "name": "dedicated-worktree-cleanup-20261001",
+      "birth_matches": true,
+      "process": {
+        "pid": 595104,
+        "start_time": 44642922
+      },
+      "alive": false,
+      "owner_generation": 2125,
+      "admission_generation": 2089,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "dedicated-worktree-cleanup-20261001",
+        "tags": [
+          "cleanup",
+          "comms"
+        ],
+        "worktree": "/home/ts/.agent-comms",
+        "created_at": 1790874801.3895755,
+        "session_file": null,
+        "title": null,
+        "parent": "agent-comms-ux",
+        "task": "Sole authorized disk cleanup owner; bounded retained-worktree internals audit; preserve original sessions, sources, frozen/native build donors and current prefixes. No provider process or goal.",
+        "process_identity": {
+          "pid": 595104,
+          "start_time": 44642922
+        },
+        "model": null,
+        "thinking_level": null,
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 0,
+        "last_finished_turn_id": null
+      }
+    },
+    {
+      "name": "compaction499-live-architecture-memory",
+      "birth_matches": true,
+      "process": {
+        "pid": 508256,
+        "start_time": 44410774
+      },
+      "alive": false,
+      "owner_generation": 2126,
+      "admission_generation": 2090,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "compaction499-live-architecture-memory",
+        "tags": [
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790895107.1284342,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T22-51-46-051Z_01a0f9aa-a804-77e8-8107-3d93fcaec806.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "",
+        "process_identity": {
+          "pid": 508256,
+          "start_time": 44410774
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [
+          "/home/ts/code/projects/openhcs",
+          "/home/ts/wt/toad-context-tree-inspector-20261002"
+        ],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 52,
+        "last_finished_turn_id": "38ab4d6839e3ff5cc3a648415081fc37"
+      }
+    },
+    {
+      "name": "compaction501-live-architecture-memory",
+      "birth_matches": true,
+      "process": {
+        "pid": 508279,
+        "start_time": 44410914
+      },
+      "alive": false,
+      "owner_generation": 2127,
+      "admission_generation": 2091,
+      "generation_matches": false,
+      "released_admission_advanced": true,
+      "status": {
+        "kind": "stopped"
+      },
+      "thread": {
+        "name": "compaction501-live-architecture-memory",
+        "tags": [
+          "openhcs"
+        ],
+        "worktree": "/home/ts/code/projects/openhcs",
+        "created_at": 1790900050.675298,
+        "session_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-02T00-14-09-575Z_01a0f9f6-16a7-7101-ac0f-6cb7639f1949.jsonl",
+        "title": null,
+        "parent": "openhcs-architecture-memory",
+        "task": "",
+        "process_identity": {
+          "pid": 508279,
+          "start_time": 44410914
+        },
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking_level": "high",
+        "goal": null,
+        "previous_worktrees": [],
+        "auto_title_pending": false,
+        "role": "agent",
+        "active_turn": null,
+        "channel_scope_generation": 0,
+        "turn_generation": 42,
+        "last_finished_turn_id": "305f90a73b12eebebd797756190cb320"
+      }
+    }
+  ],
+  "owner_count": 20,
+  "alive_count": 0,
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "route_matches_original": true,
+  "five_links": {
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/toad"
+  },
+  "links_match_original": true,
+  "public_starts_by_readback": 0,
+  "receipt_modified": false
+}
