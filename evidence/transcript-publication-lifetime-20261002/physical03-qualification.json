@@ -67,5 +67,8 @@
   "preserved_failure02_holder": "UNKNOWN; no deadlock or healthy-holder claim",
   "scope": "application/source/resource lifetime; not raster/FPS/globalCPU or performance284 readiness",
   "raw_receipt_sha256": "be6f00c08ec5570d60bda6250b78527cedcd604d892d7fea9531f14de3f92565",
-  "raw_review_sha256": "f09fc85d8bb29045c00d2be286f87040e054680f50889a79a80386d8f0434d52"
+  "raw_review_sha256": "f09fc85d8bb29045c00d2be286f87040e054680f50889a79a80386d8f0434d52",
+  "terminal_kind": "st",
+  "toad_exit_code_recorded": false,
+  "toad_disposition": "Observed alive before completed capture, then Ctrl+Q and owned cleanup; no recorded crash"
 }
