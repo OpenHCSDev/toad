@@ -1,0 +1,18 @@
+{
+  "owner": "Kepler PR502 receiving package; Singer pure-channel manyowner acceptance; parent activation",
+  "core": "5c74f0ec700e4d83886e2f6fdaea4e1e19ad0d77",
+  "toad": "7df5e61cb81fc47ddfef35ec17c09f989533e224",
+  "textual": "68a0d1cf62fdde8aeef9834836ecf0caf7b169c7",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-selected-native-compaction-budget-20261001/stack/.pi-native-5184ffa6d842fe23/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-purechannel502-20261002",
+  "state": "Qualified final502+performance receiving checkpoint; actual configured3owner PURECHANNEL gate02 PASS; inactive, parent alone activates",
+  "native_manifest": "5184ffa6d842fe232b370e40f9ee532696e9f83b789ab009e047c9f164026c68",
+  "private_fixtures": [
+    "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/mixedroute-native5-batch01",
+    "/home/ts/wt/b289c02"
+  ],
+  "protected_existing_prefix": "/home/ts/wt/toad-receiving-native5-batch490-20261001/.artifacts/runtime-native5-batch490-20261001",
+  "allocation_budget_mib": 160,
+  "performance_gate": "Existing qualified03 accepted by parent; source equality checked against mergedToad01d93a5 and Textual679f9c85->68a0d1cf; no unchanged recapture"
+}
