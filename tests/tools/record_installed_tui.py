@@ -487,6 +487,7 @@ class WarmScrollJourney(ScrollJourney):
 
     draft_suffix = "warm-scroll-draft"
     review_artifacts = ("warm-scroll-review.json",)
+    scroll_review_phases = ("focused", "up-done", "down-done", "reverse-done")
 
     @classmethod
     def paging_commands(cls, args):
@@ -546,13 +547,17 @@ class WarmScrollJourney(ScrollJourney):
     @classmethod
     def review(cls, output, receipt):
         from scroll_observation import review_warm_return
-        return review_warm_return(output, receipt, suffix=cls.draft_suffix)
+        return review_warm_return(output, receipt, suffix=cls.draft_suffix,
+                                  scroll_labels=cls.scroll_review_phases)
 
     @classmethod
     def validate_review(cls, review):
         failed = [name for name, passed in review["checks"].items() if not passed]
         if failed:
             raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
+        if review["unavailable_scroll_phases"]:
+            raise RuntimeError("Warm scroll observation incomplete: "
+                               + ", ".join(review["unavailable_scroll_phases"]))
 
 
 class RetainedLifetimeJourney(WarmScrollJourney):

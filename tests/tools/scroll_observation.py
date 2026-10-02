@@ -59,6 +59,13 @@ class NativePhase:
     def ready_body_ids(self):
         return {body.object_id for body in self.bodies if body.ready}
 
+    def retains_reader(self, previous: "NativePhase") -> bool:
+        # Following the tail preserves the destination, not the old pixel
+        # offset: returning can publish a different measured transcript extent.
+        return (self.follows_tail == previous.follows_tail
+                and (self.scroll_y == self.maximum if previous.follows_tail
+                     else self.scroll_y == previous.scroll_y))
+
     def admits_before(self, other: "NativePhase") -> bool:
         """Compare native admission, including expansion within a prepared page."""
         if not self.admissions or not other.admissions:
@@ -113,38 +120,45 @@ def review_retained_lifetime(output, receipt, *, suffix):
     return result
 
 
-def review_warm_return(output, receipt, *, suffix):
+def review_warm_return(output, receipt, *, suffix, scroll_labels):
     """Check actual draft/Undo and resource reuse, keeping physical review separate."""
-    labels = ("warm-start", "draft", "focused", "up-done", "down-done", "reverse-done",
-              "idle-done", "b-open", "a-return", "undo")
+    labels = ("warm-start", "draft", "idle-done", "b-open", "a-return", "undo")
     phases = {label: NativePhase.read(output, label) for label in labels}
     initial, drafted = phases["warm-start"], phases["draft"]
     before_return, peer, returned, undone = (phases[label] for label in
                                             ("idle-done", "b-open", "a-return", "undo"))
     same = (initial, drafted, before_return, returned, undone)
     retained = before_return.ready_body_ids() & returned.ready_body_ids()
-    focused, up, down, reversed_scroll = (phases[label] for label in
-                                         ("focused", "up-done", "down-done", "reverse-done"))
     checks = {
         "original_saved_history_loaded": drafted.loaded_pages > 0,
         "peer_saved_history_loaded": peer.loaded_pages > 0,
-        "history_scroll_extent": focused.maximum > 0,
-        "scroll_keys_focus_history": all(phase.focused_widget == phase.window
-                                          for phase in (focused, up, down, reversed_scroll)),
-        "held_page_up_admitted_older_source": up.admits_before(focused),
-        "held_page_down_admitted_newer_source": down.admits_after(up),
-        "reverse_page_up_admitted_older_source": reversed_scroll.admits_before(down),
         "draft_typed": drafted.text == initial.text + suffix,
         "peer_selected": peer.mode != initial.mode,
         "source_retained": all(phase.mode == initial.mode for phase in same),
         "editor_retained": all(phase.editor == initial.editor for phase in same),
         "history_window_retained": all(phase.window == initial.window for phase in same),
         "draft_retained": returned.text == drafted.text,
-        "reader_position_retained": returned.scroll_y == before_return.scroll_y,
+        "reader_position_retained": returned.retains_reader(before_return),
         "ready_body_resources_retained": bool(retained),
         "undo_restored_original_draft": undone.text == initial.text,
     }
-    result = {"checks": checks, "native_checks_passed": all(checks.values()),
+    # Diagnostic availability is separate from a product verdict. Never replace
+    # a missing phase with another gesture's snapshot or erase the missing check.
+    unavailable = [label for label in scroll_labels
+                   if not (output / f"phase-{label}-state.pickle").exists()]
+    if not unavailable:
+        scroll = tuple(NativePhase.read(output, label) for label in scroll_labels)
+        phases.update((phase.label, phase) for phase in scroll)
+        focused, up, down, reversed_scroll = scroll
+        checks.update({
+            "history_scroll_extent": focused.maximum > 0,
+            "scroll_keys_focus_history": all(phase.focused_widget == phase.window for phase in scroll),
+            "held_page_up_admitted_older_source": up.admits_before(focused),
+            "held_page_down_admitted_newer_source": down.admits_after(up),
+            "reverse_page_up_admitted_older_source": reversed_scroll.admits_before(down),
+        })
+    result = {"checks": checks, "native_checks_passed": not unavailable and all(checks.values()),
+              "unavailable_scroll_phases": unavailable,
               "retained_ready_body_ids": sorted(retained),
               "phases": {label: asdict(phase) for label, phase in phases.items()},
               "physical_assessment": "unreviewed; inspect terminal.mp4 and phase PNGs",
