@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 from textual.app import App, ComposeResult
 from textual.signal import Signal
-from toad.sidebar_preparation import prepare_thread_row, ThreadRowInput
+from toad.sidebar_preparation import prepare_thread_presentation, ThreadRowInput
 from toad.session_tracker import ExactUnread
 from toad.render_choices import LocalRenderer
 from toad.sidebar_layout import SidebarLayout
@@ -111,7 +111,7 @@ class ReferenceTree(TargetTree):
 
     def compose(self):
         row = CommsRow(ThreadTarget("peer"), "peer")
-        row.apply_thread_preparation(prepare_thread_row(ThreadRowInput(self.source.people["peer"], unread=ExactUnread(22))))
+        row.apply_thread_preparation(prepare_thread_presentation(ThreadRowInput(self.source.people["peer"], unread=ExactUnread(22)).presentation()))
         yield row
 
     def _ordered_rows(self):

@@ -21,3 +21,11 @@ Heisenberg owns sidebar publication, workspace and native NodeList/style/layout/
 ## First production source closure
 
 SidebarObservation.read now emits original open_tabs_changed only when the existing SessionAdmissions family derives different OpenTab output across original cached snapshot publication. SidebarProjection's whole DTO inequality/event decision is deleted. All four subscriber families remain unchanged; canonical GoalChangedUpdate owns goal source delivery. See [complete owner/caller receipt](../../evidence/sidebar-publication-after298/source-ownership.md). Changed installed qualification is pending; no CPU improvement or full Ready claim.
+
+## Whole pure bar preparation execution closure
+
+Existing ThreadRowsWork and TabRosterWork now inherit RendererWork, retaining their original bounded PreparationRuntime/row resources while pure Content creation enters the same process renderer as Markdown/Rich work. Both old thread-execution hooks and prepare_thread_row wrapper/all consumers are deleted. Two operation members on original RenderTask invoke the sole existing algorithms; no new pool/cache/status/timer. See [full source/caller/resource receipt](../../evidence/sidebar-publication-after298/process-preparation-owner.md). Native DOM/styles/layout still remain main-thread work; full CPU and busy-wave acceptance is unproven. One changed immutable installed path follows the coherent source batch.
+
+## User performance target
+
+144Hz configurable target (6.944ms/frame), responsive input during busy channels/scroll/compaction. Existing cadence/animation owners must carry overrides, not a deep timing constant or new clock. Record p50/p95/p99/worst paint and input latencies only from actual timestamps;60fps footage alone does not establish144Hz. Useful verified checkpoints ship before the final target. Mandatory AST before/after owner/all-consumer mapping precedes further edits; native batched sanity and one changed installed real path follow the coherent migration.

@@ -4,7 +4,6 @@ import asyncio
 import os
 from pathlib import Path
 import tempfile
-import threading
 from unittest.mock import patch
 
 from agent_comms.threads import Thread
@@ -13,6 +12,8 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.session_tracker import ExactUnread
 from toad.sidebar_preparation import TabRosterWork, ThreadRowInput, ThreadRowsWork
+from toad.render_choices import LocalRenderer
+from toad.render_tasks import ThreadRowsRenderTask
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
 
@@ -24,22 +25,26 @@ async def main():
         comms = wire(root / "wire")
         comms.registry.declare(Thread("worker", frozenset({"shared"}), str(root)))
         person = comms.views.viewer_snapshot(str(root), show_stopped=True).threads[0]
-        app = ToadApp(project_dir=str(root))
+        backend = LocalRenderer.start()
+        app = ToadApp(project_dir=str(root), renderer=backend)
         async with app.run_test(size=(130, 43)) as pilot:
             await pilot.pause()
             calls = []
-            original = ThreadRowsWork.prepare
+            original = backend.submit
 
-            def counted(work):
-                calls.append(threading.get_ident())
-                return original(work)
+            async def counted(task):
+                if isinstance(task, ThreadRowsRenderTask):
+                    calls.append(task)
+                return await original(task)
 
-            with patch.object(ThreadRowsWork, "prepare", counted):
+            with patch.object(backend, "submit", counted):
                 left, right = await asyncio.gather(*[
                     app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=ExactUnread(17)),)))
                     for _ in range(2)
                 ])
-                assert len(calls) == 1 and calls[0] != threading.get_ident()
+                assert len(calls) == 1
+                assert backend._executor is not None
+                assert all(pid != os.getpid() for pid in backend._executor._processes)
                 assert left is not right and left[0].frames[0].plain == right[0].frames[0].plain
                 changed = await app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=ExactUnread(18)),)))
                 assert len(calls) == 2 and changed[0].frames[0].plain.startswith("(18)")

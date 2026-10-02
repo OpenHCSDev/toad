@@ -13,6 +13,11 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
+from toad.session_tracker import OpenTab
+from toad.sidebar_preparation import (
+    PreparedTab, PreparedThreadRow, ThreadRowPresentation,
+    prepare_tab, prepare_thread_presentation,
+)
 from toad.widgets.patch_diff import PreparedPatch, prepare_patch
 from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.rich_preparation import (
@@ -200,6 +205,36 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
     def accept_result(self, result: object) -> PreparedRichContent:
         if not isinstance(result, PreparedRichContent):
             raise TypeError("Rich renderer returned an invalid result")
+        return result
+
+
+@dataclass(frozen=True)
+class ThreadRowsRenderTask(ReusableRenderTask[tuple[PreparedThreadRow, ...]]):
+    """Render captured display inputs without transporting backend authorities."""
+
+    rows: tuple[ThreadRowPresentation, ...]
+
+    def execute(self) -> tuple[PreparedThreadRow, ...]:
+        return tuple(prepare_thread_presentation(row) for row in self.rows)
+
+    def accept_result(self, result: object) -> tuple[PreparedThreadRow, ...]:
+        if not isinstance(result, tuple) or not all(isinstance(row, PreparedThreadRow) for row in result):
+            raise TypeError("Thread row renderer returned an invalid result")
+        return result
+
+
+@dataclass(frozen=True)
+class TabRosterRenderTask(ReusableRenderTask[tuple[PreparedTab, ...]]):
+    """The same renderer prepares tab content under its existing admission bound."""
+
+    tabs: tuple[OpenTab, ...]
+
+    def execute(self) -> tuple[PreparedTab, ...]:
+        return tuple(prepare_tab(tab) for tab in self.tabs)
+
+    def accept_result(self, result: object) -> tuple[PreparedTab, ...]:
+        if not isinstance(result, tuple) or not all(isinstance(tab, PreparedTab) for tab in result):
+            raise TypeError("Tab renderer returned an invalid result")
         return result
 
 
