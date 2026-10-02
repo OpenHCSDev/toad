@@ -181,10 +181,14 @@ class MountedMessageHistory:
             if not root_is_current(self.service.root):
                 self.view.display = False
                 return
-            anchor, protected = self.view.window.protect_history(
-                (widget for _, widget in self.rows), older=older,
-                fallback=self.rows[0 if older else -1][1] if self.rows else None,
-            )
+            if self.rows:
+                anchor, protected = self.view.window.protect_history(
+                    (widget for _, widget in self.rows), older=older,
+                    fallback=self.rows[0 if older else -1][1],
+                )
+            else:
+                # The first page has no original painted record to preserve.
+                anchor, protected = None, set()
             async with self.view.window.preserve_history(anchor):
                 if not root_is_current(self.service.root):
                     self.view.display = False
