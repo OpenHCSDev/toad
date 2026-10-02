@@ -1,5 +1,5 @@
 {
-  "scope": "Source-family change; actual installed physical capture running, not Ready",
+  "scope": "Scoped source-family + installed public physical validation, corrected offline observer result recorded separately",
   "source": "4bb730c08eedf8f6eb1709e53d497c826b65ba3a",
   "before_source_parsed": 275,
   "before_parse_omissions": [],
@@ -36,5 +36,6 @@
   "preserved_failure": "disclosure01 asserted direct widget expansion without recording SidebarNavigation intent; migrated existing harness to original navigation state; raw log retained",
   "new_type_pool_cache_clock_registry": false,
   "cpu_gain_or_144hz_proved": false,
-  "limits": "AST members/dotted references support source reading; do not prove dynamic resolution. Full readiness requires inspected actual installed path. Existing source poll for explicit goal availability remains."
+  "limits": "AST members/dotted references support source reading; do not prove dynamic resolution. Full readiness requires inspected actual installed path. Existing source poll for explicit goal availability remains.",
+  "installed_physical_receipt": "sidebar308-public-qualified.json"
 }
