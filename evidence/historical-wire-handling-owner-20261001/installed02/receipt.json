@@ -1,0 +1,90 @@
+{
+  "state": "failed",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-20261001",
+  "pins": {
+    "agent_comms": "9954cdd73dff20e590aebf15467a170f0a69e799",
+    "toad": "9121db28138eb59cafa961f2eb55792ec6c37984",
+    "textual": "5fbf5c76e5b67da56335a7ff422bfbfb9cf4f1ca"
+  },
+  "checks": [
+    {
+      "selected": "alpha",
+      "original_created_at": 10.0,
+      "source": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed02/live/history/source-41doaofd",
+      "rows": [
+        {
+          "widget": "OutgoingMessage",
+          "reference": {
+            "seq": 1,
+            "message_id": "12be03d1508a"
+          },
+          "title": "Waiting for agent (1)",
+          "details": "beta: Waiting for agent \u2014 Agent is stopped; this message has not been checked."
+        },
+        {
+          "widget": "IncomingMessage",
+          "reference": {
+            "seq": 2,
+            "message_id": "452866425b7f"
+          },
+          "title": "Waiting for agent (1)",
+          "details": "alpha: Waiting for agent \u2014 Agent is stopped; this message has not been checked."
+        }
+      ]
+    },
+    {
+      "selected": "beta",
+      "original_created_at": 11.0,
+      "source": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed02/live/history/source-41doaofd",
+      "rows": [
+        {
+          "widget": "IncomingMessage",
+          "reference": {
+            "seq": 1,
+            "message_id": "12be03d1508a"
+          },
+          "title": "Waiting for agent (1)",
+          "details": "beta: Waiting for agent \u2014 Agent is stopped; this message has not been checked."
+        },
+        {
+          "widget": "OutgoingMessage",
+          "reference": {
+            "seq": 2,
+            "message_id": "452866425b7f"
+          },
+          "title": "Waiting for agent (1)",
+          "details": "alpha: Waiting for agent \u2014 Agent is stopped; this message has not been checked."
+        }
+      ]
+    },
+    {
+      "selected": "alpha",
+      "original_created_at": 10.0,
+      "source": "/home/ts/.cache/agent-scratch/toad290-historical-handling-20261001/installed02/live/history/source-41doaofd",
+      "rows": [
+        {
+          "widget": "OutgoingMessage",
+          "reference": {
+            "seq": 1,
+            "message_id": "12be03d1508a"
+          },
+          "title": "Waiting for agent (1)",
+          "details": "beta: Waiting for agent \u2014 Agent is stopped; this message has not been checked."
+        },
+        {
+          "widget": "IncomingMessage",
+          "reference": {
+            "seq": 2,
+            "message_id": "452866425b7f"
+          },
+          "title": "Waiting for agent (1)",
+          "details": "alpha: Waiting for agent \u2014 Agent is stopped; this message has not been checked."
+        }
+      ]
+    }
+  ],
+  "provider_calls": 0,
+  "public_mutations": 0,
+  "error": "AssertionError: ",
+  "elapsed_seconds": 7.54481518099783
+}
