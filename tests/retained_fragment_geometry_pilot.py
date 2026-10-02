@@ -4,6 +4,7 @@ This is a source/resource experiment, not installed or physical acceptance.
 """
 import asyncio
 from collections import Counter
+from contextlib import ExitStack
 from dataclasses import replace
 import json
 import os
@@ -147,6 +148,10 @@ async def main():
             for member in family:
                 await member.materialize_body()
             await pilot.pause()
+            # This fixture parked its viewport to isolate resource operations.
+            # Publish the full native scene explicitly; parked windows do not
+            # declare offscreen geometry targets in the active frame family.
+            scene.reflow(app.screen, app.size)
             native_captures = Counter()
 
             def observe_capture(frame, event, arg):
@@ -158,16 +163,21 @@ async def main():
                         and frame.f_locals.get('root') is app.screen):
                     native_captures['whole_scenes'] += 1
 
-            sys.setprofile(observe_capture)
-            try:
-                operations = [member.retire_body() for member in family]
-            finally:
-                sys.setprofile(None)
-            # Borrow the original rows before preparation can yield and the
-            # first removal can invalidate sibling placement in the scene.
-            assert native_captures == Counter(bodies=len(family)), native_captures
-            assert all(not member.body_dormant for member in family)
-            assert all(await asyncio.gather(*operations))
+            with ExitStack() as captures:
+                operations = []
+                sys.setprofile(observe_capture)
+                try:
+                    for member in family:
+                        operation = member.retire_body()
+                        captures.callback(operation.close)
+                        operations.append(operation)
+                finally:
+                    sys.setprofile(None)
+                # Borrow rows before preparation can yield and first removal
+                # can invalidate sibling placement in the original scene.
+                assert native_captures == Counter(bodies=len(family)), native_captures
+                assert all(not member.body_dormant for member in family)
+                assert all(await asyncio.gather(*operations))
             await pilot.pause()
             receipt['cohort_captured_before_preparation_and_pruning'] = len(family)
             receipt['cohort_capture_whole_scene_arrangements'] = native_captures['whole_scenes']

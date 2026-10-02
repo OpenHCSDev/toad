@@ -63,8 +63,10 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     @asynccontextmanager
     async def retirement_custody(self):
         async with self._content_lock:
-            async with super().retirement_custody():
-                yield
+            async with super().retirement_custody() as can_commit:
+                # append_fragment may acquire its stream while preparation
+                # awaits, before its first content mutation changes the body.
+                yield can_commit and self._stream is None
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         if self._stream is not None or self._content_lock.locked():

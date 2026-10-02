@@ -49,7 +49,7 @@ class ViewportBody:
     def retire_body(self) -> Coroutine[None, None, bool]:
         raise NotImplementedError
 
-    async def restore_body(self) -> None:
+    async def restore_body(self) -> bool:
         raise NotImplementedError
 
     async def prepare_body(self) -> None:
@@ -397,7 +397,7 @@ class MeasuredViewportBody(ViewportBody):
     @asynccontextmanager
     async def retirement_custody(self):
         async with self.lock:
-            yield
+            yield True
 
     def retire_native_body(self, current):
         if not self.body_ready or not self.is_attached:
@@ -440,8 +440,8 @@ class MeasuredViewportBody(ViewportBody):
         )
         if not rendered.ready(self):
             return False
-        async with self.retirement_custody():
-            if (self._body_measurement is not current or not rendered.ready(self)
+        async with self.retirement_custody() as can_commit:
+            if (not can_commit or self._body_measurement is not current or not rendered.ready(self)
                     or not self.is_attached or self._closing
                     or self._body_viewport is None
                     or self in self._body_viewport.protected()):
@@ -453,7 +453,9 @@ class MeasuredViewportBody(ViewportBody):
         return True
 
     async def restore_body(self):
-        await self._body_measurement.restore(self)
+        previous = self._body_measurement
+        await previous.restore(self)
+        return self._body_measurement is not previous
 
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container, viewport, width):
@@ -886,6 +888,7 @@ class DocumentViewport:
                     or not self.lookahead.accepts(demand)):
                 return
             owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+            restored = []
             async with AsyncExitStack() as mutation:
                 if any(owner.body_measurement_stale for owner in owners):
                     await mutation.enter_async_context(self.window.preserve_history(anchor))
@@ -893,8 +896,9 @@ class DocumentViewport:
                     if not self.window.screen.is_current or not self.lookahead.accepts(demand):
                         break
                     if owner.is_attached and not owner._closing:
-                        await owner.restore_body()
-            if owners:
+                        if await owner.restore_body():
+                            restored.append(owner)
+            if restored:
                 # Reconstructed roots acquire capture custody only when their
                 # native layout is published, not at mount/update completion.
                 self.window.screen.frame_presentation.defer(self.window, self.request)
