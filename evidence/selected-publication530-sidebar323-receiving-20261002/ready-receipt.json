@@ -14,7 +14,7 @@
   "native_full_trust": true,
   "source_proof_sha256": "0fa86b7d6993cffe92ecbbaf30076a3a79baf28241eb45e045fab674f9ddaff1",
   "activation_sha256": "a73741cc9feca2c0cb2054058b52816ed72be6f70b3a27865ee84e407c9be505",
-  "operator_manifest_sha256": "663a03ede44a11e0c943c306992e59f830323303eba1f00915b4d8bd9a23db01",
+  "operator_manifest_sha256": "ba781d5a5c31187b201f0cf5e02adff48937ee2afc2291622e3504befd79d32a",
   "review_plan_sha256": "0ce3cd52c2f645c2e750a41c27cd7c428a06d442701fe7554dbcbe7415c69c42",
   "runtime_installation_sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
   "whole_native_schema_equal": true,

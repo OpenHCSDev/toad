@@ -1,7 +1,7 @@
 {
   "state": "PREPARED, NOT EXECUTED",
   "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-publication530-sidebar323-20261002/operator-manifest.json",
-  "operator_manifest_sha256": "663a03ede44a11e0c943c306992e59f830323303eba1f00915b4d8bd9a23db01",
+  "operator_manifest_sha256": "ba781d5a5c31187b201f0cf5e02adff48937ee2afc2291622e3504befd79d32a",
   "operator_members": 51,
   "operator_core": "48d408a46d73f9123b71a7ccdc81b86e8d8aa7c2",
   "target_core": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",

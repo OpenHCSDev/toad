@@ -59,6 +59,6 @@
   "public_effects": false,
   "target_core": "5c55d1ccf552007d569fa0343f2d66bb9aae53d1",
   "original_source": "d6e196a86c88cc1259be986703668ab1e1a58c1c",
-  "freeze": "Complete51-file original all-stopped publisher copied unchanged. Core source/target identical; PreserveRuntimeInstallation/PreserveOwnerRuntime, no format carry/reset.",
+  "freeze": "Complete51-file original all-stopped publisher copied unchanged. Whole declared NativeSchema identical; Core source d6 and target5c55 product code differ by qualified530/531 changes; PreserveRuntimeInstallation/PreserveOwnerRuntime, no format carry/reset.",
   "historical_carry": false
 }
