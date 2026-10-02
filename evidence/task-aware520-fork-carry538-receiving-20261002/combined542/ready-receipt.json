@@ -1,0 +1,47 @@
+{
+  "state": "READY matched combined540/541/542 package/operator; NOT EXECUTED",
+  "installed_core": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+  "installed_toad": "5d9fe0d07fed728993b6131846ff3eba51f5e18a",
+  "textual": "3dd9899732b650e9c1e6e3a3942e8e48ed8e9bd6",
+  "sdk": "0.12.1",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "native_manifest": "9f12ddf4e22d6d7a14074eb2ec22ba2f7ab376faa9a1f3b2320a0caf7d7ae3a2",
+  "native_tree": "d8ceeee18889e372ff72b4d068750fb06e2688762bcb95a098892761a5fd548a",
+  "activation_sha256": "c1dd66a77a23b5e72e0f0668daa77614cd080c147fe910cd9804ef8a7b296ba6",
+  "source_proof_sha256": "c2ecca62db75f895638e6355e749b4d445b02f07193a2e6c6a063b980f8970cd",
+  "operator_source": "0dd0aa3c8d614a33d29cd6027a44cf186d54f45b",
+  "operator_members": 51,
+  "operator_manifest_sha256": "f7b8917c5bf19959528e2980b8ae7a078d2ed64ffcdb07870a2f910a182806bf",
+  "runtime_installation_sha256": "68d2d0f88fd96c14bd63acea7a6cbd1254e7640775a1887c74691cff698b8d42",
+  "review_plan_sha256": "a61b19b35d196150484571e426418ffc947f2c952391c4ddcba6749b836a9fb8",
+  "preparation_receipt_sha256": "1ca8594d6b9365217faf30fc43ad61cdc505fa3e06c24d7690f2e7ac2b484928",
+  "prepare_producer_sha256": "7fb8b8dc3fb1c51795f79679b732973b1ace895e71d7551bd8cf766417a38614",
+  "actual_journey_sha256": "a632f2ddfa2f518865a5eaaaecf367046a7df68a45f19a91ee24b8672fcfe816",
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/520-READY.json",
+      "sha256": "f4cbc2678d8aafe64f2243460aebb2491af4614e8fadcdddd54b9caa4045625c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/538-receipt.json",
+      "sha256": "606885aced309e92fd7b8bf65d2f9fd6189c9bef3514cdeefa554cd44def18c0"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/538-native5-receipt.json",
+      "sha256": "498a2afeb56ea9797cdb75822624f95e3a28c05a954cc07f34262f1f6ccf238c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/542-receipt.json",
+      "sha256": "a632f2ddfa2f518865a5eaaaecf367046a7df68a45f19a91ee24b8672fcfe816"
+    }
+  ],
+  "actual542_scope": "Configured Sol/OFF41MB SDK fork; actual installed Toad headless editor\u2192ACP\u2192native source attach\u2192one answer\u2192idle51.985681s; same lease. No physical st/public/latency claim. Original79cbUNKNOWN and418NotSent remain unchanged.",
+  "candidate_precreated": false,
+  "prebound_plan": false,
+  "duplicate_goal_schema_operand": false,
+  "source_preimages_derive_inside_existing_stopped_installation": true,
+  "original399f_operands_preserved": true,
+  "public_effects": 0,
+  "parent_execution_command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/operator-preparation/publication-receipt.json --execute",
+  "preflight": "Parent fresh complete original-owner census/settings/process proof: all selected live owners idle, no public Toad/ACP/CLI clients (existing require_no_clients checks actual process/root including renamed toad). Existing executor rechecks route/links/artifact hashes/whole audience and idle before admission, captures retained launches, then sole after_stopped installation derives source preimages. Do not manually stop/prebind. Existing receipt/preimages require disposition, never blind retry."
+}

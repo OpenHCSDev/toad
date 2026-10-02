@@ -1,0 +1,40 @@
+{
+  "source": "cca41ab52a90e0353ad3340ca63a01a6b3bc0abc",
+  "target": "399fef69a02429237647109ef16e49d6455a6e45",
+  "source_release_versions": [
+    9,
+    3,
+    3,
+    6
+  ],
+  "target_release_versions": [
+    9,
+    3,
+    3,
+    6
+  ],
+  "whole_schema_equal": false,
+  "changed_declaration_fields": [
+    "compaction",
+    "compaction_columns"
+  ],
+  "declared_empty_members": {
+    "native_fork_creation": [
+      [
+        "session_id",
+        "session_file",
+        "source",
+        "source_revision",
+        "revision",
+        "prefix_digest",
+        "entry_count"
+      ],
+      []
+    ]
+  },
+  "runtime_binding_coordination_goal_metadata_unchanged": true,
+  "source_product_equal": false,
+  "live_original_stores_opened": false,
+  "live_original_stores_changed": false,
+  "retroactive_creation_evidence": false
+}

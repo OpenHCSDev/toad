@@ -1,0 +1,38 @@
+{
+  "target": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-00c2c11feaaf6e53/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-9f12ddf4e22d6d7a/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/activation.json",
+    "sha256": "c1dd66a77a23b5e72e0f0668daa77614cd080c147fe910cd9804ef8a7b296ba6"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/combined542/source-proof.json",
+    "sha256": "c2ecca62db75f895638e6355e749b4d445b02f07193a2e6c6a063b980f8970cd"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/520-READY.json",
+      "sha256": "f4cbc2678d8aafe64f2243460aebb2491af4614e8fadcdddd54b9caa4045625c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/538-receipt.json",
+      "sha256": "606885aced309e92fd7b8bf65d2f9fd6189c9bef3514cdeefa554cd44def18c0"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/538-native5-receipt.json",
+      "sha256": "498a2afeb56ea9797cdb75822624f95e3a28c05a954cc07f34262f1f6ccf238c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/qualified-source-gates/542-receipt.json",
+      "sha256": "a632f2ddfa2f518865a5eaaaecf367046a7df68a45f19a91ee24b8672fcfe816"
+    }
+  ]
+}

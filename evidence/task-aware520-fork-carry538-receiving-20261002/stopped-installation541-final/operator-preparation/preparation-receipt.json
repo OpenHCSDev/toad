@@ -1,0 +1,30 @@
+{
+  "state": "READY original stopped-installation recipe; source preimages derive INSIDE publisher after_stopped; NOT EXECUTED",
+  "source_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-selected-publication530-sidebar323-20261002",
+  "target_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "operator_manifest": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-manifest.json",
+  "operator_manifest_sha256": "4107a05d56b8717bd4ad2360888eefdfd330a8973b9e860133038e505bf106ed",
+  "operator_members": 51,
+  "source_core": "cca41ab52a90e0353ad3340ca63a01a6b3bc0abc",
+  "target_core": "399fef69a02429237647109ef16e49d6455a6e45",
+  "runtime_member": "CarryNativeRuntimeInstallation",
+  "optional_strategy_default": false,
+  "prebound_plan_present": false,
+  "source_preimages_derive_inside_stopped_installation": true,
+  "runtime_installation_sha256": "bae4ac51739c6fc7deddb07865cb43ba75b8a89de3e75653ea523fa31226fd60",
+  "native_version": 6,
+  "whole_schema_equal": false,
+  "declared_new_members_start_empty": [
+    "native_fork_creation"
+  ],
+  "plan_sha256": "a5a9d5f1277e469a9e53fb235a6bc505d367381427a358e2177abf9fb8bdaafd",
+  "source_proof_sha256": "5a85bf4c37a2e9ab51ad4e1123ab9b4b4dce29cfebcfbc431cc13e6cdf8c43e6",
+  "declaration_relation_sha256": "6daad64edb161ea0f9a39fb34016f6b2cc1c5b21c3fd3880225125274856e47c",
+  "commands": {
+    "parent_execute_once": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-freeze/execute_retained_summary_foundation.py --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-preparation/review-plan.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-preparation/runtime-installation.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/task-aware520-fork-carry538-receiving-20261002/stopped-installation541-final/operator-preparation/publication-receipt.json --execute"
+  },
+  "execution_condition": "Parent reviews source declarations and deterministic existing carry; ONE existing publisher captures live audience then stops and derives matched source preimages through RuntimeInstallation. No separate stop/prepare/bind step, input retry/reset/retroproof or public operation by receiving owner.",
+  "public_stops": 0,
+  "public_starts": 0,
+  "public_writes": 0
+}
