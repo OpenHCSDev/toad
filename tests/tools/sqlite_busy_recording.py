@@ -31,7 +31,8 @@ class SqliteBusyJourney(PhysicalJourney):
         return '\n'.join((
             RetainedLifetimeJourney.ready_command(args, 'native-ready', args.command[-1]),
             native_click_command('phase-native-ready-state.pickle'),
-            'key Prior', f'sleep {args.navigation_settle_seconds:g}', marker + 'reader',
+            'keydown Prior', f'sleep {args.scroll_hold_seconds:g}', 'keyup Prior',
+            f'sleep {args.navigation_settle_seconds:g}', marker + 'reader',
             control + ' acquire', 'key End', 'sleep 1', marker + 'busy-end',
             control + ' release',
             RetainedLifetimeJourney.ready_command(args, 'released-ready', args.command[-1]),
@@ -119,6 +120,9 @@ async def capture(service, project, evidence, environment):
                     token = os.read(request, 1)
                     if token == b'A':
                         assert holder is None
+                        snapshot = pickle.loads((output / 'phase-reader-state.pickle').read_bytes())
+                        view, = (view for view in snapshot['views'] if view['mode'] == snapshot['metadata']['current_mode'])
+                        assert any(page['has_newer'] for page in view['history_pages']), 'Physical reader has not left the native tail; End would not read storage'
                         holder = owner.start([str(runtime / 'python'), str(SQL_HOLDER), str(service.root)],
                             env=environment, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sql)
                         if not select.select([holder.process.stdout], [], [], 5)[0]:

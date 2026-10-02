@@ -328,6 +328,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             "pages": tuple((page.page, page.start, page.stop) for page in tuple(data.get("pages", ()))),
                             "generation": node._generation,
                             "source_state": type(node._source_state).__name__,
+                            "has_newer": node.has_newer,
                         }
                         if isinstance(node._source_state, WorkingTranscript):
                             history["pending_request"] = type(node._source_state.pending_request).__name__
