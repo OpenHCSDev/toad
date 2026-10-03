@@ -25,20 +25,25 @@ async def main():
    await view.post(history); await pilot.pause()
    work=history.reserve_source_work()
    page=history.pages[-1]; held_before=tuple(page.children)
+   page.batch_size=page.stop-page.start+4
+   snapshot=history.source_snapshot()
+   assert await page.update_fragments(page.page,page.fragments,page.update_slice(page.fragments,True),lambda: snapshot.current(history))
    async with view.window.history_lock:
     async with view.window.preserve_history(None):
-     page.batch_size=page.stop-page.start+4
-     await page.update_fragments(page.fragments,page.update_slice(page.fragments,True))
      ordered=tuple(c.fragment for c in page.children)==page.fragments[page.start:page.stop]
      await page.trim(4,older=False)
    held_end=tuple(page.children)
+   advanced=TranscriptPage(tuple(AssistantTranscript(f'Updated record {i}.') for i in range(80)),cursor,TranscriptCursor('retained-end-page',2),False,False)
+   await history.update_live(advanced)
+   source_advanced=(page.page is advanced and tuple(c.fragment for c in page.children)==page.fragments[page.start:page.stop])
+   assert source_advanced
    before_range=page.capture_admission(); before_cost=history.window.document_viewport.materialized_widget_count
    await history._jump_latest(LatestViewportRequest(history.window.scroll_revision))
    # Strong custody witnesses prevent recycled Python ids from proving reuse.
    current=history.pages[-1]
    overlap=[c for c in held_end if c.is_attached and c.parent is current]
    after_order=tuple(c.fragment for c in current.children)==current.fragments[current.start:current.stop]
-   receipt={'boundary':'actual native Toad page/end owner/source-order proof; no Agent/provider/public root; not physical41MB acceptance','widen_source_order':ordered,'widen_retained_bodies':sum(c.is_attached for c in held_before),'page_reused':current is page,'overlap_retained_bodies':len(overlap),'before_admission':[before_range.start,before_range.stop],'after_admission':[current.start,current.stop],'after_source_order':after_order,'before_widgets':before_cost,'after_widgets':history.window.document_viewport.materialized_widget_count,'widget_bound':history.window.document_viewport.budget.widget_limit(history.window.size.height),'agent_bound':view.agent is not None,'exception':str(app._exception)}
+   receipt={'boundary':'actual native Toad page/end owner/source-order proof; no Agent/provider/public root; not physical41MB acceptance','source_header_and_bodies_advanced':source_advanced,'widen_source_order':ordered,'widen_retained_bodies':sum(c.is_attached for c in held_before),'page_reused':current is page,'overlap_retained_bodies':len(overlap),'before_admission':[before_range.start,before_range.stop],'after_admission':[current.start,current.stop],'after_source_order':after_order,'before_widgets':before_cost,'after_widgets':history.window.document_viewport.materialized_widget_count,'widget_bound':history.window.document_viewport.budget.widget_limit(history.window.size.height),'agent_bound':view.agent is not None,'exception':str(app._exception)}
    (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n'); print(json.dumps(receipt),flush=True)
    history.finish_source_work(work)
    assert not receipt['agent_bound'] and app._exception is None
