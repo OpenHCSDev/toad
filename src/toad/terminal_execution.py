@@ -339,15 +339,15 @@ class TerminalExecution:
         self._view = ref(terminal)
         terminal.set_state(self.state)
         terminal.set_write_to_stdin(self.write_stdin)
-        self.project()
+        self.project(None, None)
 
     def detach(self, terminal=None):
         if terminal is None or self._view() is terminal:
             self._view = lambda: None
 
-    def project(self):
+    def project(self, scrollback: set[int] | None, alternate: set[int] | None):
         if (terminal := self._view()) is not None and terminal.is_attached:
-            terminal.present_execution()
+            terminal.present_execution(scrollback, alternate)
 
     def update_size(self, width, height):
         self.state.update_size(width, height)
@@ -407,8 +407,8 @@ class TerminalExecution:
                     data = await shell_read(reader, 128 * 1024)
                     self._record_output(data)  # Preserve partial UTF-8 bytes too.
                     if decoded := decoder.decode(data, final=not data):
-                        await self.state.write(decoded)
-                        self.project()
+                        scrollback, alternate = await self.state.write(decoded)
+                        self.project(scrollback, alternate)
                     if not data:
                         break
                 return TerminalCompletion.capture(await acquired.child.wait())
@@ -419,7 +419,7 @@ class TerminalExecution:
         finally:
             self.state.show_cursor = False
             # The task's result becomes authoritative only after this returns.
-            asyncio.get_running_loop().call_soon(self.project)
+            asyncio.get_running_loop().call_soon(self.project, None, None)
 
     async def write_stdin(self, text: str | bytes, hide_echo=False):
         data = text.encode("utf-8", "ignore") if isinstance(text, str) else text
