@@ -1,0 +1,42 @@
+{
+  "target": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "source_interpreter": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/activation.json",
+    "sha256": "d18b5e1391374b0bbd73de2483baeefc988d1786b9f06c9547814c91908d1505"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/source-proof.json",
+    "sha256": "d31bd1cde462f824d9f6fa6c9481555082fa98fa6655cd46e91ac5c5a1cc189f"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/context551-installed-receipt.json",
+      "sha256": "286c3c4ca92067e584e55ae0203843a576e158f4ab96756039913f02ccd59d8d"
+    },
+    {
+      "path": "/home/ts/wt/toad-command-discovery-handoff/.artifacts/acp-project345-installed-20261002/installed-acceptance.json",
+      "sha256": "27e9fc202f93de14bd6c8ba16832f58a0af08b7793fb0bb27207f2c246d7ac7c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/u1-native06-receipt.json",
+      "sha256": "603594a2da7b07a61da973ba959aa90b517115811e025d55ecb1f5bd3e49f224"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/u1-physical-startup-receipt.json",
+      "sha256": "44ef92c63f38a22df70dac8ed45720923835e0c04a8c692c126700a9e25443d7"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/post-install-launch556-installed-receipt.json",
+      "sha256": "60fb124a50c252c7640fbf96feee22628addded8e30197172046afe77452e8c1"
+    }
+  ]
+}
