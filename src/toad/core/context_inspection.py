@@ -128,7 +128,11 @@ class NativeSegmentNode(ContextNode):
         )
 
     def detail(self):
-        return f"{self.label}\n\n{self.public_text()}"
+        sources = "\n\n".join(
+            ReferenceNode(f"{self.key}/source/{i}", source).detail()
+            for i, source in enumerate(self.segment.provenance)
+        )
+        return f"{self.label}\n\n{self.public_text()}\n\nSources:\n{sources}"
 
     def public_text(self):
         return NativeDetail().dispatch_sync(self.segment)
@@ -150,14 +154,9 @@ class NativeDetail(MroProjection):
 
 
 @dataclass(frozen=True)
-class NativeMessageNode(ContextNode):
+class NativeMessageNode(NativeSegmentNode):
     message: PiMessage
     position: int
-    segment: NativeMessages
-
-    def children(self):
-        return tuple(ReferenceNode(f"{self.key}/source/{i}", source)
-                     for i, source in enumerate(self.segment.provenance))
 
     @property
     def label(self):
@@ -177,10 +176,7 @@ class NativeMessageNode(ContextNode):
         usage = ("Provider usage on this original message:\n" + json.dumps(
             FieldCodec.encode(message.usage), ensure_ascii=False, indent=2)
             if message.usage is not None else "")
-        content = self.public_text() or (
-            "No public text in this message. Images, opaque content and private reasoning "
-            "are not rendered.")
-        return f"{self.label}\nSegment: {self.segment.declared_name}\n\n{content}\n\n{usage}"
+        return f"{super().detail()}\n\n{usage}" if usage else super().detail()
 
 
 class SegmentNodes(MroProjection):
@@ -221,8 +217,8 @@ class NativeMessageRange(ContextNode):
         return f"Messages {self.start + 1}–{self.stop}"
 
     def children(self):
-        return tuple(NativeMessageNode(f"{self.key}/message/{i}",
-                                      PiMessage.from_wire(self.segment.messages[i]), i, self.segment)
+        return tuple(NativeMessageNode(f"{self.key}/message/{i}", segment=self.segment,
+                                      message=PiMessage.from_wire(self.segment.messages[i]), position=i)
                      for i in range(self.start, self.stop))
 
     def detail(self):
