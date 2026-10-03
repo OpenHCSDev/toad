@@ -233,6 +233,7 @@ async def retained_app(project):
     """The source-entry wrapper imports the selected installed product only."""
     from toad.agent_schema import AgentDefinition
 
+    seed_channel(wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
     definition = AgentDefinition(identity='real-resource436', name='Real resource acceptance',
         short_name='resource', run_command={'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])})
     app = InstalledApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
@@ -253,7 +254,6 @@ async def retained_app(project):
 async def record_retained(service, project, evidence, environment, *, recording_args,
                           recording_timeout):
     """Existing original-turn fixture callback; owns no second App or root."""
-    seed_channel(service, project)
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
     env.pop('NO_COLOR', None)
