@@ -67,6 +67,12 @@ async def choose(app, pilot, row, operation, fields, evidence):
             assert isinstance(editor, Input)
             editor.value = value
     app.save_screenshot(str(evidence / (operation + '-review.svg')))
+    if type(app._driver).__name__ == 'LinuxDriver':
+        assert os.environ['DISPLAY'] != ':0'
+        await pilot.pause(.1)
+        process = await asyncio.create_subprocess_exec('import', '-display', os.environ['DISPLAY'],
+            '-window', 'root', str(evidence / (operation + '-review.png')))
+        assert await process.wait() == 0
     assert await pilot.click('#command-apply')
     await until(pilot, lambda: not isinstance(app.screen, CommandDialog) and not app.thread_actions.pending)
 
@@ -129,6 +135,9 @@ async def journey(args):
                                   'target': frame.f_locals['target']})
     threading.setprofile_all_threads(observe)
     app = ToadApp(project_dir=str(project))
+    # No link in this operation workflow needs browser dispatch. Keep native
+    # Textual link opening disabled before any pointer action on the isolated UI.
+    app.open_links = False
     async with app.run_test(size=(125, 48), headless=not args.physical) as pilot:
         sidebar = await wait_channel_roster(app, pilot, '#first', '#all')
         row = await reveal_thread_row(app, pilot, 'tagged', '#first')
@@ -191,6 +200,7 @@ async def journey(args):
         assert comms.registry.require('tagged').incarnation == original
         assert app._exception is None
     reopened = ToadApp(project_dir=str(project))
+    reopened.open_links = False
     async with reopened.run_test(size=(125,48), headless=not args.physical) as pilot:
         sidebar = await wait_channel_roster(reopened, pilot, '#first', '#cli-tag', '#hidden-tag')
         row = await reveal_thread_row(reopened, pilot, 'tagged', '#cli-tag')
