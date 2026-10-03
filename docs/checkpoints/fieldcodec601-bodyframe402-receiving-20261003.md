@@ -9,3 +9,13 @@ Current534 is LIVE and immutable while Tristan tests401; previous485 and rollbac
 After holder release, use the existing normal cached-wheel installation and source/assets/native/cohort preparation in that holder. Parent alone executes a NEW reviewed preserve operation after actual original client admission; completed401 operands and raw receipts are never reused. Actual default assembly/startup is the final integration check. FullS4/U2/144Hz targets are separate.
 
 The prior401 exact publication/readback/capture archives remain in evidence/joined597-body399-plan400-text43-receiving-20261003/publication, including its black final PNG nonclaim and accepted frame from the same recording.
+
+## Private staging Ready
+
+Parent closed old334 rollback CODErole and authorized its package-only reuse. Bohr checked228 allUID processes,0permissiongaps and0actual borrowers/import/defaultlauncher/registry/build references;21 shell underscore history refs are preserved as historical references, not physical borrowers. The original967 source/metadata members are preserved in a3,534,260-byte archive (SHA5ffb7521cc5c5d5d5a09bc1c99e4268a5f3d7569f710932ed1f58d9770bd5208) and verified unchanged immediately before writes. Native2b and original privatewire/auth/sessions/input/UNKNOWN/films remain untouched.
+
+ONE normal uv sync replaced three packages in the existing69 dependency holder: Coreeb3778, installedToad8d600148 and Textdb8bec. Pipcheck passes;928 source/assets byteequal (339Core/320Toad/266Text/3diff), Git directURLs exact, native89 fulltrust.5,726 files in LIVE534 and previous485 are unchanged. No new environment/worktree/native copy/build/provider/film was made.
+
+NEW operation `.artifacts/fieldcodec601-bodyframe402-receiving-20261003/new-publication60140244` retains51 canonical Coreeb operators, all byteequal prior401 operators,68 frozen artifacts and four original affected qualification files. Full originalcohort.require_original passed; current prefix derives from publishedlinks and is534. Whole NativeSchemaDeclaration and derived checkpoint schema match; source/target product differs. PreserveRuntimeInstallation+PreserveOwnerRuntime, no reset/carry/input replay. Exact ready/hash/parent command and original grant/sourceproof are in evidence/fieldcodec601-bodyframe402-receiving-20261003.
+
+PUBLIC534 is still live; user testing remains protected. No publicationreceipt/preimages or publiceffects. Parent alone executes the NEW command when actualoriginal client/idle guards admit it, then checks ordinarydefault assembly. Completed401 operation never repeats.599 excluded until qualified. Ready installed package source remains8d600148; final branch evidence only does not alter its product.

@@ -1,0 +1,67 @@
+{
+  "reviewed_utc": "2026-10-03T19:26:03.125396+00:00",
+  "raw_receipt_unchanged": true,
+  "raw_assessment": "unreviewed",
+  "personal_review": {
+    "review_timing": "Personal DURING motion assessment unestablished: UI verified alive before image acquisition; immediate post-view lifetime probe missing; assessment note/post-probe after exit.",
+    "observed_before_monotonic": 530382.403135226,
+    "observed_after_monotonic": 530455.225611238,
+    "ui_identity": {
+      "pid": 1369668,
+      "start_ticks": 53028454
+    },
+    "ui_alive_before": true,
+    "ui_alive_after": false,
+    "reviews": [
+      {
+        "phase": "input-held-up",
+        "movie_start": 23.19288024,
+        "movie_end": 23.99288024,
+        "frames": "live-14-7-frames.png",
+        "observed": "History/chrome remain readable. Body advances through several positions early, then repeats positions across the latter consecutive frames. Not smoothness acceptance."
+      },
+      {
+        "phase": "input-held-down",
+        "movie_start": 47.429051878,
+        "movie_end": 48.229051878,
+        "frames": "live-21-12-frames.png",
+        "observed": "Body moves to later source content in steps; latter consecutive frames hold position. Input/chrome preserved; no full blank body observed in this band."
+      }
+    ],
+    "limits": [
+      "48 consecutive recorded60Hz frames, not app changed-frame FPS",
+      "No causal CPU comparison from images",
+      "Held-key/destination/velocity/profile evidence still required for interpreting repeated positions",
+      "The later post-assessment identity check found the UI closed. Do not claim verified alive both before and after human assessment; encoding lifetime checks are separate."
+    ],
+    "during_personal_review_qualified": false
+  },
+  "additional_review_timing": "AFTER original recorder/UI terminal; no DURING qualification",
+  "additional_reviews": [
+    {
+      "file": "live-39-22-frames.png",
+      "phase": "reverse",
+      "start": 79.45395103,
+      "end": 80.25395103,
+      "observation": "Readable body/chrome; content advances in distinct steps with repeated positions. No whole-body blank in this reviewed band; not smoothness."
+    },
+    {
+      "file": "live-43-24-frames.png",
+      "phase": "End marker",
+      "start": 87.990638276,
+      "end": 88.790638276,
+      "observation": "Readable body/chrome at stable destination in these consecutive frames. This short stationary band does not establish End animation speed."
+    },
+    {
+      "file": "phase-a-return.png",
+      "observation": "Selected nra-architecture tab and original saved tool/reply body visible; local warm-scroll-draft present. Pixel readiness scoped to shown scene; no new all-view identity claim."
+    }
+  ],
+  "limitations": [
+    "Recorded60Hz is not delivered changed-pixel rate",
+    "Native writer intervals are not terminal FPS or exact input-to-paint latency",
+    "Marker CPU includes diagnostic exports/inline encoding",
+    "No matched prior workload causal comparison",
+    "No representative concurrent-provider/compaction qualification from this readonly saved-history run"
+  ]
+}
