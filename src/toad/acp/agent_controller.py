@@ -52,6 +52,15 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def prepare_terminal(self, state) -> None:
         """A detached terminal keeps its original model's configured geometry."""
 
+    def prepare_shell(self, source) -> None:
+        """A detached shell retains its original directory and terminal size."""
+
+    async def present_shell(self, output) -> None:
+        """An absent frontend never acquires shell projection resources."""
+
+    def shell_failed(self, error) -> None:
+        """An absent frontend has no native notification to acquire."""
+
     async def present_permission(self, request, view) -> None:
         """An absent frontend never acquires a permission projection."""
 

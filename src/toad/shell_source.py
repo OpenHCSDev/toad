@@ -4,24 +4,20 @@ import asyncio
 from contextlib import suppress
 import os
 import signal
-from typing import TYPE_CHECKING
-from weakref import ref
-
 from agent_comms.child_process import STOP_GRACE_SECONDS
+from toad.acp.agent_controller import SurfaceBinding, DetachedSurfaceBinding
+from toad.core.events import CoreEventStream
 from toad.shell_output import ShellOutput, ShellTerminalOutput
-
-if TYPE_CHECKING:
-    from toad.widgets.conversation import Conversation
 
 
 class ShellOperationalSource(ABC):
-    def __init__(self, conversation: "Conversation") -> None:
-        self._conversation = ref(conversation)
-        self._app = conversation.app
+    def __init__(self, terminal_size: tuple[int, int]) -> None:
+        self.events = CoreEventStream(self)
+        self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.outputs: list[ShellOutput] = []
         self.output: ShellTerminalOutput | None = None
         self._presentation_lock = asyncio.Lock()
-        self._terminal_size = conversation.get_terminal_dimensions()
+        self._terminal_size = terminal_size
         self.master: int | None = None
         self._task: asyncio.Task | None = None
         self._process: asyncio.subprocess.Process | None = None
@@ -35,23 +31,26 @@ class ShellOperationalSource(ABC):
         if self.output is not None:
             self.output.focus()
 
-    async def attach(self, conversation: "Conversation") -> None:
+    async def attach(self, binding: SurfaceBinding) -> None:
         async with self._presentation_lock:
-            self._conversation = ref(conversation)
-            conversation.working_directory = self.working_directory
+            self.surface.close()
             for output in self.outputs:
-                await output.present(conversation)
+                output.detach()
+            self.surface = binding
+            binding.prepare_shell(self)
+            for output in self.outputs:
+                await binding.present_shell(output)
 
     async def detach(self) -> None:
         async with self._presentation_lock:
-            self._conversation = lambda: None
+            self.surface.close()
+            self.surface = DetachedSurfaceBinding()
             for output in self.outputs:
                 output.detach()
 
     async def _present(self, output: ShellOutput) -> None:
         async with self._presentation_lock:
-            if (conversation := self._conversation()) is not None:
-                await output.present(conversation)
+            await self.surface.present_shell(output)
 
     async def close(self) -> None:
         """Closing a logical session ends its owned PTY; UI retirement does not."""
@@ -84,4 +83,3 @@ class ShellOperationalSource(ABC):
                     os.close(self.master)
             self.master = None
             self._finished = True
-

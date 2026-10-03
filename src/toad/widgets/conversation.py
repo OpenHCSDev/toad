@@ -2016,13 +2016,16 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         """A Shell instance."""
 
         if self._shell is None or self._shell.is_finished:
+            from toad.agent_surface import AttachedSurfaceBinding
+
             shell_command = self.app.settings.shell.command
             shell_start = self.app.settings.shell.command_start
             shell_directory = self.working_directory
             self._shell = Shell(
-                self, shell_directory, shell=shell_command, start=shell_start
+                shell_directory, terminal_size=self.get_terminal_dimensions(),
+                shell=shell_command, start=shell_start
             )
-            self._shell.start()
+            self._shell.start(AttachedSurfaceBinding(self, self._shell.events))
         return self._shell
 
     async def post_shell(self, command: str) -> None:
