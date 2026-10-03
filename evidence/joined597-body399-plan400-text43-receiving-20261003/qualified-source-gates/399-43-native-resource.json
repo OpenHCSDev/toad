@@ -1,0 +1,68 @@
+{
+  "source_head": "35c8bb73a4de6bc4dba6699537e0a6c6223d7db7",
+  "qualification": "existing actual To ad/native body resource family; source only, not installed motion or performance acceptance",
+  "command_exit": 0,
+  "sanity_receipt": {
+    "fragment_arrangements": 0,
+    "profiled_100_reflows_seconds": 0.2905556330224499,
+    "fragments": 4,
+    "native_cache_capacity": 64,
+    "live_body_boxes_in_original_viewport_layout": 4,
+    "provider_calls": 0,
+    "boundary": "actual saved source/Toad widgets/native compositor, source only",
+    "source_update_painted": true,
+    "style_invalidated": true,
+    "resize_invalidated": true,
+    "cohort_captured_before_preparation_and_pruning": 3,
+    "cohort_capture_whole_scene_arrangements": 0,
+    "rendered_family_reentry": [
+      {
+        "body": "TranscriptFragmentView",
+        "rendered_lines": 10,
+        "nonblank_lines": 4,
+        "reentry_ms": 0.1785279018804431,
+        "rebuild_calls": {},
+        "live_publication_captures_preceding_rows_and_excludes_new_child_paint": true,
+        "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "PreparedConversationMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.2131039509549737,
+        "rebuild_calls": {},
+        "live_publication_captures_preceding_rows_and_excludes_new_child_paint": true,
+        "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "StreamingMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.21229300182312727,
+        "rebuild_calls": {},
+        "live_publication_captures_preceding_rows_and_excludes_new_child_paint": true,
+        "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+        "real_style_change_rebuilt_once": true
+      }
+    ],
+    "inflight_stream_blocks_captured_retirement_commit": true,
+    "offscreen_warm_admission_keeps_rows_not_controls": true,
+    "stationary_admission_preserves_rendered_resource": true,
+    "native_input_materialized_original_body": true,
+    "retirement_and_restore_invalidated": true,
+    "final_disposal_releases_scene": true
+  },
+  "original_files_sha256": {
+    "/home/ts/.cache/agent-scratch/body-publication399-resource-20261003/native-resource.log": "8984f6f34619a0693df8b3f8923fd973842aaaa03041969742bf3fd0393fdb72",
+    "/home/ts/.cache/agent-scratch/body-publication399-resource-20261003/native-resource02.log": "1b8ed84562fc179af3ac57ae8ea97ff5da746d3d547cfdb50a371aef94d11ff0",
+    "/home/ts/.cache/agent-scratch/body-publication399-resource-20261003/native-resource03.log": "ec3fc83a6f68e01314177e0e31ada9e8611c04381198a5b73ffe6289932504a7",
+    "/home/ts/.cache/agent-scratch/body-publication399-resource-20261003/qualified03/receipt.json": "a56f1721d076c9eb8039d6937c99617cd2a90693fcb3d097ba9ca2c69fb8bb15"
+  },
+  "production_numstat": "94\t18\tsrc/toad/widgets/viewport_body.py",
+  "new_environment": false,
+  "new_worktree": false,
+  "provider_calls": 0,
+  "installed_journey": "pending one joined399/43 changed pair; no smoothness/FPS/CPU claim"
+}

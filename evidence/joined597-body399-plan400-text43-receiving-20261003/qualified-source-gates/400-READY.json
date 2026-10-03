@@ -1,0 +1,41 @@
+{
+  "state": "SCOPED_SOURCE_AND_INSTALLED_PLAN_APP_ACP_READY",
+  "production_source": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86",
+  "changed_oracle_source": "24ea68dd4",
+  "production_added": 24,
+  "production_deleted": 45,
+  "production_files": [
+    "src/toad/plan.py",
+    "src/toad/widgets/plan.py",
+    "src/toad/widgets/strike_text.py"
+  ],
+  "source_ownership": "Original PlanStatus owns admitted status and plain marker; original Plan owns native layout; original StrikeText owns completion paint/scheduling. All old native core compose/decorate/imports removed. No new type/semantic mirror/store/registry.",
+  "before_ast": "before-owner-consumers.json",
+  "after_ast": "after-owner-consumers.json",
+  "parsed": {
+    "production": 289,
+    "tests": 392,
+    "omissions": 0
+  },
+  "actual_installed": "installed02/app/receipt.json",
+  "actual_elapsed_seconds": 4.2142158770002425,
+  "actual_result": "passed original actual App/Pilot and registered official-SDK ACP subprocess plan workflow including detached current-plan return",
+  "original_negative": "installed01/app.log and terminal-receipt.json preserved; first retained Plan is historical source after three rejection notes, not current controller publication. Corrected only original fixture source-identity oracle; no production symptom patch or timeout change.",
+  "unchanged_production_since_installed": true,
+  "sanity": "installed01/sanity.log; three original source/headless/codec checks passed; unchanged production no repeat batch",
+  "source_provenance": "installed02/source-verification.json;320Toad+339Core+266Textual+3diff assets exact;69 distributions unchanged",
+  "core": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+  "textual": "21011cf0be9a898160ec0ac80e7829eaf5330f97",
+  "sdk": "0.12.1",
+  "native": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "holder": "Existing style22 sequential code loan returned Heisenberg after terminal; original399 proof archive preserved. Public485/534 untouched.",
+  "cleanup": "installed02/cleanup.json; owned taggedprocesses/fixtureleaves empty;301 inaccessibleprocesses explicitlyreported",
+  "providers": 0,
+  "configured_owner_inputs": 0,
+  "limits": [
+    "Not physical st/UI performance or full U2/U4/U5 closure",
+    "Native89 trust borrowed original fullproof; no native build/copy/new provider journey",
+    "CI deferred",
+    "No public defaults/owners/root changes"
+  ]
+}
