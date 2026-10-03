@@ -26,6 +26,32 @@ class Patch:
     after: dict[int, str]
     groups: list[list[tuple[str, int, int, int, int]]]
 
+    def prepare(self, ansi: bool, dark: bool) -> "PreparedPatch":
+        """Highlight the reported hunk once, independent of a mounted view."""
+        def highlight_lines(lines: dict[int, str], path: str) -> dict[int, Content]:
+            code = "\n".join(value for _, value in sorted(lines.items())).expandtabs()
+            styled = DiffView.highlight(code, path, "", ansi=ansi, dark=dark)
+            # Keep absolute hunk keys and blank EOF context when the syntax
+            # highlighter normalizes trailing newlines. Only borrow its spans.
+            highlighted = Content(code, list(styled.spans)).split("\n", allow_blank=True)
+            return dict(zip(sorted(lines), highlighted))
+
+        before = highlight_lines(self.before, self.before_path)
+        after = highlight_lines(self.after, self.after_path)
+        for group in self.groups:
+            for tag, i1, i2, j1, j2 in group:
+                if tag == "replace" and i2 - i1 == j2 - j1:
+                    left, right = DiffView._highlight_diff_lines(
+                        [before[i] for i in range(i1, i2)], [after[j] for j in range(j1, j2)],
+                        _INLINE_ADDED, _INLINE_REMOVED,
+                    )
+                    before.update(zip(range(i1, i2), left))
+                    after.update(zip(range(j1, j2), right))
+        return PreparedPatch((ansi, dark), self, (
+            {index: prepare_diff_line(line) for index, line in before.items()},
+            {index: prepare_diff_line(line) for index, line in after.items()},
+        ))
+
 
 def parse_patch(text: str) -> Patch:
     lines = text.splitlines()
@@ -139,6 +165,12 @@ class PreparedPatch:
     lines: tuple[dict[int, Content], dict[int, Content]] | None
     plain_text: Text | None = None
 
+    def bind(self, added: Style, removed: Style) -> tuple["KnownLines", "KnownLines"]:
+        """Resolve the prepared inline markers against the actual view styles."""
+        assert self.lines is not None
+        before, after = self.lines
+        return _bind_inline_styles(before, added, removed), _bind_inline_styles(after, added, removed)
+
 
 def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:
     """Parse and highlight immutable text in a CPU worker, without a live app."""
@@ -154,27 +186,7 @@ def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:
         # the UI's actual terminal palette, which is not present in this worker.
         return PreparedPatch((ansi, dark), None, None, highlighted)
 
-    def highlight_lines(lines: dict[int, str], path: str) -> dict[int, Content]:
-        code = "\n".join(value for _, value in sorted(lines.items())).expandtabs()
-        styled = DiffView.highlight(code, path, "", ansi=ansi, dark=dark)
-        highlighted = Content(code, list(styled.spans)).split("\n", allow_blank=True)
-        return dict(zip(sorted(lines), highlighted))
-
-    before = highlight_lines(patch.before, patch.before_path)
-    after = highlight_lines(patch.after, patch.after_path)
-    for group in patch.groups:
-        for tag, i1, i2, j1, j2 in group:
-            if tag == "replace" and i2 - i1 == j2 - j1:
-                left, right = DiffView._highlight_diff_lines(
-                    [before[i] for i in range(i1, i2)], [after[j] for j in range(j1, j2)],
-                    _INLINE_ADDED, _INLINE_REMOVED,
-                )
-                before.update(zip(range(i1, i2), left))
-                after.update(zip(range(j1, j2), right))
-    return PreparedPatch((ansi, dark), patch, (
-        {index: prepare_diff_line(line) for index, line in before.items()},
-        {index: prepare_diff_line(line) for index, line in after.items()},
-    ))
+    return patch.prepare(ansi, dark)
 
 
 def _bind_inline_styles(lines: dict[int, Content], added: Style, removed: Style) -> "KnownLines":
@@ -471,36 +483,14 @@ class PatchDiffView(DiffView):
     @property
     def highlighted_code_lines(self):
         if self._highlighted_code_lines is None:
-            if self._prepared is not None:
+            prepared = self._prepared
+            if prepared is None:
+                theme = self.app.current_theme
+                prepared = self.patch.prepare(theme.ansi, theme.dark)
+            else:
                 assert self._prepared_theme_matches()
-                assert self._prepared.lines is not None
-                added = self.get_visual_style("diff-view--inline-added")
-                removed = self.get_visual_style("diff-view--inline-removed")
-                self._highlighted_code_lines = tuple(
-                    _bind_inline_styles(lines, added, removed) for lines in self._prepared.lines
-                )
-                return self._highlighted_code_lines
-            def highlight_lines(lines, path):
-                code = "\n".join(value for _, value in sorted(lines.items())).expandtabs()
-                styled = self.highlight(code, path, "", ansi=self.app.current_theme.ansi,
-                                        dark=self.app.current_theme.dark)
-                # The highlighter normalizes trailing newlines. Preserve the
-                # exact known source lines (including blank context at EOF)
-                # and use only its styles; otherwise absolute hunk keys vanish.
-                highlighted = Content(code, list(styled.spans)).split("\n", allow_blank=True)
-                return dict(zip(sorted(lines), highlighted))
-
-            before = highlight_lines(self.patch.before, self.patch.before_path)
-            after = highlight_lines(self.patch.after, self.patch.after_path)
-            for group in self.patch.groups:
-                for tag, i1, i2, j1, j2 in group:
-                    if tag == "replace" and i2 - i1 == j2 - j1:
-                        left, right = self._highlight_diff_lines(
-                            [before[i] for i in range(i1, i2)], [after[j] for j in range(j1, j2)],
-                            self.get_visual_style("diff-view--inline-added"),
-                            self.get_visual_style("diff-view--inline-removed"),
-                        )
-                        before.update(zip(range(i1, i2), left))
-                        after.update(zip(range(j1, j2), right))
-            self._highlighted_code_lines = KnownLines(before), KnownLines(after)
+            self._highlighted_code_lines = prepared.bind(
+                self.get_visual_style("diff-view--inline-added"),
+                self.get_visual_style("diff-view--inline-removed"),
+            )
         return self._highlighted_code_lines

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import pickle
+import subprocess
+import sys
 from dataclasses import dataclass, fields
 import unittest
 from uuid import uuid4
@@ -64,6 +67,25 @@ class ReactionClient:
 
 
 class RenderingFamilyTests(unittest.IsolatedAsyncioTestCase):
+    def test_captured_task_loads_its_declaring_module(self):
+        """Detect eager native catalog loading and lost decode-before-admission."""
+        encoded = FieldCodec.encode(SubmitRender(
+            uuid4(), uuid4(), PatchRenderTask("--- a.py\n+++ a.py\n@@ -1 +1 @@\n-old\n+new\n", False, True),
+        ))
+        result = subprocess.run([sys.executable, "-c", """
+import pickle,sys
+from agent_comms.field_codec import FieldCodec
+from toad.render_protocol import RenderCommand
+assert 'toad.render_tasks' not in sys.modules
+assert 'toad.widgets.patch_diff' not in sys.modules
+assert 'toad.acp.sdk_boundary' not in sys.modules
+command = FieldCodec.decode(RenderCommand, pickle.loads(sys.stdin.buffer.read()))
+assert type(command.task).__module__ == 'toad.render_tasks'
+assert command.task.execute().patch.after[0] == 'new'
+print('declaring module loaded from captured task; generic transport had no frontend catalog')
+"""], input=pickle.dumps(encoded), capture_output=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+
     def test_commands_and_replies_round_trip(self):
         samples = dict(
             client_id=uuid4(),

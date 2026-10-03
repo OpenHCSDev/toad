@@ -1,0 +1,13 @@
+{
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "process_borrowers": [],
+  "default_links": {
+    "toad": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/toad",
+    "toad-comms": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "agent-comms": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-acp"
+  },
+  "inaccessible_processes": 299,
+  "release": "Sch explicitly released485 to Einstein368; previous366 evidence retained/Bohr privileged check existing receipt",
+  "scope": "same-user readable processes; no claim about inaccessible other-user processes"
+}
