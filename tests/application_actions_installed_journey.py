@@ -142,7 +142,7 @@ async def main():
         reopened=InstalledApp(project_dir=str(project),agent_data=data)
         async with reopened.run_test(size=(130,44)) as pilot:
             await until(pilot,lambda:reopened.selected_session.conversation.agent is not None and reopened.selected_session.conversation.agent.ready)
-            assert reopened.column_width==137 and reopened.settings.ui.footer is True
+            assert reopened.settings.ui.column_width==137 and reopened.settings.ui.footer is True
             prompt=reopened.selected_session.conversation.prompt
             prompt.focus();await pilot.press(*'Q8_REOPEN_REPLY','enter')
             await until(pilot,lambda:'COMPLETION_PEER_EXECUTED Q8_REOPEN_REPLY' in viewport_text(reopened.selected_session.conversation.query_one('Window')))

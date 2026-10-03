@@ -442,9 +442,6 @@ class ConversationSessionBinding(containers.Vertical):
     status: var[str | Content | RichText] = var("")
 
 
-    column: var[bool] = var(False, toggle_class="-column")
-
-
     title = var("")
 
 
@@ -1672,8 +1669,18 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.set_interval(1, lambda: self.goal_controls.poll())
         await self.initialize_view()
 
+    def apply_layout_preferences(self) -> None:
+        """Project the original settings without retaining their semantic values."""
+        from toad.setting_choices import Scrollbar
+
+        ui = self.app.settings.ui
+        self.styles.max_width = max(10, ui.column_width) if ui.column else None
+        for choice in Scrollbar.members_with(Scrollbar):
+            self.set_class(choice is ui.scrollbar, f"-scrollbar-{choice.declared_name}")
+
     async def initialize_view(self) -> None:
         """Initialize the agent view, separate from the framework mount event."""
+        self.apply_layout_preferences()
         self.trap_focus()
         self.watch(self.window, "scroll_y", self._history_scroll_changed, init=False)
         self.prompt.focus()
