@@ -252,7 +252,12 @@ async def main():
                     await asyncio.wait_for(entered.wait(), 5)
                     resource = member._body_measurement.previous
                     writer = member._body_measurement.worker
-                    assert member.body_ready and member.body_dormant
+                    assert member.body_ready and member.body_dormant, (
+                        type(member).__name__, type(resource).__name__,
+                        resource.width, member._body_measurement.width, member.size,
+                        resource.content.width, resource.paint_state.style_key,
+                        member.styles._cache_key, member.native_body_ready(),
+                    )
                     assert member.retained_paint_bytes == resource.paint_bytes
                     assert member.measured_rows == resource.rows
                     assert tuple(line.text for line in member.render_lines(member.outer_size.region)) == captured_rows

@@ -508,7 +508,12 @@ class MeasuredViewportBody(ViewportBody):
                     # A pending predecessor's unchanged resource is already
                     # in this chain, including capture/width/style updates
                     # made while we joined it. Only a new capture replaces it.
-                    prepared = prepared.resized(self.size)
+                    # Width is the body's content measurement. An offscreen
+                    # widget's last committed outer size is not a new demand.
+                    # Genuine measurement/resize hooks have already updated
+                    # this original resource while byte preparation awaited.
+                    if prepared.width != self._body_measurement.width:
+                        prepared = prepared.invalidated()
                     self._body_measurement = self._body_measurement.publication_prepared(worker, prepared)
                 await (self.materialize_native_body() if work is None else work())
                 if self.is_attached:
