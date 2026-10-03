@@ -297,3 +297,14 @@ explicitly declare the existing ExternalThreadExecution capability, preserving
 agent authorship without accidentally enabling native prompt delivery. Common
 seed and outcome/failure export behavior replaces the duplicated fixture path.
 This is test/tool glue; the ten-line production scheduling deletion is unchanged.
+
+The focused actual-candidate import/nominal registration and script generation
+passed; they do not establish physical readiness. One script-output guard
+rejected a worktree output path before any application ran. Joined01 likewise
+stopped before UI/input because the original fixture's draft-state path was
+outside recorder scratch. The callback now puts only copied UI state beneath
+its existing evidence directory; the original private bus/project stay under
+the worktree. The external edge-reader declaration belongs to the actual UI
+child, so its recorded process lifetime ends before the original fixture's
+retirement check. It no longer records the still-running outer controller as
+that receiver. Original guard failure and cleanup evidence remain retained.
