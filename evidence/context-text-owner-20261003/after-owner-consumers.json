@@ -1,0 +1,413 @@
+{
+  "head": "9e09b9655cd63bef8de3d0642779cd92cec0380b",
+  "parser": "refactor-audit Package",
+  "limits": "Lexical references; status and Cost can refer to other owners. Read receivers semantically; no dynamic-resolution claim. Availability/provenance remained on the original ContextMeasurement, no duplication claim for its correctly owned existing decisions.",
+  "src/toad": {
+    "modules": 287,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/acp/agent.py",
+        "line": 7,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable"
+      },
+      {
+        "path": "src/toad/acp/agent.py",
+        "line": 114,
+        "kind": "Attribute",
+        "source": "self.context_measurement"
+      },
+      {
+        "path": "src/toad/acp/agent.py",
+        "line": 114,
+        "kind": "Name",
+        "source": "ContextUnavailable"
+      },
+      {
+        "path": "src/toad/acp/comms_updates.py",
+        "line": 120,
+        "kind": "ImportFrom",
+        "source": "from .context_measurement import ContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/comms_updates.py",
+        "line": 142,
+        "kind": "ImportFrom",
+        "source": "from .context_measurement import ContextUnavailable"
+      },
+      {
+        "path": "src/toad/acp/comms_updates.py",
+        "line": 131,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "src/toad/acp/comms_updates.py",
+        "line": 143,
+        "kind": "Attribute",
+        "source": "self.agent.context_measurement"
+      },
+      {
+        "path": "src/toad/acp/comms_updates.py",
+        "line": 143,
+        "kind": "Name",
+        "source": "ContextUnavailable"
+      },
+      {
+        "path": "src/toad/acp/comms_updates.py",
+        "line": 131,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 9,
+        "kind": "ClassDef",
+        "source": "class Cost(NamedTuple):\n    \"\"\"A cost with associated currency.\"\"\"\n    amount: float\n    currency: str\n\n    def __str__(self) -> str:\n        return f'{self:}'\n\n    def __format__(self, _specifier: str) -> str:\n        from format_currency import format_currency\n        amount, currency = self\n        currency_text = format_currency(amount, currency_code=currency).replace(' ', '')\n        return currency_text"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 26,
+        "kind": "ClassDef",
+        "source": "class ContextMeasurement(ABC):\n    available = False\n\n    @abstractmethod\n    def status(self) -> RichText:\n        ...\n\n    @classmethod\n    def saved(cls, usage):\n        if usage is None:\n            return ContextUnavailable('Native owner has not reported context usage')\n        return SavedContextMeasurement(usage.used, usage.size)\n\n    @classmethod\n    def live(cls, used, size, cost):\n        if used <= 0 or size <= 0:\n            return ContextUnavailable('Native owner has not supplied a usable context measurement')\n        return LiveContextMeasurement(used, size, Cost(cost.amount, cost.currency) if cost else None)"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 48,
+        "kind": "ClassDef",
+        "source": "@dataclass(frozen=True)\nclass ContextUnavailable(ContextMeasurement):\n    reason: str\n\n    def status(self) -> RichText:\n        return RichText(f'Context unavailable \u00b7 {self.reason}')"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 56,
+        "kind": "ClassDef",
+        "source": "@dataclass(frozen=True)\nclass MeasuredContext(ContextMeasurement):\n    used: int\n    size: int\n    cost: Cost | None = None\n    available = True\n    source_label = ''\n\n    @property\n    def percentage_used(self):\n        return self.used / self.size * 100\n\n    @property\n    def percentage_display(self):\n        return f'{floor(self.percentage_used * 10) / 10:.1f}%'\n\n    def status(self) -> RichText:\n        parts = [RichText.assemble(f'{self.used / 1000:.1f}K (', (self.percentage_display, 'bold'), ')')]\n        if self.source_label:\n            parts.append(RichText(self.source_label))\n        if self.cost is not None:\n            parts.append(RichText.assemble((f'{self.cost}', 'bold')))\n        return RichText(' \u2022 ').join(parts)"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 81,
+        "kind": "ClassDef",
+        "source": "class LiveContextMeasurement(MeasuredContext):\n    pass"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 85,
+        "kind": "ClassDef",
+        "source": "class SavedContextMeasurement(MeasuredContext):\n    source_label = 'last response'"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 48,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 56,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 81,
+        "kind": "Name",
+        "source": "MeasuredContext"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 85,
+        "kind": "Name",
+        "source": "MeasuredContext"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 59,
+        "kind": "Name",
+        "source": "Cost"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 36,
+        "kind": "Name",
+        "source": "SavedContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 44,
+        "kind": "Name",
+        "source": "LiveContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 35,
+        "kind": "Name",
+        "source": "ContextUnavailable"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 43,
+        "kind": "Name",
+        "source": "ContextUnavailable"
+      },
+      {
+        "path": "src/toad/acp/context_measurement.py",
+        "line": 44,
+        "kind": "Name",
+        "source": "Cost"
+      },
+      {
+        "path": "src/toad/acp/session_updates.py",
+        "line": 14,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.context_measurement import ContextMeasurement"
+      },
+      {
+        "path": "src/toad/acp/session_updates.py",
+        "line": 75,
+        "kind": "Attribute",
+        "source": "self.agent.context_measurement"
+      },
+      {
+        "path": "src/toad/acp/session_updates.py",
+        "line": 75,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 564,
+        "kind": "Attribute",
+        "source": "agent.context_measurement.status"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 564,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1344,
+        "kind": "Attribute",
+        "source": "self.agent.context_measurement.status"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1821,
+        "kind": "Attribute",
+        "source": "agent.context_measurement.status"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1344,
+        "kind": "Attribute",
+        "source": "self.agent.context_measurement"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 1821,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "src/toad/widgets/prompt.py",
+        "line": 83,
+        "kind": "ClassDef",
+        "source": "class StatusLine(Label):\n    status: var[str | Content | RichText] = var('')\n\n    def watch_status(self, status: str | Content | RichText) -> None:\n        self.set_class(not bool(status), '-hidden')\n        self.update(status)\n        self.tooltip = status"
+      },
+      {
+        "path": "src/toad/widgets/prompt.py",
+        "line": 801,
+        "kind": "Name",
+        "source": "StatusLine"
+      }
+    ]
+  },
+  "tests": {
+    "modules": 391,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "tests/context_compaction_native_installed_pilot.py",
+        "line": 33,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_compaction_native_installed_pilot.py",
+        "line": 33,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 25,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 35,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 20,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 24,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 33,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_native_installed_pilot.py",
+        "line": 33,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_resume_pilot.py",
+        "line": 60,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_resume_pilot.py",
+        "line": 61,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_resume_pilot.py",
+        "line": 62,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_resume_pilot.py",
+        "line": 78,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_resume_pilot.py",
+        "line": 70,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_resume_pilot.py",
+        "line": 71,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_usage_pilot.py",
+        "line": 12,
+        "kind": "ImportFrom",
+        "source": "from toad.widgets.prompt import StatusLine"
+      },
+      {
+        "path": "tests/context_usage_pilot.py",
+        "line": 42,
+        "kind": "Name",
+        "source": "StatusLine"
+      },
+      {
+        "path": "tests/context_usage_pilot.py",
+        "line": 48,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/context_usage_pilot.py",
+        "line": 61,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/midturn_compaction_pilot.py",
+        "line": 37,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 457,
+        "kind": "Attribute",
+        "source": "agents[1].context_measurement.status"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 457,
+        "kind": "Attribute",
+        "source": "agents[1].context_measurement"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 73,
+        "kind": "Attribute",
+        "source": "agent.context_measurement.status"
+      },
+      {
+        "path": "tests/native_loaded_return_cache_pilot.py",
+        "line": 73,
+        "kind": "Attribute",
+        "source": "agent.context_measurement"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 4,
+        "kind": "ImportFrom",
+        "source": "from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable, Cost"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 9,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 15,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 15,
+        "kind": "Name",
+        "source": "Cost"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 19,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 12,
+        "kind": "Name",
+        "source": "ContextMeasurement"
+      },
+      {
+        "path": "tests/test_context_measurement.py",
+        "line": 22,
+        "kind": "Name",
+        "source": "ContextUnavailable"
+      }
+    ]
+  }
+}

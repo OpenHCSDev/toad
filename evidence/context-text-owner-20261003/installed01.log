@@ -1,0 +1,257 @@
+Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<CoordinationAccess.observe() done, defined at /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py:146> exception=AttributeError("'LocalRoute' object has no attribute 'admit_client'")>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in observe
+    service = await self.preparation.run_thread(lambda: self.service)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/work_preparation.py", line 264, in run_thread
+    return await asyncio.shield(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in <lambda>
+    service = await self.preparation.run_thread(lambda: self.service)
+                                                        ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 82, in service
+    return self.require(RouteSelection.capture())
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 93, in require
+    acquisition.enter_context(selected.route.admit_client())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LocalRoute' object has no attribute 'admit_client'
+Task exception was never retrieved
+future: <Task finished name='Task-6' coro=<CoordinationAccess.observe() done, defined at /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py:146> exception=AttributeError("'LocalRoute' object has no attribute 'admit_client'")>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in observe
+    service = await self.preparation.run_thread(lambda: self.service)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/work_preparation.py", line 264, in run_thread
+    return await asyncio.shield(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in <lambda>
+    service = await self.preparation.run_thread(lambda: self.service)
+                                                        ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 82, in service
+    return self.require(RouteSelection.capture())
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 93, in require
+    acquisition.enter_context(selected.route.admit_client())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LocalRoute' object has no attribute 'admit_client'
+Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<CoordinationAccess.observe() done, defined at /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py:146> exception=AttributeError("'LocalRoute' object has no attribute 'admit_client'")>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in observe
+    service = await self.preparation.run_thread(lambda: self.service)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/work_preparation.py", line 264, in run_thread
+    return await asyncio.shield(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in <lambda>
+    service = await self.preparation.run_thread(lambda: self.service)
+                                                        ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 82, in service
+    return self.require(RouteSelection.capture())
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 93, in require
+    acquisition.enter_context(selected.route.admit_client())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LocalRoute' object has no attribute 'admit_client'
+AttributeError exception in shielded future
+future: <Task finished name='preparation-thread' coro=<to_thread() done, defined at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py:12> exception=AttributeError("'LocalRoute' object has no attribute 'admit_client'")>
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 149, in <lambda>
+    service = await self.preparation.run_thread(lambda: self.service)
+                                                        ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 82, in service
+    return self.require(RouteSelection.capture())
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 93, in require
+    acquisition.enter_context(selected.route.admit_client())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LocalRoute' object has no attribute 'admit_client'
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read │
+│ 532-534-retirement325-20261002/lib/python3.14/site-packages/toad/widgets/com │
+│ ms_sidebar.py:482 in on_mount                                                │
+│                                                                              │
+│   479 │                                                                      │
+│   480 │   def on_mount(self) -> None:                                        │
+│   481 │   │   self.projection.mount()                                        │
+│ ❱ 482 │   │   self.observation.mount()                                       │
+│   483 │                                                                      │
+│   484 │   async def on_unmount(self) -> None:                                │
+│   485 │   │   await self.observation.close()                                 │
+│                                                                              │
+│ ╭─────── locals ────────╮                                                    │
+│ │ self = CommsSidebar() │                                                    │
+│ ╰───────────────────────╯                                                    │
+│                                                                              │
+│ /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read │
+│ 532-534-retirement325-20261002/lib/python3.14/site-packages/toad/sidebar_obs │
+│ ervation.py:54 in mount                                                      │
+│                                                                              │
+│    51 │   │   if isinstance(screen, CommsScreen) and not screen.belongs_to_w │
+│    52 │   │   │   self.sidebar.display = False                               │
+│    53 │   │   │   return                                                     │
+│ ❱  54 │   │   service = app.coordination_access.service                      │
+│    55 │   │   self.service = service if root == service.root else wire(root) │
+│    56 │   │   self.sidebar.subscribe_core(app.session_tracker.events)        │
+│    57 │   │   self.sidebar.observe_core(app.events)                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │    app = ToadApp(                                                        │ │
+│ │          │   title='ToadApp',                                            │ │
+│ │          │   classes={                                                   │ │
+│ │          │   │   '-show-sessions-bar',                                   │ │
+│ │          │   │   '-dark-mode',                                           │ │
+│ │          │   │   '-theme-ansi-dark'                                      │ │
+│ │          │   },                                                          │ │
+│ │          │   pseudo_classes={'focus', 'dark', 'ansi', 'nocolor'}         │ │
+│ │          )                                                               │ │
+│ │   root = PosixPath('/home/ts/wt/toad-regression-widget-cost-20261001/.a… │ │
+│ │ screen = WorkspaceScreen(id='workspace')                                 │ │
+│ │   self = <toad.sidebar_observation.SidebarObservation object at          │ │
+│ │          0x7f4f21cb9010>                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read │
+│ 532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root. │
+│ py:82 in service                                                             │
+│                                                                              │
+│    79 │                                                                      │
+│    80 │   @property                                                          │
+│    81 │   def service(self) -> Comms:                                        │
+│ ❱  82 │   │   return self.require(RouteSelection.capture())                  │
+│    83 │                                                                      │
+│    84 │   def require(self, selected: RouteSelection) -> Comms:              │
+│    85 │   │   from agent_comms.comms import wire                             │
+│                                                                              │
+│ ╭─────────────────────────────── locals ───────────────────────────────╮     │
+│ │ self = <toad.comms_root.CoordinationAccess object at 0x7f4f22632270> │     │
+│ ╰──────────────────────────────────────────────────────────────────────╯     │
+│                                                                              │
+│ /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read │
+│ 532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root. │
+│ py:93 in require                                                             │
+│                                                                              │
+│    90 │   │   if observed is not None and observed.selection == selected:    │
+│    91 │   │   │   return observed.service                                    │
+│    92 │   │   with ExitStack() as acquisition:                               │
+│ ❱  93 │   │   │   acquisition.enter_context(selected.route.admit_client())   │
+│    94 │   │   │   service = wire(selected.route)                             │
+│    95 │   │   │   if service.root.resolve() != selected.root or RouteSelecti │
+│    96 │   │   │   │   raise ValueError("Comms route changed while opening th │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ acquisition = <contextlib.ExitStack object at 0x7f4f20fbdf30>            │ │
+│ │    observed = None                                                       │ │
+│ │    selected = RouteSelection(                                            │ │
+│ │               │   route=LocalRoute(                                      │ │
+│ │               │   │                                                      │ │
+│ │               root=PosixPath('/home/ts/wt/toad-regression-widget-cost-2… │ │
+│ │               │   ),                                                     │ │
+│ │               │                                                          │ │
+│ │               root=PosixPath('/home/ts/wt/toad-regression-widget-cost-2… │ │
+│ │               │   implicit=False                                         │ │
+│ │               )                                                          │ │
+│ │        self = <toad.comms_root.CoordinationAccess object at              │ │
+│ │               0x7f4f22632270>                                            │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'LocalRoute' object has no attribute 'admit_client'
+
+NOTE: 1 of 2 errors shown. Run with textual run --dev to see all errors.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/app.py", line 2212, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py", line 77, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/context_usage_pilot.py", line 28, in main
+    view = app.selected_session.conversation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/dom.py", line 1605, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/context_usage_pilot.py", line 75, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/context_usage_pilot.py", line 26, in main
+    async with app.run_test(size=(100, 35)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py", line 76, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/app.py", line 2220, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/message_pump.py", line 644, in _pre_process
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/widgets/comms_sidebar.py", line 482, in on_mount
+    self.observation.mount()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/sidebar_observation.py", line 54, in mount
+    service = app.coordination_access.service
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 82, in service
+    return self.require(RouteSelection.capture())
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad/comms_root.py", line 93, in require
+    acquisition.enter_context(selected.route.admit_client())
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LocalRoute' object has no attribute 'admit_client'

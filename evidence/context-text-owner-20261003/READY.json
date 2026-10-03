@@ -1,0 +1,104 @@
+{
+  "state": "scoped-ready",
+  "head": "9e09b9655cd63bef8de3d0642779cd92cec0380b",
+  "scope": "Original ContextMeasurement owns shared Rich status text. Complete Conversation/Prompt/StatusLine contract consumes it via existing native renderable boundary; availability/provenance/cost decisions are unchanged on original owner.",
+  "production": {
+    "files": 3,
+    "added": 16,
+    "deleted": 14
+  },
+  "source": {
+    "parser": "refactor-audit Package",
+    "production_modules": 287,
+    "test_modules": 391,
+    "parse_omissions": [],
+    "limits": "Lexical references; status and Cost can refer to other owners. Read receivers semantically; no dynamic-resolution claim. Availability/provenance remained on the original ContextMeasurement, no duplication claim for its correctly owned existing decisions."
+  },
+  "installed": {
+    "proof": "installed-source-proof.json",
+    "tracked_files": 318,
+    "mismatches": [],
+    "packages": 69,
+    "pins": {
+      "agent-comms": {
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "12c1758ee4336c1b15732f166e55f333e329a4d0",
+            "requested_revision": "12c1758ee4336c1b15732f166e55f333e329a4d0"
+          }
+        }
+      },
+      "textual": {
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9",
+            "requested_revision": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9"
+          }
+        }
+      },
+      "agent-client-protocol": {
+        "version": "0.12.1",
+        "direct_url": null
+      },
+      "batrachian-toad": {
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/context-text-377/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      }
+    },
+    "core_and_textual_install": "Existing offline cached reviewed Core12c/Textb1 wheels through normal uv pip install, no new builds/environment/native copies. Matches current main dependency pins.",
+    "headless_import": "shared-owner-import-current.log; complete ACP Agent and ContextMeasurement import with no Textual modules",
+    "sanity": "family-sanity-direct.log; existing two test functions invoked directly because normal69 holder has no pytest. Context availability/provenance/cost/percent, mutable output independence and existing deleted-mirror checks passed.",
+    "app": {
+      "script": "tests/context_usage_pilot.py",
+      "log": "installed02.log",
+      "exit": 0,
+      "frame": "installed02/status.svg",
+      "path": "Installed real Toad App/Pilot plus registered ACP session/update, original SDK validation worker/effects/CoreEventStream/native widgets.",
+      "positive": [
+        "usage/cost percentage rendered in StatusLine and native compositor",
+        "tooltip and context label consume original rendered value",
+        "zero sentinel displays unavailable, not known zero percentage",
+        "next valid usage restores percentage",
+        "typed coordination saved measurement displays last response provenance",
+        "detached original source receives new live usage",
+        "same original binding and refresh_native_projection renders latest live measurement after reattachment",
+        "real App shutdown without app exception"
+      ],
+      "limits": "Reattachment uses existing bind_agent and refresh_native_projection explicitly; no automatic physical tab-return claim. Controlled external protocol facts, not a provider/native-issued context update. No physical st/latency/performance/native9f12 compatibility or full-headless-plan claim."
+    }
+  },
+  "negatives": [
+    {
+      "log": "installed01.log",
+      "cause": "Released donor Core7dd lacked LocalRoute.admit_client; stopped App pre-mount, no original input. Existing current reviewed cached Core12c/Textb1 Python wheels installed; no production workaround."
+    },
+    {
+      "log": "family-sanity.log",
+      "cause": "Normal69 graph has no pytest; reused existing test functions directly without adding a dependency."
+    }
+  ],
+  "cleanup": {
+    "owned_attempt_processes": [],
+    "same_uid_processes_checked": 201,
+    "environment_access_gaps": [
+      68488,
+      216738,
+      1561676,
+      1786010,
+      1786012,
+      1953373,
+      3699396
+    ],
+    "scope": "Readable owned attempt markers only; inaccessible process environments are explicitly excluded from a zero-borrower claim. The successful private TemporaryDirectory removed and runner exited; old failure/native/source/evidence untouched."
+  },
+  "remaining": "Broader headless frontend U2/U4/U5 remain open. No new owner class, state, store, converter, rendering framework or duplicated context formatter. Sch529 receiving remains protected."
+}
