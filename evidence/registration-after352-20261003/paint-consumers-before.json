@@ -1,0 +1,185 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "parsed": 249,
+      "python_files": 249
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "parsed": 286,
+      "python_files": 286
+    }
+  ],
+  "sites": [
+    {
+      "file": "textual/_paint_state.py",
+      "line": 12,
+      "name": "PaintState",
+      "kind": "ClassDef"
+    },
+    {
+      "file": "textual/_paint_state.py",
+      "line": 30,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "textual/_paint_state.py",
+      "line": 24,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "textual/_paint_state.py",
+      "line": 13,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "textual/_paint_state.py",
+      "line": 30,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "textual/_paint_state.py",
+      "line": 42,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "textual/dom.py",
+      "line": 1150,
+      "name": "_resolved_paint_state",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "textual/dom.py",
+      "line": 1150,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "textual/dom.py",
+      "line": 1194,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/dom.py",
+      "line": 1271,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/dom.py",
+      "line": 1148,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/dom.py",
+      "line": 1168,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 509,
+      "name": "_visual_style_cache_key",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 510,
+      "name": "_visual_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 4750,
+      "name": "_visual_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 4390,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 4395,
+      "name": "_visual_style_cache_key",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 4396,
+      "name": "_visual_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 681,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "textual/widget.py",
+      "line": 4393,
+      "name": "_visual_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 216,
+      "name": "paint_state",
+      "kind": "Name"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 216,
+      "name": "PaintState",
+      "kind": "Name"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 419,
+      "name": "paint_state",
+      "kind": "Name"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 419,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 429,
+      "name": "paint_state",
+      "kind": "Name"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 227,
+      "name": "paint_state",
+      "kind": "Attribute"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 440,
+      "name": "paint_state",
+      "kind": "Name"
+    },
+    {
+      "file": "toad/widgets/viewport_body.py",
+      "line": 227,
+      "name": "_resolved_paint_state",
+      "kind": "Attribute"
+    }
+  ],
+  "limits": "Static AST attributes identify source sites; dynamic dispatch is resolved by semantic reading, not this list."
+}

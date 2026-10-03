@@ -1,0 +1,11 @@
+{
+  "source": "resource436",
+  "revoked_revision": 10,
+  "monotonic": 474666.646414962,
+  "final_revision": 11,
+  "follows_tail": true,
+  "has_newer": false,
+  "application_exception": "None",
+  "provider_inputs": 0,
+  "boundary": "installed copied original native ACP source, actual End/Home/End keys"
+}

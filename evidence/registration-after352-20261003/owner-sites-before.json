@@ -1,0 +1,1492 @@
+{
+  "roots": [
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "parsed": 249,
+      "python_files": 249
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "parsed": 286,
+      "python_files": 286
+    }
+  ],
+  "sites": [
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 1061,
+      "name": "batch_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3578,
+      "name": "_register_child",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3623,
+      "name": "_register",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3799,
+      "name": "refresh_css",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3658,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 1522,
+      "name": "refresh_css",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 1533,
+      "name": "refresh_css",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 1539,
+      "name": "refresh_css",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 2525,
+      "name": "update_nodes",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 2623,
+      "name": "_register",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 2665,
+      "name": "refresh_css",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 2815,
+      "name": "_register",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3194,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3621,
+      "name": "_post_register",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 2520,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 2616,
+      "name": "refresh_css",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3145,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3192,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3431,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3669,
+      "name": "_register_child",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3671,
+      "name": "_register",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3439,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/app.py",
+      "line": 3449,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 674,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 738,
+      "name": "_post_register",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1879,
+      "name": "update_node_styles",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1939,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 135,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1795,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1904,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1922,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/dom.py",
+      "line": 1863,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/filter.py",
+      "line": 40,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/filter.py",
+      "line": 80,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/filter.py",
+      "line": 105,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/filter.py",
+      "line": 192,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/filter.py",
+      "line": 264,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/screen.py",
+      "line": 1548,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/strip.py",
+      "line": 475,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 1856,
+      "name": "_post_register",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 4927,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 830,
+      "name": "_post_register",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 831,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 1561,
+      "name": "_register",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 1808,
+      "name": "update_nodes",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 4306,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 4931,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 4630,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 4791,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 1572,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widget.py",
+      "line": 1576,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 740,
+      "name": "batch_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 979,
+      "name": "batch_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1009,
+      "name": "_refresh",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1535,
+      "name": "batch_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1007,
+      "name": "_refresh",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1536,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 1022,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/styles.py",
+      "line": 994,
+      "name": "_refresh",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 575,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 829,
+      "name": "replace_rules",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 1002,
+      "name": "update_nodes",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 1010,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 905,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 944,
+      "name": "update_nodes",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 1000,
+      "name": "update_nodes",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 754,
+      "name": "replace_rules",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 844,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 656,
+      "name": "replace_rules",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 677,
+      "name": "replace_rules",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/css/stylesheet.py",
+      "line": 815,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/renderables/text_opacity.py",
+      "line": 129,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/renderables/text_opacity.py",
+      "line": 94,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_content_switcher.py",
+      "line": 74,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_content_switcher.py",
+      "line": 94,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_content_switcher.py",
+      "line": 127,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_data_table.py",
+      "line": 1123,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_data_table.py",
+      "line": 1124,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_log.py",
+      "line": 95,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_log.py",
+      "line": 97,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_markdown.py",
+      "line": 922,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_markdown.py",
+      "line": 926,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_markdown.py",
+      "line": 1537,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_markdown.py",
+      "line": 1460,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_option_list.py",
+      "line": 708,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_option_list.py",
+      "line": 710,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_rich_log.py",
+      "line": 128,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_rich_log.py",
+      "line": 129,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_text_area.py",
+      "line": 816,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_text_area.py",
+      "line": 818,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_tree.py",
+      "line": 1467,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual/widgets/_tree.py",
+      "line": 1468,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "line": 483,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "line": 602,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "line": 491,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/app.py",
+      "line": 611,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 67,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 83,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 103,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 116,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 131,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 139,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 152,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 168,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 118,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 187,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/application_actions.py",
+      "line": 181,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/catalog_actions.py",
+      "line": 30,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/catalog_actions.py",
+      "line": 93,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/command_catalog.py",
+      "line": 51,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_actions.py",
+      "line": 25,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_actions.py",
+      "line": 38,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_actions.py",
+      "line": 51,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_actions.py",
+      "line": 66,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/conversation_actions.py",
+      "line": 83,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 87,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 92,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 97,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/directory_watcher.py",
+      "line": 176,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 37,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 44,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 69,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 87,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 100,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 120,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/goal_interaction.py",
+      "line": 170,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/mcp_commands.py",
+      "line": 46,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/mcp_decision.py",
+      "line": 85,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/mounted_message_history.py",
+      "line": 172,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/preferences.py",
+      "line": 335,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/prompt_actions.py",
+      "line": 17,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/prompt_actions.py",
+      "line": 29,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/prompt_actions.py",
+      "line": 43,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_actions.py",
+      "line": 36,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_actions.py",
+      "line": 45,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_actions.py",
+      "line": 58,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_actions.py",
+      "line": 94,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/question_actions.py",
+      "line": 99,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/settings.py",
+      "line": 164,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 18,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 27,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 35,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 43,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 55,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 65,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 82,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_layout.py",
+      "line": 158,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 124,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 111,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_navigation.py",
+      "line": 85,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/sidebar_projection.py",
+      "line": 169,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 108,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 121,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 142,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 196,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 219,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 236,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 247,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 274,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 294,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 303,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 323,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/slash_command.py",
+      "line": 347,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/target_commands.py",
+      "line": 203,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/target_commands.py",
+      "line": 347,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/target_commands.py",
+      "line": 348,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 141,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 153,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 187,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 196,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 204,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 245,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/thread_actions.py",
+      "line": 90,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 459,
+      "name": "theme_changed",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/tool_output.py",
+      "line": 418,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_source_preparation.py",
+      "line": 171,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_state.py",
+      "line": 120,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_state.py",
+      "line": 124,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/transcript_state.py",
+      "line": 141,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widget_actions.py",
+      "line": 31,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 262,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 278,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 385,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 495,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 514,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 529,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 546,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 570,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 591,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 604,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 615,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 650,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 665,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 666,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 501,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 1512,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/ansi/_ansi.py",
+      "line": 1509,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 19,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 27,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 39,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 49,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 58,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 67,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 78,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 86,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/core/session_requests.py",
+      "line": 97,
+      "name": "apply",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/agent_modal.py",
+      "line": 104,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/agent_modal.py",
+      "line": 101,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/comms.py",
+      "line": 210,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/permissions.py",
+      "line": 130,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "line": 153,
+      "name": "update_node_styles",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "line": 154,
+      "name": "update_node_styles",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "line": 220,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/screens/workspace.py",
+      "line": 315,
+      "name": "update_nodes",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_chat.py",
+      "line": 276,
+      "name": "_refresh",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_chat.py",
+      "line": 168,
+      "name": "_refresh",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_chat.py",
+      "line": 173,
+      "name": "_refresh",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_chat.py",
+      "line": 482,
+      "name": "_refresh",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_sidebar.py",
+      "line": 120,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_transfer.py",
+      "line": 48,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_transfer.py",
+      "line": 69,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_transfer.py",
+      "line": 92,
+      "name": "apply",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/comms_transfer.py",
+      "line": 118,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/goal_bar.py",
+      "line": 109,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/goal_bar.py",
+      "line": 110,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/highlighted_textarea.py",
+      "line": 89,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/highlighted_textarea.py",
+      "line": 91,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/mandelbrot.py",
+      "line": 195,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/mandelbrot.py",
+      "line": 197,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/prompt.py",
+      "line": 204,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/side_bar.py",
+      "line": 871,
+      "name": "apply",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/terminal.py",
+      "line": 141,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/terminal.py",
+      "line": 144,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/thread_comms.py",
+      "line": 385,
+      "name": "_refresh",
+      "kind": "AsyncFunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/thread_comms.py",
+      "line": 383,
+      "name": "_refresh",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/thread_comms.py",
+      "line": 405,
+      "name": "batch_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 217,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 197,
+      "name": "theme_changed",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 218,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_call.py",
+      "line": 219,
+      "name": "theme_changed",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_content.py",
+      "line": 177,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/tool_content.py",
+      "line": 178,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 322,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/viewport_body.py",
+      "line": 323,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/worker_static.py",
+      "line": 78,
+      "name": "notify_style_update",
+      "kind": "FunctionDef"
+    },
+    {
+      "file": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad/widgets/worker_static.py",
+      "line": 79,
+      "name": "notify_style_update",
+      "kind": "Attribute"
+    }
+  ]
+}

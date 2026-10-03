@@ -1,0 +1,129 @@
+# Remaining registration and scrolling work
+
+Continue the full performance scope from merged352 through existing Window,
+FramePresentation, viewport/preparation and native registration/style owners.
+Original35506 identifies synchronous App._register -> Stylesheet.apply during IRC
+page mounting after detached category prematching was deleted. Read all native
+registration, style damage, mount and preparation consumers; eliminate repeated
+work through existing owners without a CSS bypass, second cache, scheduler or
+semantic mirror. Pure detached preparation uses existing renderer processes;
+widget attachment and mutation remain on the application thread.
+
+Preserve35506 and352 original movies, profiles and failed receipts. Source first,
+one batched affected sanity and changed installed saved-history/channel motion
+and profile journey last. No unchanged capture or deadline padding. Ready is a
+scoped working checkpoint, not144Hz or overall CPU acceptance.
+
+All unfinished CPU/raster/firstpaint/cold/warm/runway/velocity/growingEnd/void/
+focus/busy/sidebar/animation/TC1/T9/T4 scope remains active. Target configurable
+144Hz (6.944ms/frame), actual input responsiveness; delivery timestamps and
+recording FPS do not establish smoothness. Reuse existing checkouts and holder.
+
+## Current owner-to-paint correction
+
+Installed01 failed: the DTO selects session-1 with native-editor focus, but the
+A-return pixels still show #openhcs. All26 retained bodies become not-ready,
+8 visible, and the original frame is Pending. Native damage still contains the
+whole screen; no lost-damage or source-identity bypass is justified. Preserve
+the raw movie/profile/receipt at the path in installed01-negative.json.
+
+PaintState owns inherited paint values AND resolver dependency lineage. Those
+are different questions: an ancestor display edit changes lineage without
+changing colors, opacity or text style. Its same_paint method now answers the
+paint question for RenderedBody and native Widget.visual_style. Dependency
+resolution retains the original parent/style-key/epoch checks. The unused
+visual-style counter is deleted. All three body implementations inherit this
+retained resource behavior; own style, width, source, stream custody and final
+disposal remain invalidating. Source native72 checks and the existing body
+family experiment passed. Actual changed installed return remains required;
+this draft is not Ready and has no speed/smoothness claim.
+
+## Changed installed02
+
+Normal69 Corecc56/native044 +To ad1617 +Text809c exact-source candidate, in
+the same holder, completed filming50.666s; raw journey failed
+channel_messages_published. All26 retained native bodies stay ready and
+reconciliation finishes on A return, so the false dependency invalidation is
+closed. Physical A-return PNG still shows B, with native A appearing later in
+Undo/native-return. PNG precedes metadata/export and writer events; this is
+a delayed replacement, not proof of a stale Presented frame. Original timed
+profile has channel page mount/register/style activity before the writer.
+Keep this as a negative physical-return qualification, not Ready or a gain.
+Warm/start and return PNGs were viewed during active clients; no moving-frame
+inspection or smoothness acceptance is claimed. All owned clients closed,
+cleanup empty, original owner unchanged. No unchanged recapture.
+
+Same original02 movie at33.2s was subsequently viewed by Kepler and shows
+native A, its saved body and retained draft. The A-return PNG predates the
+writer which first replaces B. Thus no persistent stale Presented scene or
+lost-damage defect is demonstrated by that PNG/metadata pair. The measured
+click-finish to next-writer gap is about1.789s. Existing profile observations
+in that gap include page mount, App registration and stylesheet application;
+those observations do not allocate CPU duration. Source suspension already
+parks and generation-revokes history before cancel/join; an already admitted
+native mount can still finish in that lifetime. No new hidden-view guard or
+compositor invalidation copy is justified. Delayed replacement remains an
+active performance gap; original01/02 raw failures are preserved.
+
+
+## Compiled CSS owner checkpoint (changed04)
+
+Text33 5c996dc2a makes Styles.replace_rules the sole compiled replacement
+algorithm; Stylesheet static and mixed-transition callers delegate to it.
+Original setters/animation retain immediate epochs. Transient detached Styles
+normalizes before commit, then the same live rule dictionary publishes once.
+The property family has one post-commit hook for display/pointer/overflow/bar
+effects; no persistent shadow Styles/revision/cache. 106 production lines added,
+90 deleted;113 focused final checks passed. Kepler read complete Animator and
+revision consumers without finding a blocking semantic mismatch.
+
+Normal main d387 union is aa0ce7ee; exact comparator Core483/Native044, Text5c996
+is installed/source-assets-native-trust verified in the existing69 holder.
+It is NOT current default370/Core568. Original04 filmed51.093s and failed only
+channel_messages_published (coldB loaded_pages0 at one-second snapshot). All18
+other lifetime checks passed, including ready native return/draft/Undo/End.
+A-return PNG personally viewed DURING actual recorder/UI lifetime paints native A.
+Consecutive draft/return-a sheets inspected AFTER; no held-scroll or smoothness
+claim. Original source owner unchanged/cleanup empty. Raw03 admission failure
+and04 failure are preserved.
+
+Click-command finish→next native writer1.753561s vs prior1.789s does not establish
+a speedup. Wholecapture writer280/unmatched0, GIL771/errors0, approximate clock
+uncertainty±0.075s. Complete changed stacks show ongoing synchronous pager
+registration/composition and CSS cache-hit descriptor preparation BEFORE selection;
+late selection rematches components and arrangement still follows. Worker source
+snapshot decoding is concurrent. Neither stack counts nor spans prove CPU
+dominance. Remaining whole foreground/firstpaint/CPU/raster/runway/growingEnd/
+void/focus/sidebar/animation/TC1T9T4 scope stays active, no unchanged recording.
+
+## Final scoped qualification (current descriptor family)
+
+Text1cf32afe9 / Toad65a7c638 are qualified for this retained-paint/styles
+checkpoint. Existing StyleProperty owns native class/bound access across all20
+property getters; class-specific normalization follows the live MRO. Reflective
+getattr_static lookup is deleted. StylesBuilder no longer writes undeclared
+auto_* fields. Styles.replace_rules remains the single compiled commit owner;
+immediate setter/animation epochs and actual node effects are preserved.
+
+Normal-main union13169632 includes Einstein369/371 imports and theme ownership.
+The same normal69 installed holder has exact source/assets/direct_url/native
+trust and pipcheck, with Core483 as declared comparator, not current default.
+Final native checks114 plus parser73 pass. Installed actual ToadApp/native
+compositor checks pass source/style/resize, all3 retained body reentries with
+nonblank original lines and no rebuild, real interaction, inflight stream
+custody and final disposal. No source overlay, public input or new environment.
+The pilot's historical source-only label does not describe this installed
+invocation; it remains a bounded App resource check, not physical41MB acceptance.
+
+AST parsed249 Textual and287 Toad modules with0 omissions and195 selected
+sites; dynamic dispatch is not proven by a static reference census. Native
+MRO owns descriptor selection. Current production diff vs main: Text376 added/
+301 deleted, Toad6 added/3 deleted. Before/after consumer files are retained.
+
+Original04 film qualifies earlier5c compiled-paint bytes at its18 passing
+lifetime predicates; coldB remains a raw failure. Final1cf/65a bytes are
+qualified by the exact installed App resource check, not a new film. No overall
+CPU/speed/smoothness or terminal-exit0 claim; original errors stay unchanged.
+The next substantive source lead is eager pager registration/child composition
+and descriptor normalization before tab selection. Full remaining scope above
+stays active. Details: scoped-ready-current.json.
