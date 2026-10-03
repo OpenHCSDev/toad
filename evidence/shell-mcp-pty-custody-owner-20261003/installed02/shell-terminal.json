@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "script": "tests/blank_presentation_pilot.py",
+  "installed_source_head": "742083719237dd61ecf3b404678e4a7b6d832e3e",
+  "driver_head": "33730a8f",
+  "provider_calls": 0,
+  "scope": "actualApp/PTY retainedshell/click/directory/editor/retirement; notphysicalst or fullperformance"
+}

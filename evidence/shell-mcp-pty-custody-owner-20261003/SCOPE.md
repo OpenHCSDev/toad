@@ -82,3 +82,21 @@ App.call_later(set_focus); the old threaded os.write happened to yield first.
 Corrected the original fixture to await its native callback through pilot.pause
 before the unchanged focus assertion. No production change or injected focus.
 Raw shell01 failure is retained; its owned children are absent.
+
+## Actual installed checkpoint
+
+Same released style22 holder, normal 69-package frozen recipe, authentic VCS
+metadata and 928 byte-equal source assets. Native2b unchanged/full trusted.
+Retained-shell App/PTY02, real native-package MCP full decision family and
+registered ACP streaming-terminal13-projection journey all passed. Owned
+processes absent; terminal PTY masters0→0. Three consumer journeys exercise
+the one changed acquisition; no source overlays or protocol/state mocks.
+
+Raw shell01 negative preserved; only original native-focus fixture timing was
+corrected. MCP crossed its existing100s diagnostic threshold and completed
+under its125s test bound; traceback retained, no latency claim. Actual shell
+paint exposes the shared ChildCommand -m double-execution runpy warning.
+Arendt owns the original decoder/argv closure in Core590; no stderr filter.
+Pair final readiness awaits that concrete producer correction and its affected
+installed shell check, not a repeat of the unchanged MCP or ACP journeys.
+No physical-st/native-owner/provider/public-default/full-headless claim.

@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "script": "tests/blank_presentation_pilot.py",
+  "actual_installed_prefix": "runtime-native-style22-20261002",
+  "provider_calls": 0,
+  "scope": "actual retained shell/App/PTY/click/directory/editor/retirement; not physicalst or fullUI performance"
+}
