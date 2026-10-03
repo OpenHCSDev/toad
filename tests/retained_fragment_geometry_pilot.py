@@ -284,8 +284,8 @@ async def main():
                     assert not member.retained_paint_bytes
                     assert member._body_measurement.worker is writer
                     assert member.body_requires_geometry and member.is_container
-                    scene.reflow(app.screen, app.size,
-                                 retain_geometry=viewport.geometry_targets())
+                    scene.reflow_visible(app.screen, app.size,
+                                         retain_geometry=viewport.geometry_targets())
                     assert member in scene._visible_map
                 finally:
                     release.set()

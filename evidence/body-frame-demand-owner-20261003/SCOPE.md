@@ -84,3 +84,18 @@ motion/profile remain pending the explicit406 style22 CODE handback. This
 is a real package borrower; independent source/check work has continued.
 No new motion/CPU/input-to-paint or 144Hz claim. Previous407 originals and
 all unfinished performance requirements remain retained.
+
+406 CODE handback received and archived; same holder now normally installs
+Toad e02f76c67 +Text48 3efcc03803, retaining returned Core dbcf3ae4/native89.
+All928 original package/assets bytes and Git provenance match; original339
+Core files unchanged; normal69 pip check passed. No new environment/native
+copy/public package change. Installer resolved changed Git sources in127s,
+then built in0.534s; no package-lock blockage was found.
+
+Existing native three-body resource check completed: captured rows/reentry,
+source/style/resize/disposal and pending uncaptured geometry across fragment,
+prepared Markdown and streaming Markdown passed. First authored assertion
+used full reflow then read the deliberately-cleared visible map; preserved
+native-body01.log/partial01.json. Corrected that check to original visible
+reflow (no production change); native-body02 completed. Resource test values
+are not scrolling latency or installed physical motion acceptance.
