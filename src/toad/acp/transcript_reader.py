@@ -49,8 +49,11 @@ class TranscriptReadDelivery(ABC):
     @abstractmethod
     async def deliver(self, work: NativeTranscriptReadWork) -> TranscriptPage: ...
 
-    def with_runtime(self, runtime: PreparationRuntime) -> TranscriptReadDelivery:
-        return PreparedTranscriptReadDelivery(runtime)
+    async def service(self, root):
+        return await asyncio.to_thread(wire, root)
+
+    def with_runtime(self, runtime: PreparationRuntime, access) -> TranscriptReadDelivery:
+        return PreparedTranscriptReadDelivery(runtime, access)
 
 
 class DirectTranscriptReadDelivery(TranscriptReadDelivery):
@@ -63,44 +66,45 @@ class DirectTranscriptReadDelivery(TranscriptReadDelivery):
 class PreparedTranscriptReadDelivery(TranscriptReadDelivery):
     """Use the application's existing globally bounded worker/cache owner."""
 
-    def __init__(self, runtime: PreparationRuntime):
+    def __init__(self, runtime: PreparationRuntime, access):
         self.runtime = runtime
+        self.access = access
 
     async def deliver(self, work):
         return await self.runtime.submit(work)
 
-    def with_runtime(self, runtime):
-        return self if self.runtime is runtime else super().with_runtime(runtime)
+    async def service(self, root):
+        shared = self.access.observed_service
+        if shared is not None and shared.root == Path(root).expanduser():
+            return shared
+        return await super().service(root)
+
+    def with_runtime(self, runtime, access):
+        return (self if self.runtime is runtime and self.access is access
+                else super().with_runtime(runtime, access))
 
 
 class CoordinationTranscriptReader:
     """One read-side Comms service, shared by transcript/status/owner requests."""
 
-    def __init__(self, controller):
-        self.controller = controller
+    def __init__(self):
         self._reader = None
-        self._root = None
         self._lock = asyncio.Lock()
         self.delivery: TranscriptReadDelivery = DirectTranscriptReadDelivery()
 
-    def prepare_with(self, runtime: PreparationRuntime) -> None:
-        delivery = self.delivery.with_runtime(runtime)
+    def prepare_with(self, runtime: PreparationRuntime, access) -> None:
+        delivery = self.delivery.with_runtime(runtime, access)
         if delivery is not self.delivery:
             self.delivery = delivery
             # First application attachment adopts its canonical shared Comms
             # service. Ordinary tab returns keep that same service and budget.
-            self._reader = self._root = None
+            self._reader = None
 
     @asynccontextmanager
     async def bind(self, root: str):
         async with self._lock:
-            if self._reader is None or self._root != root:
-                from toad.app import ToadApp
-                app = self.controller.app
-                shared = app.coordination_access.observed_service if isinstance(app, ToadApp) else None
-                self._reader = (shared if shared is not None and shared.root == Path(root).expanduser()
-                                else await asyncio.to_thread(wire, root))
-                self._root = root
+            if self._reader is None or self._reader.root != Path(root).expanduser():
+                self._reader = await self.delivery.service(root)
             reader = self._reader
         # The lock owns service initialization/replacement, not projections.
         # Each caller retains this exact root service; its canonical stores own

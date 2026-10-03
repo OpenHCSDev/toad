@@ -63,7 +63,7 @@ async def main():
         started = asyncio.Event()
 
         async def start(agent, target):
-            agent.attach_surface(target)
+            target.bind_agent(agent)
             attach_coordination(agent, str(root / "wire"), "child")
             page = await agent.get_transcript_page()
             await target.transcript.snapshot(page)

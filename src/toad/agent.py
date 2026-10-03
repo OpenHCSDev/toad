@@ -6,7 +6,6 @@ from pathlib import Path
 from agent_comms.thread_presentation import ThreadPresentation
 from toad.core.events import CoreEventStream
 
-from textual.content import Content
 
 
 class AgentBase(ABC):
@@ -25,8 +24,8 @@ class AgentBase(ABC):
     def current_turn(self):
         return NoTurn()
 
-    def attach_surface(self, surface):
-        pass
+    def attach_surface(self, binding):
+        binding.close()
 
     async def retire_surface(self, surface):
         await self.stop()
@@ -71,8 +70,8 @@ class AgentBase(ABC):
             name: New name for the session.
         """
 
-    def get_info(self) -> Content:
-        return Content("")
+    def get_info(self) -> str:
+        return ""
 
     async def stop(self) -> None:
         """Stop the agent (gracefully exit the process)"""

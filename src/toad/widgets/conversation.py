@@ -372,6 +372,11 @@ This is a view of your conversation with the agent.
 
 
 class ConversationSessionBinding(containers.Vertical):
+    def bind_agent(self, agent: AgentBase) -> None:
+        from toad.agent_surface import AttachedSurfaceBinding
+
+        AttachedSurfaceBinding(self, agent.events).bind_agent(agent)
+
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
     @abstractmethod
@@ -583,7 +588,8 @@ class ConversationSessionBinding(containers.Vertical):
                     self._session_pk,
                 )
                 self._native_agent_started_here = True
-                await self.agent.start(self)
+                self.bind_agent(self.agent)
+                await self.agent.start()
                 self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
 
             from toad.screens.workspace import WorkspaceScreen
@@ -1588,7 +1594,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.agent_info = Content(model.name + suffix)
         else:
             self.agent_info = (
-                self.agent.get_info() if self.agent is not None else Content()
+                Content(self.agent.get_info()) if self.agent is not None else Content()
             )
 
     @handles(input_events.HistoryMove)
@@ -1789,7 +1795,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.
         if agent is not None:
-            agent.attach_surface(self)
+            self.bind_agent(agent)
         attachments = (agent.presentation.attachments if agent is not None
                        else AgentAttachmentView(None, 0))
         self.native_history_status = attachments.cursor
