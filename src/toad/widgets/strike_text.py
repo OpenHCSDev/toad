@@ -29,6 +29,13 @@ class StrikeText(Widget):
         self.content = content
         super().__init__(name=name, id=id, classes=classes)
 
+    def complete(self, *, animated: bool = False) -> None:
+        """Own native completion paint and schedule animation after layout."""
+        if animated:
+            self.call_after_refresh(self.strike)
+        else:
+            self.add_class("-complete")
+
     def strike(self) -> None:
         self.strike_time = monotonic()
         self.auto_refresh = 1 / 30

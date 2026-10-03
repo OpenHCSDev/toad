@@ -8,6 +8,7 @@ from textual.widgets import Static
 
 from toad.block_navigation import ConversationBlock
 from toad.plan import PlanItem, PlanStatus
+from toad.widgets.strike_text import StrikeText
 
 
 class NonSelectableStatic(Static):
@@ -79,4 +80,10 @@ class Plan(ConversationBlock, containers.Grid):
             yield Static("No plan yet", classes="-no-plan")
             return
         for entry in self.entries:
-            yield from entry.status.compose(self, entry, self.previous_statuses.get(entry.content))
+            status = entry.status
+            classes = f"priority-{entry.priority} status-{status.declared_name}"
+            yield NonSelectableStatic(Content(status.marker()), classes=f"status {classes}")
+            yield (text := StrikeText(Content(entry.content), classes=f"plan {classes}"))
+            if status.complete:
+                previous = self.previous_statuses.get(entry.content)
+                text.complete(animated=previous is not None and not previous.complete)

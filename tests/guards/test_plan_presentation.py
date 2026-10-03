@@ -4,7 +4,6 @@ import asyncio
 from importlib.resources import files
 from pathlib import Path
 
-from textual.content import Content
 from toad.plan import PlanItem, PlanStatus
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,7 +42,7 @@ def test_new_status_owns_installed_rendering_without_consumer_edits(tmp_path, mo
     class ReviewingPlanStatus(PlanStatus):
         @classmethod
         def marker(cls):
-            return Content(" R ")
+            return " R "
 
     class InstalledApp(ToadApp):
         CSS_PATH = files("toad").joinpath("toad.tcss")
@@ -56,7 +55,7 @@ def test_new_status_owns_installed_rendering_without_consumer_edits(tmp_path, mo
     async def run():
         app = InstalledApp(project_dir=str(tmp_path))
         async with app.run_test(size=(100, 32)) as pilot:
-            plan = Plan([PlanItem(Content("DECLARED_REVIEWING_PLAN"), "medium", ReviewingPlanStatus)])
+            plan = Plan([PlanItem("DECLARED_REVIEWING_PLAN", "medium", ReviewingPlanStatus)])
             await app.selected_session.conversation.post(plan)
             plan.scroll_visible(animate=False, immediate=True)
             await until(pilot, lambda: plan in app.screen._compositor.visible_widgets)
