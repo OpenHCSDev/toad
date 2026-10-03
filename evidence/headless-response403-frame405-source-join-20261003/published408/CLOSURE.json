@@ -1,0 +1,177 @@
+{
+  "state": "408 PUBLICATION_AND_SCOPED_DEFAULT_ACCEPTANCE_ARCHIVED",
+  "merged_pr": "https://github.com/OpenHCSDev/toad/pull/408",
+  "merge_commit": "8840d35ce8364f2b1c2cbbeac3c90ef6aa76be76",
+  "qualified_ready_head": "fa104c67319d27e84806e98e719cdff258c6bda1",
+  "ready_sha256": "b24637c66eb044d821263390cd96d8db34cf3058b517a64b0efdb25e1397d7bb",
+  "original_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "raw_publication_sha256": "e031d9705514fceaf53ebeaaf05de7ab1de379c5e29ad4688be5742ba3603b00",
+  "publisher_duration_seconds": 45.903764486312866,
+  "owner_count": 19,
+  "all_same_births": true,
+  "all_settings_equal_except_process": true,
+  "all_new_process_identities_alive_at_original_readback": true,
+  "five_links": {
+    "agent-comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "target_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "default_scope": "Published408 Core599/Toad403405407/Text47 native89; ordinary default saved-helper startup; no new input, model reply or smoothness claim",
+  "default_duration_seconds": 23.70520684600342,
+  "default_terminal_returncode": 0,
+  "recorder_returncode": 255,
+  "runtime_and_original_owner_unchanged_at_original_capture": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2468054,
+        "start_ticks": 54071915,
+        "returncode": 0
+      },
+      {
+        "pid": 2468251,
+        "start_ticks": 54072144,
+        "returncode": 0
+      },
+      {
+        "pid": 2468253,
+        "start_ticks": 54072162,
+        "returncode": 0
+      },
+      {
+        "pid": 2468254,
+        "start_ticks": 54072169,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2468260,
+        "start_ticks": 54072260,
+        "returncode": 0
+      },
+      {
+        "pid": 2468261,
+        "start_ticks": 54072274,
+        "returncode": 0
+      },
+      {
+        "pid": 2468262,
+        "start_ticks": 54072286,
+        "returncode": 0
+      },
+      {
+        "pid": 2468263,
+        "start_ticks": 54072303,
+        "returncode": 255
+      },
+      {
+        "pid": 2468576,
+        "start_ticks": 54073505,
+        "returncode": 0
+      },
+      {
+        "pid": 2468581,
+        "start_ticks": 54073533,
+        "returncode": 0
+      },
+      {
+        "pid": 2468586,
+        "start_ticks": 54073577,
+        "returncode": 0
+      },
+      {
+        "pid": 2469927,
+        "start_ticks": 54074607,
+        "returncode": 0
+      },
+      {
+        "pid": 2470044,
+        "start_ticks": 54074638,
+        "returncode": 0
+      },
+      {
+        "pid": 2470157,
+        "start_ticks": 54074734,
+        "returncode": 0
+      },
+      {
+        "pid": 2470170,
+        "start_ticks": 54074932,
+        "returncode": 0
+      },
+      {
+        "pid": 2470310,
+        "start_ticks": 54075182,
+        "returncode": 0
+      }
+    ]
+  },
+  "review_scope": "Parent personally viewed after.png AFTER terminal; Sch read original assessment/receipts only. No DURING/motion claim. No new input/provider or wholecompaction/fullU2/S4/smoothness acceptance.",
+  "capture_path": "/home/ts/.cache/agent-scratch/published408-helper-default-20261003/capture",
+  "original_artifacts": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/new-publication40340546/publication-receipt.json",
+      "archive_member": "publication-receipt.json",
+      "sha256": "e031d9705514fceaf53ebeaaf05de7ab1de379c5e29ad4688be5742ba3603b00",
+      "bytes": 39748
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/headless-response403-frame405-receiving-20261003/new-publication40340546/publication-identity-closure.json",
+      "archive_member": "publication-identity-closure.json",
+      "sha256": "2cf29015c618940274f30bff367263bcc342895364e236479ed71f0c0da95ac2",
+      "bytes": 18440
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published408-20261003/operator-original.log",
+      "archive_member": "operator-original.log",
+      "sha256": "4362dad3162e99d9ef84d963e62cf249792dbdfaf56c2351f3fa4a25231a9cea",
+      "bytes": 70
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published408-20261003/readback-original.json",
+      "archive_member": "parent-readback-original.json",
+      "sha256": "c85ae4728629ad90b13be3b8a9d7c1fe3b0e3df2d962c06ffa3fd263c467ce84",
+      "bytes": 1072
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published408-20261003/default-acceptance.json",
+      "archive_member": "parent-default-acceptance.json",
+      "sha256": "46d365818e9b74048059df164bad210aa49ff39b934d5be9553fbf64f0fedefb",
+      "bytes": 1135
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published408-20261003/default-capture-original.log",
+      "archive_member": "default-capture-original.log",
+      "sha256": "742947a868f9e0e7b1a384a8277f71c208e267926d95137a0129e6036523715d",
+      "bytes": 183
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published408-helper-default-20261003/capture/receipt.json",
+      "archive_member": "default-capture-receipt.json",
+      "sha256": "5455cb3540232502b2be87399940c89323c59838082ff0e4feb9d1615c0853c2",
+      "bytes": 29784
+    }
+  ],
+  "screenshots_movie_retained_at_original_paths": {
+    "after.png": "5143c75511674d7335dc4b11f1064b182fd73492ad1b820b6eba0a271d432f42",
+    "video": "54d3beaa252f5f3b9c040170d5577b22a69c027dd71fccd09e6621e36c295574"
+  },
+  "publication_repeated": false,
+  "readback_repeated": false,
+  "ui_or_provider_repeated": false,
+  "raw_receipts_rewritten": false,
+  "live_485_package_immutable": true,
+  "fallback_334_and_534_held": true,
+  "native89_and603_f3dd_keeper_held": true
+}

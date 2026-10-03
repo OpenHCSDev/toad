@@ -1,0 +1,16 @@
+{
+  "source_pins": {
+    "core": "db620680bf6f52133157209b2a7b557eaef988a1",
+    "textual": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27"
+  },
+  "qualified_toad409": "c5be9b1af379329c6559c9f1c5735a05d4899b80",
+  "normal_existing_lock_packages": 99,
+  "qualified_dependency_graph_unchanged": true,
+  "changes": "Only declaredCore source revision bindings; accepted409 alreadyselectsText48. No resolver/sourceclone needed for unchangeddependency metadata.",
+  "installer": "Changed reviewedfilewheels only into grantedexisting334; unchangedinstalleddeps retained.",
+  "core_wheel": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+  "core_wheel_sha256": "2b2e46758fc0f7244c71cc802009433879cde0c67ef02fc264fce9218550ffdb",
+  "package_writes": false,
+  "provider_calls": 0,
+  "new_environment": false
+}

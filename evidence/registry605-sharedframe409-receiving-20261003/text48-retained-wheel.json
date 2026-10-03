@@ -1,0 +1,13 @@
+{
+  "wheel": "/home/ts/.cache/uv/sdists-v9/git/62f7f81f0cec9b83/3efcc03803400c10/textual-8.2.8-py3-none-any.whl",
+  "sha256": "517ad82a4ae1f7d6a5670276dc4ab8772e928dc2e03f7475b143460465157e96",
+  "bytes": 768258,
+  "source_build_head": "3efcc03803400c10ee60199331869d899a0fcc71",
+  "merged_source_equal_head": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "production_tree": "98cc8b7b1fb14fbfec3fbda7e244779e4b007173",
+  "assets_equal_to_original_installed_inventory": 266,
+  "original_inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body409-strip48-20261003/textual-inventory.json",
+  "original_install_log": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body409-strip48-20261003/install.log",
+  "original_source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body409-strip48-20261003/source-proof.json",
+  "claim": "Retained original409 normal Text48 wheel; Sch may reuse file artifact. Keeper held against cleanup through receiving and publication. No build/clone/env/capture or package writes."
+}

@@ -1,0 +1,374 @@
+{
+  "state": "SCOPED_INSTALLED normal605/409/410/Text48 source/archive/native assembly",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "db620680bf6f52133157209b2a7b557eaef988a1",
+      "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms",
+      "files": 339,
+      "python_files": 311,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "inventory_sha256": "b8683c691c53b4833e5e78be61c180de83cc31aa0c1715b1e19c7f0e56dcecda"
+    },
+    {
+      "module": "toad",
+      "head": "268a3b395f2b915be572df39c7dfd6ec48f22d84",
+      "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+      "files": 319,
+      "python_files": 288,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/registry605-sharedframe409-receiving-20261003/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "inventory_sha256": "c9509c6f5677e71dcddfc8df47fa62c5978a79584118ba9e9f88a4def4ab3ff1"
+    },
+    {
+      "module": "textual",
+      "head": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+      "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "file:///home/ts/.cache/uv/sdists-v9/git/62f7f81f0cec9b83/3efcc03803400c10/textual-8.2.8-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "inventory_sha256": "5c828433d5e2094811fb1be7605989cd7dcd0071e6d8d89de5a7156766e148d5"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual_diff_view",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "native_tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+  "native_full_trust": true,
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "packages": [
+    [
+      "Jinja2",
+      "3.1.6"
+    ],
+    [
+      "MarkupSafe",
+      "3.0.3"
+    ],
+    [
+      "Pygments",
+      "2.21.0"
+    ],
+    [
+      "agent-client-protocol",
+      "0.12.1"
+    ],
+    [
+      "agent-comms",
+      "0.1.0"
+    ],
+    [
+      "aiohappyeyeballs",
+      "2.7.1"
+    ],
+    [
+      "aiohttp",
+      "3.14.3"
+    ],
+    [
+      "aiohttp-jinja2",
+      "1.6"
+    ],
+    [
+      "aiosignal",
+      "1.4.0"
+    ],
+    [
+      "aiosqlite",
+      "0.22.1"
+    ],
+    [
+      "annotated-types",
+      "0.8.0"
+    ],
+    [
+      "anyio",
+      "4.14.2"
+    ],
+    [
+      "attrs",
+      "26.1.0"
+    ],
+    [
+      "bashlex",
+      "0.18"
+    ],
+    [
+      "batrachian-toad",
+      "0.6.20"
+    ],
+    [
+      "certifi",
+      "2026.7.22"
+    ],
+    [
+      "click",
+      "8.4.0"
+    ],
+    [
+      "format-currency",
+      "0.0.10"
+    ],
+    [
+      "frozenlist",
+      "1.8.0"
+    ],
+    [
+      "h11",
+      "0.16.0"
+    ],
+    [
+      "httpcore",
+      "1.0.9"
+    ],
+    [
+      "httpx",
+      "0.28.1"
+    ],
+    [
+      "idna",
+      "3.20"
+    ],
+    [
+      "jeepney",
+      "0.9.0"
+    ],
+    [
+      "linkify-it-py",
+      "2.2.0"
+    ],
+    [
+      "loguru",
+      "0.6.0"
+    ],
+    [
+      "markdown-it-py",
+      "4.2.0"
+    ],
+    [
+      "mdit-py-plugins",
+      "0.6.1"
+    ],
+    [
+      "mdurl",
+      "0.1.2"
+    ],
+    [
+      "metaclass-registry",
+      "0.2.1"
+    ],
+    [
+      "multidict",
+      "6.9.1"
+    ],
+    [
+      "nominal-refactor-audit",
+      "0.1.0"
+    ],
+    [
+      "notify_py",
+      "0.3.43"
+    ],
+    [
+      "packaging",
+      "26.2"
+    ],
+    [
+      "pathspec",
+      "1.1.1"
+    ],
+    [
+      "platformdirs",
+      "4.9.6"
+    ],
+    [
+      "propcache",
+      "0.5.4"
+    ],
+    [
+      "psutil",
+      "7.2.2"
+    ],
+    [
+      "pydantic",
+      "2.13.5"
+    ],
+    [
+      "pydantic_core",
+      "2.46.5"
+    ],
+    [
+      "pyperclip",
+      "1.11.0"
+    ],
+    [
+      "rich",
+      "15.0.0"
+    ],
+    [
+      "setproctitle",
+      "1.3.7"
+    ],
+    [
+      "textual",
+      "8.2.8"
+    ],
+    [
+      "textual-diff-view",
+      "0.1.5"
+    ],
+    [
+      "textual-serve",
+      "1.1.3"
+    ],
+    [
+      "textual-speedups",
+      "0.2.1"
+    ],
+    [
+      "tree-sitter",
+      "0.26.0"
+    ],
+    [
+      "tree-sitter-bash",
+      "0.25.1"
+    ],
+    [
+      "tree-sitter-css",
+      "0.25.0"
+    ],
+    [
+      "tree-sitter-go",
+      "0.25.0"
+    ],
+    [
+      "tree-sitter-html",
+      "0.23.2"
+    ],
+    [
+      "tree-sitter-java",
+      "0.23.5"
+    ],
+    [
+      "tree-sitter-javascript",
+      "0.25.0"
+    ],
+    [
+      "tree-sitter-json",
+      "0.24.8"
+    ],
+    [
+      "tree-sitter-markdown",
+      "0.5.1"
+    ],
+    [
+      "tree-sitter-python",
+      "0.25.0"
+    ],
+    [
+      "tree-sitter-regex",
+      "0.25.0"
+    ],
+    [
+      "tree-sitter-rust",
+      "0.24.2"
+    ],
+    [
+      "tree-sitter-sql",
+      "0.3.11"
+    ],
+    [
+      "tree-sitter-toml",
+      "0.7.0"
+    ],
+    [
+      "tree-sitter-xml",
+      "0.7.0"
+    ],
+    [
+      "tree-sitter-yaml",
+      "0.7.2"
+    ],
+    [
+      "typeguard",
+      "4.5.2"
+    ],
+    [
+      "typing-inspection",
+      "0.4.4"
+    ],
+    [
+      "typing_extensions",
+      "4.15.0"
+    ],
+    [
+      "watchdog",
+      "6.0.0"
+    ],
+    [
+      "xdg-base-dirs",
+      "6.0.3"
+    ],
+    [
+      "yarl",
+      "1.25.1"
+    ]
+  ],
+  "requirements_sha256": "48a7f2b9ebe07bce10388a4e0766c5d32f85b0a4fff952dda0e779e0d1408923",
+  "protected_old_prefix_files": 2876,
+  "protected_old_prefix_files_unchanged": true,
+  "public_install_changed": false,
+  "new_native_build": false,
+  "source_overlay": false,
+  "dependency_bypass": false,
+  "archive_artifacts": [
+    {
+      "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/registry605-receiving-20261003/core605-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "2b2e46758fc0f7244c71cc802009433879cde0c67ef02fc264fce9218550ffdb"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/registry605-sharedframe409-receiving-20261003/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "15dd28386c9f98a4b44c97fab36af467d60c79b1a7dc62c9e2f2cebd2324ea6b"
+    },
+    {
+      "path": "/home/ts/.cache/uv/sdists-v9/git/62f7f81f0cec9b83/3efcc03803400c10/textual-8.2.8-py3-none-any.whl",
+      "sha256": "517ad82a4ae1f7d6a5670276dc4ab8772e928dc2e03f7475b143460465157e96"
+    }
+  ],
+  "journey_owners": [
+    "605 original registry/CLI installed boundary",
+    "409/Text48 original saved-history motion/input/resource journey",
+    "410 original settingsApp and headless preference journey"
+  ],
+  "journey_assessment": "Original qualified affected journeys retained; exact merged source inventory and original file-wheel/native origins passed. No App/film/provider repetitions. Ordinary default installed assembly acceptance remains parent-owned after publication."
+}
