@@ -1,0 +1,64 @@
+{
+  "owned_fixture_prefixes": [
+    "/home/ts/wt/u356e02",
+    "/home/ts/wt/u356e03",
+    "/home/ts/wt/u356e04"
+  ],
+  "readable_matching_processes": [],
+  "same_uid_inaccessible_processes": [
+    1786010,
+    1786012,
+    3699396
+  ],
+  "excluded_cleanup_observer_ancestry": [
+    1,
+    1608316,
+    1608326,
+    2221730,
+    3826415
+  ],
+  "other_uid_processes_outside_owned_scope": true,
+  "parent_public_owners_not_stopped": true,
+  "negative02_and_positive03_retained": true,
+  "original_registry_owner_observations": [
+    {
+      "root": "/home/ts/wt/u356e02/private-root/wire",
+      "owners": [
+        {
+          "name": "beta",
+          "declared_process_alive": false
+        },
+        {
+          "name": "user",
+          "declared_process_alive": false
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/wt/u356e03/private-root/wire",
+      "owners": [
+        {
+          "name": "beta",
+          "declared_process_alive": false
+        },
+        {
+          "name": "user",
+          "declared_process_alive": false
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/wt/u356e04/private-root/wire",
+      "owners": [
+        {
+          "name": "beta",
+          "declared_process_alive": false
+        },
+        {
+          "name": "user",
+          "declared_process_alive": false
+        }
+      ]
+    }
+  ]
+}

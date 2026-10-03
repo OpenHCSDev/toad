@@ -50,6 +50,9 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def prepare_terminal(self, state) -> None:
         """A detached terminal keeps its original model's configured geometry."""
 
+    async def present_permission(self, request, view) -> None:
+        """An absent frontend never acquires a permission projection."""
+
     def schedule_terminal_presentation(self, controller):
         controller.start_terminal_presentation(self.target)
 

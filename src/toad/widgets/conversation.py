@@ -1606,7 +1606,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @work
     async def request_permissions(self, request) -> None:
-        await request.presentation.present(self, request)
+        await request.controller.agent.controller.surface.present_permission(request, self)
 
     def ask(
         self,
