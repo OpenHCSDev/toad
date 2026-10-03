@@ -232,7 +232,7 @@ class TranscriptBodyPreparation(MroDispatch):
     async def markdown(self, event: MarkdownTranscript) -> None:
         from toad.render_tasks import MarkdownRenderTask
 
-        await self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))
+        await self.renderer.prepare(MarkdownRenderTask(event.text, self.ansi, self.dark))
 
 
 @dataclass(frozen=True)

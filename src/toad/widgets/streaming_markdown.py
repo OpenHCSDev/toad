@@ -53,7 +53,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     async def prepare_body(self) -> None:
         if self.uses_paged_source(self.source):
             from toad.widgets.transcript_fragments import TranscriptRenderTask
-            await self.app.render_processes.submit(
+            await self.app.render_processes.prepare(
                 TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),), continuation=True),
             )
         else:

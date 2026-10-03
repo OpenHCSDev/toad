@@ -272,6 +272,16 @@ class PreparationRuntime:
         self._changed.set()
 
     async def submit(self, work: PreparationWork[ResultT]) -> ResultT:
+        key, result = await self._prepare(work)
+        return cast(ResultT, await self._deliver(key, result))
+
+    async def prepare(self, work: PreparationWork[ResultT]) -> None:
+        """Warm the original bounded resource without copying an unused result."""
+        await self._prepare(work)
+
+    async def _prepare(
+        self, work: PreparationWork[ResultT],
+    ) -> tuple[WorkKey, PreparedValue[ResultT]]:
         if self._closed:
             raise asyncio.CancelledError
         key = await work.identity(self)
@@ -281,7 +291,7 @@ class PreparationRuntime:
             if cached := self._ready.get(key):
                 self._ready.move_to_end(key)
                 self.hits += 1
-                return cast(ResultT, await self._deliver(key, cached[0]))
+                return key, cached[0]
             if pending := self._pending.get(key):
                 self.shared += 1
                 break
@@ -303,7 +313,9 @@ class PreparationRuntime:
             self._changed.clear()
             await self._changed.wait()
         result = await asyncio.shield(pending)
-        return cast(ResultT, await self._deliver(key, result))
+        if self._closed or key.scope is not None and key.scope.closed:
+            raise asyncio.CancelledError
+        return key, result
 
     async def _deliver(self, key: WorkKey, result: PreparedValue[ResultT]) -> ResultT:
         """Validate at the final delivery boundary, including the worker-copy await."""
@@ -355,6 +367,9 @@ class PreparedRenderer(Renderer):
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         return await self.runtime.submit(RenderPreparation(task))
+
+    async def prepare(self, task: RenderTask[ResultT]) -> None:
+        await self.runtime.prepare(RenderPreparation(task))
 
     async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
         await self.runtime.renderer.warm_up(project=project, ansi=ansi, dark=dark)

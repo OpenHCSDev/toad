@@ -76,6 +76,15 @@ class RendererSpawn(ABC):
             resource_tracker.ensure_running()
 
 class Renderer(RendererSpawn):
+    async def prepare(self, task: RenderTask[ResultT]) -> None:
+        """Warm a task; retained clients need no consumer delivery copy.
+
+        A renderer without retained resources still owns execution and result
+        validation through submit. PreparedRenderer supplies the bounded
+        preparation lifetime while foreground consumers continue to submit.
+        """
+        await self.submit(task)
+
     async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
         """Optional off-loop preparation after the application presents its UI."""
 

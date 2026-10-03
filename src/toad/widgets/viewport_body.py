@@ -42,6 +42,10 @@ class ViewportBody:
     def body_ready(self) -> bool:
         raise NotImplementedError
 
+    @property
+    def body_requires_geometry(self) -> bool:
+        raise NotImplementedError
+
     def retire_body(self) -> Coroutine[None, None, bool]:
         raise NotImplementedError
 
@@ -130,6 +134,10 @@ class BodyMeasurement(ABC):
     def paint_ready(self, body) -> bool:
         """A measured extent or mutable native tree is not captured paint."""
         return False
+
+    def requires_geometry(self, body) -> bool:
+        """Settled native content needs its box; retained extent does not."""
+        return not self.dormant
 
     def publication_prepared(self, worker, paint):
         return self
@@ -262,6 +270,11 @@ class MaterializingBody(BodyMeasurement):
 
     def paint_ready(self, body):
         return self.previous.paint_ready(body)
+
+    def requires_geometry(self, body):
+        # Pending work without preceding pixels still lays out native children.
+        # Dormancy describes interaction, not that writer's layout demand.
+        return not self.paint_ready(body)
 
     def publication_prepared(self, worker, paint):
         # A later writer may already own this body while joining our worker.
@@ -415,6 +428,10 @@ class MeasuredViewportBody(ViewportBody):
     @property
     def body_ready(self):
         return self._body_measurement.ready(self)
+
+    @property
+    def body_requires_geometry(self):
+        return self._body_measurement.requires_geometry(self)
 
     @property
     def is_container(self):
@@ -857,7 +874,7 @@ class DocumentViewport:
 
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Native controls retain their box until their body captures its rows."""
-        return tuple(owner for owner in self.owners if not owner.body_dormant)
+        return tuple(owner for owner in self.owners if owner.body_requires_geometry)
 
     @property
     def materialized_widget_count(self) -> int:

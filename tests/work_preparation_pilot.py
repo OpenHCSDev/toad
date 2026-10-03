@@ -4,13 +4,14 @@ import asyncio
 from dataclasses import dataclass
 import threading
 from typing import ClassVar
+from unittest.mock import patch
 
 from agent_comms.transcript_events import AssistantTranscript
 from toad.render_backend import Renderer
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.work_preparation import (
-    ContentAddressedWork, PreparationRuntime, PreparedRenderer, ReusableWork, ThreadWork,
+    ContentAddressedWork, PreparationRuntime, PreparedRenderer, ReusableWork, SerializedValue, ThreadWork,
 )
 
 
@@ -96,6 +97,28 @@ async def main():
     await renderer.submit(TranscriptRenderTask((AssistantTranscript('other text'),)))
     release.set()
     assert await following == {"rows": ["queued"]}
+
+    # Runway warming owns the same retained worker result, without delivering
+    # an independent token graph that no foreground consumer asked to use.
+    warm = MarkdownRenderTask("retained warm body", False, False)
+    copies = 0
+    materialize = SerializedValue.materialize
+
+    def delivered(value):
+        nonlocal copies
+        copies += 1
+        return materialize(value)
+
+    calls = backend.calls
+    with patch.object(SerializedValue, "materialize", delivered):
+        await renderer.prepare(warm)
+        await renderer.prepare(warm)
+        assert backend.calls == calls + 1 and copies == 0
+        a, b = await asyncio.gather(renderer.submit(warm), renderer.submit(warm))
+        assert backend.calls == calls + 1 and copies == 2
+        a.tokens[0].content = "consumer mutation"
+        assert b.tokens[0].content != "consumer mutation"
+
     await asyncio.gather(runtime.aclose(), renderer.aclose())
     assert backend.closes == 1 and not runtime._pending and not runtime._thread_tasks
     print("shared work: polymorphic policies, cross-consumer reuse, safe copies, revision/eviction, independent lanes, cancellation and one shutdown OK")
