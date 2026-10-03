@@ -13,7 +13,7 @@ from textual import widgets
 import toad
 from textual.binding import Binding
 from toad.agent_schema import AgentDefinition, OS
-from toad.catalog_actions import LaunchAction
+from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
 from toad.app import ToadApp
 
@@ -44,7 +44,7 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
         app = self.app
         launcher_set = frozenset(app.settings.launcher.agents.splitlines())
         agent = self.agent
-        operations = [command.bind(name)
+        operations = [CatalogCommandAction.bind(name, command)
                       for name, command in agent.commands_for(cast(OS, toad.os)).items()]
         choices = [*operations, LaunchAction(agent)]
 

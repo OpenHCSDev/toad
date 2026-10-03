@@ -1133,6 +1133,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         import shlex
         from textual.geometry import Offset
         from toad.agent_schema import Command
+        from toad.catalog_actions import CatalogCommandAction
         from toad.screens.action_modal import ActionModal
         from toad.widgets.comms_menu import ContextMenu
 
@@ -1165,7 +1166,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 command = command + (" " + shlex.join(arguments) if arguments else "")
                 code = await self.app.push_screen_wait(
                     ActionModal(
-                        Command(method.name, command).bind("login"),
+                        CatalogCommandAction.bind("login", Command(method.name, command)),
                         agent.definition,
                         command,
                         env=method.env or {},

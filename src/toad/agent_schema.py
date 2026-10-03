@@ -16,18 +16,6 @@ class AgentKind(DeclaredFamily, affix='AgentKind'):
     def section(cls):
         return cls
 
-    @classmethod
-    def compose(cls, agents):
-        from textual import containers, widgets
-        from toad.screens.store import AgentGridSelect, AgentItem
-        if not agents:
-            return
-        yield widgets.Static(f'[$text-warning u]{cls.heading}[/] [$text-secondary i]{cls.description}', classes='heading')
-        with containers.VerticalGroup():
-            with AgentGridSelect(classes='agents-picker', min_column_width=40):
-                for agent in agents:
-                    yield AgentItem(agent)
-
 
 class ChatAgentKind(AgentKind):
     @classmethod
@@ -62,20 +50,6 @@ class Command:
     description: str
     command: str
     bootstrap_uv: bool = False
-
-    def bind(self, name: str):
-        """Bind this original record to a native catalog operation."""
-        from toad.catalog_actions import CatalogCommandAction, RunAction
-        try:
-            # External catalog IDs permit hyphens as well as underscores.
-            # Keep the original ID on the bound operation; only this lookup
-            # uses the declaration's native snake-case spelling.
-            operation = CatalogCommandAction.decode(name.replace('-', '_'))
-        except ValueError:
-            # Configured command IDs are open: arbitrary scripts have ordinary
-            # completion behavior, not an implicit installation/login policy.
-            operation = RunAction
-        return operation(name, self)
 
 
 @dataclass(frozen=True)
