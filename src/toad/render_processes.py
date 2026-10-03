@@ -100,7 +100,7 @@ class RenderProcessPool(Renderer):
 
     async def submit(self, task: "RenderTask[Result]") -> Result:
         """Submit a typed rendering operation to the persistent app-owned pool."""
-        return await self.run(task.execute)
+        return await task.complete(self.run(task.execute))
 
     async def aclose(self) -> None:
         """Asynchronously join this pool; safe to call concurrently or repeatedly."""

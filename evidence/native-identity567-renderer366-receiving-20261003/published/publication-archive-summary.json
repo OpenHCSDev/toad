@@ -1,0 +1,233 @@
+{
+  "state": "Published367; original19 identity readback and parent actual while-open physical acceptance complete",
+  "original_receipt_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publication_receipt_sha256": "ce2a1d902b516170b90ff0b2f27122f81e364600b311360ae49f43a82d239dd8",
+  "publisher_duration_seconds": 43.317291498184204,
+  "owner_count": 19,
+  "all_same_thread_births": true,
+  "all_new_process_identities_alive": true,
+  "all_settings_equal_except_process": true,
+  "target_prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "five_links": {
+    "agent-comms": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "no_carry_reset_or_original_input_replay": true,
+  "readback_repeated": false,
+  "receipt_rewritten": false,
+  "public_changes_by_archive": 0,
+  "current520_and_previous290_protected": true,
+  "physical_acceptance": {
+    "state": "PASS actual default configured reply with already-open chat; parent personally viewed after image",
+    "input_sequence": 501,
+    "reply_seconds": [
+      15.680846691131592
+    ],
+    "post_reply_capture_seconds": [
+      49.8431601524353
+    ],
+    "visible": [
+      "distinct inbound501",
+      "fresh outbound Here.",
+      "chat Ready",
+      "sidebar Ready",
+      "activity bar absent"
+    ],
+    "capture_completed": true,
+    "terminal_exit": {
+      "pid": 2454085,
+      "start_ticks": 48085986,
+      "returncode": 0
+    },
+    "owned_cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 2454072,
+          "start_ticks": 48085776,
+          "returncode": 0
+        },
+        {
+          "pid": 2454083,
+          "start_ticks": 48085978,
+          "returncode": 0
+        },
+        {
+          "pid": 2454085,
+          "start_ticks": 48085986,
+          "returncode": 0
+        },
+        {
+          "pid": 2454086,
+          "start_ticks": 48085992,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 2454100,
+          "start_ticks": 48086064,
+          "returncode": 0
+        },
+        {
+          "pid": 2454101,
+          "start_ticks": 48086077,
+          "returncode": 0
+        },
+        {
+          "pid": 2454102,
+          "start_ticks": 48086089,
+          "returncode": 0
+        },
+        {
+          "pid": 2454103,
+          "start_ticks": 48086103,
+          "returncode": 255
+        },
+        {
+          "pid": 2454783,
+          "start_ticks": 48087305,
+          "returncode": 0
+        },
+        {
+          "pid": 2454924,
+          "start_ticks": 48087333,
+          "returncode": 0
+        },
+        {
+          "pid": 2454929,
+          "start_ticks": 48087370,
+          "returncode": 0
+        },
+        {
+          "pid": 2456577,
+          "start_ticks": 48093907,
+          "returncode": 0
+        },
+        {
+          "pid": 2456591,
+          "start_ticks": 48093940,
+          "returncode": 0
+        },
+        {
+          "pid": 2456596,
+          "start_ticks": 48094024,
+          "returncode": 0
+        },
+        {
+          "pid": 2456597,
+          "start_ticks": 48094206,
+          "returncode": 0
+        },
+        {
+          "pid": 2456762,
+          "start_ticks": 48094434,
+          "returncode": 0
+        }
+      ]
+    },
+    "same_original_process": true,
+    "runtime_unchanged": true,
+    "after_png_sha256": "1d1ab36761692b1926376a39aa9b8acd1e1ad230d8c86035caace36de847ccfb",
+    "scope": "Default installed entrypoint and configured saved DM while-open delivery/status. No channel-wide, typed-input queue, compaction speed or motion acceptance. Earlier499 confirmed completed and not replayed; capture01 only delivery/Finishing observation."
+  },
+  "files": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/new-publication567366/publication-receipt.json",
+      "archive": "publication-receipt.json",
+      "sha256": "ce2a1d902b516170b90ff0b2f27122f81e364600b311360ae49f43a82d239dd8",
+      "bytes": 37935
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/new-publication567366/publication-identity-closure.json",
+      "archive": "publication-identity-closure.json",
+      "sha256": "aadfd7c041f00fb0b4dc38daeb173b4db6a9e6f6afad4264aa6faba105a0fd86",
+      "bytes": 18579
+    }
+  ],
+  "physical_originals": [
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/acceptance-readback.json",
+      "archive": "acceptance-readback.json",
+      "sha256": "9e44893bdd7508de80b0211c93e8ed26bccb0d6ea68f79146f3ab6022fd96907",
+      "bytes": 1073
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/acceptance-readback02.json",
+      "archive": "acceptance-readback02.json",
+      "sha256": "62f6fe773d2278ae57f470e86407a5384cd32ff76c8c12c1c793fd83278fbd43",
+      "bytes": 3223
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/physical-assessment01.json",
+      "archive": "physical-assessment01.json",
+      "sha256": "c6483d56c0b3a880425bfeda12b39797ddd53454d5634280c2a94b6c028b2b23",
+      "bytes": 479
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/physical-assessment02.json",
+      "archive": "physical-assessment02.json",
+      "sha256": "5a8346da9a879d62041743a08f149239d31404ae9c4612d43d013d767a461eab",
+      "bytes": 2759
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/intent.json",
+      "archive": "intent.json",
+      "sha256": "33c30412504a5c9bfdf06f18abb0bd850a346936cf126a0d9888e67d8b2b64fe",
+      "bytes": 364
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/intent02.json",
+      "archive": "intent02.json",
+      "sha256": "c86084f912c8c4e195bcb506b05338210a3c0d4ffb048d6998a1c356fc621c6e",
+      "bytes": 354
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/send-attempt.json",
+      "archive": "send-attempt.json",
+      "sha256": "37a565e7f8daa3869a9883cf72058c04a4d0fa800f258fe1111f185da621ff13",
+      "bytes": 74
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/send-attempt02.json",
+      "archive": "send-attempt02.json",
+      "sha256": "799ea25fa37bfb734ac47c00fde2e89b0e0b7128e372640cacee63b6a5a306bd",
+      "bytes": 76
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/receipt.json",
+      "archive": "receipt.json",
+      "sha256": "25dd4278015e166f556c09c5885c26c98d8b45f65d296d9053b69df565670b0c",
+      "bytes": 838
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published567366-20261003/receipt02.json",
+      "archive": "receipt02.json",
+      "sha256": "e85ae9485a1132ac6d12db9cf715a8b476f46f3e739d0820ba9285ef612feb1e",
+      "bytes": 855
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published567366-helper-while-open-20261003/capture/receipt.json",
+      "archive": "default-capture01-receipt.json",
+      "sha256": "f30d47940f9a974be425e95b40f9fe0595385abc7fc8ef7604f0816e6cff6a62",
+      "bytes": 30994
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published567366-helper-while-open-20261003-02/capture/receipt.json",
+      "archive": "default-capture02-receipt.json",
+      "sha256": "29162f4af7d7b99eed58db9de7f0cc252dfe74992a518455c16028a8e18628ca",
+      "bytes": 31024
+    }
+  ],
+  "original_capture01_scope": "Original499\u2192500 delivered17.181s; after image only1.063s after reply showed Finishing. Preserved negative timing scope; no retry/replay and no claim of visible completion from that capture.",
+  "remaining": "Provider/compaction duration, channel fanout latency and full performance/S2/S4 remain unfinished"
+}

@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "pins": {
+    "agent_comms": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+    "toad": "3e1bdeaa7017da9a4c03dce7049b51683f3bc67f",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "state": "362 import-only fix matched; Einstein affected App check pending",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/published-turn-status362-install-20261003/import-fix03/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "native_tree": "7bf47002b579908fc556548c19451b925afd688606954ad485180a49da5c133d",
+  "native_configuration_note": "Released former485 codeholder; Bohr original source/activation/native proofs archived and privileged borrowers clear. Current302/529rollback/sessions/UNKNOWN/native unchanged. No new environment/provider/public mutation."
+}

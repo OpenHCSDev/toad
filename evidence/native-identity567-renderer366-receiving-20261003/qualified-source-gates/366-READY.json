@@ -1,0 +1,58 @@
+{
+  "state": "Scoped merge-ready",
+  "head_before_evidence": "504e240f708a11d68355a870ec081410561f6f18",
+  "pr": 366,
+  "tested_production_source": "6cd95232104adbbad4720c3faf9c482e2a9d1aa6",
+  "normal_main_integrated": "e73e4511b",
+  "production_equal_tested": true,
+  "production_added": 44,
+  "production_deleted": 23,
+  "production_files": [
+    "src/toad/acp/agent_controller.py",
+    "src/toad/render_backend.py",
+    "src/toad/render_processes.py",
+    "src/toad/render_protocol.py",
+    "src/toad/render_zmq.py",
+    "src/toad/work_preparation.py"
+  ],
+  "new_classes": 0,
+  "new_worktrees": 0,
+  "new_environments": 0,
+  "provider_calls": 0,
+  "public_changes": 0,
+  "installed_worker_receipt": "installed01-receipt.json",
+  "worker_elapsed": 5.25327228900278,
+  "installed_application": "installed-app03-terminal.txt: two actual installed Toad applications shared the same persistent renderer and completed Markdown, patch, file preview and Read output",
+  "family_sanity": "installed-families-terminal.txt: four passed",
+  "delivery_lifetime_sanity": "source-delivery-terminal.txt: source retirement/shutdown delivery checks passed",
+  "source_proof_sha256": "fcd6f737f33111bbcf26ddc94ee7526e9a28ce7e64c1f5e08964d8f74227cc11",
+  "installed_source_files_equal": 317,
+  "private_holder": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "dependency_scope": "Existing 69 distributions preserved; five declared optional persistent-renderer packages installed under existing lock constraints. All 74 installed dependencies checked compatible. Original holder/362 proof archived by Sch and Bohr. Source tests are labeled source; installed tests use no PYTHONPATH overlay.",
+  "native_scope": "No native process input or rebuild; donor de166 untouched. This renderer qualification is not an additional native044 or provider acceptance.",
+  "removed": [
+    "RenderPreparation nullable reusable_inputs identity/retention/storage decisions",
+    "persistent client independent declared-task membership predicate",
+    "persistent reply independent task result acceptance"
+  ],
+  "owners": [
+    "RenderExecution.complete -> concrete task accept_result",
+    "RenderTask/ReusableRenderTask -> original fresh/content identity",
+    "PreparationWork/SerializedWork -> retained representation and materialization",
+    "TaskCapture -> exact declared membership",
+    "CompleteReply -> acknowledgement/cancellation; raw value handoff",
+    "original renderer pool/runtime -> actual bounded work and close custody"
+  ],
+  "negative_attempts": {
+    "source-families-terminal.txt": "Missing declared optional dependency before execution",
+    "normal-install-terminal.txt": "Generated constraints accidentally included both lock anyio versions; resolution refused before writes",
+    "normal-install02-terminal.txt": "Combined graph needed explicit URL dependency declaration; resolution refused before writes; original frozen dependencies then preserved and normal wheel installed",
+    "installed-app01-terminal.txt": "Incomplete handcrafted embedded-resource fixture omitted the SDK-required URI and did not reveal the tool after a tall body. Canonical tool_result_content producer plus actual reveal replaced it; original raw runtime state was not retained, so no sole dynamic cause claim.",
+    "installed-app02-terminal.txt": "Per-App test wrapper retired shared daemon, invalidating the reattach premise; original real App and outer fixture cleanup fix its lifetime"
+  },
+  "remaining_scope": [
+    "No latency, frame speed, physical pixel, native/provider or complete U2/U4/U5 claim.",
+    "Existing transcript_fragments/patch_diff native dependency imports remain for subsequent same-context U2 source work; Heisenberg leaf/viewport claims remain protected."
+  ],
+  "ci": "deferred"
+}

@@ -1,0 +1,15 @@
+{
+  "observed_at": 1791003071.6395822,
+  "scope": "Default installed toad-comms, plain st, isolated display761, chat remained open across ONE distinct configured-provider input497 and reply498",
+  "physical_assessment": "Parent personally inspected after.png: new inbound and Here outbound readable; Session details Ready, sidebar Ready, activity bar absent",
+  "canonical_assessment": "Original497 Responded/notbusy; actual reply498,19.0339s after commit",
+  "after_capture_seconds_after_reply": 30.535801887512207,
+  "queue_commit_seconds": 2.5806620121002197,
+  "reply_seconds": 19.03391981124878,
+  "recording01": "Retained; original495 succeeded but recording ended before496 reply, insufficient settlement observation; no replay",
+  "recording02": "Actual complete78.9105s, st0, original native owner unchanged, runtime unchanged, no owned process leftovers",
+  "remaining": "~19s reply latency, compaction/provider duration, full channel batching latency, scrolling and remaining headless scope still unfinished",
+  "source": "Corecc56/Toad3ed/Text940/native044; receiver365 merged e73e",
+  "raw_readback_sha256": "6af02d4d7804a86e780bece25392b4f5f17e1d000cbfb29c61f3e3dc146a7f77",
+  "after_image_sha256": "1d7b71d9b2e410938f57097b06de104239a6a94a52f4c9e97c4f6df9383b554e"
+}

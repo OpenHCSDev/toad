@@ -12,9 +12,6 @@ from uuid import UUID
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldRepresentation
 from toad.render_backend import RenderTask
-# Native transport loads its declared operation members at the boundary.
-import toad.render_tasks
-import toad.acp.sdk_boundary
 
 if TYPE_CHECKING:
     from toad.render_service import RenderService
@@ -211,7 +208,7 @@ class CompleteReply(RequestReply):
 
     async def advance(self, submission, client):
         await client.acknowledge(submission)
-        submission.result.set_result(submission.task.accept_result(self.result.value))
+        submission.result.set_result(self.result.value)
         return None
 
 

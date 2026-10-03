@@ -1,0 +1,5 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001
+error: Failed to resolve dependencies for package `agent-comms==0.1.0`
+  cause: Package `nominal-refactor-audit` was included as a URL dependency. URL dependencies must be expressed as direct requirements or constraints. Consider adding `nominal-refactor-audit @ git+https://github.com/OpenHCSDev/NominalRefactorAdvisor.git@d392c5e4cd189ce1203127a746337ad498a0330d#subdirectory=skills/refactor-audit` to your dependencies or constraints file.
+
+hint: `agent-comms` (v0.1.0) was included because `batrachian-toad` (v0.6.20) depends on `agent-comms`

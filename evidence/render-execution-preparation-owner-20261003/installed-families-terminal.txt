@@ -1,0 +1,10 @@
+test_category_capabilities_and_new_member (render_families_pilot.RenderingFamilyTests.test_category_capabilities_and_new_member) ... ok
+test_commands_and_replies_round_trip (render_families_pilot.RenderingFamilyTests.test_commands_and_replies_round_trip) ... ok
+test_each_reply_owns_its_transition_and_new_member (render_families_pilot.RenderingFamilyTests.test_each_reply_owns_its_transition_and_new_member) ... ok
+test_real_service_new_task_retention_isolation_and_release (render_families_pilot.RenderingFamilyTests.test_real_service_new_task_retention_isolation_and_release) ... Executing <Task finished name='Task-15' coro=<RenderingFamilyTests.test_real_service_new_task_retention_isolation_and_release() done, defined at /home/ts/wt/toad-regression-widget-cost-20261001/tests/render_families_pilot.py:168> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.416 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.161s
+
+OK
