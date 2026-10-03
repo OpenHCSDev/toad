@@ -1,0 +1,254 @@
+{
+  "state": "ready-scoped-model-projection-lifetime",
+  "head": "ae7995eeec41a0193be22371ea00289035e80cdb",
+  "tested_production_head": "ae7995eeec41a0193be22371ea00289035e80cdb",
+  "production": {
+    "files": 4,
+    "added": 48,
+    "deleted": 41,
+    "new_types": 0
+  },
+  "owner": "Existing TerminalState/Buffer/TerminalMode own model damage; TerminalExecution owns one model and acquired operation with replaceable weak view; AttachedSurfaceBinding reuses/reconnects that original resource.",
+  "deleted_decisions": [
+    "Discarding TerminalState.write damage in tool execution",
+    "Full-paint substitution on every tool output chunk",
+    "Same-widget return without restoring original execution projection"
+  ],
+  "before_ast": "before-owner-consumers.json",
+  "after_ast": "after-owner-consumers.json",
+  "parse_omissions": [],
+  "ast_limits": "Lexical references require semantic receiver reading; no dynamic or full dependency-package resolution claim.",
+  "installed_source": {
+    "head": "ae7995eeec41a0193be22371ea00289035e80cdb",
+    "tracked_assets": 318,
+    "mismatches": [],
+    "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+    "pins": {
+      "agent-comms": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "d3ed99d5773528a2ff061205260f15712de10d09",
+          "requested_revision": "d3ed99d5773528a2ff061205260f15712de10d09"
+        }
+      },
+      "textual": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "4d2388f12d2d5aa4891920a527141c2b475dd28c",
+          "requested_revision": "4d2388f12d2d5aa4891920a527141c2b475dd28c"
+        }
+      },
+      "batrachian-toad": {
+        "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      },
+      "agent-client-protocol": null
+    },
+    "distributions": 69
+  },
+  "sanity": "sanity.json",
+  "installed": {
+    "result": "pass",
+    "projections": "installed05/projections.json",
+    "provider_calls": 0,
+    "remaining_pty_masters": [],
+    "initial_pty_masters": [],
+    "log": "installed05.log",
+    "script": "tests/native_terminal_retention_pilot.py --damage-only",
+    "path": "Installed App/Pilot + registered ACP + real child/PTY; observer invokes original projection; no provider or native-Pi calls.",
+    "verified": [
+      "original finite damage and unrelated visible body",
+      "cursor and alternate-screen full damage",
+      "detached original model/custody retained",
+      "actual tab click original widget reattachment and subsequent visible output",
+      "clear full damage removes old visible body",
+      "cursor-to-end truncation changes visible body to AFTER",
+      "original exit7/error border and final full projection",
+      "PTY child retired and master closed",
+      "final stored blank removal owns full damage and AFTER compositor text remains",
+      "terminal ACP address release and PTY masters0\u21920"
+    ],
+    "frames": [
+      "installed05/stream.svg",
+      "installed05/resumed-stream.svg",
+      "installed05/reattached-completed.svg"
+    ],
+    "visual_limit": "Matched Text37 SVG rasterization still exports black foreground on black background; PNG personally viewed unreadable. Preserve as negative. Compositor text/body assertions pass; no readable physical/exported pixel claim."
+  },
+  "negative": {
+    "log": "installed01.log",
+    "frame": "installed01/stream.svg",
+    "failure": "Final line did not paint after tab return. No per-chunk projection callback after reuse because existing binding returned without original execution.attach. Source gap fixed in same family; failed raw preserved. No original public/native input involved."
+  },
+  "normal_main_integration": {
+    "main": "49e7cadd9",
+    "source_union": "Normal main380 merge preserved all379 source; Core574d3ed/Text37merged4d238/native915/SDK0.12.1/69 on installed334. No other package/default/native writes."
+  },
+  "cleanup": {
+    "owned_attempt_processes": [],
+    "private_fixture": "Original App/Agent finally closed; TemporaryDirectory removed; real child retired, master closed, ACP address released. No native/Pi/provider/public processes created/stopped.334 slot returned Sch immediately at terminal, before receipt formatting."
+  },
+  "limits": [
+    "No physical st/FPS/latency/provider/native-Pi/full-headless claim",
+    "Matched SVG/PNG remains unreadable black on black; body/compositor text verified, not exported color proof",
+    "Original01/03/04 negatives and02 negative pixels preserved"
+  ],
+  "next": "Parent scoped source review/merge; Sch owns receiving/default publication and matched physical qualification.",
+  "buffer_source_checkpoint": "1b62d7f7",
+  "buffer_scope": {
+    "owner": "Existing Buffer",
+    "deleted_in_correction": 35,
+    "added_in_correction": 34,
+    "before": "buffer-before-owner-consumers.json",
+    "after": "buffer-after-owner-consumers.json",
+    "field_search": "buffer-field-search.txt",
+    "foreign_damage_accesses": [],
+    "external_contract": "Original scrollback/alternate pair; None means full repaint, finite sets use folded line coordinates. No new damage type/semantic store.",
+    "remaining": "No model/callback/lifetime acceptance gap; matched receiver readable physical/color qualification remains separate and not claimed."
+  },
+  "installed_source_current": {
+    "head": "fb872754a5cd823d56c92e7199af2eea4b6ac6a6",
+    "tracked_assets": 318,
+    "mismatches": [],
+    "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+    "pins": {
+      "agent-comms": {
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "d3ed99d5773528a2ff061205260f15712de10d09",
+            "requested_revision": "d3ed99d5773528a2ff061205260f15712de10d09"
+          }
+        }
+      },
+      "textual": {
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "5d5f463108132e402073578e9d0625b491a6d792",
+            "requested_revision": "5d5f463108132e402073578e9d0625b491a6d792"
+          }
+        }
+      },
+      "agent-client-protocol": {
+        "version": "0.12.1",
+        "direct_url": null
+      },
+      "batrachian-toad": {
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      }
+    },
+    "distributions": 69,
+    "headless_modules_textual": [],
+    "qualification": "Corrected Buffer source on Sch matched receiver334 Core574/Text36/SDK0.12.1/normal69. Native915 unchanged and not acquired by damage-only App/ACP/PTY path. Original01/02 and black export preserved, no public/default changes."
+  },
+  "current_negative_receipt": "buffer-installed-negative-receipt.json",
+  "historical_installed02": {
+    "head": "f167a3a1ea502d0b1d405b0e8f65bbd0f19d4d49",
+    "tested_production_head": "41c5ea6b5f5148f0a18c8e115d32d4803d3ab748",
+    "installed_source": {
+      "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
+      "tracked_assets": 318,
+      "mismatches": [],
+      "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+      "pins": {
+        "agent-comms": {
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "12c1758ee4336c1b15732f166e55f333e329a4d0",
+              "requested_revision": "12c1758ee4336c1b15732f166e55f333e329a4d0"
+            }
+          }
+        },
+        "textual": {
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9",
+              "requested_revision": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9"
+            }
+          }
+        },
+        "agent-client-protocol": {
+          "version": "0.12.1",
+          "direct_url": null
+        },
+        "batrachian-toad": {
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+            "archive_info": {}
+          }
+        }
+      },
+      "distributions": 69,
+      "headless_modules_textual": [],
+      "qualification": "Installed shared model/execution and real App/ACP/PTY on retained normal69 Core12c/Textb1/SDK0.12.1 baseline; native9f12 not acquired. Normal main376 metadata union introduces no Toad production delta; no new Core/native compatibility claim from this fixture."
+    },
+    "installed": {
+      "script": "tests/native_terminal_retention_pilot.py --damage-only",
+      "log": "installed02.log",
+      "result": "pass",
+      "projections": "installed02/projections.json",
+      "projection_count": 10,
+      "frames": [
+        "installed02/stream.svg",
+        "installed02/reattached-completed.svg"
+      ],
+      "path": "Actual installed App/Pilot, registered ACP callbacks, real PTY/child; recording observer invokes original native projection. No provider/native-Pi substitution claimed.",
+      "verified": [
+        "original per-buffer line damage reaches native projection",
+        "stream overwrite preserves unrelated visible line",
+        "cursor and alternate-screen mode damage",
+        "detached output parses same original model without retained damage copy",
+        "actual tab click returns same widget/model and restores original callback",
+        "new output after return actually paints",
+        "exit7 original completion/error border",
+        "original PTY master closed and child retired, address released"
+      ],
+      "provider_calls": 0,
+      "pty_masters_before": [],
+      "pty_masters_after": [],
+      "visual_limit": "Original compositor text and SVG body text contain REPLACED_BODY/DETACHED_BODY/FINAL_BODY. However SVG foreground exports black on black; the saved rsvg-convert PNG is unreadable and is preserved as a negative artifact, not accepted pixel proof. Old Core12c/Textb1 donor differs from main376 f109/c580; dependency/style mismatch is a possible cause, not verified. No physical readable/color/style claim or style/viewport patch.",
+      "negative_artifact": "installed02/reattached-completed.png"
+    },
+    "cleanup": {
+      "owned_attempt_processes": [],
+      "same_uid_processes_checked": 203,
+      "environment_access_gaps": [
+        68488,
+        216738,
+        1561676,
+        1786010,
+        1786012,
+        1953373,
+        3699396
+      ],
+      "private_fixture": "TemporaryDirectory under owned .artifacts removed after App/Agent cleanup; both runs completed. No native-Pi/provider acquisition; successful original PTY master/child retired once, ACP address released. Retained334 code holder stays until explicit receiving handoff."
+    },
+    "normal_main_integration": {
+      "main": "c009b8070",
+      "production_delta_from_tested_source": 0,
+      "dependency_metadata": "Core/Textual pins belong to accepted main376; installed fixture explicitly remains normal69 Core12c/Textb1 baseline. No repeated native gate for metadata union."
+    }
+  },
+  "wheel": {
+    "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "5ef0cea5c35ecf558c66d710c61cfb4f11991cfa952e786f29643220106de565"
+  }
+}

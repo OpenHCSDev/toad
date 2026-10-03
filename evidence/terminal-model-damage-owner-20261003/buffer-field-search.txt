@@ -1,0 +1,7 @@
+src/toad/ansi/_ansi.py:1116:    _updated_lines: set[int] | None = None
+src/toad/ansi/_ansi.py:1203:        if self._updated_lines is not None:
+src/toad/ansi/_ansi.py:1204:            self._updated_lines.update(line_numbers)
+src/toad/ansi/_ansi.py:1208:        self._updated_lines = None
+src/toad/ansi/_ansi.py:1212:        self._updated_lines = set()
+src/toad/ansi/_ansi.py:1216:        updates = self._updated_lines
+src/toad/ansi/_ansi.py:1217:        self._updated_lines = set()

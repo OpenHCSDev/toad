@@ -1,0 +1,44 @@
+{
+  "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
+  "tracked_assets": 318,
+  "mismatches": [],
+  "installed": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
+  "pins": {
+    "agent-comms": {
+      "version": "0.1.0",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "12c1758ee4336c1b15732f166e55f333e329a4d0",
+          "requested_revision": "12c1758ee4336c1b15732f166e55f333e329a4d0"
+        }
+      }
+    },
+    "textual": {
+      "version": "8.2.8",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9",
+          "requested_revision": "b1a22548e2fe3c01f319f22b5318ac78d893e9f9"
+        }
+      }
+    },
+    "agent-client-protocol": {
+      "version": "0.12.1",
+      "direct_url": null
+    },
+    "batrachian-toad": {
+      "version": "0.6.20",
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/terminal-model-damage-379/batrachian_toad-0.6.20-py3-none-any.whl",
+        "archive_info": {}
+      }
+    }
+  },
+  "distributions": 69,
+  "headless_modules_textual": [],
+  "qualification": "Installed shared model/execution and real App/ACP/PTY on retained normal69 Core12c/Textb1/SDK0.12.1 baseline; native9f12 not acquired. Normal main376 metadata union introduces no Toad production delta; no new Core/native compatibility claim from this fixture."
+}

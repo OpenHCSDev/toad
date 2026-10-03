@@ -1,0 +1,354 @@
+{
+  "head": "1b62d7f7f0a79e8db2b544a63f02b414c759699f",
+  "parser": "existing refactor-audit Package",
+  "limits": "Lexical owner/attribute references; not dynamic resolution. Buffer and TerminalState both define update_line with different responsibilities/receivers, read semantically. Existing external per-buffer None means full repaint; no missing lifecycle state or wire codec change. No external Core/Textual dependency implementation changes.",
+  "src/toad": {
+    "modules": 287,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1116,
+        "scope": "Buffer",
+        "kind": "AnnAssign",
+        "source": "_updated_lines: set[int] | None = None"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1193,
+        "scope": "Buffer",
+        "kind": "FunctionDef",
+        "source": "def update_line(self, line_no: int) -> None:\n    \"\"\"Record an updated folded line.\n\n        Args:\n            line_no: Folded line number to update.\n        \"\"\"\n    self.update_lines((line_no,))"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1201,
+        "scope": "Buffer",
+        "kind": "FunctionDef",
+        "source": "def update_lines(self, line_numbers: Iterable[int]) -> None:\n    \"\"\"Accumulate folded damage; full damage absorbs later line updates.\"\"\"\n    if self._updated_lines is not None:\n        self._updated_lines.update(line_numbers)"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1206,
+        "scope": "Buffer",
+        "kind": "FunctionDef",
+        "source": "def update_all(self) -> None:\n    \"\"\"Invalidate the complete buffer using the existing full repaint value.\"\"\"\n    self._updated_lines = None"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1210,
+        "scope": "Buffer",
+        "kind": "FunctionDef",
+        "source": "def begin_updates(self) -> None:\n    \"\"\"Acquire this buffer's damage collection for one parser write.\"\"\"\n    self._updated_lines = set()"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1214,
+        "scope": "Buffer",
+        "kind": "FunctionDef",
+        "source": "def consume_updates(self) -> set[int] | None:\n    \"\"\"Transfer the collected damage; subsequent writes own a fresh set.\"\"\"\n    updates = self._updated_lines\n    self._updated_lines = set()\n    return updates"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1691,
+        "scope": "TerminalState",
+        "kind": "FunctionDef",
+        "source": "def update_line(self, buffer: Buffer, line_index: int, line: Text, style: Style | None=None) -> None:\n    \"\"\"Update a line (potentially refolding and moving subsequencte lines down).\n\n        Args:\n            buffer: Buffer.\n            line_index: Line index (unfolded).\n            line: New line content.\n            style: New background style, or `None` not to update.\n        \"\"\"\n    while line_index >= len(buffer.lines):\n        self.add_line(buffer, Text())\n    line_record = buffer.lines[line_index]\n    line_record.replace_content(line)\n    line_expanded_tabs = line_record.content.copy()\n    line_expanded_tabs.expand_tabs(8)\n    buffer.max_line_width = max(line_expanded_tabs.cell_len, buffer.max_line_width)\n    if style is not None:\n        line_record.style = style\n    line_record.folds[:] = self._fold_line(line_index, line_expanded_tabs, self.width)\n    line_record.updates = self.advance_updates()\n    fold_start = buffer.line_to_fold[line_index]\n    buffer.update_lines(range(fold_start, fold_start + len(line_record.folds)))\n    fold_line = buffer.line_to_fold[line_index]\n    del buffer.line_to_fold[line_index:]\n    del buffer.folded_lines[fold_line:]\n    for line_no in range(line_index, buffer.line_count):\n        line_record = buffer.lines[line_no]\n        buffer.line_to_fold.append(len(buffer.folded_lines))\n        for fold in line_record.folds:\n            buffer.folded_lines.append(fold)"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1208,
+        "scope": "Buffer.update_all",
+        "kind": "Attribute",
+        "source": "self._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1212,
+        "scope": "Buffer.begin_updates",
+        "kind": "Attribute",
+        "source": "self._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1216,
+        "scope": "Buffer.consume_updates",
+        "kind": "Attribute",
+        "source": "self._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1217,
+        "scope": "Buffer.consume_updates",
+        "kind": "Attribute",
+        "source": "self._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 310,
+        "scope": "ANSIContent.apply",
+        "kind": "Attribute",
+        "source": "state.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1199,
+        "scope": "Buffer.update_line",
+        "kind": "Attribute",
+        "source": "self.update_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1203,
+        "scope": "Buffer.update_lines",
+        "kind": "Attribute",
+        "source": "self._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1234,
+        "scope": "Buffer.clear",
+        "kind": "Attribute",
+        "source": "self.update_all"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1244,
+        "scope": "Buffer.remove_last_line",
+        "kind": "Attribute",
+        "source": "self.update_all"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1477,
+        "scope": "TerminalState._reflow",
+        "kind": "Attribute",
+        "source": "buffer.update_all"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1527,
+        "scope": "TerminalState.write",
+        "kind": "Attribute",
+        "source": "alternate_buffer.begin_updates"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1528,
+        "scope": "TerminalState.write",
+        "kind": "Attribute",
+        "source": "scrollback_buffer.begin_updates"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1687,
+        "scope": "TerminalState.add_line",
+        "kind": "Attribute",
+        "source": "buffer.update_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1720,
+        "scope": "TerminalState.update_line",
+        "kind": "Attribute",
+        "source": "buffer.update_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 463,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 466,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 470,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 474,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 476,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 481,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 673,
+        "scope": "ShowCursorMode.change",
+        "kind": "Attribute",
+        "source": "state.buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 681,
+        "scope": "AlternateScreenMode.change",
+        "kind": "Attribute",
+        "source": "state.scrollback_buffer.update_all"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 682,
+        "scope": "AlternateScreenMode.change",
+        "kind": "Attribute",
+        "source": "state.alternate_buffer.update_all"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1538,
+        "scope": "TerminalState.write",
+        "kind": "Attribute",
+        "source": "scrollback_buffer.consume_updates"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1538,
+        "scope": "TerminalState.write",
+        "kind": "Attribute",
+        "source": "alternate_buffer.consume_updates"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1645,
+        "scope": "TerminalState._line_updated",
+        "kind": "Attribute",
+        "source": "buffer.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 446,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "state.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 456,
+        "scope": "ANSICursor.apply",
+        "kind": "Attribute",
+        "source": "state.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1204,
+        "scope": "Buffer.update_lines",
+        "kind": "Attribute",
+        "source": "self._updated_lines"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1559,
+        "scope": "TerminalState.clear_buffer",
+        "kind": "Attribute",
+        "source": "buffer.update_all"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1568,
+        "scope": "TerminalState.clear_buffer",
+        "kind": "Attribute",
+        "source": "self.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1599,
+        "scope": "TerminalState.scroll_buffer",
+        "kind": "Attribute",
+        "source": "self.update_line"
+      },
+      {
+        "path": "src/toad/ansi/_ansi.py",
+        "line": 1616,
+        "scope": "TerminalState.scroll_buffer",
+        "kind": "Attribute",
+        "source": "self.update_line"
+      },
+      {
+        "path": "src/toad/shell_output.py",
+        "line": 50,
+        "scope": "ShellTerminalOutput.present",
+        "kind": "Attribute",
+        "source": "terminal.project_state"
+      },
+      {
+        "path": "src/toad/shell_output.py",
+        "line": 56,
+        "scope": "ShellTerminalOutput.project",
+        "kind": "Attribute",
+        "source": "self.terminal.project_state"
+      },
+      {
+        "path": "src/toad/terminal_execution.py",
+        "line": 350,
+        "scope": "TerminalExecution.project",
+        "kind": "Attribute",
+        "source": "terminal.present_execution"
+      },
+      {
+        "path": "src/toad/widgets/terminal.py",
+        "line": 259,
+        "scope": "Terminal.write",
+        "kind": "Attribute",
+        "source": "self.project_state"
+      },
+      {
+        "path": "src/toad/widgets/terminal_projection.py",
+        "line": 6,
+        "scope": "TerminalStateProjection",
+        "kind": "FunctionDef",
+        "source": "def project_state(self, scrollback_delta: set[int] | None, alternate_delta: set[int] | None) -> None:\n    \"\"\"Paint the owning ANSI state without decoding or replaying output.\"\"\"\n    self._update_from_state(scrollback_delta, alternate_delta)\n    self.display = self.state.alternate_screen or not self.state.scrollback_buffer.is_blank\n    if self._alternate_screen != self.state.alternate_screen:\n        self.post_message(self.AlternateScreenChanged(self, enabled=self.state.alternate_screen))\n    self._alternate_screen = self.state.alternate_screen"
+      },
+      {
+        "path": "src/toad/widgets/terminal_tool.py",
+        "line": 53,
+        "scope": "TerminalTool",
+        "kind": "FunctionDef",
+        "source": "def present_execution(self, scrollback: set[int] | None, alternate: set[int] | None) -> None:\n    self.project_state(scrollback, alternate)\n    self.dispatch_sync(self.execution.outcome)"
+      },
+      {
+        "path": "src/toad/widgets/terminal_tool.py",
+        "line": 56,
+        "scope": "TerminalTool.present_execution",
+        "kind": "Attribute",
+        "source": "self.project_state"
+      }
+    ]
+  },
+  "tests": {
+    "modules": 391,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "tests/native_terminal_retention_pilot.py",
+        "line": 264,
+        "scope": "damage_journey",
+        "kind": "Attribute",
+        "source": "TerminalTool.present_execution"
+      }
+    ]
+  },
+  "foreign_damage_accesses": []
+}

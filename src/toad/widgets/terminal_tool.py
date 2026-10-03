@@ -50,8 +50,10 @@ class TerminalTool(Terminal, MroDispatch):
     def resize_process(self, width: int, height: int) -> None:
         self.execution.update_size(width, height)
 
-    def present_execution(self) -> None:
-        self.project_state(None, None)
+    def present_execution(
+        self, scrollback: set[int] | None, alternate: set[int] | None
+    ) -> None:
+        self.project_state(scrollback, alternate)
         self.dispatch_sync(self.execution.outcome)
 
     @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)

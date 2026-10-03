@@ -1,0 +1,15 @@
+{
+  "state": "pass",
+  "source_head": "fb872754a5cd823d56c92e7199af2eea4b6ac6a6",
+  "failure_risks": [
+    "full damage must absorb finite accumulation",
+    "returned finite damage must not alias later buffer writes or caller mutations",
+    "folded damage coordinates must remain folded rather than unfolded indices",
+    "cursor/screen mode changes need correct full or finite damage",
+    "clear/trailing removal/truncation/reflow must author structural damage",
+    "shared Buffer/model/execution import must remain UI-independent",
+    "all318 installed assets must match qualified source"
+  ],
+  "scope": "Existing Buffer and parser behavior, actual methods, no mocked model. App/registeredACP/PTY checked separately once after this batch.",
+  "source_mismatches": []
+}

@@ -1,0 +1,14 @@
+{
+  "owned_attempt_processes": [],
+  "same_uid_processes_checked": 203,
+  "environment_access_gaps": [
+    68488,
+    216738,
+    1561676,
+    1786010,
+    1786012,
+    1953373,
+    3699396
+  ],
+  "private_fixture": "TemporaryDirectory under owned .artifacts removed after App/Agent cleanup; both runs completed. No native-Pi/provider acquisition; successful original PTY master/child retired once, ACP address released. Retained334 code holder stays until explicit receiving handoff."
+}
