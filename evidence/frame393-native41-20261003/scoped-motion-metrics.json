@@ -1,0 +1,202 @@
+{
+  "installed_toad": "340221ea0ed1605220afbd9d96286e3d7e096764",
+  "core": "5025c4ba84c5623f475706475fb7743ce0e8f156",
+  "textual": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "capture_seconds": 113.9529399969615,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "ready_body_count": 38,
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4185734,
+      "start_time": 51109694
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4185734,
+      "start_time": 51109694
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "writer_key_windows": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 100,
+        "median_ms": 13.0,
+        "p95_ms": 47.49,
+        "p99_ms": 137.06,
+        "max_ms": 150.76
+      },
+      "writer_receipts": 101,
+      "start_seconds": 21.979766966,
+      "end_seconds": 23.798325819
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 134,
+        "median_ms": 11.88,
+        "p95_ms": 24.69,
+        "p99_ms": 30.71,
+        "max_ms": 105.53
+      },
+      "writer_receipts": 135,
+      "start_seconds": 44.139169191,
+      "end_seconds": 45.886974605
+    },
+    {
+      "action": "history-held-up",
+      "intervals": {
+        "count": 144,
+        "median_ms": 11.82,
+        "p95_ms": 21.09,
+        "p99_ms": 26.53,
+        "max_ms": 118.33
+      },
+      "writer_receipts": 145,
+      "start_seconds": 53.181996437,
+      "end_seconds": 54.956472348
+    },
+    {
+      "action": "history-held-down",
+      "intervals": {
+        "count": 142,
+        "median_ms": 11.29,
+        "p95_ms": 21.05,
+        "p99_ms": 31.1,
+        "max_ms": 106.85
+      },
+      "writer_receipts": 143,
+      "start_seconds": 58.192288346,
+      "end_seconds": 59.930258926
+    },
+    {
+      "action": "reverse-held-up",
+      "intervals": {
+        "count": 154,
+        "median_ms": 11.06,
+        "p95_ms": 21.39,
+        "p99_ms": 32.92,
+        "max_ms": 63.96
+      },
+      "writer_receipts": 155,
+      "start_seconds": 63.343756432,
+      "end_seconds": 65.095432458
+    }
+  ],
+  "writer_scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+  "profile_quality": {
+    "sample_count": 1234,
+    "sampling_errors": 2,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "alignment_nominal_uncertainty_seconds": 0.06662241947837175
+  },
+  "ui_kernel_marker_windows": [
+    {
+      "label": "input-held-up",
+      "start": 20.923342144989874,
+      "end": 24.540086265013088,
+      "cpu": [
+        {
+          "pid": "119713",
+          "cpu_seconds": 2.9800000000000004,
+          "average_cpu_percent": 82.39454882920703
+        }
+      ]
+    },
+    {
+      "label": "input-held-up-done",
+      "start": 24.540086265013088,
+      "end": 41.386432767962106,
+      "cpu": [
+        {
+          "pid": "119713",
+          "cpu_seconds": 3.540000000000001,
+          "average_cpu_percent": 21.013458315013942
+        }
+      ]
+    },
+    {
+      "label": "input-held-down",
+      "start": 43.12093041901244,
+      "end": 46.63329293800052,
+      "cpu": [
+        {
+          "pid": "119713",
+          "cpu_seconds": 2.5100000000000016,
+          "average_cpu_percent": 71.46187178660406
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "start": 62.2544218209805,
+      "end": 65.89039239200065,
+      "cpu": [
+        {
+          "pid": "119713",
+          "cpu_seconds": 2.5599999999999987,
+          "average_cpu_percent": 70.40761056769867
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "start": 70.46074553200742,
+      "end": 87.23497944098199,
+      "cpu": [
+        {
+          "pid": "119713",
+          "cpu_seconds": 3.9700000000000024,
+          "average_cpu_percent": 23.667250746252975
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Writer is not changed pixels/terminalFPS/input latency",
+    "KernelCPU windows include original exports; no matched workload or unprofiled comparison",
+    "GIL coverage partial/2errors, no thread-weight sums as walltime",
+    "Own during-motion inspection missed; parent during live15 sheet; all exact-key sheets inspected AFTER",
+    "No smoothness/144Hz/overallCPU gain claim"
+  ],
+  "motion_assessment": "Readable body/chrome; repeated positions and discrete advances remain"
+}
