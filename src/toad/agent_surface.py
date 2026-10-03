@@ -11,7 +11,8 @@ class AttachedSurfaceBinding(SurfaceBinding):
 
     def prepare(self, controller) -> None:
         app = self.target.app
-        controller.transcripts.prepare_with(app.preparation, app.coordination_access)
+        controller.transcripts = controller.transcripts.with_runtime(
+            app.preparation, app.coordination_access)
         controller.validation = ApplicationValidationOwner(app.render_processes)
 
     def terminal_dimensions(self):

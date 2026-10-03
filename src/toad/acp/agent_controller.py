@@ -11,7 +11,7 @@ from agent_comms.declared_family import DeclaredFamily
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
-from .transcript_reader import CoordinationTranscriptReader
+from .transcript_reader import DirectTranscriptReadDelivery
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
 from toad.core import events as core_events
@@ -95,7 +95,7 @@ class AgentController(OperationalTerminalOwner):
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
-        self.transcripts = CoordinationTranscriptReader()
+        self.transcripts = DirectTranscriptReadDelivery()
         self.coordination = None
         self.session = SessionBinding(None)
         self.mode_state: SessionModeState | None = None
