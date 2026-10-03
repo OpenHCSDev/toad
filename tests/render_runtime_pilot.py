@@ -9,7 +9,8 @@ from unittest.mock import patch
 
 from toad.render_runtime import PersistentRenderClient
 from toad.render_service import RenderServiceConfig
-from toad.render_tasks import PatchRenderTask, RenderTask
+from toad.render_tasks import PatchRenderTask
+from toad.render_backend import RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
 
 ResultT = TypeVar("ResultT")

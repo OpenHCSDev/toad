@@ -11,7 +11,10 @@ from uuid import UUID
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldRepresentation
-from toad.render_tasks import RenderTask
+from toad.render_backend import RenderTask
+# Native transport loads its declared operation members at the boundary.
+import toad.render_tasks
+import toad.acp.sdk_boundary
 
 if TYPE_CHECKING:
     from toad.render_service import RenderService

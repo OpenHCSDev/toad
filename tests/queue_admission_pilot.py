@@ -64,7 +64,7 @@ async def main():
                 await pilot.pause()
                 view = app.selected_session.conversation
                 consumer = Agent(root, AGENT, "beta")
-                consumer.attach_surface(view)
+                view.bind_agent(consumer)
                 view.agent = consumer
                 callbacks = []
 

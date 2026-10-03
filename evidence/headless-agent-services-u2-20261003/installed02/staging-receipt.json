@@ -1,0 +1,14 @@
+{
+  "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "pins": {
+    "toad": "c1d653991a94686a167ed04b1e6f4a99641cd1e9",
+    "agent_comms": "58686f983377087e85ef20fd2928bcf113ab7acb",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "distribution_count": 69,
+  "source_files_compared": 314,
+  "mismatches": [],
+  "public_activation": false
+}

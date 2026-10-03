@@ -135,13 +135,12 @@ class AgentSession:
             raise ValueError(
                 f"Reconnect not attempted: maintenance admission denied: {error}"
             ) from error
-        target = self.agent.controller.surface.target
         self.reconnecting = True
         try:
             await self.agent.stop()
             self.load_admission = admission or EnsuringSessionLoadAdmission()
             self.settled.clear()
-            await self.agent.start(target)
+            await self.agent.start()
             await asyncio.wait_for(self.settled.wait(), timeout=30)
             if not self.connected:
                 raise ValueError("The agent could not reconnect.")
