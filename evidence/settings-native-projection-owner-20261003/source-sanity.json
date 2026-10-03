@@ -1,0 +1,40 @@
+{
+  "state": "source-only-pass-not-installed-readiness",
+  "revision": "fcef3086ea1fd8668ac19003f3ac640211da32fc",
+  "roots": [
+    {
+      "root": "src/toad",
+      "modules": 289,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 391,
+      "omissions": []
+    }
+  ],
+  "compiled_changed_modules": [
+    "src/toad/core/context_inspection.py",
+    "src/toad/core/projection.py",
+    "src/toad/screens/settings.py",
+    "src/toad/setting_widgets.py",
+    "src/toad/settings.py",
+    "tests/settings_tree_pilot.py"
+  ],
+  "production": {
+    "files": 5,
+    "added": 116,
+    "deleted": 110
+  },
+  "native_model_imports": [],
+  "retired_model_factory_declarations": [],
+  "projection_owner": [
+    {
+      "path": "src/toad/core/projection.py",
+      "line": 5,
+      "kind": "declaration",
+      "source": "MroProjection"
+    }
+  ],
+  "concrete_risks": "Incomplete descriptor/Screen/editor imports and callers, retained native factories or second dispatch declaration; AST evidence is not behavioral proof."
+}

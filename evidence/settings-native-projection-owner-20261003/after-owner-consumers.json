@@ -1,0 +1,720 @@
+{
+  "revision": "fcef3086ea1fd8668ac19003f3ac640211da32fc",
+  "roots": [
+    {
+      "root": "src/toad",
+      "modules": 289,
+      "omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 391,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/log_records.py",
+      "line": 119,
+      "kind": "Load",
+      "source": "self.observation.description"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 25,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/application_actions.py",
+      "line": 30,
+      "kind": "Load",
+      "source": "cls.description"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 35,
+      "kind": "declaration",
+      "source": "description"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 101,
+      "kind": "declaration",
+      "source": "description"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 36,
+      "kind": "Load",
+      "source": "self.command.description"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 98,
+      "kind": "Load",
+      "source": "click.Group"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "kind": "reference",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 152,
+      "kind": "reference",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/core/projection.py",
+      "line": 5,
+      "kind": "declaration",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/delivery_failure_view.py",
+      "line": 14,
+      "kind": "Load",
+      "source": "failure.description"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 25,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 25,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 78,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 76,
+      "kind": "Load",
+      "source": "self.operation.description"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 69,
+      "kind": "Load",
+      "source": "choice.description"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 38,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 120,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 212,
+      "kind": "Load",
+      "source": "self.app.settings.ui.throbber.widget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 206,
+      "kind": "Load",
+      "source": "self.presentation.widget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 88,
+      "kind": "Load",
+      "source": "mode.description"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 74,
+      "kind": "Load",
+      "source": "mode.description"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 44,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 45,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 18,
+      "kind": "declaration",
+      "source": "SettingsScreen"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 18,
+      "kind": "reference",
+      "source": "MroProjection"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 38,
+      "kind": "declaration",
+      "source": "form"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 58,
+      "kind": "declaration",
+      "source": "description"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 75,
+      "kind": "Load",
+      "source": "self.description"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 94,
+      "kind": "Load",
+      "source": "self.description"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 100,
+      "kind": "Load",
+      "source": "self.description"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 35,
+      "kind": "Load",
+      "source": "self.form"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 53,
+      "kind": "Load",
+      "source": "self.form"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 330,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 513,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 498,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 153,
+      "kind": "Load",
+      "source": "agent.description"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 495,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 499,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 291,
+      "kind": "Load",
+      "source": "agent.description"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 462,
+      "kind": "Load",
+      "source": "section.description"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 177,
+      "kind": "declaration",
+      "source": "widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 143,
+      "kind": "Store",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 269,
+      "kind": "Store",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 178,
+      "kind": "Load",
+      "source": "self.owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 189,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 216,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 245,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 203,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 208,
+      "kind": "Store",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 258,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 264,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 187,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 214,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 215,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 275,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 283,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 212,
+      "kind": "Load",
+      "source": "owner.widget"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 189,
+      "kind": "declaration",
+      "source": "widget"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 194,
+      "kind": "declaration",
+      "source": "widget"
+    },
+    {
+      "path": "src/toad/setting_choices.py",
+      "line": 202,
+      "kind": "declaration",
+      "source": "widget"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 21,
+      "kind": "declaration",
+      "source": "valid_text"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 37,
+      "kind": "Load",
+      "source": "self.bound.set_text"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 59,
+      "kind": "Load",
+      "source": "self.bound.set_text"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 18,
+      "kind": "Load",
+      "source": "self.valid_text"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 28,
+      "kind": "declaration",
+      "source": "SettingsNode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 83,
+      "kind": "declaration",
+      "source": "SettingKind"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 139,
+      "kind": "declaration",
+      "source": "BoundSetting"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 159,
+      "kind": "declaration",
+      "source": "Group"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 186,
+      "kind": "declaration",
+      "source": "SettingsGroup"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 150,
+      "kind": "declaration",
+      "source": "set_text"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 98,
+      "kind": "Load",
+      "source": "record.description"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 654,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1853,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1491,
+      "kind": "Load",
+      "source": "message.event.update.failure.description"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1484,
+      "kind": "Load",
+      "source": "message.event.update.failure.description"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 14,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 15,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 174,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 183,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 121,
+      "kind": "Load",
+      "source": "anchor.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 133,
+      "kind": "Load",
+      "source": "position.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 378,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 321,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 331,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 331,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 382,
+      "kind": "Load",
+      "source": "self.widget"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 115,
+      "kind": "Load",
+      "source": "menu_item.description"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 119,
+      "kind": "Load",
+      "source": "menu_item.description"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 173,
+      "kind": "Load",
+      "source": "model.description"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 136,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 527,
+      "kind": "Load",
+      "source": "mode.description"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 533,
+      "kind": "Load",
+      "source": "model.description"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 575,
+      "kind": "Load",
+      "source": "mode.description"
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 68,
+      "kind": "Load",
+      "source": "event.widget"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 41,
+      "kind": "Load",
+      "source": "panel.widget"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 924,
+      "kind": "Load",
+      "source": "panel.widget"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 750,
+      "kind": "Load",
+      "source": "panel.widget"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 925,
+      "kind": "Load",
+      "source": "panel.widget"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 41,
+      "kind": "Load",
+      "source": "Binding.Group"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 800,
+      "kind": "Load",
+      "source": "self.window.history_anchor.widget"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 63,
+      "kind": "Load",
+      "source": "app.workspace_chrome.channels.widget"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 74,
+      "kind": "Load",
+      "source": "screen.app.workspace_chrome.channels.widget"
+    },
+    {
+      "path": "tests/footer_pilot.py",
+      "line": 55,
+      "kind": "Load",
+      "source": "key.description"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 95,
+      "kind": "Load",
+      "source": "native.widget"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 303,
+      "kind": "Load",
+      "source": "app.workspace_chrome.native.widget"
+    },
+    {
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 94,
+      "kind": "Load",
+      "source": "item.widget"
+    },
+    {
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 87,
+      "kind": "Load",
+      "source": "item.widget"
+    },
+    {
+      "path": "tests/prepared_height_contract_pilot.py",
+      "line": 106,
+      "kind": "Load",
+      "source": "item.widget"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 49,
+      "kind": "declaration",
+      "source": "Group"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 186,
+      "kind": "Load",
+      "source": "app.workspace_chrome.navigation.widget"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 53,
+      "kind": "Load",
+      "source": "self.workspace_chrome.navigation.widget"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 191,
+      "kind": "Load",
+      "source": "app.workspace_chrome.navigation.widget"
+    },
+    {
+      "path": "tests/sidebar_custody_installed_journey.py",
+      "line": 66,
+      "kind": "Load",
+      "source": "app.workspace_chrome.channels.widget"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 80,
+      "kind": "Load",
+      "source": "panel.widget"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 97,
+      "kind": "Load",
+      "source": "panel.widget"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 94,
+      "kind": "Load",
+      "source": "panel.widget"
+    }
+  ],
+  "limits": "Lexical selection plus semantic receiver read; no dynamic-resolution completeness claim."
+}
