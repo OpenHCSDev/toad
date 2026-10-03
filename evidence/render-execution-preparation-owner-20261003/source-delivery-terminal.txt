@@ -1,0 +1,1 @@
+preparation delivery: fresh/cached retirement, shutdown drainage and queued-worker rejection passed

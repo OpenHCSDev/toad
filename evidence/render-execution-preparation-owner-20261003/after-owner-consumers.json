@@ -1,0 +1,198 @@
+{
+  "revision": "6cd95232104adbbad4720c3faf9c482e2a9d1aa6",
+  "modules": 286,
+  "unparsed": [],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 87,
+      "call": "task.complete(asyncio.to_thread(task.execute))"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 18,
+      "class": "RenderExecution",
+      "bases": [
+        "ABC",
+        "Generic[ResultT]"
+      ],
+      "methods": [
+        "complete",
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 32,
+      "class": "RenderTask",
+      "bases": [
+        "RenderExecution[ResultT]",
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "preparation_identity",
+        "preparation_storage"
+      ]
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 47,
+      "class": "ReusableRenderTask",
+      "bases": [
+        "RenderTask[ResultT]"
+      ],
+      "methods": [
+        "preparation_identity",
+        "preparation_storage"
+      ]
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 21,
+      "call": "self.accept_result(await execution)"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 103,
+      "call": "task.complete(self.run(task.execute))"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 72,
+      "call": "RenderTask.members_with(RenderTask)"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 203,
+      "class": "RenderSubmission",
+      "bases": [
+        "RenderCancellation",
+        "Generic[ResultT]"
+      ],
+      "methods": []
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 280,
+      "call": "task.complete(running)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 167,
+      "class": "RenderPreparation",
+      "bases": [
+        "ContentAddressedWork[ResultT]",
+        "RendererWork[ResultT]"
+      ],
+      "methods": [
+        "identity",
+        "inputs",
+        "render_task",
+        "retain_result",
+        "store_result"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 350,
+      "class": "PreparedRenderer",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        "__init__",
+        "submit",
+        "warm_up",
+        "aclose"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 172,
+      "call": "self.task.preparation_identity(self, runtime)"
+    }
+  ],
+  "resolution": "Existing NRA Package/AST, lexical references not runtime receiver proof. Relevant dependency owners DeclaredFamily, FieldRepresentation and FieldCodec unchanged. Duck-typed adapters/readiness lifetime read semantically; no zero-by-omission claim.",
+  "attribute_reads": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 87,
+      "reference": "task.complete"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 204,
+      "reference": "self.complete"
+    },
+    {
+      "path": "src/toad/history.py",
+      "line": 29,
+      "reference": "self.complete"
+    },
+    {
+      "path": "src/toad/history.py",
+      "line": 101,
+      "reference": "self.complete"
+    },
+    {
+      "path": "src/toad/history.py",
+      "line": 76,
+      "reference": "self.complete"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 72,
+      "reference": "previous.complete"
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 21,
+      "reference": "self.accept_result"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 103,
+      "reference": "task.complete"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 280,
+      "reference": "task.complete"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1680,
+      "reference": "self.input_histories.shell.complete"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1788,
+      "reference": "self.input_histories.shell.complete"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 72,
+      "reference": "entry.status.complete"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 184,
+      "reference": "self.task.preparation_storage"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 172,
+      "reference": "self.task.preparation_identity"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 187,
+      "reference": "self.task.preparation_storage"
+    }
+  ],
+  "remaining_scope": [
+    "Patch preparation imports Textual DiffView/prepared types in widgets.patch_diff.",
+    "Transcript fragment preparation imports native activity/category modules. Existing leaf contracts/viewport integration belongs to Heisenberg; no full U2/U4 claim."
+  ]
+}
