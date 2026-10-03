@@ -345,6 +345,7 @@ class RenderedBody(MeasuredBody):
         # Captured strips are immutable. Loading and changes to the new native
         # descendants do not change them; inherited effective paint does.
         return (body.is_mounted and not body._closing
+                and self.paint_state.style_key == body.styles._cache_key
                 and self.paint_state.same_paint(body._resolved_paint_state()))
 
     def style_updated(self, body):
@@ -408,7 +409,7 @@ class MeasuredViewportBody(ViewportBody):
         # Rendered and pending resources paint their whole original subtree.
         # Native children remain in custody for the worker and interaction,
         # but must not overpaint the preceding rows while it is reconstructing.
-        return not self.body_dormant and super().is_container
+        return not self._body_measurement.paint_ready(self) and super().is_container
 
     @property
     def _render_widget(self):
@@ -502,9 +503,13 @@ class MeasuredViewportBody(ViewportBody):
                 # Identity guards prevent an old commit; joining its actual
                 # worker also prevents old native writes after the new commit.
                 await publication
-                prepared = await paint
-                prepared = prepared.resized(self.size)
-                self._body_measurement = self._body_measurement.publication_prepared(worker, prepared)
+                [prepared] = await paint
+                if prepared is not previous:
+                    # A pending predecessor's unchanged resource is already
+                    # in this chain, including capture/width/style updates
+                    # made while we joined it. Only a new capture replaces it.
+                    prepared = prepared.resized(self.size)
+                    self._body_measurement = self._body_measurement.publication_prepared(worker, prepared)
                 await (self.materialize_native_body() if work is None else work())
                 if self.is_attached:
                     self._body_measurement.publication_finished(self, worker)
@@ -554,6 +559,8 @@ class MeasuredViewportBody(ViewportBody):
     def capture_native_paint(self, current):
         """Capture once for retirement and preceding-source publication."""
         if (not current.ready(self) or not self.is_attached or self.lock.is_locked
+                or (self.screen.focused is not None
+                    and self in self.screen.focused.ancestors_with_self)
                 or any(self is endpoint or self in endpoint.ancestors
                        for endpoint in self.screen.selections)
                 or any(not child.body_ready for child in self.walk_children()

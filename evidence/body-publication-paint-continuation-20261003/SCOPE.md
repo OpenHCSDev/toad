@@ -40,7 +40,9 @@ writer queue or source cursor. Capture absence or active native selection retain
 measurement only, so frame readiness does not invent pixels.
 
 The existing body derives is_container and render-widget selection from its
-resource. Pending native children stay mounted for the worker but are excluded
+actual captured paint. Dormancy alone does not establish pixels: Measured or
+uncaptured pending resources still need native child layout before they can
+finish reconstruction. Pending native children stay mounted for the worker but are excluded
 from scene paint; loading covers cannot replace valid old strips. Original native
 geometry is invalidated at pending/live transitions; width validation uses the
 same actual committed body size. Rendered paint validates effective inherited
@@ -62,3 +64,20 @@ changed installed path are final validation, not design or current acceptance.
 Kepler owns native Compositor/Widget on existing Textual branch. The is_container,
 render-widget and published capture geometry boundary was sent directly for
 semantic counterexamples. Parent diagnostic capture_state additions stay disjoint.
+
+Source review closed the overlapping-writer resource case: unchanged preparation
+results must not replace a chain updated while joining its preceding worker.
+Only an actual new capture is installed, then validated against original committed
+size. The original PaintState already owns the root Styles cache key; captured
+pixels additionally validate that key for border/gutter/local rules, while inherited
+paint uses its existing same_paint relation. No new revision counter.
+
+Capture skips native selection/focus endpoints inside the body: mutable controls
+and baked selection paint cannot be represented by read-only strips. Original
+measured/native reconstruction remains, without falsely admitting those pixels.
+
+First final native resource batch exposed misuse of AwaitComplete's gather result
+(list), not a native capture defect. Original log is preserved at
+/home/ts/.cache/agent-scratch/body-publication399-resource-20261003/native-resource.log.
+The owning call now unpacks its declared single result; no fallback result codec,
+extra wait, class or readiness guard. This is not an acceptance receipt.

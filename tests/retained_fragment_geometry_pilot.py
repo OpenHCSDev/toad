@@ -233,6 +233,12 @@ async def main():
                 family_receipts.append(dict(body=type(member).__name__, rendered_lines=len(rows),
                     nonblank_lines=sum(bool(line.strip()) for line in captured_rows),
                     reentry_ms=(perf_counter()-started)*1000, rebuild_calls=dict(restored_calls)))
+                # Source publication starts from an actual Live tree. Its
+                # original capture must protect paint before the writer changes
+                # descendants; reentry above already covers Rendered resources.
+                await member.materialize_body()
+                await pilot.pause()
+                scene.reflow(app.screen, app.size)
                 # The original worker may prepare new native controls while
                 # the preceding retained rows remain the frame's paint. All
                 # three body implementations share this resource contract.
@@ -244,11 +250,15 @@ async def main():
                 publication = member.publish_body(publish_controls)
                 try:
                     await asyncio.wait_for(entered.wait(), 5)
+                    resource = member._body_measurement.previous
                     writer = member._body_measurement.worker
                     assert member.body_ready and member.body_dormant
                     assert member.retained_paint_bytes == resource.paint_bytes
                     assert member.measured_rows == resource.rows
                     assert tuple(line.text for line in member.render_lines(member.outer_size.region)) == captured_rows
+                    assert not member.is_container and member._render_widget is member
+                    scene.reflow(app.screen, app.size)
+                    assert not any(member in child.ancestors for child in scene.visible_widgets)
                     member.get_content_height(member.container_size, member.size, resource.width)
                     assert member._body_measurement.worker is writer
                     interaction = asyncio.create_task(member.materialize_body())
@@ -271,6 +281,7 @@ async def main():
                 scene.reflow(app.screen, app.size)
                 assert await member.retire_body()
                 await pilot.pause()
+                family_receipts[-1]['live_publication_captures_preceding_rows_and_excludes_new_child_paint'] = True
                 family_receipts[-1]['pending_writer_keeps_rows_cost_and_interaction_custody'] = True
                 member.styles.color = "blue"
                 assert not member.body_ready
