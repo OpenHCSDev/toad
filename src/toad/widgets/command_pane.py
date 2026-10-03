@@ -6,10 +6,10 @@ import pty
 import signal
 import struct
 import termios
-from dataclasses import dataclass
 
 from textual import events
-from textual.message import Message
+from toad.core.source_events import CommandComplete
+from toad.core_event_carrier import CoreEventReceiver
 
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
@@ -20,7 +20,7 @@ class CommandError(Exception):
     """An error occurred running the command."""
 
 
-class CommandPane(Terminal):
+class CommandPane(CoreEventReceiver, Terminal):
     DEFAULT_CSS = """
     CommandPane {
         scrollbar-size: 0 0;
@@ -42,10 +42,6 @@ class CommandPane(Terminal):
     @property
     def return_code(self) -> int | None:
         return self._return_code
-
-    @dataclass
-    class CommandComplete(Message):
-        return_code: int
 
     def execute(
         self,
@@ -183,7 +179,7 @@ class CommandPane(Terminal):
         if final:
             self.set_class(return_code == 0, "-success")
             self.set_class(return_code != 0, "-fail")
-        self.post_message(self.CommandComplete(return_code or 0))
+        self.publish_core(CommandComplete(return_code or 0))
         self.hide_cursor = True
 
     async def cancel_command(self) -> None:

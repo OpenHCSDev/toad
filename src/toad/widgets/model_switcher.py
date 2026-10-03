@@ -1,6 +1,8 @@
 """Searchable, recently-used-first model picker for ACP sessions."""
 
 from __future__ import annotations
+from toad.core import input_events
+from toad.core_event_carrier import CoreEventReceiver
 
 from typing import TYPE_CHECKING, Self
 
@@ -21,7 +23,7 @@ if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class ConnectProvider(Static, can_focus=True):
+class ConnectProvider(CoreEventReceiver, Static, can_focus=True):
     BINDINGS = [("enter,space", "connect", "Connect provider")]
 
     def __init__(self):
@@ -29,7 +31,7 @@ class ConnectProvider(Static, can_focus=True):
 
     def action_connect(self):
         self.query_ancestor(ModelSwitcher).action_dismiss()
-        self.post_message(messages.ProviderLogin())
+        self.publish_core(input_events.ProviderLogin())
 
     def on_click(self, event: events.Click):
         event.stop()
@@ -55,7 +57,7 @@ def match_score(query: str, candidate: str) -> float:
     return 10 + len(query) / max(1, previous - first + 1)
 
 
-class ModelSwitcher(InfoPopup):
+class ModelSwitcher(CoreEventReceiver, InfoPopup):
     BINDING_GROUP_TITLE = "Model search"
     BINDINGS = [
         Binding("up", "cursor_up", "Previous model", priority=True),
@@ -227,7 +229,7 @@ class ModelSwitcher(InfoPopup):
             self.select_model(event.option_id)
 
     def select_model(self, model_id: str):
-        self.post_message(messages.ChangeModel(model_id))
+        self.publish_core(input_events.ChangeModel(model_id))
         self.action_dismiss()
 
     def action_cursor_up(self):

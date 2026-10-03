@@ -1,4 +1,6 @@
 """A full-height, scrollable projection of a persistent goal."""
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 
 from datetime import datetime
 
@@ -10,12 +12,12 @@ from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
-from toad.widgets.comms_sidebar import SelectTarget
+from toad.core.input_events import SelectTarget
 from toad.goal_interaction import GoalSession
 from toad.widgets.goal_text import GoalText
 
 
-class GoalDetails(ModalScreen[None]):
+class GoalDetails(CoreEventReceiver, ModalScreen[None]):
     BINDINGS = [("escape", "close", "Close")]
     AUTO_FOCUS = "#goal-document"
     DEFAULT_CSS = """
@@ -92,8 +94,9 @@ class GoalDetails(ModalScreen[None]):
     def action_close(self) -> None:
         self.dismiss(None)
 
-    @on(SelectTarget)
-    def open_target(self, event: SelectTarget) -> None:
+    @handles(SelectTarget)
+    def open_target(self, event: CoreEventMessage) -> None:
         event.stop()
         self.dismiss(None)
-        self.app.post_message(SelectTarget(event.target))
+        if (view := self.source.view) is not None:
+            view.publish_core(event.event)

@@ -1,4 +1,7 @@
 """Visible conversation feedback from the core's current thread presentation."""
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 
 import asyncio
 from collections.abc import Awaitable, Callable
@@ -6,11 +9,10 @@ from collections.abc import Awaitable, Callable
 from toad.screens.session_view import SessionView
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.coordination_errors import CoordinationReadUnavailable
-from textual.message import Message
 from textual.widgets import Static
 
 
-class ObservedThreadActivity(Static):
+class ObservedThreadActivity(CoreEventReceiver, Static):
     """Observation never starts/settles an ACP turn or changes send admission."""
 
     DEFAULT_CSS = """
@@ -18,17 +20,6 @@ class ObservedThreadActivity(Static):
     ObservedThreadActivity.-working { color: $accent; }
     ObservedThreadActivity.-unavailable { color: $warning; }
     """
-
-    class Changed(Message):
-        def __init__(self, observation, read, presentation: ThreadPresentation | None, unavailable: bool):
-            super().__init__()
-            self.observation, self.read = observation, read
-            self.presentation = presentation
-            self.unavailable = unavailable
-
-        @property
-        def current(self) -> bool:
-            return self.read is self.observation.read
 
     def __init__(self, read: Callable[[], Awaitable[ThreadPresentation | None]]):
         super().__init__("", markup=False)
@@ -45,9 +36,8 @@ class ObservedThreadActivity(Static):
         # The shared coordination observer already owns source revision and
         # expiry. Rebuilding the same proof on a second cadence burns CPU and
         # competes with the original receipt/read transactions.
-        self.app.coordination_observed.subscribe(self, self.refresh_observation)
-        self.app.session_selected_signal.subscribe(self, self.refresh_observation)
-        self.app.thread_actions_changed.subscribe(self, self.refresh_observation)
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(self.app.events)
         self.refresh_observation()
 
     def bind(self, read: Callable[[], Awaitable[ThreadPresentation | None]]) -> None:
@@ -64,6 +54,10 @@ class ObservedThreadActivity(Static):
     def on_unmount(self) -> None:
         if self._read_task is not None:
             self._read_task.cancel()
+
+    @handles(core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
+    async def app_observed(self, event: CoreEventMessage) -> None:
+        self.refresh_observation()
 
     def refresh_observation(self, _event=None) -> None:
         if not self.is_attached or not self.query_ancestor(SessionView).is_current:
@@ -116,4 +110,4 @@ class ObservedThreadActivity(Static):
         self.update("\n".join(lines))
         self.set_class(bool(presentation and presentation.busy), "-working")
         self.set_class(unavailable or bool(presentation and presentation.attention), "-unavailable")
-        self.post_message(self.Changed(self, self.read, presentation, unavailable))
+        self.publish_core(core_events.ThreadActivityChanged())

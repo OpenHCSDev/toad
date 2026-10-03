@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import TurnActivity
 from agent_comms.acp_extension import CompactionChangedUpdate, TurnStartedUpdate, encode_updates

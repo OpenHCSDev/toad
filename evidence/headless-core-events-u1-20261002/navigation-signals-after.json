@@ -1,0 +1,232 @@
+{
+  "removed_consumers_remaining": [],
+  "current_consumers": [
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 65,
+      "reference": "core_events.ThreadActionsChanged"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 70,
+      "reference": "core_events.ThreadActionsChanged"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 74,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 511,
+      "reference": "core_events.SessionSelected"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 57,
+      "reference": "self.sidebar.observe_core"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 289,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 196,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 186,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 522,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 514,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 70,
+      "reference": "core_events.SessionSelected"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 70,
+      "reference": "core_events.ThreadActionsChanged"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 52,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1725,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1666,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1416,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 193,
+      "reference": "core_events.SessionSelected"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 266,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 186,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 319,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 319,
+      "reference": "core_events.SessionSelected"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 319,
+      "reference": "core_events.ThreadActionsChanged"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 251,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 54,
+      "reference": "core_events.SessionSelected"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 51,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 97,
+      "reference": "core_events.ThreadActionsChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 345,
+      "reference": "core_events.TabHistoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 345,
+      "reference": "core_events.OpenTabsChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 850,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 341,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 342,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 680,
+      "reference": "self.observe_core"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 874,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 540,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 857,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 931,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 865,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/sidebar_drag_resize_pilot.py",
+      "line": 32,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 111,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/sidebar_sort_viewport_pilot.py",
+      "line": 52,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 83,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 87,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 95,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 53,
+      "reference": "core_events.SidebarLayoutChanged"
+    },
+    {
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "line": 103,
+      "reference": "core_events.SidebarLayoutChanged"
+    }
+  ],
+  "omissions": [],
+  "limits": "lexical exact original signal and selected event references, source-reviewed; not dynamic dispatch proof"
+}

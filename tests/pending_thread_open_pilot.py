@@ -1,4 +1,5 @@
 """One actual logical tab through delayed SDK load, painted history and reply."""
+from toad.core import input_events
 import asyncio
 from importlib.resources import files
 import json
@@ -141,7 +142,7 @@ async def main():
                     assert app.selected_session is view and view.conversation.agent is agent
                     assert app.session_tracker.get_session(mode) is details
                     await until(pilot, lambda: not view.query(ThreadLoading))
-                    await view.conversation.submit_input(messages.UserInputSubmitted("FIRST_MESSAGE"))
+                    await view.conversation.submit_input(input_events.UserInputSubmitted("FIRST_MESSAGE"))
                     await until(pilot, lambda: "ONE_ANSWER_FIRST_MESSAGE" in paint(app))
                     rows = [json.loads(line) for line in (root / "sdk-inputs.jsonl").read_text().splitlines()]
                     assert rows == [{"session": "fresh-peer", "text": "FIRST_MESSAGE"}]

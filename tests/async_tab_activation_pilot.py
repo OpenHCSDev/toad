@@ -11,7 +11,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
-from toad.agent import AgentReady
+from toad.core.events import AgentReady
 from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_target import NavigationContext, ThreadTarget, ChannelTarget, DirectTarget, FeedTarget
@@ -46,7 +46,7 @@ async def main():
         async def start(agent, target):
             agent.attach_surface(target)
             agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
-            target.post_message(AgentReady())
+            agent.events.publish(AgentReady())
 
         app = FrameApp(project_dir=str(root))
         with patch.object(Agent, "start", start):

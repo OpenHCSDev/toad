@@ -44,6 +44,10 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
     def watch(self, surface, retire):
         self._projections.setdefault(surface, []).append(retire)
 
+    def projected_on(self, surface):
+        """The acquired native projections own their presence."""
+        return surface in self._projections
+
     def detach(self, surface):
         for retire in self._projections.pop(surface, ()):
             retire()
@@ -85,16 +89,16 @@ class PermissionController(ClientRequestOwner):
         return tuple(request for request in self.requests if request.pending)
 
     def request(self, options, tool_call):
-        from .messages import RequestPermission
+        from toad.core.events import RequestPermission
         request = ToolPermissionRequest(self, options, tool_call)
         self.requests.add(request)
-        self.agent.post_message(RequestPermission(request))
+        self.agent.events.publish(RequestPermission())
         return request
 
     def present(self, surface):
-        from .messages import RequestPermission
-        for request in self.pending:
-            surface.post_message(RequestPermission(request))
+        from toad.core.events import RequestPermission
+        if self.pending:
+            self.agent.events.publish(RequestPermission())
 
     def detach(self, surface):
         for request in self.pending:

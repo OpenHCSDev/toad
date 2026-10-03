@@ -1,0 +1,2353 @@
+{
+  "removed_methods": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "owner": "SurfaceBinding",
+      "method": "owns_terminal"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "owner": "SurfaceBinding",
+      "method": "present_terminal"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "owner": "ToolCall",
+      "method": "tool_id"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "owner": "ToolCallUpdate",
+      "method": "tool_id"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "owner": "AgentFail",
+      "method": "explain"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "owner": "AgentReady",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "owner": "HelpAgentFail",
+      "method": "explain"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "owner": "HelpAgentFail",
+      "method": "help_text"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "owner": "LogAgentFail",
+      "method": "explain"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "owner": "DirectoryChanged",
+      "method": "can_replace"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "owner": "CompactionStream",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "owner": "OutputStream",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/live_output.py",
+      "owner": "ResponseStream",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "owner": "HistoryMove",
+      "method": "for_mode"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "owner": "MarkdownSyntaxRenderTask",
+      "method": "accept_result"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "owner": "MarkdownSyntaxRenderTask",
+      "method": "execute"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "owner": "MarkdownSyntaxRenderTask",
+      "method": "prepare_body"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "owner": "TokenRenderTask",
+      "method": "accept_result"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "owner": "TokenRenderTask",
+      "method": "execute"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "_align_tabs_with_sidebar"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "on_session_close"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "owner": "MainScreen",
+      "method": "on_session_update"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "archive_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "close_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "create_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "launch_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "navigate_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "new_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "rename_request"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "owner": "SessionAdmissions",
+      "method": "switch_request"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "owner": "SidebarState",
+      "method": "restore_scroll"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "owner": "Group",
+      "method": "encode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "owner": "PathSetting",
+      "method": "encode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "owner": "SettingKind",
+      "method": "encode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "owner": "SettingsNode",
+      "method": "encode"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "owner": "TranscriptSourceWorkFinished",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "ResponseDelivery",
+      "method": "category"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "ResponseDelivery",
+      "method": "decorate"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "ResponseDelivery",
+      "method": "from_route"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "ResponseDelivery",
+      "method": "prefix"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "RoutedResponse",
+      "method": "category"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "RoutedResponse",
+      "method": "decorate"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "RoutedResponse",
+      "method": "prefix"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "UnroutedResponse",
+      "method": "category"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "owner": "UnroutedResponse",
+      "method": "prefix"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "owner": "TranscriptCoverage",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "owner": "TranscriptCoverage",
+      "method": "native_inputs"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "owner": "TranscriptCoverage",
+      "method": "sequences"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "owner": "SelectTarget",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "owner": "Activated",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "owner": "IRCMessage",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "owner": "IRCMessage",
+      "method": "action_open_destination"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "owner": "IRCMessage",
+      "method": "action_open_sender"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "owner": "IRCMessage",
+      "method": "action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "owner": "IRCMessage",
+      "method": "compose"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "owner": "SelectHistoricalIdentity",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "owner": "Changed",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "owner": "Changed",
+      "method": "current"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "owner": "Prompt",
+      "method": "on_request_shell_mode"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "owner": "Submitted",
+      "method": "__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "owner": "SessionsTabs",
+      "method": "handle_session_update_signal"
+    }
+  ],
+  "remaining_lexical_attributes": [
+    {
+      "path": "src/toad/mcp_decision.py",
+      "line": 42,
+      "expression": "text.encode"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 38,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 183,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 109,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 110,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 125,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 126,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 138,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/db.py",
+      "line": 203,
+      "expression": "db.execute"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 21,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 42,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/core_event_carrier.py",
+      "line": 34,
+      "expression": "self.event.can_replace"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 15,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 45,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 56,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 67,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/render_identity.py",
+      "line": 37,
+      "expression": "f'{self.name}\\x00{root}\\x00'.encode"
+    },
+    {
+      "path": "src/toad/render_identity.py",
+      "line": 60,
+      "expression": "f'{config.max_workers}:{config.max_pending}:{config.client_lease_seconds:g}\\x00'.encode"
+    },
+    {
+      "path": "src/toad/render_identity.py",
+      "line": 75,
+      "expression": "sys.prefix"
+    },
+    {
+      "path": "src/toad/render_identity.py",
+      "line": 58,
+      "expression": "self.interpreter.encode"
+    },
+    {
+      "path": "src/toad/render_identity.py",
+      "line": 44,
+      "expression": "name.encode"
+    },
+    {
+      "path": "src/toad/render_identity.py",
+      "line": 62,
+      "expression": "package.fingerprint().encode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 95,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 124,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 187,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 371,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/settings.py",
+      "line": 420,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 65,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 25,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 25,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 29,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 35,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 33,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 94,
+      "expression": "HistoryMove.for_mode"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 225,
+      "expression": "task.execute"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 37,
+      "expression": "cls.encode"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 211,
+      "expression": "submission.task.accept_result"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 92,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 111,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 119,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 132,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 71,
+      "expression": "RendererBuild.current"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 107,
+      "expression": "command.execute"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 88,
+      "expression": "RendererBuild.current"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 111,
+      "expression": "command.execute"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 163,
+      "expression": "row.current"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 165,
+      "expression": "row.current"
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 96,
+      "expression": "self.restore_scroll"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 48,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 84,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 420,
+      "expression": "part.compose"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 219,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 338,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 344,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 118,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 331,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 341,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 126,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 123,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 141,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 183,
+      "expression": "self.execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 207,
+      "expression": "self.target_context(ctx).current"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 210,
+      "expression": "self.execute"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 233,
+      "expression": "ctx.current"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 77,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 80,
+      "expression": "command.execute"
+    },
+    {
+      "path": "src/toad/jsonrpc.py",
+      "line": 93,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/jsonrpc.py",
+      "line": 433,
+      "expression": "json.dumps(self.body).encode"
+    },
+    {
+      "path": "src/toad/jsonrpc.py",
+      "line": 124,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/jsonrpc.py",
+      "line": 126,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 150,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 256,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 299,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 310,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 375,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 410,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 442,
+      "expression": "prepared.sequences"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 36,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 61,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 82,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 126,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 199,
+      "expression": "history.prepare_body"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 380,
+      "expression": "super().current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 381,
+      "expression": "self.plan.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 593,
+      "expression": "publication.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 102,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 140,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 181,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 193,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 390,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 450,
+      "expression": "replacement.prepare_body"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 726,
+      "expression": "coverage.native_inputs"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 443,
+      "expression": "event.native_inputs"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 205,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 721,
+      "expression": "coverage.sequences"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 215,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 224,
+      "expression": "event.native_inputs"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 48,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 315,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 152,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 254,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/workspace_sessions.py",
+      "line": 157,
+      "expression": "self.source.current"
+    },
+    {
+      "path": "src/toad/render_service.py",
+      "line": 126,
+      "expression": "command.task.execute"
+    },
+    {
+      "path": "src/toad/render_service.py",
+      "line": 53,
+      "expression": "RendererBuild.current"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 45,
+      "expression": "cls.decorate"
+    },
+    {
+      "path": "src/toad/history.py",
+      "line": 139,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 34,
+      "expression": "self.context.current"
+    },
+    {
+      "path": "src/toad/command_catalog.py",
+      "line": 40,
+      "expression": "self.context.current"
+    },
+    {
+      "path": "src/toad/web_server.py",
+      "line": 155,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/web_server.py",
+      "line": 114,
+      "expression": "candidate.encode"
+    },
+    {
+      "path": "src/toad/web_server.py",
+      "line": 115,
+      "expression": "self.capability.encode"
+    },
+    {
+      "path": "src/toad/session_observation.py",
+      "line": 99,
+      "expression": "GoalDisplay.current"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 67,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 108,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 108,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 120,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 130,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 124,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 120,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/navigation_preparation.py",
+      "line": 178,
+      "expression": "self.origin.current"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 322,
+      "expression": "work.execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 207,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 272,
+      "expression": "execution.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 113,
+      "expression": "execution.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 179,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 203,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 194,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 226,
+      "expression": "InputSubmission.from_event(event, self.view).execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 262,
+      "expression": "execution.current"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 104,
+      "expression": "view.command_catalog.execute"
+    },
+    {
+      "path": "src/toad/conversation_submission.py",
+      "line": 255,
+      "expression": "item.current"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 145,
+      "expression": "origin.current"
+    },
+    {
+      "path": "src/toad/project_link.py",
+      "line": 23,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 73,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 129,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 185,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 317,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "line": 140,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 51,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 190,
+      "expression": "text.encode"
+    },
+    {
+      "path": "src/toad/conversation_markdown.py",
+      "line": 210,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 29,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 13,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 39,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/input_history.py",
+      "line": 61,
+      "expression": "scope.encode"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 225,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 122,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 256,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 389,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 408,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 289,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 438,
+      "expression": "text.encode"
+    },
+    {
+      "path": "src/toad/directory_suggester.py",
+      "line": 53,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/terminal_attention.py",
+      "line": 89,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/core/source_events.py",
+      "line": 46,
+      "expression": "event.native_inputs"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 213,
+      "expression": "self.help_text"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 48,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 147,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 150,
+      "expression": "FieldCodec.encode"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 35,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 77,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 135,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 227,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 277,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 371,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 458,
+      "expression": "section.compose"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 52,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 89,
+      "expression": "self.command_pane.execute"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 86,
+      "expression": "self.command_pane.execute"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 70,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 44,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 129,
+      "expression": "history.prepare_body"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 289,
+      "expression": "roster.navigation.restore_scroll"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 285,
+      "expression": "roster.navigation.restore_scroll"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 165,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 91,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 212,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/file_preview.py",
+      "line": 27,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 41,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 35,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 39,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 26,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 25,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 46,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/ansi/_stream_parser.py",
+      "line": 143,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/ansi/_stream_parser.py",
+      "line": 162,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/ansi/_stream_parser.py",
+      "line": 196,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/ansi/_stream_parser.py",
+      "line": 208,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 87,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 83,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 168,
+      "expression": "row.current"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 246,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 358,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 402,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 459,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 53,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 182,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 475,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 103,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 207,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 439,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 459,
+      "expression": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 40,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 89,
+      "expression": "text.encode"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 254,
+      "expression": "command_pane.execute"
+    },
+    {
+      "path": "src/toad/widgets/native_history.py",
+      "line": 16,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 20,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 34,
+      "expression": "ResponseDelivery.from_route"
+    },
+    {
+      "path": "src/toad/widgets/throbber.py",
+      "line": 100,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/throbber.py",
+      "line": 142,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/channels_sidebar.py",
+      "line": 15,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 25,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 55,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 51,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 92,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 175,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 33,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 54,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 65,
+      "expression": "self.query_ancestor(IRCMessage).action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 80,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 123,
+      "expression": "self.action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 126,
+      "expression": "self.action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 46,
+      "expression": "self.action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 56,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 97,
+      "expression": "evidence.native_inputs"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 263,
+      "expression": "TranscriptCoverage(page.events).sequences"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 272,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 278,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 307,
+      "expression": "TranscriptCoverage(page.events).sequences"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 86,
+      "expression": "evidence.sequences"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 258,
+      "expression": "TranscriptCoverage(page.events).sequences"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 74,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 58,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 196,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 232,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 19,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 40,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/coordination_context.py",
+      "line": 52,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 969,
+      "expression": "self.navigation.current"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1531,
+      "expression": "message.event.tool_id"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 227,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 451,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1586,
+      "expression": "agent.configuration.thinking.current"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1103,
+      "expression": "message.event.explain"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1323,
+      "expression": "message.binding.present_terminal"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1236,
+      "expression": "agent.configuration.thinking.current"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1537,
+      "expression": "message.event.tool_id"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 84,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 30,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 42,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 55,
+      "expression": "self.action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 57,
+      "expression": "self.action_open_destination"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 61,
+      "expression": "self.action_open_target"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 30,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 143,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 54,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/future_text.py",
+      "line": 48,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 49,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 61,
+      "expression": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 60,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 40,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 63,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 109,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 153,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 30,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 112,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 166,
+      "expression": "setting.current"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 148,
+      "expression": "consumer.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 114,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 118,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 122,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 126,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 130,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 134,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 138,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 142,
+      "expression": "self.category"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 273,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 906,
+      "expression": "owner.prepare_body"
+    },
+    {
+      "path": "src/toad/widgets/session_sort.py",
+      "line": 33,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_sort.py",
+      "line": 111,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_sort.py",
+      "line": 134,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 148,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 81,
+      "expression": "WaitingPatchPublication().compose"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 151,
+      "expression": "self.publication.compose"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 111,
+      "expression": "WaitingPatchPublication().compose"
+    },
+    {
+      "path": "src/toad/widgets/message_notifications.py",
+      "line": 27,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 31,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 29,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 108,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 36,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_fork_dialog.py",
+      "line": 34,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 65,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 82,
+      "expression": "entry.status.compose"
+    },
+    {
+      "path": "src/toad/widgets/user_input.py",
+      "line": 48,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 28,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 112,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 25,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/acp_content.py",
+      "line": 16,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/acp_content.py",
+      "line": 20,
+      "expression": "part.compose"
+    },
+    {
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 120,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 39,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 62,
+      "expression": "super().prepare_body"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 167,
+      "expression": "history.prepare_body"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 38,
+      "expression": "delivery.category"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 39,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 45,
+      "expression": "delivery.decorate"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 42,
+      "expression": "delivery.prefix"
+    },
+    {
+      "path": "src/toad/widgets/message_divider.py",
+      "line": 70,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/message_divider.py",
+      "line": 101,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 22,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/goal_text.py",
+      "line": 26,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 65,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 140,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 103,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 216,
+      "expression": "content_switcher.current"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 163,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 51,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 118,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 209,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 64,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 31,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 36,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 119,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/incoming_message.py",
+      "line": 30,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/shell_result.py",
+      "line": 25,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 181,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 279,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 388,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 583,
+      "expression": "TranscriptCoverage(tuple(self.coverage_events)).sequences"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 937,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 616,
+      "expression": "operation.execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 959,
+      "expression": "self._source_state.execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 956,
+      "expression": "self.reserve_source_work().execute"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 100,
+      "expression": "ResponseDelivery.from_route"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 810,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 807,
+      "expression": "snapshot.current"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 41,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 106,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 372,
+      "expression": "self.command_catalog.execute"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 153,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 112,
+      "expression": "self.execute"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 84,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 37,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/footer.py",
+      "line": 50,
+      "expression": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 46,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 106,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 169,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 247,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 294,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 382,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 488,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 522,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 656,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 1048,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 165,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 111,
+      "expression": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/condensed_path.py",
+      "line": 87,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 394,
+      "expression": "authority.current"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 131,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 95,
+      "expression": "self.owns_terminal"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 107,
+      "expression": "self.owns_terminal"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 117,
+      "expression": "task.execute"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 103,
+      "expression": "self.owns_terminal"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 69,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 84,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/client_session.py",
+      "line": 32,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/client_session.py",
+      "line": 35,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "line": 168,
+      "expression": "ShellCommand.current"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 426,
+      "expression": "result.current"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 93,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 424,
+      "expression": "result.current"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 423,
+      "expression": "result.current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 17,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 39,
+      "expression": "self.scope.relation(scope).current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 23,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 23,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 27,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 28,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 81,
+      "expression": "self.scope.relation(update.scope).current"
+    },
+    {
+      "path": "src/toad/acp/queue_attachment.py",
+      "line": 88,
+      "expression": "previous.scope.relation(update.scope).current"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 114,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 108,
+      "expression": "ResponseDelivery.from_route"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 19,
+      "expression": "super().__init__"
+    },
+    {
+      "path": "src/toad/acp/terminal_owner.py",
+      "line": 60,
+      "expression": "authority.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 23,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 140,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 214,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 45,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 129,
+      "expression": "self.current.scope.relation(scope).current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 41,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 128,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 164,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 166,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 191,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 206,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 208,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 118,
+      "expression": "scope.relation(other).current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 167,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 131,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 211,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 129,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 133,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/projection_attachment.py",
+      "line": 134,
+      "expression": "self.current"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 217,
+      "expression": "json.dumps(result).encode"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 303,
+      "expression": "result.current"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 88,
+      "expression": "option.category"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 96,
+      "expression": "option.category"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 62,
+      "expression": "self.current"
+    }
+  ],
+  "parse_omissions": [],
+  "limits": "Name references include inherited/external APIs; not dynamic resolution. Read surviving sites before claiming deletion closure."
+}

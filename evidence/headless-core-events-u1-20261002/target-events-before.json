@@ -1,0 +1,144 @@
+{
+  "sites": [
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 149,
+      "kind": "Name",
+      "name": "SelectHistoricalIdentity"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 263,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 150,
+      "kind": "Name",
+      "name": "SelectHistoricalIdentity"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 264,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 437,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 438,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 95,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 96,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 99,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 204,
+      "kind": "ClassDef",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 305,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 22,
+      "kind": "ClassDef",
+      "name": "SelectHistoricalIdentity"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 46,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 125,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 43,
+      "kind": "Name",
+      "name": "SelectHistoricalIdentity"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 122,
+      "kind": "Name",
+      "name": "SelectHistoricalIdentity"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 17,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/goal_text.py",
+      "line": 39,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 475,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 51,
+      "kind": "Name",
+      "name": "SelectTarget"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 153,
+      "kind": "Name",
+      "name": "SelectTarget"
+    }
+  ],
+  "omissions": [],
+  "limits": "Lexical sites incl native aliases; original GoalSession view owns modal destination"
+}

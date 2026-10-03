@@ -1,3 +1,5 @@
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from agent_comms.mro_dispatch import handles
 """Full-width wrapping and routed spans at different terminal widths."""
 
 import asyncio
@@ -6,7 +8,7 @@ from agent_comms.messages import Message, MessageType
 from textual import on
 from textual.app import App, ComposeResult
 
-from toad.widgets.comms_sidebar import SelectTarget
+from toad.core.input_events import SelectTarget
 from toad.widgets.irc_message import IRCMessage, IRCMessageText
 
 
@@ -31,7 +33,7 @@ async def click_target(app, pilot, target):
     raise AssertionError(f"No clickable routing span for {target}")
 
 
-class WrapApp(App):
+class WrapApp(CoreEventReceiver, App):
     def __init__(self):
         super().__init__()
         self.opened = []
@@ -47,10 +49,10 @@ class WrapApp(App):
                 )
             )
 
-    @on(SelectTarget)
-    def selected(self, event: SelectTarget):
+    @handles(SelectTarget)
+    def selected(self, event: CoreEventMessage):
         event.stop()
-        self.opened.append((event.target.name, event.target.declared_name))
+        self.opened.append((event.event.target.name, event.event.target.declared_name))
 
 
 async def main():

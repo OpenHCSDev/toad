@@ -37,9 +37,10 @@ from pydantic import TypeAdapter
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
-    ProjectedTranscriptSource, incoming_sequences,
+    ProjectedTranscriptSource,
 )
-from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+from toad.response_delivery import ResponseDelivery
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
@@ -47,7 +48,8 @@ from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
 from toad.work_preparation import retained_bytes
-from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage, TranscriptInputClaim
+from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
+from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
@@ -460,13 +462,13 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             # Resolve custody from native ancestry, not a second owner field.
             for ancestor in self.ancestors:
                 if isinstance(ancestor, Conversation):
-                    ancestor.transcript.covered(TranscriptCoverage(page.events, self)).call_next(ancestor)
+                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_next(ancestor)
                     break
 
     def publish_committed(self) -> None:
         """Acquire live-row ownership only after a provisional mount is accepted."""
         self._source_state = self._source_state.publish()
-        self.post_message(TranscriptCoverage(tuple(self.coverage_events), self))
+        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
         self._scroll_changed()
         self.prepare_scroll()
 

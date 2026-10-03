@@ -40,15 +40,6 @@ class PageRequest:
     after: TranscriptCursor | None = None
 
 
-def incoming_sequences(events: tuple[TranscriptEvent, ...]) -> frozenset[int]:
-    return frozenset(
-        source.seq
-        for event in events
-        for source in event.incoming_sources
-        if source.seq > 0
-    )
-
-
 @dataclass(frozen=True)
 class CommittedInterval:
     """Bounded, data-only coverage reads; never prepare or mount unread bodies."""

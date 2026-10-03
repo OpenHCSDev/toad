@@ -1,0 +1,161 @@
+{
+  "migrated_sites": [
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 94,
+      "publication": "editor.post_message"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 459,
+      "old": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 54,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 324,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 54,
+      "old": "messages.ChangeMode"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1114,
+      "old": "messages.ChangeMode"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1118,
+      "old": "messages.ProviderLogin"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1198,
+      "old": "messages.ChangeModel"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1243,
+      "old": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1594,
+      "old": "messages.HistoryMove"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 893,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 908,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1115,
+      "old": "messages.ChangeMode"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1119,
+      "old": "messages.ProviderLogin"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1199,
+      "old": "messages.ChangeModel"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1244,
+      "old": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1248,
+      "old": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1275,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1595,
+      "old": "messages.HistoryMove"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 624,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 628,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 893,
+      "old": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 908,
+      "old": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1275,
+      "old": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 625,
+      "old": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 629,
+      "old": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 32,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 230,
+      "publication": "self.post_message"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 32,
+      "old": "messages.ProviderLogin"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 230,
+      "old": "messages.ChangeModel"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 370,
+      "old": "messages.UserInputSubmitted"
+    }
+  ],
+  "omissions": [],
+  "limits": "explicit original imported constructors/qualified types and publications, native handlers manually migrated after source read"
+}

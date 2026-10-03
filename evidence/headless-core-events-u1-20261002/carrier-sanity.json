@@ -1,0 +1,19 @@
+{
+  "checks": "Comms emission-context wire forms; actual Textual pump bubble and retired subscriber suppression",
+  "wire_cases": 4,
+  "native_trace": [
+    [
+      "child",
+      "ordered",
+      true
+    ],
+    [
+      "parent",
+      "ordered",
+      true
+    ]
+  ],
+  "subscription_cleanup": true,
+  "installed_readiness": false,
+  "source": "source overlay contract batch; actual installed application path still pending"
+}

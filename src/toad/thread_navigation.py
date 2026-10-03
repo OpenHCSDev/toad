@@ -93,7 +93,7 @@ class ThreadNavigator:
 
         def get_screen() -> MainScreen:
             screen = source.spawn(project=prepared.project, session_id=prepared.thread.name,
-                                  title=prepared.thread.name, root=prepared.root)
+                                  root=prepared.root)
             screen._comms_thread = prepared.thread.name
             return screen
 

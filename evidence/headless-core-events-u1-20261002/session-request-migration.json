@@ -1,0 +1,45 @@
+{
+  "method": "AST-selected original request attributes/imports/calls; owning member behavior moved from original SessionAdmissions, consumers migrated without reexports",
+  "sites": [
+    {
+      "path": "src/toad/target_commands.py",
+      "AST_references": 1
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "AST_references": 2
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "AST_references": 16
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "AST_references": 1
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "AST_references": 3
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "AST_references": 2
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "AST_references": 4
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "AST_references": 1
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "AST_references": 1
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "AST_references": 2
+    }
+  ]
+}

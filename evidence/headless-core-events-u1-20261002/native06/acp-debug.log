@@ -1,0 +1,7 @@
+2026-10-02 19:55:24,937 metaclass_registry.core DEBUG Auto-registered ReplyIndex as 'reply_index' plugin
+2026-10-02 19:55:24,938 metaclass_registry.core DEBUG Auto-registered TranscriptReply as 'transcript_reply' plugin
+2026-10-02 19:55:24,961 asyncio DEBUG Using selector: EpollSelector
+2026-10-02 19:55:25,651 metaclass_registry.core DEBUG Auto-registered TriageNativeSources as 'native_runtime_triage_sources' plugin
+2026-10-02 19:55:38,090 metaclass_registry.core DEBUG Auto-registered ReplyIndex as 'reply_index' plugin
+2026-10-02 19:55:38,091 metaclass_registry.core DEBUG Auto-registered TranscriptReply as 'transcript_reply' plugin
+2026-10-02 19:55:38,111 asyncio DEBUG Using selector: EpollSelector
