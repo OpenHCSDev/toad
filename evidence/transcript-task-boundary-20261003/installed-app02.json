@@ -1,0 +1,11 @@
+{
+  "result": "timeout",
+  "seconds": 60,
+  "scope": "full navigation pilot; no full scrolling acceptance",
+  "cleanup_owned_pids_absent": [
+    2532904,
+    2532943,
+    2532945,
+    2532948
+  ]
+}
