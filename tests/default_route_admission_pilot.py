@@ -31,6 +31,7 @@ from toad.acp.maintenance_ingress import admitted_prompt, admitted_spawn
 from toad.app import ToadApp
 from toad.comms_root import current_root, run_selected_write
 from toad.widgets.comms_chat import CommsChatView
+from runtime_fixture import refresh_comms
 
 
 @asynccontextmanager
@@ -80,9 +81,9 @@ async def main() -> None:
                     await pilot.pause()
                     await channel_target("#team").open(NavigationContext(app, app.selected_mode, sandbox, "user"))
                     view = app.screen.query_one(CommsChatView)
-                    await view._refresh()
+                    await refresh_comms(view)
                     await pilot.pause()
-                    assert view.message_history.service.root == legacy
+                    assert view.message_history.reader.comms.root == legacy
                     old.messaging.send("peer", "#team", "UNREAD-OLD")
                     page = old.views.channel_display_page(
                         "#team", worktree=str(sandbox), limit=8
@@ -159,7 +160,7 @@ async def main() -> None:
                         not invoked
                     ), "stale old-root start reached its core operation"
                     assert (marker.read_bytes() if marker.exists() else b"") == before
-                    assert not view.display or not view.message_history.service.root == current_root()
+                    assert not view.display or not view.message_history.reader.comms.root == current_root()
                     try:
                         run_selected_write(
                             legacy, safe_spy, None, None, implicit=True

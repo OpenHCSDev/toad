@@ -32,7 +32,6 @@ from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.mro_dispatch import handles
 from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
-from toad.channel_preparation import ChannelHistoryReader
 from toad.navigation_preparation import (
     NavigationReader,
 )
@@ -288,7 +287,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self._renderer_warmup_started = False
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
-        self.channel_history_reader = ChannelHistoryReader()
         self.navigation_reader = NavigationReader()
         self.agent_data = agent_data
 
@@ -337,7 +335,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         await self.render_processes.aclose()
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
-        await self.channel_history_reader.aclose()
 
     async def prepare_background(self, task: "RenderTask[RenderResultT]") -> RenderResultT:
         """Keep background admission occupied until the renderer really finishes."""

@@ -351,7 +351,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     irc_app, irc_app.selected_mode, app.project_dir, user))
                 await irc_app.selected_session.wait_content_ready()
             irc = irc_app.selected_session.query_one(CommsChatView)
-            await until(irc_pilot, lambda: irc.message_history.initialized)
+            await until(irc_pilot, lambda: (irc.message_history.reader is not None and not irc.message_history.reader.source.loading))
             # All three windows are already open before the native send.
             receipt['all_views_open_before_send'] = True
             record_phase(receipt, evidence, 'original_send')

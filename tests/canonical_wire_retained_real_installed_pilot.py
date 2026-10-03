@@ -224,7 +224,7 @@ async def main():
                     await channel_target('#team').open(NavigationContext(irc_app, irc_app.selected_mode, project, user))
                     await irc_app.selected_session.wait_content_ready()
                 irc = irc_app.selected_session.query_one(CommsChatView)
-                await until(ip, lambda: irc.message_history.initialized)
+                await until(ip, lambda: (irc.message_history.reader is not None and not irc.message_history.reader.source.loading))
                 receipt['completed_phases'].append('irc_open_before_send')
                 record_phase(receipt, evidence, 'three_views_open')
                 profile.enable()
@@ -246,7 +246,7 @@ async def main():
                                 'selected_root': str(observation.selection.root) if observation else None,
                                 'ui_service_root': str(observation.service.root) if observation else None,
                                 'ui_registered_threads': len(observation.service.registry.snapshot().threads) if observation else None,
-                                'irc_history_root': str(view.message_history.service.root) if view is irc else None,
+                                'irc_history_root': str(view.message_history.reader.comms.root) if view is irc else None,
                                 'agent_coordination_root': view.agent.coordination.wire_root if view.agent else None,
                                 'source_reader_root': str(reader.root) if reader else None,
                             }

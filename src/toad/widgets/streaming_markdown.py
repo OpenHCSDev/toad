@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from dataclasses import replace
 from functools import partial
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
@@ -56,7 +55,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         if self.uses_paged_source(self.source):
             from toad.render_tasks import TranscriptRenderTask
             await self.app.render_processes.submit(
-                TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),)),
+                TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),), continuation=True),
             )
         else:
             await super().prepare_body()
@@ -153,10 +152,8 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             )
             fragments = await prepare_transcript_fragments(
                 page.events, getattr(self.app, "render_processes", None),
+                continuation=True,
             )
-            # The outer message owns its divider; inner render fragments only
-            # supply Markdown content while the live message is paged.
-            fragments = tuple(replace(fragment, continuation=True) for fragment in fragments)
             if not is_current():
                 return
             if self._paged is None:

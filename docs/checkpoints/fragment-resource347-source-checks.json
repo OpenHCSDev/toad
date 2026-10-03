@@ -1,0 +1,86 @@
+{
+  "scope": "source worker/schema/native admission checks; not installed performance or live readiness",
+  "source_head": "a14537dc58f8612f08d49e67a14aaefafbd012c7",
+  "worker_delivery": {
+    "scope": "source process/serialization/resource ownership only; no App/provider/public root",
+    "fragments": 2,
+    "worker_prepared_cost_delivered": true,
+    "new_source_cost_recomputed": true,
+    "app_mount_dependency": "currentmain LocalRoute.admit_client requires Core992; frozen runtime has7dd"
+  },
+  "strict_tool_validator": {
+    "scope": "source strict ToolCall field validation; not installed UI/performance",
+    "original_content_preserved": true,
+    "existing_validator_reused": true,
+    "malformed_content_rejected": true
+  },
+  "continuation_delivery": {
+    "scope": "source workers/shared preparation/serialization only; not installed UI or CPU/frame gain",
+    "original_event_types": [
+      "ContextTranscript",
+      "UserTranscript",
+      "AssistantTranscript",
+      "ToolStartTranscript",
+      "ToolEndTranscript"
+    ],
+    "fragments": 30,
+    "original_presentation_preserved": true,
+    "delivered_measurements": true,
+    "warmup_publication_shared_task": true,
+    "cache_hits_delta": 1,
+    "misses": 2
+  },
+  "private_native_admission": {
+    "scope": "actual source Toad/native admission; not installed physical/CPU acceptance",
+    "cases": [
+      {
+        "direction": "older",
+        "mount_transactions": [
+          4
+        ],
+        "admitted_range": [
+          24,
+          32
+        ],
+        "ordered_original_fragments": true,
+        "previous_children_retained": true,
+        "all_children_mounted": true,
+        "publication_fence_held": true
+      },
+      {
+        "direction": "newer",
+        "mount_transactions": [
+          4
+        ],
+        "admitted_range": [
+          24,
+          32
+        ],
+        "ordered_original_fragments": true,
+        "previous_children_retained": true,
+        "all_children_mounted": true,
+        "publication_fence_held": true
+      },
+      {
+        "direction": "newer",
+        "mount_transactions": [],
+        "admitted_range": [
+          24,
+          32
+        ],
+        "ordered_original_fragments": true,
+        "previous_children_retained": true,
+        "all_children_mounted": true,
+        "publication_fence_held": true
+      }
+    ],
+    "agent_bound": false,
+    "exception": "None"
+  },
+  "preserved_failure": "native-mount.log: borrowed Core7dd lacks main343 LocalRoute.admit_client; before fragment admission",
+  "borrower_release": "matching Core3c48 dependency-only source control2909 terminal0; interpreter released to Sch",
+  "next": "matching immutable installed saved-history workflow; no new environment/native copy, no repeated34402",
+  "production_lines_deleted": 20,
+  "production_lines_added": 37,
+  "remaining_scope": "CPU/144Hz/raster/firstpaint/warmcold/runway/velocity/growingEnd/void/focus/draftUndo/busy/sidebar/animation/TC1T9T4"
+}

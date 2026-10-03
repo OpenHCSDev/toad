@@ -53,7 +53,7 @@ async def main() -> None:
             name = app.screen._comms_thread
             mode = await channel_target("#all").open(NavigationContext(app, owner, root, name))
             chat = app.screen.query_one(CommsChatView)
-            await wait_for(pilot, lambda: chat.message_history.initialized)
+            await wait_for(pilot, lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading))
             assert any(item.body == "first-pending" for item, _ in chat.message_history.rows)
             await wait_for(pilot, lambda: unread() == 0)
             await badge_cleared(app, pilot, mode)

@@ -1,0 +1,484 @@
+{
+  "scope": "Scoped native32 animation family and inherited native30/31 main closure; source-equal mergedToad342. Actual installed saved public nra/peer A/B/A, input held paging/reverse/End/idle, draft/Undo resources. No full smoothness/CPU/144Hz qualification.",
+  "sources": [
+    {
+      "module": "agent_comms",
+      "head": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+      "byte_equal": true,
+      "files": 339
+    },
+    {
+      "module": "toad",
+      "head": "02e561e84c42e07a673803c5af1fe7fbab8bd65a",
+      "byte_equal": true,
+      "files": 307
+    },
+    {
+      "module": "textual",
+      "head": "d052eb1332b2b9b8d1c62c45721cf254dd2b8353",
+      "byte_equal": true,
+      "files": 266
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "byte_equal": true,
+      "files": 3
+    }
+  ],
+  "installed_source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-animation32-after342-20261002/source-proof.json",
+  "physical_capture": "/home/ts/.cache/agent-scratch/scroll-animation32-main-closure-public-20261002-01/capture",
+  "raw_receipt_sha256": "ca8156415972f4ff0004a5df65e28432097568036b4ee7db055401b1ba3243bf",
+  "capture_completed": true,
+  "completed": false,
+  "duration_seconds": 124.06651349604363,
+  "error": "RuntimeError: Required state capture before did not complete: {'started_seconds': 1.2840876440168358, 'manifest': {'pid': 793985, 'created': 1790976847.08, 'executable': '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14', 'rss_before': 106815488, 'started_ns': 1790976850508885000, 'profile_seconds': 0, 'gil_only': False, 'native': False, 'receipts': {'/home/ts/.cache/agent-scratch/scroll-animation32-main-closure-public-20261002-01/capture/before-state': 'pending', '/home/ts/.cache/agent-scratch/scroll-animation32-main-closure-public-20261002-01/capture/before-screen': 'pending'}, 'finished_ns': 1790976870606593630}, 'finished_seconds': 21.6463552560308}",
+  "native_sanity": {
+    "checks": 25,
+    "passed": 25,
+    "seconds": 2.35,
+    "originals": "/home/ts/wt/textual-intrinsic-placement-after18-20261001/.artifacts/scroll-animation32-source"
+  },
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 22,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 701741,
+      "start_time": 44956949
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 701741,
+      "start_time": 44956949
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "terminal_exit": {
+    "pid": 793984,
+    "start_ticks": 45248701,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "exit_limit": "Transferred installed ObservedProcess proves custody; normal application exit returncode is not reported. No assertion of UIexit0.",
+  "writer": {
+    "flushed_frames": 1055,
+    "unmatched_enqueues": 0,
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+    "phases": [
+      {
+        "action": "held-Prior-0",
+        "intervals": {
+          "count": 99,
+          "median_ms": 17.15,
+          "p95_ms": 48.43,
+          "p99_ms": 150.8,
+          "max_ms": 173.27
+        },
+        "writer_receipts": 100
+      },
+      {
+        "action": "held-Next-1",
+        "intervals": {
+          "count": 119,
+          "median_ms": 16.94,
+          "p95_ms": 37.78,
+          "p99_ms": 90.43,
+          "max_ms": 109.79
+        },
+        "writer_receipts": 120
+      },
+      {
+        "action": "held-Prior-2",
+        "intervals": {
+          "count": 133,
+          "median_ms": 16.35,
+          "p95_ms": 23.9,
+          "p99_ms": 34.32,
+          "max_ms": 144.59
+        },
+        "writer_receipts": 134
+      },
+      {
+        "action": "held-Next-3",
+        "intervals": {
+          "count": 125,
+          "median_ms": 16.85,
+          "p95_ms": 28.16,
+          "p99_ms": 63.69,
+          "max_ms": 101.96
+        },
+        "writer_receipts": 126
+      },
+      {
+        "action": "held-Prior-4",
+        "intervals": {
+          "count": 127,
+          "median_ms": 16.39,
+          "p95_ms": 28.84,
+          "p99_ms": 50.42,
+          "max_ms": 123.65
+        },
+        "writer_receipts": 128
+      }
+    ]
+  },
+  "kernel_marker_cpu": [
+    {
+      "label": "warm-ready",
+      "start": 22.86047040403355,
+      "end": 25.388229847012553,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.5399999999999991,
+        "average_cpu_percent": 21.362792313955346
+      }
+    },
+    {
+      "label": "sidebar-revealed",
+      "start": 25.388229847012553,
+      "end": 26.922919080010615,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.3600000000000012,
+        "average_cpu_percent": 23.457517799660994
+      }
+    },
+    {
+      "label": "warm-start",
+      "start": 26.922919080010615,
+      "end": 32.34592995198909,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 1.4100000000000001,
+        "average_cpu_percent": 26.000316674371522
+      }
+    },
+    {
+      "label": "draft",
+      "start": 32.34592995198909,
+      "end": 33.92785898101283,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.3999999999999986,
+        "average_cpu_percent": 25.285584413786978
+      }
+    },
+    {
+      "label": "travel-start",
+      "start": 33.92785898101283,
+      "end": 35.52507987100398,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.3600000000000012,
+        "average_cpu_percent": 22.539149234517968
+      }
+    },
+    {
+      "label": "input-held-up",
+      "start": 35.52507987100398,
+      "end": 39.59374695504084,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 3.24,
+        "average_cpu_percent": 79.6329592242118
+      }
+    },
+    {
+      "label": "input-held-up-done",
+      "start": 39.59374695504084,
+      "end": 56.36805813602405,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 4.550000000000001,
+        "average_cpu_percent": 27.124809781508468
+      }
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "start": 56.36805813602405,
+      "end": 58.18575378600508,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.46999999999999886,
+        "average_cpu_percent": 25.856913945131744
+      }
+    },
+    {
+      "label": "input-held-down",
+      "start": 58.18575378600508,
+      "end": 62.282964595011435,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 2.5500000000000007,
+        "average_cpu_percent": 62.23746150416945
+      }
+    },
+    {
+      "label": "input-held-down-done",
+      "start": 62.282964595011435,
+      "end": 65.04056164703798,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.7699999999999996,
+        "average_cpu_percent": 27.9228612981774
+      }
+    },
+    {
+      "label": "focused",
+      "start": 65.04056164703798,
+      "end": 67.78828910103766,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.5700000000000003,
+        "average_cpu_percent": 20.744415504903465
+      }
+    },
+    {
+      "label": "up",
+      "start": 67.78828910103766,
+      "end": 71.84433822799474,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 2.719999999999999,
+        "average_cpu_percent": 67.06033173815607
+      }
+    },
+    {
+      "label": "up-done",
+      "start": 71.84433822799474,
+      "end": 73.43831545999274,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.5199999999999996,
+        "average_cpu_percent": 32.622799721436245
+      }
+    },
+    {
+      "label": "down",
+      "start": 73.43831545999274,
+      "end": 77.55941697000526,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 2.59,
+        "average_cpu_percent": 62.84727502361692
+      }
+    },
+    {
+      "label": "down-done",
+      "start": 77.55941697000526,
+      "end": 79.13421777903568,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.5100000000000016,
+        "average_cpu_percent": 32.38504813278577
+      }
+    },
+    {
+      "label": "reverse",
+      "start": 79.13421777903568,
+      "end": 83.46417186403414,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 2.8299999999999983,
+        "average_cpu_percent": 65.35866072586781
+      }
+    },
+    {
+      "label": "reverse-done",
+      "start": 83.46417186403414,
+      "end": 85.16523463104386,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.5300000000000011,
+        "average_cpu_percent": 31.156992574217796
+      }
+    },
+    {
+      "label": "end",
+      "start": 85.16523463104386,
+      "end": 88.09932560502784,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 1.6899999999999977,
+        "average_cpu_percent": 57.59875937675075
+      }
+    },
+    {
+      "label": "idle",
+      "start": 88.09932560502784,
+      "end": 104.87688863801304,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 3.5700000000000003,
+        "average_cpu_percent": 21.278418045465074
+      }
+    },
+    {
+      "label": "idle-done",
+      "start": 104.87688863801304,
+      "end": 106.58000762300799,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 0.46999999999999886,
+        "average_cpu_percent": 27.596427738804998
+      }
+    },
+    {
+      "label": "switch-b",
+      "start": 106.58000762300799,
+      "end": 112.25717851502122,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 2.8700000000000045,
+        "average_cpu_percent": 50.55334874695389
+      }
+    },
+    {
+      "label": "b-open",
+      "start": 112.25717851502122,
+      "end": 113.52189500699751,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 1.2899999999999991,
+        "average_cpu_percent": 101.99914432871853
+      }
+    },
+    {
+      "label": "return-a",
+      "start": 113.52189500699751,
+      "end": 117.36799458099995,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 3.1400000000000006,
+        "average_cpu_percent": 81.64115201865054
+      }
+    },
+    {
+      "label": "a-return",
+      "start": 117.36799458099995,
+      "end": 121.30721210304182,
+      "ui": {
+        "pid": "793985",
+        "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+        "cpu_seconds": 1.1599999999999966,
+        "average_cpu_percent": 29.44747258838138
+      }
+    }
+  ],
+  "profile": {
+    "sample_count": 1339,
+    "sampling_errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.0695935680042021,
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "stationary": [
+    {
+      "label": "input-mid-history-idle-done",
+      "start": 46.36805813602405,
+      "end": 56.36805813602405,
+      "counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10
+      }
+    },
+    {
+      "label": "idle-done",
+      "start": 94.87688863801304,
+      "end": 104.87688863801304,
+      "counts": {
+        "sidebar_publication_start": 10,
+        "sidebar_publication_done": 10,
+        "relocating": 20,
+        "relocated": 20
+      }
+    }
+  ],
+  "physical_assessment": {
+    "source": "terminal.mp4",
+    "sheet": "during-exact-input-up-frames.png",
+    "start": 36.73180470103398,
+    "seconds": 0.8,
+    "clock": "Original physical driver TOAD_VIDEO_EPOCH and keydown receipt",
+    "recorder_pid": 793921,
+    "encoded_while_alive": true,
+    "inspection": "Viewed actual48 consecutive source frames36.7318\u201337.5318 while recorder/UI alive. History/chrome readable; long repeated positions then discrete advance. Not smoothness approval; changed request no old-destination jump was proven separately by native family test, not film alone.",
+    "inspected_monotonic": 452597.627084738,
+    "recorder_alive_when_inspection_recorded": true
+  },
+  "a_return_after_review": "Original nra tab/body/draft readable in phase-a-return.png inspected after run; source/resource identities validated by actual native review.",
+  "production_delta_vs_qualified81ec": {
+    "added": 46,
+    "deleted": 53,
+    "files": 3
+  },
+  "remaining": "Foreground DOM/style/layout/materialization and discrete motion, cold/warm firstpaint, raster/runway/growingEnd/void/velocity, busy sidebar/channel, input/focus and TC1/T9/T4 remain active. No comparable matched-load causal CPU result."
+}
