@@ -1,0 +1,7 @@
+test_captured_task_loads_its_declaring_module (__main__.RenderingFamilyTests.test_captured_task_loads_its_declaring_module)
+Detect eager native catalog loading and lost decode-before-admission. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.896s
+
+OK
