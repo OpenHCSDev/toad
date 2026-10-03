@@ -1,0 +1,26 @@
+{
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "original_activation": ".artifacts/async-certified-read558-headless350-receiving-20261003/old553-original-proof/activation.json",
+  "actual553_source_proof": ".artifacts/async-certified-read558-headless350-receiving-20261003/old553-original-proof/source-proof.json",
+  "actual553_source_proof_original": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/client-custody548-context547309-20261002/source-proof.json",
+  "actual553_source_proof_sha256": "d307c32503bebf7d81e22014cb7467753eed050fb0c6d01d5c13667eda235f1f",
+  "initial520_proof_retained_separately": true,
+  "release_owners": [
+    "Heis347/338",
+    "Einstein350/353"
+  ],
+  "actual_defaults": {
+    "/home/ts/.local/bin/toad": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/toad",
+    "/home/ts/.local/bin/agent-comms": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms",
+    "/home/ts/.local/bin/agent-comms-acp": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms-acp",
+    "/home/ts/.local/bin/agent-comms-agent": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms-agent",
+    "/home/ts/.local/bin/agent-comms-nk-foreground": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms-nk-foreground"
+  },
+  "active_route_sha256": "dadacdd75d9a3c04f4c734ccc802d5603f7dd9a2e79bc1992accd8493bd43cea",
+  "active_route_does_not_reference_holder": true,
+  "fresh_privileged_proc_refs": [],
+  "permission_gaps": [],
+  "current290_and_previous334_protected": true,
+  "new_environment": false,
+  "native960_unchanged": true
+}

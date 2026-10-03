@@ -1,0 +1,7 @@
+{
+  "source_prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "activation_sha256": "f019b37602d8b2a125a0957f440101ca05074723bba8df1b261eeebd6169db23",
+  "source_proof_sha256": "a307b675cbf6b943c91af41dfd2cbc188b9124f0739e3c99dcc6ec0b4f7d1586",
+  "state": "Original accepted345 installed metadata preserved before normal551 receiving update; no fullenv copy",
+  "current553_mutated": false
+}

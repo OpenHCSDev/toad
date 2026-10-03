@@ -1,0 +1,69 @@
+{
+  "state": "FROZEN READY receiving351; qualified556 late target binding plus merged554/551/345/341; parent-only NEW original checkpoint publication",
+  "core": "325e9f355cf29be3f54594bb2672f7c9aa42c553",
+  "toad": "89fbca2203ccbabcc8adcb857023645215f6b821",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "sdk": "0.12.1",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "package_count": 69,
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/source-proof.json",
+  "source_proof_sha256": "d31bd1cde462f824d9f6fa6c9481555082fa98fa6655cd46e91ac5c5a1cc189f",
+  "activation_sha256": "d18b5e1391374b0bbd73de2483baeefc988d1786b9f06c9547814c91908d1505",
+  "cohort": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/review-plan.json",
+  "cohort_sha256": "8d265fedec5758bdb80d27e3cfcd4aec32e2bb699817cac18e2035850c361847",
+  "operator_manifest_sha256": "d7bd55aaa77e83abde24eaa6222a70136db5d16141d637bb9ee8baaaca499281",
+  "operator_members": 51,
+  "execution_artifacts": {
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/operator-manifest.json": "d7bd55aaa77e83abde24eaa6222a70136db5d16141d637bb9ee8baaaca499281",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/review-plan.json": "8d265fedec5758bdb80d27e3cfcd4aec32e2bb699817cac18e2035850c361847",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/runtime-installation.json": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/declaration-relation.json": "a6acb0642a4da38a6a2211d0074bf0a209b7d69eb22f5523d16fef28785e6a04",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/execute-index-publication.py": "9a68b47bf0cf6f5f5548ea226bb6a033113b1cb8c13114609c7e4b77f389c1ed"
+  },
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/execute-index-publication.py --execute",
+  "receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/publication-receipt.json",
+  "receipt_exists": false,
+  "originals": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/publication-receipt.originals",
+  "schema_relation": "Whole declared NativeSchema equal; derived private checkpoint declarations differ; original index writer owns reset/rebuild through inherited descriptor. Runtime/native/input/UNKNOWN unchanged, no native carry/reset/replay. Products differ.",
+  "private_directory_mode": "0o700",
+  "reused_proofs": [
+    "551 original retained writer/inherited descriptor/CLI manifest/protected25 files",
+    "345 installed different-cwd project-dir physical saved-history startup",
+    "341 installed native06 and actual41MB physical saved-history startup",
+    "309 accepted context inspection unchangedAPI",
+    "554 actual original request/source retirement controls and existing installed native cursor proof"
+  ],
+  "public_effects": 0,
+  "provider_calls": 0,
+  "new_environment": false,
+  "new_native_build": false,
+  "new_physical_journey": false,
+  "guards": "Existing publisher acquires original route EX lifetime before audience/client/idle validation and fence. Pre-stop target pin is deleted. Original source interpreter validates old checkpoint before reset; shared stopped installation binds target only after complete conversion then launches retained handoff. Metadata mutation forbids original-runtime recovery; failed349 remains immutable. Existing receipt/originals forbid repeat. Parent only executes after fresh original route/default/client0/idle review.",
+  "protected_prefixes": [
+    "current553/runtime-summary-generation-policy520-installed-20261002",
+    "previous334/runtime-native-read532-534-retirement325-20261002"
+  ],
+  "excluded_scopes": [
+    "555 new native timing; no native artifact change",
+    "350 unmerged context family",
+    "347/338 held reader family",
+    "S2/S4/full smoothness/full latency closure"
+  ],
+  "changed_gate": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/post-install-owner-launch556-receiving-20261003/new-publication556554/post-install-launch556-installed-receipt.json",
+    "sha256": "60fb124a50c252c7640fbf96feee22628addded8e30197172046afe77452e8c1",
+    "state": "PASS",
+    "elapsed_seconds": 7.364594510989264,
+    "scope": "Original553 incompatible index -> original writer inherited-FD rebuild -> retained owner target interpreter ready; settings,arguments,wire,private pair preserved; cleanup[]; no provider/input replay"
+  },
+  "failed349": {
+    "path": ".artifacts/certified-context551-project345-receiving-20261003/new-publication551345341/publication-receipt.json",
+    "sha256": "bbc0ebd043dbcdb2977e44d4d896bac6680415fc625d7312325c83d866a7098f",
+    "phase": "preflight-complete",
+    "originals_absent": true,
+    "source_proof_activation_archive": ".artifacts/certified-context551-project345-receiving-20261003/failed349-installed-proof"
+  },
+  "source_production_checkpoint": "325e9f355cf29be3f54594bb2672f7c9aa42c553",
+  "source_ready_head": "9348c1ec2b37f601e124511f6bc9098d5bb64f10"
+}

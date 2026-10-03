@@ -42,10 +42,9 @@ class TerminalController:
         terminal_id = f"terminal-{self._next_id}"
         execution = TerminalExecution(command, output_byte_limit)
         self.executions[terminal_id] = execution
-        target = self.owner.surface.target
-        width, height = target.get_terminal_dimensions() if target is not None else (80, 24)
+        self.owner.surface.prepare_terminal(execution.state)
         try:
-            await execution.start(width, height)
+            await execution.start()
             if self.state is state:
                 self.owner.surface.publish_terminal(self, terminal_id, execution)
             if self.state is not state:
@@ -57,9 +56,8 @@ class TerminalController:
                 raise TerminalSessionRetired("ACP terminal session retired during creation") from error
             raise
 
-    async def attach(self, target) -> None:
-        binding = self.owner.surface
-        if not binding.owns(target):
+    async def attach(self, binding) -> None:
+        if self.owner.surface is not binding:
             return
         for terminal_id, execution in tuple(self.executions.items()):
             binding.publish_terminal(self, terminal_id, execution)

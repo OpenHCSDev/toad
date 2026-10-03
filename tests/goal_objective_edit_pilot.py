@@ -69,7 +69,7 @@ async def main():
                 await pilot.pause()
                 conversation = app.selected_session.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
-                agent.attach_surface(conversation)
+                conversation.bind_agent(agent)
                 conversation.agent_ready = True
                 await conversation.goal_observation.refresh()
                 await pilot.pause()

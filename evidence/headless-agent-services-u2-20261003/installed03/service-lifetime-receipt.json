@@ -1,0 +1,13 @@
+{
+  "result": "PASS",
+  "elapsed_seconds": 12.748254009988159,
+  "native_requests": 1,
+  "same_reader_after_reconnect_detach_return": true,
+  "same_canonical_service_after_cancel_and_return": true,
+  "cancelled_read_released_original_lock": true,
+  "permissions_original_future_retained_and_answered": true,
+  "terminal_original_execution_retained_and_released": true,
+  "saved_response_and_draft_document_undo_retained": true,
+  "agent_source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/acp/agent.py",
+  "scope": "Real installed Toad/ACP/Pi; Textual Pilot; one controlled localhost native answer plus real registered client file/permission/terminal requests; no public input or paid provider."
+}

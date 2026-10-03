@@ -5,14 +5,13 @@ from acp.schema import SessionModeState
 
 import asyncio
 from abc import abstractmethod
-from weakref import ref
 from dataclasses import dataclass, replace
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.render_tasks import ValidateSessionUpdateTask
+from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
-from .transcript_reader import CoordinationTranscriptReader
+from .transcript_reader import DirectTranscriptReadDelivery
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
 from toad.core import events as core_events
@@ -45,6 +44,15 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def owns(self, target):
         return self.target is target and target is not None
 
+    def prepare(self, controller) -> None:
+        """No frontend means no additional application resources to acquire."""
+
+    def prepare_terminal(self, state) -> None:
+        """A detached terminal keeps its original model's configured geometry."""
+
+    def schedule_terminal_presentation(self, controller):
+        controller.start_terminal_presentation(self.target)
+
     def publish_terminal(self, controller, terminal_id, execution):
         """An absent frontend does not acquire native projection work."""
         return False
@@ -60,52 +68,6 @@ class DetachedSurfaceBinding(SurfaceBinding):
     def post(self, message):
         return False
 
-
-class AttachedSurfaceBinding(SurfaceBinding):
-    def __init__(self, target, events):
-        self._target = ref(target)
-        self.subscription = target.subscribe_core(events)
-
-    def close(self) -> None:
-        if (target := self.target) is not None:
-            target.retire_core(self.subscription)
-        else:
-            self.subscription.close()
-
-    @property
-    def target(self):
-        return self._target()
-
-    def post(self, message):
-        target = self.target
-        # The original MessagePump owns admission while closing/closed.
-        return target.post_message(message) if target is not None else False
-
-    def publish_terminal(self, controller, terminal_id, execution):
-        from toad.widgets.terminal_tool import TerminalTool
-        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))
-
-    def owns_terminal(self, projection, target):
-        """Same original surface, controller lifetime and acquired address."""
-        if not self.owns(target):
-            return False
-        return projection.controller.owner.owns_terminal_projection(self, projection)
-
-    async def present_terminal(self, projection, target):
-        if not self.owns_terminal(projection, target):
-            return
-        from toad.widgets.terminal_tool import TerminalTool
-
-        if existing := target.query_one_optional(f"#{projection.terminal_id}", TerminalTool):
-            if existing.execution is projection.execution:
-                return  # Reuse the original bounded rendering resource.
-            await existing.remove()  # A replaced ACP controller may reuse its address.
-            if not self.owns_terminal(projection, target):
-                return
-        terminal = TerminalTool(projection.execution, id=projection.terminal_id)
-        await target.post(terminal)
-        if not self.owns_terminal(projection, target):
-            await terminal.remove()
 
 class ValidationOwner(DeclaredFamily, affix="ValidationOwner"):
     @abstractmethod
@@ -131,10 +93,9 @@ class AgentController(OperationalTerminalOwner):
         super().__init__(agent)
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
-        self.app = None
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
-        self.transcripts = CoordinationTranscriptReader(self)
+        self.transcripts = DirectTranscriptReadDelivery()
         self.coordination = None
         self.session = SessionBinding(None)
         self.mode_state: SessionModeState | None = None
@@ -150,20 +111,19 @@ class AgentController(OperationalTerminalOwner):
             self.session = SessionBinding(session_id)
             self.reset_configuration()
 
-    def attach(self, target):
+    def attach(self, binding: SurfaceBinding):
         previous = self.surface.target
-        if previous is target:
+        if self.surface.owns(binding.target):
+            binding.close()
             return
         self.detach(previous)
-        self.app = target.app
-        self.transcripts.prepare_with(self.app.preparation)
-        self.validation = ApplicationValidationOwner(self.app.render_processes)
-        self.surface = AttachedSurfaceBinding(target, self.agent.events)
-        self.agent.permissions.present(target)
+        binding.prepare(self)
+        self.surface = binding
+        self.agent.permissions.present()
         if self.agent.ready:
             self.start_operation(self.restore(self.surface))
         else:
-            self.start_operation(self.terminals.attach(target))
+            self.start_terminal_presentation(binding.target)
 
     def detach(self, target):
         if self.surface.owns(target):
@@ -203,9 +163,7 @@ class AgentController(OperationalTerminalOwner):
                 return
             self.require_owner(coordination, authority)
             self.agent.events.publish(CommsUpdated(snapshot, agent.session_id))
-        target = binding.target
-        if target is not None:
-            target.call_later(self.start_terminal_presentation, target)
+        binding.schedule_terminal_presentation(self)
 
 
 

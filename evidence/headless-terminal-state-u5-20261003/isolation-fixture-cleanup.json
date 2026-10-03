@@ -1,0 +1,15 @@
+{
+  "observed_readable_owned_process_matches": [],
+  "unreadable_proc_pids": [],
+  "observer_pids_excluded": [
+    1490303,
+    2221730
+  ],
+  "observer_scope": "Self and its shell excluded: shell command contains these literal search strings, not fixture processes.",
+  "original_cleanup": "Original fixture agent.stop+owners.stop completed after terminal/release; source/raw evidence preserved.",
+  "private_fixture_roots_preserved": [
+    "/home/ts/wt/u353e01",
+    "/home/ts/wt/u353e02",
+    "/home/ts/wt/u353e03"
+  ]
+}

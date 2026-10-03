@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "pins": {
+    "agent_comms": "f34cd8ea57345f002f99e5de7a0c54c32cf996dc",
+    "toad": "431e87d9965ca1e620a4a403e7e3d714c109be3f",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Normal69 merged551/345/341 withText32/native960; original accepted551 writer/CLI and345/309/341 journeys reused",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-context551-project345-receiving-20261003/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python",
+    "toad": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "960296fdddafb01cbbeb75639f7a6a89fa36fd828b3ff5307b108abc20e7c447",
+  "native_tree": "01de56aa9550de0fe8bf93b5df8815429cba26c64b676704a9653ebf831e0e9d",
+  "native_configuration_note": "Released old290 holder reused; original345 source proof archived. Current553 and previous334 unchanged. No provider/public changes, no environment/native build."
+}
