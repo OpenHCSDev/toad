@@ -146,20 +146,31 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                            and inspection.same_native_source(previous))
             changed_manifests = (previous is None
                                  or inspection.manifests != previous.manifests)
+            changed_contributors = False
+            if same_source and self._native is not None:
+                original = self._native
+                refreshed = await asyncio.to_thread(
+                    original.with_current_contributors, service, inspection.owner)
+                if not self._reading(owner, root):
+                    return
+                if self._native is original:
+                    changed_contributors = refreshed.contributors != original.contributors
+                    if changed_contributors:
+                        self._native = refreshed
             if not same_source:
                 self.workers.cancel_group(self, "context-native")
                 self._native = None
             self._inspection = inspection
-            if not same_source or changed_manifests:
+            if not same_source or changed_manifests or changed_contributors:
                 self._present(inspection, self._native)
             if force or not same_source:
                 status.update(f"{owner} · recorded manifests available\nReading native context…")
-                self._read_native(inspection, service, owner, root)
+                self._read_native(inspection, owner, root)
             elif (changed_manifests and self._native is None
                   and not self._working("context-native")):
                 # An original SDK manifest is context evidence; an unrelated
                 # roster status change is not permission to poll native again.
-                self._read_native(inspection, service, owner, root)
+                self._read_native(inspection, owner, root)
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -167,11 +178,11 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 status.update(f"Context unavailable: {error}")
 
     @work(group="context-native", exclusive=True, exit_on_error=False)
-    async def _read_native(self, inspection, service, owner, root):
+    async def _read_native(self, inspection, owner, root):
         native = None
         unavailable = ""
         try:
-            native = await inspection.native(service)
+            native = await inspection.native()
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -185,7 +196,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             # capture whose native request was pending while it was appended.
             self._present(self._inspection, native)
         self.query_one(".context-status", Static).update(
-            f"{owner} · native base before future input/provider hooks\n"
+            f"{owner} · current Core instructions and native base before future input/provider hooks\n"
             f"Segment counts: estimates ({native.counter}) · provider totals unavailable"
             if native is not None else
             f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
@@ -203,6 +214,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             tree.root.set_label("Context")
             tree.root.expand()
             if native is not None:
+                core = tree.root.add("Current Core instructions · before next input", expand=True)
+                for model in inspection.contributors(native):
+                    self._add(core, model)
                 active = tree.root.add("Current native base · before next input and provider hooks", expand=True)
                 for model in inspection.active(native):
                     self._add(active, model)
@@ -270,7 +284,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
 
     def _searching(self, inspection, native, query):
         return (self.is_attached and not get_current_worker().is_cancelled
-                and self._inspection is inspection and self._native is native
+                and self._inspection is not None
+                and inspection.same_native_source(self._inspection)
+                and self._native is native
                 and self.intent.query == query)
 
     @on(Button.Pressed, "#context-read-full")
@@ -297,7 +313,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self._owns_node(node):
             model = node.data
             try:
-                detail = await asyncio.to_thread(model.detail)
+                detail = await model.read()
             except (OSError, ValueError, RuntimeError, RequestError) as error:
                 if self._selected(model):
                     self.notify(f"Context copy failed: {error}", severity="error")
@@ -318,7 +334,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             self.notify("Choose a new output file path", severity="warning")
             return
         try:
-            await asyncio.to_thread(model.export, Path(destination).expanduser())
+            await model.export(Path(destination).expanduser())
         except (OSError, ValueError, RuntimeError) as error:
             if self.is_attached:
                 self.notify(f"Context export failed: {error}", severity="error")
@@ -330,7 +346,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         node = self._context_nodes.get(model.key)
         if (self._owns_node(node) and node.data is model
                 and self.intent.selected == model.key):
-            self.query_one(Tree).move_cursor(node, animate=False)
+            # Restoring this exact reader choice owns its detail publication.
+            # A second queued highlight must not cancel/re-read the same source.
+            with self.prevent(Tree.NodeHighlighted):
+                self.query_one(Tree).move_cursor(node, animate=False)
             self._show_detail(model)
 
     def _add(self, parent, model):
@@ -361,9 +380,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self._owns_node(event.node):
             self.intent.expanded.discard(event.node.data.key)
 
-    @on(Tree.NodeSelected, "#context-tree")
     @on(Tree.NodeHighlighted, "#context-tree")
-    def node_selected(self, event):
+    def node_highlighted(self, event):
         event.stop()
         if self._owns_node(event.node):
             self.intent.selected = event.node.data.key
@@ -383,7 +401,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         self.query_one(TextArea).load_text("Preparing selected context detail…")
         try:
-            detail = await asyncio.to_thread(model.detail)
+            detail = await model.read()
         except (OSError, ValueError, RuntimeError, RequestError) as error:
             detail = f"Selected context detail unavailable: {error}"
         if self._selected(model):

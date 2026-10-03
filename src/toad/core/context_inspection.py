@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from abc import ABC
 from dataclasses import dataclass
+from functools import partial
+from typing import TYPE_CHECKING, Awaitable, Callable
 
 from agent_comms.field_codec import FieldCodec
 from agent_comms.mro_dispatch import handles
@@ -16,9 +18,12 @@ from agent_comms.runtime import RuntimeConnection, socket_path
 from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
-    ContextManifest, MeasuredNativeSegment, NativeMessages, Provenance,
+    ContextManifest, ContextSegment, ContextSourceText, MeasuredNativeSegment, NativeMessages, Provenance,
     SegmentManifest, SystemLayerSegment, ToolCatalogSegment,
 )
+
+if TYPE_CHECKING:
+    from agent_comms.comms import Comms
 
 
 @dataclass(frozen=True)
@@ -47,9 +52,16 @@ class ContextNode(ABC):
         for child in self.children():
             yield from child.find(query)
 
-    def export(self, destination: Path):
+    async def read(self):
+        return await asyncio.to_thread(self.detail)
+
+    async def export(self, destination: Path):
         """Export this original observation; never overwrite a session/source file."""
-        detail = self.detail()
+        detail = await self.read()
+        await asyncio.to_thread(self._write_export, destination, detail)
+
+    @staticmethod
+    def _write_export(destination, detail):
         with destination.open("x", encoding="utf-8") as output:
             output.write(detail)
 
@@ -57,19 +69,27 @@ class ContextNode(ABC):
 @dataclass(frozen=True)
 class ReferenceNode(ContextNode):
     source: Provenance
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
     def label(self):
-        return f"Source · {self.source.declared_name.replace('_', ' ')}"
+        return f"Source · {self.source.public_description()}"
 
     def detail(self):
-        return "Original source reference; historical text is not inferred from today's file.\n" + json.dumps(
-            FieldCodec.encode(self.source), ensure_ascii=False, indent=2)
+        return self.source.public_description()
+
+    def public_text(self):
+        return self.source.public_description()
+
+    async def read(self):
+        original = await self.read_source(self.source)
+        return f"{original.description}\n\n{original.text}"
 
 
 @dataclass(frozen=True)
 class ManifestNode(ContextNode):
     segment: SegmentManifest
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
     def label(self):
@@ -77,9 +97,9 @@ class ManifestNode(ContextNode):
 
     def children(self):
         return (
-            *(ManifestNode(f"{self.key}/contributor/{i}", child)
+            *(ManifestNode(f"{self.key}/contributor/{i}", child, self.read_source)
               for i, child in enumerate(self.segment.contributors)),
-            *(ReferenceNode(f"{self.key}/source/{i}", source)
+            *(ReferenceNode(f"{self.key}/source/{i}", source, self.read_source)
               for i, source in enumerate(self.segment.provenance)),
         )
 
@@ -94,6 +114,7 @@ class ManifestNode(ContextNode):
 @dataclass(frozen=True)
 class RecordedTurnNode(ContextNode):
     manifest: ContextManifest
+    inspection: ContextInspection
 
     @property
     def label(self):
@@ -101,7 +122,8 @@ class RecordedTurnNode(ContextNode):
         return f"Request {turn.occurrence.generation} · {turn.identity.value[:12]}"
 
     def children(self):
-        return tuple(ManifestNode(f"{self.key}/{i}", segment)
+        return tuple(ManifestNode(f"{self.key}/{i}", segment,
+                                 partial(self.inspection.recorded_source, self.manifest, i))
                      for i, segment in enumerate(self.manifest.segments))
 
     def detail(self):
@@ -113,24 +135,25 @@ class RecordedTurnNode(ContextNode):
 
 @dataclass(frozen=True)
 class NativeSegmentNode(ContextNode):
-    segment: MeasuredNativeSegment
+    segment: ContextSegment
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
 
     @property
     def label(self):
-        return f"{self.segment.declared_name.replace('_', ' ')} · ~{self.segment.tokens:,} tokens"
+        return self.segment.public_description()
 
     def children(self):
         return (
-            *(ManifestNode(f"{self.key}/contributor/{i}", child)
-              for i, child in enumerate(self.segment.contributors)),
-            *(ReferenceNode(f"{self.key}/source/{i}", source)
+            *(ManifestNode(f"{self.key}/contributor/{i}", child, self.read_source)
+              for i, child in enumerate(self.segment.contributor_manifests())),
+            *(ReferenceNode(f"{self.key}/source/{i}", source, self.read_source)
               for i, source in enumerate(self.segment.provenance)),
         )
 
     def detail(self):
         sources = "\n\n".join(
-            ReferenceNode(f"{self.key}/source/{i}", source).detail()
-            for i, source in enumerate(self.segment.provenance)
+            source.public_description()
+            for source in self.segment.provenance
         )
         return f"{self.label}\n\n{self.public_text()}\n\nSources:\n{sources}"
 
@@ -140,6 +163,15 @@ class NativeSegmentNode(ContextNode):
 
 class NativeDetail(MroProjection):
     """Use existing SDK segment and content owners; omit private reasoning."""
+    @handles(ContextSegment)
+    def contribution(self, segment):
+        return segment.text()
+
+    @handles(MeasuredNativeSegment)
+    def measured(self, segment):
+        # An opaque native provider representation is not public text.
+        return ""
+
     @handles(SystemLayerSegment)
     def system(self, segment):
         return segment.content
@@ -180,16 +212,16 @@ class NativeMessageNode(NativeSegmentNode):
 
 
 class SegmentNodes(MroProjection):
-    def __init__(self, key):
-        self.key = key
+    def __init__(self, key, read_source):
+        self.key, self.read_source = key, read_source
 
-    @handles(MeasuredNativeSegment)
+    @handles(ContextSegment)
     def segment(self, segment):
-        return NativeSegmentNode(self.key, segment)
+        return NativeSegmentNode(self.key, segment, self.read_source)
 
     @handles(NativeMessages)
     def messages(self, segment):
-        return NativeMessagesNode(self.key, segment)
+        return NativeMessagesNode(self.key, segment, self.read_source)
 
 
 @dataclass(frozen=True)
@@ -201,7 +233,7 @@ class NativeMessagesNode(NativeSegmentNode):
 
     def children(self):
         return (*super().children(),
-                *(NativeMessageRange(f"{self.key}/range/{start}", self.segment,
+                *(NativeMessageRange(f"{self.key}/range/{start}", self.segment, self.read_source,
                                      start, min(start + self.page_size, len(self.segment.messages)))
                   for start in range(0, len(self.segment.messages), self.page_size)))
 
@@ -209,6 +241,7 @@ class NativeMessagesNode(NativeSegmentNode):
 @dataclass(frozen=True)
 class NativeMessageRange(ContextNode):
     segment: NativeMessages
+    read_source: Callable[[Provenance], Awaitable[ContextSourceText]]
     start: int
     stop: int
 
@@ -218,6 +251,7 @@ class NativeMessageRange(ContextNode):
 
     def children(self):
         return tuple(NativeMessageNode(f"{self.key}/message/{i}", segment=self.segment,
+                                      read_source=self.read_source,
                                       message=PiMessage.from_wire(self.segment.messages[i]), position=i)
                      for i in range(self.start, self.stop))
 
@@ -231,12 +265,13 @@ class ContextInspection:
     owner: Thread
     manifests: tuple[ContextManifest, ...]
     source: SessionObservation
+    service: Comms
 
     @classmethod
     def read(cls, comms, owner):
         thread = comms.registry.require(owner)
         return cls(thread, comms.bus.log.context_manifests(owner, comms.registry),
-                   SessionRevision.observe(thread.session_file))
+                   SessionRevision.observe(thread.session_file), comms)
 
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
@@ -249,7 +284,7 @@ class ContextInspection:
         # Later observations of the same original turn supersede only its view.
         turns = {manifest.turn.require_recorded().identity.value: manifest
                  for manifest in self.manifests}
-        return tuple(RecordedTurnNode(f"turn/{identity}", manifest)
+        return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
 
     def find(self, native, query: str, *, limit=100):
@@ -257,23 +292,43 @@ class ContextInspection:
         from itertools import islice
 
         normalized = query.casefold()
-        nodes = self.active(native) if native is not None else ()
+        nodes = (*self.contributors(native), *self.active(native)) if native is not None else ()
         return tuple(islice((match for node in nodes for match in node.find(normalized)), limit))
 
-    async def native(self, comms):
-        owner = await asyncio.to_thread(comms.registry.require, self.owner.name)
+    async def _request(self, action, **parameters):
+        owner = await asyncio.to_thread(self.service.registry.require, self.owner.name)
         if owner.incarnation != self.owner.incarnation:
             raise ValueError("Selected context thread incarnation changed")
         process = owner.require_process()
-        connection = RuntimeConnection(comms, owner.name, socket_path(comms.root, process.pid))
+        connection = RuntimeConnection(self.service, owner.name, socket_path(self.service.root, process.pid))
         try:
-            payload = await connection.request("context")
-            context = await asyncio.to_thread(FieldCodec.decode, NativeContextData, payload)
-            return context.require_session_file(owner.require_saved_session())
+            return await connection.request(action, **parameters)
         finally:
             await connection.close()
 
-    @staticmethod
-    def active(context: NativeContextData):
-        return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}").dispatch_sync(segment)
+    async def native(self):
+        payload = await self._request("context")
+        context = await asyncio.to_thread(FieldCodec.decode, NativeContextData, payload)
+        return context.require_session_file(self.owner.require_saved_session())
+
+    async def current_source(self, context, position, source):
+        payload = await self._request("context_source",
+            observation=FieldCodec.encode(context.observation()), segment=position,
+            source=FieldCodec.encode(source))
+        return FieldCodec.decode(ContextSourceText, payload)
+
+    async def recorded_source(self, manifest, position, source):
+        payload = await self._request("context_reference",
+            turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
+            segment=position, source=FieldCodec.encode(source))
+        return FieldCodec.decode(ContextSourceText, payload)
+
+    def active(self, context: NativeContextData):
+        return tuple(SegmentNodes(f"native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}",
+                                 partial(self.current_source, context, i)).dispatch_sync(segment)
                      for i, segment in enumerate(context.segments))
+
+    def contributors(self, context: NativeContextData):
+        return tuple(SegmentNodes(f"core/{context.identity.session_id}/{i}/{segment.declared_name}",
+                     partial(self.current_source, context, len(context.segments) + i)).dispatch_sync(segment)
+                     for i, segment in enumerate(context.contributors))
