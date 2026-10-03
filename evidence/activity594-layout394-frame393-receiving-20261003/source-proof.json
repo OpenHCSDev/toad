@@ -1,10 +1,10 @@
 {
-  "state": "Joined594 originalactivity +595 coldContext +merged593/393394396/Text42 normal69 candidate; native89",
+  "state": "Normal merged593594595596 +Toad393394396398/Text42 normal69 candidate; native89",
   "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
   "sources": [
     {
       "module": "agent_comms",
-      "head": "b0682f2cdb3ba673bc7263133504e39f5488043c",
+      "head": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
       "location": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/agent_comms",
       "files": 339,
       "python_files": 311,
@@ -13,15 +13,15 @@
         "url": "https://github.com/OpenHCSDev/agent-comms.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "b0682f2cdb3ba673bc7263133504e39f5488043c",
-          "requested_revision": "b0682f2cdb3ba673bc7263133504e39f5488043c"
+          "commit_id": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+          "requested_revision": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d"
         }
       },
       "inventory_sha256": "aac9c5c1dcf3f0dccb6fa072b5bf7a644ced45822681aa8e2e620de805c05521"
     },
     {
       "module": "toad",
-      "head": "916a5fd465cc894643ccb588c35ecb4653785e74",
+      "head": "83b5b4bd46d2fc8288fe2892f9bcb3c7b820d8c7",
       "location": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad",
       "files": 320,
       "python_files": 289,
@@ -30,11 +30,11 @@
         "url": "https://github.com/OpenHCSDev/toad.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "916a5fd465cc894643ccb588c35ecb4653785e74",
-          "requested_revision": "916a5fd465cc894643ccb588c35ecb4653785e74"
+          "commit_id": "83b5b4bd46d2fc8288fe2892f9bcb3c7b820d8c7",
+          "requested_revision": "83b5b4bd46d2fc8288fe2892f9bcb3c7b820d8c7"
         }
       },
-      "inventory_sha256": "ce4be696df7cf6495309b7cef6ee429c0ba2a8b1c25b50db82ec01298a7ce70a"
+      "inventory_sha256": "15d99cece7ca3b23808d02685119cb52551397f8fba151b937947dd75bf2a576"
     },
     {
       "module": "textual",
@@ -356,7 +356,7 @@
       "1.25.1"
     ]
   ],
-  "requirements_sha256": "9c4e53f18fae2a9998b614cf8c90d717e31d7e236cbdf686b4b62edaa38390eb",
+  "requirements_sha256": "2309eda14687c4e583869787f2cb153631282b5321317c3bd15ea7629538f823",
   "protected_old_prefix_files": 2137,
   "protected_old_prefix_files_unchanged": true,
   "public_install_changed": false,
@@ -364,7 +364,7 @@
   "source_overlay": false,
   "dependency_bypass": false,
   "journey_owners": [
-    "Einstein sole physical595coldTree +Sch594 savedhistory/roster assessment pending; original393394 qualification retained"
+    "Physical06 closes actual595coldTree/397 savedhistory/roster/provenance; original393394396 qualification and398 installed App retained"
   ],
-  "journey_assessment": "Installed source proof only. One ordinary terminal saved-history/roster and cold Context acceptance follows. No configured provider/native build/environment/fullmovie repeat; no public activation."
+  "journey_assessment": "Installed source proof for normal byteequal main/pin refresh. Original physical06 actual savedhistory/roster/4segments/provenance beforeprompt and398 App qualify affected scope; no repeat or public activation."
 }
