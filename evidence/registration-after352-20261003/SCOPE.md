@@ -64,3 +64,34 @@ parks and generation-revokes history before cancel/join; an already admitted
 native mount can still finish in that lifetime. No new hidden-view guard or
 compositor invalidation copy is justified. Delayed replacement remains an
 active performance gap; original01/02 raw failures are preserved.
+
+
+## Compiled CSS owner checkpoint (changed04)
+
+Text33 5c996dc2a makes Styles.replace_rules the sole compiled replacement
+algorithm; Stylesheet static and mixed-transition callers delegate to it.
+Original setters/animation retain immediate epochs. Transient detached Styles
+normalizes before commit, then the same live rule dictionary publishes once.
+The property family has one post-commit hook for display/pointer/overflow/bar
+effects; no persistent shadow Styles/revision/cache. 106 production lines added,
+90 deleted;113 focused final checks passed. Kepler read complete Animator and
+revision consumers without finding a blocking semantic mismatch.
+
+Normal main d387 union is aa0ce7ee; exact comparator Core483/Native044, Text5c996
+is installed/source-assets-native-trust verified in the existing69 holder.
+It is NOT current default370/Core568. Original04 filmed51.093s and failed only
+channel_messages_published (coldB loaded_pages0 at one-second snapshot). All18
+other lifetime checks passed, including ready native return/draft/Undo/End.
+A-return PNG personally viewed DURING actual recorder/UI lifetime paints native A.
+Consecutive draft/return-a sheets inspected AFTER; no held-scroll or smoothness
+claim. Original source owner unchanged/cleanup empty. Raw03 admission failure
+and04 failure are preserved.
+
+Click-command finish→next native writer1.753561s vs prior1.789s does not establish
+a speedup. Wholecapture writer280/unmatched0, GIL771/errors0, approximate clock
+uncertainty±0.075s. Complete changed stacks show ongoing synchronous pager
+registration/composition and CSS cache-hit descriptor preparation BEFORE selection;
+late selection rematches components and arrangement still follows. Worker source
+snapshot decoding is concurrent. Neither stack counts nor spans prove CPU
+dominance. Remaining whole foreground/firstpaint/CPU/raster/runway/growingEnd/
+void/focus/sidebar/animation/TC1T9T4 scope stays active, no unchanged recording.

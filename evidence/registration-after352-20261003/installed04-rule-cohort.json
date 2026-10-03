@@ -1,0 +1,88 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/registration364-text33-public-channel-20261003-04/capture/receipt.json",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-registration364-rule-cohort-20261003/source-proof.json",
+  "source_heads": {
+    "core": "48324afc4d7415afb347cbc1f5f52cfc6820ac73",
+    "toad": "aa0ce7eea04dc3fb7fb782b389ae7ba9dc198710",
+    "textual": "5c996dc2ac92c94f6086c48100d9e6311a32b9d6"
+  },
+  "comparison_scope": "Declared Core483 comparator, not default370/Core568. Main d387/368 source union;369 is separate draft. Native044/root unchanged. Same existing channel-lifetime algorithm, PageUp/End, not held-scrolling qualification.",
+  "capture_completed": true,
+  "completed": false,
+  "duration_seconds": 51.09343147295294,
+  "error": "RuntimeError: Installed journey failed: channel_messages_published",
+  "checks": {
+    "original_saved_history_loaded": true,
+    "original_channel_identity_retained": true,
+    "channel_window_retained": true,
+    "channel_messages_published": false,
+    "hidden_native_window_not_admitted": true,
+    "hidden_channel_window_not_admitted": true,
+    "shown_channel_window_admitted": true,
+    "shown_native_window_admitted": true,
+    "native_tab_returned": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2506305,
+      "start_time": 48234867
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2506305,
+      "start_time": 48234867
+    },
+    "original_owner_alive": true
+  },
+  "physical_review": {
+    "during": "A-return PNG viewed while recorder2537747/UI2537892 alive: correct original native A readable, draft present. This is a static image, not motion acceptance.",
+    "after": "Inspected existing48 consecutive draft and return-a frame sheets. Positions repeat; no smoothness claim. Return-a sheet28.458-29.258 precedes actual click completion.",
+    "unreviewed": "Continuous video, held scrolling and overall smoothness remain unqualified; channel-lifetime does not hold keys."
+  },
+  "writer_gap": {
+    "old_seconds": 1.789,
+    "new_seconds": 1.753560926,
+    "boundary": "original click-command finish482796757618702 to next native frame_flushed482798511179628; global writer callback, not input-to-pixel latency",
+    "speed_improvement_claim": false
+  },
+  "sampling": {
+    "GIL_samples": 771,
+    "errors": 0,
+    "alignment_nominal_uncertainty_seconds": 0.07498230999684893
+  },
+  "writer": {
+    "flushed": 280,
+    "unmatched": 0,
+    "intervals": {
+      "count": 279,
+      "median_ms": 69.74,
+      "p95_ms": 502.33,
+      "p99_ms": 645.73,
+      "max_ms": 2619.59
+    },
+    "limits": "Wholecapture includes stationary frames/heartbeat/export tails; not application FPS or held-key motion result"
+  },
+  "remaining_source_lead": "Original incoming MountMessageHistory pager still synchronously registers/composes descendants before tab selection executes. Cache-hit CSS still descriptor-normalizes and resolves descriptor metadata; late select also rematches component DOM. Worker snapshot/typed decode spans concurrent. Changed-stack observations are not CPU durations or dominance proof.",
+  "ready_scope": "Reviewable compiled CSS rule-owner/ancestor-publication batch plus retained paint-value correction; no whole performance or cold-channel readiness claim."
+}
