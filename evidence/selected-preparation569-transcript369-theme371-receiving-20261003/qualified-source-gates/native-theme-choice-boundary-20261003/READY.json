@@ -1,0 +1,38 @@
+{
+  "source_head": "cf7b8b5ad1d9276e94d83ea7dfeed7129f5df00e",
+  "scope": "Existing native theme owner and whole shared choice/preference-resource import family",
+  "production_files": 5,
+  "production_deleted": 24,
+  "production_added": 33,
+  "existing_owner": "ThemeChoice, Choice, ChoiceSetting, PresentationBudget/protected_presentations",
+  "new_nominal_types": 0,
+  "alias_or_duplicate_catalog": false,
+  "parser": {
+    "production": 287,
+    "tests": 391,
+    "parse_omissions": []
+  },
+  "installed": {
+    "result": "passed",
+    "returncode": 0,
+    "elapsed": 6.276772897981573,
+    "log": "installed01.log"
+  },
+  "native_membership_binding": {
+    "result": "passed",
+    "actual_native_widgets": true,
+    "cases": [
+      "member retained",
+      "nonmember excluded"
+    ],
+    "production_membership_behavior": "unchanged originalhelper both history/committed callers"
+  },
+  "source_byte_equal": true,
+  "source_assets": 294,
+  "normal_baseline_distributions": 69,
+  "optional_packages_added": 0,
+  "public_or_provider_inputs": 0,
+  "cleanup": "cleanup.json",
+  "remaining": "Native UiSettings intentionally interprets frontend theme. Fullheadless preferences/U4/frontends/physical/performance notclaimed.",
+  "correction": "protected_presentations has TWO realproduction consumers; deletionproposal withdrawn withoutcodechange."
+}

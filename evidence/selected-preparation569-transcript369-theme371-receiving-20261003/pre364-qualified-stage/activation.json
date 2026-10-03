@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "pins": {
+    "agent_comms": "67f68f3a4b1970c8e43b267f719be5048d0b59b8",
+    "toad": "c7ea922d5e2b690d9ffd22830324c6794258b928",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Normal69 qualified569 selected native preparation/fork SQL and merged369 transcript/371 theme owners; native915",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
+    "toad": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+  "native_tree": "b678e1f41c4cc2bde46a65fa71c803306b86618103031ca029db44cb9a690339",
+  "native_configuration_note": "Released receiving holder /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+}

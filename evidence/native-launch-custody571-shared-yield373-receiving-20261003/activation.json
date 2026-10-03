@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "pins": {
+    "agent_comms": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+    "toad": "a54b35fb86e23d0e38239904b0cdd7061dc40c38",
+    "textual": "c5800c7ba224ec07080a9c025130408746aa83b1"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Normal69 merged571/572 original launch custody and action binding with373/374/375/377/Text35; native915",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-launch-custody571-shared-yield373-receiving-20261003/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+  "native_tree": "b678e1f41c4cc2bde46a65fa71c803306b86618103031ca029db44cb9a690339",
+  "native_configuration_note": "Released receiving holder /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+}

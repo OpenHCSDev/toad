@@ -1,0 +1,14 @@
+{
+  "owned_attempt_processes": [],
+  "same_uid_processes_checked": 201,
+  "environment_access_gaps": [
+    68488,
+    216738,
+    1561676,
+    1786010,
+    1786012,
+    1953373,
+    3699396
+  ],
+  "scope": "Readable owned attempt markers only; inaccessible process environments are explicitly excluded from a zero-borrower claim. The successful private TemporaryDirectory removed and runner exited; old failure/native/source/evidence untouched."
+}
