@@ -1,0 +1,21 @@
+{
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "core": "e2c3c2e1343be61cf54f6c36f1ce73d73324f7c0",
+  "toad": "08178f5e051bf7ef43cfaf970cad3c0a3056aad5",
+  "textual": "69954eb3809ab7abbd564efdf3d70fa9ad985d6e",
+  "diff": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "sdk": "0.12.1",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent",
+  "normal_distributions": 69,
+  "no_new_environment": true,
+  "no_publication_by_packaging": true,
+  "release_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-bundled-485-488-278-20261001-final383-code-retirement/release-receipt.json",
+  "holder_return": "Einstein383 installed03 complete, Bohr original487 proof archived; grant0borrowers",
+  "gate_files": [
+    "573-installed-configured-receipt.json",
+    "576-configured-channel-receipt.json",
+    "382-text38-qualified.json",
+    "383-installed03-ready.json",
+    "578-original-cli-receipt.json"
+  ]
+}
