@@ -2,6 +2,7 @@
 from __future__ import annotations
 import asyncio
 from textual.content import Content
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.sidebar_snapshot import SidebarSnapshot
 from toad.widgets.activity_spinner import FRAMES
 
@@ -105,6 +106,12 @@ class SidebarProjection:
         if not self.sidebar.accepts_publication():
             return
         self.snapshot = snapshot
+        row_inputs = await ThreadRowsWork.capture(
+            self.sidebar.app.preparation,
+            tuple(ThreadRowInput(person) for person in snapshot.all_people.values()),
+        )
+        if not self.sidebar.accepts_publication():
+            return
         channels = self.channels
         from toad.widgets.comms_sidebar import CommsRow, ChannelGroup, NewSessionButton
         from toad.navigation_target import channel_target
@@ -147,7 +154,7 @@ class SidebarProjection:
             channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
             group = channel_row.query_ancestor(ChannelGroup)
             group.update_unread(unread)
-            group.update_activity(view, snapshot.all_people)
+            group.update_activity(view, row_inputs)
             channel_row.set_class(bool(unread), "-unread")
             await group.present(view)
             if not self.sidebar.accepts_publication():
@@ -166,10 +173,8 @@ class SidebarProjection:
         # both native scrollbars and keeps their geometry at the visible edge.
         widest = max((Content(view.channel.name).cell_length + 12
                       for view in snapshot.wire.channels), default=0)
-        widest = max(widest, max((Content(person.presentation.label).cell_length + 8
-                                  for person in snapshot.all_people.values()), default=0))
-        widest = max(widest, max((Content(person.presentation.summary).cell_length + 8
-                                  for person in snapshot.all_people.values()), default=0))
+        if row_inputs.rows:
+            widest = max(widest, row_inputs.content_width + 8)
         widest = min(widest, 512)
         panel = self.sidebar.query_ancestor(SideBarCollapsible)
         if widest != self.horizontal_width:

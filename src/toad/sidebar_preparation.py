@@ -100,6 +100,12 @@ class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
         return self.rows
 
     @property
+    def content_width(self) -> int:
+        """Measure the same captured display text used by row preparation."""
+        return max((Content(text).cell_length for row in self.rows
+                    for text in (row.label, row.summary)), default=0)
+
+    @property
     def render_task(self) -> ThreadRowsRenderTask:
         from toad.render_tasks import ThreadRowsRenderTask
 

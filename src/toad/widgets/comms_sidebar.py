@@ -18,12 +18,11 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 
 import os
-from collections.abc import Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.presentation import ChannelView, ThreadView
+from agent_comms.presentation import ChannelView
 from textual.binding import Binding
 from textual.content import Content
 from textual.dom import DOMNode
@@ -39,7 +38,7 @@ from toad.core.events import SessionChangedEvent
 from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner
-from toad.sidebar_preparation import ThreadRowInput
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
@@ -106,13 +105,9 @@ class ChannelGroup(SidebarGroup):
             self.unread_badge.update(label, layout=width_changed)
             self.unread_badge.display = bool(unread)
 
-    def update_activity(self, channel_view: ChannelView, all_people: Mapping[str, ThreadView]) -> None:
-        """Mark the channel live when any member is working or mid-turn."""
-        active = any(
-            (person.thread.executing or person.presentation.busy)
-            for name in channel_view.members
-            if (person := all_people.get(name)) is not None
-        )
+    def update_activity(self, channel_view: ChannelView, inputs: ThreadRowsWork) -> None:
+        """Paint the original captured member activity, not another turn rule."""
+        active = any(row.busy for row in inputs.rows if row.name in channel_view.members)
         self.row.set_class(active, "-channel-active")
 
     def toggle_members(self) -> None:

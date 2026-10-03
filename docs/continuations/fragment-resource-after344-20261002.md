@@ -221,3 +221,24 @@ final End assertion failed and06 ended observation without a final outcome;
 those raw failures remain. Native writer timing is not pixel timing or a CPU
 gain. PR352 retains the entire performance scope above and the shared End/frame
 closure with Kepler. No repeated04 motion, new environment or provider input.
+
+## PR352 follow-on: activity and width consume captured row inputs
+
+The original ThreadRowsWork now also supplies display width to both sidebar
+consumers. Channel publication captures its immutable row inputs through the
+existing PreparationRuntime before native mutation; channel activity and width
+consume that same temporary cohort. Relationship publication uses the same
+capture/width owner. Replaced native ThreadView.presentation reads are deleted.
+Channel activity no longer combines a separate thread.executing interpretation
+with the original presentation's busy answer; it paints that original answer.
+No cohort is retained as another widget store, row index or status authority.
+
+This additional batch changes four existing production files, deleting20 lines
+and adding31. Original publication/generation admission is checked after the new
+worker await. Native mounting, row decoration, source identity, queued actions,
+styles and spinner cadence remain their existing owners. The source map reads
+all286 production modules and identifies the width/activity decision sites;
+mention candidates and participant-bar preparation are distinct consumers and
+are not claimed migrated by this sidebar batch. Source batch is published WIP;
+batched resource sanity and the affected installed UI journey follow. It is not
+a measured improvement or smoothness claim.

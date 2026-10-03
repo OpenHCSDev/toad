@@ -18,7 +18,7 @@ from textual.content import Content
 from textual.widgets import Checkbox, Static
 
 from toad.session_tracker import ExactUnread, UnreadPresentation
-from toad.sidebar_preparation import ThreadRowInput
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.activity_spinner import FRAMES
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
@@ -389,6 +389,13 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
+            row_inputs = await ThreadRowsWork.capture(
+                self.app.preparation,
+                tuple(ThreadRowInput(entry.person) for model in snapshot.groups
+                      for entry in model.entries if entry.person is not None),
+            )
+            if generation != self._generation or not self._visible():
+                return
             with self.app.batch_update():
                 context = self.query_one(".relationship-context", Static)
                 _update_content(context, Content.assemble((f"For @{snapshot.owner}", "bold"),
@@ -423,12 +430,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 for model in snapshot.groups:
                     for entry in model.entries:
                         widest = max(widest, Content(entry.target).cell_length + 8)
-                        if entry.person is not None:
-                            widest = max(widest,
-                                         Content(entry.person.presentation.label).cell_length + 8,
-                                         Content(entry.person.presentation.summary).cell_length + 8)
                         if entry.detail:
                             widest = max(widest, Content(entry.detail).cell_length + 8)
+                if row_inputs.rows:
+                    widest = max(widest, row_inputs.content_width + 8)
                 panel = self.query_ancestor(SideBarCollapsible)
                 width = min(widest, 512)
                 if width != self._horizontal_width:
