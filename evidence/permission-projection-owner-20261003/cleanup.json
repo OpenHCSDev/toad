@@ -1,0 +1,15 @@
+{
+  "owned_attempt_processes": [],
+  "process_access_gaps": [
+    68488,
+    216738,
+    1561676,
+    1786010,
+    1786012,
+    1953373,
+    3699396
+  ],
+  "same_uid_processes_checked": 174,
+  "other_uid_processes_excluded": 294,
+  "scope": "Owned private test processes run under the current UID. Successful private TemporaryDirectory removed; no source/evidence/native deletion. Other UIDs outside owned cleanup claim."
+}
