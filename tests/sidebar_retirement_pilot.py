@@ -23,7 +23,6 @@ from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.sidebar_viewport import SidebarViewport
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.screens.main import MainScreen
-from textual.content import Content
 
 
 class InstalledApp(ToadApp):
@@ -103,7 +102,7 @@ async def exercise(screen, pilot, root):
     gc.collect()
     assert all(widget() is None for widget in saved), "Retired panel graph remains reachable"
     assert tree_ref() is None, "Retired DirectoryTree remains reachable"
-    latest = [PlanItem(Content("Latest while absent"), "high", InProgressPlanStatus)]
+    latest = [PlanItem("Latest while absent", "high", InProgressPlanStatus)]
     sidebar.update_plan(latest)
     await sidebar.prepare_presentation()
     async with asyncio.timeout(12):

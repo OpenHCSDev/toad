@@ -69,7 +69,7 @@ async def main():
                 for entry, raw in zip(plan.entries, stages[0]["entries"]):
                     assert entry.status is PlanStatus.decode(raw["status"])
                     assert entry.content == raw["content"]
-                    assert entry.status.marker().plain.strip() in viewport_text(plan)
+                    assert entry.status.marker().strip() in viewport_text(plan)
                 await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
                 assert sidebar.query_one(Plan).entries is plan.entries
                 print("ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED", flush=True)
