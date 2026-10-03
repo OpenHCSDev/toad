@@ -1,0 +1,31 @@
+{
+  "source_image": "/home/ts/.cache/agent-scratch/workspace407-native47-public-20261003-01/capture/live-39-22-frames.png",
+  "sha256": "69e744ffefcfe68d1d49165adca7276f58f25169cb7298594df27100e157ebd2",
+  "ui_pid": 2069475,
+  "ui_start_ticks": 53735032,
+  "before_view_monotonic": 537457.849475733,
+  "after_view_monotonic": 537466.93773392,
+  "same_ui_alive_before_after": true,
+  "review": "Personally viewed the original consecutive frame sheet while the same UI remained alive. Body/chrome are present; repeated positions and discrete advances remain visible. No full body blank evident in this band.",
+  "limits": "No smoothness, changed-pixel FPS, CPU gain or input-latency claim. The original recorder receipt supplies the exact released reverse key interval; no new export or capture. Author reverse review after UI exit is distinct from this personally bracketed review.",
+  "original_interval": {
+    "event": "live_review_available",
+    "label": "live-39-22",
+    "available": true,
+    "phase": "reverse",
+    "interval_basis": "checked keydown start through keyup start; release completed",
+    "source_start_seconds": 78.132538806,
+    "source_end_seconds": 78.932538806,
+    "ui_identity": {
+      "pid": 2069475,
+      "start_ticks": 53735032
+    },
+    "ui_alive_before_and_after_encoding": true,
+    "encoding_started_monotonic": 537433.228271213,
+    "encoding_finished_monotonic": 537437.114328228,
+    "frames": "/home/ts/.cache/agent-scratch/workspace407-native47-public-20261003-01/capture/live-39-22-frames.png",
+    "assessment": "unreviewed; inspect consecutive frames during or after the run"
+  },
+  "original_receipt": "/home/ts/.cache/agent-scratch/workspace407-native47-public-20261003-01/capture/receipt.json",
+  "original_receipt_sha256": "d10a4b5cf5ea1aa35c24a5c62481166bc79ab2d80945e2a31b375e214af7d3d0"
+}
