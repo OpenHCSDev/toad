@@ -358,3 +358,12 @@ Map files are `reader-demand-owner-before.json` and `...-after.json` under
 19 additions and6 deletions in the two existing owners. The fixture now also
 checks the actual reader task and worker remain unfinished after receipt paint
 and typing; an unreleased control alone does not prove pending I/O.
+
+The first changed-tail launch stopped before App construction, native processes
+or input: the347/main341 source union retained an unused incoming_sequences
+import after deletion of its worker helper. The entire production search finds
+only that import; it is deleted, without restoring an alias or an implementation.
+The installed source/assets were byte equal, so this was a source closure defect,
+not an installer failure. Original operator failure is retained under
+`history-lifetime338/physical-installed03` and
+`kepler338-reader-demand-tail-20261002-01`; it is not a physical acceptance.
