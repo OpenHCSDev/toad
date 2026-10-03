@@ -1,0 +1,1720 @@
+{
+  "recording": "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture",
+  "ui_pid": 1369668,
+  "selection": {
+    "functions": [
+      "is_attached",
+      "_parent",
+      "_resolved_paint_state",
+      "visible_bodies"
+    ],
+    "sources": []
+  },
+  "profile": "cpu-profile.json",
+  "alignment_nominal_uncertainty_seconds": 0.06940666896756739,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+    "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+    "Threads remain separate; recursive frame identities count once per observed stack",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant",
+    "Matching stack groups are observed transitions, not sample counts, calls or CPU time",
+    "No observed match does not prove work was absent; async await parents may be missing",
+    "Complete matching stacks supplement the capped recorder preview; raw source remains authoritative"
+  ],
+  "phases": [
+    {
+      "label": "input-held-up",
+      "video_start_seconds": 21.874281450058334,
+      "video_end_seconds": 25.78170894505456,
+      "kernel_cpu": [
+        {
+          "pid": "1369668",
+          "cpu_seconds": 2.9399999999999995,
+          "average_cpu_percent": 75.24131935307575
+        },
+        {
+          "pid": "1369667",
+          "cpu_seconds": 0.09,
+          "average_cpu_percent": 2.303305694481911
+        },
+        {
+          "pid": "1369701",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.25592285494243483
+        },
+        {
+          "pid": "1369702",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.25592285494243483
+        },
+        {
+          "pid": "1369883",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.25592285494243483
+        },
+        {
+          "pid": "1369693",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.25592285494243466
+        },
+        {
+          "pid": "1369858",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.25592285494242917
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-input-held-up.png",
+          "state_capture": {
+            "started_seconds": 22.189750493038446,
+            "manifest": {
+              "pid": 1369668,
+              "created": 1791054644.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 203796480,
+              "started_ns": 1791054668863150423,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture/phase-input-held-up-state": "complete"
+              },
+              "finished_ns": 1791054669027695777
+            },
+            "finished_seconds": 22.55150957207661
+          },
+          "native_state": "phase-input-held-up-state.pickle",
+          "native_metadata": "phase-input-held-up-state.json"
+        },
+        "end": {
+          "screenshot": "phase-input-held-up-done.png",
+          "state_capture": {
+            "started_seconds": 26.067433919059113,
+            "manifest": {
+              "pid": 1369668,
+              "created": 1791054644.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 212733952,
+              "started_ns": 1791054672759697879,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture/phase-input-held-up-done-state": "complete"
+              },
+              "finished_ns": 1791054672892120596
+            },
+            "finished_seconds": 26.396584140020423
+          },
+          "native_state": "phase-input-held-up-done-state.pickle",
+          "native_metadata": "phase-input-held-up-done-state.json"
+        }
+      },
+      "observed_stack_groups": 79,
+      "matching_stack_groups": 8,
+      "matched_frames": [
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "_parent",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 320,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 23.836635184049317,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 392
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 374
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 359
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 1086
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 23.845087184049316,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 594
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 161
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "scroll_changed",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 926
+            },
+            {
+              "function": "prepare_scroll",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 718
+            },
+            {
+              "function": "selected_categories",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 578
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            }
+          ]
+        },
+        {
+          "video_seconds": 23.919917184049314,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 605
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 740
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 58
+            },
+            {
+              "function": "_on_idle",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1196
+            },
+            {
+              "function": "_invoke_and_clear_callbacks",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1304
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 58
+            },
+            {
+              "function": "check_mouse",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 3219
+            },
+            {
+              "function": "get_hover_widgets_at",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 679
+            },
+            {
+              "function": "get_widgets_at",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_compositor.py",
+              "line": 1245
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1060
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1060
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1060
+            },
+            {
+              "function": "visible",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1060
+            },
+            {
+              "function": "parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 852
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "input-held-down",
+      "video_start_seconds": 46.274158261017874,
+      "video_end_seconds": 50.046064991969615,
+      "kernel_cpu": [
+        {
+          "pid": "1369668",
+          "cpu_seconds": 2.59,
+          "average_cpu_percent": 68.66553668325945
+        },
+        {
+          "pid": "1369667",
+          "cpu_seconds": 0.12000000000000002,
+          "average_cpu_percent": 3.1814148270236045
+        },
+        {
+          "pid": "1369701",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.5302358045039344
+        },
+        {
+          "pid": "1369693",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2651179022519672
+        },
+        {
+          "pid": "1369858",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "1369702",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "1369883",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-input-held-down.png",
+          "state_capture": {
+            "started_seconds": 46.551602332037874,
+            "manifest": {
+              "pid": 1369668,
+              "created": 1791054644.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 230301696,
+              "started_ns": 1791054693224079053,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture/phase-input-held-down-state": "complete"
+              },
+              "finished_ns": 1791054693356479658
+            },
+            "finished_seconds": 46.86935350007843
+          },
+          "native_state": "phase-input-held-down-state.pickle",
+          "native_metadata": "phase-input-held-down-state.json"
+        },
+        "end": {
+          "screenshot": "phase-input-held-down-done.png",
+          "state_capture": {
+            "started_seconds": 50.31662108004093,
+            "manifest": {
+              "pid": 1369668,
+              "created": 1791054644.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 234504192,
+              "started_ns": 1791054696993414972,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture/phase-input-held-down-done-state": "complete"
+              },
+              "finished_ns": 1791054697125764120
+            },
+            "finished_seconds": 50.61866468004882
+          },
+          "native_state": "phase-input-held-down-done-state.pickle",
+          "native_metadata": "phase-input-held-down-done-state.json"
+        }
+      },
+      "observed_stack_groups": 65,
+      "matching_stack_groups": 10,
+      "matched_frames": [
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "_parent",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 320,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 3
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "visible_bodies",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 731,
+          "stack_presence_transition_groups": 2
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 47.576925184049315,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 174
+            },
+            {
+              "function": "_on_timer_update",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1276
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 214
+            },
+            {
+              "function": "_refresh_layout",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1438
+            },
+            {
+              "function": "_compositor_refresh",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1213
+            },
+            {
+              "function": "_prepare_compositor_refresh",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/screens/workspace.py",
+              "line": 177
+            },
+            {
+              "function": "prepare",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 752
+            },
+            {
+              "function": "visible_bodies",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 731
+            },
+            {
+              "function": "ancestors",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1353
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 48.30558618404932,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_process_messages",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 605
+            },
+            {
+              "function": "_process_messages_loop",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 740
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 58
+            },
+            {
+              "function": "_on_idle",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1196
+            },
+            {
+              "function": "_invoke_and_clear_callbacks",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/screen.py",
+              "line": 1304
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "_check_edges",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 774
+            },
+            {
+              "function": "visible_bodies_ready",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 1001
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 1001
+            },
+            {
+              "function": "visible_bodies",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 731
+            },
+            {
+              "function": "ancestors",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1353
+            }
+          ]
+        },
+        {
+          "video_seconds": 48.472537184049315,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 594
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 161
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "scroll_changed",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 926
+            },
+            {
+              "function": "prepare_scroll",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 718
+            },
+            {
+              "function": "selected_categories",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 577
+            },
+            {
+              "function": "query_ancestor",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1797
+            },
+            {
+              "function": "ancestors_with_self",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/dom.py",
+              "line": 1339
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 78.22733526304364,
+      "video_end_seconds": 82.13406549498904,
+      "kernel_cpu": [
+        {
+          "pid": "1369668",
+          "cpu_seconds": 2.770000000000003,
+          "average_cpu_percent": 70.90328319446435
+        },
+        {
+          "pid": "1369667",
+          "cpu_seconds": 0.12,
+          "average_cpu_percent": 3.0716223766554918
+        },
+        {
+          "pid": "1369701",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2559685313879579
+        },
+        {
+          "pid": "1369702",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2559685313879579
+        },
+        {
+          "pid": "1369858",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "1369883",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "1369693",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "physical_evidence": {
+        "start": {
+          "screenshot": "phase-reverse.png",
+          "state_capture": {
+            "started_seconds": 78.52035450097173,
+            "manifest": {
+              "pid": 1369668,
+              "created": 1791054644.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 256290816,
+              "started_ns": 1791054725195468549,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture/phase-reverse-state": "complete"
+              },
+              "finished_ns": 1791054725328416151
+            },
+            "finished_seconds": 78.84470304101706
+          },
+          "native_state": "phase-reverse-state.pickle",
+          "native_metadata": "phase-reverse-state.json"
+        },
+        "end": {
+          "screenshot": "phase-reverse-done.png",
+          "state_capture": {
+            "started_seconds": 82.42496672901325,
+            "manifest": {
+              "pid": 1369668,
+              "created": 1791054644.54,
+              "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+              "rss_before": 256290816,
+              "started_ns": 1791054729101565130,
+              "profile_seconds": 0,
+              "gil_only": false,
+              "native": false,
+              "receipts": {
+                "/home/ts/.cache/agent-scratch/body-writer402-damage44-public-20261003-01/capture/phase-reverse-done-state": "complete"
+              },
+              "finished_ns": 1791054729234058241
+            },
+            "finished_seconds": 82.74162535497453
+          },
+          "native_state": "phase-reverse-done-state.pickle",
+          "native_metadata": "phase-reverse-done-state.json"
+        }
+      },
+      "observed_stack_groups": 75,
+      "matching_stack_groups": 10,
+      "matched_frames": [
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "_parent",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "stack_presence_transition_groups": 5
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 320,
+          "stack_presence_transition_groups": 4
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 321,
+          "stack_presence_transition_groups": 2
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "is_attached",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 315,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "visible_bodies",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 730,
+          "stack_presence_transition_groups": 1
+        },
+        {
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "function": "visible_bodies",
+          "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+          "line": 729,
+          "stack_presence_transition_groups": 1
+        }
+      ],
+      "complete_stack_examples": [
+        {
+          "video_seconds": 79.79297718404932,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run_timer",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 148
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 186
+            },
+            {
+              "function": "_tick",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/timer.py",
+              "line": 199
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 96
+            },
+            {
+              "function": "_invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_callback.py",
+              "line": 56
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 594
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/_animator.py",
+              "line": 161
+            },
+            {
+              "function": "__set__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 441
+            },
+            {
+              "function": "_set",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 421
+            },
+            {
+              "function": "_check_watchers",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 479
+            },
+            {
+              "function": "invoke_watcher",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/reactive.py",
+              "line": 170
+            },
+            {
+              "function": "scroll_changed",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 926
+            },
+            {
+              "function": "prepare_scroll",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 705
+            },
+            {
+              "function": "selected_categories",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/transcript_history.py",
+              "line": 578
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 79.79555718404931,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 392
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 374
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 359
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 1038
+            },
+            {
+              "function": "<genexpr>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 1039
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        },
+        {
+          "video_seconds": 79.89496318404932,
+          "pid": 1369668,
+          "tid": 140059196209024,
+          "frames": [
+            {
+              "function": "<module>",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/toad",
+              "line": 10
+            },
+            {
+              "function": "__call__",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1524
+            },
+            {
+              "function": "main",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1445
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1912
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 1308
+            },
+            {
+              "function": "invoke",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/click/core.py",
+              "line": 877
+            },
+            {
+              "function": "acp",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 327
+            },
+            {
+              "function": "run_terminal",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/cli.py",
+              "line": 31
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/app.py",
+              "line": 2360
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 204
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py",
+              "line": 127
+            },
+            {
+              "function": "run_until_complete",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 706
+            },
+            {
+              "function": "run_forever",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 677
+            },
+            {
+              "function": "_run_once",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py",
+              "line": 2046
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py",
+              "line": 94
+            },
+            {
+              "function": "_run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 392
+            },
+            {
+              "function": "run",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 374
+            },
+            {
+              "function": "_run_async",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/worker.py",
+              "line": 359
+            },
+            {
+              "function": "_reconcile",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/toad/widgets/viewport_body.py",
+              "line": 1086
+            },
+            {
+              "function": "is_attached",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 320
+            },
+            {
+              "function": "_parent",
+              "filename": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/message_pump.py",
+              "line": 185
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

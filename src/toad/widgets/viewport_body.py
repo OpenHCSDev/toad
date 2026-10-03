@@ -22,6 +22,7 @@ from toad.widgets.presentation_window import (
 )
 
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
 from textual._paint_state import PaintState
@@ -573,10 +574,10 @@ class MeasuredViewportBody(ViewportBody):
         """Capture once for retirement and preceding-source publication."""
         if (not current.ready(self) or not self.is_attached or self.lock.is_locked
                 or (self.screen.focused is not None
-                    and self in self.screen.focused.ancestors_with_self)
-                or any(self is endpoint or self in endpoint.ancestors
+                    and self in self.screen.focused.walk_ancestors(with_self=True))
+                or any(self in endpoint.walk_ancestors(with_self=True)
                        for endpoint in self.screen.selections)
-                or any(not child.body_ready for child in self.walk_children()
+                or any(not child.body_ready for child in walk_depth_first(self, with_root=False)
                        if isinstance(child, ViewportBody))):
             return BodyMeasurement.prepare_publication(
                 MeasuredBody(current.width, current.rows, current.widgets), self)
@@ -655,7 +656,7 @@ class MeasuredViewportBody(ViewportBody):
         from toad.screens.workspace import WorkspaceScreen
         from toad.widgets.history_anchor import HistoryWindow
         if isinstance(self.screen, WorkspaceScreen):
-            for ancestor in self.ancestors:
+            for ancestor in self.walk_ancestors():
                 if isinstance(ancestor, ViewportBody):
                     return
                 if isinstance(ancestor, HistoryWindow):
@@ -728,7 +729,7 @@ class ViewportPresentation:
         windows = set(windows)
         for body in self.screen._compositor.visible_widgets:
             if isinstance(body, ViewportBody):
-                for ancestor in body.ancestors:
+                for ancestor in body.walk_ancestors():
                     if isinstance(ancestor, HistoryWindow):
                         if ancestor in windows:
                             yield ancestor, body
@@ -783,7 +784,7 @@ class WindowMembership:
         """
         window = self.window()
         return (self.presentation.screen.is_current
-                and all(node.display for node in window.ancestors_with_self))
+                and all(node.display for node in window.walk_ancestors(with_self=True)))
 
     def retire(self):
         window = self.window()
@@ -984,10 +985,10 @@ class DocumentViewport:
         if screen.focused is not None:
             endpoints.add(screen.focused)
         for endpoint in endpoints:
-            node = endpoint
-            while isinstance(node, Widget) and node is not self.window:
+            for node in endpoint.walk_ancestors(with_self=True):
+                if not isinstance(node, Widget) or node is self.window:
+                    break
                 protected.add(node)
-                node = node.parent
         if self.window.history_anchor is not None:
             protected.add(self.window.history_anchor.widget)
         return protected

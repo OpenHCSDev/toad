@@ -1,0 +1,18 @@
+{
+  "core": "eb3778d6a00e14f396a0b0d37c7c6aeea4583853",
+  "toad": "984000eb0e8406633506c240640a5689a7dd9c46",
+  "textual": "5750aca10eda456b0186dd0a9cfabb1e3a5263bc",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "public_install_changed": false,
+  "new_environment": false,
+  "new_native_copy": false,
+  "purpose": "405 lazy body ancestry/readback +45 capture placement +46 native ancestry; one changed joined resource and physical motion/profile",
+  "allocation_bound_mib": 256,
+  "native_tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+  "owner": "Heisenberg405-Kepler46-body-frame-ancestry",
+  "bound": "reuse SAME normal69 holder; additional payload<=256MiB, no newenv/nativecopy/build/provider. Currenthome8.4GiB/RAM11.2GiB/swap11.5 warning permits bounded wheel/gate.",
+  "state": "NORMAL_INSTALL_PREPARING; native batch frozen, source/assets proof pending"
+}

@@ -1,0 +1,21 @@
+{
+  "observer": "parent",
+  "source": "direct owner report in original405 turn",
+  "ui_identity": {
+    "pid": 1836905,
+    "start_ticks": 53452864
+  },
+  "up": {
+    "file": "live-14-7-frames.png",
+    "before_monotonic": 534640.637536219,
+    "after_monotonic": 534653.657274836,
+    "ui_alive_before_after": true
+  },
+  "down": {
+    "file": "live-21-12-frames.png",
+    "before_monotonic": 534653.657274836,
+    "after_monotonic": 534664.693860681,
+    "ui_alive_before_after": true
+  },
+  "assessment": "Both48 consecutive frames: body/chrome continuously painted; repeated positions and discrete advances; no full-body blank in bands. No smoothness/CPU gain/144Hz claim. No extra export/capture/input."
+}

@@ -1,0 +1,749 @@
+{
+  "owner": "native DOM ancestor traversal; Toad body/frame/membership consumes it",
+  "head": "e1c7808d78cfc493ed11020c0dcb1b0e44a14b22",
+  "production_modules": 289,
+  "parse_omissions": [],
+  "selected_source_family": "src/toad/widgets/viewport_body.py",
+  "all_related_ancestry_consumers": [
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 70,
+      "member": "query_ancestor",
+      "expression": "self.view.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/project_path_owner.py",
+      "line": 11,
+      "member": "ancestors_with_self",
+      "expression": "widget.ancestors_with_self",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 127,
+      "member": "query_ancestor",
+      "expression": "editor.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 348,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 54,
+      "member": "query_ancestor",
+      "expression": "sidebar.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 53,
+      "member": "query_ancestor",
+      "expression": "sidebar.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 31,
+      "member": "query_ancestor",
+      "expression": "self.sidebar.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 88,
+      "member": "ancestors",
+      "expression": "self.sidebar.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 32,
+      "member": "query_ancestor",
+      "expression": "panel.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 101,
+      "member": "query_ancestor",
+      "expression": "row.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 178,
+      "member": "query_ancestor",
+      "expression": "aggregate.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 177,
+      "member": "query_ancestor",
+      "expression": "self.sidebar.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 179,
+      "member": "query_ancestor",
+      "expression": "self.sidebar.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 121,
+      "member": "query_ancestor",
+      "expression": "self.sidebar.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 155,
+      "member": "query_ancestor",
+      "expression": "channel_row.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 163,
+      "member": "query_ancestor",
+      "expression": "channels[key].query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/sidebar_projection.py",
+      "line": 135,
+      "member": "query_ancestor",
+      "expression": "row.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 483,
+      "member": "query_ancestor",
+      "expression": "self.view.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 407,
+      "member": "query_ancestor",
+      "expression": "view.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 400,
+      "member": "query_ancestor",
+      "expression": "view.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 551,
+      "member": "query_ancestor",
+      "expression": "view.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 21,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 26,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 33,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 42,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 279,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 262,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 296,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 312,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 330,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 132,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 175,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 126,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 123,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 478,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 64,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 95,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 115,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 120,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 217,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 69,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 70,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 71,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1649,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1867,
+      "member": "query_ancestor",
+      "expression": "widget.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 258,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 317,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 373,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1853,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 303,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 183,
+      "member": "ancestors_with_self",
+      "expression": "event.widget.ancestors_with_self",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 65,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 163,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 33,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 63,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 89,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 79,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 80,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 363,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 100,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 195,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 199,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 314,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 251,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 256,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 353,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 36,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 75,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 532,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 543,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 195,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 551,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 706,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 782,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 27,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 12,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 117,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 222,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 90,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 133,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 265,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 469,
+      "member": "query_ancestor",
+      "expression": "row.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 71,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 337,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 443,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 494,
+      "member": "query_ancestor",
+      "expression": "row.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 101,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 367,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 362,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 410,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 175,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 199,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 239,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 332,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 92,
+      "member": "query_ancestor",
+      "expression": "view.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 494,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 556,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 363,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 577,
+      "member": "query_ancestor",
+      "expression": "self.query_ancestor",
+      "selected_body_family": false
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 658,
+      "member": "ancestors",
+      "expression": "self.ancestors",
+      "selected_body_family": true
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 731,
+      "member": "ancestors",
+      "expression": "body.ancestors",
+      "selected_body_family": true
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 576,
+      "member": "ancestors_with_self",
+      "expression": "self.screen.focused.ancestors_with_self",
+      "selected_body_family": true
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 786,
+      "member": "ancestors_with_self",
+      "expression": "window.ancestors_with_self",
+      "selected_body_family": true
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 577,
+      "member": "ancestors",
+      "expression": "endpoint.ancestors",
+      "selected_body_family": true
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 46,
+      "member": "ancestors",
+      "expression": "bar.ancestors",
+      "selected_body_family": false
+    }
+  ],
+  "limits": [
+    "Attribute spelling identifies candidates; receivers/inheritance and selector semantics read separately",
+    "No dynamic resolution or CPU-share proof",
+    "Remaining public list consumers may intentionally require snapshots; no blanket replacement"
+  ]
+}

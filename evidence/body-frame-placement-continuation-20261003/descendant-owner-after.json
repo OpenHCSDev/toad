@@ -1,0 +1,23 @@
+{
+  "head": "9aee1e1f4379ee47353587d1d057282ac21ac586",
+  "production_modules": 289,
+  "parse_omissions": [],
+  "existing_descendant_owner_calls": [
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 545,
+      "call": "walk_depth_first(self, with_root=False)"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 580,
+      "call": "walk_depth_first(self, with_root=False)"
+    }
+  ],
+  "native_import": "textual.walk.walk_depth_first",
+  "capture_and_cost_snapshot_allocations_deleted": 2,
+  "new_traversal_algorithm": false,
+  "new_state": false,
+  "status": "source migration, joined native46/405 final validation still pending",
+  "limits": "Read current native/body getters for no topology mutation; no arbitrary external override or CPUshare proof"
+}

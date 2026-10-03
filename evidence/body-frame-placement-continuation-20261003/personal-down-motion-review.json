@@ -1,0 +1,16 @@
+{
+  "ui": {
+    "pid": 1836905,
+    "start_ticks": 53452864
+  },
+  "frame_file": "live-21-12-frames.png",
+  "source_band_seconds": [
+    47.664253217,
+    48.464253217
+  ],
+  "personal_view_before_monotonic": 534616.725447497,
+  "ui_alive_before": true,
+  "assessment": "Personally viewed48 held-Down frames during same UI lifetime: body/chrome readable, discrete advances with repeated positions, no full-body blank in band, not smooth acceptance.",
+  "personal_view_after_monotonic": 534629.567999108,
+  "ui_alive_after": true
+}
