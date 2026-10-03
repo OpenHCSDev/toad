@@ -1,0 +1,280 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/app.py:60 │
+│ 1 in on_mount                                                                │
+│                                                                              │
+│   598 │                                                                      │
+│   599 │   async def on_mount(self) -> None:                                  │
+│   600 │   │   self.coordination_access.start(self)                           │
+│ ❱ 601 │   │   await self.application.start()                                 │
+│   602 │                                                                      │
+│   603 │   @handles(session_requests.WorkspaceSessionRequest)                 │
+│   604 │   async def on_workspace_session_request(self, event: CoreEventMessa │
+│                                                                              │
+│ ╭──────────────────────────── locals ────────────────────────────╮           │
+│ │ self = InstalledApp(                                           │           │
+│ │        │   title='InstalledApp',                               │           │
+│ │        │   classes={                                           │           │
+│ │        │   │   '-dark-mode',                                   │           │
+│ │        │   │   '-theme-ansi-dark',                             │           │
+│ │        │   │   '-show-sessions-bar'                            │           │
+│ │        │   },                                                  │           │
+│ │        │   pseudo_classes={                                    │           │
+│ │        │   │   'dark',                                         │           │
+│ │        │   │   'nocolor',                                      │           │
+│ │        │   │   'ansi',                                         │           │
+│ │        │   │   'focus'                                         │           │
+│ │        │   }                                                   │           │
+│ │        )                                                       │           │
+│ ╰────────────────────────────────────────────────────────────────╯           │
+│                                                                              │
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/applicati │
+│ on_lifetime.py:69 in start                                                   │
+│                                                                              │
+│   66 │   │   if self.initial_mode:                                           │
+│   67 │   │   │   await app.select_session(self.initial_mode)                 │
+│   68 │   │   else:                                                           │
+│ ❱ 69 │   │   │   await app.session_navigation.new(app.session_navigation.def │
+│   70 │   │   app.terminal_attention.attach()                                 │
+│   71 │   │   app.set_timer(1, self.check_version)                            │
+│   72 │   │   from toad.cli import set_process_title                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │  app = InstalledApp(                                                     │ │
+│ │        │   title='InstalledApp',                                         │ │
+│ │        │   classes={                                                     │ │
+│ │        │   │   '-dark-mode',                                             │ │
+│ │        │   │   '-theme-ansi-dark',                                       │ │
+│ │        │   │   '-show-sessions-bar'                                      │ │
+│ │        │   },                                                            │ │
+│ │        │   pseudo_classes={'dark', 'nocolor', 'ansi', 'focus'}           │ │
+│ │        )                                                                 │ │
+│ │ self = <toad.application_lifetime.ApplicationLifetime object at          │ │
+│ │        0x7fbb33f09940>                                                   │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/session_n │
+│ avigation.py:87 in new                                                       │
+│                                                                              │
+│    84 │                                                                      │
+│    85 │   async def new(self, factory: Callable[[], MainScreen], *, title: s │
+│    86 │   │   details = self.app.session_tracker.new_session(title=title)    │
+│ ❱  87 │   │   await self.admit(NativeSessionAdmission(details, factory))     │
+│    88 │   │   return details                                                 │
+│    89 │                                                                      │
+│    90 │   async def create_from(self, owner_mode: str) -> None:              │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ details = SessionDetails(                                                │ │
+│ │           │   index=1,                                                   │ │
+│ │           │   mode_name='session-1',                                     │ │
+│ │           │   title='beta',                                              │ │
+│ │           │   subtitle='',                                               │ │
+│ │           │   path='',                                                   │ │
+│ │           │   updates=0,                                                 │ │
+│ │           │   created_at=1790984775.1976163                              │ │
+│ │           )                                                              │ │
+│ │ factory = <bound method SessionAdmissions.default_source of              │ │
+│ │           <toad.session_navigation.SessionAdmissions object at           │ │
+│ │           0x7fbb33f0a3c0>>                                               │ │
+│ │    self = <toad.session_navigation.SessionAdmissions object at           │ │
+│ │           0x7fbb33f0a3c0>                                                │ │
+│ │   title = 'New Session'                                                  │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/session_n │
+│ avigation.py:81 in admit                                                     │
+│                                                                              │
+│    78 │   │   app.workspace_sessions.register(admission.mode, admission)     │
+│    79 │   │   app.tab_order.open(admission.mode, after=after)                │
+│    80 │   │   self.publish()                                                 │
+│ ❱  81 │   │   await app.select_session(admission.mode)                       │
+│    82 │   │   await admission.ready(self)                                    │
+│    83 │   │   return admission.mode                                          │
+│    84                                                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ admission = <toad.session_admission.NativeSessionAdmission object at     │ │
+│ │             0x7fbb33af1940>                                              │ │
+│ │     after = None                                                         │ │
+│ │       app = InstalledApp(                                                │ │
+│ │             │   title='InstalledApp',                                    │ │
+│ │             │   classes={                                                │ │
+│ │             │   │   '-dark-mode',                                        │ │
+│ │             │   │   '-theme-ansi-dark',                                  │ │
+│ │             │   │   '-show-sessions-bar'                                 │ │
+│ │             │   },                                                       │ │
+│ │             │   pseudo_classes={'dark', 'nocolor', 'ansi', 'focus'}      │ │
+│ │             )                                                            │ │
+│ │      self = <toad.session_navigation.SessionAdmissions object at         │ │
+│ │             0x7fbb33f0a3c0>                                              │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/app.py:50 │
+│ 1 in _switch_mode_ready                                                      │
+│                                                                              │
+│   498 │   │   │   │   │   else:                                              │
+│   499 │   │   │   │   │   │   if self.current_mode != "workspace":           │
+│   500 │   │   │   │   │   │   │   await super().switch_mode("workspace")     │
+│ ❱ 501 │   │   │   │   │   │   view = await self.workspace_sessions.select(mo │
+│   502 │   │   │   │   │   │   await self.workspace_screen.prepare_navigation │
+│   503 │   │   │   │   │   │   await self.workspace_screen.layout_navigation( │
+│   504 │   │   │   │   │   if mode != previous:                               │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ history_index = None                                                     │ │
+│ │          mode = 'session-1'                                              │ │
+│ │      previous = '_default'                                               │ │
+│ │          self = InstalledApp(                                            │ │
+│ │                 │   title='InstalledApp',                                │ │
+│ │                 │   classes={                                            │ │
+│ │                 │   │   '-dark-mode',                                    │ │
+│ │                 │   │   '-theme-ansi-dark',                              │ │
+│ │                 │   │   '-show-sessions-bar'                             │ │
+│ │                 │   },                                                   │ │
+│ │                 │   pseudo_classes={                                     │ │
+│ │                 │   │   'dark',                                          │ │
+│ │                 │   │   'nocolor',                                       │ │
+│ │                 │   │   'ansi',                                          │ │
+│ │                 │   │   'focus'                                          │ │
+│ │                 │   }                                                    │ │
+│ │                 )                                                        │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/workspace │
+│ _sessions.py:146 in select                                                   │
+│                                                                              │
+│   143 │   │   destination.display = True                                     │
+│   144 │   │   await self.app.workspace_chrome.select(destination)            │
+│   145 │   │   await destination.prepare_presentation()                       │
+│ ❱ 146 │   │   destination.activate_session()                                 │
+│   147 │   │   if destination.AUTO_FOCUS:                                     │
+│   148 │   │   │   if target := destination.query_one_optional(destination.AU │
+│   149 │   │   │   │   target.focus(scroll_visible=False)                     │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ destination = MainScreen(id='session-1')                                 │ │
+│ │    identity = 'session-1'                                                │ │
+│ │        self = <toad.workspace_sessions.WorkspaceSessions object at       │ │
+│ │               0x7fbb33f0af90>                                            │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-cano │
+│ nical-agent-selections-302-final/lib/python3.14/site-packages/toad/screens/m │
+│ ain.py:225 in activate_session                                               │
+│                                                                              │
+│   222 │   │   │   pass                                                       │
+│   223 │   │   # Hidden screens may defer sidebar geometry until they resume. │
+│   224 │   │   # the header before the resumed screen's first paint, not on a │
+│ ❱ 225 │   │   self._align_tabs_with_sidebar(False)                           │
+│   226 │   │   if conversation := self.query_one_optional(Conversation):      │
+│   227 │   │   │   if watcher := conversation._directory_watcher:             │
+│   228 │   │   │   │   self.call_after_refresh(watcher.notify_if_visible)     │
+│                                                                              │
+│ ╭───────────── locals ──────────────╮                                        │
+│ │ self = MainScreen(id='session-1') │                                        │
+│ ╰───────────────────────────────────╯                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'MainScreen' object has no attribute '_align_tabs_with_sidebar'
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 53, in until
+    await pilot.pause(0.05)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/app.py", line 2212, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py", line 77, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 311, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/core_events_native_installed_pilot.py", line 31, in acceptance
+    await until(pilot, entered.is_set)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 51, in until
+    async with asyncio.timeout(seconds):
+               ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/core_events_native_installed_pilot.py", line 99, in <module>
+    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     fixture_stage=os.environ["U1_FIXTURE_ROOT"], provider_request_budget=2))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 292, in main
+    async with app.run_test(headless=headless, size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/runtime_fixture.py", line 76, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/app.py", line 2220, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/app.py", line 3495, in _process_messages
+    await run_process_messages()
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/app.py", line 3440, in run_process_messages
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/app.py", line 4152, in on_event
+    await super().on_event(event)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/app.py", line 601, in on_mount
+    await self.application.start()
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/application_lifetime.py", line 69, in start
+    await app.session_navigation.new(app.session_navigation.default_source)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/session_navigation.py", line 87, in new
+    await self.admit(NativeSessionAdmission(details, factory))
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/session_navigation.py", line 81, in admit
+    await app.select_session(admission.mode)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/app.py", line 501, in _switch_mode_ready
+    view = await self.workspace_sessions.select(mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/workspace_sessions.py", line 146, in select
+    destination.activate_session()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/screens/main.py", line 225, in activate_session
+    self._align_tabs_with_sidebar(False)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MainScreen' object has no attribute '_align_tabs_with_sidebar'

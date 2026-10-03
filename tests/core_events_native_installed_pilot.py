@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 
 from l0a_native_installed_pilot import main, response_painted, until
+from agent_comms.pi_vocabulary import HighThinkingLevel
 from runtime_fixture import ToadApp
 from toad.navigation_target import channel_target, NavigationContext
 from toad.widgets.prompt import AgentInfo, QueueSummary
@@ -35,14 +36,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     view.prompt.text = "U1_NATIVE_EDITOR_QUEUED"
     view.prompt.prompt_text_area.focus()
     await pilot.press("enter")
-    await until(pilot, lambda: bool(view.queue_projection.items))
+    await until(pilot, lambda: bool(view.submissions.queue_projection.items))
     assert "U1_NATIVE_EDITOR_QUEUED" in view.query_one(QueueSummary).render().plain
-    queued_id, = [row.input_id for row in view.queue_projection.items]
+    queued_id, = [row.input_id for row in view.submissions.queue_projection.items]
     app.save_screenshot(str(root / "native-queued.svg"))
     release.set()
     await until(pilot, lambda: len(requests) == 2 and not comms.registry.require("beta").executing, 35)
     await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"), 25)
-    await until(pilot, lambda: not view.queue_projection.items and view.turns.managed_id is None)
+    await until(pilot, lambda: not view.submissions.queue_projection.items and view.turns.managed_id is None)
     assert view.agent_ready
     await until(pilot, lambda: all(h.checkpoint_available for h in view.contents.query(TranscriptHistory)))
     view.window.anchor()
@@ -63,7 +64,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: high in app.screen._compositor.visible_widgets and high.region.width > 0)
     assert await pilot.click(high, offset=(1, 0))
     await until(pilot, lambda: agent.configuration.thinking.current == "high")
-    assert comms.registry.require("beta").thinking_level == "high"
+    assert comms.registry.require("beta").thinking_level is HighThinkingLevel
 
     user = comms.messaging.user_identity(str(agent.project_root_path)).name
     await channel_target("#team").open(NavigationContext(app, mode, agent.project_root_path, user))
@@ -81,7 +82,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, agent.session.settled.is_set)
     await until(pilot, lambda: view.agent_ready and response_painted(app, view, "NATIVE_RESPONSE_2"))
     assert agent.configuration.thinking.current == "high"
-    assert len(requests) == 2 and not view.queue_projection.items
+    assert len(requests) == 2 and not view.submissions.queue_projection.items
     app.save_screenshot(str(root / "native-return.svg"))
     (root / "native-events-receipt.json").write_text(json.dumps({
         "result": "PASS", "elapsed_seconds": time.monotonic() - start,
@@ -97,4 +98,6 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 if __name__ == "__main__":
     asyncio.run(main(app_type=InstalledApp, acceptance=acceptance,
-                     fixture_stage=os.environ["U1_FIXTURE_ROOT"], provider_request_budget=2))
+                     fixture_stage=os.environ["U1_FIXTURE_ROOT"], provider_request_budget=2,
+                     provider_reply=lambda request, number: (
+                         {"role": "assistant", "content": f"NATIVE_RESPONSE_{number}"}, "stop")))

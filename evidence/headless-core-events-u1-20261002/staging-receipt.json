@@ -1,0 +1,15 @@
+{
+  "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "pins": {
+    "toad": "e2170d93c2e9f839d67f9bf6c464ad29776fc1e6",
+    "agent_comms": "992a4311c5f2afa1b24b568d3454389c3e5f71ef",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "distribution_count": 69,
+  "toad_source_mismatches": [],
+  "source": "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad",
+  "installed": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad",
+  "public_activation": false
+}

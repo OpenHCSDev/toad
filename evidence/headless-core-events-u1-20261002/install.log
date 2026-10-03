@@ -1,0 +1,15 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final
+   Updating https://github.com/OpenHCSDev/toad.git (04cd0b1c23e06a4e46acf8ae38b62677df5fee3f)
+    Updated https://github.com/OpenHCSDev/toad.git (04cd0b1c23e06a4e46acf8ae38b62677df5fee3f)
+Resolved 69 packages in 1.32s
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@04cd0b1c23e06a4e46acf8ae38b62677df5fee3f
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@04cd0b1c23e06a4e46acf8ae38b62677df5fee3f
+Prepared 1 package in 471ms
+Uninstalled 3 packages in 48ms
+Installed 3 packages in 16ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@5395eb6afc403224daaecfd3774ef43e2f200da8)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@992a4311c5f2afa1b24b568d3454389c3e5f71ef)
+ - batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/canonical-agent-selections-302-final/wheels/batrachian_toad-0.6.20-py3-none-any.whl)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@04cd0b1c23e06a4e46acf8ae38b62677df5fee3f)
+ - textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@68a0d1cf62fdde8aeef9834836ecf0caf7b169c7)
+ + textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@940880e12c889e16a0c3e9b1ac6356fb7234ebb0)
