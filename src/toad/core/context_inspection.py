@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from pathlib import Path
 from abc import ABC
 from dataclasses import dataclass
 
@@ -35,6 +36,23 @@ class ContextNode(ABC):
     def detail(self) -> str:
         return "No text recorded for this observation."
 
+    def public_text(self) -> str:
+        """Only original public content is searchable, never private reasoning."""
+        return ""
+
+    def find(self, query: str):
+        """Walk original references on demand; do not build a second text index."""
+        if query in self.public_text().casefold():
+            yield self
+        for child in self.children():
+            yield from child.find(query)
+
+    def export(self, destination: Path):
+        """Export this original observation; never overwrite a session/source file."""
+        detail = self.detail()
+        with destination.open("x", encoding="utf-8") as output:
+            output.write(detail)
+
 
 @dataclass(frozen=True)
 class ReferenceNode(ContextNode):
@@ -42,10 +60,10 @@ class ReferenceNode(ContextNode):
 
     @property
     def label(self):
-        return f"Reference · {self.source.declared_name}"
+        return f"Source · {self.source.declared_name.replace('_', ' ')}"
 
     def detail(self):
-        return "Reference only; not read by browsing.\n" + json.dumps(
+        return "Original source reference; historical text is not inferred from today's file.\n" + json.dumps(
             FieldCodec.encode(self.source), ensure_ascii=False, indent=2)
 
 
@@ -55,7 +73,7 @@ class ManifestNode(ContextNode):
 
     @property
     def label(self):
-        return f"{self.segment.kind} · ~{self.segment.tokens:,} tokens"
+        return f"{self.segment.kind.replace('_', ' ')} · ~{self.segment.tokens:,} tokens"
 
     def children(self):
         return (
@@ -69,7 +87,8 @@ class ManifestNode(ContextNode):
         return (f"{self.segment.kind}\nEstimate: {self.segment.tokens:,} tokens\n"
                 f"Original bytes: {self.segment.utf8_bytes:,}\n"
                 f"Digest: {self.segment.sha256}\n\n"
-                "This recorded manifest contains no text. Its references are not dereferenced.")
+                "This manifest records the request's sources and measurements, not its text. "
+                "Current native base is not evidence of this earlier request's wording.")
 
 
 @dataclass(frozen=True)
@@ -79,7 +98,7 @@ class RecordedTurnNode(ContextNode):
     @property
     def label(self):
         turn = self.manifest.turn.require_recorded()
-        return f"Turn {turn.occurrence.generation} · {turn.identity.value[:12]}"
+        return f"Request {turn.occurrence.generation} · {turn.identity.value[:12]}"
 
     def children(self):
         return tuple(ManifestNode(f"{self.key}/{i}", segment)
@@ -98,7 +117,7 @@ class NativeSegmentNode(ContextNode):
 
     @property
     def label(self):
-        return f"{self.segment.declared_name} · ~{self.segment.tokens:,} tokens"
+        return f"{self.segment.declared_name.replace('_', ' ')} · ~{self.segment.tokens:,} tokens"
 
     def children(self):
         return (
@@ -109,6 +128,9 @@ class NativeSegmentNode(ContextNode):
         )
 
     def detail(self):
+        return f"{self.label}\n\n{self.public_text()}"
+
+    def public_text(self):
         return NativeDetail().dispatch_sync(self.segment)
 
 
@@ -120,7 +142,7 @@ class NativeDetail(MroProjection):
 
     @handles(NativeMessages)
     def messages(self, segment):
-        return "Expand this segment to inspect an individual message."
+        return ""
 
     @handles(ToolCatalogSegment)
     def tools(self, segment):
@@ -129,24 +151,36 @@ class NativeDetail(MroProjection):
 
 @dataclass(frozen=True)
 class NativeMessageNode(ContextNode):
-    raw: dict
+    message: PiMessage
     position: int
+    segment: NativeMessages
+
+    def children(self):
+        return tuple(ReferenceNode(f"{self.key}/source/{i}", source)
+                     for i, source in enumerate(self.segment.provenance))
 
     @property
     def label(self):
-        return f"Message {self.position + 1}"
+        text = " ".join(self.message.text[:120].split())
+        return (f"{self.segment.declared_name.replace('_', ' ')} · "
+                f"{self.message.declared_name} {self.position + 1} · {text or 'no public text'}")
 
-    def detail(self):
-        message = PiMessage.from_wire(self.raw)
+    def public_text(self):
+        message = self.message
         calls = tuple(call for part in message.parts for call in part.tool_calls())
         tool_text = "\n".join(json.dumps(FieldCodec.encode(call), ensure_ascii=False,
                                         indent=2) for call in calls)
+        return "\n".join(filter(None, (message.text, tool_text)))
+
+    def detail(self):
+        message = self.message
         usage = ("Provider usage on this original message:\n" + json.dumps(
             FieldCodec.encode(message.usage), ensure_ascii=False, indent=2)
             if message.usage is not None else "")
-        return "\n".join(filter(None, (message.text, tool_text, usage))) or (
+        content = self.public_text() or (
             "No public text in this message. Images, opaque content and private reasoning "
             "are not rendered.")
+        return f"{self.label}\nSegment: {self.segment.declared_name}\n\n{content}\n\n{usage}"
 
 
 class SegmentNodes(MroProjection):
@@ -165,6 +199,9 @@ class SegmentNodes(MroProjection):
 @dataclass(frozen=True)
 class NativeMessagesNode(NativeSegmentNode):
     page_size: int = 64
+
+    def detail(self):
+        return f"{self.label}\nExpand a message range to read each original public message."
 
     def children(self):
         return (*super().children(),
@@ -185,11 +222,11 @@ class NativeMessageRange(ContextNode):
 
     def children(self):
         return tuple(NativeMessageNode(f"{self.key}/message/{i}",
-                                      self.segment.messages[i], i)
+                                      PiMessage.from_wire(self.segment.messages[i]), i, self.segment)
                      for i in range(self.start, self.stop))
 
     def detail(self):
-        return "Selected active message range; expand to inspect an individual original message."
+        return "Current native message range; expand to read the original public text."
 
 
 @dataclass(frozen=True)
@@ -218,6 +255,14 @@ class ContextInspection:
                  for manifest in self.manifests}
         return tuple(RecordedTurnNode(f"turn/{identity}", manifest)
                      for identity, manifest in reversed(turns.items()))
+
+    def find(self, native, query: str, *, limit=100):
+        """Bound result widgets, while searching the original available public text."""
+        from itertools import islice
+
+        normalized = query.casefold()
+        nodes = self.active(native) if native is not None else ()
+        return tuple(islice((match for node in nodes for match in node.find(normalized)), limit))
 
     async def native(self, comms):
         owner = await asyncio.to_thread(comms.registry.require, self.owner.name)

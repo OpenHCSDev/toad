@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from acp.exceptions import RequestError
 from textual import on, work
-from textual.containers import Vertical
-from textual.widgets import Static, TextArea, Tree
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Input, Static, TextArea, Tree
 from textual.worker import Worker, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 
@@ -23,6 +24,7 @@ class ContextTreeIntent:
     """Only reader choices survive disposable sidebar widget retirement."""
     expanded: set[str] = field(default_factory=set)
     selected: str | None = None
+    query: str = ""
 
 
 class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
@@ -30,19 +32,17 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     ContextExplorer { height: auto; }
     ContextExplorer > .context-status { height: auto; color: $text-muted; }
     ContextExplorer > Tree { height: 12; min-height: 4; }
-    ContextExplorer > TextArea { height: 8; min-height: 3; border: none; }
+    ContextExplorer > TextArea { height: 16; min-height: 6; border: none; }
+    ContextExplorer > .context-controls { height: 3; }
+    ContextExplorer > .context-controls Button { width: 1fr; min-width: 6; }
+    ContextExplorer > Input { height: 3; }
+    ContextExplorer > TextArea:maximized { height: 1fr; width: 1fr; }
     """
     BINDINGS = [("r", "refresh", "Refresh context")]
-    DETAIL_CHARACTERS = 24000
-
-    def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent,
-                 detail_characters: int = DETAIL_CHARACTERS):
+    def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent):
         super().__init__()
         self.owner, self.wire_root = owner, root
         self.intent = intent
-        if detail_characters < 1:
-            raise ValueError("Context detail preview must have a positive bound")
-        self.detail_characters = detail_characters
         self._inspection: ContextInspection | None = None
         self._native = None
         self._observed_revision = None
@@ -52,9 +52,17 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
                      classes="context-status")
+        yield Input(self.intent.query, placeholder="Search public instructions and messages · Enter",
+                    id="context-search")
+        with Horizontal(classes="context-controls"):
+            yield Button("Search", id="context-find")
+            yield Button("Read full", id="context-read-full")
+            yield Button("Copy", id="context-copy")
         yield Tree[ContextNode]("Context", id="context-tree")
         yield TextArea("No context selected.", read_only=True, soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
+        yield Input(placeholder="Export to a new text file · path", id="context-export-path")
+        yield Button("Export selected text + source", id="context-export")
 
     def on_mount(self):
         self.observe_core(self.app.coordination_access.events)
@@ -183,21 +191,24 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             f"{owner} · recorded manifests only\nCurrent detail unavailable: {unavailable}")
 
     def _present(self, inspection, native):
+        if self.intent.query and native is not None:
+            self._search(inspection, native, self.intent.query)
+            return
         tree = self.query_one(Tree)
         selected = self.intent.selected
         self._context_nodes.clear()
         self._loaded.clear()
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
             tree.clear()
+            tree.root.set_label("Context")
             tree.root.expand()
             if native is not None:
-                active = tree.root.add("Active native context", expand=True)
+                active = tree.root.add("Current native base · before next input and provider hooks", expand=True)
                 for model in inspection.active(native):
                     self._add(active, model)
-            recorded = tree.root.add("Recorded turns · not added to active totals")
+            recorded = tree.root.add("Recorded requests · source evidence, not today's base")
             for model in inspection.recorded():
                 self._add(recorded, model)
-            tree.root.add_leaf("Archived context: not supplied by this observation")
             # Restore expansions without fetching referenced files or rebuilding text.
             pending = list(self._context_nodes.values())
             while pending:
@@ -213,6 +224,83 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             # A pending/unavailable original observation cannot revoke the
             # reader's choice. Reuse it when its node is materialized again.
             self.query_one(TextArea).load_text("Select a context segment to inspect.")
+
+    @on(Input.Changed, "#context-search")
+    def query_changed(self, event):
+        event.stop()
+        self.intent.query = event.value
+
+    @on(Input.Submitted, "#context-search")
+    @on(Button.Pressed, "#context-find")
+    def action_search(self, event):
+        event.stop()
+        if self._inspection is not None:
+            self._present(self._inspection, self._native)
+            if self._native is None and self.intent.query:
+                self.query_one(".context-status", Static).update(
+                    "Current public text is not loaded; search resumes when the native read completes.")
+
+    @work(group="context-search", exclusive=True, exit_on_error=False)
+    async def _search(self, inspection, native, query):
+        status = self.query_one(".context-status", Static)
+        status.update("Searching original public context…")
+        try:
+            matches = await asyncio.to_thread(inspection.find, native, query)
+        except (OSError, ValueError, RuntimeError, RequestError) as error:
+            if self._inspection is inspection and self.intent.query == query:
+                status.update(f"Context search unavailable: {error}")
+            return
+        if (not self.is_attached or get_current_worker().is_cancelled
+                or self._inspection is not inspection or self._native is not native
+                or self.intent.query != query):
+            return
+        tree = self.query_one(Tree)
+        self._context_nodes.clear()
+        self._loaded.clear()
+        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
+            tree.clear()
+            tree.root.set_label(f"Current public context · {query}")
+            tree.root.expand()
+            for model in matches:
+                self._add(tree.root, model)
+        status.update(f"{len(matches)} matching sources · first 100 shown · recorded request text is separate evidence")
+        self.query_one(TextArea).load_text("Select a matching original source to read its full public text.")
+
+    @on(Button.Pressed, "#context-read-full")
+    def action_read_full(self):
+        detail = self.query_one(TextArea)
+        self.screen.maximize(detail, container=False)
+        detail.focus()
+
+    @on(Button.Pressed, "#context-copy")
+    @work(group="context-copy", exclusive=True, exit_on_error=False)
+    async def action_copy(self):
+        node = self.query_one(Tree).cursor_node
+        if self._owns_node(node):
+            model = node.data
+            detail = await asyncio.to_thread(model.detail)
+            if self._selected(model):
+                self.app.copy_to_clipboard(detail)
+                self.notify("Complete selected public text and source copied")
+
+    @on(Button.Pressed, "#context-export")
+    @work(group="context-export", exclusive=True, exit_on_error=False)
+    async def action_export(self):
+        node = self.query_one(Tree).cursor_node
+        if not self._owns_node(node):
+            return
+        model = node.data
+        destination = self.query_one("#context-export-path", Input).value.strip()
+        if not destination:
+            self.notify("Choose a new output file path", severity="warning")
+            return
+        try:
+            await asyncio.to_thread(model.export, Path(destination).expanduser())
+        except (OSError, ValueError, RuntimeError) as error:
+            self.notify(f"Context export failed: {error}", severity="error")
+        else:
+            if self.is_attached:
+                self.notify(f"Exported selected public text and source to {destination}")
 
     def _restore_cursor(self, model):
         node = self._context_nodes.get(model.key)
@@ -275,7 +363,4 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         except (OSError, ValueError, RuntimeError, RequestError) as error:
             detail = f"Selected context detail unavailable: {error}"
         if self._selected(model):
-            if len(detail) > self.detail_characters:
-                detail = detail[:self.detail_characters] + (
-                    "\n\n[Preview truncated; original context remains unchanged.]")
             self.query_one(TextArea).load_text(detail)
