@@ -1,0 +1,55 @@
+{
+  "revision": "5cf5d0d880678bbcc7fc9591e6bd24397683ab91",
+  "modules": 311,
+  "parse_omissions": [],
+  "sites": [
+    {
+      "path": "src/agent_comms/child_process.py",
+      "line": 1420,
+      "class": "ChildCommand",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "argv",
+        "main",
+        "run"
+      ]
+    },
+    {
+      "path": "src/agent_comms/child_process.py",
+      "line": 1440,
+      "class": "ControllingTerminalCommand",
+      "bases": [
+        "ChildCommand"
+      ],
+      "methods": [
+        "run"
+      ]
+    },
+    {
+      "path": "src/agent_comms/child_process.py",
+      "line": 1454,
+      "class": "NamespaceInitCommand",
+      "bases": [
+        "ChildCommand"
+      ],
+      "methods": [
+        "run"
+      ]
+    },
+    {
+      "path": "src/agent_comms/child_process.py",
+      "line": 1479,
+      "class": "WatchDeadlineCommand",
+      "bases": [
+        "ChildCommand"
+      ],
+      "methods": [
+        "run"
+      ]
+    }
+  ],
+  "owner": "Original ChildCommand now owns both argv and one external decode/run entry; all three existing members inherit it. Canonical module imports once, no __main__ copy/decoder or stderr filter.",
+  "limits": "Lexical inheritance/call evidence plus semantic reading; not dynamic-resolution proof."
+}

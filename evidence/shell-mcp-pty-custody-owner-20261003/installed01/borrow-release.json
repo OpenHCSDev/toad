@@ -1,0 +1,9 @@
+{
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "borrowers": [],
+  "activation_sha256": "4b6d7b85e376719999d7f09c7861a63b5dba8c57020e4937d887f00a9459a329",
+  "authorised_by": "Sch direct style22 release after actual588 App05 terminal0",
+  "original_archive": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/display-selection588-private-candidate-20261003/qualified588-before-loan-release",
+  "preflight_correction": "Initial scan included own launcher ancestor; no install occurred. Correct scan excludes only own PID and ancestors.",
+  "native_unchanged": true
+}

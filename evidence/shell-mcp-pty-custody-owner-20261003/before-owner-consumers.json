@@ -1,0 +1,796 @@
+{
+  "revision": "5a6a3e0d40dff7e501d48bbb25b33023070ef899",
+  "roots": [
+    {
+      "root": "src/toad",
+      "modules": 289,
+      "parse_omissions": []
+    },
+    {
+      "root": "tests",
+      "modules": 391,
+      "parse_omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "path": "src/toad/acp/maintenance_ingress.py",
+      "sites": [
+        {
+          "line": 16,
+          "import": "agent_comms.child_process",
+          "names": [
+            "AttachedChild"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "sites": [
+        {
+          "line": 28,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 43,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/clipboard_image.py",
+      "sites": [
+        {
+          "line": 26,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/mcp_decision.py",
+      "sites": [
+        {
+          "line": 29,
+          "declaration": "LocalDecisionPTY",
+          "bases": []
+        },
+        {
+          "line": 33,
+          "attribute": "self._master",
+          "operation": "Store"
+        },
+        {
+          "line": 34,
+          "attribute": "self._process",
+          "operation": "Store"
+        },
+        {
+          "line": 35,
+          "attribute": "self._active",
+          "operation": "Store"
+        },
+        {
+          "line": 74,
+          "call": "pty.openpty"
+        },
+        {
+          "line": 76,
+          "attribute": "self._master",
+          "operation": "Store"
+        },
+        {
+          "line": 173,
+          "attribute": "self._active",
+          "operation": "Store"
+        },
+        {
+          "line": 93,
+          "attribute": "self._process",
+          "operation": "Store"
+        },
+        {
+          "line": 98,
+          "attribute": "self._active",
+          "operation": "Store"
+        },
+        {
+          "line": 158,
+          "attribute": "self._active",
+          "operation": "Store"
+        },
+        {
+          "line": 168,
+          "attribute": "self._master",
+          "operation": "Store"
+        },
+        {
+          "line": 169,
+          "attribute": "self._process",
+          "operation": "Store"
+        },
+        {
+          "line": 39,
+          "attribute": "self._active",
+          "operation": "Load"
+        },
+        {
+          "line": 39,
+          "attribute": "self._master",
+          "operation": "Load"
+        },
+        {
+          "line": 42,
+          "attribute": "self._master",
+          "operation": "Load"
+        },
+        {
+          "line": 82,
+          "call": "asyncio.create_subprocess_exec"
+        },
+        {
+          "line": 174,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 174,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 176,
+          "attribute": "self._process",
+          "operation": "Load"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/mcp_inventory.py",
+      "sites": [
+        {
+          "line": 79,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "sites": [
+        {
+          "line": 14,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 88,
+          "call": "TerminalExecution"
+        },
+        {
+          "line": 58,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "sites": [
+        {
+          "line": 13,
+          "import": "toad.mcp_decision",
+          "names": [
+            "LocalDecisionPTY"
+          ]
+        },
+        {
+          "line": 37,
+          "call": "LocalDecisionPTY"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/shell.py",
+      "sites": [
+        {
+          "line": 20,
+          "import": "toad.shell_source",
+          "names": [
+            "ShellOperationalSource"
+          ]
+        },
+        {
+          "line": 36,
+          "declaration": "Shell",
+          "bases": [
+            "ShellOperationalSource"
+          ]
+        },
+        {
+          "line": 56,
+          "attribute": "self._ready_event",
+          "operation": "Store"
+        },
+        {
+          "line": 65,
+          "attribute": "self._pid",
+          "operation": "Store"
+        },
+        {
+          "line": 70,
+          "attribute": "self._finished",
+          "operation": "Load"
+        },
+        {
+          "line": 162,
+          "attribute": "self._task",
+          "operation": "Store"
+        },
+        {
+          "line": 205,
+          "call": "pty.openpty"
+        },
+        {
+          "line": 206,
+          "attribute": "self.master",
+          "operation": "Store"
+        },
+        {
+          "line": 233,
+          "attribute": "self._process",
+          "operation": "Store"
+        },
+        {
+          "line": 234,
+          "attribute": "self._pid",
+          "operation": "Store"
+        },
+        {
+          "line": 246,
+          "attribute": "self._transport",
+          "operation": "Store"
+        },
+        {
+          "line": 85,
+          "attribute": "self._pid",
+          "operation": "Load"
+        },
+        {
+          "line": 111,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 152,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 159,
+          "attribute": "self._task",
+          "operation": "Load"
+        },
+        {
+          "line": 179,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 182,
+          "call": "resize_pty"
+        },
+        {
+          "line": 187,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 90,
+          "attribute": "self._pid",
+          "operation": "Load"
+        },
+        {
+          "line": 182,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 220,
+          "call": "asyncio.create_subprocess_shell"
+        },
+        {
+          "line": 247,
+          "attribute": "self._ready_event",
+          "operation": "Load"
+        },
+        {
+          "line": 106,
+          "attribute": "self._ready_event",
+          "operation": "Load"
+        },
+        {
+          "line": 109,
+          "attribute": "self._ready_event",
+          "operation": "Load"
+        },
+        {
+          "line": 123,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 151,
+          "attribute": "self._ready_event",
+          "operation": "Load"
+        },
+        {
+          "line": 196,
+          "attribute": "self.master",
+          "operation": "Load"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/shell_source.py",
+      "sites": [
+        {
+          "line": 13,
+          "declaration": "ShellOperationalSource",
+          "bases": [
+            "ABC"
+          ]
+        },
+        {
+          "line": 21,
+          "attribute": "self.master",
+          "operation": "Store"
+        },
+        {
+          "line": 22,
+          "attribute": "self._task",
+          "operation": "Store"
+        },
+        {
+          "line": 23,
+          "attribute": "self._process",
+          "operation": "Store"
+        },
+        {
+          "line": 24,
+          "attribute": "self._transport",
+          "operation": "Store"
+        },
+        {
+          "line": 25,
+          "attribute": "self._finished",
+          "operation": "Store"
+        },
+        {
+          "line": 84,
+          "attribute": "self.master",
+          "operation": "Store"
+        },
+        {
+          "line": 85,
+          "attribute": "self._finished",
+          "operation": "Store"
+        },
+        {
+          "line": 58,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 60,
+          "call": "os.killpg"
+        },
+        {
+          "line": 68,
+          "attribute": "self._task",
+          "operation": "Load"
+        },
+        {
+          "line": 78,
+          "attribute": "self._transport",
+          "operation": "Load"
+        },
+        {
+          "line": 80,
+          "attribute": "self._transport",
+          "operation": "Store"
+        },
+        {
+          "line": 58,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 69,
+          "attribute": "self._task",
+          "operation": "Load"
+        },
+        {
+          "line": 70,
+          "attribute": "self._task",
+          "operation": "Load"
+        },
+        {
+          "line": 81,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 60,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 66,
+          "call": "os.killpg"
+        },
+        {
+          "line": 68,
+          "attribute": "self._task",
+          "operation": "Load"
+        },
+        {
+          "line": 79,
+          "attribute": "self._transport",
+          "operation": "Load"
+        },
+        {
+          "line": 83,
+          "attribute": "self.master",
+          "operation": "Load"
+        },
+        {
+          "line": 63,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 66,
+          "attribute": "self._process",
+          "operation": "Load"
+        },
+        {
+          "line": 67,
+          "attribute": "self._process",
+          "operation": "Load"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "sites": [
+        {
+          "line": 21,
+          "import": "agent_comms.child_process",
+          "names": [
+            "AttachedChild",
+            "TerminalChildStdio"
+          ]
+        },
+        {
+          "line": 185,
+          "declaration": "PtyProcess",
+          "bases": []
+        },
+        {
+          "line": 228,
+          "declaration": "TerminalOperation",
+          "bases": [
+            "DeclaredFamily"
+          ]
+        },
+        {
+          "line": 257,
+          "declaration": "NewTerminalOperation",
+          "bases": [
+            "TerminalOperation"
+          ]
+        },
+        {
+          "line": 281,
+          "declaration": "ActiveTerminalOperation",
+          "bases": [
+            "TerminalOperation"
+          ]
+        },
+        {
+          "line": 344,
+          "declaration": "TerminalExecution",
+          "bases": []
+        },
+        {
+          "line": 267,
+          "call": "ActiveTerminalOperation"
+        },
+        {
+          "line": 355,
+          "call": "NewTerminalOperation"
+        },
+        {
+          "line": 419,
+          "call": "pty.openpty"
+        },
+        {
+          "line": 196,
+          "call": "TerminalChildStdio"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "sites": [
+        {
+          "line": 7,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 99,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "sites": [
+        {
+          "line": 97,
+          "import": "toad.shell",
+          "names": [
+            "Shell"
+          ]
+        },
+        {
+          "line": 2025,
+          "call": "Shell"
+        }
+      ]
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "sites": [
+        {
+          "line": 10,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests/browser_serving_pilot.py",
+      "sites": [
+        {
+          "line": 88,
+          "call": "asyncio.create_subprocess_exec"
+        },
+        {
+          "line": 149,
+          "call": "os.killpg"
+        },
+        {
+          "line": 158,
+          "call": "os.killpg"
+        }
+      ]
+    },
+    {
+      "path": "tests/clipboard_native_pilot.py",
+      "sites": [
+        {
+          "line": 48,
+          "call": "pty.openpty"
+        },
+        {
+          "line": 141,
+          "call": "os.killpg"
+        }
+      ]
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "sites": [
+        {
+          "line": 40,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "tests/default_route_retirement_pilot.py",
+      "sites": [
+        {
+          "line": 113,
+          "call": "os.killpg"
+        }
+      ]
+    },
+    {
+      "path": "tests/e2e_pty.py",
+      "sites": [
+        {
+          "line": 90,
+          "call": "pty.openpty"
+        },
+        {
+          "line": 96,
+          "call": "asyncio.create_subprocess_exec"
+        },
+        {
+          "line": 54,
+          "call": "os.killpg"
+        }
+      ]
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "sites": [
+        {
+          "line": 97,
+          "call": "asyncio.create_subprocess_exec"
+        },
+        {
+          "line": 107,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "tests/inbound_history_reprojection_installed_pilot.py",
+      "sites": [
+        {
+          "line": 19,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "tests/maintenance_cancel_process_group_pilot.py",
+      "sites": [
+        {
+          "line": 26,
+          "import": "agent_comms.child_process",
+          "names": [
+            "AttachedChild"
+          ]
+        },
+        {
+          "line": 89,
+          "call": "os.killpg"
+        }
+      ]
+    },
+    {
+      "path": "tests/mcp_decision_pty_pilot.py",
+      "sites": [
+        {
+          "line": 23,
+          "import": "toad.mcp_decision",
+          "names": [
+            "LocalDecisionPTY"
+          ]
+        },
+        {
+          "line": 214,
+          "call": "LocalDecisionPTY"
+        }
+      ]
+    },
+    {
+      "path": "tests/native_tab_terminal_check.py",
+      "sites": [
+        {
+          "line": 148,
+          "call": "os.killpg"
+        },
+        {
+          "line": 152,
+          "call": "os.killpg"
+        }
+      ]
+    },
+    {
+      "path": "tests/owner_replacement_recovery_installed_pilot.py",
+      "sites": [
+        {
+          "line": 68,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "tests/receiver_inbound_installed_pilot.py",
+      "sites": [
+        {
+          "line": 26,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "tests/renderer_cli_pty_pilot.py",
+      "sites": [
+        {
+          "line": 41,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "path": "tests/restored_inbound_continuous_installed_pilot.py",
+      "sites": [
+        {
+          "line": 45,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "sites": [
+        {
+          "line": 17,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        },
+        {
+          "line": 23,
+          "call": "TerminalExecution"
+        }
+      ]
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "sites": [
+        {
+          "line": 272,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "path": "tests/terminal_crash_check.py",
+      "sites": [
+        {
+          "line": 4,
+          "call": "pty.openpty"
+        }
+      ]
+    },
+    {
+      "path": "tests/test_client_session.py",
+      "sites": [
+        {
+          "line": 8,
+          "import": "toad.terminal_execution",
+          "names": [
+            "TerminalExecution"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "sites": [
+        {
+          "line": 42,
+          "call": "asyncio.create_subprocess_exec"
+        }
+      ]
+    }
+  ],
+  "limits": "Lexical AST names/attributes plus semantic reading; dynamic dispatch is not proved by lexical absence. Original native exec gate is embedded source and read separately."
+}

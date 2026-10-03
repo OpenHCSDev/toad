@@ -1,0 +1,72 @@
+{
+  "state": "Published390 original identity closure and ordinary default assembly/display acceptance archived",
+  "rawPublicationSha256": "63727c2a497152038338166232aadbeb5e89874b19640d0f9618ff41241958a5",
+  "rawPhaseUnchanged": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "owners": 19,
+  "durationSeconds": 44.337981939315796,
+  "captureSeconds": 27.613570432004053,
+  "actualStExit": 0,
+  "originalOwnerIdentity": {
+    "pid": 4186302,
+    "start_time": 51110991
+  },
+  "cleanupRemaining": [],
+  "parentInspection": "Parent reports inspected saved history/Ready/no activity bar during this run; this archive adds no separate during-run assertion or new observation.",
+  "scope": "Ordinary default saved-helper launch/attach/display only. No new input/provider/channel/compaction/motion proof. Actual389 settings/588 standalone saved-bus/391 motion and586 launch-family gates remain separately scoped.",
+  "currentProtected": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "previousSourceCode": "Parent releases retired334 only after archive/borrower checks; potential next receiving loan coordinated with cleaner.",
+  "files": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/joined391588/new-publication587588389391/publication-receipt.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/publication-receipt.json",
+      "sha256": "63727c2a497152038338166232aadbeb5e89874b19640d0f9618ff41241958a5"
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/joined391588/new-publication587588389391/publication-identity-closure.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/publication-identity-closure.json",
+      "sha256": "2741dd8ea415136c2fbab272e9f2f141fb31b5152d7c11e56915391d7d25a7ef"
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/joined391588/new-publication587588389391/ready-receipt.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/ready-receipt.json",
+      "sha256": "00e2dcde69e601660383f57d50392aada5b6452be4216bf6ddc4e28b565e2a27"
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/joined391588/new-publication587588389391/preparation-receipt.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/preparation-receipt.json",
+      "sha256": "d52aee7c5d5710a77b7c284260a81521e4360863254c7afb275e0c1b6c4f73b3"
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/settings-projection389-s4-relations584-receiving-20261003/joined391588/new-publication587588389391/operator-manifest.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/operator-manifest.json",
+      "sha256": "c9dad3f634b0ada09a1bcbf9b962be350b535ecb00f9965bad8b6b9c271822af"
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published587588389391-helper-default-20261003/capture/receipt.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/capture/receipt.json",
+      "sha256": "b150c2ae29cdf73daca4a84a9fbc30092f6b1eb82334f968b0a344f73f957571"
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published587588389391-helper-default-20261003/capture/before.png",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/capture/before.png",
+      "sha256": "e11a5f73a4080f37a36cabb0bf8ba3644e5c7505ca33c9bb56d48851f1c2239f"
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published587588389391-helper-default-20261003/capture/after.png",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/capture/after.png",
+      "sha256": "e11a5f73a4080f37a36cabb0bf8ba3644e5c7505ca33c9bb56d48851f1c2239f"
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published587588389391-helper-default-20261003/capture/before-state.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/capture/before-state.json",
+      "sha256": "87b65e6787d4bd05d3c688654a097687828c8b14a745626360f1dc124601fd8a"
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published587588389391-helper-default-20261003/capture/after-state.json",
+      "archive": "evidence/settings-projection389-s4-relations584-receiving-20261003/published390/capture/after-state.json",
+      "sha256": "846ee95dd4743465d56005728d939e9218192dc8a8e8b86de9818d857974b4d9"
+    }
+  ],
+  "noPublicationOrReadbackRepeated": true,
+  "packageOrActivationMutations": false
+}
