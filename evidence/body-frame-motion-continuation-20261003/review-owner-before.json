@@ -1,0 +1,344 @@
+{
+  "revision": "a67e2c43f8c391fd82d519c96c8adbbef4d2674c",
+  "roots": {
+    "src/toad": {
+      "parsed": 289,
+      "omitted": []
+    },
+    "tests/tools": {
+      "parsed": 8,
+      "omitted": []
+    },
+    "tools/performance": {
+      "parsed": 39,
+      "omitted": []
+    }
+  },
+  "sites": [
+    {
+      "path": "src/toad/comms_root.py",
+      "line": 146,
+      "kind": "AsyncFunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/comms_root.py",
+      "line": 140,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 206,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/agent_activity.py",
+      "line": 19,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/agent_activity.py",
+      "line": 20,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/channels_sidebar.py",
+      "line": 13,
+      "kind": "Name",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 468,
+      "kind": "Name",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1904,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 35,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 42,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 49,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 91,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/presentation_window.py",
+      "line": 199,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 172,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 188,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 915,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 922,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 65,
+      "kind": "ClassDef",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 77,
+      "kind": "ClassDef",
+      "name": "InlineReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 94,
+      "kind": "ClassDef",
+      "name": "DeferredReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1383,
+      "kind": "FunctionDef",
+      "name": "phase_events"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1423,
+      "kind": "FunctionDef",
+      "name": "live_review"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 74,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 77,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 79,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 94,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 96,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 442,
+      "kind": "FunctionDef",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 955,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1004,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1033,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1088,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1404,
+      "kind": "Name",
+      "name": "phase_events"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 80,
+      "kind": "Name",
+      "name": "live_review"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1107,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1474,
+      "kind": "Name",
+      "name": "phase_events"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1475,
+      "kind": "Attribute",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1594,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2078,
+      "kind": "Name",
+      "name": "InlineReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1034,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1497,
+      "kind": "Name",
+      "name": "InlineReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1828,
+      "kind": "Name",
+      "name": "phase_events"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1835,
+      "kind": "Attribute",
+      "name": "review_intervals"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2078,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1891,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1752,
+      "kind": "FunctionDef",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 284,
+      "kind": "Name",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2079,
+      "kind": "Name",
+      "name": "ReviewTiming"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 279,
+      "kind": "Name",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 282,
+      "kind": "Name",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1774,
+      "kind": "Name",
+      "name": "observe"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 1755,
+      "kind": "Attribute",
+      "name": "observe"
+    },
+    {
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 50,
+      "kind": "Attribute",
+      "name": "observe"
+    }
+  ],
+  "ambiguity": "Attribute observe includes unrelated owners. AST does not establish dynamic receiver; the recorder ReviewTiming family and ProcessOwner callbacks are read semantically."
+}

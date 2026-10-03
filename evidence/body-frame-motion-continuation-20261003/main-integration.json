@@ -1,0 +1,23 @@
+{
+  "state": "SCOPED_READY normal main integration; original402 actual qualification preserved",
+  "main": "e1b75ee25e1e5d32eb5a9a7105e1cdb45d2cfb82",
+  "original_qualified_source": "613da1897ea9fadc992971d642aff4aa0a17f604",
+  "merged_pins": {
+    "core": "91e07acc481281ce3e7b322567fbd41bc7939226",
+    "textual": "db8becffb36294cb4cd9948ad3d891bbdc45a548"
+  },
+  "conflicts": [
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "resolution": "take current main Core91; mergedText44db8 source equals original installed44; preserve qualified Toad production and recorder bytes",
+  "toad_production_and_qualified_tools_byte_equal": true,
+  "textual_production_byte_equal": true,
+  "original_capture_hashes_unchanged": true,
+  "core_loan_handback": "/home/ts/wt/comms-cleanup-live-integration-20260929/.artifacts/field-codec601-installed/handback.json",
+  "core_restore_provenance": "truthful local normal wheel, all342originalfiles restored; original GitdirectURL archived; no fake provenance rewrite",
+  "new_combined_film": false,
+  "installed_observation_scope": "Original film Coref4/Toad613/Text3ad; Core91 independently qualified main401. Integration equality is not a new installed combined-pair recording.",
+  "scope_limits": "Same scoped body/writer/damage ready; stepped motion, CPU/144Hz and personalDURING unfinished",
+  "updated_utc": "2026-10-03T19:36:08.465914+00:00"
+}
