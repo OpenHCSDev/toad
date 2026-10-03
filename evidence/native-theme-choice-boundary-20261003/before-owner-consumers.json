@@ -287,5 +287,83 @@
       "source": "PresentationBudget"
     }
   ],
-  "limits": "Lexical evidence; inherited/dynamic resolution read separately."
+  "limits": "Lexical evidence; inherited/dynamic resolution read separately.",
+  "tests": {
+    "modules": 391,
+    "parse_omissions": [],
+    "sites": [
+      {
+        "path": "tests/catalog_actions_native_installed_pilot.py",
+        "line": 18,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import ThemeChoice"
+      },
+      {
+        "path": "tests/catalog_actions_native_installed_pilot.py",
+        "line": 77,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      },
+      {
+        "path": "tests/native_widget_actions_installed_pilot.py",
+        "line": 25,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import ThemeChoice"
+      },
+      {
+        "path": "tests/native_widget_actions_installed_pilot.py",
+        "line": 26,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      },
+      {
+        "path": "tests/navigation_terminal_fixture.py",
+        "line": 43,
+        "kind": "ImportFrom",
+        "source": "from toad.render_choices import RendererChoice, LocalRenderer, PersistentRenderer"
+      },
+      {
+        "path": "tests/projected_history_budget_pilot.py",
+        "line": 19,
+        "kind": "ImportFrom",
+        "source": "from toad.widgets.presentation_window import PresentationBudget"
+      },
+      {
+        "path": "tests/projected_history_budget_pilot.py",
+        "line": 43,
+        "kind": "Name",
+        "source": "PresentationBudget"
+      },
+      {
+        "path": "tests/projected_history_budget_pilot.py",
+        "line": 116,
+        "kind": "Name",
+        "source": "PresentationBudget"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 23,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import ThemeChoice"
+      },
+      {
+        "path": "tests/reconnect_source_native_installed_pilot.py",
+        "line": 24,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      },
+      {
+        "path": "tests/settings_tree_pilot.py",
+        "line": 17,
+        "kind": "ImportFrom",
+        "source": "from toad.setting_choices import BothExpansion, Expansion, FailExpansion, ThemeChoice"
+      },
+      {
+        "path": "tests/settings_tree_pilot.py",
+        "line": 170,
+        "kind": "Name",
+        "source": "ThemeChoice"
+      }
+    ]
+  }
 }
