@@ -1,0 +1,42 @@
+{
+  "target": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+    "sha256": "57ea7a59ec5502a7a05f58bed86cf985227c1db835d36995e6c9b714da19a309"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/source-proof.json",
+    "sha256": "b1c399110a851db3c1a09b9e208b14e8697f2a63691eabc04ea95e094e41f9b8"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/qualified-source-gates/573-installed-configured-receipt.json",
+      "sha256": "38541e668f279b360ab1ec3180360c393ce49d3cfe57d59e637d11da0d47b423"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/qualified-source-gates/576-configured-channel-receipt.json",
+      "sha256": "0360d2de236d635bbc797b1543792b4defedefc8acf8a4733e56ee374e881947"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/qualified-source-gates/382-text38-qualified.json",
+      "sha256": "d9a257d2eff8f5bcb6381fae6bfdeb20d23a49486a79881a5be875062c821b2a"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/qualified-source-gates/383-installed03-ready.json",
+      "sha256": "f5f69aa344386ebff806c0aefaa111809d6c3264d296723a570f5b48fff7dc5b"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/app-frame-cadence382-shell383-receiving-20261003/qualified-source-gates/578-original-cli-receipt.json",
+      "sha256": "2188ad8dce4c230194f745ee880f3fedf900771f625ce0f6c868d478618cb495"
+    }
+  ]
+}
