@@ -1,22 +1,25 @@
 {
-  "state": "Scoped-fixture-App-pass-actual-saved-user-config-pending",
+  "state": "Ready-scoped-actual-saved-settings-installed-App",
   "source_head": "f205071bb7e58777517b4655b69dcd71fe352221",
   "production_files": 5,
   "production_added_lines": 116,
   "production_deleted_lines": 110,
   "terminal": {
     "exit_code": 0,
-    "elapsed_seconds": 5.675828820967581,
+    "elapsed_seconds": 5.626891147985589,
     "inner_app_deadline_seconds": 45,
-    "source_head": "f205071bb7e58777517b4655b69dcd71fe352221",
+    "source_head": "3e204cca5f0bf48134f1ce5d026b338e4d5a60fc",
+    "actual_saved_settings": "/home/ts/.config/toad/toad.json",
+    "original_sha256_before": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
+    "original_sha256_after": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
     "driver": "tests/settings_tree_pilot.py",
-    "log": "evidence/settings-native-projection-owner-20261003/installed02.log"
+    "log": "evidence/settings-native-projection-owner-20261003/installed03.log"
   },
   "installed_receipt": {
     "result": "pass-installed-settings-app",
     "installed_toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
-    "source_settings": "/home/ts/wt/toad-regression-widget-cost-20261001/tests/fixtures/saved-settings.json",
-    "source_sha256": "aecf1f1c7d28aeb2bd61b63a971293d9baeb9309dcb85bff9fb5e053b3bddd4a",
+    "source_settings": "/home/ts/.config/toad/toad.json",
+    "source_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
     "original_document_roundtrip": true,
     "all_original_field_kinds_and_bounds": true,
     "model_values_unchanged_on_form_initialization": true,
@@ -28,10 +31,10 @@
     "native_pi_inputs": 0,
     "scope": "Installed original App/Pilot/settings/edit/effects/save/reopen, not physical st/ACP/Pi/performance"
   },
-  "candidate_source_proof": "installed-source-proof-before.json",
+  "candidate_source_proof": "installed03-source-proof.json",
   "candidate_pins": {
-    "agent_comms": "a24f696c7caf8deeb59c75d14c1dc8fc97107f31",
-    "toad": "8939b69433b570d16dc765aa563947345272b08a",
+    "agent_comms": "e7b063e29e4f02a63837f38091f093be5cf3ff8b",
+    "toad": "4fd34f7301765d30217702a6e648f5dda0b60c58",
     "textual": "2d1e2efaecf1f1e01c249aa75fe727c530f4a4e8",
     "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
   },
@@ -40,14 +43,12 @@
   "cleanup": {
     "source_assets_after": 928,
     "source_mismatches": [],
-    "installed_source_unchanged": true,
     "owned_driver_processes_remaining": [],
     "owned_temporary_settings_roots_remaining": [],
-    "original_settings_sha256": "aecf1f1c7d28aeb2bd61b63a971293d9baeb9309dcb85bff9fb5e053b3bddd4a",
-    "source_original_unchanged_assertion": "Driver after-App assertion and terminal exit0",
-    "native_pi_inputs": 0,
+    "actual_original_settings_unchanged": true,
+    "actual_original_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2",
     "provider_calls": 0,
-    "scope": "App/Pilot private settings only; no physical st/ACP/Pi/performance claim"
+    "native_pi_inputs": 0
   },
   "preserved_negative": {
     "log": "installed01.log",
@@ -55,15 +56,34 @@
     "cause": "Existing pilot ToolCall DTO constructors lacked official SDK.12.1 required title",
     "correction": "All three fixture constructors now use the required original title, no product/package change"
   },
-  "remaining_scope": "Native theme/preferences frontend policy and remaining interactive shell/MCP raw custody are separate unfinished headless families; no fullU2/U4/U5 readiness claim",
+  "remaining_scope": "Separate remaining headless families: shell/MCP original PTY custody and native theme/render palette. No full U2/U4/U5/physical/provider/performance claim.",
   "visual_evidence": {
-    "files": [
-      "installed02/settings-initial.svg",
-      "installed02/settings-subtype-edited.svg",
-      "installed02/settings-initial.png",
-      "installed02/settings-subtype-edited.png"
+    "original_svg": [
+      {
+        "path": "evidence/settings-native-projection-owner-20261003/installed03/settings-initial.svg",
+        "text_elements": 168,
+        "original_controls": {
+          "Search settings": false,
+          "Column width": false,
+          "Experiment": false,
+          "fresh": false,
+          "Dismiss settings": false
+        }
+      },
+      {
+        "path": "evidence/settings-native-projection-owner-20261003/installed03/settings-subtype-edited.svg",
+        "text_elements": 161,
+        "original_controls": {
+          "Search settings": false,
+          "Column width": false,
+          "Experiment": true,
+          "fresh": true,
+          "Dismiss settings": true
+        }
+      }
     ],
-    "personal_review": "Edited PNG exported body is entirely black; preserved negative. Widget editing/effects/persistence assertions passed. No readable native/physical pixels claim."
+    "qualification": "Original Text39 SVG contains actual controls/text; native export omits existing App.ansi_theme and Rich uses SVG_EXPORT_THEME. Cairo PNG black export is retained, not evidence of a blank App. No readable physical/PNG claim; Kepler owns Text40 correction separately."
   },
-  "remaining_acceptance": "Parent requires actual readonly /home/ts/.config/toad/toad.json donor through existing TOAD_SETTINGS_SAMPLE; source hash dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2. Final matched390 writer handoff required before one affected donor App run."
+  "remaining_acceptance": null,
+  "preserved_fixture_positive": "installed02-terminal.json/installed02/receipt.json; repository saved fixture only"
 }
