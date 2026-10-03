@@ -1,0 +1,96 @@
+{
+  "roots": [
+    {
+      "root": "src/toad",
+      "revision": "HEAD",
+      "modules": 287,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/transcript_source_preparation.py",
+          "line": 190,
+          "source": "self.workers.cancel_node(self)"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 98,
+          "source": "self.workers.cancel_node(self)"
+        },
+        {
+          "path": "src/toad/widgets/context_explorer.py",
+          "line": 284,
+          "source": "self.workers.cancel_node(self)"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 94,
+          "source": "def _cancel_preparation(self) -> None:"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 56,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 62,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 95,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 96,
+          "source": "self.workers.cancel_node(self)"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 99,
+          "source": "self._cancel_preparation"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 117,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 127,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 131,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/prepared_markdown.py",
+          "line": 124,
+          "source": "self._preparation_closed"
+        },
+        {
+          "path": "src/toad/widgets/streaming_markdown.py",
+          "line": 202,
+          "source": "self._cancel_preparation"
+        }
+      ]
+    },
+    {
+      "root": "src/textual",
+      "revision": "HEAD",
+      "modules": 249,
+      "parse_omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/widget.py",
+          "line": 5093,
+          "source": "self.workers.cancel_node(self)"
+        }
+      ]
+    }
+  ],
+  "scope": "Source/static references; inspect actual nativeC3MRO dispatch. Arbitraryexternal dynamic callers not proved."
+}

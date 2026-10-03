@@ -1,0 +1,50 @@
+{
+  "modules": {
+    "src/toad": 287,
+    "tests": 391
+  },
+  "parse_omissions": [],
+  "references": [
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 41,
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 280,
+      "source": "@property"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 271,
+      "source": "self._body_scope"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 477,
+      "source": "self._body_scope"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 475,
+      "source": "self._body_scope"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 922,
+      "source": "owner.body_measurement_stale"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 269,
+      "source": "node.body_measurement_stale"
+    },
+    {
+      "path": "tests/viewport_idle_cadence_pilot.py",
+      "line": 115,
+      "source": "body.body_measurement_stale"
+    }
+  ],
+  "dynamic_resolution": "AST/source declarations; arbitrary external getattr not proven. Whole production textual/diff roots previously loaded no uses of To ad-specific fields."
+}

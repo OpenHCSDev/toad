@@ -118,8 +118,8 @@ def ownership(app):
     return {"registered_widgets": len(app._registry),
             "widget_types": Counter(type(node).__name__ for node in app._registry).most_common(30),
             "document_bodies": {"owners": len(documents),
-                                "dormant": sum(getattr(node, "body_dormant", False) for node in documents),
-                                "stale": sum(getattr(node, "body_measurement_stale", False) for node in documents)},
+                                "dormant": sum(node.body_dormant for node in documents),
+                                "stale": sum(not node.body_ready for node in documents)},
             "live_watch_subscriptions": live,
             "closed_watch_subscriptions": sum(closed.values()),
             "closed_watch_paths": [(list(path), count) for path, count in closed.most_common()]}
