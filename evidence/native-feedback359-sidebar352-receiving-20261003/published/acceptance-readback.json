@@ -1,0 +1,47 @@
+{
+  "observed_at": "2026-10-03T04:10:53.465139+00:00",
+  "scope": "ordinary default plain-st saved-history startup, native feedback/sidebar bundle359+352",
+  "personally_viewed": "after.png; saved helper493/494 history, inbound Responded, outbound Here, sidebar and session details Ready",
+  "entrypoint": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "isolated_display": ":7930",
+  "capture_seconds": 18.560432815982495,
+  "terminal_exit": {
+    "pid": 2082962,
+    "start_ticks": 47579053,
+    "returncode": 0
+  },
+  "recorder_tool_exit": 0,
+  "cleanup_complete": true,
+  "original_owner": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 2079616,
+      "start_time": 47569804
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_unchanged": true,
+  "runtime_unchanged": true,
+  "target_prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "publication_receipt_sha256": "955556363c81c904f818acae0a106efa17b93583e53a355fc4da8e9eba7ab0f3",
+  "owners_preserved": 19,
+  "fresh_input_sent": false,
+  "new_provider_turn": false,
+  "remaining": [
+    "362 stale remote-turn status acceptance not included",
+    "364 shared IRC/DM style/materialization/frame cost unfinished",
+    "562 native044 changed configured journey not yet installed publicly",
+    "full144Hz/scroll/End/headless scope unfinished"
+  ],
+  "artifacts": {
+    "receipt.json": "3cca829c3c2802bfa8178b59291786c90ca09a468294e6e3e0c23ee75f1e249b",
+    "after.png": "923535ec7301e5c7041c12e37c1865ac38d27e1d3a46f3541ea964d35a65fa75",
+    "after-state.json": "05dbc5833d94f6a0c71ca5e8b98b9ce54ac3a1d641f3a2a057f6055c91d2c4f9",
+    "terminal.mp4": "68651fd28d693ff085e55870531c9481a6b98bc4cd2d6816bf12241ea5089623"
+  }
+}
