@@ -81,7 +81,7 @@ async def main():
             await pilot.pause()
             await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, viewer))
             chat = app.screen.query_one(CommsChatView)
-            await until(pilot, lambda: chat.message_history.initialized)
+            await until(pilot, lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading))
             assert any(m.body.startswith("LIVE") for m, _ in chat.message_history.rows)
             # Scroll as the user does, including source cursor boundary.
             for _ in range(12):

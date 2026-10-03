@@ -189,6 +189,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         await self.presentation.prepare(self)
+        await super().prepare_presentation()
         self._start_content_hydration()
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.prepare_presentation()
@@ -196,6 +197,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     async def retire_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
+        await super().retire_presentation()
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.retire_presentation()
         await self.presentation.retire(self)

@@ -34,6 +34,7 @@ from toad.comms_root import (
 )
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import CommsSidebar
+from runtime_fixture import refresh_comms
 
 
 def route(home: Path, root: Path, root_id: str) -> Path:
@@ -134,27 +135,27 @@ async def main() -> None:
                 mode = await channel_target("#team").open(NavigationContext(app, owner_mode, sandbox, "user"))
                 assert mode == app.selected_mode
                 view = app.screen.query_one(CommsChatView)
-                await view._refresh()
+                await refresh_comms(view)
                 await pilot.pause()
-                assert view._wire.root == first
+                assert view.message_history.reader.comms.root == first
                 assert any(
                     "OLD-WIRE-ONLY" in str(message) for message, _ in view.message_history.rows
                 ), view.message_history.rows
 
                 # A read already in flight when the route flips must not paint
                 # a late page from the former wire into the successor view.
-                view._wire.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
+                view.message_history.reader.comms.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
                 entered, release = asyncio.Event(), asyncio.Event()
-                original_read = app.channel_history_reader.read
+                original_read = view.message_history.reader.read
 
                 async def delayed_read(*args, **kwargs):
                     entered.set()
                     await release.wait()
                     return await original_read(*args, **kwargs)
 
-                with patch.object(app.channel_history_reader, "read", delayed_read):
-                    view._revision = None
-                    pending = asyncio.create_task(view._refresh())
+                with patch.object(view.message_history.reader, "read", delayed_read):
+                    view.message_history.reader.restart()
+                    pending = asyncio.create_task(refresh_comms(view))
                     async with asyncio.timeout(5):
                         await entered.wait()
                     route(home, second, second_id)
@@ -163,11 +164,14 @@ async def main() -> None:
                 assert current_root() == second
                 assert app.coordination_access.service.root == second  # app cache invalidated
                 view.message_history.has_newer = True
-                await view.message_history.load_edge()
+                worker = view.message_history.schedule_source_work(
+                    lambda: view.message_history._load_page(False))
+                if worker is not None:
+                    await worker.wait()
                 assert all(
                     "LATE-OLD-EDGE" not in str(message) for message, _ in view.message_history.rows
                 )
-                await view._refresh()
+                await refresh_comms(view)
                 app.screen.query_one(CommsSidebar)._refresh()
                 await pilot.pause()
                 assert not root_is_current(first)
@@ -183,9 +187,9 @@ async def main() -> None:
                 assert new_app.coordination_access.service.root == second
                 await channel_target("#team").open(NavigationContext(new_app, new_app.selected_mode, sandbox, "user"))
                 new_view = new_app.screen.query_one(CommsChatView)
-                await new_view._refresh()
+                await refresh_comms(new_view)
                 await pilot.pause()
-                assert new_view.display and new_view._wire.root == second
+                assert new_view.display and new_view.message_history.reader.comms.root == second
                 assert any(
                     "NEW-WIRE-ONLY" in str(message) for message, _ in new_view.message_history.rows
                 ), new_view.message_history.rows
@@ -198,7 +202,7 @@ async def main() -> None:
                 # UNKNOWN or an interrupted committed receipt, it is not a
                 # non-retryable outcome.
                 with patch.object(
-                    new_view._wire.messaging, 'send_user_message',
+                    new_view.message_history.reader.comms.messaging, 'send_user_message',
                     side_effect=ValueError("pre-append admission rejected"),
                 ) as rejected:
                     await new_view.submit_input(
@@ -213,7 +217,7 @@ async def main() -> None:
                 # An uncertain private send retains text for inspection and disables compose.
                 error = HumanInitialUnknownError(second_id, 17, "opaque-unknown-id")
                 with patch.object(
-                    new_view._wire.messaging, "send_user_message", side_effect=error
+                    new_view.message_history.reader.comms.messaging, "send_user_message", side_effect=error
                 ) as sender:
                     event = input_events.UserInputSubmitted("UNCERTAIN-NO-RETRY")
                     await new_view.submit_input(event)
@@ -229,7 +233,7 @@ async def main() -> None:
                     assert sender.call_count == 1
                 route_path.write_text("{")
                 route_path.chmod(0o600)
-                await new_view._refresh()
+                await refresh_comms(new_view)
                 await pilot.pause()
                 assert not new_view.display
                 assert "NEW-WIRE-ONLY" not in new_app.export_screenshot()

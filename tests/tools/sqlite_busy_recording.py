@@ -29,13 +29,13 @@ class SqliteBusyJourney(PhysicalJourney):
         marker = marker_command()
         control = 'exec --sync ' + shlex.join([sys.executable, str(Path(__file__).resolve()), '--sql-control'])
         return '\n'.join((
-            RetainedLifetimeJourney.ready_command(args, 'native-ready', args.command[-1]),
+            RetainedLifetimeJourney.ready_command(args, 'native-ready', cls.history_thread(args)),
             native_click_command('phase-native-ready-state.pickle'),
             'keydown Prior', f'sleep {args.scroll_hold_seconds:g}', 'keyup Prior',
             f'sleep {args.navigation_settle_seconds:g}', marker + 'reader',
             control + ' acquire', 'key End', 'sleep 1', marker + 'busy-end',
             control + ' release',
-            RetainedLifetimeJourney.ready_command(args, 'released-ready', args.command[-1]),
+            RetainedLifetimeJourney.ready_command(args, 'released-ready', cls.history_thread(args)),
             f'sleep {args.navigation_settle_seconds:g}', marker + 'settled-end', '',
         ))
 

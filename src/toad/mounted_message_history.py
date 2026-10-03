@@ -2,22 +2,26 @@
 from __future__ import annotations
 import asyncio
 from abc import abstractmethod
-from pathlib import Path
+from functools import cached_property
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
 from textual import containers
 from textual.widget import Widget
+from toad.block_navigation import ConversationBlock, ChildBlockCursor
+from toad.widgets.conversation import CategorizedMount
+from toad.widgets.message_filter import CategorizedBlock, apply_block_filter
 from toad.message_viewport import AcknowledgementViewport
-from toad.channel_preparation import HistoryReadRequest, HistoryReadResult
+from toad.channel_preparation import ChannelHistoryReader, HistoryReadResult
 from toad.screens.session_view import SessionView
+from toad.transcript_source_preparation import TranscriptSourcePreparation
+from toad.transcript_state import LiveTranscript
 from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
 
 HISTORY_PAGE_SIZE = 40
 INITIAL_HISTORY_PAGE_SIZE = 8
 HISTORY_WINDOW_SIZE = 120
 HISTORY_PAGE_BYTES = 256 * 1024
-HISTORY_EDGE_THRESHOLD = 2
 
 
 class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
@@ -46,21 +50,15 @@ class MarkdownMessageStyle(WireMessageStyle):
         return IrcMessageStyle()
 
 
-class MountedMessageHistory:
+class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, CategorizedMount, containers.VerticalGroup):
     """Own the real row window, asynchronous page publication and its paint witnesses."""
     def __init__(self, view):
+        super().__init__(source_state=LiveTranscript())
         self.view = view
         self.rows: list[tuple[WireMessage, Widget]] = []
         self.has_older = False
         self.has_newer = False
-        self.initialized = False
-        self.poll_cursor = 0
-        self.edge_scheduled = False
-        self.edge_on_resume = False
-        self.lock = asyncio.Lock()
-        self.service = None
-        self.revision = None
-        self.display_identity = None
+        self.reader: ChannelHistoryReader | None = None
         self.tail_receipt = None
         self.channel_receipts = {}
         self.historical_receipts = {}
@@ -68,15 +66,8 @@ class MountedMessageHistory:
         self.style = IrcMessageStyle()
 
     @property
-    def attached(self):
-        return self.view.is_attached
-
-    @property
     def current(self):
-        return self.attached and self.view.query_ancestor(SessionView).is_current
-
-    def block(self, message):
-        return self.view.message_block(message)
+        return self.is_attached and self.view.query_ancestor(SessionView).is_current
 
     def capture_reader_admissions(self) -> tuple:
         # Every retained wire row is already mounted. Its original native
@@ -86,40 +77,78 @@ class MountedMessageHistory:
     def restore_reader_admissions(self, admissions) -> None:
         """Retained wire rows have no unmounted local fragment admission."""
 
-    def projection_changed(self) -> None:
-        """Wire history has no native transcript-category projection."""
+    @property
+    def message_category(self):
+        return None
 
-    def retire(self):
+    @cached_property
+    def block_cursor(self):
+        return ChildBlockCursor(self)
+
+    def projection_changed(self) -> None:
+        for _, widget in self.rows:
+            apply_block_filter(widget, self.view.visible_categories)
+        self._scroll_changed()
+
+
+    @property
+    def window(self):
+        return self.view.window
+
+    @property
+    def source_identity(self):
+        return self.reader.source if self.reader is not None else None
+
+    @property
+    def source_publication_available(self):
+        return super().source_publication_available and self.current
+
+    @property
+    def checkpoint_available(self):
+        return (self.state.accepts_source_work and self.reader is not None
+                and not self.reader.source.loading)
+
+    def paging_window(self):
+        return (tuple(message.view_key for message, _ in self.rows),
+                self.has_older, self.has_newer)
+
+    def report_source_coverage(self):
+        self.mark_visible()
+
+    def source_failed(self, error):
+        self.view.status = f"Wire error: {error}"
+
+
+    def compose(self):
+        from toad.widgets.comms_chat import HistoryLoading
+        yield HistoryLoading("Loading messages…", id="history-loading")
+
+    def on_mount(self):
+        self.observe_source()
+
+    async def close_source_reader(self):
         self.tail_receipt = None
         self.channel_receipts.clear()
         self.historical_receipts.clear()
+        if self.reader is not None:
+            await self.reader.aclose()
 
     async def paint_receipt(self, receipt):
-        async with self.lock:
+        # A source read may be working. The original native publication fence,
+        # never its I/O admission, controls visible delivery of this receipt.
+        async with self.window.history_lock:
+            if not self.source_publication_available:
+                return
             if self.has_newer:
-                await self.view.contents.remove_children(widget for _, widget in self.rows)
+                await self.remove_children(widget for _, widget in self.rows)
                 self.rows.clear()
-                self.initialized = False
-            await self.mount_page(MessagePage((receipt,), self.has_older, False), older=False)
-            self.view.window.anchor()
-        self.revision = None
-
-    def read_page(
-        self,
-        comms,
-        *,
-        before: int | None = None,
-        after: int | None = None,
-        limit: int = HISTORY_PAGE_SIZE,
-    ) -> MessagePage:
-        return self.view.conversation_kind.page(
-            comms, self.view.target, worktree=str(self.view.project_path),
-            before=before, after=after, limit=limit, max_bytes=HISTORY_PAGE_BYTES,
-        )
-
+                self.reader.restart()
+            await self._mount_page(MessagePage((receipt,), self.has_older, False), older=False)
+            self.window.anchor()
+        self._scroll_changed()
 
     def painted_keys(self) -> tuple[tuple[str, int], ...]:
-        if not self.attached or not self.current:
+        if not self.is_attached or not self.current:
             return ()
         return tuple(message.view_key for message, _ in self.viewport(
             AcknowledgementViewport).visible_rows())
@@ -130,78 +159,70 @@ class MountedMessageHistory:
                           self.view.window.content_region)
 
 
-    def request(self) -> HistoryReadRequest:
-        assert self.service is not None
-        return HistoryReadRequest(
-            self.service, self.view.conversation_kind, self.view.target, Path(self.view.project_path),
-            self.initialized, self.poll_cursor,
-            not self.has_newer and self.view.window.follows_tail, self.revision,
-            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
-            self.display_identity,
-        )
+    @property
+    def follows_tail(self) -> bool:
+        return self.window.follows_tail
 
 
     async def toggle_style(self) -> None:
         """Re-render only the bounded visible history when switching styles."""
-        async with self.lock:
+        async with self.window.history_lock:
             self.style = self.style.next()
             records = [message for message, _ in self.rows]
-            with self.view.app.batch_update():
-                await self.view.contents.remove_children(
-                    widget for _, widget in self.rows
-                )
-                self.rows = [
-                    (message, self.block(message)) for message in records
-                ]
-                await self.view.contents.mount(
-                    *(widget for _, widget in self.rows),
-                    before=self.view.query_one("#comms-activity"),
-                )
-            self.view.window.scroll_end(animate=False)
-
+            with self.app.batch_update():
+                await self.remove_children(widget for _, widget in self.rows)
+                self.rows = [(message, self.view.message_block(message)) for message in records]
+                await self.mount(*(widget for _, widget in self.rows))
+            self.window.scroll_end(animate=False)
 
     async def mount_page(self, page: MessagePage, *, older: bool) -> None:
-        from toad.comms_root import root_is_current
+        async with self.window.history_lock:
+            await self._mount_page(page, older=older)
 
-        if self.service is None or not root_is_current(self.service.root):
-            self.view.display = False
+    async def _mount_page(self, page: MessagePage, *, older: bool) -> None:
+        """Publish under the caller's original native tree transaction."""
+        from toad.comms_root import root_is_current
+        if (not self.source_publication_available or self.reader is None
+                or not root_is_current(self.reader.comms.root)):
             return
         mounted = {message.view_key for message, _ in self.rows}
-        records = [message for message in page.messages if message.view_key not in mounted]
-        if not records:
-            self.view.conversation_kind.remember_page(self, page, older)
+        pairs = [(message, self.view.message_block(message)) for message in page.messages
+                 if message.view_key not in mounted]
+        if not pairs:
             if older:
                 self.has_older = page.has_older
             else:
                 self.has_newer = page.has_newer
+            self.view.conversation_kind.remember_page(self, page, older)
             return
-
-        pairs = [(message, self.block(message)) for message in records]
-        async with self.view.window.history_lock:
-            if not root_is_current(self.service.root):
-                self.view.display = False
+        if self.rows:
+            anchor, protected = self.window.protect_history(
+                (widget for _, widget in self.rows), older=older,
+                fallback=self.rows[0 if older else -1][1],
+            )
+        else:
+            anchor, protected = None, set()
+        async with self.window.preserve_history(anchor):
+            if not self.source_publication_available or not root_is_current(self.reader.comms.root):
                 return
-            anchor = self.rows[0 if older else -1][1] if self.rows else None
-            async with self.view.window.preserve_history(anchor):
-                if not root_is_current(self.service.root):
-                    self.view.display = False
-                    return
-                await self.insert_page(page, pairs, older=older)
+            await self.insert_page(page, pairs, older=older, protected=protected)
         self.view.conversation_kind.remember_page(self, page, older)
-        self.view.window.check_follow()
-
+        self.window.check_follow()
 
     async def insert_page(
         self, page: MessagePage, pairs: list[tuple[WireMessage, Widget]], *, older: bool,
+        protected: set[Widget],
     ) -> None:
-        tray = self.view.query_one("#comms-activity", containers.VerticalGroup)
-        before = self.rows[0][1] if older and self.rows else tray
-        await self.view.contents.mount(*(widget for _, widget in pairs), before=before)
+        before = self.rows[0][1] if older and self.rows else None
+        if pairs:
+            await self.mount(*(widget for _, widget in pairs), before=before)
 
         if older:
             self.rows[0:0] = pairs
             self.has_older = page.has_older
             while len(self.rows) > HISTORY_WINDOW_SIZE:
+                if self.rows[-1][1] in protected:
+                    break
                 _, widget = self.rows.pop()
                 await widget.remove()
                 self.has_newer = True
@@ -211,155 +232,105 @@ class MountedMessageHistory:
             # ordered projection when the page later fills in concurrent sends.
             self.rows.sort(key=lambda pair: pair[0].view_order)
             order = {widget: message.view_order for message, widget in self.rows}
-            self.view.contents.sort_children(key=lambda widget: order.get(widget, (2, 0, 0)))
+            self.sort_children(key=lambda widget: order.get(widget, (2, 0, 0)))
             self.has_newer = page.has_newer
             while len(self.rows) > HISTORY_WINDOW_SIZE:
+                if self.rows[0][1] in protected:
+                    break
                 _, widget = self.rows.pop(0)
                 await widget.remove()
                 self.has_older = True
 
 
-    def on_scroll(self, _scroll_y: float = 0) -> None:
-        if not self.attached:
+    def _check_edges(self) -> None:
+        self._check_pending = False
+        if not self.checkpoint_available or not self.current or not self.rows:
             return
-        if not self.current:
-            self.edge_on_resume = True
+        geometry = self.screen._compositor.visible_widgets.get(self)
+        if geometry is None:
             return
-        self.edge_on_resume = False
-        if not self.initialized or not self.rows or self.edge_scheduled:
+        region, _clip = geometry
+        viewport = self.window.content_region
+        if not region.overlaps(viewport):
             return
-        scroll_y = self.view.window.scroll_y
-        follows_tail = self.view.window.follows_tail
-        near_top = (
-            scroll_y <= HISTORY_EDGE_THRESHOLD and self.has_older
-            and (not follows_tail or
-                 (self.view.window.max_scroll_y == 0 and len(self.rows) < HISTORY_WINDOW_SIZE))
-        )
-        near_bottom = (
-            self.view.window.max_scroll_y - scroll_y <= HISTORY_EDGE_THRESHOLD
-            and self.has_newer
-        )
-        if near_top or near_bottom:
-            self.edge_scheduled = True
-            # One owned waiter may suspend behind a refresh without holding the
-            # widget message pump. Returning/rearming while the lock is held
-            # otherwise creates a tight after-refresh callback loop.
-            self.view.run_worker(self.load_edge(), group="comms-history-edge")
+        if self.follows_tail and self.has_newer:
+            self._request_page(False)
+        elif (self.has_older and region.y >= viewport.y - self.prefetch_distance
+              and (not self.window.follows_tail or len(self.rows) < HISTORY_WINDOW_SIZE)):
+            self._request_page(True)
+        elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
+            self._request_page(False)
 
+    async def _load_page(self, older: bool) -> None:
+        snapshot = self.source_snapshot()
+        reader = self.reader
+        if reader is None or not self.rows:
+            return
+        limit = (min(HISTORY_PAGE_SIZE, HISTORY_WINDOW_SIZE - len(self.rows))
+                 if older and self.window.follows_tail else HISTORY_PAGE_SIZE)
+        if limit <= 0:
+            return
+        edge = self.rows[0 if older else -1][0].view_cursor
+        page = await reader.page(before=edge if older else None,
+                                 after=None if older else edge, limit=limit)
+        async with self.window.history_lock:
+            if snapshot.current(self):
+                await self._mount_page(page, older=older)
 
-    async def load_edge(self) -> None:
-        progressed = False
-        try:
-            async with self.lock:
-                if not self.attached:
-                    return
-                if not self.current:
-                    self.edge_on_resume = True
-                    return
-                if not self.rows:
-                    return
-                from toad.comms_root import root_is_current
-
-                comms = self.service
-                if comms is None or not root_is_current(comms.root):
-                    self.view.display = False
-                    return
-                before = (self.rows[0][0].view_cursor, self.rows[-1][0].view_cursor,
-                          self.has_older, self.has_newer)
-                route = (self.view.target, self.view.kind, self.view.project_path)
-                older: bool
-                if self.view.window.scroll_y <= HISTORY_EDGE_THRESHOLD and self.has_older:
-                    limit = (min(HISTORY_PAGE_SIZE, HISTORY_WINDOW_SIZE - len(self.rows))
-                              if self.view.window.follows_tail else HISTORY_PAGE_SIZE)
-                    if limit <= 0:
-                        return
-                    older = True
-                    page = await asyncio.to_thread(self.read_page, comms, before=self.rows[0][0].view_cursor, limit=limit)
-                elif (
-                    self.view.window.max_scroll_y - self.view.window.scroll_y
-                    <= HISTORY_EDGE_THRESHOLD
-                    and self.has_newer
-                ):
-                    older = False
-                    page = await asyncio.to_thread(self.read_page, comms, after=self.rows[-1][0].view_cursor)
-                else:
-                    return
-                if not self.attached:
-                    return
-                if (not self.current or self.service is not comms
-                        or route != (self.view.target, self.view.kind, self.view.project_path)):
-                    self.edge_on_resume = True
-                    return
-                if not root_is_current(comms.root):
-                    self.view.display = False
-                    return
-                await self.mount_page(page, older=older)
-                after = (self.rows[0][0].view_cursor, self.rows[-1][0].view_cursor,
-                         self.has_older, self.has_newer)
-                progressed = before != after
-        except Exception as error:
-            self.view.status = f"Wire error: {error}"
-        finally:
-            self.edge_scheduled = False
-            # Fill an underfull viewport after real progress, but do not spin
-            # on empty/duplicate pages or failures. New scroll/source events
-            # may request another attempt through the ordinary paths.
-            if progressed and self.attached:
-                self.view.call_after_refresh(self.on_scroll)
-
+    async def _jump_latest(self) -> None:
+        reader = self.reader
+        if reader is None:
+            return
+        reader.restart()
+        read = await reader.read(True)
+        await self.publish(read)
 
     async def publish(self, read: HistoryReadResult) -> bool:
-        """Refresh the bounded history window; return whether to follow the end."""
-        follow = not self.has_newer and self.view.window.follows_tail
-        high_water = read.high_water
-        if not self.initialized:
+        """Validate and advance the original source inside native publication."""
+        from toad.comms_root import root_is_current
+        async with self.window.history_lock:
+            reader = self.reader
+            if (reader is None or not self.source_publication_available
+                    or not root_is_current(reader.comms.root)
+                    or not reader.current(read, self.follows_tail)):
+                return False
             page = read.page
-            assert page is not None
-            await self.mount_page(page, older=False)
-            if loading := self.view.query_one_optional("#history-loading"):
-                await loading.remove()
-            self.has_older = page.has_older
-            self.display_identity = self.view.conversation_kind.display_identity(page)
-            self.initialized = True
-            self.poll_cursor = high_water
-            self.view.call_after_refresh(self.on_scroll)
+            if page is not None:
+                if read.replace_tail:
+                    # Actual receipts newer than the read's original watermark
+                    # may already be painted. Keep their native rows, never a
+                    # second receipt/seen list, while replacing the older page.
+                    retained = [(message, widget) for message, widget in self.rows
+                                if not message.view_key[0] and message.seq > read.high_water]
+                    retained_widgets = {widget for _, widget in retained}
+                    await self.remove_children(widget for _, widget in self.rows
+                                               if widget not in retained_widgets)
+                    self.rows[:] = retained
+                    mounted = {message.view_key for message, _ in retained}
+                    self.historical_receipts = {key: source for key, source in self.historical_receipts.items()
+                                                if key in mounted}
+                    self.channel_receipts = {seq: source for seq, source in self.channel_receipts.items()
+                                             if ("", seq) in mounted}
+                    self.tail_receipt = None
+                    self.has_older = page.has_older
+                    await self._mount_page(page, older=False)
+                    if loading := self.query_one_optional("#history-loading"):
+                        await loading.remove()
+                elif page.messages and self.follows_tail:
+                    await self._mount_page(page, older=False)
+                elif page.messages:
+                    self.has_newer = True
+            if not reader.current(read, self.follows_tail) or not root_is_current(reader.comms.root):
+                return False
+            reader.accept(read, read.follow_tail)
             return True
-
-        page = read.page
-        if read.replace_tail:
-            assert page is not None
-            self.tail_receipt = None
-            self.channel_receipts.clear()
-            await self.view.contents.remove_children(widget for _, widget in self.rows)
-            self.rows.clear()
-            self.has_older = page.has_older
-            self.has_newer = False
-            await self.mount_page(page, older=False)
-            self.display_identity = self.view.conversation_kind.display_identity(page)
-            self.poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
-            return True
-        if high_water <= self.poll_cursor:
-            return follow
-        if page is None:
-            return follow
-        self.display_identity = self.view.conversation_kind.display_identity(page)
-        follow = not self.has_newer and self.view.window.follows_tail
-        if page.messages and follow:
-            await self.mount_page(page, older=False)
-            self.poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
-        else:
-            if page.messages:
-                self.has_newer = True
-            self.poll_cursor = high_water
-        return follow
-
 
     def mark_visible(self) -> None:
-        if self.ack_inflight or not self.attached:
+        if self.ack_inflight or not self.is_attached:
             return
         from toad.comms_root import root_is_current
 
-        if self.service is None or not root_is_current(self.service.root):
+        if self.reader is None or not root_is_current(self.reader.comms.root):
             self.view.display = False
             return
         visible = set(self.painted_keys())
@@ -386,11 +357,11 @@ class MountedMessageHistory:
     async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:
         from toad.comms_root import implicit_root, root_is_current, run_selected_write
         try:
-            if self.service is None or not root_is_current(self.service.root) or not self.current:
+            if self.reader is None or not root_is_current(self.reader.comms.root) or not self.current:
                 return
             displayed = page.historical_display.select({seq for _, seq in keys})
-            await asyncio.to_thread(run_selected_write, self.service.root,
-                self.service.views.mark_historical_view_read, displayed, implicit=implicit_root())
+            await asyncio.to_thread(run_selected_write, self.reader.comms.root,
+                self.reader.comms.views.mark_historical_view_read, displayed, implicit=implicit_root())
             for key in keys:
                 if self.historical_receipts.get(key) is page:
                     del self.historical_receipts[key]
@@ -402,11 +373,11 @@ class MountedMessageHistory:
 
     async def mark_page(self, page: MessagePage, original_page: MessagePage | None = None) -> None:
         try:
-            comms = self.service
             from toad.comms_root import root_is_current
 
-            if comms is None or not self.attached or not self.current:
+            if self.reader is None or not self.is_attached or not self.current:
                 return
+            comms = self.reader.comms
             if not root_is_current(comms.root):
                 self.view.display = False
                 return
@@ -422,19 +393,16 @@ class MountedMessageHistory:
         except ValueError:
             # The peer, viewer, channel scope, or bus changed after page
             # fetch. Discard mounted history and fetch the current projection.
-            if self.attached:
-                async with self.lock:
-                    await self.view.contents.remove_children(widget for _, widget in self.rows)
+            if self.is_attached:
+                async with self.window.history_lock:
+                    await self.remove_children(widget for _, widget in self.rows)
                     self.rows.clear()
-                    self.initialized = False
-                    self.poll_cursor = 0
-                    self.revision = None
-                    self.display_identity = None
+                    self.reader.restart()
                     self.has_older = False
                     self.has_newer = False
             self.tail_receipt = None
             self.channel_receipts.clear()
         finally:
             self.ack_inflight = False
-            if self.attached:
+            if self.is_attached:
                 self.view.call_after_refresh(self.mark_visible)

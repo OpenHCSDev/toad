@@ -19,6 +19,7 @@ from default_route_pilot import private_root, route
 from toad import messages
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
+from runtime_fixture import refresh_comms
 
 
 async def main() -> None:
@@ -91,7 +92,7 @@ async def main() -> None:
                 # disable compose, rather than offering a second send.
                 await channel_target("#team").open(NavigationContext(app, owner_mode, sandbox, "user"))
                 channel = app.screen.query_one(CommsChatView)
-                await channel._refresh()
+                await refresh_comms(channel)
                 entered_paint, release_paint = asyncio.Event(), asyncio.Event()
                 original_mount = channel.message_history.mount_page
 

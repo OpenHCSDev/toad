@@ -17,6 +17,7 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
+from runtime_fixture import refresh_comms
 
 
 class ScrollFrameApp(ToadApp):
@@ -90,14 +91,14 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             window = chat.window
             for _ in range(3):
-                chat.message_history.edge_scheduled = True
+                operation = chat.message_history.reserve_source_work()
                 window.scroll_to(y=1, animate=False, immediate=True)
                 await pilot.pause()
                 marker = chat.message_history.rows[0][1]
                 expected = marker.region.y - window.content_region.y
                 frames = []
                 app.observed = marker, window, frames
-                await chat.message_history.load_edge()
+                await operation.execute(chat.message_history, lambda: chat.message_history._load_page(True))
                 await pilot.pause()
                 app.observed = None
                 assert frames and set(frames) == {expected}, (expected, frames)
@@ -115,9 +116,9 @@ async def main():
                 await release.wait()
                 return follow
 
-            chat.message_history.revision = None
+            chat.message_history.reader.restart()
             with patch.object(chat.message_history, "publish", delayed_refresh):
-                refresh = asyncio.create_task(chat._refresh())
+                refresh = asyncio.create_task(refresh_comms(chat))
                 async with asyncio.timeout(10):
                     await entered.wait()
                     window.scroll_relative(y=-4, animate=False, immediate=True)

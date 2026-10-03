@@ -434,6 +434,11 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     motion_phases = ()
 
     @classmethod
+    def history_thread(cls, args):
+        """The ordinary installed CLI's final argument selects its thread."""
+        return args.command[-1]
+
+    @classmethod
     def review_intervals(cls, args, events, duration):
         """Select real gesture intervals from the journey's original markers."""
         labels = args.review_phase or cls.motion_phases
@@ -488,6 +493,16 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     @classmethod
     def validate_review(cls, review):
         """The journey owns required native checks; footage review stays separate."""
+        if review is None:
+            return
+        failed = [name for name, passed in review["checks"].items() if not passed]
+        if failed:
+            raise RuntimeError("Installed journey failed: " + ", ".join(failed))
+        cls.validate_observations(review)
+
+    @classmethod
+    def validate_observations(cls, review):
+        """Leaves own additional observation requirements beyond native checks."""
 
 
 class ObserveJourney(PhysicalJourney):
@@ -620,10 +635,7 @@ class WarmScrollJourney(ScrollJourney):
                                   scroll_labels=cls.scroll_review_phases)
 
     @classmethod
-    def validate_review(cls, review):
-        failed = [name for name, passed in review["checks"].items() if not passed]
-        if failed:
-            raise RuntimeError("Warm scroll native journey failed: " + ", ".join(failed))
+    def validate_observations(cls, review):
         if review["unavailable_scroll_phases"]:
             raise RuntimeError("Warm scroll observation incomplete: "
                                + ", ".join(review["unavailable_scroll_phases"]))
@@ -638,8 +650,12 @@ class RetainedLifetimeJourney(WarmScrollJourney):
     review_artifacts = ("retained-lifetime-review.json",)
 
     @classmethod
+    def validate_observations(cls, review):
+        """Saved-view custody supplies native checks, without held-scroll phases."""
+
+    @classmethod
     def opening_commands(cls, args):
-        return (cls.ready_command(args, "warm-ready", args.command[-1]),
+        return (cls.ready_command(args, "warm-ready", cls.history_thread(args)),
                 *super().opening_commands(args))
 
     @classmethod
@@ -655,7 +671,42 @@ class RetainedLifetimeJourney(WarmScrollJourney):
     @classmethod
     def review(cls, output, receipt):
         from scroll_observation import review_retained_lifetime
-        return review_retained_lifetime(output, receipt, suffix=cls.draft_suffix)
+        return review_retained_lifetime(output, receipt, suffix=cls.draft_suffix,
+                                       peer_review=cls.peer_review)
+
+    @classmethod
+    def peer_review(cls, output, receipt):
+        from scroll_observation import NativePhase
+        return {"peer_saved_history_loaded": NativePhase.read(output, "b-open").loaded_pages > 0}
+
+
+class ChannelLifetimeJourney(RetainedLifetimeJourney):
+    """Use the same native lifetime journey with a real channel as its peer."""
+
+    @classmethod
+    def peer_click(cls, args):
+        if not args.peer_channel:
+            raise ValueError("Channel lifetime requires --peer-channel")
+        return native_click_command("phase-switch-b-state.pickle", target="channel", name=args.peer_channel)
+
+    @classmethod
+    def peer_ready(cls, args):
+        return f"sleep {args.navigation_settle_seconds:g}\n" + marker_command() + "b-open"
+
+    @classmethod
+    def closing_commands(cls, args):
+        return (*super().closing_commands(args),
+                native_click_command("phase-lifetime-end-state.pickle", target="peer_tab",
+                                     original_state="phase-warm-start-state.pickle"),
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "channel-return",
+                native_click_command("phase-channel-return-state.pickle", target="original_tab",
+                                     original_state="phase-warm-start-state.pickle"),
+                f"sleep {args.navigation_settle_seconds:g}", marker_command() + "native-return")
+
+    @classmethod
+    def peer_review(cls, output, receipt):
+        from scroll_observation import review_channel_lifetime
+        return review_channel_lifetime(output)
 
 
 class WarmSourceJourney(WarmScrollJourney):
@@ -686,7 +737,7 @@ class ScrollTravelRegressionJourney(ScrollJourney):
         marker = marker_command()
         ready = (marker + f"travel-start --wait-history-seconds {args.history_wait_seconds:g} "
                  f"--wait-history-interval {args.history_wait_interval:g} "
-                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+                 f"--wait-history-thread {shlex.quote(cls.history_thread(args))}")
         hold = f"sleep {args.scroll_hold_seconds:g}"
         idle = f"sleep {args.scroll_idle_seconds:g}"
         return "\n".join([
@@ -753,13 +804,6 @@ class InputPagingAcceptanceJourney(ScrollTravelRegressionJourney):
         (output / "input-paging-review.json").write_text(json.dumps(result, indent=2) + "\n")
         return result
 
-    @classmethod
-    def validate_review(cls, review):
-        failed = [name for name, passed in review["checks"].items() if not passed]
-        if failed:
-            raise RuntimeError("Installed input-focused history paging failed: " + ", ".join(failed))
-
-
 class InputWarmJourney(WarmScrollJourney):
     """Use the original warm journey with focused paging and idle away from tail."""
 
@@ -772,7 +816,7 @@ class InputWarmJourney(WarmScrollJourney):
     def opening_commands(cls, args):
         if not args.scroll_travel:
             raise ValueError("Input warm acceptance requires original paging observation")
-        return (cls.ready_command(args, "warm-ready", args.command[-1]),
+        return (cls.ready_command(args, "warm-ready", cls.history_thread(args)),
                 *super().opening_commands(args))
 
     @classmethod
@@ -824,7 +868,7 @@ class StationaryInputScrollJourney(ScrollJourney):
         settle = f"sleep {args.navigation_settle_seconds:g}"
         ready = (marker + f"stationary-start --wait-history-seconds {args.history_wait_seconds:g} "
                  f"--wait-history-interval {args.history_wait_interval:g} "
-                 f"--wait-history-thread {shlex.quote(args.command[-1])}")
+                 f"--wait-history-thread {shlex.quote(cls.history_thread(args))}")
         return "\n".join([
             ready, settle, marker + "stationary-loaded",
             native_click_command("phase-stationary-loaded-state.pickle"),
@@ -858,13 +902,6 @@ class StationaryInputScrollJourney(ScrollJourney):
         (output / "stationary-scroll-review.json").write_text(
             json.dumps(result, default=str, indent=2) + "\n")
         return result
-
-    @classmethod
-    def validate_review(cls, review):
-        failed = [name for name, passed in review["checks"].items() if not passed]
-        if failed:
-            raise RuntimeError("Stationary diagnostic missed its required coverage: " + ", ".join(failed))
-
 
 class SavedTabCloseJourney(PhysicalJourney):
     @classmethod
@@ -968,8 +1005,8 @@ class SourceCapture(PrivateCapture):
     def admit(cls, args, command, env):
         root = cls.admit_root(args, env)
         selection = RuntimeSelection.from_environment(command, env)
-        if len(command) != 2 or Path(command[0]).resolve() != (selection.bin_directory / 'python').resolve():
-            raise ValueError('Source capture requires the selected runtime Python and one source entrypoint')
+        if len(command) < 2 or Path(command[0]).resolve() != (selection.bin_directory / 'python').resolve():
+            raise ValueError('Source capture requires the selected runtime Python and a source entrypoint')
         source = Path(command[1]).resolve()
         if not source.is_file() or not source.is_relative_to(Path.home() / 'wt'):
             raise ValueError('Source capture requires an existing persistent worktree entrypoint')
@@ -1999,6 +2036,7 @@ def main():
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
     parser.add_argument("--archive-index", type=int, default=0, help="Original retained selector row from the current source namespace")
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
+    parser.add_argument("--peer-channel", help="Actual channel roster target for the shared view lifetime journey")
     parser.add_argument("--write-journey-script", type=Path, help="Write the selected canonical physical script, then exit")
     parser.add_argument("--close-tab-x", type=int, default=294, help="Verified saved tab close control X coordinate")
     parser.add_argument("--close-tab-y", type=int, default=40, help="Verified saved tab close control Y coordinate")

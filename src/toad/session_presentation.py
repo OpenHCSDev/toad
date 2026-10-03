@@ -186,7 +186,6 @@ class NativeSessionSurface:
             if self.owner is not owner or self.widget is None:
                 return
             conversation = self.widget
-            await conversation.window.document_viewport.suspend_source()
             await conversation.transcript.suspend()
             for history in tuple(conversation.window.histories):
                 await history.retire_source(parked=True)
@@ -221,7 +220,6 @@ class NativeSessionSurface:
                 owner.state = None
             await conversation.prepare_retained_session()
             conversation.display = True
-            conversation.window.document_viewport.resume_source()
             if returning:
                 conversation.start_native_session()
             conversation.prompt.focus()

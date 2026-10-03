@@ -77,6 +77,17 @@ class ToadApp(Application):
                 yield pilot
 
 
+async def refresh_comms(view):
+    """Explicit test completion borrows the original pager's worker resource.
+
+    The production callback only schedules I/O; receipt/input handlers must
+    remain free to process events while this read is outstanding.
+    """
+    worker = await view._refresh()
+    if worker is not None:
+        await worker.wait()
+
+
 def _clear_wire_locks(root: Path) -> None:
     """Remove stale per-file store locks so TemporaryDirectory cleanup succeeds.
 

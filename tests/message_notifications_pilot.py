@@ -21,6 +21,7 @@ from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from runtime_fixture import refresh_comms
 
 
 async def until(predicate):
@@ -81,8 +82,7 @@ async def main():
 
                 await channel_target("#comms").open(NavigationContext(app, native_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
-                await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked()
-                            and not chat.message_history.edge_scheduled)
+                await until(lambda: (chat.message_history.reader is not None and not chat.message_history.reader.source.loading) and chat.message_history.state.accepts_source_work)
                 await pilot.pause()
                 chat._refresh_notifications()
                 await until(lambda: chat._notification_task is not None and chat._notification_task.done())
@@ -102,7 +102,7 @@ async def main():
                 try:
                     await until(lambda: "Responding…" in str(feedback.title))
                 except TimeoutError:
-                    print("DEBUG", {"title": str(feedback.title), "visible": chat.message_history.painted_keys(), "calls": calls[-4:], "lock": chat.message_history.lock.locked(), "task": repr(chat._notification_task), "scroll": (chat.window.scroll_y, chat.window.max_scroll_y), "attached": feedback.is_attached}, flush=True)
+                    print("DEBUG", {"title": str(feedback.title), "visible": chat.message_history.painted_keys(), "calls": calls[-4:], "source_state": type(chat.message_history.state).__name__, "task": repr(chat._notification_task), "scroll": (chat.window.scroll_y, chat.window.max_scroll_y), "attached": feedback.is_attached}, flush=True)
                     raise
                 state, priority, busy = "Checked — no response", 2, False
                 await until(lambda: str(feedback.title).startswith("Checked — no response (1)"))
@@ -123,7 +123,7 @@ async def main():
                 await until(lambda: chat._notification_task.done())
                 for _ in range(3):
                     chat._refresh_notifications()
-                    await chat._refresh()
+                    await refresh_comms(chat)
                 assert len(calls) == count
                 app.pop_screen()
                 await pilot.pause()

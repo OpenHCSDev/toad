@@ -33,10 +33,10 @@ from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTr
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from acp import schema as protocol
 from toad.acp.status import ToolCallStatus
-from pydantic import TypeAdapter
+from toad.jsonrpc import value_schema
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
-    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
+    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageBuffer,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -47,7 +47,6 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
-from toad.work_preparation import retained_bytes
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
@@ -124,7 +123,11 @@ class TranscriptBlockConsumer(MroDispatch):
     def tool_end(self, event: ToolEndTranscript):
         tool = self.tool(event)
         tool.status = "completed" if event.ok else "failed"
-        tool.content = TypeAdapter(protocol.ToolCall.model_fields["content"].annotation).validate_python(tool_result_content(event.tool_call_id, event.text, event.diff), strict=True)
+        # Reuse the existing declaration-owned validator cache. Keep strict
+        # field decoding: the SDK model's assignment hook drops invalid items.
+        tool.content = value_schema(protocol.ToolCall.model_fields["content"].annotation).validate_python(
+            tool_result_content(event.tool_call_id, event.text, event.diff), strict=True,
+        )
 
 
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
@@ -180,7 +183,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()
         self.fragment = fragment
-        self._retained_bytes = retained_bytes(fragment)
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
         self.add_class(f"-message-{self._message_category.declared_name}")
@@ -189,7 +191,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
 
     @property
     def retained_source_bytes(self) -> int:
-        return self._retained_bytes
+        return self.fragment.retained_bytes
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
@@ -238,7 +240,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
-        self._retained_bytes = retained_bytes(fragment)
         category = event_category(new_events[0]) if new_events else OtherCategory
         if category != self._message_category:
             self.remove_class(f"-message-{self._message_category.declared_name}")
@@ -385,8 +386,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                   *, fragments: tuple[TranscriptFragment, ...] | None = None,
                   budget: PresentationBudget | None = None, committed: bool = True):
-        super().__init__(source_state=LiveTranscript() if committed else ProvisionalTranscript(),
-                         loader=loader, through=page.after)
+        super().__init__(source_state=LiveTranscript() if committed else ProvisionalTranscript())
+        self.loader, self.through = loader, page.after
         self.budget = budget or PresentationBudget(
             max_items=self.MAX_FRAGMENTS, admission_items=TranscriptPageView.BATCH,
         )
@@ -396,7 +397,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
-        self._check_pending = False
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
         self.window: HistoryWindow
@@ -418,6 +418,17 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
         return tuple(child for page in self.pages for child in page.children)
+
+    @property
+    def source_identity(self):
+        return self.loader, self.through, self.selected_categories
+
+    def paging_window(self):
+        return self.through, self.capture_reader_admissions()
+
+    def report_source_coverage(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
 
     def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
         """Retain the original source ranges that a returning reader needs."""
@@ -526,30 +537,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         await self._finish_mount()
 
     async def _finish_mount(self) -> None:
-        self.window.histories.add(self)
         await self._report_coverage(self.pages[0].page, self.pages[0].fragments)
         self._update_edges()
-        self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
-        self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
-        self._scroll_changed()
-        self.prepare_scroll()
-
-    def on_unmount(self) -> None:
-        self._generation += 1
-        self._prefetch_intent = None
-        self.window.histories.discard(self)
-        if self._page_buffer is not None:
-            self._page_buffer.close()
-
-
-
-
-    def _layout_changed(self, _screen) -> None:
-        # A scroll watcher may run before the compositor applies its new
-        # positions. Recheck against the committed layout too, even if neither
-        # the scroll value nor this history's size changes again.
-        self._scroll_changed()
-        self.prepare_scroll()
+        self.observe_source()
 
     def _update_edges(self) -> None:
         if not self.selected_categories:
@@ -671,14 +661,71 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     self._update_edges()
                 return
 
-    def on_resize(self) -> None:
-        if self.is_mounted:
-            self._scroll_changed()
+    def _reader(self) -> PreparedPageSource:
+        assert self.loader is not None
+        reader = self._page_buffer
+        if reader is None or reader.loader is not self.loader or reader.through != self.through:
+            if reader is not None:
+                reader.close()
+            self._page_buffer = reader = TranscriptPageBuffer(
+                self.loader, self.through, self.app.preparation,
+            )
+            self._prefetch_intent = None
+        return reader
 
-    def _scroll_changed(self, _y: float = 0) -> None:
-        if self.state.accepts_source_work and not self._check_pending:
-            self._check_pending = True
-            self.call_after_refresh(self._check_edges)
+
+    def prepare_scroll(self) -> None:
+        if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
+                or not self.selected_categories):
+            return
+        reader = self._reader()
+        edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
+                 self.pages[-1].page.after if self.pages[-1].page.has_newer else None)
+        lookahead = self.window.document_viewport.lookahead
+        demand = lookahead.demand
+        edges = demand.edges(*edges)
+        rows = max(1, self.window.size.height)
+        rounds = min(self.budget.reserve_batches,
+                     1 + lookahead.ahead_rows(rows) // rows)
+        pages = tuple(dict.fromkeys((self.pages[0], self.pages[-1])))
+        admissions = tuple(page.capture_admission() for page in pages)
+        intent = edges, rounds, self.selected_categories, demand, admissions
+        if intent == self._prefetch_intent:
+            return
+        self._prefetch_intent = intent
+        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
+            self._prefetch_worker.cancel()
+
+        # Transport completion does not exhaust the current page's local
+        # admission. Its unmounted leaves still need the stationary runway;
+        # the original reader skips absent transport edges itself.
+        if not rounds:
+            return
+
+        async def prepare() -> None:
+            # Reader replacement and source retirement both revoke this exact
+            # intent. One owned snapshot identity is the publication fence.
+            current = lambda: (self._prefetch_intent is intent
+                               and demand is lookahead.demand)
+            from toad.render_tasks import TranscriptBodyPreparation
+            preparation = TranscriptBodyPreparation(
+                self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+            )
+            # The source page already owns these unmounted leaves. Prepare its
+            # actual neighboring range, never another paging cursor or list.
+            count = lookahead.admission(self.budget, rows)
+            for page in pages:
+                await page.prepare_adjacent(preparation, demand, count, current)
+            async for prepared in reader.prefetch(*edges, current, rounds=rounds):
+                # A fetched page is not mounted yet. Warm the actual incoming
+                # edge in the same syntax/fence cache used by its future body.
+                fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
+                await preparation.prepare_fragments(
+                    fragments, current, batch_size=self.budget.admission_items,
+                )
+
+        self._prefetch_worker = self.run_worker(prepare, group="history-lookahead", exit_on_error=False)
+
 
     def _check_edges(self) -> None:
         self._check_pending = False
@@ -727,13 +774,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         elif self.has_older and self.state.accepts_source_work:
             self._request_page(True)
 
-    def request_latest(self) -> None:
-        self.window.document_viewport.destination()
-        if self._prefetch_worker is not None:
-            self._prefetch_worker.cancel()
-        self._prefetch_intent = None
-        self.state.request_latest(self)
-
     async def _jump_latest(self) -> None:
         self._generation += 1
         generation = self._generation
@@ -780,13 +820,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 and self.window.scroll_revision == scroll_revision):
             self.window.anchor()
 
-    def _request_page(self, older: bool) -> None:
-        if self.state.accepts_source_work:
-            self.reserve_source_work().schedule(self, partial(self._load_page, older))
-
     async def _load_page(self, older: bool) -> None:
         snapshot = self.source_snapshot()
-        window, loader = snapshot.window, snapshot.loader
+        window, loader = snapshot.window, self.loader
         edge = self.pages[0] if older else self.pages[-1]
         admission = edge.capture_admission()
         try:
@@ -830,8 +866,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     self._require_publication()
         except _PublicationRetired:
             return
-        except (OSError, ValueError) as error:
-            self.notify(str(error), title="History", severity="error")
         finally:
             if self.state.accepts_publication:
                 self.window.check_follow()

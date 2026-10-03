@@ -22,6 +22,7 @@ from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_tabs import SessionLabel
+from runtime_fixture import refresh_comms
 
 
 def reply(path, text):
@@ -145,7 +146,7 @@ async def main():
             await app.switch_mode(channel_mode)
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
-            await chat._refresh()
+            await refresh_comms(chat)
             await refresh(app, pilot)
             assert (
                 next(

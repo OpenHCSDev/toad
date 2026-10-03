@@ -25,6 +25,7 @@ from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.user_input import UserInput
 from toad.widgets.conversation import Loading
 from textual.worker import Worker, WorkerState
+from runtime_fixture import refresh_comms
 
 
 async def main():
@@ -107,7 +108,7 @@ async def main():
             assert chat.prompt.text == ""
             api_lease = comms.agents.begin_turn("api-agent", "api-turn")
             ui_lease = comms.agents.begin_turn("ui-agent", "ui-turn")
-            await chat._refresh()
+            await refresh_comms(chat)
             roster = chat.query_one(ChannelParticipants)
             assert "api-agent" in roster.names.render().plain and "ui-agent" in roster.names.render().plain
             assert "other" not in roster.names.render().plain

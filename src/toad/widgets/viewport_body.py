@@ -534,10 +534,11 @@ class ViewportPresentation:
         scene arrangement. Retained rows already own their extent; they do not
         require a live descendant layout just to scroll back into view.
         """
+        windows = tuple(self.frame_windows())
         return tuple(dict.fromkeys((
-            *(target for window in self.anchors
+            *(target for window in windows if window in self.anchors
               for target in window.history_geometry_targets()),
-            *(target for window in self.frame_windows()
+            *(target for window in windows
               for target in window.document_viewport.geometry_targets()),
         )))
 
@@ -581,6 +582,17 @@ class WindowMembership:
         self.presentation = presentation
         self.presentation.windows.add(self.window())
 
+    def displayed(self) -> bool:
+        """Native ancestry owns visibility, including a window mounted late.
+
+        Hydration can finish after its logical session is hidden. Its newly
+        registered window cannot participate in that screen's frame merely
+        because no viewport suspension preceded its construction.
+        """
+        window = self.window()
+        return (self.presentation.screen.is_current
+                and all(node.display for node in window.ancestors_with_self))
+
     def retire(self):
         window = self.window()
         self.presentation.windows.discard(window)
@@ -617,7 +629,7 @@ class DocumentViewport:
 
     def accepts_frame(self) -> bool:
         """Only this resource's bound lifetime participates in publication."""
-        return not self._suspended
+        return not self._suspended and self.membership.displayed()
 
     def register(self, owner: ViewportBody) -> None:
         self.owners.add(owner)
@@ -703,7 +715,7 @@ class DocumentViewport:
         return admitted
 
     def request(self, *_args) -> None:
-        if self._suspended or not self.window.is_attached or self.window._closing:
+        if not self.accepts_frame() or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
         if not self._running:
@@ -713,7 +725,7 @@ class DocumentViewport:
     def scroll_changed(self, *_args) -> None:
         # Native scroll is the demand producer. Screen-wide layout (including
         # this working set's own pruning) is not another scroll or admission.
-        if (self._suspended or not self.window.is_attached
+        if (not self.accepts_frame() or not self.window.is_attached
                 or self.window._closing or self.window._restoring):
             return
         if self.lookahead.observe(self.window.scroll_y):
@@ -800,28 +812,27 @@ class DocumentViewport:
 
     async def _reconcile(self) -> None:
         try:
-            while self._pending and self.window.is_attached and not self.window._closing:
+            while (self._pending and self.accepts_frame()
+                   and self.window.is_attached and not self.window._closing):
                 self._pending = False
                 screen = self.window.screen
-                active = screen.is_current
-                visible = screen._compositor.visible_widgets if active else {}
+                visible = screen._compositor.visible_widgets
                 protected = self.protected()
                 owners = tuple(self.body_roots())
                 required = tuple(owner for owner in owners if owner in visible or owner in protected)
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
-                sequence = owners if active else ()
                 demand = self.lookahead.demand
                 ahead_owners = []
-                visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
+                visible_indexes = [index for index, node in enumerate(owners) if node in visible]
                 if visible_indexes:
                     count = self.lookahead.admission(self.budget, self.window.size.height)
                     runway = self.budget.runway(
-                        sequence, min(visible_indexes), max(visible_indexes) + 1,
+                        owners, min(visible_indexes), max(visible_indexes) + 1,
                         self.window.size.height,
                     )
                     predicted = demand.neighbors(
-                        sequence, min(visible_indexes), max(visible_indexes) + 1, count,
+                        owners, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
                 admitted = self._trim_warm(required=required, ahead=ahead_owners)
@@ -874,30 +885,29 @@ class DocumentViewport:
                 # The same warm LRU admits or releases that paint resource.
                 if retired_owners or restored:
                     admitted = self._trim_warm(required=required, ahead=ahead_owners)
-                if active:
-                    # Do not materialize a runway body that cannot be retained.
-                    # The original demand owns incoming direction priority.
-                    ahead_owners = [owner for owner in ahead_owners if owner in admitted]
-                    for first in range(0, len(ahead_owners), self.budget.admission_items):
-                        if not self.lookahead.accepts(demand):
-                            break
-                        batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
-                                 if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
-                        if not batch:
-                            continue
-                        anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
-                        restored = await self._restore_bodies(tuple(batch), anchor, demand)
-                        # Live content or a width change can change actual cost.
-                        # Re-admit the completed native batch before the next one.
-                        if restored:
-                            admitted = self._trim_warm(required=required, ahead=ahead_owners)
+                # Do not materialize a runway body that cannot be retained.
+                # The original demand owns incoming direction priority.
+                ahead_owners = [owner for owner in ahead_owners if owner in admitted]
+                for first in range(0, len(ahead_owners), self.budget.admission_items):
+                    if not self.lookahead.accepts(demand):
+                        break
+                    batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
+                             if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
+                    if not batch:
+                        continue
+                    anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
+                    restored = await self._restore_bodies(tuple(batch), anchor, demand)
+                    # Live content or a width change can change actual cost.
+                    # Re-admit the completed native batch before the next one.
+                    if restored:
+                        admitted = self._trim_warm(required=required, ahead=ahead_owners)
         finally:
             self._running = False
 
     async def _restore_bodies(
         self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,
     ) -> tuple[ViewportBody, ...]:
-        if (not self.window.is_attached or not self.window.screen.is_current
+        if (not self.window.is_attached or not self.accepts_frame()
                 or not self.lookahead.accepts(demand)):
             return ()
         owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
@@ -905,14 +915,14 @@ class DocumentViewport:
         # borrows reader compensation or starts a native reconstruction.
         await asyncio.gather(*(owner.prepare_body() for owner in owners
                                if owner.body_dormant and not owner.body_ready))
-        if not self.window.screen.is_current or not self.lookahead.accepts(demand):
+        if not self.accepts_frame() or not self.lookahead.accepts(demand):
             return ()
         restored = []
         async with AsyncExitStack() as mutation:
             if any(owner.body_measurement_stale for owner in owners):
                 await mutation.enter_async_context(self.window.preserve_reader(anchor))
             for owner in owners:
-                if not self.window.screen.is_current or not self.lookahead.accepts(demand):
+                if not self.accepts_frame() or not self.lookahead.accepts(demand):
                     break
                 if owner.is_attached and not owner._closing:
                     if await owner.restore_body():

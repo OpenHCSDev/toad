@@ -1,24 +1,32 @@
-"""History paging must wait for refresh completion without callback churn."""
-from toad.navigation_target import NavigationContext
+"""Original wire reads cannot borrow native receipt publication custody.
 
-from toad.navigation_target import channel_target
+One actual application journey controls completion of its original source read;
+all pages, registrations, messages, read witnesses and native rows remain real.
+"""
 
 import asyncio
+import importlib.util
 import json
+import shlex
+import sys
+import time
+import traceback
 import os
 from pathlib import Path
-import tempfile
 from threading import Event
-import time
+import tempfile
 from unittest.mock import patch
 
-from agent_comms.message_page import MessagePage
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
+from agent_comms.thread_execution import ExternalThreadExecution
 from agent_comms.comms import wire
-
-from runtime_fixture import ToadApp
+from toad.app import ToadApp
+from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
+from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
+                                 marker_command, phase_events, main as record_main)
 
 
 async def until(condition):
@@ -27,199 +35,286 @@ async def until(condition):
             await asyncio.sleep(.01)
 
 
-async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-edge-scheduling-") as directory:
-        root = Path(directory)
-        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
-                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        comms = wire(root / "wire")
-        comms.registry.declare(Thread("edge-reader", frozenset({"edge"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
-        for index in range(60):
-            comms.messaging.send("edge-reader", "#edge", f"History {index}: " + "body " * 40)
-        app = ToadApp(project_dir=str(root))
-        async with app.run_test(size=(100, 32)) as pilot:
+async def pending_read(chat, pilot, body):
+    """Control original read completion, never its decoded result or UI state."""
+    history = chat.message_history
+    reader = history.reader
+    entered, release = Event(), Event()
+    original = reader.comms.views.channel_display_page
+
+    def read(*args, **kwargs):
+        result = original(*args, **kwargs)
+        entered.set()
+        if not release.wait(8):
+            raise TimeoutError("Original source completion was not released")
+        return result
+
+    with patch.object(reader.comms.views, 'channel_display_page', read):
+        await until(lambda: history.state.accepts_source_work)
+        refresh = await chat._refresh()
+        assert refresh is not None, "The original pager must admit the controlled read"
+        try:
+            await until(entered.is_set)
+            assert not history.state.accepts_source_work
+            assert reader._pending, "Actual source I/O must still own its reader task"
+            assert not chat.window.history_lock.locked()
+            chat.prompt.text = body
+            chat.prompt.prompt_text_area.focus()
+            await pilot.press('enter')
+            await until(lambda: any(m.body == body for m, _ in history.rows)
+                        and not chat._human_admission_blocked)
+            receipt = next(m for m, _ in history.rows if m.body == body)
+            assert not release.is_set()
+            assert reader._pending and not refresh.is_finished, (
+                "The original read must still be pending when its receipt paints"
+            )
+            print('receipt visible with original I/O pending', body, flush=True)
             await pilot.pause()
-            owner = app.selected_mode
-            mode = await channel_target("#edge").open(NavigationContext(app, owner, root, "edge-reader"))
-            chat = app.screen.query_one(CommsChatView)
-            await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked()
-                        and not chat.message_history.edge_scheduled)
-            await pilot.pause()
-            assert chat.message_history.has_older and chat.window.max_scroll_y > 0
-            oldest = chat.message_history.rows[0][0].seq
-            attempts = 0
-            original = chat.message_history.load_edge
+            assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
+            widget = next(w for m, w in history.rows if m.view_key == receipt.view_key)
+            assert widget.is_attached and widget in chat.screen._compositor.visible_widgets
+            chat.prompt.focus()
+            await pilot.press('h', 'i')
+            assert chat.prompt.text.endswith('hi')
+            assert reader._pending and not refresh.is_finished, (
+                "Typing must finish before the controlled original read completes"
+            )
+        finally:
+            release.set()
+            await refresh.wait()
+        await pilot.pause()
+        assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
+        assert not chat.window.history_lock.locked()
+        await until(lambda: history.state.accepts_source_work)
 
-            async def counted_edge_load():
-                nonlocal attempts
-                attempts += 1
-                await original()
 
-            held = True
-            await chat.message_history.lock.acquire()
-            try:
-                with patch.object(chat.message_history, "load_edge", counted_edge_load):
-                    chat.window.release_anchor()
-                    chat.window.scroll_to(y=0, animate=False, immediate=True)
-                    chat.message_history.on_scroll()
-                    started = time.thread_time()
-                    wall = time.monotonic()
-                    await asyncio.sleep(.25)
-                    cpu = time.thread_time() - started
-                    blocked_attempts = attempts
-                    print(json.dumps({"gate_seconds": round(time.monotonic() - wall, 3),
-                                      "edge_attempts_while_locked": blocked_attempts,
-                                      "ui_thread_cpu_ms": round(cpu * 1000, 2)}))
-                    assert chat.message_history.rows[0][0].seq == oldest
-                    assert blocked_attempts <= 1, "History-edge retries churn while refresh owns the lock"
-                    chat.prompt.focus()
-                    await pilot.press("h", "i")
-                    assert chat.prompt.text == "hi", "A lock waiter held the widget message pump"
-                    chat.message_history.lock.release()
-                    held = False
-                    await until(lambda: chat.message_history.rows[0][0].seq < oldest)
-                    await until(lambda: not chat.message_history.edge_scheduled)
-            finally:
-                if held:
-                    chat.message_history.has_older = chat.message_history.has_newer = False
-                    chat.message_history.lock.release()
+async def exercise(app, pilot, root):
+    await pilot.pause()
+    owner = app.selected_mode
+    await channel_target('#edge').open(NavigationContext(app, owner, root, 'edge-reader'))
+    chat = app.screen.query_one(CommsChatView)
+    history = chat.message_history
+    await until(lambda: history.checkpoint_available and bool(history.rows))
+    await pilot.pause()
+    assert history in chat.window.histories
+    # Tail replacement started from the original initial source. An
+    # already-painted later receipt survives its older read watermark.
+    history.reader.restart()
+    await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
 
-            assert chat.message_history.has_older and chat.window.max_scroll_y > 10
-            # A duplicate or empty page with unchanged cursors/flags cannot
-            # autonomously rearm. A later actual scroll can request a retry.
-            for duplicate in (False, True):
-                chat.window.scroll_to(y=10, animate=False, immediate=True)
+    # Actual earlier pages evict the original tail. A send from that
+    # reader position restarts the source and rejects the older read.
+    operation = history.reserve_source_work()
+    try:
+        chat.window.release_anchor()
+        async with asyncio.timeout(8):
+            while not history.has_newer:
+                assert history.has_older, "Original tail must be evicted before source exhaustion"
+                chat.window.scroll_home(animate=False, immediate=True)
                 await pilot.pause()
-                page = MessagePage(tuple(message for message, _ in chat.message_history.rows[:2]) if duplicate else (), True, False)
-                with patch.object(chat.message_history, "read_page", return_value=page) as reads:
-                    chat.window.scroll_to(y=0, animate=False, immediate=True)
-                    chat.message_history.on_scroll()
-                    await until(lambda: reads.call_count > 0 and not chat.message_history.edge_scheduled)
-                    await asyncio.sleep(.15)
-                    assert reads.call_count == 1, "No-progress page caused repeated reads"
+                page = await history.reader.page(before=history.rows[0][0].view_cursor, limit=40)
+                await history.mount_page(page, older=True)
+    finally:
+        history.finish_source_work(operation)
+    assert history.has_newer
+    history.reader.restart()
+    await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
+    await until(lambda: history.checkpoint_available)
+    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
 
-            chat.window.scroll_to(y=10, animate=False, immediate=True)
-            await pilot.pause()
-            with patch.object(chat.message_history, "read_page", side_effect=OSError("blocked fixture source")) as reads:
-                chat.window.scroll_to(y=0, animate=False, immediate=True)
-                chat.message_history.on_scroll()
-                await until(lambda: reads.call_count > 0 and not chat.message_history.edge_scheduled)
-                await asyncio.sleep(.15)
-                assert reads.call_count == 1, "Failed page caused automatic retry churn"
-
-            # A waiting request uses the latest viewport when the lock opens.
-            chat.window.scroll_to(y=10, animate=False, immediate=True)
-            await pilot.pause()
-            await chat.message_history.lock.acquire()
-            held = True
-            try:
-                with patch.object(chat.message_history, "read_page", wraps=chat.message_history.read_page) as reads:
-                    chat.window.scroll_to(y=0, animate=False, immediate=True)
-                    chat.message_history.on_scroll()
-                    await asyncio.sleep(.04)
-                    chat.window.scroll_to(y=10, animate=False, immediate=True)
-                    chat.message_history.lock.release()
-                    held = False
-                    await until(lambda: not chat.message_history.edge_scheduled)
-                    reads.assert_not_called()
-            finally:
-                if held:
-                    chat.message_history.lock.release()
-
-            # Scroll to the other edge during a blocked request: load the latest
-            # requested direction rather than the one captured at queue time.
-            await chat.message_history.lock.acquire()
-            held = True
-            try:
-                with patch.object(chat.message_history, "read_page", return_value=MessagePage((), True, False)) as reads:
-                    chat.window.scroll_to(y=0, animate=False, immediate=True)
-                    chat.message_history.on_scroll()
-                    await asyncio.sleep(.04)
-                    chat.message_history.has_newer = True
-                    chat.window.scroll_end(animate=False, immediate=True)
-                    newest = chat.message_history.rows[-1][0].seq
-                    chat.message_history.lock.release()
-                    held = False
-                    await until(lambda: reads.call_count > 0 and not chat.message_history.edge_scheduled)
-                    assert reads.call_count == 1 and reads.call_args.kwargs == {"after": newest}
-            finally:
-                if held:
-                    chat.message_history.lock.release()
-
-            # Tab exit while a queued request waits performs no hidden page read;
-            # returning still completes the needed load without another scroll.
-            oldest = chat.message_history.rows[0][0].seq
-            await chat.message_history.lock.acquire()
-            held = True
-            try:
-                with patch.object(chat.message_history, "read_page", wraps=chat.message_history.read_page) as reads:
-                    chat.window.release_anchor()
-                    chat.window.scroll_to(y=0, animate=False, immediate=True)
-                    chat.message_history.on_scroll()
-                    await asyncio.sleep(.04)
-                    await asyncio.wait_for(app.select_session(owner), 2)
-                    chat.message_history.lock.release()
-                    held = False
-                    await until(lambda: not chat.message_history.edge_scheduled)
-                    reads.assert_not_called()
-                    await app.select_session(mode)
-                    await until(lambda: chat.message_history.rows[0][0].seq < oldest)
-                    await until(lambda: not chat.message_history.edge_scheduled)
-            finally:
-                if held:
-                    chat.message_history.lock.release()
-            assert chat.prompt.text == "hi"
-
-            # Delayed IO finishing after tab exit must not mount into a hidden
-            # history transaction (which cannot get a current-screen layout).
-            entered, release = Event(), Event()
-            records = tuple(message.seq for message, _ in chat.message_history.rows)
-            chat.message_history.has_older = True
-            original_page = chat.message_history.read_page
-
-            def delayed_page(*args, **kwargs):
-                entered.set()
-                if not release.wait(8):
-                    raise TimeoutError("Test did not release edge read")
-                return original_page(*args, **kwargs)
-
-            try:
-                with patch.object(chat.message_history, "read_page", delayed_page):
-                    chat.window.scroll_to(y=0, animate=False, immediate=True)
-                    chat.message_history.on_scroll()
-                    assert await asyncio.to_thread(entered.wait, 2)
-                    await app.select_session(owner)
-                    release.set()
-                    await until(lambda: not chat.message_history.edge_scheduled)
-                    assert tuple(message.seq for message, _ in chat.message_history.rows) == records
-                    assert not chat.window.history_lock.locked()
-            finally:
-                release.set()
-
-            await app.select_session(mode)
-            await until(lambda: not chat.message_history.edge_scheduled and not chat.message_history.lock.locked())
-            await chat.message_history.lock.acquire()
-            try:
-                chat.message_history.has_older = True
-                chat.window.scroll_to(y=0, animate=False, immediate=True)
-                chat.message_history.on_scroll()
-                await asyncio.sleep(.04)
-                await asyncio.wait_for(app.session_navigation.close(mode), 2)
-                await until(lambda: not chat.message_history.edge_scheduled)
-            finally:
-                chat.message_history.lock.release()
-
-            await pilot.resize_terminal(100, 80)
-            comms.channels.create_tag("short")
-            for index in range(12):
-                comms.messaging.send("edge-reader", "#short", f"Small {index}")
-            await channel_target("#short").open(NavigationContext(app, owner, root, "edge-reader"))
-            short = app.screen.query_one(CommsChatView)
-            await until(lambda: len(short.message_history.rows) == 12 and not short.message_history.edge_scheduled)
-            assert not short.message_history.has_older and app._exception is None
-        await asyncio.get_running_loop().shutdown_default_executor()
-    print("history-edge scheduling: bounded wait, typing, no-progress/error, latest viewport, tab return, late IO, close and underfill OK")
+    chat.window.release_anchor()
+    # Each older-page publication preserves the actual reader anchor. A
+    # single Home therefore moves one edge, not through the whole source.
+    # Repeat movement as the user does until the real tail is unmounted.
+    async with asyncio.timeout(8):
+        while not history.has_newer:
+            chat.window.scroll_home(animate=False, immediate=True)
+            await pilot.pause(.05)
+    chat.window.focus()
+    await pilot.press('end')
+    # Source completion precedes the native layout that applies its anchor.
+    # Require the original Window's settled destination, not just read status.
+    await until(lambda: history.checkpoint_available and not history.has_newer
+                and chat.window.follows_tail)
+    await pilot.pause()
+    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+    assert chat.window.follows_tail, "End must retain the original Window's tail anchor"
+    assert app._exception is None, repr(app._exception)
+    print('PASS: receipt/typing/restart/End on original native window', flush=True)
+    return history
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+def seed_channel(comms, project):
+    """Seed fresh wire originals in the existing fixture's private bus."""
+    comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(project),
+                                 process_identity=ProcessIdentity.capture(os.getpid()),
+                                 execution=ExternalThreadExecution))
+    for index in range(140):
+        comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
+
+
+async def exercise_with_evidence(app, pilot, root):
+    """One acceptance and failure-export lifetime for both physical entries."""
+    try:
+        history = await exercise(app, pilot, root)
+    except BaseException as error:
+        outcome = {'status': 'failed', 'error': repr(error),
+                   'traceback': traceback.format_exc(),
+                   'application_exception': repr(app._exception)}
+        exporter = Path(__file__).resolve().parents[1] / 'tools/performance/capture_state.py'
+        spec = importlib.util.spec_from_file_location('history_failure_capture', exporter)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.capture(expected_pid=os.getpid(), output_prefix=root / 'failed-history-state')
+        raise
+    else:
+        outcome = {'status': 'passed',
+            'scope': 'original I/O-held receipt/restart/typing/End assertions completed'}
+        return history
+    finally:
+        pending = root / 'journey-result.pending'
+        pending.write_text(json.dumps(outcome) + '\n')
+        pending.replace(root / 'journey-result.json')
+
+
+async def main():
+    scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
+    scratch.mkdir(parents=True, exist_ok=True)
+    directory = os.environ.get('TOAD_HISTORY_LIFETIME_DIRECTORY') or tempfile.mkdtemp(prefix='private-', dir=scratch)
+    root = Path(directory)
+    if not root.resolve().is_relative_to(scratch.resolve()):
+        raise ValueError('History fixture must use its owned persistent scratch directory')
+    root.mkdir(parents=True, exist_ok=True)
+    os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
+                      XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
+    comms = wire(root / 'wire')
+    app = ToadApp(project_dir=str(root))
+    headless = os.environ.get('L0A_HEADLESS', '1') != '0'
+    async with app.run_test(headless=headless, size=(100, 32)) as pilot:
+        await asyncio.to_thread(seed_channel, comms, root)
+        history = await exercise_with_evidence(app, pilot, root)
+        if not headless:
+            # The existing recorder owns the physical window and quits through
+            # its real Ctrl+Q binding after retaining the visible final frame.
+            while not app._exit:
+                await asyncio.sleep(.05)
+    assert not history.reader._pending
+    print('PASS: original read admission, independent receipt paint, typing, restart fence, shared End and closed I/O')
+
+
+class HistorySourceLifetimeJourney(ObserveJourney):
+    """The existing recorder waits for its source fixture's actual outcome."""
+
+    @classmethod
+    def script(cls, args):
+        return 'exec --sync ' + shlex.join([sys.executable, str(Path(__file__).resolve()),
+            '--await-completion', os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY']]) + '\n'
+
+
+class RetainedHistorySourceJourney(InputWarmJourney):
+    """Warm native motion and wire receipt lifetime in one original App."""
+
+    review_artifacts = (*InputWarmJourney.review_artifacts,
+                        'history-source-lifetime-review.json')
+
+    @classmethod
+    def history_thread(cls, args):
+        return 'resource436'
+
+    @classmethod
+    def closing_commands(cls, args):
+        return (marker_command() + 'source-start',
+                HistorySourceLifetimeJourney.script(args).strip(),
+                marker_command() + 'source-complete')
+
+    @classmethod
+    def review(cls, output, receipt):
+        result = super().review(output, receipt)
+        outcome = json.loads((Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
+                              / 'journey-result.json').read_text())
+        result['source_lifetime'] = outcome
+        (output / 'history-source-lifetime-review.json').write_text(json.dumps(outcome) + '\n')
+        return result
+
+    @classmethod
+    def validate_review(cls, review):
+        super().validate_review(review)
+        if review['source_lifetime']['status'] != 'passed':
+            raise RuntimeError('Original held-reader receipt/End acceptance failed')
+
+
+async def retained_app(project):
+    """The source-entry wrapper imports the selected installed product only."""
+    from toad.agent_schema import AgentDefinition
+
+    definition = AgentDefinition(identity='real-resource436', name='Real resource acceptance',
+        short_name='resource', run_command={'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])})
+    app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
+    root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
+    output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
+    async with app.run_test(headless=False, size=(160, 44)) as pilot:
+        await asyncio.to_thread(seed_channel, wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
+        # The original marker is appended only after its native screenshot and
+        # DTO have completed. Do not race Pilot input with the recorder's keys.
+        # The recorder's original ProcessOwner already bounds this child. Its
+        # action deadline is established after launch and is not inherited by
+        # the UI. The product App retires its own resources; test sibling
+        # teardown must never kill the recorder, Xvfb or physical key driver.
+        while not any(event['label'] == 'source-start' for event in phase_events(output)):
+            await asyncio.sleep(.05)
+        history = await exercise_with_evidence(app, pilot, root)
+        while not app._exit:
+            await asyncio.sleep(.05)
+    assert not history.reader._pending
+
+
+async def record_retained(service, project, evidence, environment, *, recording_args,
+                          recording_timeout):
+    """Existing original-turn fixture callback; owns no second App or root."""
+    env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
+               XDG_STATE_HOME=str(evidence / 'ui-state'))
+    env.pop('NO_COLOR', None)
+    runtime = Path(sys.executable).parent
+    env['AGENT_COMMS_RUNTIME_ROOT'] = str(runtime)
+    command = [sys.executable, str(Path(__file__).resolve()), '--record', *recording_args,
+        '--capture-target', 'source', '--private-root', str(service.root),
+        '--journey', 'retained_history_source', '--peer-thread', 'resource236b',
+        '--capture-state', '--scroll-travel', '--output', str(evidence / 'capture'),
+        '--', sys.executable, str(Path(__file__).resolve()), '--retained-app', str(project)]
+    (evidence / 'joint-command.json').write_text(json.dumps(command, indent=2) + '\n')
+    owner = ProcessOwner(service.registry)
+    try:
+        with (evidence / 'joint-recorder.log').open('w') as log:
+            # Both the recording budget and bounded child custody are chosen
+            # by its sole installed operator; this callback changes neither.
+            await asyncio.to_thread(owner.run, command, env, timeout=recording_timeout,
+                                    stdout=log, stderr=log)
+    finally:
+        cleanup = await asyncio.to_thread(owner.cleanup)
+        (evidence / 'joint-cleanup.json').write_text(json.dumps(cleanup, indent=2) + '\n')
+    assert not cleanup['remaining_owned_pids'] and not cleanup['errors'], cleanup
+
+
+def await_completion(root):
+    """Observe immutable fixture completion, never backend or UI state."""
+    deadline = float(os.environ['TOAD_VIDEO_DEADLINE'])
+    result = root / 'journey-result.json'
+    while not result.exists():
+        if time.monotonic() >= deadline:
+            raise TimeoutError('Original source fixture did not complete within recorder custody')
+        time.sleep(.05)
+    outcome = json.loads(result.read_text())
+    if outcome['status'] != 'passed':
+        raise RuntimeError('Original source fixture failed: ' + outcome['error'])
+
+
+if __name__ == '__main__':
+    if sys.argv[1:2] == ['--await-completion']:
+        await_completion(Path(sys.argv[2]))
+    elif sys.argv[1:2] == ['--retained-app']:
+        asyncio.run(retained_app(Path(sys.argv[2])))
+    elif sys.argv[1:2] == ['--record']:
+        del sys.argv[1]
+        record_main()
+    else:
+        asyncio.run(main())
