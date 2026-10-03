@@ -62,7 +62,7 @@ class ObservedPool(RenderProcessPool):
         self.release.clear()
 
     async def run(self, function, *args):
-        from toad.render_tasks import TranscriptRenderTask
+        from toad.widgets.transcript_fragments import TranscriptRenderTask
 
         assert not args and isinstance(function.__self__, TranscriptRenderTask)
         events = function.__self__.events

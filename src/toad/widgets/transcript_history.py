@@ -200,7 +200,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         await self.recompose()
 
     async def prepare_body(self) -> None:
-        from toad.render_tasks import TranscriptBodyPreparation
+        from toad.widgets.transcript_fragments import TranscriptBodyPreparation
         preparation = TranscriptBodyPreparation(
             self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
         )
@@ -403,7 +403,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     async def prepare_fragments(self, fragments, current: Callable[[], bool]) -> None:
         """Prepare this admitted source range before acquiring native custody."""
-        from toad.render_tasks import TranscriptBodyPreparation
+        from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 
         preparation = TranscriptBodyPreparation(
             self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
@@ -707,7 +707,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             # intent. One owned snapshot identity is the publication fence.
             current = lambda: (self._prefetch_intent is intent
                                and demand is lookahead.demand)
-            from toad.render_tasks import TranscriptBodyPreparation
+            from toad.widgets.transcript_fragments import TranscriptBodyPreparation
             preparation = TranscriptBodyPreparation(
                 self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
             )

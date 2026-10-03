@@ -15,7 +15,7 @@ from toad.acp.sdk_boundary import (
 )
 from toad.render_processes import RenderProcessPool
 from toad.render_service import RenderServiceConfig
-from toad.render_tasks import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint
 from toad.work_preparation import PreparationRuntime, PreparedRenderer, RenderPreparation
 

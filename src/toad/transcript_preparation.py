@@ -12,7 +12,7 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 
 from toad.widgets.transcript_fragments import TranscriptFragment
-from toad.render_tasks import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.widgets.message_filter import MessageCategory, keep_events
 from toad.work_preparation import (
     PreparationRuntime,
