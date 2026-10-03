@@ -3,6 +3,7 @@
 import asyncio
 import os
 from pathlib import Path
+from functools import partial
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
@@ -22,6 +23,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.committed_presentation import CheckpointBarrier
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.transcript_state import LatestViewportRequest
 
 
 def routed(sequence, text):
@@ -269,7 +271,8 @@ async def exercise(app, pilot):
         assert history.through == agent.cursor, (history.through, agent.cursor)
         window.scroll_end(animate=False, immediate=True)
         await pilot.pause()
-        await history.reserve_source_work().execute(history, history._jump_latest)
+        latest = LatestViewportRequest(window.scroll_revision)
+        await history.reserve_source_work().execute(history, partial(history._jump_latest, latest))
         await pilot.pause()
         assert history.pages[-1].page.after == agent.cursor, (history.pages[-1].page.after, agent.cursor)
         assert any("Committed while inactive" in event.text

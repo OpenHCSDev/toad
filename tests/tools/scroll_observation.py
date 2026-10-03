@@ -86,6 +86,34 @@ class NativePhase:
         return (current.interval.through != previous.interval.through
                 and current.interval.through.contains(previous.interval.through))
 
+    def reuses_visible_coverage(self, other: "NativePhase") -> bool:
+        """The original admitted pages already cover this painted destination.
+
+        Bounded trimming may shrink a page; it does not make retained source
+        unread. Visible body readiness comes from the committed native scene.
+        This is coverage evidence, not a motion or frame-rate verdict.
+        """
+        if self.mode != other.mode or self.window != other.window:
+            return False
+        if not self.admissions:
+            return False
+        for current in self.admissions:
+            if not any(previous.interval == current.interval
+                       and previous.start <= current.start
+                       and current.stop <= previous.stop
+                       for previous in other.admissions):
+                return False
+        visible = tuple(body for body in self.bodies if body.visible)
+        return bool(visible) and all(body.ready for body in visible)
+
+    def covers_before(self, other: "NativePhase") -> bool:
+        return self.admits_before(other) or (
+            self.scroll_y < other.scroll_y and self.reuses_visible_coverage(other))
+
+    def covers_after(self, other: "NativePhase") -> bool:
+        return self.admits_after(other) or (
+            self.scroll_y > other.scroll_y and self.reuses_visible_coverage(other))
+
 
 def review_retained_lifetime(output, receipt, *, suffix, peer_review):
     """Review the saved-view lifetime variant without claiming scroll performance."""
@@ -187,9 +215,9 @@ def review_warm_return(output, receipt, *, suffix, scroll_labels):
         checks.update({
             "history_scroll_extent": focused.maximum > 0,
             "scroll_keys_focus_history": all(phase.focused_widget == phase.window for phase in scroll),
-            "held_page_up_admitted_older_source": up.admits_before(focused),
-            "held_page_down_admitted_newer_source": down.admits_after(up),
-            "reverse_page_up_admitted_older_source": reversed_scroll.admits_before(down),
+            "held_page_up_destination_covered": up.covers_before(focused),
+            "held_page_down_destination_covered": down.covers_after(up),
+            "reverse_page_up_destination_covered": reversed_scroll.covers_before(down),
         })
     result = {"checks": checks, "native_checks_passed": not unavailable and all(checks.values()),
               "unavailable_scroll_phases": unavailable,
@@ -197,6 +225,7 @@ def review_warm_return(output, receipt, *, suffix, scroll_labels):
               "phases": {label: asdict(phase) for label, phase in phases.items()},
               "physical_assessment": "unreviewed; inspect terminal.mp4 and phase PNGs",
               "limits": ["Native resource identities do not certify a warm physical first paint",
+                         "A covered warm destination does not require another source read",
                          "Source admission direction does not certify visible motion; inspect the physical frames",
                          "A snapshot does not prove preparation or rasterization was skipped",
                          "Only actual Ctrl+Z output proves preserved Undo; no history-manager mirror is inspected"],

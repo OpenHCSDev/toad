@@ -25,7 +25,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def reserve(self, owner) -> "WorkingTranscript":
         raise RuntimeError("The transcript source cannot admit another operation")
 
-    def request_latest(self, owner) -> None:
+    def request_latest(self, owner, request: "LatestViewportRequest") -> None:
         """Inactive source cases cannot admit a destination request."""
 
     def retirement_source(self) -> "TranscriptState":
@@ -85,8 +85,8 @@ class LiveTranscript(TranscriptState):
     def reserve(self, owner) -> "WorkingTranscript":
         return WorkingTranscript(self, owner)
 
-    def request_latest(self, owner) -> None:
-        owner.schedule_source_work(owner._jump_latest)
+    def request_latest(self, owner, request: "LatestViewportRequest") -> None:
+        owner.schedule_source_work(partial(owner._jump_latest, request))
 
     @classmethod
     def successors(cls):
@@ -129,9 +129,18 @@ class IdleViewportRequest(ViewportRequest):
 class LatestViewportRequest(ViewportRequest):
     revision: int
 
+    def current(self, window) -> bool:
+        return window.scroll_revision == self.revision
+
+    def restore(self, window) -> None:
+        from toad.widgets.history_anchor import TailReaderPosition
+
+        if self.current(window):
+            TailReaderPosition().restore(window)
+
     def apply(self, owner) -> None:
-        if owner.window.scroll_revision == self.revision:
-            owner.request_latest()
+        if self.current(owner.window):
+            owner.state.request_latest(owner, self)
 
 
 class WorkingTranscript(SuspendedTranscript):
@@ -157,8 +166,8 @@ class WorkingTranscript(SuspendedTranscript):
             or self.reader_revision != owner.window.scroll_revision
         )
 
-    def request_latest(self, owner) -> None:
-        self.pending_request = LatestViewportRequest(owner.window.scroll_revision)
+    def request_latest(self, owner, request: LatestViewportRequest) -> None:
+        self.pending_request = request
 
     def retirement_source(self) -> TranscriptState:
         # Cancellation ends this operation; a parked pager resumes its source,

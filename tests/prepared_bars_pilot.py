@@ -39,14 +39,14 @@ async def main():
 
             with patch.object(backend, "submit", counted):
                 left, right = await asyncio.gather(*[
-                    app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=ExactUnread(17)),)))
+                    app.preparation.submit(await ThreadRowsWork.capture(app.preparation, (ThreadRowInput(person, unread=ExactUnread(17)),)))
                     for _ in range(2)
                 ])
                 assert len(calls) == 1
                 assert backend._executor is not None
                 assert all(pid != os.getpid() for pid in backend._executor._processes)
                 assert left is not right and left[0].frames[0].plain == right[0].frames[0].plain
-                changed = await app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=ExactUnread(18)),)))
+                changed = await app.preparation.submit(await ThreadRowsWork.capture(app.preparation, (ThreadRowInput(person, unread=ExactUnread(18)),)))
                 assert len(calls) == 2 and changed[0].frames[0].plain.startswith("(18)")
 
             tabs = app.screen.query_one(SessionsTabs)

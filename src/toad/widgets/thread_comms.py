@@ -18,7 +18,7 @@ from textual.content import Content
 from textual.widgets import Checkbox, Static
 
 from toad.session_tracker import ExactUnread, UnreadPresentation
-from toad.sidebar_preparation import ThreadRowInput
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.activity_spinner import FRAMES
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
@@ -118,12 +118,16 @@ class RelationshipRows(SidebarGroup):
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
-    async def update_group(self, model: RelationshipGroup) -> None:
+    async def update_group(self, model: RelationshipGroup, captured: ThreadRowsWork) -> None:
         async with self.member_lock:
             self.model = model
-            await self._reconcile_members()
+            await self._reconcile_members(captured)
 
-    async def _reconcile_members(self) -> None:
+    def thread_people(self):
+        return {entry.person.thread.name: entry.person for entry in self.model.entries
+                if entry.person is not None}.values()
+
+    async def _reconcile_members(self, captured: ThreadRowsWork) -> None:
         if not self.is_mounted:
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
@@ -137,7 +141,7 @@ class RelationshipRows(SidebarGroup):
             unread=tree.unread(person_target(entries[key].person)),
             action_status=tree.app.thread_actions.pending.get(entries[key].target),
         ) for key in row_keys} if self.expanded else {}
-        prepared_rows = await self.prepare_thread_rows(inputs, self.rows)
+        prepared_rows = await self.prepare_thread_rows(inputs, self.rows, captured)
         if not self.is_attached or self.model is not model or tree.owner != owner:
             return
         if not self.expanded:
@@ -389,6 +393,15 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
+            row_inputs = await ThreadRowsWork.capture(
+                self.app.preparation,
+                tuple(ThreadRowInput(person) for person in {
+                    entry.person.thread.name: entry.person for model in snapshot.groups
+                    for entry in model.entries if entry.person is not None
+                }.values()),
+            )
+            if generation != self._generation or not self._visible():
+                return
             with self.app.batch_update():
                 context = self.query_one(".relationship-context", Static)
                 _update_content(context, Content.assemble((f"For @{snapshot.owner}", "bold"),
@@ -413,7 +426,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     glyph = "▾" if group.expanded else "▸"
                     if group.disclosure.content != glyph:
                         group.disclosure.update(glyph, layout=False)
-                    await group.update_group(model)
+                    await group.update_group(model, row_inputs)
                     if generation != self._generation:
                         group.display = False
                         return
@@ -423,12 +436,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 for model in snapshot.groups:
                     for entry in model.entries:
                         widest = max(widest, Content(entry.target).cell_length + 8)
-                        if entry.person is not None:
-                            widest = max(widest,
-                                         Content(entry.person.presentation.label).cell_length + 8,
-                                         Content(entry.person.presentation.summary).cell_length + 8)
                         if entry.detail:
                             widest = max(widest, Content(entry.detail).cell_length + 8)
+                if row_inputs.rows:
+                    widest = max(widest, row_inputs.content_width + 8)
                 panel = self.query_ancestor(SideBarCollapsible)
                 width = min(widest, 512)
                 if width != self._horizontal_width:
