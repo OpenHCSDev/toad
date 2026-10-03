@@ -293,3 +293,15 @@ modules,311 installed-Core production modules; zero parse omissions. Static
 references identify the declaration/callers but do not prove dynamic receiver
 resolution. The archive/current page traversal, source provenance, display read
 acknowledgement and publisher contracts were read semantically.
+
+Installed source-prerequisite sanity completed once in1.020s. The original142
+rows retained their IDs/order/source bytes, the current bus stayed at sequence0,
+and one fresh ordinary receipt became current sequence1 while the original
+source hashes stayed unchanged. No App/native process or provider call started.
+This detects accidental resequencing/republication and retained-receipt false
+acceptance; it is not an End/frame qualification. Before/after NRA output and
+`retained-prerequisite01.json` are durable alongside the original04 negative.
+After: no seed_channel declaration/callers, one inherited archive attachment
+call in prepare_channel and its two preparation callers. Zero parser omissions.
+Resource warning:6.0GiB home/9.0GiB available RAM/13.6GiB swap; the small167KB
+source snapshot reused the installed dependencies without a new environment.

@@ -1,0 +1,188 @@
+{
+  "toad": {
+    "revision": "caaf7bc40",
+    "roots": [
+      {
+        "root": "tests",
+        "modules": 390,
+        "omissions": [],
+        "sites": [
+          {
+            "path": "tests/async_thread_open_pilot.py",
+            "line": 66,
+            "declaration": "attach"
+          },
+          {
+            "path": "tests/async_thread_open_pilot.py",
+            "line": 75,
+            "reference": "attach"
+          },
+          {
+            "path": "tests/channel_history_reader_pilot.py",
+            "line": 76,
+            "reference": "comms.views.attach_history"
+          },
+          {
+            "path": "tests/cold_thread_latency_pilot.py",
+            "line": 76,
+            "declaration": "attach"
+          },
+          {
+            "path": "tests/cold_thread_latency_pilot.py",
+            "line": 81,
+            "reference": "attach"
+          },
+          {
+            "path": "tests/dm_rebind_paint_pilot.py",
+            "line": 41,
+            "reference": "HistoryViews"
+          },
+          {
+            "path": "tests/dm_rebind_paint_pilot.py",
+            "line": 51,
+            "reference": "HistoryViews"
+          },
+          {
+            "path": "tests/existing_thread_tab_title_pilot.py",
+            "line": 59,
+            "declaration": "attach"
+          },
+          {
+            "path": "tests/existing_thread_tab_title_pilot.py",
+            "line": 72,
+            "reference": "attach"
+          },
+          {
+            "path": "tests/file_path_preview_pilot.py",
+            "line": 310,
+            "reference": "live.views.attach_history"
+          },
+          {
+            "path": "tests/historical_views_pilot.py",
+            "line": 227,
+            "reference": "live.views.attach_history"
+          },
+          {
+            "path": "tests/historical_views_pilot.py",
+            "line": 77,
+            "reference": "live.views.attach_history"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 152,
+            "declaration": "prepare_channel"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 184,
+            "declaration": "exercise_retained"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 365,
+            "declaration": "record_retained"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 157,
+            "reference": "comms.views.attach_history"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 279,
+            "reference": "prepare_channel"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 371,
+            "reference": "prepare_channel"
+          },
+          {
+            "path": "tests/history_edge_scheduling_pilot.py",
+            "line": 359,
+            "reference": "exercise_retained"
+          }
+        ]
+      },
+      {
+        "root": "tools/performance",
+        "modules": 39,
+        "omissions": [],
+        "sites": []
+      }
+    ]
+  },
+  "core": {
+    "revision": "db94c06cfc2174864ab32211ce1bf403bb413440",
+    "roots": [
+      {
+        "root": "src/agent_comms",
+        "modules": 311,
+        "omissions": [],
+        "sites": [
+          {
+            "path": "src/agent_comms/comms.py",
+            "line": 47,
+            "reference": "HistoryViews"
+          },
+          {
+            "path": "src/agent_comms/historical_views.py",
+            "line": 269,
+            "declaration": "HistoryArchive"
+          },
+          {
+            "path": "src/agent_comms/historical_views.py",
+            "line": 285,
+            "declaration": "attach"
+          },
+          {
+            "path": "src/agent_comms/historical_views.py",
+            "line": 253,
+            "reference": "HistoryArchive"
+          },
+          {
+            "path": "src/agent_comms/history_views.py",
+            "line": 56,
+            "declaration": "HistoryViews"
+          },
+          {
+            "path": "src/agent_comms/history_views.py",
+            "line": 127,
+            "declaration": "attach_history"
+          },
+          {
+            "path": "src/agent_comms/history_views.py",
+            "line": 129,
+            "reference": "self.bus.history.attach"
+          },
+          {
+            "path": "src/agent_comms/message_bus.py",
+            "line": 50,
+            "reference": "HistoryArchive"
+          },
+          {
+            "path": "src/agent_comms/messaging.py",
+            "line": 118,
+            "reference": "self.bus.publisher.publish_initial_cohort"
+          },
+          {
+            "path": "src/agent_comms/publisher.py",
+            "line": 303,
+            "declaration": "publish_initial_cohort"
+          },
+          {
+            "path": "src/agent_comms/publisher.py",
+            "line": 163,
+            "reference": "self.publish_initial_cohort"
+          },
+          {
+            "path": "src/agent_comms/relationships.py",
+            "line": 376,
+            "reference": "HistoryViews"
+          }
+        ]
+      }
+    ]
+  },
+  "dynamic_resolution": "Static receiver references do not prove runtime MRO; existing archive/current publisher owners were read and exercised directly."
+}
