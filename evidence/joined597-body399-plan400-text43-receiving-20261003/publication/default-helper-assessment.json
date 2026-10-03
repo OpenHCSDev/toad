@@ -1,0 +1,128 @@
+{
+  "scope": "ordinary default401 saved-helper startup, installed assembly, owner attachment and stationary display; no new input/provider/motion claim",
+  "result": "PASS scoped assembly/display",
+  "capture_seconds": 23.714862682041712,
+  "st_exit": {
+    "pid": 1472152,
+    "start_ticks": 53144533,
+    "returncode": 0
+  },
+  "capture_returncode": 255,
+  "runtime_unchanged": true,
+  "owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 1458479,
+      "start_time": 53131797
+    },
+    "original_owner_alive": true
+  },
+  "owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 1458479,
+      "start_time": 53131797
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 1472145,
+        "start_ticks": 53144344,
+        "returncode": 0
+      },
+      {
+        "pid": 1472150,
+        "start_ticks": 53144525,
+        "returncode": 0
+      },
+      {
+        "pid": 1472152,
+        "start_ticks": 53144533,
+        "returncode": 0
+      },
+      {
+        "pid": 1472153,
+        "start_ticks": 53144539,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 1472159,
+        "start_ticks": 53144611,
+        "returncode": 0
+      },
+      {
+        "pid": 1472160,
+        "start_ticks": 53144624,
+        "returncode": 0
+      },
+      {
+        "pid": 1472161,
+        "start_ticks": 53144634,
+        "returncode": 0
+      },
+      {
+        "pid": 1472162,
+        "start_ticks": 53144644,
+        "returncode": 255
+      },
+      {
+        "pid": 1473005,
+        "start_ticks": 53145846,
+        "returncode": 0
+      },
+      {
+        "pid": 1473010,
+        "start_ticks": 53145874,
+        "returncode": 0
+      },
+      {
+        "pid": 1473151,
+        "start_ticks": 53145915,
+        "returncode": 0
+      },
+      {
+        "pid": 1473370,
+        "start_ticks": 53146947,
+        "returncode": 0
+      },
+      {
+        "pid": 1473375,
+        "start_ticks": 53146976,
+        "returncode": 0
+      },
+      {
+        "pid": 1473383,
+        "start_ticks": 53147070,
+        "returncode": 0
+      },
+      {
+        "pid": 1473409,
+        "start_ticks": 53147260,
+        "returncode": 0
+      },
+      {
+        "pid": 1473474,
+        "start_ticks": 53147522,
+        "returncode": 0
+      }
+    ]
+  },
+  "inspection": {
+    "before_png": "personally viewed while same run handle91042 remained active: saved channel history, Ready helper/sidebar, editor visible",
+    "after_png": "black raw screenshot preserved; not used as final display proof",
+    "final_recorded_frame22_png": "personally viewed AFTER terminal from SAME original terminal.mp4 at22s: saved history, helper/sidebar Ready, session details Ready, editor visible, no activity bar",
+    "after_native_export": "original after-state/screen complete; loaded_pages2,history follows tail, no history lock, restoringfalse,reconcilingfalse,pendingfalse"
+  },
+  "receipt_sha256": "dad16fce13db46919bca27b6e5daf313dfa4b5840383f9e34d8329e15df3fbc7",
+  "original_raw_unchanged": true,
+  "reruns": 0
+}
