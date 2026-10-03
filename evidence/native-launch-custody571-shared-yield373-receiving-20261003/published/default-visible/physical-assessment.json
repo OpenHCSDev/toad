@@ -1,0 +1,36 @@
+{
+  "result": "PASS: ordinary default saved-history startup/display",
+  "observed_at": 1791013755.6381109,
+  "raw_receipt": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/receipt.json",
+  "raw_receipt_sha256": "ff45ee1b4cbefce1a3a61d2694233c421ad1b48ea266642ed52ba742d93f55a7",
+  "entrypoint": "/home/ts/bin/toad-comms openhcs-helper",
+  "isolation": "plain st, isolated Xvfb1985; user desktop untouched",
+  "duration_seconds": 23.786893145996146,
+  "parent_visual_review": "Personally inspected after.png: original saved history and prior distinct replies visible, chat/sidebar Ready, activity bar absent, input visible; original Rich context status/provenance rendered.",
+  "original_owner_unchanged": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3031150,
+      "start_time": 48918685
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "actual_st_exit": {
+    "pid": 3033162,
+    "start_ticks": 48923352,
+    "returncode": 0
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "new_input_sent": false,
+  "qualification": "Default paired assembly and owner attachment/display; original changed configured saved-native preparation, App/registeredACP permissions/context, saved-history motion and recorded-action gates retain their reviewed scopes",
+  "limits": [
+    "No fresh provider compaction or prompt in this startup journey",
+    "Not whole-turn/channel latency acceptance",
+    "Not held-scrolling smoothness or 144Hz acceptance",
+    "Original uncertain inputs and failed attempts preserved"
+  ]
+}

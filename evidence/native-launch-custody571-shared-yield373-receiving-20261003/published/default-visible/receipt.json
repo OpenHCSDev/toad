@@ -1,0 +1,716 @@
+{
+  "owner": "published571375-default-20261003",
+  "purpose": "installed TUI physical interaction video review",
+  "output": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "terminal_command": [
+    "st",
+    "-e",
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "fps": 60,
+  "screen": [
+    1280,
+    900
+  ],
+  "profiling_requested": false,
+  "state_capture_requested": true,
+  "ui_config": {
+    "source": "/home/ts/.config/toad/toad.json",
+    "home": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/ui-config",
+    "initial_sha256": "dc7757bf1a59dc9df0b20a575d6453def6b0283742bced0aa3d910edec2b79a2"
+  },
+  "private_root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+  "capture_target": "existing_thread",
+  "physical_journey": "observe",
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3031150,
+      "start_time": 48918685
+    },
+    "original_owner_alive": true
+  },
+  "recorder_argv": [
+    "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/tools/record_installed_tui.py",
+    "--owner",
+    "published571375-default-20261003",
+    "--capture-target",
+    "existing_thread",
+    "--journey",
+    "observe",
+    "--output",
+    "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture",
+    "--startup-wait",
+    "12",
+    "--tail-seconds",
+    "10",
+    "--max-duration",
+    "55",
+    "--finalize-seconds",
+    "16",
+    "--fit-window",
+    "--capture-state",
+    "--review-timing",
+    "deferred",
+    "--width",
+    "1280",
+    "--height",
+    "900",
+    "--",
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "recorder_source_sha256": "2dfe898d5e184b67afb2be0377e7a6c63df564bce97ab819f54e655a656547bf",
+  "started_utc": "2026-10-03T07:46:32.259086+00:00",
+  "assessment": "unreviewed",
+  "capture_completed": true,
+  "completed": true,
+  "review_timing": "deferred",
+  "review": {
+    "start_seconds": 0,
+    "seconds": 3,
+    "fps": 8,
+    "frames_limit": 24,
+    "slowdown": 8,
+    "timestamp_basis": "source video seconds"
+  },
+  "runtime_before": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+        "sha256": "d61f22fceec1c5e67089c36755bad3c7da8e706d8cb86d8029867b8d4a36c297"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+        "sha256": "57c0b44df35417229e3718b128aca8d7ca5487fce0ff96f09555a4e2fe31cc67"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+        "sha256": "d61f22fceec1c5e67089c36755bad3c7da8e706d8cb86d8029867b8d4a36c297"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+    "activation_sha256": "7eed9c53273be075892ee8b3fa1fb32dfb8afaf45dfabb07738e3e253f1d41a3",
+    "activation": {
+      "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+      "pins": {
+        "agent_comms": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+        "toad": "a54b35fb86e23d0e38239904b0cdd7061dc40c38",
+        "textual": "c5800c7ba224ec07080a9c025130408746aa83b1"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+      "state": "Normal69 merged571/572 original launch custody and action binding with373/374/375/377/Text35; native915",
+      "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-launch-custody571-shared-yield373-receiving-20261003/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+      "native_tree": "b678e1f41c4cc2bde46a65fa71c803306b86618103031ca029db44cb9a690339",
+      "native_configuration_note": "Released receiving holder /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "08da1875a951a5aeb85662051de5da438dcb91bf2ff7bd6d1ae701543ace7f58",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "a54b35fb86e23d0e38239904b0cdd7061dc40c38",
+              "requested_revision": "a54b35fb86e23d0e38239904b0cdd7061dc40c38"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "a2cd950222a14e079e299f0fdca5b4ff7262f8ae1cbe84cab284adaa38322fda",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "c5800c7ba224ec07080a9c025130408746aa83b1",
+              "requested_revision": "c5800c7ba224ec07080a9c025130408746aa83b1"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "32e869cd4c8b444b5e41a8ccc802499cc8bcb020e4be7ea8177d5c30d43204ac",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+              "requested_revision": "f10980921de6080e7a7e89f1959243c1d7666a0a"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "display": ":1985",
+  "ui_identity": {
+    "pid": 3033163,
+    "start_ticks": 48923358
+  },
+  "window": "2097158",
+  "capture_launch_monotonic": 489234.701694271,
+  "interaction_deadline_monotonic": 489273.701694271,
+  "finish_deadline_monotonic": 489289.701694271,
+  "finalize_seconds": 16.0,
+  "terminal_pid": 3033162,
+  "state_captures": {
+    "before": {
+      "started_seconds": 12.2895540180034,
+      "manifest": {
+        "pid": 3033163,
+        "created": 1791013593.58,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 195788800,
+        "started_ns": 1791013607878704023,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/before-state": "complete",
+          "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/before-screen": "complete"
+        },
+        "finished_ns": 1791013608111729078
+      },
+      "finished_seconds": 12.727630403009243
+    },
+    "observers": {
+      "started_seconds": 12.727763555012643,
+      "manifest": {
+        "pid": 3033163,
+        "created": 1791013593.58,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 196030464,
+        "started_ns": 1791013608328880594,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/observers-state": "complete"
+        },
+        "finished_ns": 1791013608461418894
+      },
+      "finished_seconds": 13.0641367600183
+    },
+    "after": {
+      "started_seconds": 23.385403450985905,
+      "manifest": {
+        "pid": 3033163,
+        "created": 1791013593.58,
+        "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "rss_before": 197705728,
+        "started_ns": 1791013618976453318,
+        "profile_seconds": 0,
+        "gil_only": false,
+        "native": false,
+        "receipts": {
+          "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/after-state": "complete",
+          "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/after-screen": "complete"
+        },
+        "finished_ns": 1791013619141246858
+      },
+      "finished_seconds": 23.78688093298115
+    }
+  },
+  "terminal_processes": {
+    "3033162": {
+      "start_ticks": 48923352,
+      "command": "st -e /home/ts/bin/toad-comms openhcs-helper "
+    },
+    "3033163": {
+      "start_ticks": 48923358,
+      "command": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                 "
+    },
+    "3033352": {
+      "start_ticks": 48923556,
+      "command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    "3033358": {
+      "start_ticks": 48923670,
+      "command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=17) --multiprocessing-fork "
+    },
+    "3033359": {
+      "start_ticks": 48923670,
+      "command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=23) --multiprocessing-fork "
+    },
+    "3033745": {
+      "start_ticks": 48924099,
+      "command": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+    }
+  },
+  "duration_seconds": 23.786893145996146,
+  "capture_returncode": 255,
+  "runtime_after": {
+    "selection": "PATH agent-comms-acp",
+    "bin_directory": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+        "sha256": "d61f22fceec1c5e67089c36755bad3c7da8e706d8cb86d8029867b8d4a36c297"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+        "sha256": "57c0b44df35417229e3718b128aca8d7ca5487fce0ff96f09555a4e2fe31cc67"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+        "sha256": "d61f22fceec1c5e67089c36755bad3c7da8e706d8cb86d8029867b8d4a36c297"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/activation.json",
+    "activation_sha256": "7eed9c53273be075892ee8b3fa1fb32dfb8afaf45dfabb07738e3e253f1d41a3",
+    "activation": {
+      "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+      "pins": {
+        "agent_comms": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+        "toad": "a54b35fb86e23d0e38239904b0cdd7061dc40c38",
+        "textual": "c5800c7ba224ec07080a9c025130408746aa83b1"
+      },
+      "sdk": "0.12.1",
+      "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+      "state": "Normal69 merged571/572 original launch custody and action binding with373/374/375/377/Text35; native915",
+      "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-launch-custody571-shared-yield373-receiving-20261003/source-proof.json",
+      "bins": {
+        "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+        "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+        "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms",
+        "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+        "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-agent",
+        "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/pi-comms-native"
+      },
+      "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+      "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+      "native_tree": "b678e1f41c4cc2bde46a65fa71c803306b86618103031ca029db44cb9a690339",
+      "native_configuration_note": "Released receiving holder /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+      "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "08da1875a951a5aeb85662051de5da438dcb91bf2ff7bd6d1ae701543ace7f58",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "a54b35fb86e23d0e38239904b0cdd7061dc40c38",
+              "requested_revision": "a54b35fb86e23d0e38239904b0cdd7061dc40c38"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "a2cd950222a14e079e299f0fdca5b4ff7262f8ae1cbe84cab284adaa38322fda",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "c5800c7ba224ec07080a9c025130408746aa83b1",
+              "requested_revision": "c5800c7ba224ec07080a9c025130408746aa83b1"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "32e869cd4c8b444b5e41a8ccc802499cc8bcb020e4be7ea8177d5c30d43204ac",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+              "requested_revision": "f10980921de6080e7a7e89f1959243c1d7666a0a"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent"
+      },
+      "native_launch": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 3033162,
+    "start_ticks": 48923352,
+    "returncode": 0
+  },
+  "video": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c02a",
+        "width": 1280,
+        "height": 900,
+        "coded_width": 1280,
+        "coded_height": 900,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 42,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 369152,
+        "duration": "24.033333",
+        "bit_rate": "661456",
+        "bits_per_raw_sample": "8",
+        "extradata_size": 38,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/home/ts/.cache/agent-scratch/published571375-helper-default-20261003/capture/terminal.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "24.033333",
+      "size": "1996969",
+      "bit_rate": "664733",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "iso5",
+        "minor_version": "512",
+        "compatible_brands": "iso5iso6mp41",
+        "encoder": "Lavf63.1.102"
+      }
+    }
+  },
+  "events": [],
+  "frame_review": {
+    "available": true,
+    "trace": "after-state-frames.json",
+    "artifacts": [
+      "frame-delivery.json",
+      "frame-delivery.svg"
+    ],
+    "intervals": {
+      "count": 23,
+      "median_ms": 499.87,
+      "p95_ms": 502.06,
+      "p99_ms": 502.55,
+      "max_ms": 502.69
+    },
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "journey_review": null,
+  "review_intervals": [
+    {
+      "label": "main",
+      "start": 0,
+      "seconds": 3
+    }
+  ],
+  "artifacts": {
+    "terminal.mp4": {
+      "bytes": 1996969,
+      "sha256": "acfe9826a68f053dde19f1e0eb479f85afcc4f717f38fc7ebfa887db2df33235"
+    },
+    "before.png": {
+      "bytes": 94925,
+      "sha256": "ab970f3127a568f5f0078c92fd75858c674c10bf75411b3ddd208a5c4fdd309f"
+    },
+    "after.png": {
+      "bytes": 94188,
+      "sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5"
+    },
+    "before-state.json": {
+      "bytes": 1021739,
+      "sha256": "18a35acfa6e004b4f78a3a7d7c2ad140ea8c510d9ae00dccf13377a15b76311c"
+    },
+    "before-state.pickle": {
+      "bytes": 389844,
+      "sha256": "213e56798872c6da760beada356d084dd085094237e6ee63a6329d2e15c7adc4"
+    },
+    "before-screen.svg": {
+      "bytes": 65821,
+      "sha256": "120f75f4085166d6c33f3b44a702ffe570d5eb272465d114837f9b8924da1e74"
+    },
+    "before-remote.py": {
+      "bytes": 1406,
+      "sha256": "841de9bfccc5a47c7fd2e9e9636b37e85c20ad07d74a966904547cac90f143c5"
+    },
+    "before-state-metadata.json": {
+      "bytes": 1021712,
+      "sha256": "3cd8ff6429a5043d724e06aafada2709d35dcebe85d0764e4ce2ffcfa9498ee9"
+    },
+    "before-state-frames.json": {
+      "bytes": 118,
+      "sha256": "5f96b0beb83c003f896fbc4785043dd1c5034cd32d1f6e626ef824f2fa5b39f8"
+    },
+    "before-manifest.json": {
+      "bytes": 553,
+      "sha256": "512a808c7660985d78874ff7d015a266064f0a7bcf27af2548aa1fff2ba8aa0f"
+    },
+    "before-screen.json": {
+      "bytes": 167,
+      "sha256": "39f925882aaba2c51ae179d2d43e616a1052d2e0c395502fe488eb600b8968ae"
+    },
+    "before-capture.log": {
+      "bytes": 99,
+      "sha256": "fe13d5f1db0124f906a787b0aebcd48c7719a62dfb6b36a129223524d307a41f"
+    },
+    "after-screen.svg": {
+      "bytes": 65777,
+      "sha256": "fc49430ae042ec1e1238e2844d90e2d7a891930fb2ff6f87b163220f6200a327"
+    },
+    "after-state-metadata.json": {
+      "bytes": 1021712,
+      "sha256": "fdf22035b5228a282b11609e32bc9c94c8f4fc240b736f1b4598d3e8d30d8e96"
+    },
+    "after-remote.py": {
+      "bytes": 1404,
+      "sha256": "4df676c3da1b4f9365b8f3d7035abcbdc9c339262ad419b6f9b9e98c3a7cad68"
+    },
+    "after-manifest.json": {
+      "bytes": 551,
+      "sha256": "189c87993b7a404adacec88d6375d2c06a5e4a3511f4e6a8b7a044ed440ff7e0"
+    },
+    "after-state-frames.json": {
+      "bytes": 5596,
+      "sha256": "b77520a9a024fe49fee274858800f58cb3bd9d0b684185868a6d26bb0765624f"
+    },
+    "after-capture.log": {
+      "bytes": 98,
+      "sha256": "fdaf81f865ad8267a57bed7f16b6a3aeb347301521c2d4de5d93d2eb8d4c68c6"
+    },
+    "after-state.json": {
+      "bytes": 1021739,
+      "sha256": "a5568e2f0b452e2fc2998207dffd39622279745a475abf3cd17cc85e3292b0fe"
+    },
+    "after-state.pickle": {
+      "bytes": 389844,
+      "sha256": "a67c2eb21eb8a24991b65fb7c43e11c0f0065441769b352041f4a8adb61cbe43"
+    },
+    "after-screen.json": {
+      "bytes": 166,
+      "sha256": "81c32fd70fdbcf21b3768df14a9f92d8e0a2210de7b74f8386ff1fad82c189a0"
+    },
+    "frame-delivery.json": {
+      "bytes": 7381,
+      "sha256": "28ddedb4e07c807a43bd1cc2089344700dc80cd5afbcda4c1d73e6860f5e8376"
+    },
+    "frame-delivery.svg": {
+      "bytes": 1595,
+      "sha256": "ecc4019df28f0ea13cfc704285fab38143b7426a6dbd89e8002f41d80c260b3d"
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3033063,
+        "start_ticks": 48923147,
+        "returncode": 0
+      },
+      {
+        "pid": 3033160,
+        "start_ticks": 48923341,
+        "returncode": 0
+      },
+      {
+        "pid": 3033162,
+        "start_ticks": 48923352,
+        "returncode": 0
+      },
+      {
+        "pid": 3033163,
+        "start_ticks": 48923358,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 3033329,
+        "start_ticks": 48923435,
+        "returncode": 0
+      },
+      {
+        "pid": 3033344,
+        "start_ticks": 48923448,
+        "returncode": 0
+      },
+      {
+        "pid": 3033345,
+        "start_ticks": 48923458,
+        "returncode": 0
+      },
+      {
+        "pid": 3033346,
+        "start_ticks": 48923468,
+        "returncode": 255
+      },
+      {
+        "pid": 3033902,
+        "start_ticks": 48924670,
+        "returncode": 0
+      },
+      {
+        "pid": 3033907,
+        "start_ticks": 48924699,
+        "returncode": 0
+      },
+      {
+        "pid": 3033912,
+        "start_ticks": 48924742,
+        "returncode": 0
+      },
+      {
+        "pid": 3034693,
+        "start_ticks": 48925779,
+        "returncode": 0
+      },
+      {
+        "pid": 3034698,
+        "start_ticks": 48925808,
+        "returncode": 0
+      },
+      {
+        "pid": 3034712,
+        "start_ticks": 48925892,
+        "returncode": 0
+      },
+      {
+        "pid": 3034718,
+        "start_ticks": 48926070,
+        "returncode": 0
+      },
+      {
+        "pid": 3034721,
+        "start_ticks": 48926308,
+        "returncode": 0
+      }
+    ]
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "openhcs-helper",
+    "identity": {
+      "pid": 3031150,
+      "start_time": 48918685
+    },
+    "original_owner_alive": true
+  }
+}
