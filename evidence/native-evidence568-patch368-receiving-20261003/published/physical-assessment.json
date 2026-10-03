@@ -1,0 +1,31 @@
+{
+  "reviewed_at": 1791006920.7848084,
+  "scope": "Actual ordinary default saved-history launch in plain st on isolated display; personally inspected after.png",
+  "command": [
+    "/home/ts/bin/toad-comms",
+    "openhcs-helper"
+  ],
+  "display": ":2138",
+  "capture_duration_seconds": 23.848564163956326,
+  "recorder_tool_terminal": 0,
+  "terminal_exit": {
+    "pid": 2508054,
+    "start_ticks": 48240166,
+    "returncode": 0
+  },
+  "ffmpeg_capture_returncode": 255,
+  "saved_history_visible": true,
+  "chat_and_sidebar_ready": true,
+  "activity_bar_absent": true,
+  "original_owner_unchanged": true,
+  "published_runtime_unchanged": true,
+  "no_new_native_input_or_provider_request": true,
+  "remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "actual_affected_installed_gates": "Original568 native currentness/commit/appended-prefix/refusal and42MB reader;368 native prepared/fallback patch worker/App gates qualified in exact receiving union",
+  "does_not_prove": "fresh whole compaction speed; interactive queue; channel-wide timing; scrolling motion or144Hz",
+  "assessment_correction": "First parent postprocessing assertion wrongly required ffmpeg capture_returncode0; raw receipt255 is recorder stop, distinct from actual st0/recorder0. No application failure or repeated capture; raw receipt unchanged.",
+  "receipt_sha256": "c653aa01bea6d5de76938fbbb3cb28ce7614e679fc3145a7a2e3d7cb017f8ffe",
+  "after_png_sha256": "1d1ab36761692b1926376a39aa9b8acd1e1ad230d8c86035caace36de847ccfb",
+  "capture": "/home/ts/.cache/agent-scratch/published568368-helper-default-20261003/capture"
+}
