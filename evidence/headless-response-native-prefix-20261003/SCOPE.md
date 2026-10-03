@@ -1,0 +1,9 @@
+# Original response delivery data and native header ownership
+
+ResponseDelivery owns the admitted routing distinction and its semantic filter category. Its prefix/decorate hooks also construct Textual widgets and mutate native classes. The sole production native consumer is AgentResponse.__init__; ACP AgentContentEffect and saved transcript/outgoing producers create the original delivery data, not these widgets.
+
+Keep the existing ResponseDelivery/UnroutedResponse/RoutedResponse and original MessageRoute/MessageCategory contracts. Use the EXISTING AgentResponse and MroProjection to construct native divider/route-header resources and constructor classes from original nominal delivery cases. Delete prefix/decorate hooks and native imports from the data family in the same batch. No new projection class, generic frontend registry, route/status copy, compatibility hook or semantic cache. Existing Widget constructor keyword arguments are the native toolkit boundary, not a new wire format.
+
+Preserve routed styling even when divider is suppressed or caller overrides semantic category. Preserve recorded/live MessageClock and the same MessageRoute identity on RouteHeader. No new labels/case flags or re-derivation of routing from category. Heisenberg is contacted directly for AgentResponse constructor/handler claim before edits; viewport, body lifecycle, native theme/CSS/registration and receiving holder remain excluded.
+
+Source semantics and NRA AST cover declarations and every producer/native caller first. Then coherent source deletion/checkpoint; final one batched sanity and existing actual installed App message-divider/category fixture at the end. Detect lost route styling/header/currentness and native construction while core routing is imported. No new environment/native/provider/physical recording or repeated plan400 check. CI deferred; no full U2/U4/U5 or performance claim.
