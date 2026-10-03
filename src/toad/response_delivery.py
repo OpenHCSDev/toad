@@ -1,4 +1,4 @@
-"""The original response delivery owns routing and its rendering hooks."""
+"""Original response routing and semantic category, without native resources."""
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -9,8 +9,6 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.routing import MessageRoute
 
 if TYPE_CHECKING:
-    from textual.widget import Widget
-    from toad.widgets.message_divider import MessageClock
     from toad.widgets.message_filter import MessageCategory
 
 
@@ -24,12 +22,6 @@ class ResponseDelivery(DeclaredFamily, affix="Response"):
     @abstractmethod
     def category(self) -> type[MessageCategory]: ...
 
-    @abstractmethod
-    def prefix(self, clock: MessageClock) -> tuple[Widget, ...]: ...
-
-    def decorate(self, widget: Widget) -> None:
-        pass
-
 
 @dataclass(frozen=True)
 class UnroutedResponse(ResponseDelivery):
@@ -37,10 +29,6 @@ class UnroutedResponse(ResponseDelivery):
     def category(self):
         from toad.widgets.message_filter import AgentCategory
         return AgentCategory
-
-    def prefix(self, clock: MessageClock):
-        from toad.widgets.message_divider import MessageDivider
-        return (MessageDivider("Agent", clock=clock),)
 
 
 @dataclass(frozen=True)
@@ -51,13 +39,3 @@ class RoutedResponse(ResponseDelivery):
     def category(self):
         from toad.widgets.message_filter import OutboundCategory
         return OutboundCategory
-
-    def prefix(self, clock: MessageClock):
-        from toad.widgets.message_divider import MessageDivider
-        from toad.widgets.route_header import RouteHeader
-        return MessageDivider("Outbound", clock=clock), RouteHeader(self.route)
-
-    def decorate(self, widget):
-        widget.add_class("-routed")
-
-
