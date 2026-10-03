@@ -669,12 +669,17 @@ class SetMode(ANSICommand):
 class ShowCursorMode(TerminalMode, declared_name="25"):
     @classmethod
     def change(cls, state: TerminalState, enabled: bool) -> None:
+        if state.show_cursor != enabled:
+            state.buffer.update_line(state.buffer.cursor_line)
         state.show_cursor = enabled
 
 
 class AlternateScreenMode(TerminalMode, declared_name="1049"):
     @classmethod
     def change(cls, state: TerminalState, enabled: bool) -> None:
+        if state.alternate_screen != enabled:
+            state.scrollback_buffer._updated_lines = None
+            state.alternate_buffer._updated_lines = None
         state.alternate_screen = enabled
 
 
