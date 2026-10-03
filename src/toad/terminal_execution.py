@@ -52,10 +52,6 @@ class TerminalOutcome(DeclaredFamily, affix="TerminalOutcome"):
     def exit_status(self) -> protocol.TerminalExitStatus | None:
         return None  # Official ACP absence, never an internal lifecycle field.
 
-    def present(self, terminal, command) -> None:
-        pass
-
-
 class RunningTerminalOutcome(TerminalOutcome):
     """The original execution task has not returned a completion witness."""
 
@@ -74,15 +70,6 @@ class TerminalCompletion(TerminalOutcome):
 
     @abstractmethod
     def wait_response(self) -> protocol.WaitForTerminalExitResponse: ...
-
-    def present(self, terminal, command) -> None:
-        from textual.content import Content
-
-        terminal.finalize()
-        terminal.set_class(self.successful, "-success")
-        terminal.set_class(not self.successful, "-error")
-        if not self.successful:
-            terminal.border_title = Content(f"{command} [{self.label}]")
 
     @property
     @abstractmethod
@@ -149,14 +136,6 @@ class _TerminalCompletionDecoder(MroDispatch):
 class FailedTerminalOutcome(TerminalOutcome):
     error: BaseException
     finished = True
-
-    def present(self, terminal, command):
-        from textual.content import Content
-
-        terminal.finalize()
-        terminal.set_class(True, "-error")
-        terminal.border_title = Content(f"{command} [{self.error}]")
-
 
 @dataclass(frozen=True)
 class ToolState:

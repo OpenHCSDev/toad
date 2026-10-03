@@ -1,0 +1,855 @@
+{
+  "source": "0cfbc53753e94f96575a55b85cbbc8222ae7af3e",
+  "parser": "Existing NRA Package.load",
+  "modules": 286,
+  "omissions": [],
+  "definitions": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 41,
+      "class": "SurfaceBinding",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "owns",
+        "prepare",
+        "prepare_terminal",
+        "schedule_terminal_presentation",
+        "publish_terminal",
+        "post",
+        "close"
+      ]
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 67,
+      "class": "DetachedSurfaceBinding",
+      "bases": [
+        "SurfaceBinding"
+      ],
+      "methods": [
+        "post"
+      ]
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 16,
+      "class": "PermissionRequest",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "__init__",
+        "pending",
+        "options",
+        "presentation",
+        "answer",
+        "cancel",
+        "watch",
+        "projected_on",
+        "detach",
+        "_completed",
+        "wait"
+      ]
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 67,
+      "class": "ToolPermissionRequest",
+      "bases": [
+        "PermissionRequest"
+      ],
+      "methods": [
+        "__init__",
+        "options",
+        "presentation"
+      ]
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 82,
+      "class": "PermissionController",
+      "bases": [
+        "ClientRequestOwner"
+      ],
+      "methods": [
+        "__init__",
+        "pending",
+        "request",
+        "present",
+        "detach",
+        "cancel",
+        "resolve",
+        "request_permission"
+      ]
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 7,
+      "class": "AttachedSurfaceBinding",
+      "bases": [
+        "SurfaceBinding"
+      ],
+      "methods": [
+        "__init__",
+        "prepare",
+        "prepare_terminal",
+        "schedule_terminal_presentation",
+        "close",
+        "target",
+        "post",
+        "publish_terminal",
+        "owns_terminal",
+        "present_terminal"
+      ]
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 12,
+      "class": "PermissionPresentation",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "from_acp",
+        "admit",
+        "present",
+        "show"
+      ]
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 42,
+      "class": "DiffPermissionPresentation",
+      "bases": [
+        "PermissionPresentation"
+      ],
+      "methods": [
+        "__init__",
+        "admit",
+        "show"
+      ]
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 74,
+      "class": "InlinePermissionPresentation",
+      "bases": [
+        "PermissionPresentation"
+      ],
+      "methods": [
+        "admit",
+        "show"
+      ]
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 48,
+      "class": "TerminalOutcome",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "exit_status",
+        "present"
+      ]
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 72,
+      "class": "TerminalCompletion",
+      "bases": [
+        "TerminalOutcome"
+      ],
+      "methods": [
+        "wait_response",
+        "present",
+        "label",
+        "capture"
+      ]
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 149,
+      "class": "FailedTerminalOutcome",
+      "bases": [
+        "TerminalOutcome"
+      ],
+      "methods": [
+        "present"
+      ]
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 332,
+      "class": "TerminalExecution",
+      "bases": [],
+      "methods": [
+        "__init__",
+        "command",
+        "outcome",
+        "tool_state",
+        "attach",
+        "detach",
+        "project",
+        "update_size",
+        "close",
+        "kill",
+        "wait_for_exit",
+        "custody",
+        "start",
+        "run",
+        "write_stdin",
+        "_record_output",
+        "get_output"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 17,
+      "class": "TerminalTool",
+      "bases": [
+        "Terminal"
+      ],
+      "methods": [
+        "__init__",
+        "on_mount",
+        "on_unmount",
+        "resize_process",
+        "present_execution"
+      ]
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 93,
+      "expression": "PermissionController",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 67,
+      "expression": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 94,
+      "expression": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 94,
+      "expression": "DetachedSurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 114,
+      "expression": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 131,
+      "expression": "DetachedSurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 67,
+      "expression": "PermissionRequest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 126,
+      "expression": "answer",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 85,
+      "expression": "PermissionRequest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 93,
+      "expression": "ToolPermissionRequest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 71,
+      "expression": "PermissionPresentation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 127,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 37,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 38,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 129,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 37,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 72,
+      "expression": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 43,
+      "expression": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 34,
+      "expression": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 7,
+      "expression": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 63,
+      "expression": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 57,
+      "expression": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 44,
+      "expression": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 42,
+      "expression": "PermissionPresentation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 74,
+      "expression": "PermissionPresentation",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 97,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 105,
+      "expression": "request.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 31,
+      "expression": "request.projected_on",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 64,
+      "expression": "request.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 66,
+      "expression": "request.answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 91,
+      "expression": "request.answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 91,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 96,
+      "expression": "answer",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 92,
+      "expression": "answer",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 97,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 92,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 74,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 75,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 189,
+      "expression": "event.answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 59,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 63,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 67,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 72,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 99,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 118,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 149,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 92,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 134,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 165,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 221,
+      "expression": "TerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 235,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 270,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 286,
+      "expression": "FailedTerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 371,
+      "expression": "terminal.present_execution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 290,
+      "expression": "FailedTerminalOutcome",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 435,
+      "expression": "TerminalCompletion",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 81,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 332,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1326,
+      "expression": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1669,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1712,
+      "expression": "details.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1715,
+      "expression": "details.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 380,
+      "expression": "AttachedSurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1327,
+      "expression": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1514,
+      "expression": "self.request_permissions",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1719,
+      "expression": "details.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 103,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 104,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 106,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 766,
+      "expression": "event.answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 162,
+      "expression": "answer",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 216,
+      "expression": "answer",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 229,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 220,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 230,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 220,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 219,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 225,
+      "expression": "answer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 61,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 63,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 65,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 66,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_viewport.py",
+      "line": 23,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 22,
+      "expression": "AttachedSurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 25,
+      "expression": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 34,
+      "expression": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 340,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 193,
+      "expression": "self.watch",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 620,
+      "expression": "window.watch",
+      "context": "Load"
+    }
+  ],
+  "native_dependency_decisions": [
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 31,
+      "kind": "If",
+      "source": "if not request.pending or request.projected_on(view) or (not request.controller.agent.controller.surface.owns(view)):\n    return"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 56,
+      "kind": "ImportFrom",
+      "source": "from toad.screens.permissions import PermissionReview"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 83,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.acp_content import ACPToolCallContent"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 31,
+      "kind": "Call",
+      "source": "request.projected_on(view)"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 32,
+      "kind": "Call",
+      "source": "request.controller.agent.controller.surface.owns(view)"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 79,
+      "kind": "ImportFrom",
+      "source": "from textual.content import Content"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 84,
+      "kind": "If",
+      "source": "if not self.successful:\n    terminal.border_title = Content(f'{command} [{self.label}]')"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 154,
+      "kind": "ImportFrom",
+      "source": "from textual.content import Content"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 158,
+      "kind": "Assign",
+      "source": "terminal.border_title = Content(f'{command} [{self.error}]')"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 81,
+      "kind": "Call",
+      "source": "terminal.finalize()"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 82,
+      "kind": "Call",
+      "source": "terminal.set_class(self.successful, '-success')"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 83,
+      "kind": "Call",
+      "source": "terminal.set_class(not self.successful, '-error')"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 85,
+      "kind": "Assign",
+      "source": "terminal.border_title = Content(f'{command} [{self.label}]')"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 156,
+      "kind": "Call",
+      "source": "terminal.finalize()"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 157,
+      "kind": "Call",
+      "source": "terminal.set_class(True, '-error')"
+    }
+  ],
+  "limits": [
+    "Lexical AST does not resolve arbitrary dynamic dispatch. Read existingMroDispatch and request/PTY custody source semantically; actual installed path is final validation."
+  ]
+}

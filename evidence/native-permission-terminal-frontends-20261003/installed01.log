@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-permission-terminal-frontends-20261003/installed_native_views.py", line 129, in <module>
+    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    fixture_stage=os.environ['U356_FIXTURE_ROOT'], provider_request_budget=0))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 113, in main
+    verify_native_package(package)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/lib/python3.14/site-packages/agent_comms/native_package.py", line 126, in verify_native_package
+    raise NativePackageError("Native package tree differs from pinned artifact")
+agent_comms.native_package.NativePackageError: Native package tree differs from pinned artifact

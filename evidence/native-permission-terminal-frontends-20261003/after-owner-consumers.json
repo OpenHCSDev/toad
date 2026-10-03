@@ -1,0 +1,1478 @@
+{
+  "roots": [
+    {
+      "checkout": "/home/ts/wt/toad-regression-widget-cost-20261001",
+      "revision": "13177f6efdcfbd4b373d4f7135df50cd6f3d6d5f",
+      "root": "src/toad",
+      "parsed": 286,
+      "omissions": [],
+      "records": [
+        {
+          "file": "src/toad/acp/agent.py",
+          "line": 251,
+          "kind": "consumer",
+          "reference": "consumer.dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/agent_configuration.py",
+          "line": 12,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/acp/agent_configuration.py",
+          "line": 17,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/acp/agent_configuration.py",
+          "line": 99,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/acp/agent_configuration.py",
+          "line": 22,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/agent_configuration.py",
+          "line": 139,
+          "kind": "consumer",
+          "reference": "decoder.dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/agent_controller.py",
+          "line": 53,
+          "kind": "declaration",
+          "source": "async def present_permission(self, request, view) -> None:\n    \"\"\"An absent frontend never acquires a permission projection.\"\"\""
+        },
+        {
+          "file": "src/toad/acp/agent_controller.py",
+          "line": 340,
+          "kind": "consumer",
+          "reference": "consumer.dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/comms_updates.py",
+          "line": 27,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/acp/comms_updates.py",
+          "line": 33,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/acp/notification_items.py",
+          "line": 3,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/acp/notification_items.py",
+          "line": 6,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 11,
+          "kind": "import",
+          "reference": "from toad.permission_presentation import PermissionPresentation"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 16,
+          "kind": "declaration",
+          "source": "class PermissionRequest(DeclaredFamily, affix='PermissionRequest'):\n\n    def __init__(self, controller):\n        self.controller = controller\n        self.future = asyncio.get_running_loop().create_future()\n        self._projections = {}\n        self.future.add_done_callback(self._completed)\n\n    @property\n    def pending(self):\n        return not self.future.done()\n\n    @property\n    @abstractmethod\n    def options(self) -> list[Answer]:\n        ...\n\n    @property\n    @abstractmethod\n    def presentation(self):\n        ...\n\n    def answer(self, binding, answer):\n        if self.pending and self.controller.agent.controller.surface is binding:\n            if answer is None or any((option.id == answer.id for option in self.options)):\n                self.future.set_result(answer)\n\n    def cancel(self):\n        if self.pending:\n            self.future.set_result(None)\n\n    def watch(self, surface, retire):\n        self._projections.setdefault(surface, []).append(retire)\n\n    def projected_on(self, surface):\n        \"\"\"The acquired native projections own their presence.\"\"\"\n        return surface in self._projections\n\n    def detach(self, surface):\n        for retire in self._projections.pop(surface, ()):\n            retire()\n\n    def _completed(self, future):\n        self.controller.requests.discard(self)\n        for surface in tuple(self._projections):\n            self.detach(surface)\n\n    async def wait(self, timeout):\n        try:\n            return await asyncio.wait_for(self.future, timeout)\n        except TimeoutError:\n            return None"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 67,
+          "kind": "declaration",
+          "source": "class ToolPermissionRequest(PermissionRequest):\n\n    def __init__(self, controller, options, tool_call):\n        super().__init__(controller)\n        self._options = [Answer(option.name, option.option_id, option.kind) for option in options]\n        self._presentation = PermissionPresentation.from_acp(tool_call)\n\n    @property\n    def options(self):\n        return self._options\n\n    @property\n    def presentation(self):\n        return self._presentation"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 67,
+          "kind": "consumer",
+          "reference": "PermissionRequest"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 85,
+          "kind": "consumer",
+          "reference": "PermissionRequest"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 93,
+          "kind": "consumer",
+          "reference": "ToolPermissionRequest"
+        },
+        {
+          "file": "src/toad/acp/permission_controller.py",
+          "line": 71,
+          "kind": "consumer",
+          "reference": "PermissionPresentation"
+        },
+        {
+          "file": "src/toad/acp/sdk_boundary.py",
+          "line": 37,
+          "kind": "consumer",
+          "reference": "NotificationItems(update).dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 16,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 23,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 79,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 34,
+          "kind": "consumer",
+          "reference": "UserContentEffect(self.agent, self.route).dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 38,
+          "kind": "consumer",
+          "reference": "AgentContentEffect(self.agent, self.route).dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 42,
+          "kind": "consumer",
+          "reference": "ThoughtContentEffect(self.agent, self.route).dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 162,
+          "kind": "consumer",
+          "reference": "effect.dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 161,
+          "kind": "consumer",
+          "reference": "consumer.dispatch_sync"
+        },
+        {
+          "file": "src/toad/acp/session_updates.py",
+          "line": 29,
+          "kind": "consumer",
+          "reference": "self.handlers_for"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 6,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 8,
+          "kind": "import",
+          "reference": "from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 10,
+          "kind": "declaration",
+          "source": "class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):\n\n    def __init__(self, target, events):\n        self._target = ref(target)\n        self.subscription = target.subscribe_core(events)\n\n    def prepare(self, controller) -> None:\n        app = self.target.app\n        controller.transcripts = controller.transcripts.with_runtime(app.preparation, app.coordination_access)\n        controller.validation = ApplicationValidationOwner(app.render_processes)\n\n    def prepare_terminal(self, state) -> None:\n        target = self.target\n        if target is not None:\n            state.update_size(*target.get_terminal_dimensions())\n\n    async def present_permission(self, request, view) -> None:\n        if not request.pending or request.projected_on(view) or (not self.owns(view)) or (request.controller.agent.controller.surface is not self):\n            return\n        view.refresh_bindings()\n        await self.dispatch(request.presentation, view, request)\n\n    @handles(DiffPermissionPresentation)\n    async def show_file_permission(self, presentation, view, request):\n        from toad.screens.permissions import PermissionReview\n        screen = PermissionReview(request, view, presentation.diffs, self)\n        app = view.app\n        try:\n            app.terminal_attention.require(screen)\n            app.terminal_attention.notify(f'{view.agent_title} would like to write files', title='Permissions request', sound='question')\n            request.watch(view, screen.retire)\n            result = await app.push_screen_wait(screen, mode=view.screen.id)\n            request.answer(self, result)\n        finally:\n            app.terminal_attention.release(screen)\n            if request.controller.agent.controller.surface is self:\n                view.refresh_bindings()\n\n    @handles(InlinePermissionPresentation)\n    async def show_inline_permission(self, presentation, view, request):\n        from toad.widgets.acp_content import ACPToolCallContent\n        from toad.tool_output import decode_content\n        parts = tuple((preview for item in presentation.parts if (preview := decode_content(item).permission_preview()) is not None))\n\n        def answer(answer):\n            if request.controller.agent.controller.surface is not self:\n                return\n            request.answer(self, answer)\n            if not view.prompt.ask_queue:\n                view.refresh_bindings()\n        ask = view.ask(request.options, presentation.title, partial(ACPToolCallContent, parts) if parts else None, answer)\n\n        def retire():\n            if view.is_attached:\n                view.prompt.remove_ask(ask)\n                if view.prompt._ask is None:\n                    view.refresh_bindings()\n        request.watch(view, retire)\n\n    def schedule_terminal_presentation(self, controller):\n        if (target := self.target) is not None:\n            target.call_later(controller.start_terminal_presentation, target)\n\n    def close(self) -> None:\n        if (target := self.target) is not None:\n            target.retire_core(self.subscription)\n        else:\n            self.subscription.close()\n\n    @property\n    def target(self):\n        return self._target()\n\n    def post(self, message):\n        target = self.target\n        return target.post_message(message) if target is not None else False\n\n    def publish_terminal(self, controller, terminal_id, execution):\n        from toad.widgets.terminal_tool import TerminalTool\n        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))\n\n    def owns_terminal(self, projection, target):\n        \"\"\"Same original surface, controller lifetime and acquired address.\"\"\"\n        if not self.owns(target):\n            return False\n        return projection.controller.owner.owns_terminal_projection(self, projection)\n\n    async def present_terminal(self, projection, target):\n        if not self.owns_terminal(projection, target):\n            return\n        from toad.widgets.terminal_tool import TerminalTool\n        if (existing := target.query_one_optional(f'#{projection.terminal_id}', TerminalTool)):\n            if existing.execution is projection.execution:\n                return\n            await existing.remove()\n            if not self.owns_terminal(projection, target):\n                return\n        terminal = TerminalTool(projection.execution, id=projection.terminal_id)\n        await target.post(terminal)\n        if not self.owns_terminal(projection, target):\n            await terminal.remove()"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 10,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 26,
+          "kind": "declaration",
+          "source": "async def present_permission(self, request, view) -> None:\n    if not request.pending or request.projected_on(view) or (not self.owns(view)) or (request.controller.agent.controller.surface is not self):\n        return\n    view.refresh_bindings()\n    await self.dispatch(request.presentation, view, request)"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 98,
+          "kind": "import",
+          "reference": "from toad.widgets.terminal_tool import TerminalTool"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 110,
+          "kind": "import",
+          "reference": "from toad.widgets.terminal_tool import TerminalTool"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 33,
+          "kind": "consumer",
+          "reference": "DiffPermissionPresentation"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 51,
+          "kind": "consumer",
+          "reference": "InlinePermissionPresentation"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 118,
+          "kind": "consumer",
+          "reference": "TerminalTool"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 31,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 112,
+          "kind": "consumer",
+          "reference": "TerminalTool"
+        },
+        {
+          "file": "src/toad/agent_surface.py",
+          "line": 99,
+          "kind": "consumer",
+          "reference": "TerminalTool"
+        },
+        {
+          "file": "src/toad/app.py",
+          "line": 467,
+          "kind": "consumer",
+          "reference": "FrameDisplay().dispatch_sync"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 10,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 114,
+          "kind": "declaration",
+          "source": "class ContextProjection(MroDispatch):\n    \"\"\"A leaf projection returns display data rather than mutating an event.\"\"\"\n\n    def consume_handlers_sync(self, value, handlers, *args, **kwargs):\n        return next(iter(handlers))(value, *args, **kwargs)"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 114,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 116,
+          "kind": "declaration",
+          "source": "def consume_handlers_sync(self, value, handlers, *args, **kwargs):\n    return next(iter(handlers))(value, *args, **kwargs)"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 120,
+          "kind": "consumer",
+          "reference": "ContextProjection"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 157,
+          "kind": "consumer",
+          "reference": "ContextProjection"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 111,
+          "kind": "consumer",
+          "reference": "NativeDetail().dispatch_sync"
+        },
+        {
+          "file": "src/toad/core/context_inspection.py",
+          "line": 242,
+          "kind": "consumer",
+          "reference": "SegmentNodes(f'native/{context.identity.session_id}/{i}/{segment.declared_name}/{segment.sha256}').dispatch_sync"
+        },
+        {
+          "file": "src/toad/core_event_carrier.py",
+          "line": 3,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch"
+        },
+        {
+          "file": "src/toad/core_event_carrier.py",
+          "line": 37,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/core_event_carrier.py",
+          "line": 59,
+          "kind": "declaration",
+          "source": "async def consume_handlers(self, message, handlers):\n    for handler in handlers:\n        await invoke(handler, message)\n    return message"
+        },
+        {
+          "file": "src/toad/core_event_carrier.py",
+          "line": 13,
+          "kind": "consumer",
+          "reference": "receiver.consume_handlers"
+        },
+        {
+          "file": "src/toad/core_event_carrier.py",
+          "line": 13,
+          "kind": "consumer",
+          "reference": "receiver.handlers_for"
+        },
+        {
+          "file": "src/toad/frame_presentation.py",
+          "line": 12,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/frame_presentation.py",
+          "line": 191,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/permission_presentation.py",
+          "line": 11,
+          "kind": "declaration",
+          "source": "@dataclass\nclass PermissionPresentation(DeclaredFamily, affix='PermissionPresentation'):\n    priority = 0\n    title: str\n\n    @classmethod\n    def from_acp(cls, tool_call):\n        \"\"\"Decode the external ACP choice once, at request admission.\"\"\"\n        content = tool_call.content or []\n        title = tool_call.title or ''\n        for member in sorted(cls.members_with(cls), key=lambda member: member.priority, reverse=True):\n            if (presentation := member.admit(tool_call.kind, title, content)) is not None:\n                return presentation\n        raise ValueError('No permission presentation admitted the ACP request')\n\n    @classmethod\n    @abstractmethod\n    def admit(cls, kind, title, content):\n        ..."
+        },
+        {
+          "file": "src/toad/permission_presentation.py",
+          "line": 29,
+          "kind": "declaration",
+          "source": "class DiffPermissionPresentation(PermissionPresentation):\n\n    def __init__(self, title, diffs):\n        super().__init__(title)\n        self.diffs = diffs\n\n    @classmethod\n    def admit(cls, kind, title, content):\n        if kind != 'edit' and (not all((isinstance(item, FileEditToolCallContent) for item in content))):\n            return None\n        records = [item for item in content if isinstance(item, FileEditToolCallContent)]\n        diffs = [(item.path, item.path, item.old_text, item.new_text) for item in records]\n        return cls(title, diffs) if diffs else None"
+        },
+        {
+          "file": "src/toad/permission_presentation.py",
+          "line": 43,
+          "kind": "declaration",
+          "source": "@dataclass\nclass InlinePermissionPresentation(PermissionPresentation):\n    priority = -1\n    parts: tuple[ContentToolCallContent | FileEditToolCallContent | TerminalToolCallContent, ...]\n\n    @classmethod\n    def admit(cls, kind, title, content):\n        return cls(title, tuple(content))"
+        },
+        {
+          "file": "src/toad/permission_presentation.py",
+          "line": 29,
+          "kind": "consumer",
+          "reference": "PermissionPresentation"
+        },
+        {
+          "file": "src/toad/permission_presentation.py",
+          "line": 43,
+          "kind": "consumer",
+          "reference": "PermissionPresentation"
+        },
+        {
+          "file": "src/toad/render_tasks.py",
+          "line": 11,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/render_tasks.py",
+          "line": 65,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/render_tasks.py",
+          "line": 80,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/toad/screens/main.py",
+          "line": 11,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/screens/main.py",
+          "line": 585,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/screens/main.py",
+          "line": 347,
+          "kind": "consumer",
+          "reference": "ScreenCommsConsumer(self).dispatch"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 26,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 48,
+          "kind": "declaration",
+          "source": "class TerminalOutcome(DeclaredFamily, affix='TerminalOutcome'):\n    finished = False\n    successful = False\n\n    def exit_status(self) -> protocol.TerminalExitStatus | None:\n        return None"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 68,
+          "kind": "declaration",
+          "source": "class TerminalCompletion(TerminalOutcome):\n    finished = True\n\n    @abstractmethod\n    def wait_response(self) -> protocol.WaitForTerminalExitResponse:\n        ...\n\n    @property\n    @abstractmethod\n    def label(self) -> str:\n        ...\n\n    @classmethod\n    def capture(cls, original: ChildOutcome) -> TerminalCompletion:\n        return _TerminalCompletionDecoder(original).completion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 136,
+          "kind": "declaration",
+          "source": "@dataclass(frozen=True)\nclass FailedTerminalOutcome(TerminalOutcome):\n    error: BaseException\n    finished = True"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 55,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 59,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 63,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 68,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 86,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 105,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 119,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 136,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 79,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 121,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 144,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 200,
+          "kind": "consumer",
+          "reference": "TerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 214,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 249,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 124,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 265,
+          "kind": "consumer",
+          "reference": "FailedTerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 350,
+          "kind": "consumer",
+          "reference": "terminal.present_execution"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 269,
+          "kind": "consumer",
+          "reference": "FailedTerminalOutcome"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 414,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/tool_output.py",
+          "line": 25,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/tool_output.py",
+          "line": 279,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/tool_output.py",
+          "line": 311,
+          "kind": "consumer",
+          "reference": "decoder.dispatch_sync"
+        },
+        {
+          "file": "src/toad/tool_output.py",
+          "line": 286,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/toad/tool_output.py",
+          "line": 294,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/toad/web_server.py",
+          "line": 45,
+          "kind": "declaration",
+          "source": "async def dispatch(self, request: web.Request, handler: Handler) -> web.StreamResponse:\n    return self.secure(await self.respond(request, handler))"
+        },
+        {
+          "file": "src/toad/web_server.py",
+          "line": 176,
+          "kind": "consumer",
+          "reference": "self.authentication.decode(request).dispatch"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 42,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 69,
+          "kind": "import",
+          "reference": "from toad.widgets.terminal_tool import TerminalTool"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1608,
+          "kind": "declaration",
+          "source": "@work\nasync def request_permissions(self, request) -> None:\n    await request.controller.agent.controller.surface.present_permission(request, self)"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 2164,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 2229,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 378,
+          "kind": "import",
+          "reference": "from toad.agent_surface import AttachedSurfaceBinding"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1326,
+          "kind": "consumer",
+          "reference": "TerminalTool"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 380,
+          "kind": "consumer",
+          "reference": "AttachedSurfaceBinding"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1327,
+          "kind": "consumer",
+          "reference": "TerminalTool"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1514,
+          "kind": "consumer",
+          "reference": "self.request_permissions"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1609,
+          "kind": "consumer",
+          "reference": "request.controller.agent.controller.surface.present_permission"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 1731,
+          "kind": "consumer",
+          "reference": "ConversationCommsConsumer(self, event).dispatch"
+        },
+        {
+          "file": "src/toad/widgets/conversation.py",
+          "line": 2213,
+          "kind": "consumer",
+          "reference": "CompactionRenderer(self.conversation).dispatch"
+        },
+        {
+          "file": "src/toad/widgets/message_filter.py",
+          "line": 6,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/widgets/message_filter.py",
+          "line": 112,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/widgets/message_filter.py",
+          "line": 147,
+          "kind": "consumer",
+          "reference": "consumer.dispatch_sync"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 9,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 10,
+          "kind": "import",
+          "reference": "from toad.terminal_execution import TerminalExecution, TerminalCompletion, FailedTerminalOutcome, RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 21,
+          "kind": "declaration",
+          "source": "class TerminalTool(Terminal, MroDispatch):\n\n    @dataclass\n    class Projection(Message):\n        \"\"\"A native render request borrows its original acquired resources.\"\"\"\n        binding: AttachedSurfaceBinding\n        controller: TerminalController\n        terminal_id: str\n        execution: TerminalExecution\n    DEFAULT_CSS = '\\n    TerminalTool {\\n        height: auto;\\n        border: panel $text-primary;\\n    }\\n    '\n\n    def __init__(self, execution: TerminalExecution, *, id: str) -> None:\n        self.execution = execution\n        super().__init__(id=id, size=(execution.state.width, execution.state.height))\n        self.border_title = Content(str(execution.command))\n\n    def on_mount(self) -> None:\n        super().on_mount()\n        self.execution.attach(self)\n\n    def on_unmount(self) -> None:\n        self.execution.detach(self)\n\n    def resize_process(self, width: int, height: int) -> None:\n        self.execution.update_size(width, height)\n\n    def present_execution(self) -> None:\n        self.project_state(None, None)\n        self.dispatch_sync(self.execution.outcome)\n\n    @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)\n    def present_pending(self, outcome) -> None:\n        \"\"\"These original outcomes have no completion border to draw.\"\"\"\n\n    @handles(TerminalCompletion)\n    def present_completion(self, outcome) -> None:\n        self.finalize()\n        self.set_class(outcome.successful, '-success')\n        self.set_class(not outcome.successful, '-error')\n        if not outcome.successful:\n            self.border_title = Content(f'{self.execution.command} [{outcome.label}]')\n\n    @handles(FailedTerminalOutcome)\n    def present_failure(self, outcome) -> None:\n        self.finalize()\n        self.set_class(True, '-error')\n        self.border_title = Content(f'{self.execution.command} [{outcome.error}]')"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 17,
+          "kind": "import",
+          "reference": "from toad.agent_surface import AttachedSurfaceBinding"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 21,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 53,
+          "kind": "declaration",
+          "source": "def present_execution(self) -> None:\n    self.project_state(None, None)\n    self.dispatch_sync(self.execution.outcome)"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 26,
+          "kind": "consumer",
+          "reference": "AttachedSurfaceBinding"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 61,
+          "kind": "consumer",
+          "reference": "TerminalCompletion"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 69,
+          "kind": "consumer",
+          "reference": "FailedTerminalOutcome"
+        },
+        {
+          "file": "src/toad/widgets/terminal_tool.py",
+          "line": 55,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/toad/widgets/transcript_fragments.py",
+          "line": 9,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/widgets/transcript_fragments.py",
+          "line": 157,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/widgets/transcript_fragments.py",
+          "line": 197,
+          "kind": "consumer",
+          "reference": "consumer.dispatch_sync"
+        },
+        {
+          "file": "src/toad/widgets/transcript_history.py",
+          "line": 17,
+          "kind": "import",
+          "reference": "from agent_comms.mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/toad/widgets/transcript_history.py",
+          "line": 68,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/toad/widgets/transcript_history.py",
+          "line": 137,
+          "kind": "consumer",
+          "reference": "consumer.dispatch_sync"
+        },
+        {
+          "file": "src/toad/widgets/transcript_history.py",
+          "line": 208,
+          "kind": "consumer",
+          "reference": "preparation.dispatch"
+        }
+      ]
+    },
+    {
+      "checkout": "/home/ts/wt/comms-retained-human-main-20261001",
+      "revision": "7926d83fc72d4abddf4040511503f16b67f4c79a",
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "omissions": [],
+      "records": [
+        {
+          "file": "src/agent_comms/acp.py",
+          "line": 476,
+          "kind": "consumer",
+          "reference": "AcpEventConsumer(self, session_id, client, turn_id, route).dispatch"
+        },
+        {
+          "file": "src/agent_comms/acp_request_consumer.py",
+          "line": 23,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/backend.py",
+          "line": 642,
+          "kind": "consumer",
+          "reference": "self.admission.dispatch"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 448,
+          "kind": "consumer",
+          "reference": "parent.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 104,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 427,
+          "kind": "consumer",
+          "reference": "imports.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 466,
+          "kind": "consumer",
+          "reference": "reference.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/delivery_failure.py",
+          "line": 28,
+          "kind": "consumer",
+          "reference": "decoder.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 29,
+          "kind": "declaration",
+          "source": "class DurableTurn(MroDispatch):\n\n    def __init__(self, attempts: AttemptStore, fence, pointer_revision, input_id):\n        self.attempts = attempts\n        self.fence = fence\n        self.pointer_revision = pointer_revision\n        self.input_id = input_id\n\n    @contextmanager\n    def using_attempts(self, attempts):\n        \"\"\"Borrow only this operation's connection; keep the original fence owner.\"\"\"\n        original = self.attempts\n        self.attempts = attempts\n        try:\n            yield\n        finally:\n            self.attempts = original\n\n    async def consume_handlers(self, event, handlers):\n        return await Coordination.run_async(self.attempts.session.path, partial(self.observe_owned, event, handlers))\n\n    def observe_owned(self, event, handlers, resource):\n        \"\"\"Consume one native observation through joined, worker-owned SQLite.\"\"\"\n        with self.using_attempts(resource.attempts):\n            return self.consume_handlers_sync(event, handlers)\n\n    @property\n    def current(self):\n        return type(self.attempts.require_fence(self.fence)[1].lifecycle)\n\n    @property\n    def model_started(self):\n        return self.current.has_model_context\n\n    def advance(self, state):\n        if state is self.current:\n            return\n        result = self.attempts.advance(self.fence, state, expected_pointer_revision=self.pointer_revision, progress=True).value\n        self.fence = result.fence\n\n    @handles(pi.Response)\n    def accepted(self, event):\n        if event.id == 'native-prompt' and event.success and self.current.starting:\n            self.advance(PromptAcceptedAttempt)\n\n    @handles(pi.ContextCommitted)\n    def context(self, event):\n        if event.input_id != self.input_id or self.model_started:\n            return\n        if self.current.starting:\n            self.advance(PromptAcceptedAttempt)\n        self.advance(ModelRunningAttempt)\n\n    @handles(NativePhaseChanged)\n    def excursion(self, event):\n        if self.model_started:\n            self.dispatch_sync(event.phase)\n\n    @handles(ModelWaitPhase)\n    def model(self, phase):\n        self.advance(ModelRunningAttempt)\n\n    @handles(ToolRunningPhase)\n    def tool(self, phase):\n        self.advance(ToolRunningAttempt)\n\n    @handles(CompactionPhase)\n    def compaction(self, phase):\n        self.advance(CompactionAttempt)\n\n    def finish(self):\n        \"\"\"Native child is reaped and any explicit owner effect has completed.\"\"\"\n        if not self.model_started:\n            raise IdentityConflict('native completion lacks model progress')\n        self.fence = self.attempts.advance(self.fence, SettlingAttempt, expected_pointer_revision=self.pointer_revision, backend_done=True, process_dead=True, progress=True).value.fence\n        return self.fence\n\n    def fail_unknown(self):\n        \"\"\"Retire the reaped local backend without granting acceptance or replay.\n\n        The caller holds the live registry owner boundary. Native execution has\n        returned through child/tool cleanup; possible remote effects stay UNKNOWN.\n        Coordination owns the atomic replay/finality/slot mutation.\n        \"\"\"\n        return self.attempts.fail_unknown(self.fence, expected_pointer_revision=self.pointer_revision).value\n\n    def fail_terminal(self):\n        \"\"\"Settle the corroborated failed input after its native child is reaped.\"\"\"\n        final = self.attempts.advance(self.fence, self.current, expected_pointer_revision=self.pointer_revision, backend_done=True, process_dead=True, reason_code='native_terminal_failure').value\n        return self.attempts.settle_nonpublication(final.fence, expected_pointer_revision=final.snapshot.pointer_revision, outcome=AttemptFailedAttempt(), reason_code='native_terminal_failure').value"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 46,
+          "kind": "declaration",
+          "source": "async def consume_handlers(self, event, handlers):\n    return await Coordination.run_async(self.attempts.session.path, partial(self.observe_owned, event, handlers))"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 51,
+          "kind": "declaration",
+          "source": "def observe_owned(self, event, handlers, resource):\n    \"\"\"Consume one native observation through joined, worker-owned SQLite.\"\"\"\n    with self.using_attempts(resource.attempts):\n        return self.consume_handlers_sync(event, handlers)"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 54,
+          "kind": "consumer",
+          "reference": "self.consume_handlers_sync"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 91,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 48,
+          "kind": "consumer",
+          "reference": "self.observe_owned"
+        },
+        {
+          "file": "src/agent_comms/input_drain.py",
+          "line": 600,
+          "kind": "consumer",
+          "reference": "item.dispatch"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 21,
+          "kind": "declaration",
+          "source": "class MroDispatch:\n    \"\"\"Invoke specific handlers before base handlers; consumer overrides win.\n\n    The method declarations are the authority. No global registry, registration\n    order, or event-name roster participates in dispatch. A diamond ancestor is\n    visited once by Python's MRO. A returned replacement flows to later handlers.\n    \"\"\"\n\n    def handlers_for(self, value: Any):\n        methods: dict[str, Any] = {}\n        for owner in type(self).__mro__:\n            for name, method in vars(owner).items():\n                methods.setdefault(name, method)\n        for capability in type(value).__mro__:\n            for name, method in methods.items():\n                if capability in getattr(method, '__handled_classes__', ()):\n                    yield getattr(self, name)\n\n    async def dispatch(self, value: Any) -> Any:\n        handlers = tuple(self.handlers_for(value))\n        if not handlers:\n            return value\n        return await self.consume_handlers(value, handlers)\n\n    async def consume_handlers(self, value: Any, handlers: Iterable[Handler]) -> Any:\n        \"\"\"Consume the selected declarations inside the consumer's resource lifetime.\"\"\"\n        for handler in handlers:\n            value = self.replace_value(value, await handler(value))\n        return value\n\n    def dispatch_sync(self, value: Any) -> Any:\n        \"\"\"Consume saved presentation facts without introducing an event loop.\"\"\"\n        return self.consume_handlers_sync(value, self.handlers_for(value))\n\n    def consume_handlers_sync(self, value: Any, handlers: Iterable[Handler]) -> Any:\n        for handler in handlers:\n            value = self.replace_value(value, handler(value))\n        return value\n\n    @staticmethod\n    def replace_value(value: Any, replacement: Any) -> Any:\n        if replacement is None:\n            return value\n        if type(replacement) is not type(value):\n            raise TypeError('A dispatch replacement must preserve event identity')\n        return replacement"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 29,
+          "kind": "declaration",
+          "source": "def handlers_for(self, value: Any):\n    methods: dict[str, Any] = {}\n    for owner in type(self).__mro__:\n        for name, method in vars(owner).items():\n            methods.setdefault(name, method)\n    for capability in type(value).__mro__:\n        for name, method in methods.items():\n            if capability in getattr(method, '__handled_classes__', ()):\n                yield getattr(self, name)"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 39,
+          "kind": "declaration",
+          "source": "async def dispatch(self, value: Any) -> Any:\n    handlers = tuple(self.handlers_for(value))\n    if not handlers:\n        return value\n    return await self.consume_handlers(value, handlers)"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 45,
+          "kind": "declaration",
+          "source": "async def consume_handlers(self, value: Any, handlers: Iterable[Handler]) -> Any:\n    \"\"\"Consume the selected declarations inside the consumer's resource lifetime.\"\"\"\n    for handler in handlers:\n        value = self.replace_value(value, await handler(value))\n    return value"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 51,
+          "kind": "declaration",
+          "source": "def dispatch_sync(self, value: Any) -> Any:\n    \"\"\"Consume saved presentation facts without introducing an event loop.\"\"\"\n    return self.consume_handlers_sync(value, self.handlers_for(value))"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 55,
+          "kind": "declaration",
+          "source": "def consume_handlers_sync(self, value: Any, handlers: Iterable[Handler]) -> Any:\n    for handler in handlers:\n        value = self.replace_value(value, handler(value))\n    return value"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 53,
+          "kind": "consumer",
+          "reference": "self.consume_handlers_sync"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 40,
+          "kind": "consumer",
+          "reference": "self.handlers_for"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 43,
+          "kind": "consumer",
+          "reference": "self.consume_handlers"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 53,
+          "kind": "consumer",
+          "reference": "self.handlers_for"
+        },
+        {
+          "file": "src/agent_comms/queued_input.py",
+          "line": 146,
+          "kind": "declaration",
+          "source": "async def dispatch(self, turns: TurnRunner, session_id: str, name: str) -> None:\n    \"\"\"Transfer this live acceptance under current authority; never recover disk work.\"\"\"\n    inputs = turns.inputs\n    try:\n        with _store_lock(inputs.comms._wire_lock_path):\n            self.require_live_source(inputs, session_id)\n            snapshot = inputs.comms.registry.snapshot()\n            canonical = snapshot.aliases.get(name, name)\n            self.require_handoff(snapshot, canonical, inputs.dispositions.read().lookup(self.key), self.input_id)\n    except RelationViolationError as error:\n        raise InputHandoffRefused(str(error)) from error\n    await turns.run_agent_turn(session_id, canonical, self.prompt, images=self.images, original_keys=(self.key,), initial_display_text=self.text if self.echo else None, original_owner_input=True, original_goal_id=self.context.active_goal_id, accepted_input_id=self.accepted_id)"
+        },
+        {
+          "file": "src/agent_comms/selected_session.py",
+          "line": 228,
+          "kind": "consumer",
+          "reference": "participant.dispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 276,
+          "kind": "consumer",
+          "reference": "self.stage.progress.dispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 277,
+          "kind": "consumer",
+          "reference": "self.participant.dispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 313,
+          "kind": "consumer",
+          "reference": "participant.dispatch"
+        },
+        {
+          "file": "src/agent_comms/tracked_turn.py",
+          "line": 305,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/tracked_turn.py",
+          "line": 421,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_admission.py",
+          "line": 24,
+          "kind": "declaration",
+          "source": "def dispatch(self) -> PromptAdmission:\n    return self"
+        },
+        {
+          "file": "src/agent_comms/turn_admission.py",
+          "line": 59,
+          "kind": "declaration",
+          "source": "def dispatch(self):\n    return UnacknowledgedPrompt()"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 207,
+          "kind": "consumer",
+          "reference": "result.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 242,
+          "kind": "consumer",
+          "reference": "result.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 258,
+          "kind": "consumer",
+          "reference": "FailedGoalOrigin(self.comms, self.thread_name, current).dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/turn_progress.py",
+          "line": 268,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_progress.py",
+          "line": 273,
+          "kind": "consumer",
+          "reference": "self.publication.dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_runner.py",
+          "line": 169,
+          "kind": "consumer",
+          "reference": "CompactionObservation(self, session_id, lease, thread.turn_state.phase).dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_runner.py",
+          "line": 475,
+          "kind": "consumer",
+          "reference": "item.dispatch"
+        }
+      ]
+    },
+    {
+      "checkout": "/home/ts/wt/comms-retained-human-main-20261001",
+      "revision": "ebf7ff9f59268837bae2e007a4450df4b83d7f5b",
+      "root": "src/agent_comms",
+      "parsed": 311,
+      "omissions": [],
+      "records": [
+        {
+          "file": "src/agent_comms/acp.py",
+          "line": 476,
+          "kind": "consumer",
+          "reference": "AcpEventConsumer(self, session_id, client, turn_id, route).dispatch"
+        },
+        {
+          "file": "src/agent_comms/acp_request_consumer.py",
+          "line": 14,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/acp_request_consumer.py",
+          "line": 17,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/acp_request_consumer.py",
+          "line": 23,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/agent_event_updates.py",
+          "line": 32,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/agent_event_updates.py",
+          "line": 40,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/agent_events.py",
+          "line": 17,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/agent_events.py",
+          "line": 360,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/backend.py",
+          "line": 642,
+          "kind": "consumer",
+          "reference": "self.admission.dispatch"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 18,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 82,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 360,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 434,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 448,
+          "kind": "consumer",
+          "reference": "parent.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 104,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 427,
+          "kind": "consumer",
+          "reference": "imports.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/debt_ratchet.py",
+          "line": 466,
+          "kind": "consumer",
+          "reference": "reference.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/delivery_failure.py",
+          "line": 5,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/delivery_failure.py",
+          "line": 8,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/delivery_failure.py",
+          "line": 28,
+          "kind": "consumer",
+          "reference": "decoder.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 25,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 29,
+          "kind": "declaration",
+          "source": "class DurableTurn(MroDispatch):\n\n    def __init__(self, attempts: AttemptStore, fence, pointer_revision, input_id):\n        self.attempts = attempts\n        self.fence = fence\n        self.pointer_revision = pointer_revision\n        self.input_id = input_id\n\n    @contextmanager\n    def using_attempts(self, attempts):\n        \"\"\"Borrow only this operation's connection; keep the original fence owner.\"\"\"\n        original = self.attempts\n        self.attempts = attempts\n        try:\n            yield\n        finally:\n            self.attempts = original\n\n    async def consume_handlers(self, event, handlers, *args, **kwargs):\n        return await Coordination.run_async(self.attempts.session.path, partial(self.observe_owned, event, handlers, *args, **kwargs))\n\n    def observe_owned(self, event, handlers, *args, **kwargs):\n        \"\"\"Consume one native observation through joined, worker-owned SQLite.\"\"\"\n        *context, resource = args\n        with self.using_attempts(resource.attempts):\n            return self.consume_handlers_sync(event, handlers, *context, **kwargs)\n\n    @property\n    def current(self):\n        return type(self.attempts.require_fence(self.fence)[1].lifecycle)\n\n    @property\n    def model_started(self):\n        return self.current.has_model_context\n\n    def advance(self, state):\n        if state is self.current:\n            return\n        result = self.attempts.advance(self.fence, state, expected_pointer_revision=self.pointer_revision, progress=True).value\n        self.fence = result.fence\n\n    @handles(pi.Response)\n    def accepted(self, event):\n        if event.id == 'native-prompt' and event.success and self.current.starting:\n            self.advance(PromptAcceptedAttempt)\n\n    @handles(pi.ContextCommitted)\n    def context(self, event):\n        if event.input_id != self.input_id or self.model_started:\n            return\n        if self.current.starting:\n            self.advance(PromptAcceptedAttempt)\n        self.advance(ModelRunningAttempt)\n\n    @handles(NativePhaseChanged)\n    def excursion(self, event):\n        if self.model_started:\n            self.dispatch_sync(event.phase)\n\n    @handles(ModelWaitPhase)\n    def model(self, phase):\n        self.advance(ModelRunningAttempt)\n\n    @handles(ToolRunningPhase)\n    def tool(self, phase):\n        self.advance(ToolRunningAttempt)\n\n    @handles(CompactionPhase)\n    def compaction(self, phase):\n        self.advance(CompactionAttempt)\n\n    def finish(self):\n        \"\"\"Native child is reaped and any explicit owner effect has completed.\"\"\"\n        if not self.model_started:\n            raise IdentityConflict('native completion lacks model progress')\n        self.fence = self.attempts.advance(self.fence, SettlingAttempt, expected_pointer_revision=self.pointer_revision, backend_done=True, process_dead=True, progress=True).value.fence\n        return self.fence\n\n    def fail_unknown(self):\n        \"\"\"Retire the reaped local backend without granting acceptance or replay.\n\n        The caller holds the live registry owner boundary. Native execution has\n        returned through child/tool cleanup; possible remote effects stay UNKNOWN.\n        Coordination owns the atomic replay/finality/slot mutation.\n        \"\"\"\n        return self.attempts.fail_unknown(self.fence, expected_pointer_revision=self.pointer_revision).value\n\n    def fail_terminal(self):\n        \"\"\"Settle the corroborated failed input after its native child is reaped.\"\"\"\n        final = self.attempts.advance(self.fence, self.current, expected_pointer_revision=self.pointer_revision, backend_done=True, process_dead=True, reason_code='native_terminal_failure').value\n        return self.attempts.settle_nonpublication(final.fence, expected_pointer_revision=final.snapshot.pointer_revision, outcome=AttemptFailedAttempt(), reason_code='native_terminal_failure').value"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 29,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 46,
+          "kind": "declaration",
+          "source": "async def consume_handlers(self, event, handlers, *args, **kwargs):\n    return await Coordination.run_async(self.attempts.session.path, partial(self.observe_owned, event, handlers, *args, **kwargs))"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 55,
+          "kind": "consumer",
+          "reference": "self.consume_handlers_sync"
+        },
+        {
+          "file": "src/agent_comms/durable_turn.py",
+          "line": 92,
+          "kind": "consumer",
+          "reference": "self.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/input_drain.py",
+          "line": 600,
+          "kind": "consumer",
+          "reference": "item.dispatch"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 21,
+          "kind": "declaration",
+          "source": "class MroDispatch:\n    \"\"\"Invoke specific handlers before base handlers; consumer overrides win.\n\n    The method declarations are the authority. No global registry, registration\n    order, or event-name roster participates in dispatch. A diamond ancestor is\n    visited once by Python's MRO. A returned replacement flows to later handlers.\n    \"\"\"\n\n    def handlers_for(self, value: Any):\n        methods: dict[str, Any] = {}\n        for owner in type(self).__mro__:\n            for name, method in vars(owner).items():\n                methods.setdefault(name, method)\n        for capability in type(value).__mro__:\n            for name, method in methods.items():\n                if capability in getattr(method, '__handled_classes__', ()):\n                    yield getattr(self, name)\n\n    async def dispatch(self, value: Any, *args, **kwargs) -> Any:\n        handlers = tuple(self.handlers_for(value))\n        if not handlers:\n            return value\n        return await self.consume_handlers(value, handlers, *args, **kwargs)\n\n    async def consume_handlers(self, value: Any, handlers: Iterable[Handler], *args, **kwargs) -> Any:\n        \"\"\"Consume the selected declarations inside the consumer's resource lifetime.\"\"\"\n        for handler in handlers:\n            value = self.replace_value(value, await handler(value, *args, **kwargs))\n        return value\n\n    def dispatch_sync(self, value: Any, *args, **kwargs) -> Any:\n        \"\"\"Consume saved presentation facts without introducing an event loop.\"\"\"\n        return self.consume_handlers_sync(value, self.handlers_for(value), *args, **kwargs)\n\n    def consume_handlers_sync(self, value: Any, handlers: Iterable[Handler], *args, **kwargs) -> Any:\n        for handler in handlers:\n            value = self.replace_value(value, handler(value, *args, **kwargs))\n        return value\n\n    @staticmethod\n    def replace_value(value: Any, replacement: Any) -> Any:\n        if replacement is None:\n            return value\n        if type(replacement) is not type(value):\n            raise TypeError('A dispatch replacement must preserve event identity')\n        return replacement"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 29,
+          "kind": "declaration",
+          "source": "def handlers_for(self, value: Any):\n    methods: dict[str, Any] = {}\n    for owner in type(self).__mro__:\n        for name, method in vars(owner).items():\n            methods.setdefault(name, method)\n    for capability in type(value).__mro__:\n        for name, method in methods.items():\n            if capability in getattr(method, '__handled_classes__', ()):\n                yield getattr(self, name)"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 39,
+          "kind": "declaration",
+          "source": "async def dispatch(self, value: Any, *args, **kwargs) -> Any:\n    handlers = tuple(self.handlers_for(value))\n    if not handlers:\n        return value\n    return await self.consume_handlers(value, handlers, *args, **kwargs)"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 45,
+          "kind": "declaration",
+          "source": "async def consume_handlers(self, value: Any, handlers: Iterable[Handler], *args, **kwargs) -> Any:\n    \"\"\"Consume the selected declarations inside the consumer's resource lifetime.\"\"\"\n    for handler in handlers:\n        value = self.replace_value(value, await handler(value, *args, **kwargs))\n    return value"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 51,
+          "kind": "declaration",
+          "source": "def dispatch_sync(self, value: Any, *args, **kwargs) -> Any:\n    \"\"\"Consume saved presentation facts without introducing an event loop.\"\"\"\n    return self.consume_handlers_sync(value, self.handlers_for(value), *args, **kwargs)"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 55,
+          "kind": "declaration",
+          "source": "def consume_handlers_sync(self, value: Any, handlers: Iterable[Handler], *args, **kwargs) -> Any:\n    for handler in handlers:\n        value = self.replace_value(value, handler(value, *args, **kwargs))\n    return value"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 53,
+          "kind": "consumer",
+          "reference": "self.consume_handlers_sync"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 40,
+          "kind": "consumer",
+          "reference": "self.handlers_for"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 43,
+          "kind": "consumer",
+          "reference": "self.consume_handlers"
+        },
+        {
+          "file": "src/agent_comms/mro_dispatch.py",
+          "line": 53,
+          "kind": "consumer",
+          "reference": "self.handlers_for"
+        },
+        {
+          "file": "src/agent_comms/private_send_stage.py",
+          "line": 18,
+          "kind": "import",
+          "reference": "from .durable_turn import DurableTurn"
+        },
+        {
+          "file": "src/agent_comms/private_send_stage.py",
+          "line": 312,
+          "kind": "consumer",
+          "reference": "DurableTurn"
+        },
+        {
+          "file": "src/agent_comms/queued_input.py",
+          "line": 146,
+          "kind": "declaration",
+          "source": "async def dispatch(self, turns: TurnRunner, session_id: str, name: str) -> None:\n    \"\"\"Transfer this live acceptance under current authority; never recover disk work.\"\"\"\n    inputs = turns.inputs\n    try:\n        with _store_lock(inputs.comms._wire_lock_path):\n            self.require_live_source(inputs, session_id)\n            snapshot = inputs.comms.registry.snapshot()\n            canonical = snapshot.aliases.get(name, name)\n            self.require_handoff(snapshot, canonical, inputs.dispositions.read().lookup(self.key), self.input_id)\n    except RelationViolationError as error:\n        raise InputHandoffRefused(str(error)) from error\n    await turns.run_agent_turn(session_id, canonical, self.prompt, images=self.images, original_keys=(self.key,), initial_display_text=self.text if self.echo else None, original_owner_input=True, original_goal_id=self.context.active_goal_id, accepted_input_id=self.accepted_id)"
+        },
+        {
+          "file": "src/agent_comms/selected_participant.py",
+          "line": 25,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/selected_participant.py",
+          "line": 35,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_session.py",
+          "line": 228,
+          "kind": "consumer",
+          "reference": "participant.dispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 16,
+          "kind": "import",
+          "reference": "from .durable_turn import DurableTurn"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 177,
+          "kind": "consumer",
+          "reference": "DurableTurn"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 276,
+          "kind": "consumer",
+          "reference": "self.stage.progress.dispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 277,
+          "kind": "consumer",
+          "reference": "self.participant.dispatch"
+        },
+        {
+          "file": "src/agent_comms/selected_turn.py",
+          "line": 313,
+          "kind": "consumer",
+          "reference": "participant.dispatch"
+        },
+        {
+          "file": "src/agent_comms/tracked_turn.py",
+          "line": 23,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/tracked_turn.py",
+          "line": 141,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/tracked_turn.py",
+          "line": 305,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/tracked_turn.py",
+          "line": 421,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_admission.py",
+          "line": 24,
+          "kind": "declaration",
+          "source": "def dispatch(self) -> PromptAdmission:\n    return self"
+        },
+        {
+          "file": "src/agent_comms/turn_admission.py",
+          "line": 59,
+          "kind": "declaration",
+          "source": "def dispatch(self):\n    return UnacknowledgedPrompt()"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 22,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 35,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 72,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 207,
+          "kind": "consumer",
+          "reference": "result.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 242,
+          "kind": "consumer",
+          "reference": "result.dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/turn_goal_account.py",
+          "line": 258,
+          "kind": "consumer",
+          "reference": "FailedGoalOrigin(self.comms, self.thread_name, current).dispatch_sync"
+        },
+        {
+          "file": "src/agent_comms/turn_progress.py",
+          "line": 25,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/turn_progress.py",
+          "line": 38,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_progress.py",
+          "line": 268,
+          "kind": "consumer",
+          "reference": "self.dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_progress.py",
+          "line": 273,
+          "kind": "consumer",
+          "reference": "self.publication.dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_runner.py",
+          "line": 35,
+          "kind": "import",
+          "reference": "from .mro_dispatch import MroDispatch, handles"
+        },
+        {
+          "file": "src/agent_comms/turn_runner.py",
+          "line": 71,
+          "kind": "consumer",
+          "reference": "MroDispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_runner.py",
+          "line": 169,
+          "kind": "consumer",
+          "reference": "CompactionObservation(self, session_id, lease, thread.turn_state.phase).dispatch"
+        },
+        {
+          "file": "src/agent_comms/turn_runner.py",
+          "line": 475,
+          "kind": "consumer",
+          "reference": "item.dispatch"
+        }
+      ]
+    }
+  ],
+  "limits": "Class declarations, imports and dotted references are AST source evidence; arbitrary dynamic receiver resolution and third-party C extensions are not proven. Unrelated dispatch references are retained rather than omitted."
+}

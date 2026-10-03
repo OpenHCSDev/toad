@@ -1,0 +1,14 @@
+{
+  "operation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/new-publication555353",
+  "ready": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/new-publication555353/ready-receipt.json",
+  "ready_sha256": "079ff3079f4759913f00a016270b896022db62abd80ebaf3830b21221d89f0b9",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/source-proof.json",
+  "source_proof_sha256": "7948781c6e7810c15f2be3ebae72f2969f4e1cce3b45777bffbc3e753a6063e8",
+  "pins": {
+    "core": "52f29173347f9fdce21c1dd4bbc886763a9e550f",
+    "toad": "78f0c17a0843916bdd018520080630029833af34",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "command": "env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python -I -c 'import runpy,sys; sys.path.insert(0,'\"'\"'/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/new-publication555353/operator-freeze'\"'\"'); runpy.run_module(\"execute_retained_summary_foundation\",run_name=\"__main__\")' --review-plan /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/new-publication555353/review-plan.json --receipt /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/new-publication555353/publication-receipt.json --runtime-installation /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/summary-clock555-terminal353-receiving-20261003/new-publication555353/runtime-installation.json --execute",
+  "state": "Qualified candidate; parent-only NEW publication pending"
+}
