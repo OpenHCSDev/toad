@@ -1,0 +1,12 @@
+{
+  "remaining_owned_pids": [],
+  "errors": [],
+  "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+  "processes": [
+    {
+      "pid": 1434319,
+      "start_ticks": 46639245,
+      "returncode": 0
+    }
+  ]
+}
