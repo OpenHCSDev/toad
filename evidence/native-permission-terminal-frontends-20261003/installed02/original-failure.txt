@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/headless-agent-services-u2-20261003/installed_services.py", line 24, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 312, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-permission-terminal-frontends-20261003/installed_native_views.py", line 92, in acceptance
+    assert '[7]' in widget.border_title.plain
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'plain'
