@@ -233,7 +233,46 @@ async def main():
                 family_receipts.append(dict(body=type(member).__name__, rendered_lines=len(rows),
                     nonblank_lines=sum(bool(line.strip()) for line in captured_rows),
                     reentry_ms=(perf_counter()-started)*1000, rebuild_calls=dict(restored_calls)))
-                member.styles.color = "red"
+                # The original worker may prepare new native controls while
+                # the preceding retained rows remain the frame's paint. All
+                # three body implementations share this resource contract.
+                entered, release = asyncio.Event(), asyncio.Event()
+                async def publish_controls():
+                    entered.set()
+                    await release.wait()
+                    await member.materialize_native_body()
+                publication = member.publish_body(publish_controls)
+                try:
+                    await asyncio.wait_for(entered.wait(), 5)
+                    writer = member._body_measurement.worker
+                    assert member.body_ready and member.body_dormant
+                    assert member.retained_paint_bytes == resource.paint_bytes
+                    assert member.measured_rows == resource.rows
+                    assert tuple(line.text for line in member.render_lines(member.outer_size.region)) == captured_rows
+                    member.get_content_height(member.container_size, member.size, resource.width)
+                    assert member._body_measurement.worker is writer
+                    interaction = asyncio.create_task(member.materialize_body())
+                    await asyncio.sleep(0)
+                    assert not interaction.done()
+                    # Rule mutation and LRU release change the resource, not
+                    # custody of the already admitted native writer.
+                    member.styles.color = "red"
+                    assert not member.body_ready
+                    assert member._body_measurement.worker is writer
+                    member.release_paint()
+                    assert not member.retained_paint_bytes
+                    assert member._body_measurement.worker is writer
+                finally:
+                    release.set()
+                    await publication
+                await interaction
+                await pilot.pause()
+                assert member.body_ready and not member.body_dormant
+                scene.reflow(app.screen, app.size)
+                assert await member.retire_body()
+                await pilot.pause()
+                family_receipts[-1]['pending_writer_keeps_rows_cost_and_interaction_custody'] = True
+                member.styles.color = "blue"
                 assert not member.body_ready
                 await member.restore_body()
                 await pilot.pause()
