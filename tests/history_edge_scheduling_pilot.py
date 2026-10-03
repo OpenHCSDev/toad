@@ -174,10 +174,10 @@ async def main():
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
     comms = wire(root / 'wire')
-    seed_channel(comms, root)
     app = ToadApp(project_dir=str(root))
     headless = os.environ.get('L0A_HEADLESS', '1') != '0'
     async with app.run_test(headless=headless, size=(100, 32)) as pilot:
+        await asyncio.to_thread(seed_channel, comms, root)
         history = await exercise_with_evidence(app, pilot, root)
         if not headless:
             # The existing recorder owns the physical window and quits through
@@ -233,13 +233,13 @@ async def retained_app(project):
     """The source-entry wrapper imports the selected installed product only."""
     from toad.agent_schema import AgentDefinition
 
-    seed_channel(wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
     definition = AgentDefinition(identity='real-resource436', name='Real resource acceptance',
         short_name='resource', run_command={'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])})
     app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
     root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
     output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
     async with app.run_test(headless=False, size=(160, 44)) as pilot:
+        await asyncio.to_thread(seed_channel, wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
         # The original marker is appended only after its native screenshot and
         # DTO have completed. Do not race Pilot input with the recorder's keys.
         # The recorder's original ProcessOwner already bounds this child. Its
