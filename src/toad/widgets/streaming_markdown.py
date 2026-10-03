@@ -43,7 +43,6 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         self._content_generation = 0
         self._pending_source: str | None = None
         self._needs_full_markdown_update = False
-        self._closing = False
 
     def compose(self) -> ComposeResult:
         yield from self._prefix
@@ -197,7 +196,5 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             pass
 
     async def on_unmount(self) -> None:
-        self._closing = True
         self._content_generation += 1
-        self._cancel_preparation()
         await self.finish_stream()

@@ -53,13 +53,9 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         parser_factory: Callable[[], MarkdownIt] | None = None, open_links: bool = False,
     ) -> None:
         self._prepared_fences: dict[FenceKey, PreparedFence] = {}
-        self._preparation_closed = False
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
                          parser_factory=factory, open_links=open_links)
-
-    def on_mount(self) -> None:
-        self._preparation_closed = False
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         """Native resources rebuilt from this document's original source."""
@@ -91,12 +87,7 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
             self.source, self.app.native_ansi_color, self.app.current_theme.dark,
         ))
 
-    def _cancel_preparation(self) -> None:
-        self._preparation_closed = True
-        self.workers.cancel_node(self)
-
     def on_unmount(self) -> None:
-        self._cancel_preparation()
         self._prepared_fences.clear()
 
     async def _parse_tokens(
@@ -114,21 +105,21 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
         # Runway and delivery use the same pure preparation key. Filesystem
         # links are resolved only in each independent delivered token resource,
         # after highlighting; they never become reusable renderer inputs.
-        while not self._preparation_closed and self.is_attached and not self._pruning:
+        while not self._closing and self.is_attached and not self._pruning:
             theme = (self.app.native_ansi_color, self.app.current_theme.dark)
             request = self.app.render_processes.submit(MarkdownRenderTask(markdown, *theme))
             worker = self.run_worker(request, group="markdown-preparation", exit_on_error=False)
             try:
                 prepared = await worker.wait()
             except WorkerCancelled:
-                if self._preparation_closed or self._pruning or not self.is_attached:
+                if self._closing or self._pruning or not self.is_attached:
                     return None
                 raise asyncio.CancelledError
-            if (self._preparation_closed or not self.is_attached or self._pruning
+            if (self._closing or not self.is_attached or self._pruning
                     or self.parent is not parent):
                 return None
             tokens = await asyncio.to_thread(parser.resolve_tokens, prepared.tokens)
-            if (self._preparation_closed or not self.is_attached or self._pruning
+            if (self._closing or not self.is_attached or self._pruning
                     or self.parent is not parent):
                 return None
             if theme != (self.app.native_ansi_color, self.app.current_theme.dark):

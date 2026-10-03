@@ -112,7 +112,7 @@ async def main():
                 assert await body.retire_body()
             await pilot.resize_terminal(90, 35)
             await pilot.pause(.1)
-            assert all(body.body_measurement_stale for body in cohort)
+            assert all(not body.body_ready for body in cohort)
             manager.resume_source()
             async with asyncio.timeout(8):
                 while manager._running or not manager.visible_bodies_ready:

@@ -135,6 +135,16 @@ class Throbber(Widget):
     def render(self) -> ThrobberVisual | str:
         return self._busy_visual if self.busy else ""
 
+    def _render_styles_sensitive(self) -> bool:
+        # The original visual measures only available width and one row.
+        # Paint rules affect its segments; custom renderers retain the native
+        # conservative contract rather than inheriting a fixed-shape claim.
+        return (
+            type(self).render is not Throbber.render
+            or type(self)._render is not Widget._render
+            or type(self)._busy_visual is not Throbber._busy_visual
+        )
+
 
 class ObservedThrobber(Throbber):
     """Paint an existing activity owner without a writable busy mirror."""

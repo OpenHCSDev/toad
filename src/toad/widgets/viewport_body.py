@@ -15,7 +15,7 @@ from dataclasses import dataclass, replace
 from abc import ABC, abstractmethod
 from textual.strip import Strip
 from toad.rich_preparation import PreparedRichContent
-from toad.work_preparation import PreparationScope, retained_bytes
+from toad.work_preparation import retained_bytes
 import asyncio
 from toad.widgets.presentation_window import (
     DirectionalPreparation, PreparationDemand, PresentationBudget,
@@ -35,10 +35,6 @@ class ViewportBody:
 
     @property
     def body_dormant(self) -> bool:
-        raise NotImplementedError
-
-    @property
-    def body_measurement_stale(self) -> bool:
         raise NotImplementedError
 
     @property
@@ -268,17 +264,12 @@ class MeasuredViewportBody(ViewportBody):
 
     def __init__(self, *args, **kwargs):
         self._body_measurement = LiveBody()
-        self._body_scope = PreparationScope()
         self._body_viewport = None
         super().__init__(*args, **kwargs)
 
     @property
     def body_dormant(self):
         return self._body_measurement.dormant
-
-    @property
-    def body_measurement_stale(self):
-        return not self._body_measurement.ready(self)
 
     @property
     def body_ready(self):
@@ -472,9 +463,7 @@ class MeasuredViewportBody(ViewportBody):
     def on_unmount(self):
         if self._body_viewport is not None:
             self._body_viewport.discard(self)
-            self.app.preparation.discard_scope(self._body_scope)
             self._body_viewport = None
-        self._body_scope.closed = True
         self._body_measurement = LiveBody()
 
     def on_mount(self):
@@ -919,7 +908,7 @@ class DocumentViewport:
             return ()
         restored = []
         async with AsyncExitStack() as mutation:
-            if any(owner.body_measurement_stale for owner in owners):
+            if any(not owner.body_ready for owner in owners):
                 await mutation.enter_async_context(self.window.preserve_reader(anchor))
             for owner in owners:
                 if not self.accepts_frame() or not self.lookahead.accepts(demand):
