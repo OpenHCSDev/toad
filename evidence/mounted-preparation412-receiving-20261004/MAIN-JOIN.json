@@ -1,0 +1,14 @@
+{
+  "merged412": "5ec7876b8ba0d1c16db365939267f98690157f19",
+  "original_qualified412": "2075607b8d98e5d331f41b14a267c9a6fffb3c69",
+  "normal_receiving_merge": "3d22fe386580cade0f90472d9e4c496f29db42f0",
+  "installed_source_head": "a7d059bad83793a1eed9467cf2d472113eb1be2f",
+  "all_src_pyproject_uv_tools_zero_diff": true,
+  "frozen_artifact_hashes_unchanged": 88,
+  "ready_sha256": "2e9de4b22de4ee3c622f50f04b67d4ee0932feccc07b0fc3a48a5723088ca1cb",
+  "package_or_operand_writes": 0,
+  "new_native_or_provider_or_film": false,
+  "core605_text48_native89_unchanged": true,
+  "603_d5_excluded": true,
+  "private_metadata_copy_negative": "Sparse normal merge removed materialized evidence directory; recreated owned directory, existing indexed checkpoint recovered from HEAD; no product/artifact effect"
+}

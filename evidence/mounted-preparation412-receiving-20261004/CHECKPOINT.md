@@ -11,3 +11,7 @@ Build the changed Toad wheel from this published checkout. Reuse the retained re
 ## Concrete stage
 
 SAME485 installed file-wheel stage passed:927 exactassets,69 dependencies, full native89 trust and original live334928 inventory/activation commitments. Frozen source proof7de272a85100cc8d63a23fc3d967daea0182a6bfe091db0ad2225363c03b00c5; activation6f9bedd935cd878cbf9e03dfc223a3e7642b6a03a080147ea067908b640b8b89. NEW operator at/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/mounted-preparation412-receiving-20261004/new-publication60541248 uses51 canonical db620 bytes and full cohort.require_original. Four original gate artifacts are retained. Parent executes once only after exact source review/normal merge and fresh original audience/client guards. No receipt/preimages/public effects. Two private-preparation negatives retained; no product workaround or repeated affected journey.
+
+## Normal reviewed main landing
+
+Parent merged412 as5ec7876b8ba0d1c16db365939267f98690157f19. This receiving branch normally joined that main merge; all src, pyproject, uv lock and tools remain byte-identical to installeda7. All88 frozen artifact commitments still match. The original Ready receipt describes its preparation-time open-owner state; that history is preserved, with this separate ancestry closure. No target package, activation, source proof or operator writes. Core605/Text48/native89 remain this checkpoint; newly merged603/d5 belongs to the next context receiving batch.
