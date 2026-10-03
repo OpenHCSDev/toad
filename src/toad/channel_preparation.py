@@ -1,8 +1,11 @@
-"""Typed, bounded channel-history reads, independent of widget publication."""
+"""Typed channel sources and bounded reads, independent of native publication."""
 
 from __future__ import annotations
 
 import asyncio
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from functools import partial
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,62 +15,127 @@ from agent_comms.presentation import WireRevision
 from toad.conversation_kind import ConversationKind
 
 
-@dataclass(frozen=True)
-class HistoryReadRequest:
+@dataclass(frozen=True, eq=False)
+class HistoryReadRequest(ABC):
     comms: Comms
     kind: type[ConversationKind]
     target: str
     project: Path
-    initialized: bool
-    after: int
-    follow_tail: bool
-    known_revision: WireRevision | None
     initial_limit: int
     page_limit: int
     max_bytes: int
-    known_display: tuple | None = None
 
-    def page(self, *, after: int | None = None, limit: int) -> MessagePage:
+    @property
+    @abstractmethod
+    def loading(self) -> bool: ...
+
+    @abstractmethod
+    def matches_revision(self, revision: WireRevision) -> bool: ...
+
+    @abstractmethod
+    def read_changed(self, revision: WireRevision, high_water: int, follow_tail: bool) -> HistoryReadResult: ...
+
+    @abstractmethod
+    def consumed_sequence(self, result: HistoryReadResult, follow_tail: bool) -> int: ...
+
+    @abstractmethod
+    def display_after(self, result: HistoryReadResult) -> tuple | None: ...
+
+    def page(self, *, before: int | None = None, after: int | None = None,
+             limit: int) -> MessagePage:
         return self.kind.page(
-            self.comms,
-            self.target,
-            worktree=str(self.project),
-            after=after,
-            limit=limit,
-            max_bytes=self.max_bytes,
+            self.comms, self.target, worktree=str(self.project),
+            before=before, after=after, limit=limit, max_bytes=self.max_bytes,
         )
 
-    def read(self) -> HistoryReadResult:
-        """Perform all revision/watermark/page I/O on the reader thread."""
-        revision = self.comms.views.revision()
-        if self.initialized and revision == self.known_revision:
-            return HistoryReadResult(self, revision, self.after, None, False)
-        high_water = self.comms.bus.log.latest_sequence()
-        if not self.initialized:
-            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), False)
+    def read(self, follow_tail: bool = True) -> HistoryReadResult:
+        """Revision, scan watermark and page I/O share the original source."""
+        return self.read_revision(self.comms.views.revision(), follow_tail)
+
+    @abstractmethod
+    def read_revision(self, revision: WireRevision, follow_tail: bool) -> HistoryReadResult: ...
+
+    def changed(self, revision: WireRevision, follow_tail: bool) -> HistoryReadResult:
+        return self.read_changed(revision, self.comms.bus.log.latest_sequence(), follow_tail)
+
+    def restart(self) -> InitialHistoryReadRequest:
+        return InitialHistoryReadRequest(
+            self.comms, self.kind, self.target, self.project,
+            self.initial_limit, self.page_limit, self.max_bytes,
+        )
+
+    def advance(self, result: HistoryReadResult, follow_tail: bool) -> IncrementalHistoryReadRequest:
+        return IncrementalHistoryReadRequest(
+            self.comms, self.kind, self.target, self.project,
+            self.initial_limit, self.page_limit, self.max_bytes,
+            self.consumed_sequence(result, follow_tail), result.revision,
+            self.display_after(result),
+        )
+
+
+@dataclass(frozen=True, eq=False)
+class InitialHistoryReadRequest(HistoryReadRequest):
+    loading = True
+
+    def matches_revision(self, revision: WireRevision) -> bool:
+        return False
+
+    def read_revision(self, revision: WireRevision, follow_tail: bool) -> HistoryReadResult:
+        return self.changed(revision, follow_tail)
+
+    def read_changed(self, revision: WireRevision, high_water: int, follow_tail: bool) -> HistoryReadResult:
+        return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), True, follow_tail)
+
+    def consumed_sequence(self, result: HistoryReadResult, follow_tail: bool) -> int:
+        return result.high_water
+
+    def display_after(self, result: HistoryReadResult) -> tuple | None:
+        assert result.page is not None
+        return self.kind.display_identity(result.page)
+
+
+@dataclass(frozen=True, eq=False)
+class IncrementalHistoryReadRequest(HistoryReadRequest):
+    after: int
+    revision: WireRevision
+    display_identity: tuple | None
+    loading = False
+
+    def matches_revision(self, revision: WireRevision) -> bool:
+        return revision == self.revision
+
+    def read_revision(self, revision: WireRevision, follow_tail: bool) -> HistoryReadResult:
+        if self.matches_revision(revision):
+            return HistoryReadResult(self, revision, self.after, None, False, follow_tail)
+        return self.changed(revision, follow_tail)
+
+    def read_changed(self, revision: WireRevision, high_water: int, follow_tail: bool) -> HistoryReadResult:
         if high_water <= self.after:
-            if (
-                self.known_display is not None
-                and self.known_revision is not None
-                and revision.files != self.known_revision.files
-            ):
+            if self.display_identity is not None and revision.files != self.revision.files:
                 probe = self.page(limit=1)
-                if self.kind.display_identity(probe) != self.known_display:
-                    return HistoryReadResult(
-                        self,
-                        revision,
-                        high_water,
-                        self.page(limit=self.initial_limit),
-                        True,
-                    )
-            return HistoryReadResult(self, revision, high_water, None, False)
+                if self.kind.display_identity(probe) != self.display_identity:
+                    return HistoryReadResult(self, revision, high_water,
+                                             self.page(limit=self.initial_limit), True, follow_tail)
+            return HistoryReadResult(self, revision, high_water, None, False, follow_tail)
         page = self.page(after=self.after, limit=self.page_limit)
-        if self.known_display is not None and self.kind.display_identity(page) != self.known_display:
-            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), True)
-        replace_tail = bool(page.messages and page.has_newer and self.follow_tail)
+        if self.display_identity is not None and self.kind.display_identity(page) != self.display_identity:
+            return HistoryReadResult(self, revision, high_water,
+                                     self.page(limit=self.initial_limit), True, follow_tail)
+        replace_tail = bool(page.messages and page.has_newer and follow_tail)
         if replace_tail:
             page = self.page(limit=self.initial_limit)
-        return HistoryReadResult(self, revision, high_water, page, replace_tail)
+        return HistoryReadResult(self, revision, high_water, page, replace_tail, follow_tail)
+
+    def consumed_sequence(self, result: HistoryReadResult, follow_tail: bool) -> int:
+        page = result.page
+        if page is None:
+            return self.after
+        if (result.replace_tail or follow_tail) and page.has_newer:
+            return page.newest_seq or result.high_water
+        return result.high_water
+
+    def display_after(self, result: HistoryReadResult) -> tuple | None:
+        return self.display_identity if result.page is None else self.kind.display_identity(result.page)
 
 
 @dataclass(frozen=True)
@@ -77,22 +145,44 @@ class HistoryReadResult:
     high_water: int
     page: MessagePage | None
     replace_tail: bool
+    follow_tail: bool
 
 
 class ChannelHistoryReader:
-    """Own in-flight visible history reads until their actual I/O completes."""
+    """Own one logical source and its reads until their actual I/O completes."""
 
-    def __init__(self) -> None:
-        self._pending: set[asyncio.Task[HistoryReadResult]] = set()
+    def __init__(self, source: HistoryReadRequest) -> None:
+        self.source = source
+        self._pending: set[asyncio.Task[HistoryReadResult] | asyncio.Task[MessagePage]] = set()
         self._closed = False
 
-    async def read(self, request: HistoryReadRequest) -> HistoryReadResult:
+    @property
+    def comms(self) -> Comms:
+        return self.source.comms
+
+    def current(self, result: HistoryReadResult, follow_tail: bool) -> bool:
+        return result.request is self.source and result.follow_tail == follow_tail
+
+    def accept(self, result: HistoryReadResult, follow_tail: bool) -> None:
+        self.source = result.request.advance(result, follow_tail)
+
+    def restart(self) -> None:
+        self.source = self.source.restart()
+
+    async def read(self, follow_tail: bool) -> HistoryReadResult:
+        return await self._run(partial(self.source.read, follow_tail))
+
+    async def page(self, *, before: int | None = None, after: int | None = None,
+                   limit: int) -> MessagePage:
+        return await self._run(partial(self.source.page, before=before, after=after, limit=limit))
+
+    async def _run[T: (HistoryReadResult, MessagePage)](self, read: Callable[[], T]) -> T:
         if self._closed:
             raise RuntimeError("Channel history reader is closed")
-        task = asyncio.create_task(asyncio.to_thread(request.read), name="channel-history-read")
+        task = asyncio.create_task(asyncio.to_thread(read), name="channel-history-read")
         self._pending.add(task)
 
-        def finished(completed: asyncio.Task[HistoryReadResult]) -> None:
+        def finished(completed: asyncio.Task[T]) -> None:
             self._pending.discard(completed)
             if not completed.cancelled():
                 completed.exception()

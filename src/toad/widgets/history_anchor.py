@@ -287,7 +287,7 @@ class HistoryWindow(VerticalScroll):
             finally:
                 self.refresh(layout=True)
             if (widget is not None and widget.is_attached and self.is_attached
-                    and screen.is_current):
+                    and screen.is_current and self.document_viewport.accepts_frame()):
                 # A generic after-refresh callback can run before the pending
                 # mount's layout. Wait for an actual compensated reflow first.
                 self.history_layout_ready = asyncio.Event()

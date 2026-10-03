@@ -1,0 +1,121 @@
+{
+  "scope": "344 shared logical SessionView/HistoryWindow frame admission and readonly channel/native hide-return custody; not complete338, smooth scrolling, input-to-paint or CPU qualification",
+  "installed": {
+    "toad": "cb48bc4fe05472a262b8848b49092e732e29b421",
+    "agent_comms": "7dd5c14cdd88f3046f44613d22d346ef9d2fe833",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+    "native_manifest": "9f12ddf4e22d6d7a14074eb2ec22ba2f7ab376faa9a1f3b2320a0caf7d7ae3a2",
+    "sdk": "0.12.1",
+    "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-channel-native-lifetime344-20261002/source-proof.json",
+    "sha256": "16ece15aaa1e3d85d1b3c6345bce19eb694fc7108b553c41ee908dd860af05f2"
+  },
+  "original_receipt": {
+    "path": "/home/ts/.cache/agent-scratch/channel-native-lifetime344-public-20261002-02/capture/receipt.json",
+    "sha256": "8f6ff2b227c6e8553dd90e73ae00c14ca36160b8f4349368b224cc9300c5a025",
+    "capture_completed": true,
+    "completed": false,
+    "error": "KeyError: 'unavailable_scroll_phases'",
+    "duration_seconds": 62.069963021960575
+  },
+  "closure": "RetainedLifetimeJourney inherited WarmScrollJourney validation of unavailable_scroll_phases, although its original review owns only lifetime observations. PhysicalJourney now owns shared native-check validation; leaves own required observation checks. Original18 checks revalidated without an application run or rewriting raw artifacts.",
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "original_channel_identity_retained": true,
+    "channel_window_retained": true,
+    "channel_messages_published": true,
+    "hidden_native_window_not_admitted": true,
+    "hidden_channel_window_not_admitted": true,
+    "shown_channel_window_admitted": true,
+    "shown_native_window_admitted": true,
+    "native_tab_returned": true,
+    "peer_selected": true,
+    "source_view_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_typed": true,
+    "draft_retained_on_return": true,
+    "undo_restored_original_draft": true,
+    "returned_saved_body_ready": true,
+    "end_saved_body_ready": true
+  },
+  "terminal": {
+    "pid": 900799,
+    "start_ticks": 45526087,
+    "returncode": 0
+  },
+  "capture_returncode": 255,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 701741,
+      "start_time": 44956949
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 701741,
+      "start_time": 44956949
+    },
+    "original_owner_alive": true
+  },
+  "physical_review": {
+    "during": [
+      "phase-b-open.png: actual#openhcs wire history visibly populated; recorder900792 verified alive51s"
+    ],
+    "after": [
+      "phase-a-return.png: correct nra saved body and typed draft",
+      "phase-channel-return.png: same#openhcs populated history",
+      "phase-native-return.png: correct nra saved body, original draft restored"
+    ],
+    "limits": "Selected frame review, not continuous motion or smoothness. Narrow qualification run did not request CPU profiling. Native writer intervals mix stationary work; not FPS."
+  },
+  "phases_seconds": {
+    "warm-ready": 9.937328898988198,
+    "sidebar-revealed": 13.51208938396303,
+    "warm-start": 15.195247035007924,
+    "draft": 21.478001021954697,
+    "reader-before-return": 26.381770027976017,
+    "switch-b": 28.109200265957043,
+    "b-open": 33.08982203400228,
+    "return-a": 34.989645149966236,
+    "a-return": 40.20630852197064,
+    "undo": 44.943806620955,
+    "lifetime-end": 49.80038001795765,
+    "channel-return": 54.57654106995324,
+    "native-return": 59.42305109195877
+  },
+  "integration_after_capture": {
+    "338": "Normally merged eb9363e2: remove7 lines of attached/block forwarding; native Widget.is_attached owns resource attachment. Installed02 contained68e5e294; final deletion not claimed installed.",
+    "main": "Normally merged0a522a8a; retain Core992a431 pins/native940880. Shared344 lifecycle methods unchanged. MainScreen.set_comms_thread separately adds ContextExplorer binding, plus main route/custody changes; receiving pair verification remains parent-owned."
+  },
+  "own_production_delta": {
+    "added": 53,
+    "deleted": 35,
+    "files": [
+      "src/toad/screens/session_view.py",
+      "src/toad/screens/main.py",
+      "src/toad/session_presentation.py",
+      "src/toad/widgets/history_anchor.py",
+      "src/toad/widgets/viewport_body.py"
+    ]
+  },
+  "source_reasoning": "Existing WindowMembership derives current native display ancestry; SessionView owns actual HistoryWindow resource resume/suspend; all frame/demand/reconcile/restore consumers use DocumentViewport.accepts_frame. Existing NRA before/after parsed525 production modules; dynamic attribute resolution is source-reviewed, not claimed proven by AST.",
+  "remaining": [
+    "338 original held-I/O receipt final End gap remains Kepler-owned",
+    "full CPU/144Hz warm-raster cold-open adaptive growing-end/void focus busy/sidebar animation TC1/T9/T4 scope remains Heisenberg-owned",
+    "Final currentmain/Core992 receiving/default pair qualification and activation are parent-owned; this candidate was not activated"
+  ]
+}

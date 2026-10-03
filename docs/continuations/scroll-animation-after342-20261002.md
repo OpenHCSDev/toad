@@ -1,0 +1,164 @@
+# Keep scrolling through lazy history entry
+
+Heisenberg owns the shared viewport/frame/anchor/preparation lane. This same
+checkout starts normally from merged342 main cf30bab8; old source, negative
+receipts and recorded motion remain preserved. Kepler338 owns source-specific
+channel controller hooks. Native Textual32 owns Widget/Animator replacement.
+
+342 moved pure markup preparation before the original native history frame
+fence for saved admission, End, source replacement, filtering and body restore.
+Its installed original public journey retained18 ready bodies and passed16 warm
+and7 input checks. The initial before exports remained pending20s; actual moving
+frames remained discrete. No smoothness, whole CPU gain or144Hz claim.
+
+Next implementation follows the existing Animator: an animated destination
+replaces the old curve from its current position; explicit direct scrolling
+cancels only requested axes. Animation leaves own completion, and their existing
+base owns stop/callback behavior. Native32 carries the production change.
+
+Continue all remaining scope: lazy-entry animation continuity, foreground CPU
+and configurable144Hz/6.944ms target, raster/firstpaint, warm/cold A/B/A, bounded
+three-viewport adaptive runway/reverse/idle, growing history/PageDown void/End,
+input/focus/drafts/Undo, busy sidebar/channel scrolling and TC1/T9/T4. Existing
+worker preparation and retained body/Strip resources remain the owners; no new
+clock, pool, cache, semantic mirror or rendering framework.
+
+Read semantics and related consumers first. Batch the coherent implementation,
+then proportionate sanity and one changed installed saved-history motion/profile
+journey using the existing recorder; inspect actual moving frames and distinguish
+writer completion from changed pixels and input-to-paint. Ship a useful scoped
+checkpoint without calling the remaining performance target complete.
+
+## Published scoped native checkpoint
+
+Native32 source d052eb133, paired installed To ad34402e561 (source equals merged342),
+now has one real changed original public124.067s recording.16 warm/7input checks
+pass,22 ready bodies retained; original owner unchanged/cleanupempty.48 exact
+held-up frames viewed during run were readable/discrete, not smooth. Upwriter
+median17.15/p9548.43ms and reverse16.39/28.84ms; different prior admissions/load
+prevent causal CPU/speed claims. Initial before exports pending20s remain raw
+completed=false; normal application exit code not supplied by transferred custody.
+
+Qualification docs/checkpoints/native-animation32-installed-scoped.json at11dd6e91.
+No new viewport production in this continuation; metadata pins native32 and full
+remaining scope stays with Heisenberg. Next work is the remaining real native
+mount/style/layout/frame cost; no unchanged recording or parallel resource state.
+
+## Published next lifetime batch, not Ready
+
+Source read with Kepler338 found channel CommsScreen inherits empty SessionView
+presentation hooks, while NativeSessionSurface alone suspends DocumentViewport.
+BoundWorkspaceSource hides the logical view before retirement; the physical
+WorkspaceScreen remains current. DocumentViewport.accepts_frame owns actual
+suspension. A hidden channel therefore remained a frame member and its reader
+could await native layout no longer promised by that presentation.
+
+The existing SessionView.prepare_presentation/retire_presentation now resume/
+suspend its actual native HistoryWindows. MainScreen calls those base hooks;
+NativeSessionSurface's duplicate viewport calls are removed. CommsScreen derives
+the same behavior without a separate controller/state. The existing reader
+wait also consumes DocumentViewport.accepts_frame so a mutation completing
+after retirement does not create a fresh wait for an unpromised hidden frame.
+Source controller/read request identities remain Kepler338; no source/history/
+turn/goal mirrors or new registry. Existing native tree custody supplies windows.
+
+This new production batch has not had final installed validation yet. The
+previous native32 qualification remains frozen/source-equal; its Ready status
+does not qualify these new SessionView changes. Batch final sanity and the
+changed installed channel/native switch lifecycle last, then publish scoped
+result. No repeat of the unchanged native32 recording.
+
+The completed344 source batch passed the existing real Toad/native page-mount
+sanity: older/newer admission each one four-child transaction, original source
+order/resources retained, publication fence held, no bound agent/provider. Its
+raw CLI invocation missing the required output argument is preserved separately.
+This confirms the changed reader lifetime still supports native mount/fence
+custody; it does not qualify hidden-channel switching or installed motion.
+Source/native lifecycle evidence remains in .artifacts/source344-logical-viewport-lifetime.
+No current capture/test client remains. The final changed installed channel/DM
+switch closure is still required for344Ready, without repeating frozen32 film.
+
+## Late hydration uses the same window membership
+
+CommsScreen can finish mounting its conversation after the logical tab has
+already retired. A newly constructed DocumentViewport starts unsuspended, so
+the earlier SessionView retirement cannot reach it. The original native display
+ancestry still records that its parent is hidden. WindowMembership now derives
+displayed admission from that ancestry and the current physical screen.
+
+DocumentViewport's existing accepts_frame combines that native membership with
+its suspended resource lifetime. Frame geometry, requests, scroll observation,
+reconciliation and every restoration admission consume that same answer. The
+old physical-screen-only restoration checks and inactive reconciliation branch
+are deleted. Hidden reader anchors no longer become frame geometry targets.
+No selected-source flag, copied visibility, window registry or timer was added.
+Archive windows on their own current modal screen use the same native ancestry.
+
+The source reader and publication identities remain Kepler338. This closes
+frontend admission even when a hidden hydration produced no source rows. The
+existing NRA before/after family output remains under
+`.artifacts/source344-logical-viewport-lifetime`; dynamic attribute resolution
+still requires source reading. This extension is published work in progress.
+Final batched sanity and changed installed channel/native return qualification
+remain required; the frozen Text32 film does not qualify this source extension.
+
+## Joined channel/native qualification boundary
+
+Normally merged Kepler338 source68e5e294 at05e2d1cb; source identities, channel
+page I/O and shared edge scheduling stay its existing owners. Its private held
+read/receipt sanity passed both original send branches, but its final End setup
+timed out and remains a negative. This merge does not turn that result into
+installed receipt or End acceptance. Native32 now pins actual main940880e1;
+its product source equals the frozen qualifiedd052 package.
+
+The existing RetainedLifetimeJourney now owns a peer review hook. Its original
+native-peer member still requires saved pages. ChannelLifetimeJourney uses
+real channel roster/tab clicks and the same native reader/draft/Undo/End
+algorithm, with channel-specific publication and window custody observations.
+The existing capture exports DocumentViewport.accepts_frame directly alongside
+its resource suspension, so logical admission is not guessed from the raw flag.
+No new recorder, timer, UI state or provider fixture was added.
+
+The final changed installed journey reuses runtime-native-style22; it qualifies
+channel/native hide-return custody and actual saved native draft/Undo, not
+338 own-send-under-held-I/O, smoothness, foreground CPU or the final144Hz goal.
+All earlier recordings and source proofs remain frozen.
+
+## Installed channel/native lifetime checkpoint
+
+The original second run completed62.070s on exact installedcb48/Core7dd,
+mergedNative32 main940880 and configurednative9f. Physical#openhcs opening,
+native return, draft/Undo, nativeEnd, channelreturn and finalnative return
+produced18 passing native lifetime checks. Hidden windows were excluded from
+frame admission; selected windows were admitted. Actualst exit0, cleanupempty,
+and originalnra owner701741/44956949 stayed alive and unchanged. No input was
+submitted to a provider and no public owner was restarted.
+
+The raw receipt remains completed=false: final review inherited a requirement
+for unavailable_scroll_phases from the full scroll-performance journey. That
+observation is not part of the retained-lifetime variant. PhysicalJourney now
+owns the shared native-check validation; leaves declare their extra required
+observations. Revalidated the original18 checks without rerunning the application
+or changing the original receipt/movie/state. The earlier#any click rejection
+also remains preserved. The corrected invocation used the actual guarded
+#openhcs target, without fallback or longer deadlines.
+
+Viewed the actual populated channel PNG while the recorder was alive; native
+return, channelreturn and finalnative return PNGs were read after completion.
+They show the correct saved native body, channel rows and draft. This is selected
+frame assessment, not continuous motion or smoothness. No CPU profile was
+requested for this narrow lifetime run. Qualification and original hashes are
+in docs/checkpoints/channel-native-lifetime344-installed-scoped.json.
+
+Normally merged Kepler338 finaleb936 after capture: native Widget.is_attached
+replaces the parent attachment forwarder and the block forwarder is deleted
+(seven production lines removed). Installed02 used33868e; it does not qualify
+the later deletion or the separate original held-I/O End gap. Normally merged
+main0a522 after capture, retaining Core992 and native940880 pins. The344
+shared lifetime methods remain unchanged; main separately adds ContextExplorer
+binding and client-route custody. The receiving/default pair still needs its
+ordinary installed qualification under the parent release owner.
+
+This is a scoped shared-window lifetime checkpoint. Full foreground CPU,
+144Hz, raster/warm/cold, adaptive/growingEnd/void, focus, busy/sidebar, lazy
+animation and TC1/T9/T4 work continues here; no full performance claim.

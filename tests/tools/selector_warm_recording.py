@@ -15,7 +15,7 @@ class SelectorWarmJourney(InputWarmJourney):
     def opening_commands(cls, args):
         model = os.environ['TOAD_TEST_SELECTOR_MODEL']
         marker = marker_command()
-        return (cls.ready_command(args, 'selector-ready', args.command[-1]),
+        return (cls.ready_command(args, 'selector-ready', cls.history_thread(args)),
                 native_click_command('phase-selector-ready-state.pickle', target='widget', name='AgentInfo'),
                 f'sleep {args.navigation_settle_seconds:g}', marker + 'selector-picker',
                 'type --clearmodifiers --delay 20 ' + shlex.quote(model),

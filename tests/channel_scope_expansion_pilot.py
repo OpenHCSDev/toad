@@ -13,6 +13,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
+from runtime_fixture import refresh_comms
 
 
 async def main() -> None:
@@ -45,7 +46,7 @@ async def main() -> None:
             await pilot.pause()
             await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, viewer))
             chat = app.screen.query_one(CommsChatView)
-            await chat._refresh()
+            await refresh_comms(chat)
             await pilot.pause()
             assert [m.body for m, _ in chat.message_history.rows] == ["current channel message"]
             assert not chat.message_history.has_older
@@ -55,7 +56,7 @@ async def main() -> None:
             assert [m.body for m in expanded.messages][:2] == [
                 "older newly visible DM", "current channel message"
             ]
-            await chat._refresh()
+            await refresh_comms(chat)
             await pilot.pause()
             assert [m.body for m, _ in chat.message_history.rows][:2] == [
                 "older newly visible DM", "current channel message"

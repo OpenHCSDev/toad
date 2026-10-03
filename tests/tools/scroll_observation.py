@@ -87,7 +87,7 @@ class NativePhase:
                 and current.interval.through.contains(previous.interval.through))
 
 
-def review_retained_lifetime(output, receipt, *, suffix):
+def review_retained_lifetime(output, receipt, *, suffix, peer_review):
     """Review the saved-view lifetime variant without claiming scroll performance."""
     labels = ("warm-start", "draft", "reader-before-return", "b-open",
               "a-return", "undo", "lifetime-end")
@@ -96,7 +96,7 @@ def review_retained_lifetime(output, receipt, *, suffix):
     same = (original, drafted, reader, returned, undone, ended)
     checks = {
         "original_saved_history_loaded": original.loaded_pages > 0,
-        "peer_saved_history_loaded": peer.loaded_pages > 0,
+        **peer_review(output, receipt),
         "peer_selected": peer.mode != original.mode,
         "source_view_retained": all(phase.mode == original.mode for phase in same),
         "editor_retained": all(phase.editor == original.editor for phase in same),
@@ -118,6 +118,40 @@ def review_retained_lifetime(output, receipt, *, suffix):
     }
     (output / "retained-lifetime-review.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
+
+
+def review_channel_lifetime(output):
+    """Read the original native membership across channel/native returns."""
+    labels = ("warm-start", "b-open", "a-return", "channel-return", "native-return")
+    snapshots = {label: pickle.loads((output / f"phase-{label}-state.pickle").read_bytes())
+                 for label in labels}
+    native = snapshots["warm-start"]["metadata"]["current_mode"]
+    channel = snapshots["b-open"]["metadata"]["current_mode"]
+
+    def view(label, mode):
+        return next(view for view in snapshots[label]["views"] if view["mode"] == mode)
+
+    def admitted(label, mode):
+        window, = view(label, mode)["history_windows"]
+        return window["body_resources"]["frame_admitted"]
+
+    opened, returned = view("b-open", channel), view("channel-return", channel)
+    return {
+        "original_channel_identity_retained": opened["identity"] == returned["identity"],
+        "channel_window_retained": opened["history_windows"][0]["object_id"] == returned["history_windows"][0]["object_id"],
+        "channel_messages_published": all(any(node["class"] == "IRCMessage"
+                                              for node in snapshots[label]["metadata"]["navigation_targets"]["widgets"])
+                                          for label in ("b-open", "channel-return")),
+        "hidden_native_window_not_admitted": all(not admitted(label, native)
+                                                  for label in ("b-open", "channel-return")),
+        "hidden_channel_window_not_admitted": all(not admitted(label, channel)
+                                                   for label in ("a-return", "native-return")),
+        "shown_channel_window_admitted": all(admitted(label, channel)
+                                             for label in ("b-open", "channel-return")),
+        "shown_native_window_admitted": all(admitted(label, native)
+                                            for label in ("a-return", "native-return")),
+        "native_tab_returned": snapshots["native-return"]["metadata"]["current_mode"] == native,
+    }
 
 
 def review_warm_return(output, receipt, *, suffix, scroll_labels):
