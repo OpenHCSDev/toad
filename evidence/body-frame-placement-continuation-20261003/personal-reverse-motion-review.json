@@ -1,0 +1,16 @@
+{
+  "ui": {
+    "pid": 1836905,
+    "start_ticks": 53452864
+  },
+  "frame_file": "live-39-22-frames.png",
+  "source_band_seconds": [
+    81.372076437,
+    82.172076437
+  ],
+  "personal_view_before_monotonic": 534665.17072674,
+  "ui_alive_before": true,
+  "assessment": "Personally viewed48 reverse-Up frames: readable body/chrome, repeated positions and stepped advances. No full-body blank in reviewed band. Not smoothness approval.",
+  "personal_view_after_monotonic": 534677.984183874,
+  "ui_alive_after": true
+}

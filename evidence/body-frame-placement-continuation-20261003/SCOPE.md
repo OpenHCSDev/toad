@@ -53,3 +53,22 @@ failure preserved. Original callback transferred before Pilot.pause, whose timer
 only schedules it; changed check awaits that same callback Event (1PASS.57s),
 no native product changes. Frozen receipt5750aca is production-equal c256.
 No physical launch or performance claim yet.
+
+## Scoped installed qualification
+
+Same normal69 style22: Coreeb3778, Toad984000eb, Text46frozen5750aca
+(product equalc256, includes frozen45), native89/SDK12.1. Source/assets/directURLs
+and full native trust pass; installed three-body source/style/resize/stream
+retirement/reentry/disposal and materialization pass through original App.
+
+ONE actual public saved nra run145.216s completed, warm16/input7 alltrue,
+41ready body identities retained A/B/A; Undo/channel return preserved, original
+owner/runtime unchanged, cleanupempty. Original movie/rawreceipt/profile held.
+Personal Up22.590–23.390, Down47.664–48.464, reverse81.372–82.172 seconds
+48-frame review bracketed sameUIalive before/after; parent independently Up/Down.
+Readable retained body/chrome, stepped motion/repeats; no smoothness claim.
+Writerp95Up27.97/Down22.16/reverse23.92ms, max190.21/98.70/99.92ms.
+These are writer intervals, not changed-frameFPS/inputlatency. Kernel UI marker
+CPU78.82/64.60/66.14%, export/encoding included; no matched workload gain.
+GIL1305/errors2 (partial), approximateclock±.0637s; rawunreviewed unchanged,
+separate READY.json qualifies source/resource/paging only. Fullscope staysactive.
