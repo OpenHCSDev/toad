@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar, cast
 from toad.render_backend import Renderer
 
 if TYPE_CHECKING:
-    from toad.render_tasks import RenderTask
+    from toad.render_backend import RenderTask
 
 ResultT = TypeVar("ResultT")
 

@@ -48,7 +48,7 @@ async def main():
             view=app.selected_session.conversation
             agent=Agent(root,{'name':'T2','identity':'t2','short_name':'t2','run_command':{'*':'true'},'protocol':'acp'},'pilot')
             view.agent=agent
-            agent.attach_surface(view)
+            view.bind_agent(agent)
             await agent.server.call(json.loads(raw[0]))
             await pilot.pause()
             assert agent._active_turn_id=='actual-producer'

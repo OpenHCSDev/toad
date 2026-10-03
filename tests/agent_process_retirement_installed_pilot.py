@@ -40,7 +40,6 @@ async def cancelled_start(root):
             finished.set()
 
     agent = Agent(root, AgentDefinition("cancelled-start", "Cancelled start", {"*": "true"}), None)
-    agent.post_message = lambda message: None
     with patch("toad.acp.maintenance_ingress.preflight", held_preflight):
         start = asyncio.create_task(agent.start())
         try:
@@ -79,7 +78,6 @@ async def case(root, mode):
     )
     command = shlex.join((sys.executable, "-c", code))
     agent = Agent(root, AgentDefinition("retirement", "Retirement", {"*": command}), None)
-    agent.post_message = lambda message: None
     async def session():
         await asyncio.Future()
 

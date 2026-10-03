@@ -1,0 +1,14 @@
+{
+  "whole_declared_native_schema_equal": true,
+  "product_equal": false,
+  "source_core": "58686f983377087e85ef20fd2928bcf113ab7acb",
+  "target_core": "325e9f355cf29be3f54594bb2672f7c9aa42c553",
+  "original_checkpoint_schema": "d43dc91034ae0cddbbaa4dc2aa2a8c8cfae35f31a0ce057c7b53839a84e2029f",
+  "target_checkpoint_schema": "c4ff566ee8f2c15407d486291971c9ef52efb99801150311a9f0fe40cd8ce8d2",
+  "changed_derived_checkpoint": true,
+  "runtime_carry_reset_required": false,
+  "runtime_member": "PreserveRuntimeInstallation",
+  "index_member": "RetainedIndexCutover",
+  "original_stores_opened": false,
+  "index_recovery_relation": "Publisher pre-stop recovery witness contains bus metadata; original writer clears checkpoint version/seal before index mutation. Changed marker prohibits old-runtime recovery."
+}

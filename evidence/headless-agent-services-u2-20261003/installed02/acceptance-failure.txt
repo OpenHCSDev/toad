@@ -1,0 +1,53 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/l0a_native_installed_pilot.py", line 311, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/headless-agent-services-u2-20261003/installed_services.py", line 45, in acceptance
+    await client_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests)
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/client_session_native_installed_pilot.py", line 111, in acceptance
+    await agent.session.new()
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/acp/agent_session.py", line 214, in new
+    session_pk = await db.session_new(
+                 ^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/db.py", line 166, in session_new
+    return await self._sessions(lambda db: row.insert(db).lastrowid, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/db.py", line 103, in _sessions
+    return await asyncio.to_thread(transaction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/db.py", line 99, in transaction
+    return operation(db)
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/db.py", line 166, in <lambda>
+    return await self._sessions(lambda db: row.insert(db).lastrowid, None)
+                                           ~~~~~~~~~~^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/typed_table.py", line 512, in insert
+    return db.execute(*self._insertion())
+                       ~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/typed_table.py", line 508, in _insertion
+    tuple(item.encode(getattr(self, item.name)) for item in writable),
+    ^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/typed_table.py", line 508, in <genexpr>
+    tuple(item.encode(getattr(self, item.name)) for item in writable),
+          ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/typed_table.py", line 273, in encode
+    return None if encoded is None else self.storage.to_sql(encoded)
+                                        ~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/db.py", line 38, in to_sql
+    return FieldCodec.encode(value, SessionTimestamp)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/field_codec.py", line 265, in encode
+    return representation.encode(value)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/field_codec.py", line 164, in encode
+    raise TypeError("Expected a datetime")
+TypeError: Expected a datetime

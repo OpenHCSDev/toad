@@ -26,7 +26,8 @@ from toad.render_protocol import (
     AcknowledgedReply,
 )
 from toad.render_service import RenderService, RenderServiceConfig
-from toad.render_tasks import RenderTask, PatchRenderTask
+from toad.render_tasks import PatchRenderTask
+from toad.render_backend import RenderTask
 from toad.render_zmq import RenderSubmission
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import (
