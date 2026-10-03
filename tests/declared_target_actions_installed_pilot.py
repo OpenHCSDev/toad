@@ -120,7 +120,7 @@ async def journey(args):
     original = comms.registry.require('tagged').incarnation
     comms.channels.set_saved_view(SavedView('projection', ViewKind.PARTICIPANTS,
                                            ViewPredicate(AnyOfMatch, frozenset({'first'}))))
-    before = {'root_id': comms.bus.log.read_metadata().root_id,
+    before = {'root_id': os.environ['AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID'],
               'incarnation': FieldCodec.encode(original), 'inputs': 0}
     checks = []
     # Observe the original installed implementation without replacing queries,
