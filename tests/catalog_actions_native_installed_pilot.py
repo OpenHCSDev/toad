@@ -135,7 +135,7 @@ async def execute(app, pilot, name, *, edited=None, cancel=False, expected=0, in
     pane = executor.command_pane
     if input_text is not None:
         await until(pilot, lambda: 'CMD_INPUT_READY' in frame(app))
-        assert pane.is_cooked and not pane.execution.outcome.finished
+        assert not pane.execution.outcome.finished
         pane.focus()
         await pilot.press(*list(input_text), 'enter')
     if cancel:

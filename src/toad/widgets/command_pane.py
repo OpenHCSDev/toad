@@ -24,10 +24,6 @@ class CommandPane(CoreEventReceiver, Terminal):
     def return_code(self) -> int | None:
         return self.execution.outcome.return_code
 
-    @property
-    def is_cooked(self) -> bool:
-        return self.execution.is_cooked
-
     def resize_process(self, width: int, height: int) -> None:
         self.execution.update_size(width, height)
 
