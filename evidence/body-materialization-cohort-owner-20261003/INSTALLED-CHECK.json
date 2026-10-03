@@ -1,0 +1,142 @@
+{
+  "state": "changed Toad installed source verified; native three-body App check passed; cadence expectation failed; physical motion pending",
+  "prefix": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "toad": {
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body412-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "645c760fe208b9ee82758addcf95cdc42d1867866ba94eb84ac43f16c4a1345e",
+    "source_build_head": "66da5e59d4a08e322ba7b2f4b3de7a1af4d41fd3",
+    "source_inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/toad-inventory.json",
+    "files": 320,
+    "allocation_bound_mib": 16,
+    "normal_build": "system hatchling from published owned checkout; no UV VCS clone, new env or native build",
+    "unchanged": "Coredbcf/Text48/native89/SDK12.1/normal69 from explicit410handback"
+  },
+  "asset_counts": {
+    "toad": 320,
+    "agent_comms": 339,
+    "textual": 266,
+    "textual_diff_view": 3
+  },
+  "unchanged_sources": [
+    {
+      "module": "agent_comms",
+      "head": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/agent_comms",
+      "files": 339,
+      "python_files": 311,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "dbcf3ae4a47b629c85027c0def993a9614fadc6c",
+          "requested_revision": "dbcf3ae4a47b629c85027c0def993a9614fadc6c"
+        }
+      },
+      "inventory_sha256": "44615737c02bcb0e52554a535771015c287772731c491b19367bbe2c3677b618"
+    },
+    {
+      "module": "textual",
+      "head": "3efcc03803400c10ee60199331869d899a0fcc71",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual",
+      "files": 266,
+      "python_files": 249,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "3efcc03803400c10ee60199331869d899a0fcc71",
+          "requested_revision": "3efcc03803400c10ee60199331869d899a0fcc71"
+        }
+      },
+      "inventory_sha256": "5c828433d5e2094811fb1be7605989cd7dcd0071e6d8d89de5a7156766e148d5"
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "location": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual_diff_view",
+      "files": 3,
+      "python_files": 2,
+      "byte_equal": true,
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual-diff-view.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+          "requested_revision": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9"
+        }
+      },
+      "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
+    }
+  ],
+  "sdk": "0.12.1",
+  "package_count": 69,
+  "toad_direct_url": {
+    "url": "file:///home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body412-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+    "archive_info": {}
+  },
+  "native_app_exit": 0,
+  "cadence_exit": 0,
+  "public_install_changed": false,
+  "new_environment": false,
+  "new_native_build": false,
+  "source_overlay": false,
+  "source_head": "66da5e59d4a08e322ba7b2f4b3de7a1af4d41fd3",
+  "logs": {
+    "native-app.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/native-app.log",
+      "sha256": "c7fa9ac187aeca9e203097e8eced10a26d5515e73006f7ad5b71a7efba832d23"
+    },
+    "native-app.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/native-app.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "cadence.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence.log",
+      "sha256": "d36a18d4447fb758f167c4ed9a3e615673dd0afa648766394db0714e96c4d430"
+    },
+    "cadence.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "cadence-changed.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed.log",
+      "sha256": "abd303ae8ee57e8a6bab6ab8b7830938660f46f94ef15eb132c714c8ba0d0497"
+    },
+    "cadence-changed.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "cadence-changed-final.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed-final.log",
+      "sha256": "b112372a49cc5545c97af9d7e7714f4a659a301df198a002bc6e2309a3b0e4fa"
+    },
+    "cadence-changed-final.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed-final.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "cadence-corrected.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-corrected.log",
+      "sha256": "9c295b23abfee47e0bc5961e0c8633ca5834b7f6d6417d0b1a909853f39aca11"
+    },
+    "cadence-corrected.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-corrected.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  },
+  "cadence_classification": "Changed-width cohort: all three original body workers entered MaterializingBody and remained pending on their own native Markdown locks. Release measured0.597s delivery against0.2s idle horizon; original source-page background warmup preserved that horizon. Paging/reverse/End then actual expiry passed. Prior history-lock assertion and two unrelated background-state expectation failures remain unchanged.",
+  "cadence_corrected": {
+    "foreground_delivery_seconds": 0.597307239077054,
+    "delivery_after_background_seconds": 0.597307239077054,
+    "foreground_measured": true,
+    "changed_width_cohort": 3,
+    "original_pending_workers": [
+      "materialize",
+      "materialize",
+      "materialize"
+    ],
+    "background_preserved_horizon": true,
+    "boundary": "actual source UI/widget/worker journey; not installed physical capture"
+  }
+}
