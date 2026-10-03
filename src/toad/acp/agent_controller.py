@@ -47,8 +47,8 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def prepare(self, controller) -> None:
         """No frontend means no additional application resources to acquire."""
 
-    def terminal_dimensions(self):
-        return 80, 24
+    def prepare_terminal(self, state) -> None:
+        """A detached terminal keeps its original model's configured geometry."""
 
     def schedule_terminal_presentation(self, controller):
         controller.start_terminal_presentation(self.target)

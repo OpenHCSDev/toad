@@ -1,0 +1,745 @@
+{
+  "source": "e7c6ede5da01a545f3e24393f6916c51c764cf22",
+  "parser": "Existing NRA audit.findings.Package.load / audit.repository.Repository",
+  "parsed": 286,
+  "omissions": [],
+  "definitions": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 41,
+      "class": "SurfaceBinding",
+      "bases": [
+        "DeclaredFamily"
+      ]
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 7,
+      "class": "AttachedSurfaceBinding",
+      "bases": [
+        "SurfaceBinding"
+      ]
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 781,
+      "class": "ANSIStream",
+      "bases": []
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1010,
+      "class": "LineFold",
+      "bases": [
+        "NamedTuple"
+      ]
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1030,
+      "class": "LineRecord",
+      "bases": []
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1086,
+      "class": "Buffer",
+      "bases": []
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1274,
+      "class": "TerminalState",
+      "bases": []
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 173,
+      "class": "PtyProcess",
+      "bases": []
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 332,
+      "class": "TerminalExecution",
+      "bases": []
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 31,
+      "class": "Terminal",
+      "bases": [
+        "ConversationBlock",
+        "TerminalStateProjection",
+        "ScrollView"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/terminal_projection.py",
+      "line": 5,
+      "class": "TerminalStateProjection",
+      "bases": []
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 17,
+      "class": "TerminalTool",
+      "bases": [
+        "Terminal"
+      ]
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 67,
+      "reference": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 94,
+      "reference": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 114,
+      "reference": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 72,
+      "reference": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 43,
+      "reference": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 45,
+      "reference": "self.owner.surface.prepare_terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/acp/terminal_controller.py",
+      "line": 34,
+      "reference": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 7,
+      "reference": "SurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 63,
+      "reference": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 57,
+      "reference": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 44,
+      "reference": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1363,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1039,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1091,
+      "reference": "LineRecord",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1095,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1637,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 265,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 281,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 388,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 498,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 517,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 532,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 549,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 573,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 594,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 607,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 618,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 653,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 659,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 668,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 674,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 680,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 686,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 692,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 698,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 704,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 712,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 718,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 736,
+      "reference": "TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1294,
+      "reference": "ANSIStream",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1319,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1321,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1527,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1623,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1660,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1665,
+      "reference": "LineRecord",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1681,
+      "reference": "Buffer",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1651,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1640,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1642,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1645,
+      "reference": "LineFold",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 61,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 88,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 55,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 280,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/shell_output.py",
+      "line": 37,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 238,
+      "reference": "PtyProcess",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 390,
+      "reference": "PtyProcess",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 271,
+      "reference": "PtyProcess",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 182,
+      "reference": "cls.resize_fd",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 335,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 336,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 343,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 195,
+      "reference": "self.resize_fd",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/terminal_execution.py",
+      "line": 411,
+      "reference": "PtyProcess",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 23,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1961,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 859,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 491,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 876,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 900,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 913,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 922,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1326,
+      "reference": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 380,
+      "reference": "AttachedSurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 901,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 914,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 924,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1327,
+      "reference": "TerminalTool",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 12,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 31,
+      "reference": "TerminalStateProjection",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 51,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 54,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 61,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 65,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 72,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 75,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 97,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 146,
+      "reference": "ansi.TerminalState",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 94,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 497,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 395,
+      "reference": "self.state.key_to_stdin",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 494,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 17,
+      "reference": "Terminal",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 22,
+      "reference": "AttachedSurfaceBinding",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 25,
+      "reference": "TerminalExecution",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/terminal_tool.py",
+      "line": 34,
+      "reference": "TerminalExecution",
+      "context": "Load"
+    }
+  ],
+  "model_frontend_imports": [],
+  "geometry_defaults_or_duplicates": [
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1277,
+      "declaration": "DEFAULT_WIDTH: ClassVar[int] = 80"
+    },
+    {
+      "path": "src/toad/ansi/_ansi.py",
+      "line": 1278,
+      "declaration": "DEFAULT_HEIGHT: ClassVar[int] = 24"
+    }
+  ],
+  "dependency_roots": [
+    {
+      "module": "rich.cells",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/rich/cells.py",
+      "sha256": "7cf4529eab989423b84c782652890e24e84d95cc7c0b8359d97bfd24cffb19b1",
+      "parsed": true,
+      "classes": 1
+    },
+    {
+      "module": "rich.text",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/rich/text.py",
+      "sha256": "b7627c88caaec11d015148209be715369df45b1c3933c7c817fa748e2a18455d",
+      "parsed": true,
+      "classes": 2
+    },
+    {
+      "module": "rich.style",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/rich/style.py",
+      "sha256": "ca9e13b0d28d3d4c41cada0559fcbb9331361a1ffd4d803b7ecd942d77db9b4d",
+      "parsed": true,
+      "classes": 3
+    },
+    {
+      "module": "rich.color",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/rich/color.py",
+      "sha256": "dc74942d50e3eea4245d47455afefc24e8926737f2e72d6791c6219dadbde95d",
+      "parsed": true,
+      "classes": 4
+    },
+    {
+      "module": "textual.content",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/content.py",
+      "sha256": "e22aba09aa8d05e7ea0953697a5af26f5a2c3a75fc43d0dde516b3b3bc8108a8",
+      "parsed": true,
+      "classes": 3
+    },
+    {
+      "module": "textual.style",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/style.py",
+      "sha256": "0923247c0a98e42663c12df088ab452c313a92d1776af4c3297279c0fd68a2b5",
+      "parsed": true,
+      "classes": 1
+    },
+    {
+      "module": "textual.strip",
+      "source": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/strip.py",
+      "sha256": "69fc88bdd943cd768151ad4b571316f27dc2b5a2912631b71f45c392de1de6ad",
+      "parsed": true,
+      "classes": 2
+    }
+  ],
+  "limits": [
+    "AST lexical references are not proof of arbitrary dynamic attribute resolution. Existing installed native path supplies the actual callback/drawing evidence.",
+    "Direct compound ANSI declarations and independent OS processes remain; no replaced geometry or text semantic authority remains in this family."
+  ],
+  "external_fold_contract": "Original Textual Content.fold clamps width to >=2 for indivisible wide glyphs. Original TerminalState folding retains that exact behavior through Rich chop_cells; no native Content import."
+}

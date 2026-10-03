@@ -15,7 +15,7 @@ from toad.message_viewport import AcknowledgementViewport
 from toad.channel_preparation import ChannelHistoryReader, HistoryReadResult
 from toad.screens.session_view import SessionView
 from toad.transcript_source_preparation import TranscriptSourcePreparation
-from toad.transcript_state import LiveTranscript
+from toad.transcript_state import LiveTranscript, LatestViewportRequest
 from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
 
 HISTORY_PAGE_SIZE = 40
@@ -277,13 +277,16 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             if snapshot.current(self):
                 await self._mount_page(page, older=older)
 
-    async def _jump_latest(self) -> None:
+    async def _publish_latest(self, request: LatestViewportRequest) -> bool:
         reader = self.reader
         if reader is None:
-            return
+            return False
         reader.restart()
-        read = await reader.read(True)
-        await self.publish(read)
+        snapshot = self.source_snapshot()
+        read = await reader.read(self.follows_tail)
+        if not snapshot.current(self) or not request.current(snapshot.window):
+            return False
+        return await self.publish(read)
 
     async def publish(self, read: HistoryReadResult) -> bool:
         """Validate and advance the original source inside native publication."""

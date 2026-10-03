@@ -10,7 +10,7 @@ from toad.terminal_execution import TerminalExecution
 from toad.widgets.terminal import Terminal
 
 if TYPE_CHECKING:
-    from toad.acp.agent_controller import AttachedSurfaceBinding
+    from toad.agent_surface import AttachedSurfaceBinding
     from toad.acp.terminal_controller import TerminalController
 
 

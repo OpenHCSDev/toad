@@ -1,0 +1,17 @@
+{
+  "result": "PASS",
+  "elapsed_seconds": 1.456708358018659,
+  "native_provider_requests": 0,
+  "configured_detached_geometry": [
+    57,
+    13
+  ],
+  "configured_pty_output": "13 57\r\nCONFIGURED_DETACHED",
+  "detached_default_output": "24 80\r\nDETACHED_NATIVE_TERMINAL",
+  "original_state_retained_after_reattach": true,
+  "widget_geometry_derived_from_state": true,
+  "large_native_stream_lines": 1200,
+  "unicode_color_paint_and_selection": true,
+  "final_pty_masters_retained": false,
+  "application": "Real installed Toad/ACP/Pi callbacks/native PTYs; Textual Pilot (not physical st recording)"
+}
