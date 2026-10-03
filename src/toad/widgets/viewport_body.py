@@ -79,9 +79,17 @@ class ViewportBody:
 class BodyMeasurement(ABC):
     """One body's extent, native custody and prepared paint resource."""
 
-    width: int = 0
-    rows: int = 0
-    widgets: int = 1
+    @property
+    @abstractmethod
+    def width(self) -> int: ...
+
+    @property
+    @abstractmethod
+    def rows(self) -> int: ...
+
+    @property
+    @abstractmethod
+    def widgets(self) -> int: ...
 
     @property
     @abstractmethod
@@ -115,6 +123,18 @@ class BodyMeasurement(ABC):
     async def before_publication(self) -> None:
         """Settled resources have no outstanding native writer to join."""
 
+    def measured(self, width, rows):
+        return self
+
+    def get_selection(self, body, selection, select_live):
+        return select_live(selection)
+
+    def publication_finished(self, body, worker):
+        """A settled resource does not own this worker's publication."""
+
+    def publication_failed(self, body, worker):
+        """A replaced publication cannot invalidate another resource."""
+
     def released(self):
         return self
 
@@ -129,43 +149,11 @@ class BodyMeasurement(ABC):
 
 
 @dataclass(frozen=True)
-class LiveBody(BodyMeasurement):
-    def invalidated(self):
-        # The original native tree still carries its pixels. Replace the
-        # captured lifetime so an in-flight retirement cannot publish old rows.
-        return replace(self)
-
-    @property
-    def dormant(self):
-        return False
-
-    def ready(self, body):
-        return body.native_body_ready()
-
-    def cost(self, body):
-        return body.materialized_widget_count
-
-    def height(self, body, width, measure):
-        height = measure()
-        if (width, height) != (self.width, self.rows):
-            body._body_measurement = replace(self, width=width, rows=height)
-        return height
-
-    def render(self, body, crop, render_live):
-        return render_live(crop)
-
-    async def restore(self, body):
-        return
-
-    async def materialize(self, body):
-        return
-
-    def retire(self, body):
-        return body.retire_native_body(self)
-
-
-@dataclass(frozen=True)
 class MeasuredBody(BodyMeasurement):
+    width: int = 0
+    rows: int = 0
+    widgets: int = 1
+
     @property
     def dormant(self):
         return True
@@ -188,24 +176,131 @@ class MeasuredBody(BodyMeasurement):
         await body.materialize_body()
 
 
-@dataclass(frozen=True, kw_only=True)
-class MaterializingBody(MeasuredBody):
-    """The original native worker, not a copied restoring flag."""
+@dataclass(frozen=True)
+class LiveBody(MeasuredBody):
+    def invalidated(self):
+        # The original native tree still carries its pixels. Replace the
+        # captured lifetime so an in-flight retirement cannot publish old rows.
+        return replace(self)
 
+    @property
+    def dormant(self):
+        return False
+
+    def ready(self, body):
+        return body.native_body_ready()
+
+    def cost(self, body):
+        return body.materialized_widget_count
+
+    def height(self, body, width, measure):
+        return measure()
+
+    def measured(self, width, rows):
+        return self if (width, rows) == (self.width, self.rows) else replace(self, width=width, rows=rows)
+
+    def render(self, body, crop, render_live):
+        return render_live(crop)
+
+    async def restore(self, body):
+        return
+
+    async def materialize(self, body):
+        return
+
+    def retire(self, body):
+        return body.retire_native_body(self)
+
+
+@dataclass(frozen=True, kw_only=True)
+class MaterializingBody(BodyMeasurement):
+    """One native writer borrowing the body's preceding paint resource.
+
+    Dimensions and retained bytes belong to that resource. The worker owns
+    publication and interaction; a pending writer is never a second extent.
+    """
+
+    previous: BodyMeasurement
     worker: Worker
 
+    @property
+    def width(self):
+        return self.previous.width
+
+    @property
+    def rows(self):
+        return self.previous.rows
+
+    @property
+    def widgets(self):
+        return self.previous.widgets
+
+    @property
+    def dormant(self):
+        return True
+
+    def ready(self, body):
+        # Retained rows remain paint while preparation runs. A live tree may
+        # have intermediate writes from an earlier joined publication; it is
+        # not a committed snapshot for this pending writer.
+        return self.previous.dormant and self.previous.ready(body)
+
+    def cost(self, body):
+        return max(self.previous.cost(body), body.materialized_widget_count)
+
+    @property
+    def paint_bytes(self):
+        return self.previous.paint_bytes
+
+    def height(self, body, width, measure):
+        return self.previous.height(body, width, measure)
+
+    def render(self, body, crop, render_live):
+        return self.previous.render(body, crop, render_live)
+
+    def get_selection(self, body, selection, select_live):
+        return self.previous.get_selection(body, selection, select_live) if self.ready(body) else None
+
+    def _updated(self, previous):
+        return self if previous is self.previous else replace(self, previous=previous)
+
+    def measured(self, width, rows):
+        return self._updated(self.previous.measured(width, rows))
+
     def invalidated(self):
-        return self
+        return self._updated(self.previous.invalidated())
+
+    def released(self):
+        return self._updated(self.previous.released())
+
+    def style_updated(self, body):
+        return self._updated(self.previous.style_updated(body))
+
+    def resized(self, size):
+        return self._updated(self.previous.resized(size))
+
+    async def restore(self, body):
+        await self.before_publication()
 
     async def materialize(self, body):
         await self.before_publication()
 
-    async def before_publication(self) -> None:
-        await self.worker.wait()
+    def before_publication(self) -> Awaitable[None]:
+        # The next writer borrows only the worker, not a coroutine retaining
+        # an old paint snapshot after the body's LRU has released it.
+        return self.worker.wait()
+
+    def publication_finished(self, body, worker):
+        if self.worker is worker:
+            body.native_body_committed()
+
+    def publication_failed(self, body, worker):
+        if self.worker is worker:
+            body._body_measurement = MeasuredBody(self.width, self.rows, self.widgets)
 
 
 @dataclass(frozen=True, kw_only=True)
-class RenderedBody(BodyMeasurement):
+class RenderedBody(MeasuredBody):
     content: PreparedRichContent
     resource_bytes: int
     style_revision: int
@@ -245,6 +340,9 @@ class RenderedBody(BodyMeasurement):
         return self.content.render_lines(
             crop, selection=selection,
             selection_style=body.selection_style if selection is not None else None)
+
+    def get_selection(self, body, selection, select_live):
+        return (selection.extract(self.content.text), '\n') if self.ready(body) else None
 
     def released(self):
         return MeasuredBody(self.width, self.rows, self.widgets)
@@ -330,9 +428,7 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.render(self, crop, super().render_lines)
 
     def get_selection(self, selection):
-        if self.body_dormant and self.body_ready:
-            return selection.extract(self._body_measurement.content.text), '\n'
-        return super().get_selection(selection)
+        return self._body_measurement.get_selection(self, selection, super().get_selection)
 
     async def prepare_input(self, event):
         # Native controls are actual resources, not pixels. Restore them at
@@ -356,22 +452,22 @@ class MeasuredViewportBody(ViewportBody):
         return AwaitComplete(operation.materialize(self))
 
     def start_materialization(self, previous, work=None):
+        publication = AwaitComplete(previous.before_publication())
+
         async def materialize():
             try:
                 # Identity guards prevent an old commit; joining its actual
                 # worker also prevents old native writes after the new commit.
-                await previous.before_publication()
+                await publication
                 await (self.materialize_native_body() if work is None else work())
-                if self.is_attached and self._body_measurement is current:
-                    self.native_body_committed()
+                if self.is_attached:
+                    self._body_measurement.publication_finished(self, worker)
             except BaseException:
-                if self._body_measurement is current:
-                    self._body_measurement = MeasuredBody(
-                        previous.width, previous.rows, previous.widgets)
+                self._body_measurement.publication_failed(self, worker)
                 raise
 
         worker = self.run_worker(materialize(), group="body-materialization", exit_on_error=False)
-        current = MaterializingBody(previous.width, previous.rows, previous.widgets, worker=worker)
+        current = MaterializingBody(previous=previous, worker=worker)
         self._body_measurement = current
         return current
 
@@ -452,8 +548,13 @@ class MeasuredViewportBody(ViewportBody):
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container, viewport, width):
         native_height = super().get_content_height
-        return self._body_measurement.height(
-            self, width, lambda: native_height(container, viewport, width))
+        measurement = self._body_measurement
+        height = measurement.height(self, width, lambda: native_height(container, viewport, width))
+        if self._body_measurement is measurement:
+            # Extent measurement updates its current resource; it cannot
+            # replace a pending worker or overwrite width invalidation.
+            self._body_measurement = measurement.measured(width, height)
+        return height
 
     def get_content_width(self, container, viewport):
         if self.body_dormant:
