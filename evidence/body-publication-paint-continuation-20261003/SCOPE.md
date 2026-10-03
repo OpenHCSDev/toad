@@ -134,3 +134,12 @@ production modules at both revisions with no omissions. The nine bypasses are
 deleted; publication/retirement/eviction/measurement consumers use that owner.
 The preceding native-resource03 result qualifies35c8; the new37dec22c transition
 batch is source reviewed, with changed installed qualification still pending.
+
+## Scoped installed Ready
+
+One changed399/43 original saved-history run completed111.562s: warm16/input7
+passed,22 ready bodies retained, sourceowner unchanged, cleanup empty. READY.json
+records exact source/native identities, requiredexports, rawhashes, source04,
+writer windows and residual CPU/motion limitations. Moving frames inspected AFTER;
+verified DURING moving inspection missed. Raw assessment remains unreviewed.
+Whole144Hz/CPU/smoothness and originalfullscope remain active.
