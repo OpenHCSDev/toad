@@ -287,8 +287,9 @@ for output in ('INITIAL_BODY\\r\\nUNCHANGED_BODY',
                '\\x1b[?1049l',
                '\\r\\nDETACHED_BODY',
                '\\r\\nFINAL_BODY',
-               '\\x1b[2JAFTER_CLEAR\\r\\n\\r\\n',
-               '\\x1b[1;6H\\x1b[J'):
+               '\\x1b[2JAFTER_CLEAR',
+               '\\x1b[1;6H\\x1b[J',
+               '\\r\\n\\r\\n'):
     sys.stdout.write(output)
     sys.stdout.flush()
     sys.stdin.readline()
@@ -375,13 +376,8 @@ sys.exit(7)
                     await until(pilot, lambda: "AFTER_CLEAR" in conversation_paint(app.screen))
                     assert "FINAL_BODY" not in conversation_paint(app.screen)
                     assert projections[-1]["scrollback"] is None
-                    # Original trailing-blank removal owns its structural damage.
-                    original_state.remove_trailing_blank_lines_from_scrollback()
-                    scrollback = original_state.scrollback_buffer.consume_updates()
-                    assert scrollback is None and original_state.scrollback_buffer.line_count == 1
-                    terminal.project_state(scrollback, original_state.alternate_buffer.consume_updates())
-                    await pilot.pause()
-                    assert "AFTER_CLEAR" in conversation_paint(app.screen)
+                    # ANSI positioning is screen-relative. Keep the cleared
+                    # screen intact until the child finishes its next write.
                     await execution.write_stdin("\n")
                     await until(pilot, lambda: original_state.scrollback_buffer.lines[0].content.plain == "AFTER")
                     await pilot.pause()
@@ -389,12 +385,23 @@ sys.exit(7)
                     assert "AFTER" in frame and "AFTER_CLEAR" not in frame
                     assert projections[-1]["scrollback"] is None
                     await execution.write_stdin("\n")
+                    await until(pilot, lambda: original_state.scrollback_buffer.line_count == 3)
+                    await execution.write_stdin("\n")
                     assert (await rpc("terminal/wait_for_exit", terminalId=terminal_id))["exitCode"] == 7
                     await until(pilot, lambda: terminal.is_finalized)
                     assert projections[-1]["finished"]
                     assert projections[-1]["scrollback"] is projections[-1]["alternate"] is None
                     assert terminal.has_class("-error") and "[7]" in str(terminal.border_title)
                     assert custody.master.closed and custody.child.retired and not child.alive()
+                    # Final-output trimming removes rows only after the PTY
+                    # writer retires; no later ANSI command recreates them.
+                    original_state.remove_trailing_blank_lines_from_scrollback()
+                    scrollback = original_state.scrollback_buffer.consume_updates()
+                    assert scrollback is None and original_state.scrollback_buffer.line_count == 1
+                    terminal.project_state(scrollback, original_state.alternate_buffer.consume_updates())
+                    await pilot.pause()
+                    assert original_state.scrollback_buffer.lines[0].content.plain == "AFTER"
+                    assert "AFTER" in conversation_paint(app.screen)
                     app.save_screenshot("reattached-completed.svg", path=str(evidence))
                     await rpc("terminal/release", terminalId=terminal_id)
                     assert not agent.controller.terminals.executions
