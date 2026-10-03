@@ -14,6 +14,7 @@ from agent_comms.comms import Comms
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.presentation_window import MovingPreparation, StationaryPreparation
+from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 
 
 async def main():
@@ -69,7 +70,10 @@ async def main():
             background = next(body for body in docs
                               if body not in app.screen._compositor.visible_widgets)
             assert await background.retire_body()
-            await background.prepare_body()
+            preparation = TranscriptBodyPreparation(
+                app.render_processes, app.native_ansi_color, app.current_theme.dark,
+            )
+            await preparation.dispatch(background.TRANSCRIPT_EVENT(background.source))
             await manager._restore_bodies((background,), foreground, manager.lookahead.demand)
             assert background.body_ready
             background_delivery = lookahead.delivery_seconds

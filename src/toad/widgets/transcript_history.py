@@ -200,14 +200,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     async def materialize_native_body(self) -> None:
         await self.recompose()
 
-    async def prepare_body(self) -> None:
-        from toad.widgets.transcript_fragments import TranscriptBodyPreparation
-        preparation = TranscriptBodyPreparation(
-            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
-        )
-        for event in self.fragment.events:
-            await preparation.dispatch(event)
-
     @property
     def message_category(self) -> type[MessageCategory]:
         return self._message_category

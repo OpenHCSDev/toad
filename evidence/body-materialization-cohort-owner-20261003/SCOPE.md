@@ -25,3 +25,18 @@ ship before full performance, without claiming smoothness or CPU gain.
 409 evidence: 142.603s, warm16/input7, Up writer max185.96ms and marker UI74.08%;
 repeated positions/discrete movement remain. Writer boundaries are not terminal
 FPS/input-to-paint; CPU marker spans include exports and partial GIL sampling.
+
+## Published working implementation
+
+Four mounted-body warmup declarations and their foreground prewarm call are
+deleted. The actual body workers acquire/deliver their results once and the
+admitted cohort joins concurrently under one existing reader compensation.
+No source/window lock is added around those workers. Actual restored effects
+still own deferral, and reversal stops further admission. Page-source warmup
+before native source mutation remains a distinct necessary lifetime; all four
+remaining callers publish a not-yet-mounted TranscriptHistory.
+
+Production four files14+/37-; one existing App cadence consumer migrated to
+the original source-page preparation visitor. This working batch is untested
+and not Ready. Final native three-body/cancellation/reader acceptance and
+changed installed motion are still required; no speed claim.
