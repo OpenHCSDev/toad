@@ -1,0 +1,9 @@
+# Qualified mounted-body preparation receiving
+
+Normal source join in the reused receiving checkout: current main411 plus qualified412 head2075607b8 (production identical Ready9de/installed66da). Core605 db620, Text48 7cc and native89 remain the declared pair. 412 is still open at this checkpoint; its eventual normal main merge is a metadata/source ancestry boundary before final publication.
+
+The original412 installed native three-body and pending-worker cadence controls and143.203s physical gate remain the affected acceptance: warm16/input7, owner/runtime unchanged and empty cleanup. Discrete movement remains; no overall CPU or smoothness gain. This receiving batch requires source/package assembly proof, without repeating that film, provider or App controls.
+
+Existing485 now has an explicit package-only grant after preserving its CURRENT408 floor (not397). Archive db3d1637be4bba49a70f6d72631c03b8633a2d66bc86471c1323b1e8d21396c3:1450 verified members,3979841 bytes; four application trees, all69 distribution metadata directories, bin/activation/pyvenv and original source inventories. Member manifest60c1615bba5cb4a1ef1f842f0fa3f8c58b2db5518234efd66ac778c9bba487d0. Original files and native/private data unchanged. Bohr grant: /home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released485-nextqualified-package-only-grant.json.
+
+Build the changed Toad wheel from this published checkout. Reuse the retained reviewed Core605 and Text48 wheels; retain unchanged installed dependency bodies and the original native89 artifact. Honest ArchivePackageDirectUrl/ReviewedArtifact and InstalledSource owners verify file origin and exact source inventory. No VCS source clones, UVsync, environment, native copies or public effects. Core608 sharing, menus607/413 and producer603 remain separate until qualified and reviewed. Current334/live411 and fallback534 stay protected. Parent owns final public execution and ordinary default assembly acceptance.
