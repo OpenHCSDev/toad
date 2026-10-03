@@ -1,0 +1,24 @@
+{
+  "scope": "Source-only final batch; installed default interpreter with explicit owned src overlay and system pytest. Not installed acceptance.",
+  "result": {
+    "passed": 4,
+    "failed": 1
+  },
+  "failure": "Existing test_operational_owner_deletions opens retired src/toad/acp/messages.py; no assertion of changed behavior failed. Preserved as obsolete guard, not waived as product pass.",
+  "checks": [
+    "original pending prompt-build ABA denial and deferred-submit resource release",
+    "human input capture derives original queue owner",
+    "prebind queue capture refusal",
+    "existing TurnOwner family permissions"
+  ],
+  "extra_no_request_process": {
+    "command": "agent-comms-acp --help",
+    "result": "CLI has no help parser; standalone ACP awaited stdin. Owned process2083400 gracefully Ctrl-C, exit0. No JSON input/prompt was sent; no owner was stopped. This is not acceptance evidence."
+  },
+  "obsolete_guard_correction": {
+    "deleted_lines": 3,
+    "reason": "Retired ACP RequestPermission facade assertion was obsolete; permission futures belong to original PermissionController and event carries no copied request. No alias restored.",
+    "remaining_guard_passed": 1,
+    "seconds": 0.16
+  }
+}
