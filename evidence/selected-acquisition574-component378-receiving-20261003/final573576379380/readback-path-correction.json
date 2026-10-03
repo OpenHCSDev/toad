@@ -1,0 +1,15 @@
+{
+  "scope": "Authorized readback operation-path correction only; no publication yet",
+  "old_readback_sha256": "4be90caba491f3dea49be27619350f134d1a2be5ae6cfd2b4dbfe4741cc4aedd",
+  "new_readback_sha256": "72b6ff0c01546682a16d2c7e00c3edc7d47381ea26b408e08cd40697ff50a355",
+  "old_ready_sha256": "1cc86442fa319aa66941765d23cff35a36494d9672f34c326122932fe5db7641",
+  "new_ready_sha256": "b5d578796d110681a6f694a42cc69b2fdf3d9d8e59b3dcaef9b6a030bc08bd9f",
+  "operation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-acquisition574-component378-receiving-20261003/new-publication573576379380",
+  "changed_execution_members": [
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-acquisition574-component378-receiving-20261003/new-publication573576379380/readback_publication.py"
+  ],
+  "all_other_execution_members_unchanged": true,
+  "package_activation_operator_schema_and_gate_bytes_unchanged": true,
+  "operation_directory_source": "Existing script __file__.resolve().parent replaces copied historical release path",
+  "public_effects": 0
+}
