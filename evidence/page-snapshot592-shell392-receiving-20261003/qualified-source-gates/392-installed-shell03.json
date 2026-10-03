@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "script": "tests/blank_presentation_pilot.py",
+  "installed_source_head": "5124100544146ba25593ab0dc329af258039c2ab",
+  "core": "5cf5d0d880678bbcc7fc9591e6bd24397683ab91",
+  "provider_calls": 0,
+  "changed_risk": "original ChildCommand canonical entry must run same interactiveCTTY without -m doubleinitialization warning, retaining originalchild/resources/body/tabreturn/retirement"
+}

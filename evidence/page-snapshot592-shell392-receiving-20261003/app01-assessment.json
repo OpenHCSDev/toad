@@ -1,0 +1,14 @@
+{
+  "state": "PASS affected installed592 standalone saved IRC/DM App path",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/page-snapshot592-shell392-receiving-20261003/source-proof.json",
+  "receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/page-snapshot592-shell392-receiving-20261003/app01/receipt.json",
+  "receipt_sha256": "176ba8edc4a8d840fe1d66783d8d98ba76c9eeaa6408cb6feaacf61fb793d8bf",
+  "new_messages": 0,
+  "provider_calls": 0,
+  "public_effects": 0,
+  "scope": "Original20saved channel IDs and seqs, exact savedDM ID, DM/channel/DM return, existing viewer-read state and independent recipient obligations preserved; no App exception.",
+  "inspection_during_run": "Read timestamped native SVG export texts and original canonical row IDs while app01 remained running; no physical plainst or readable raster pixel claim.",
+  "painted_ack_scope": "Original read states were already settled by588; this run proves preservation through592 views/return, not a new unread-to-read event.",
+  "private_worker_pid_note": "Registry entries reference retired fixture processes; not new native workers.",
+  "native_tab_acp_configured_provider": false
+}

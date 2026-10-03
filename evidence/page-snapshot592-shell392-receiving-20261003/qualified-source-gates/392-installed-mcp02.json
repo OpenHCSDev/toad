@@ -1,0 +1,7 @@
+{
+  "exit_code": 0,
+  "script": "tests/mcp_decision_pty_pilot.py",
+  "installed_source_head": "742083719237dd61ecf3b404678e4a7b6d832e3e",
+  "provider_calls": 0,
+  "scope": "actualApp/PTY/installed package inventory/decisions/challenge/ledger/refresh/cancel; no MCP server/provider/publicroot"
+}
