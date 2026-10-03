@@ -91,7 +91,7 @@ class ActionModal(CoreEventReceiver, ModalScreen):
             )
             await self.command_pane.execute(bootstrap, final=False)
 
-        await self.command_pane.write(f"$ {execution.command.command}\n")
+        await self.command_pane.write(f"$ {execution.command.script}\n")
         await self.command_pane.execute(execution)
         self.app.application.usage.publish(
             "agent-action",

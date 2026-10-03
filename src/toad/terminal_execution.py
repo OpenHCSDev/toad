@@ -32,10 +32,8 @@ from toad.terminal_environment import TerminalEnvironment
 class Command:
     """A command and corresponding environment."""
 
-    command: str
-    """Command to run."""
-    args: list[str]
-    """List of arguments."""
+    script: str
+    """One compiled shell invocation; never reclassified from its text."""
     env: Mapping[str, str]
     """Environment variables."""
     cwd: str | None
@@ -47,18 +45,21 @@ class Command:
     def for_script(cls, script: str, *, env: Mapping[str, str] | None = None,
                    cwd: str | None = None) -> Command:
         """Catalog shell scripts use the standard shell and terminal environment."""
-        return cls(script, [], TerminalEnvironment.for_child(os.environ) | (env or {}),
+        return cls(script, TerminalEnvironment.for_child(os.environ) | (env or {}),
                    cwd, shell="/bin/sh")
+
+    @classmethod
+    def for_argv(cls, command: str, args: list[str], *,
+                 env: Mapping[str, str], cwd: str) -> Command:
+        """Compile ACP executable/arguments exactly once at its typed boundary."""
+        return cls(shlex.join([command, *args]), env, cwd)
 
     @property
     def shell_command(self) -> tuple[str, str, str]:
-        script = (self.command if " " in self.command
-                  else f"{self.command} {shlex.join(self.args)}")
-        return self.shell, "-c", script
+        return self.shell, "-c", self.script
 
     def __str__(self) -> str:
-        command_str = shlex.join([self.command, *self.args]).strip("'")
-        return command_str
+        return self.script
 
 
 class TerminalOutcome(DeclaredFamily, affix="TerminalOutcome"):

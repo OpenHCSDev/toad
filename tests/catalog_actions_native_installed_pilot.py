@@ -267,6 +267,40 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     }, indent=2) + '\n')
 
 
+async def registered_argv(root):
+    """The same installed ACP request owner creates and retires a real PTY."""
+    from toad.acp.agent import Agent
+
+    executable = root / 'argv with spaces # %.sh'
+    executable.write_text("#!/bin/sh\nprintf '%s|%s' \"$1\" \"$2\"\n")
+    executable.chmod(0o700)
+    original_argument = "literal # % ' \" spaces"
+    agent = Agent(root, AgentDefinition('argv-control', 'argv-control', {'*': 'true'}), 'argv-session')
+    request_id = 0
+
+    async def rpc(method, **params):
+        nonlocal request_id
+        request_id += 1
+        response = await agent.server.call({'jsonrpc': '2.0', 'id': request_id,
+            'method': method, 'params': {'sessionId': agent.session_id, **params}})
+        assert 'error' not in response, response
+        return response['result']
+
+    try:
+        created = await rpc('terminal/create', command=str(executable),
+                            args=[original_argument, ''], cwd=str(root))
+        terminal_id = created['terminalId']
+        execution = agent.controller.terminals.require(terminal_id)
+        custody = await execution.custody()
+        assert (await rpc('terminal/wait_for_exit', terminalId=terminal_id))['exitCode'] == 0
+        assert (await rpc('terminal/output', terminalId=terminal_id))['output'] == original_argument + '|'
+        await rpc('terminal/release', terminalId=terminal_id)
+        assert execution.outcome.finished and custody.master.closed and custody.child.retired
+        assert not agent.controller.terminals.executions
+    finally:
+        await agent.stop()
+
+
 async def catalog_only_main():
     """The existing native catalog/editor/PTY journey without a Pi admission."""
     evidence = Path(os.environ['L0A_EVIDENCE'])
@@ -337,6 +371,7 @@ async def catalog_only_main():
                 assert 'CMD_INPUT:native-input' in '\n'.join(line.content.plain
                     for line in input_pane.execution.state.scrollback_buffer.lines)
                 await execute(app, pilot, 'hold', cancel=True)
+                await registered_argv(root)
                 app.save_screenshot(str(evidence / 'catalog-return.svg'))
                 await pilot.press('escape')
                 await until(pilot, lambda: app.screen is store)
@@ -350,6 +385,7 @@ async def catalog_only_main():
                     'login_failure_explicit_success_auto_close': True, 'real_pty_cancel': True,
                     'same_ansi_sequential_bootstrap_and_main_prefixes': True,
                     'actual_cooked_terminal_key_input': True, 'original_custody_retired_closed': True,
+                    'registered_acp_spaced_executable_literal_args_and_release': True,
                     'same_store_catalog_on_return': True, 'native_pi_inputs': 0,
                     'provider_calls': 0,
                     'scope': 'Installed App/Pilot/catalog/editor/real shell PTY, not physical st/ACP/Pi/authentication',

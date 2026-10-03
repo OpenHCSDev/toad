@@ -29,7 +29,7 @@ No latency, physical pixel or full headless completion claim.
 
 ## Working source closure
 
-Four production files: 91 added / 200 deleted at this checkpoint (remeasure at
+Five production files: 100 added / 207 deleted at this checkpoint (remeasure at
 Ready). No classes added. The unused cooked-mode query is removed. Pane no longer opens PTYs, starts subprocesses, stores
 process/master/task/code, decodes output, writes via a delayed thread, or sends
 signals. It holds one original execution resource. The original async worker
@@ -59,3 +59,22 @@ No provider or installer network call; no alternate application/protocol/model.
 
 ActionModal also replaces `_command/_env/_cwd` with one original `Command`
 constructed at the action boundary and consumed by execution/prefix paint.
+
+
+## Complete invocation assembly
+
+The existing `Command` now retains ONE compiled `script`, environment, cwd and
+shell. Delete its separate command/args fields, whitespace case decision, and
+label quote/strip assembly. Exact catalog scripts enter through `for_script`.
+The sole ACP creator uses `for_argv`: executable and typed arguments are quoted
+once at that external boundary, then every launch and label consumes the SAME
+invocation. No string classification, kind flag or additional command class.
+
+Read installed ACP SDK 0.12.1 CreateTerminalRequest plus the official terminal
+contract: https://agentclientprotocol.com/protocol/v1/terminals (command/args).
+All terminal executions use the same original PtyProcess and outcomes. Existing
+catalog fixture adds one registered ACP create/wait/output/release using a real
+local executable with spaces/#/% and literal/empty arguments. This confirms
+assembly/custody across the shared owner, without ACP transport replacement or
+provider calls. Scope: registered RPC/server plus installed App/catalog/real PTY;
+no subprocess ACP transport, native Pi or physical/authentication claim.
