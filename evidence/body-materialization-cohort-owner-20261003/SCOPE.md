@@ -85,3 +85,15 @@ four product files differ from current main; theme/settings equal main.
 Original film remains truthfully Coredbcf/old-settings scope. Accepted410
 original App result is retained independently; no unchanged film or theme
 checks rerun. MAIN-JOIN.json records source identities and equality.
+
+## Holder release
+
+Original recorder18972 finished terminal0, owned cleanup empty. Normal main
+union975 file wheel is installed and source319assets match;608 dependency
+assets/all69 versions are unchanged. Original main/film/proofs and normal
+Coredbcf/ToAd975 restorewheels are archived before sequential CODE release
+to Einstein607/413. No Heis active package/read/write borrower remains;
+513process census has no readable prefix references and350 unreadable
+environment/map scopes are recorded honestly. No all-UID visibility claim.
+Text/native/dependencies stay unchanged; restore filewheel origins honestly.
+Source work/fullperformance ownership remains Heisenberg's after checkpoint.
