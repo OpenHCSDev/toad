@@ -15,5 +15,12 @@ deletion, final proportionate checks and actual changed installed motion/profile
 last. Use configured saved history, own st/Xvfb; no unchanged recording/provider.
 144Hz6.944ms configurable target remains, not a useful checkpoint blocker.
 
-Base is actual main13169632 plus reviewed364 ancestry; merge resulting main
-normally after checkpoint landing. Draft WIP, no overall performance acceptance.
+Normally merged actual main925b8b7bf after364 landed; no stacked feature
+base. Draft WIP, no overall performance acceptance.
+
+Concrete joined native implementation is Text34: MessagePump composition starts
+after synchronous caller registration/styles, through its original cooperative
+boundary; App retains its separate startup behavior. All three native start
+consumers inherit the change; no Toad timing flags. Final native48 checks pass.
+Installed changed real-history/channel motion/profile remains required; current
+Toad source and descriptor checkpoint Ready are not a performance claim.
