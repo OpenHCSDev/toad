@@ -190,13 +190,13 @@ async def main() -> None:
                 await pilot.pause()
                 await pilot.press("tab")
                 await pilot.pause()
-                assert app.column_width == 120
+                assert app.settings.ui.column_width == 120
                 width.value = "4"
                 width.focus()
                 await pilot.pause()
                 await pilot.press("tab")
                 await pilot.pause()
-                assert app.column_width == 120 and width.value == "120"
+                assert app.settings.ui.column_width == 120 and width.value == "120"
                 app.settings = ExtendedSettings(
                     app.settings.document(), notify=partial(ToadSettings.apply_change, app)
                 )

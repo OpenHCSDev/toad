@@ -1,0 +1,13 @@
+{
+  "result": "pass",
+  "installed_toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/__init__.py",
+  "saved_preferences_initial_paint": true,
+  "settings_modal_updates_visible_and_parked_views": true,
+  "physical_tab_return_retains_original_draft": true,
+  "peer_spawn_reads_current_preferences": true,
+  "native_width_and_scrollbar_paint": true,
+  "save_reopen_original_values": true,
+  "providers": 0,
+  "native_inputs": 0,
+  "scope": "Installed original App/Pilot/settings/tab/native CSS; no physical st or ACP socket/provider/performance claim"
+}

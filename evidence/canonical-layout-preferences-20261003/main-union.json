@@ -1,0 +1,15 @@
+{
+  "normal_main_merge": "f495fa9f16cc57cc8bbbf0bc3ca17dbf5bb842d7",
+  "merged_main": "3674b02d2",
+  "accepted_core_pin": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+  "accepted_textual_pin": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "native_preference_family_and_affected_drivers_byte_equal_to_installed_aa9": true,
+  "core_declared_family_field_codec_mro_dispatch_unchanged": true,
+  "dependency_delta": "Textual Widget box-model cache stores original (BoxModel, Extrema) and restores original extrema on retained cache hits; original style/max_width/class/DOM query APIs unchanged. Accepted Text41/393 evidence covers retained box alignment.",
+  "production_delta_vs_current_main": {
+    "added": 26,
+    "deleted": 48,
+    "files": 6
+  },
+  "new_validation": "No repeated actualApp run; exact changed preference family and drivers unchanged, existing dependencies unchanged at called APIs. No new installed/runtime claim for joined metadata."
+}

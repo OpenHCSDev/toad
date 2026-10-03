@@ -1,0 +1,704 @@
+{
+  "revision": "5f1d29d2aada09ec841a47f3299e05eafe84d7d2",
+  "packages": [
+    {
+      "root": "src/toad",
+      "parsed": 289,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 617,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 618,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/ansi/_ansi.py",
+          "line": 899,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 253,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 254,
+          "kind": "Name",
+          "source": "column_width"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 255,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 333,
+          "kind": "FunctionDef",
+          "source": "@staticmethod\ndef apply_change(app: ToadApp, change: PreferenceChange) -> None:\n    from toad.core.preference_events import PreferenceChanged\n    change.apply(app)\n    app.settings.events.publish(PreferenceChanged(change"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 125,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 131,
+          "kind": "Name",
+          "source": "column_width"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 138,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 129,
+          "kind": "Attribute",
+          "source": "effects.column"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 136,
+          "kind": "Attribute",
+          "source": "effects.column_width"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 142,
+          "kind": "Attribute",
+          "source": "effects.scrollbar"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 333,
+          "kind": "Name",
+          "source": "PreferenceChange"
+        },
+        {
+          "path": "src/toad/preferences.py",
+          "line": 329,
+          "kind": "Attribute",
+          "source": "cls.apply_change"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 568,
+          "kind": "FunctionDef",
+          "source": "def watch_column(self, column: bool) -> None:\n    if (conversation := self.query_one_optional(Conversation)):\n        conversation.styles.max_width = max(10, self.column_width) if column else None"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 572,
+          "kind": "FunctionDef",
+          "source": "def watch_column_width(self, column_width: int) -> None:\n    self.watch_column(self.column)"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 575,
+          "kind": "FunctionDef",
+          "source": "def watch_scrollbar(self, old_scrollbar: str, scrollbar: str) -> None:\n    conversation = self.query_one_optional(Conversation)\n    if conversation is None:\n        return\n    if old_scrollbar:\n        conversation.remov"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 150,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 151,
+          "kind": "Name",
+          "source": "column_width"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 152,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 581,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 573,
+          "kind": "Attribute",
+          "source": "self.watch_column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 573,
+          "kind": "Attribute",
+          "source": "self.column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 274,
+          "kind": "Attribute",
+          "source": "self.watch_column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 274,
+          "kind": "Attribute",
+          "source": "self.column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 275,
+          "kind": "Attribute",
+          "source": "self.watch_scrollbar"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 275,
+          "kind": "Attribute",
+          "source": "self.scrollbar"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 340,
+          "kind": "Attribute",
+          "source": "MainScreen(project or self.project_path, self._agent, agent_session_id=session_id).data_bind"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 518,
+          "kind": "Attribute",
+          "source": "tree.data_bind"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 570,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 340,
+          "kind": "Attribute",
+          "source": "type(app).column"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 341,
+          "kind": "Attribute",
+          "source": "type(app).column_width"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 341,
+          "kind": "Attribute",
+          "source": "type(app).scrollbar"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 570,
+          "kind": "Attribute",
+          "source": "self.column_width"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 582,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/screens/store.py",
+          "line": 125,
+          "kind": "Attribute",
+          "source": "DirectoryInput(self.path, select_on_focus=True, compact=True).data_bind"
+        },
+        {
+          "path": "src/toad/screens/store.py",
+          "line": 383,
+          "kind": "Attribute",
+          "source": "DirectoryDisplay(self.project_dir).data_bind"
+        },
+        {
+          "path": "src/toad/screens/store.py",
+          "line": 122,
+          "kind": "Attribute",
+          "source": "CondensedPath(self.path, directory=True).data_bind"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 37,
+          "kind": "Attribute",
+          "source": "MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id).data_bind"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 37,
+          "kind": "Attribute",
+          "source": "type(app).column"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 38,
+          "kind": "Attribute",
+          "source": "type(app).column_width"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 38,
+          "kind": "Attribute",
+          "source": "type(app).scrollbar"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 121,
+          "kind": "Attribute",
+          "source": "MainScreen(project, agent, agent_session_id, session_pk=session_pk, initial_prompt=initial_prompt).data_bind"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 123,
+          "kind": "Attribute",
+          "source": "type(app).column"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 123,
+          "kind": "Attribute",
+          "source": "type(app).column_width"
+        },
+        {
+          "path": "src/toad/session_navigation.py",
+          "line": 123,
+          "kind": "Attribute",
+          "source": "type(app).scrollbar"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 26,
+          "kind": "FunctionDef",
+          "source": "def column(app: ToadApp, value: bool) -> None:\n    app.column = value"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 34,
+          "kind": "FunctionDef",
+          "source": "def column_width(app: ToadApp, value: int) -> None:\n    app.column_width = value"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 42,
+          "kind": "FunctionDef",
+          "source": "def scrollbar(app: ToadApp, value: type[Scrollbar]) -> None:\n    app.scrollbar = value.declared_name"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 27,
+          "kind": "Attribute",
+          "source": "app.column"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 35,
+          "kind": "Attribute",
+          "source": "app.column_width"
+        },
+        {
+          "path": "src/toad/setting_effects.py",
+          "line": 43,
+          "kind": "Attribute",
+          "source": "app.scrollbar"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 130,
+          "kind": "ClassDef",
+          "source": "@dataclass(frozen=True)\nclass PreferenceChange[T]:\n    field: SettingKind[T]\n    value: T\n\n    def apply(self, app: ToadApp) -> None:\n        self.field.effect(app, self.value)"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 108,
+          "kind": "Name",
+          "source": "PreferenceChange"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 264,
+          "kind": "Name",
+          "source": "PreferenceChange"
+        },
+        {
+          "path": "src/toad/settings.py",
+          "line": 193,
+          "kind": "Name",
+          "source": "PreferenceChange"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 83,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 187,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 84,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 188,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 211,
+          "kind": "Name",
+          "source": "column_width"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 239,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 212,
+          "kind": "Name",
+          "source": "column_width"
+        },
+        {
+          "path": "src/toad/visuals/columns.py",
+          "line": 240,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/widgets/channel_prompt.py",
+          "line": 78,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/widgets/channel_prompt.py",
+          "line": 80,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 134,
+          "kind": "Attribute",
+          "source": "self.conversation_kind.prompt(self.target).data_bind"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 445,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 853,
+          "kind": "Attribute",
+          "source": "Prompt(turns=self.turns, submissions=self.submissions).data_bind"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 843,
+          "kind": "Attribute",
+          "source": "NativeHistory().data_bind"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 846,
+          "kind": "Attribute",
+          "source": "InputDeliveryBar().data_bind"
+        },
+        {
+          "path": "src/toad/widgets/mandelbrot.py",
+          "line": 228,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/widgets/mandelbrot.py",
+          "line": 231,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "src/toad/widgets/model_switcher.py",
+          "line": 120,
+          "kind": "Attribute",
+          "source": "cls().data_bind"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 173,
+          "kind": "Attribute",
+          "source": "cls(prompt.project_path).data_bind"
+        },
+        {
+          "path": "src/toad/widgets/path_search.py",
+          "line": 222,
+          "kind": "Attribute",
+          "source": "ProjectDirectoryTree(self.root).data_bind"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 787,
+          "kind": "Attribute",
+          "source": "self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 800,
+          "kind": "Attribute",
+          "source": "CondensedPath().data_bind"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 801,
+          "kind": "Attribute",
+          "source": "StatusLine(markup=False).data_bind"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 223,
+          "kind": "Attribute",
+          "source": "Option(index, Content(answer.text), key, classes='-active' if active else '').data_bind"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 154,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 155,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/widgets/session_tabs.py",
+          "line": 157,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "src/toad/widgets/slash_complete.py",
+          "line": 93,
+          "kind": "Attribute",
+          "source": "cls().data_bind"
+        }
+      ]
+    },
+    {
+      "root": "tests",
+      "parsed": 391,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "tests/application_actions_installed_journey.py",
+          "line": 93,
+          "kind": "Attribute",
+          "source": "app.settings.ui.column_width"
+        },
+        {
+          "path": "tests/application_actions_installed_journey.py",
+          "line": 145,
+          "kind": "Attribute",
+          "source": "reopened.column_width"
+        },
+        {
+          "path": "tests/application_actions_installed_journey.py",
+          "line": 88,
+          "kind": "Attribute",
+          "source": "UiSettings.column_width"
+        },
+        {
+          "path": "tests/application_actions_installed_journey.py",
+          "line": 134,
+          "kind": "Attribute",
+          "source": "UiSettings.column_width"
+        },
+        {
+          "path": "tests/application_actions_installed_journey.py",
+          "line": 94,
+          "kind": "Attribute",
+          "source": "app.settings.ui.column_width"
+        },
+        {
+          "path": "tests/application_actions_installed_journey.py",
+          "line": 87,
+          "kind": "Attribute",
+          "source": "UiSettings.column_width"
+        },
+        {
+          "path": "tests/e2e_pty.py",
+          "line": 194,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "tests/e2e_pty.py",
+          "line": 195,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "tests/e2e_pty.py",
+          "line": 196,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "tests/native_tab_terminal_check.py",
+          "line": 120,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "tests/quit_save_installed_pilot.py",
+          "line": 28,
+          "kind": "Attribute",
+          "source": "app.settings.ui.column_width"
+        },
+        {
+          "path": "tests/quit_save_installed_pilot.py",
+          "line": 79,
+          "kind": "Attribute",
+          "source": "app.settings.ui.column_width"
+        },
+        {
+          "path": "tests/quit_save_installed_pilot.py",
+          "line": 67,
+          "kind": "Attribute",
+          "source": "UiSettings.column_width"
+        },
+        {
+          "path": "tests/quit_save_installed_pilot.py",
+          "line": 65,
+          "kind": "Attribute",
+          "source": "UiSettings.column_width"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 193,
+          "kind": "Attribute",
+          "source": "app.column_width"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 199,
+          "kind": "Attribute",
+          "source": "app.column_width"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 224,
+          "kind": "Attribute",
+          "source": "reopened.ui.column_width"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 201,
+          "kind": "Attribute",
+          "source": "ToadSettings.apply_change"
+        },
+        {
+          "path": "tests/settings_tree_pilot.py",
+          "line": 186,
+          "kind": "Attribute",
+          "source": "UiSettings.column_width"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 51,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 55,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 73,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 54,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 55,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 57,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tab_scrollbar_top_pilot.py",
+          "line": 73,
+          "kind": "Name",
+          "source": "scrollbar"
+        },
+        {
+          "path": "tests/tools/editor_focus_journey.py",
+          "line": 126,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "tests/tools/editor_focus_journey.py",
+          "line": 135,
+          "kind": "Name",
+          "source": "column"
+        },
+        {
+          "path": "tests/tools/editor_focus_journey.py",
+          "line": 135,
+          "kind": "Name",
+          "source": "column"
+        }
+      ]
+    }
+  ],
+  "limits": "Lexical declarations/references, not dynamic resolution. Column terms include unrelated ANSI/grid locals; semantics distinguish them. Existing dependency SettingKind descriptor owns value/change behavior, Textual reactive/data_bind owns publication of duplicate local fields."
+}
