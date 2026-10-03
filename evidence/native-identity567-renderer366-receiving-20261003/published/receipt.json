@@ -1,0 +1,27 @@
+{
+  "started_at": 1791004970.9385338,
+  "finished_at": 1791004973.1252377,
+  "elapsed_seconds": 2.186704397201538,
+  "message": {
+    "seq": 499,
+    "from": "user",
+    "to": "openhcs-helper",
+    "ts": 1791004970.9405181,
+    "type": "info",
+    "text": "Live build 367 while-open status check: testing, please reply only Here. Keep your existing goal state.",
+    "sender_role": "user",
+    "id": "10d916fb5983"
+  },
+  "original_owner": {
+    "pid": 2408531,
+    "start_time": 48042131
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "attempts": 1,
+  "replayed": false
+}

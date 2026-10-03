@@ -1,10 +1,10 @@
 # Native identity567 and renderer366 receiving
 
-## Published; live UI acceptance in progress
+## Published and live UI acceptance complete
 
 Parent executed the original NEW operation once, terminal0, in43.3173 seconds. The raw publication SHA is `ce2a1d902b516170b90ff0b2f27122f81e364600b311360ae49f43a82d239dd8`; its original UI-pending phase is unchanged. Parent's single readback confirmed19 retained owner births/stored settings, new live process identities, all five links, original root identity and native044. No carry, reset or original input replay occurred.
 
-The reused520 holder is now CURRENT and protected;290 is previous rollback. Parent owns the actual ordinary default isolated-st capture and one distinct configured DM with the chat left open. Those are pending in this checkpoint; publication/readback alone do not qualify visible completion or reply latency. No publisher, readback, installed qualification or provider operation was repeated by this archive.
+The reused520 holder is now CURRENT and protected;290 is previous rollback. Parent completed actual ordinary default isolated-st acceptance with the chat left open: distinct501→502 Here in15.681 seconds, final image49.843 seconds after reply. Parent personally viewed input/reply, chat/sidebar Ready and no activity bar. Capture02 terminal0/78.789 seconds, original owner2408531/birth48042131 and runtime unchanged, cleanup empty. Original499 also delivered in17.181 seconds, but capture01 only1.063 seconds after reply still showed Finishing; that timing negative is preserved. No input was replayed. No publisher, readback, installed qualification or provider operation was repeated by this archive.
 
 Original [publication/readback](../../evidence/native-identity567-renderer366-receiving-20261003/published/publication-archive-summary.json), preparation path refusal and declaration relations are preserved. The remaining sections record preparation/freeze as historical facts; their290 source refers to the original prepublication runtime, not the newly current holder.
 
