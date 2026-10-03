@@ -80,3 +80,18 @@ This scoped usage checkpoint can ship; it does not close the full performance go
 Next work is source owner/consumer closure from this SAME profile, together with
 Kepler's disjoint native geometry acquisition, without an unchanged recording,
 new worktree/environment/native copy or additional semantic stores.
+
+## Normal main integration after401
+
+Merged current main e1b75ee25 normally in the SAME402 checkout. Only conflicts
+were pyproject.toml and uv.lock pins: adopted approved current Core91e07acc and
+merged Text44db8becff. Toad production, qualified recorder and resource-check
+bytes equal original installed613da1897; merged Textual production equals original
+installed3ad603c448. Original movie/receipt/profile hashes unchanged.
+
+Core601 code loan returned: all342 originalCoref4 files equal; normal restored
+wheel has truthful local directURL, originalGit provenance archived. No packages
+changed for this merge. main-integration.json records exact resolution/heads.
+Original film remains Coref4 pair; no new combined-Core91 film or performance
+claim. Current-main Core91 carries its separately accepted401 qualification.
+No repeated film/provider/check suite/new checkout/environment.

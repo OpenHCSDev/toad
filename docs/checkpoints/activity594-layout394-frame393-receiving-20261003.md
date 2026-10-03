@@ -23,3 +23,9 @@ Corrected physical06 closes the requested cold Tree/saved-history/roster/provena
 The NEW frozen operation is `.artifacts/activity594-layout394-frame393-receiving-20261003/new-publication593594595393394396/`. Its canonical51 operator bytes come from merged Coref4a, source prefix is derived from the original published entrypoint and allfive are checked by the existing cohort. Full `cohort.require_original()` passed; only whole NativeSchemaDeclaration and derived checkpoint schema are equal, not source/target product. Runtime and owner preservation require no reset/carry/input replay. Parent alone executes the one-use command after fresh audience/client guards. Receipt and originals are absent; source334 remains public until that operation.
 
 Final scope is useful receiving Ready, not a public delivery claim. Physical06 and398 App retain their exact strength, including AFTER-terminal pixel inspection and all05/earlier negatives. FullS2/S4, U2 and smoothness remain open.43,399 and597 are excluded. The final installed prefix and frozen operands have no remaining package writer or test handle.
+
+## Actual publication
+
+Parent merged397 (reported6f2b) and executed the original NEW publisher once. It completed44.659s. The original canonical readback verifies19 preserved births/storedsettings, new alive process identities, allfive default links and the unchanged root/rootID with native89. Original phase remains public-UI-pending. Exact raw publication/readback bytes are archived under this checkpoint's publication directory; neither operation was repeated.
+
+485 is now LIVE and protected against package/code loans. Parent owns the running ordinary default helper physical acceptance. This archive does not claim that UI acceptance has completed, new public channel/provider effects, fullcompaction or speed improvements. Future private source/package work uses another genuinely released existing holder.
