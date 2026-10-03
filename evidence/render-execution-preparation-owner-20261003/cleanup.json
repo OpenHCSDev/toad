@@ -1,0 +1,7 @@
+{
+  "owned_fixture_processes": [],
+  "whole_fixture_cleanup": "Runtime model/pool/ZMQ client drained; persistent service explicitly shutdown; app child cleanup occurs once at journey exit",
+  "worker_receipt": "installed01-receipt.json cleanup []",
+  "scratch": "/home/ts/wt/r366e01",
+  "protected": "Source, original362/493/status proofs, Sch/Bohr holder preimage, native donors and public/default owners untouched"
+}

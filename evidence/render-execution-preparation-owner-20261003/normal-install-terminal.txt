@@ -1,0 +1,5 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001
+error: No solution found when resolving dependencies
+  cause: Because httpx==0.28.1 depends on anyio==4.14.2 and anyio==4.15.1, we can conclude that httpx==0.28.1 cannot be used.
+         And because batrachian-toad==0.6.20 depends on httpx==0.28.1, we can conclude that batrachian-toad==0.6.20 cannot be used.
+         And because only batrachian-toad==0.6.20 is available and you require batrachian-toad, we can conclude that your requirements are unsatisfiable.

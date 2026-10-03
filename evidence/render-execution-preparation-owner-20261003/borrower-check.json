@@ -1,0 +1,14 @@
+{
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "process_borrowers": [],
+  "inaccessible_processes": 298,
+  "default_links": {
+    "toad": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/toad",
+    "toad-comms": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "agent-comms": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/agent-comms-acp"
+  },
+  "same_user_process_check": true,
+  "originals": "Sch/own362 receipts retained; no current365 borrower per direct release",
+  "scope": "No guarantee about inaccessible other-user processes; active same-user default links/process imports must exclude holder."
+}

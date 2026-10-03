@@ -1,0 +1,1 @@
+.artifacts/render-execution-preparation-366/batrachian_toad-0.6.20-py3-none-any.whl
