@@ -1,0 +1,55 @@
+{
+  "merge": "e1b75ee25e1e5d32eb5a9a7105e1cdb45d2cfb82",
+  "ready_head": "bc4840607b1c65e0dbe61afde37d18fc276f3c12",
+  "raw_publication_phase_unchanged": true,
+  "source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined597-body399-plan400-text43-receiving-20261003/new-publication59739940043",
+  "capture": "/home/ts/.cache/agent-scratch/published401-helper-default-20261003/capture",
+  "source_artifacts": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined597-body399-plan400-text43-receiving-20261003/new-publication59739940043/publication-receipt.json",
+      "sha256": "58226a7a2943ee65e2c6fbc86d98840146ab04b903fa1571b7fc2ec7134db7a3",
+      "archived": "publication-receipt-original.json"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/joined597-body399-plan400-text43-receiving-20261003/new-publication59739940043/publication-identity-closure.json",
+      "sha256": "9498797ce59fc24dd859b01ad940eb63c9c439e564cf59fe8dd461db76726a92",
+      "archived": "publication-identity-closure-original.json"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/published401-helper-default-20261003/capture/receipt.json",
+      "sha256": "dad16fce13db46919bca27b6e5daf313dfa4b5840383f9e34d8329e15df3fbc7",
+      "archived": "default-helper-capture-original.json"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/published401-helper-default-20261003/capture/sch-physical-assessment.json",
+      "sha256": "372fd592fe490d92ccbcdb6c7fa636f1facdd9192444a174b0ff163f6d2b74c0",
+      "archived": "default-helper-assessment.json"
+    }
+  ],
+  "original_pixels": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/published401-helper-default-20261003/capture/before.png",
+      "sha256": "3296178f20aec9b46769390eccd56fb5403450431c93156c67568b88c6fb113d",
+      "interpretation": "personally inspected saved history and Ready; final-frame inspected after terminal"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/published401-helper-default-20261003/capture/after.png",
+      "sha256": "3296178f20aec9b46769390eccd56fb5403450431c93156c67568b88c6fb113d",
+      "interpretation": "raw black final screenshot, no final-display claim"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/published401-helper-default-20261003/capture/final-recorded-frame22.png",
+      "sha256": "a8715fbfb1d9afe0c93caf99aa1e2e960af476f54ef05004b3bd0710db8a645c",
+      "interpretation": "personally inspected saved history and Ready; final-frame inspected after terminal"
+    }
+  ],
+  "parent_acceptance": "Parent personally reviewed SAMEfinal-recorded-frame22.png and accepted ordinary default401 assembly; persistent notification sent.",
+  "scope": "saved helper history/startup/owner attachment/stationary display; no new provider/input/motion or speed claim",
+  "keepers": [
+    "LIVE534",
+    "previous485",
+    "rollback334",
+    "native89"
+  ],
+  "completed_operation": "Never repeat completed401 publication/readback; rawreceipt remains unchanged."
+}
