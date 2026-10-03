@@ -1,0 +1,23 @@
+{
+  "state": "readonly-before-reuse-not-yet-acquired",
+  "prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "files": {
+    "pyvenv.cfg": {
+      "sha256": "9a3c89807934a054bd033b4719518b3ca35147f830375b89229bb0a2831a92d6",
+      "text": "home = /home/ts/.local/share/uv/python/cpython-3.14-linux-x86_64-gnu/bin\nimplementation = CPython\nuv = 0.12.19\nversion_info = 3.14\ninclude-system-site-packages = false\n"
+    },
+    "lib/python3.14/site-packages/batrachian_toad-0.6.20.dist-info/direct_url.json": {
+      "sha256": "62eda09b96d595497e60ef6a467aeb0eb3f355c1722df8777313e954cae464df",
+      "text": "{\"url\":\"https://github.com/OpenHCSDev/toad.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"e90ad18d597290e641cacb0e2788c6053e1d5d2d\",\"requested_revision\":\"e90ad18d597290e641cacb0e2788c6053e1d5d2d\"}}"
+    },
+    "lib/python3.14/site-packages/agent_comms-0.1.0.dist-info/direct_url.json": {
+      "sha256": "db135cbac4bdd8e26500fd2e0a04e5b6ec61ca13b728ccdcf648090814ecd9f3",
+      "text": "{\"url\":\"https://github.com/OpenHCSDev/agent-comms.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"48324afc4d7415afb347cbc1f5f52cfc6820ac73\",\"requested_revision\":\"48324afc4d7415afb347cbc1f5f52cfc6820ac73\"}}"
+    },
+    "lib/python3.14/site-packages/textual-8.2.8.dist-info/direct_url.json": {
+      "sha256": "b1d0a81b7b3ca7f1b229d41c88d267d8925ff736cea81dfc70cb111d4d987786",
+      "text": "{\"url\":\"https://github.com/OpenHCSDev/textual.git\",\"vcs_info\":{\"vcs\":\"git\",\"commit_id\":\"940880e12c889e16a0c3e9b1ac6356fb7234ebb0\",\"requested_revision\":\"940880e12c889e16a0c3e9b1ac6356fb7234ebb0\"}}"
+    }
+  },
+  "note": "Original historical metadata; no package writes, processes, provider or native inputs. Borrower clearance owned Bohr."
+}

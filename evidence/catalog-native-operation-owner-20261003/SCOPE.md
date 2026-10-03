@@ -54,3 +54,38 @@ distributions, no Toad or Textual. Nothing was installed there. 485 belongs to
 Sch385. Parent authorized existing520 CODE reuse instead; final native App
 check awaits its fresh borrower clearance. No new environment or repeated
 provider/native gate is being created.
+
+## Final installed result
+
+Bohr cleared and granted520 CODE after215 all-UID observations found no actual
+borrower. Original activation/metadata/source/native/evidence/UNKNOWN remain
+archived in the release receipt. Reused normal69 dependencies with qualified
+Core574/Text38 wheels and this Toad wheel; no environment/native copy was made.
+The complete319 Toad source assets equal the wheel and installed copy, and
+342 Core/266 Textual assets equal their qualified wheels. Metadata records
+actual file-wheel URLs, not synthetic Git pins. Installed headless catalog
+import and original command binding sanity passed; pip check69 passed.
+
+The actual installed01 App/Pilot/real shell PTY journey exited0. Store section
+membership, native selector/editor cancellation, exit7, edited install without
+source mutation, hyphenated/arbitrary action IDs, declaration-only AuditAction,
+local login success/error completion, held PTY cancellation and original
+Store catalog return passed. The same existing App, models, event pump,
+dialogs, command processes and renderer run; no application/protocol doubles.
+Six OSError(5) lines are retained from unchanged shell_read's incremental PTY
+EOF path; actual reader/process terminal assertions passed. No blanket
+zero-error-log claim. Login uses private printf/exit commands, not credentials
+or an authentication/network completion claim.
+
+Personally viewed catalog-return.png (native AgentModal after commands with
+original Store underneath) and command-audit-exit0.png (real painted terminal
+output). Final Escape return to that same Store/catalog is asserted afterward,
+not inferred from the earlier modal PNG. These are readable exported native
+App frames, not physical st/Xvfb footage or performance evidence.
+
+Private fixture contents are removed, its installed TOML is removed, matching
+attempt processes are absent and520 CODE was released to Bohr after terminal.
+The cleanup receipt retains seven inaccessible unrelated process-environment
+reads; it does not claim a complete zero-gap all-UID census. Original App and
+PTY-owned resource retirement is verified directly. Current334/529/302/Sch485
+remain untouched. No public/default change, Pi/provider input or replay.
