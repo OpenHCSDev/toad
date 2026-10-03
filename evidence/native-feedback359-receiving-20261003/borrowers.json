@@ -1,0 +1,6 @@
+{
+  "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+  "prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "references": [],
+  "permission_gaps": []
+}

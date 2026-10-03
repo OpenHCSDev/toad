@@ -79,21 +79,33 @@ class SidebarGroup(VerticalGroup):
         await self._sync_members()
 
     async def _sync_members(self) -> None:
-        async with self.member_lock:
-            await self._reconcile_members()
+        from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 
-    async def _reconcile_members(self) -> None:
+        async with self.member_lock:
+            if not self.is_attached or self._closing or self._pruning:
+                return
+            inputs = await ThreadRowsWork.capture(
+                self.app.preparation,
+                tuple(ThreadRowInput(person) for person in self.thread_people()),
+            )
+            await self._reconcile_members(inputs)
+
+    def thread_people(self):
+        """Specializations supply the original people for a disclosure change."""
+        raise NotImplementedError
+
+    async def _reconcile_members(self, captured) -> None:
         """Specializations reconcile their model-owned members here."""
 
     def rows_changed(self) -> None:
         """Specializations invalidate navigation after native row changes."""
 
-    async def prepare_thread_rows(self, inputs, rows):
+    async def prepare_thread_rows(self, inputs, rows, captured):
         """Prepare changed row inputs; retained native rows own their frames."""
         from toad.sidebar_preparation import ThreadRowsWork
 
         prepared, pending = {}, {}
-        for key, source in inputs.items():
+        for key, source in captured.for_rows(inputs).items():
             row = rows.get(key)
             current = row.thread_preparation(source) if row is not None else None
             if current is None:

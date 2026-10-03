@@ -1,0 +1,20 @@
+{
+  "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "pins": {
+    "toad": "2d602b8b5fe9d88aa33d64359e3c1e7dcee4cf28",
+    "agent_comms": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "distribution_count": 69,
+  "source_files_compared": {
+    "toad": 286,
+    "agent_comms": 311
+  },
+  "mismatches": [],
+  "public_activation": false,
+  "native_manifest_sha256": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "borrower_release_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/retired302-nativeviews359-holder-release/release-receipt.json",
+  "prior_receipt": "staging-receipt.json"
+}

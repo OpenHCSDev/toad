@@ -1,0 +1,112 @@
+{
+  "parsed": 2,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 21,
+      "source": "class NativePhase:"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 157,
+      "source": "def review_warm_return(output, receipt, *, suffix, scroll_labels):"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 69,
+      "source": "def admits_before(self, other: \"NativePhase\") -> bool:"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 79,
+      "source": "def admits_after(self, other: \"NativePhase\") -> bool:"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 94,
+      "source": "NativePhase.read"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 160,
+      "source": "NativePhase.read"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 184,
+      "source": "NativePhase.read"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 190,
+      "source": "up.admits_before"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 191,
+      "source": "down.admits_after"
+    },
+    {
+      "path": "tests/tools/scroll_observation.py",
+      "line": 192,
+      "source": "reversed_scroll.admits_before"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 490,
+      "source": "def review(cls, output, receipt):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 632,
+      "source": "def review(cls, output, receipt):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 672,
+      "source": "def review(cls, output, receipt):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 775,
+      "source": "def review(cls, output, receipt):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 831,
+      "source": "def review(cls, output, receipt):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 887,
+      "source": "def review(cls, output, receipt):"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 777,
+      "source": "NativePhase.read"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 892,
+      "source": "NativePhase.read"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 796,
+      "source": "up.admits_before"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 797,
+      "source": "down.admits_after"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 680,
+      "source": "NativePhase.read"
+    }
+  ],
+  "limits": "Existing NativePhase callers and product page admission/visible-body/frame producer read; AST spellings not dynamic proof."
+}

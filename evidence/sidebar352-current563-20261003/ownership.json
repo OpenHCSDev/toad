@@ -1,0 +1,13 @@
+{
+  "core": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+  "toad": "78a9d69a2711084691255967eb2eaa7048aea4ef",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+  "public_install_changed": false,
+  "new_environment": false,
+  "new_native_copy": false,
+  "purpose": "352 changed captured sidebar row + physical motion/CPU qualification only; no repeated355 nativeEnd gate"
+}

@@ -1,0 +1,14 @@
+{
+  "state": "Publisher terminal exit1 before receipt or public effects",
+  "error": "Distinct reviewed actual installed journey gates are required",
+  "site": "ReviewedRetainedSummaryCohort.require_original: len(gates) < 2",
+  "actual_affected_gates": 1,
+  "publication_receipt_exists": false,
+  "publication_preimages_exists": false,
+  "receipt_created": false,
+  "retirement_started": false,
+  "public_links_changed": false,
+  "default_retained": "358529/Core85abe/Toad0fd/native de166",
+  "retry_prohibited": true,
+  "next_owner": "Schrodinger: correct canonical reviewed gate owner; new separately reviewed operation"
+}

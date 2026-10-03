@@ -1,0 +1,14 @@
+{
+  "old_operation": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-feedback359-receiving-20261003/new-publication359",
+  "unexecuted": true,
+  "receipt_absent": true,
+  "preimages_absent": true,
+  "all_old_frozen_hashes_verified": true,
+  "old_ready_sha256": "6e120614c508da6af0fbf5a3c6f91f77c95da048d4138f3fa887d942c5f1bfdf",
+  "preserved_files": {
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-feedback359-sidebar352-receiving-20261003/old361-proof/ready-receipt.json": "6e120614c508da6af0fbf5a3c6f91f77c95da048d4138f3fa887d942c5f1bfdf",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-feedback359-sidebar352-receiving-20261003/old361-proof/activation.json": "950f91ae1b3a4e6b07bd3128f9604dd9418bb3773fca4a008dce7959a84a845e",
+    "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-feedback359-sidebar352-receiving-20261003/old361-proof/source-proof.json": "478b69fdc4ff702961798147327b028d72fd7ff51c47bcd4e13b7bc4b6a93fac"
+  },
+  "reason": "User requested single merged359+352 batch;355 not qualified. Old operation untouched and must not execute after private holder restaging."
+}

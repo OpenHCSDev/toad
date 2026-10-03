@@ -1,0 +1,89 @@
+{
+  "result": "PASS",
+  "elapsed_seconds": 0.6597521970397793,
+  "actual_installed_source": {
+    "toad": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/__init__.py",
+    "agent_comms": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/__init__.py"
+  },
+  "sdk_notifications_native_headers": {
+    "pending": "\u25b6 \ud83d\udd27 FEEDBACK_PENDING \u231b",
+    "in_progress": "\u25b6 \ud83d\udd27 FEEDBACK_IN_PROGRESS [running]",
+    "completed": "\u25b6 \ud83d\udd27 FEEDBACK_COMPLETED \u2714",
+    "failed": "\u25b6 \ud83d\udd27 FEEDBACK_FAILED [failed]"
+  },
+  "actual_native_mount_observations": [
+    {
+      "id": "feedback-pending",
+      "attached": true,
+      "status": "pending",
+      "header": "\u25b6 \ud83d\udd27 FEEDBACK_PENDING \u231b"
+    },
+    {
+      "id": "feedback-in_progress",
+      "attached": true,
+      "status": "in_progress",
+      "header": "\u25b6 \ud83d\udd27 FEEDBACK_IN_PROGRESS [running]"
+    },
+    {
+      "id": "feedback-completed",
+      "attached": true,
+      "status": "completed",
+      "header": "\u25b6 \ud83d\udd27 FEEDBACK_COMPLETED \u2714"
+    },
+    {
+      "id": "feedback-failed",
+      "attached": true,
+      "status": "failed",
+      "header": "\u25b6 \ud83d\udd27 FEEDBACK_FAILED [failed]"
+    }
+  ],
+  "all_declared_stop_reason_callbacks": [
+    "end_turn",
+    "max_tokens",
+    "max_turn_requests",
+    "refusal",
+    "cancelled"
+  ],
+  "stop_notes": [
+    "## Maximum tokens reached\n\nNative Fixture reached the maximum output tokens for this turn.",
+    "## Maximum model requests reached\n\nNative Fixture has exceeded the maximum number of model requests in a single turn.",
+    "## Agent refusal\n\nNative Fixture has refused to continue."
+  ],
+  "typed_failure_codec_and_native_stream": true,
+  "original_log_path_encoded_once_by_native_presentation": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-acp-feedback-owners-20261003/installed06/original log #%.txt",
+  "failure_help_and_single_log_link": true,
+  "same_original_surface_and_connected_acp": true,
+  "browser_autoload_disabled": true,
+  "provider_requests": 0,
+  "scope": "Actual installed Toad/ACP/Pi and native Pilot. No prompt or provider request. Official SDK fixture tool notifications use the original registered validator/publication and actual native mount; settled projection retention or real native tool execution is not claimed. Non-default stop reasons exercise the native completion callback without backend generation of those reasons. Failures use original typed stream without causing a real backend outage. No physical pixel, paid provider, complete headless or public/default readiness claim.",
+  "terminal_exit_code": 0,
+  "original_private_owners_after_exit": [
+    {
+      "name": "beta",
+      "pid": 1909898,
+      "pid_exists": false,
+      "active_turn": "None"
+    },
+    {
+      "name": "user",
+      "pid": 0,
+      "pid_exists": false,
+      "active_turn": "None"
+    }
+  ],
+  "no_source_production_change_after_test": true,
+  "reviewed_source_commit": "2d602b8b5fe9d88aa33d64359e3c1e7dcee4cf28",
+  "merged_main": "fa67b949e82df4f701feb81aa254cd86225d127a",
+  "current_ready_source_commit": "0dc57708c57c6f64b10fb87f8c1bfb0ee0df4e16",
+  "unchanged_native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "production_added": 66,
+  "production_deleted": 64,
+  "preserved_negative_attempts": [
+    "installed01",
+    "installed02",
+    "installed03",
+    "installed04",
+    "installed05"
+  ],
+  "unreplayed_reserved_input": "acp:2b52a9f7aa5f41218f3b7122c589d8e7"
+}

@@ -1,0 +1,63 @@
+{
+  "production_modules": 286,
+  "production_files": 286,
+  "sites": [
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 53,
+      "source": "class PreparedThreadRow:"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 166,
+      "source": "row.apply_thread_preparation"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 11,
+      "source": "class ThreadStatusRow(HoverSelection):"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 60,
+      "source": "def thread_preparation(self, source: ThreadRowPresentation) -> PreparedThreadRow | None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 67,
+      "source": "def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 85,
+      "source": "def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 76,
+      "source": "self.paint_thread_frame"
+    },
+    {
+      "path": "src/toad/widgets/session_sidebar.py",
+      "line": 58,
+      "source": "self.paint_thread_frame"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 110,
+      "source": "row.thread_preparation"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 183,
+      "source": "row.apply_thread_preparation"
+    }
+  ],
+  "removed_fields": [
+    "PreparedThreadRow.signature",
+    "PreparedThreadRow.busy stored field",
+    "ThreadStatusRow._thread_signature"
+  ],
+  "remaining_authority": "Static.content and Content.is_same own displayed text and spans; PreparedThreadRow.busy derives captured source; both channel/relationship rows inherit ThreadStatusRow.",
+  "limits": "AST selected spellings and source semantics, not dynamic dispatch or installed qualification."
+}

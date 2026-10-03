@@ -11,6 +11,8 @@ import time
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.presentation import ThreadView
+from agent_comms.goal_waits import GoalWaits
 
 from toad.session_tracker import ExactUnread
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork, prepare_thread_presentation
@@ -24,7 +26,15 @@ async def main(observe):
         comms = wire(root / "wire")
         for index in range(60):
             comms.registry.declare(Thread(f"worker-{index}", frozenset({"shared"}), str(root)))
-        people = comms.views.viewer_snapshot(str(root), show_stopped=True).threads
+        # This resource check needs original thread presentations, not wire
+        # delivery/unread traversal on a root without native bus admission.
+        people = ThreadView.roster(
+            comms.registry.snapshot(),
+            comms.agents,
+            GoalWaits(root / "wire" / GoalWaits.filename),
+            show_stopped=True,
+            show_archived=False,
+        )
         runtime = PreparationRuntime(Backend())
         durations = []
         sources = []
@@ -35,7 +45,7 @@ async def main(observe):
                 rows = tuple(ThreadRowInput(replace(person, last_seen=person.last_seen + revision))
                              for person in people)
                 before = time.perf_counter()
-                result = await runtime.submit(ThreadRowsWork(rows))
+                result = await runtime.submit(await ThreadRowsWork.capture(runtime, rows))
                 durations.append((time.perf_counter() - before) * 1000)
                 rendered = [(row.frames[0].plain, row.tooltip.plain, row.busy) for row in result]
                 if sources:
@@ -50,7 +60,8 @@ async def main(observe):
             if not observe:
                 assert runtime.misses == 1, "Unrendered metadata invalidated every bar's prepared content"
             changed = ThreadRowInput(people[0], unread=ExactUnread(7), pinned=True, action_status="Stopping")
-            result = await runtime.submit(ThreadRowsWork((changed,)))
+            captured = await ThreadRowsWork.capture(runtime, (ThreadRowInput(people[0]),))
+            result = await runtime.submit(ThreadRowsWork(tuple(captured.for_rows({"row": changed}).values())))
             expected = prepare_thread_presentation(changed.presentation())
             assert result[0].frames[0].plain == expected.frames[0].plain
             assert result[0].frames[0].plain.startswith("(7) * ") and result[0].busy

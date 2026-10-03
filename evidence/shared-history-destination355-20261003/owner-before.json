@@ -1,0 +1,126 @@
+{
+  "head": "9fed67455",
+  "roots": {
+    "src": {
+      "parsed": 285,
+      "omitted": []
+    },
+    "tools/performance": {
+      "parsed": 39,
+      "omitted": []
+    },
+    "tests": {
+      "parsed": 390,
+      "omitted": []
+    }
+  },
+  "sites": [
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 280,
+      "declaration": "_jump_latest"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 114,
+      "declaration": "request_latest"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 119,
+      "reference": "self.state.request_latest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 129,
+      "declaration": "LatestViewportRequest"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 28,
+      "declaration": "request_latest"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 88,
+      "declaration": "request_latest"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 160,
+      "declaration": "request_latest"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 89,
+      "reference": "owner._jump_latest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 161,
+      "reference": "LatestViewportRequest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_state.py",
+      "line": 134,
+      "reference": "owner.request_latest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 115,
+      "reference": "history.request_latest",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 777,
+      "declaration": "_jump_latest"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 818,
+      "declaration": "_anchor_latest"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 816,
+      "reference": "self._anchor_latest",
+      "context": "Load"
+    },
+    {
+      "path": "tests/history_frame_publication_pilot.py",
+      "line": 200,
+      "reference": "history.request_latest",
+      "context": "Load"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 272,
+      "reference": "history._jump_latest",
+      "context": "Load"
+    },
+    {
+      "path": "tests/retained_page_end_pilot.py",
+      "line": 35,
+      "reference": "history._jump_latest",
+      "context": "Load"
+    },
+    {
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "line": 61,
+      "reference": "history.request_latest",
+      "context": "Load"
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "line": 281,
+      "reference": "history._jump_latest",
+      "context": "Load"
+    }
+  ],
+  "resolution": "Parsed declarations and every matching Name/Attribute, including partial callbacks. AST does not resolve dynamic receivers; leaf MRO and source/reader/publication semantics read separately."
+}
