@@ -19,8 +19,12 @@ from both consumers in the same change. No second PTY class, state/store/codec,
 compatibility forwarding or renderer/framework.
 
 Interactive shell controlling terminal is genuinely distinct from package MCP
-direct exec. Existing ChildStdio family owns IO policy; its missing controlling
-TTY behavior may require one member, only if no existing capability owns it.
+direct exec. Existing ChildCommand owns typed initialization AFTER exec. Its new
+ControllingTerminalCommand member acquires the controlling TTY then execs the
+original shell argv in the SAME child PID/group. AttachedChild already owns
+setsid; delete Python preexec_fn instead of repeating launch orchestration.
+Arendt supplies this single existing-family member in Core commit
+a3a1b8f69f61acb0b01e92a0ac5a9ed161b28f9f; Toad owns all consumers.
 Keep MCP exact argv, NODE_OPTIONS/NODE_PATH removal, inventory currentness,
 human-only challenge, visibility revocation, bounded output and operation wait.
 Do not shell-interpret MCP argv or infer approval from process outcome.

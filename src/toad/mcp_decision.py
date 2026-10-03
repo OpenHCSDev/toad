@@ -10,10 +10,13 @@ import asyncio
 import codecs
 import errno
 import os
+from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Awaitable, Callable
 
 from toad.mcp_inventory import installed_mcp_command, read_inventory
+from toad.terminal_execution import PtyProcess
+from toad.ansi import TerminalState
 from toad.mcp_commands import MCPDecision, MCPSelection
 from toad.mcp_outcomes import (
     DecisionOutcome, ControllerLostOutcome, ExitedZeroOutcome, ExitedErrorOutcome,
@@ -29,19 +32,20 @@ MAX_DECISION_OUTPUT_BYTES = 128_000
 class LocalDecisionPTY:
     """One local action, cancelled with its visible controller."""
 
-    def __init__(self) -> None:
-        self._master: int | None = None
-        self._process: asyncio.subprocess.Process | None = None
-        self._active = False
+    def __init__(self, controller_visible: Callable[[], bool]) -> None:
+        self._controller_visible = controller_visible
+        self._custody: asyncio.Future[PtyProcess] = asyncio.get_running_loop().create_future()
 
     async def write_user_input(self, text: str) -> None:
         """Only Textual's focused terminal key/paste events may call this."""
-        if not self._active or self._master is None or len(text) > 8_192:
+        if (not self._controller_visible() or not self._custody.done()
+                or self._custody.cancelled() or len(text) > 8_192):
             return
-        try:
-            os.write(self._master, text.encode("utf-8"))  # Nonblocking PTY.
-        except OSError:
-            pass  # A user may race an exited child or a full PTY buffer.
+        await self._custody.result().write(text.encode("utf-8"))
+
+    async def custody(self) -> PtyProcess:
+        """Borrow the original acquisition, including its retired handles."""
+        return await asyncio.shield(self._custody)
 
     async def run(
         self,
@@ -49,7 +53,7 @@ class LocalDecisionPTY:
         selection: MCPSelection,
         command: MCPDecision,
         show: Callable[[str], Awaitable[None]],
-        controller_visible: Callable[[], bool],
+        state: TerminalState,
     ) -> DecisionOutcome:
         """Recheck the typed package snapshot before a direct exec, then show raw PTY output.
 
@@ -57,122 +61,70 @@ class LocalDecisionPTY:
         no child is started; after spawn all output is human-visible or the child
         is killed at the output cap. The caller must not infer a ledger decision.
         """
-        if os.name != "posix" or not controller_visible():
-            return UnavailableOutcome()
-        if not command.available(selection):
-            return UnsupportedOutcome()
         try:
-            node, cli = await asyncio.to_thread(installed_mcp_command)
-        except (OSError, ValueError, RuntimeError):
-            return UnavailableOutcome()
-        fresh = await read_inventory(selection.inventory.root)
-        if not controller_visible() or not selection.matches(fresh):
-            return StaleSnapshotOutcome()
+            if os.name != "posix" or not self._controller_visible():
+                return UnavailableOutcome()
+            if not command.available(selection):
+                return UnsupportedOutcome()
+            try:
+                node, cli = await asyncio.to_thread(installed_mcp_command)
+            except (OSError, ValueError, RuntimeError):
+                return UnavailableOutcome()
+            fresh = await read_inventory(selection.inventory.root)
+            if not self._controller_visible() or not selection.matches(fresh):
+                return StaleSnapshotOutcome()
 
-        import pty
-
-        master, slave = pty.openpty()
-        os.set_blocking(master, False)
-        self._master = master
-        process: asyncio.subprocess.Process | None = None
-        try:
             env = os.environ.copy()
             env.pop("NODE_OPTIONS", None)
             env.pop("NODE_PATH", None)
-            process = await asyncio.create_subprocess_exec(
-                str(node),
-                str(cli),
-                *command.apply(selection),
-                stdin=slave,
-                stdout=slave,
-                stderr=slave,
-                cwd=str(Path(cli).parent),
-                env=env,
-                start_new_session=True,
-            )
-            self._process = process
-            os.close(slave)
-            slave = -1
-            if not controller_visible():
-                return ControllerLostOutcome()  # Hidden during spawn: never expose an input path.
-            self._active = True
-            decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
-            read_bytes = 0
-
-            async def read_pty() -> bytes:
-                loop = asyncio.get_running_loop()
-                ready: asyncio.Future[bytes] = loop.create_future()
-
-                def on_readable() -> None:
-                    if ready.done():
-                        return
-                    try:
-                        data = os.read(master, 4096)
-                    except BlockingIOError:
-                        return
-                    except OSError as error:
-                        if error.errno == errno.EIO:  # POSIX EOF on the master.
-                            data = b""
-                        else:
-                            loop.remove_reader(master)
-                            ready.set_exception(error)
-                            return
-                    loop.remove_reader(master)
-                    ready.set_result(data)
-
-                loop.add_reader(master, on_readable)
-                try:
-                    return await ready
-                finally:
-                    loop.remove_reader(master)
-
-            async def relay() -> DecisionOutcome | None:
-                nonlocal read_bytes
-                while controller_visible():
-                    data = await read_pty()
-                    if not data:
-                        break
-                    read_bytes += len(data)
-                    if read_bytes > MAX_DECISION_OUTPUT_BYTES:
-                        process.kill()
-                        return OutputLimitOutcome()
-                    rendered = decoder.decode(data)
-                    if rendered:
-                        await show(rendered)
-                if not controller_visible():
-                    return ControllerLostOutcome()
-                await show(decoder.decode(b"", final=True))
-                return None
-
             try:
-                outcome = await asyncio.wait_for(relay(), DECISION_TIMEOUT_SECONDS)
-            except TimeoutError:
-                return TimeoutOutcome()
-            if outcome is not None:
-                return outcome
-            code = await asyncio.wait_for(process.wait(), 2.0)
-            return ExitedZeroOutcome() if code == 0 else ExitedErrorOutcome()
-        except OSError, TimeoutError:
-            return UnknownOutcome() if process is not None else UnavailableOutcome()
+                async with AsyncExitStack() as custody:
+                    acquired = await PtyProcess.acquire(
+                        (str(node), str(cli), *command.apply(selection)),
+                        env=env, cwd=str(Path(cli).parent), width=state.width, height=state.height,
+                        custody=custody,
+                    )
+                    self._custody.set_result(acquired)
+                    if not self._controller_visible():
+                        return ControllerLostOutcome()
+                    decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+                    read_bytes = 0
+
+                    async def relay() -> DecisionOutcome:
+                        nonlocal read_bytes
+                        while self._controller_visible():
+                            try:
+                                data = await acquired.reader.read(4096)
+                            except OSError as error:
+                                if error.errno != errno.EIO:
+                                    raise
+                                data = b""  # POSIX EOF on the original master.
+                            if not data:
+                                break
+                            read_bytes += len(data)
+                            if read_bytes > MAX_DECISION_OUTPUT_BYTES:
+                                acquired.kill()
+                                return OutputLimitOutcome()
+                            if rendered := decoder.decode(data):
+                                await show(rendered)
+                        if not self._controller_visible():
+                            return ControllerLostOutcome()
+                        await show(decoder.decode(b"", final=True))
+                        original = await asyncio.wait_for(acquired.child.wait(), 2.0)
+                        return ExitedZeroOutcome() if original.successful else ExitedErrorOutcome()
+
+                    try:
+                        return await asyncio.wait_for(relay(), DECISION_TIMEOUT_SECONDS)
+                    except TimeoutError:
+                        return TimeoutOutcome()
+            except OSError, TimeoutError:
+                return (UnknownOutcome() if self._custody.done() and not self._custody.cancelled()
+                        else UnavailableOutcome())
         finally:
-            self._active = False
-            if process is not None and process.returncode is None:
-                try:
-                    process.kill()
-                except ProcessLookupError:
-                    pass
-                await process.wait()
-            if slave >= 0:
-                os.close(slave)
-            os.close(master)
-            self._master = None
-            self._process = None
+            if not self._custody.done():
+                self._custody.cancel()
 
     def stop(self) -> None:
-        """Stop immediately when the visible controller is dismissed or hidden."""
-        self._active = False
-        if self._process is not None and self._process.returncode is None:
-            try:
-                self._process.kill()
-            except ProcessLookupError:
-                pass
+        """Revoke this SAME identity-bound child; its original scope reaps it."""
+        if self._custody.done() and not self._custody.cancelled():
+            self._custody.result().kill()

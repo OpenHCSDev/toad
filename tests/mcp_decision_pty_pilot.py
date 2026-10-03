@@ -181,7 +181,8 @@ async def main():
                 await pilot.pause()
                 await pilot.press('enter')
                 await until(pilot, lambda: 'CLI exited zero' in viewport_text(modal.query_one('#mcp-decision-status', Static)))
-                assert modal._pty._process is None and modal._pty._master is None
+                acquired = await modal._pty.custody()
+                assert acquired.master.closed and acquired.child.retired
                 assert await pilot.click('#cancel')
                 await until(pilot, lambda: app.screen is screen and screen._inventory is not None)
                 changed = next(row for row in screen._inventory.rows if row.scope.declared_name == 'project')
@@ -211,7 +212,7 @@ async def main():
                     assert changed.call_policy is AskPolicy
                 if command.declared_name == 'allow':
                     assert changed.call_policy is AllowPolicy
-            pty = LocalDecisionPTY()
+            pty = LocalDecisionPTY(lambda: True)
             async def unexpected(text):
                 raise AssertionError('Stale snapshot launched child')
             # Approved-only command must be eligible in its captured snapshot.
@@ -220,9 +221,8 @@ async def main():
             prior_row = next(row for row in prior.rows if row.scope.declared_name == 'project')
             package_setup(package, project, agent_dir, trusted=False)
             outcome = await pty.run(selection=MCPSelection(prior, prior_row), command=AllowCommand(),
-                                    show=unexpected, controller_visible=lambda: True)
+                                    show=unexpected, state=terminal.state)
             assert isinstance(outcome, StaleSnapshotOutcome)
-            assert pty._process is None
             print('PASS actual changed snapshot refused before child launch', file=sys.__stdout__, flush=True)
             package_setup(package, project, agent_dir, trusted=True)
             await pilot.click('#refresh')
@@ -237,7 +237,9 @@ async def main():
             await until(pilot, lambda: ' to apply:' in '\n'.join(line.content.plain for line in terminal.state.buffer.lines))
             await pilot.resize_terminal(105, 38)
             await pilot.press('escape')
-            await until(pilot, lambda: app.screen is screen and screen._inventory is not None and modal._pty._process is None)
+            await until(pilot, lambda: app.screen is screen and screen._inventory is not None)
+            acquired = await modal._pty.custody()
+            await until(pilot, lambda: acquired.master.closed and acquired.child.retired)
             assert next(row for row in screen._inventory.rows if row.scope.declared_name == 'project').status is ApprovedStatus
             print('PASS focused-terminal Escape after resize cancels/reaps without changing ledger', file=sys.__stdout__, flush=True)
             await pilot.press('escape')
