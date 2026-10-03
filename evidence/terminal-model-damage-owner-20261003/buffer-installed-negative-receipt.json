@@ -1,0 +1,35 @@
+{
+  "source_head": "f167a3a1ea502d0b1d405b0e8f65bbd0f19d4d49",
+  "production_head": "1b62d7f7f",
+  "production_changed_after_installed_source_proof": false,
+  "source_proof": "buffer-installed-source-proof.json",
+  "sanity": "buffer-sanity.json",
+  "installed03": {
+    "result": "failed",
+    "log": "installed03.log",
+    "facts": "installed03/failed-state.json",
+    "cause": "Fixture trimmed stored blank rows while PTY writer remained active, then treated screen-relative CUP as unconditional history row0. Virtual cursor and screen_start_line_no semantics remain unchanged."
+  },
+  "installed04": {
+    "result": "failed",
+    "log": "installed04.log",
+    "facts": "installed04/failed-state.json",
+    "positives": [
+      "clear received full damage and removed previous visible body",
+      "cursor-to-end changed model and visible body to AFTER",
+      "reattached original widget received new streaming output"
+    ],
+    "cause": "Fixture required three stored rows after two newlines; actual stored AFTER plus one blank and virtual next cursor row is valid. Newline count is not stored line count."
+  },
+  "fixture_correction": "Clear and cursor-to-end run before blank output; final-output trimming runs after PTY child retirement; observe actual stored blank instead of newline count. Paint/custody/outcome assertions retained.",
+  "current_validation_gap": "Final corrected installed journey must complete exit7, original child/PTY retirement, stored blank removal/full damage and final paint in matched receiver slot.",
+  "owned_attempt_processes": [],
+  "holder": "334 released directly to Sch; existing candidate wheel source fb872754, Core d3ed/Text5d5/native915 unchanged at release. Sch may replace pair.",
+  "provider_calls": 0,
+  "public_or_default_mutation": false,
+  "limits": [
+    "No full installed completion qualification from03/04",
+    "No readable physical pixel/performance/provider claim",
+    "Old black-on-black exported pixels retained"
+  ]
+}
