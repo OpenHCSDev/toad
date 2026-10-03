@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
-from toad.danger import detect
+from toad.danger import analyze, DangerStyles
 from toad.db import DB, Session, SessionMeta
 
 SOURCE = Path(__file__).resolve().parents[1] / "src/toad"
@@ -124,27 +124,19 @@ class DangerBoundaryTests(unittest.TestCase):
         )
         for command, expected in cases:
             with self.subTest(command=command):
-                spans = detect(
-                    "/project",
-                    "/project",
-                    command,
-                    danger_style="danger",
-                    destructive_style="destructive",
-                )
+                atoms = analyze("/project", "/project", command)
+                styles = DangerStyles("danger", "destructive")
                 self.assertEqual(
-                    tuple((span.start, span.end, span.style) for span in spans),
+                    tuple((*atom.span, style) for atom in atoms
+                          if (style := atom.level.highlight(styles))),
                     expected,
                 )
 
     def test_substitution_directory_is_scoped(self):
-        spans = detect(
-            "/project",
-            "/project",
-            "echo $(cd ..; rm x); rm x",
-            danger_style="danger",
-            destructive_style="destructive",
-        )
-        self.assertEqual([span.style for span in spans], ["destructive", "danger"])
+        atoms = analyze("/project", "/project", "echo $(cd ..; rm x); rm x")
+        styles = DangerStyles("danger", "destructive")
+        self.assertEqual([style for atom in atoms if (style := atom.level.highlight(styles))],
+                         ["destructive", "danger"])
 
 
 class DeletionGuards(unittest.TestCase):

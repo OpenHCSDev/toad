@@ -1,0 +1,272 @@
+{
+  "state": "SCOPED_COLD_NATIVE_AND_SAVED_TEXT_POSITIVE_WHOLE_JOURNEY_FAILED",
+  "raw": "/home/ts/.cache/agent-scratch/einstein-cold-context595-physical05",
+  "source_receipt": "/home/ts/.cache/agent-scratch/einstein-cold-context595-physical05/terminal-receipt.json",
+  "recorder_receipt": "/home/ts/.cache/agent-scratch/einstein-cold-context595-physical05/capture/receipt.json",
+  "actual_recording_seconds": 38.471592305984814,
+  "terminal_seconds": 52.7791760310065,
+  "all_four_native_segments_visible_before_prompt": true,
+  "actual_system_layer_text_painted": true,
+  "provenance_reference_opened": false,
+  "roster_ready": false,
+  "roster_error": "IdentityConflict: participant aggregate is not registered",
+  "driver_negative": "Right has no Tree toggle binding; Space is declared toggle_node",
+  "source_sha256_after": "b503439b38deb341d03cce064fe5e73b64366c3054836fe19c548db07e90e26c",
+  "fork_sha256_after": "659a4f3af42b124bac4a50ee2d44b1ef2c58dcf9f7d82def9426781d855a5002",
+  "fork_unchanged": true,
+  "public_source_unchanged": true,
+  "controller_exited": true,
+  "recorder_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 659173,
+        "start_ticks": 52382433,
+        "returncode": 0
+      },
+      {
+        "pid": 659187,
+        "start_ticks": 52382627,
+        "returncode": 0
+      },
+      {
+        "pid": 659189,
+        "start_ticks": 52382640,
+        "returncode": 0
+      },
+      {
+        "pid": 659190,
+        "start_ticks": 52382647,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 659191,
+        "start_ticks": 52382651,
+        "returncode": 0
+      },
+      {
+        "pid": 659192,
+        "start_ticks": 52382661,
+        "returncode": 0
+      },
+      {
+        "pid": 659193,
+        "start_ticks": 52382670,
+        "returncode": 0
+      },
+      {
+        "pid": 659194,
+        "start_ticks": 52382679,
+        "returncode": 255
+      },
+      {
+        "pid": 659478,
+        "start_ticks": 52383681,
+        "returncode": 0
+      },
+      {
+        "pid": 659486,
+        "start_ticks": 52383712,
+        "returncode": 0
+      },
+      {
+        "pid": 659491,
+        "start_ticks": 52383744,
+        "returncode": 0
+      },
+      {
+        "pid": 659498,
+        "start_ticks": 52383778,
+        "returncode": 0
+      },
+      {
+        "pid": 659662,
+        "start_ticks": 52383880,
+        "returncode": 0
+      },
+      {
+        "pid": 659666,
+        "start_ticks": 52383942,
+        "returncode": 0
+      },
+      {
+        "pid": 659667,
+        "start_ticks": 52383956,
+        "returncode": 0
+      },
+      {
+        "pid": 659668,
+        "start_ticks": 52384058,
+        "returncode": 0
+      },
+      {
+        "pid": 659672,
+        "start_ticks": 52384096,
+        "returncode": 0
+      },
+      {
+        "pid": 659693,
+        "start_ticks": 52384198,
+        "returncode": 0
+      },
+      {
+        "pid": 659698,
+        "start_ticks": 52384254,
+        "returncode": 0
+      },
+      {
+        "pid": 659703,
+        "start_ticks": 52384351,
+        "returncode": 0
+      },
+      {
+        "pid": 659714,
+        "start_ticks": 52384453,
+        "returncode": 0
+      },
+      {
+        "pid": 659734,
+        "start_ticks": 52384582,
+        "returncode": 0
+      },
+      {
+        "pid": 659770,
+        "start_ticks": 52384715,
+        "returncode": 0
+      },
+      {
+        "pid": 659867,
+        "start_ticks": 52384847,
+        "returncode": 0
+      },
+      {
+        "pid": 659991,
+        "start_ticks": 52384978,
+        "returncode": 0
+      },
+      {
+        "pid": 660008,
+        "start_ticks": 52385067,
+        "returncode": 0
+      },
+      {
+        "pid": 660023,
+        "start_ticks": 52385170,
+        "returncode": 0
+      },
+      {
+        "pid": 660037,
+        "start_ticks": 52385215,
+        "returncode": 0
+      },
+      {
+        "pid": 660072,
+        "start_ticks": 52385313,
+        "returncode": 0
+      },
+      {
+        "pid": 660073,
+        "start_ticks": 52385330,
+        "returncode": 0
+      },
+      {
+        "pid": 660094,
+        "start_ticks": 52385433,
+        "returncode": 0
+      },
+      {
+        "pid": 660098,
+        "start_ticks": 52385471,
+        "returncode": 0
+      },
+      {
+        "pid": 660111,
+        "start_ticks": 52385573,
+        "returncode": 0
+      },
+      {
+        "pid": 660116,
+        "start_ticks": 52385636,
+        "returncode": 0
+      },
+      {
+        "pid": 660117,
+        "start_ticks": 52385649,
+        "returncode": 0
+      },
+      {
+        "pid": 660151,
+        "start_ticks": 52385751,
+        "returncode": 0
+      },
+      {
+        "pid": 660155,
+        "start_ticks": 52385778,
+        "returncode": 0
+      },
+      {
+        "pid": 660328,
+        "start_ticks": 52385880,
+        "returncode": 0
+      },
+      {
+        "pid": 660333,
+        "start_ticks": 52385937,
+        "returncode": 0
+      },
+      {
+        "pid": 660334,
+        "start_ticks": 52385947,
+        "returncode": 0
+      },
+      {
+        "pid": 660336,
+        "start_ticks": 52386049,
+        "returncode": 0
+      },
+      {
+        "pid": 660340,
+        "start_ticks": 52386087,
+        "returncode": 0
+      },
+      {
+        "pid": 660403,
+        "start_ticks": 52386189,
+        "returncode": 0
+      },
+      {
+        "pid": 660417,
+        "start_ticks": 52386455,
+        "returncode": 0
+      },
+      {
+        "pid": 660424,
+        "start_ticks": 52386486,
+        "returncode": 0
+      },
+      {
+        "pid": 660429,
+        "start_ticks": 52386562,
+        "returncode": 0
+      },
+      {
+        "pid": 660435,
+        "start_ticks": 52386772,
+        "returncode": 0
+      },
+      {
+        "pid": 660608,
+        "start_ticks": 52386993,
+        "returncode": 0
+      }
+    ]
+  },
+  "runtime_unchanged": true,
+  "providers": 0,
+  "inputs": 0,
+  "priming": 0,
+  "review": "PNG personally viewed after terminal; no during-live inspection claim",
+  "remaining_owner": "Mendel canonical participant registration classification; no roster/product fix or retry claimed"
+}

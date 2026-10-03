@@ -15,7 +15,7 @@ from textual.app import ComposeResult
 from textual.actions import SkipAction
 from textual.binding import Binding
 
-from textual.content import Content
+from textual.content import Content, Span
 from textual import getters
 from textual.message import Message
 from textual.widgets import OptionList, TextArea, Label
@@ -217,8 +217,13 @@ See on-screen instructions for details.
 
         from toad import danger
 
-        spans = danger.detect(
-            str(self.project_path), self.working_directory, content.plain
+        styles = danger.DangerStyles("", "$text-error on $error-muted 70%")
+        spans = tuple(
+            Span(*atom.span, style)
+            for atom in danger.analyze(
+                str(self.project_path), self.working_directory, content.plain
+            )
+            if (style := atom.level.highlight(styles))
         )
         content = content.add_spans(spans)
         return content

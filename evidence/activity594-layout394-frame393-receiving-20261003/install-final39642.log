@@ -1,0 +1,15 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001
+   Updating https://github.com/OpenHCSDev/toad.git (916a5fd465cc894643ccb588c35ecb4653785e74)
+    Updated https://github.com/OpenHCSDev/toad.git (916a5fd465cc894643ccb588c35ecb4653785e74)
+Resolved 69 packages in 1.35s
+   Building textual @ git+https://github.com/OpenHCSDev/textual.git@14baa381a816f787e06ffbfb9215c243e22d32eb
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@916a5fd465cc894643ccb588c35ecb4653785e74
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@916a5fd465cc894643ccb588c35ecb4653785e74
+      Built textual @ git+https://github.com/OpenHCSDev/textual.git@14baa381a816f787e06ffbfb9215c243e22d32eb
+Prepared 2 packages in 678ms
+Uninstalled 2 packages in 17ms
+Installed 2 packages in 9ms
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@2131b0b5b40dc89162e45c520477a863c7e46435)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@916a5fd465cc894643ccb588c35ecb4653785e74)
+ - textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@067a652041b96f1a964a43fb005097bfd94e448a)
+ + textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@14baa381a816f787e06ffbfb9215c243e22d32eb)

@@ -1,0 +1,397 @@
+{
+  "state": "SCOPED_COLD_SAVED_ROSTER_CONTEXT_TREE_PHYSICAL_PASS",
+  "fixture": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02",
+  "selected_file": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02/native-forks/2026-10-03T16-01-21-766Z_01a1027f-a366-77f8-8b39-0d4999995f4d.jsonl",
+  "selected_bytes": 42376298,
+  "selected_sha256_before": "659a4f3af42b124bac4a50ee2d44b1ef2c58dcf9f7d82def9426781d855a5002",
+  "public_file": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-openhcs--/2026-10-01T16-50-21-634Z_01a0f85f-c742-756b-9a21-4f02f7bea72e.jsonl",
+  "public_sha256_before": "b503439b38deb341d03cce064fe5e73b64366c3054836fe19c548db07e90e26c",
+  "model": "openai-codex/gpt-6.1-sol",
+  "thinking": "high",
+  "providers": 0,
+  "native_inputs": 0,
+  "priming_calls": 0,
+  "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+  "activation": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+  "controller": {
+    "pid": 674311,
+    "start_time": 52428750
+  },
+  "native_process": {
+    "pid": 675108,
+    "start_time": 52431224
+  },
+  "context": {
+    "owner": "configured-source",
+    "root": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02/wire",
+    "native_present": true,
+    "status": "configured-source \u00b7 native base before future input/provider hooks\nSegment counts: estimates (pi.estimateTokens) \u00b7 provider totals unavailable",
+    "detail": "Reference only; not read by browsing.\n{\n  \"kind\": \"preview\",\n  \"identity\": {\n    \"sessionId\": \"01a1027f-a366-77f8-8b39-0d4999995f4d\",\n    \"sessionFile\": \"/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-context595-configured02/native-forks/2026-10-03T16-01-21-766Z_01a1027f-a366-77f8-8b39-0d4999995f4d.jsonl\"\n  },\n  \"context_digest\": \"dd261ef5233aeff337f0c0e1d4b993a0342a9d74ee837d11755b0f1dd643df09\"\n}",
+    "selected": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/0",
+    "nodes": [
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e",
+        "label": "system_layer \u00b7 ~6,488 tokens",
+        "expanded": true
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/1/compaction_summary/d1fcbce188a6ac03b3f76c9380ef1690bef567b0d7b2ef43eff4414c4128a0b1",
+        "label": "compaction_summary \u00b7 ~14,347 tokens",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/2/transcript/52aea0138e65715d7b79bd6c6c238ac06bee5f90b268bb5355c19c5f5a97c3e6",
+        "label": "transcript \u00b7 ~79,086 tokens",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/3/tool_catalog/b7028753435029a968e43709da4486c3c11fe8a209c0f08b69afdab0fb7cc186",
+        "label": "tool_catalog \u00b7 ~7,073 tokens",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/0",
+        "label": "Reference \u00b7 preview",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/1",
+        "label": "Reference \u00b7 file",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/2",
+        "label": "Reference \u00b7 file",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/3",
+        "label": "Reference \u00b7 file",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/4",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/5",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/6",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/7",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/8",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/9",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/10",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/11",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      },
+      {
+        "key": "native/01a1027f-a366-77f8-8b39-0d4999995f4d/0/system_layer/de29154d59433a862c2704a3c8a423fcf41a05d8790679a82ac4d332cdf0e97e/source/12",
+        "label": "Reference \u00b7 resource",
+        "expanded": false
+      }
+    ]
+  },
+  "segment_text_characters": 24058,
+  "participant": {
+    "lookup": "8c7ebde3254a8a3e92b60cf57eb76c7f",
+    "display_name": "configured-source",
+    "committed": true,
+    "aliases": [
+      "8c7ebde3254a8a3e92b60cf57eb76c7f"
+    ],
+    "owner_thread": "configured-source",
+    "generation": 1,
+    "pointer": {
+      "kind": "current_executions",
+      "owner_lookup": "8c7ebde3254a8a3e92b60cf57eb76c7f",
+      "execution_id": null,
+      "attempt_ordinal": null,
+      "pointer_revision": 0
+    }
+  },
+  "selected_sha256_after": "659a4f3af42b124bac4a50ee2d44b1ef2c58dcf9f7d82def9426781d855a5002",
+  "original_source_unchanged": true,
+  "native_child_retired": true,
+  "elapsed_seconds": 53.37425221805461,
+  "pixel_review": "Actual provenance and segment-return PNG personally viewed after terminal",
+  "recording_seconds": 38.6910061200615,
+  "native_base_before_any_input": true,
+  "original_registry_incarnation_preserved": true,
+  "original_stopped_source_producer": true,
+  "roster_ready_pixel": true,
+  "original_source_sha256_after": "b503439b38deb341d03cce064fe5e73b64366c3054836fe19c548db07e90e26c",
+  "controller_exited": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 674492,
+        "start_ticks": 52429144,
+        "returncode": 0
+      },
+      {
+        "pid": 674502,
+        "start_ticks": 52429327,
+        "returncode": 0
+      },
+      {
+        "pid": 674514,
+        "start_ticks": 52429337,
+        "returncode": 0
+      },
+      {
+        "pid": 674515,
+        "start_ticks": 52429342,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 674516,
+        "start_ticks": 52429343,
+        "returncode": 0
+      },
+      {
+        "pid": 674517,
+        "start_ticks": 52429353,
+        "returncode": 0
+      },
+      {
+        "pid": 674518,
+        "start_ticks": 52429362,
+        "returncode": 0
+      },
+      {
+        "pid": 674519,
+        "start_ticks": 52429374,
+        "returncode": 255
+      },
+      {
+        "pid": 674833,
+        "start_ticks": 52430376,
+        "returncode": 0
+      },
+      {
+        "pid": 674868,
+        "start_ticks": 52430410,
+        "returncode": 0
+      },
+      {
+        "pid": 674873,
+        "start_ticks": 52430443,
+        "returncode": 0
+      },
+      {
+        "pid": 674897,
+        "start_ticks": 52430475,
+        "returncode": 0
+      },
+      {
+        "pid": 674911,
+        "start_ticks": 52430577,
+        "returncode": 0
+      },
+      {
+        "pid": 674915,
+        "start_ticks": 52430640,
+        "returncode": 0
+      },
+      {
+        "pid": 674916,
+        "start_ticks": 52430654,
+        "returncode": 0
+      },
+      {
+        "pid": 674917,
+        "start_ticks": 52430756,
+        "returncode": 0
+      },
+      {
+        "pid": 674921,
+        "start_ticks": 52430797,
+        "returncode": 0
+      },
+      {
+        "pid": 675078,
+        "start_ticks": 52430899,
+        "returncode": 0
+      },
+      {
+        "pid": 675083,
+        "start_ticks": 52430959,
+        "returncode": 0
+      },
+      {
+        "pid": 675088,
+        "start_ticks": 52431054,
+        "returncode": 0
+      },
+      {
+        "pid": 675090,
+        "start_ticks": 52431157,
+        "returncode": 0
+      },
+      {
+        "pid": 675116,
+        "start_ticks": 52431290,
+        "returncode": 0
+      },
+      {
+        "pid": 675151,
+        "start_ticks": 52431410,
+        "returncode": 0
+      },
+      {
+        "pid": 675155,
+        "start_ticks": 52431545,
+        "returncode": 0
+      },
+      {
+        "pid": 675161,
+        "start_ticks": 52431677,
+        "returncode": 0
+      },
+      {
+        "pid": 675165,
+        "start_ticks": 52431770,
+        "returncode": 0
+      },
+      {
+        "pid": 675316,
+        "start_ticks": 52431872,
+        "returncode": 0
+      },
+      {
+        "pid": 675330,
+        "start_ticks": 52431920,
+        "returncode": 0
+      },
+      {
+        "pid": 675376,
+        "start_ticks": 52432017,
+        "returncode": 0
+      },
+      {
+        "pid": 675377,
+        "start_ticks": 52432034,
+        "returncode": 0
+      },
+      {
+        "pid": 675378,
+        "start_ticks": 52432136,
+        "returncode": 0
+      },
+      {
+        "pid": 675382,
+        "start_ticks": 52432176,
+        "returncode": 0
+      },
+      {
+        "pid": 675395,
+        "start_ticks": 52432278,
+        "returncode": 0
+      },
+      {
+        "pid": 675400,
+        "start_ticks": 52432347,
+        "returncode": 0
+      },
+      {
+        "pid": 675401,
+        "start_ticks": 52432357,
+        "returncode": 0
+      },
+      {
+        "pid": 675411,
+        "start_ticks": 52432459,
+        "returncode": 0
+      },
+      {
+        "pid": 675415,
+        "start_ticks": 52432499,
+        "returncode": 0
+      },
+      {
+        "pid": 675428,
+        "start_ticks": 52432601,
+        "returncode": 0
+      },
+      {
+        "pid": 675436,
+        "start_ticks": 52432659,
+        "returncode": 0
+      },
+      {
+        "pid": 675452,
+        "start_ticks": 52432671,
+        "returncode": 0
+      },
+      {
+        "pid": 675453,
+        "start_ticks": 52432773,
+        "returncode": 0
+      },
+      {
+        "pid": 675457,
+        "start_ticks": 52432813,
+        "returncode": 0
+      },
+      {
+        "pid": 675630,
+        "start_ticks": 52432915,
+        "returncode": 0
+      },
+      {
+        "pid": 675644,
+        "start_ticks": 52433171,
+        "returncode": 0
+      },
+      {
+        "pid": 675651,
+        "start_ticks": 52433202,
+        "returncode": 0
+      },
+      {
+        "pid": 675657,
+        "start_ticks": 52433299,
+        "returncode": 0
+      },
+      {
+        "pid": 675658,
+        "start_ticks": 52433483,
+        "returncode": 0
+      },
+      {
+        "pid": 675672,
+        "start_ticks": 52433692,
+        "returncode": 0
+      }
+    ]
+  },
+  "runtime_unchanged": true
+}

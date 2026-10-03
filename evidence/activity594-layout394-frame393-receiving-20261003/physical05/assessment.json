@@ -1,0 +1,20 @@
+{
+  "state": "Cold native Context/visible saved history positive; whole roster/provenance journey FAILED",
+  "raw_terminal_sha256": "04e5aea98a5c06e446bf4703640d695c11df82b7eb063259adb96f8dcaf7f0f9",
+  "raw_capture_sha256": "3d12561c89692ca1db662da8d3d222d379a070484bdb2eaaecd686a9f88cac1c",
+  "inspection": "Sch personally viewed context-open/provenance/segment-return PNG after terminal; no DURING claim",
+  "cold_native_present": true,
+  "system_segment_detail_visible": true,
+  "saved_history_visible": true,
+  "roster_error": "IdentityConflict participant aggregate is not registered",
+  "provenance_oracle": "Right key left compaction_summary unexpanded; actual selected detail Expand this segment to inspect an individual message",
+  "st_returncode": 0,
+  "cleanup_remaining": [],
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "priming_calls": 0,
+  "whole_ready": false,
+  "public_effects": 0,
+  "raw_receipts_rewritten": false,
+  "fixture_identity_owner": "Mendel with Einstein driver owner; source classification pending"
+}
