@@ -1,0 +1,26 @@
+{
+  "state": "Actual publication and canonical readback archived; parent default physical acceptance in progress",
+  "parent_reported_merge": "6f2b",
+  "publisher_duration_seconds": 44.659241914749146,
+  "raw_phase_unchanged": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "original_artifacts": {
+    "publication-receipt.json": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/new-publication593594595393394396/publication-receipt.json",
+      "sha256": "38aa03a3a441fa8d61fc153eb87b28f2394a821932b6d0282e66b11884195a6a"
+    },
+    "publication-identity-closure.json": {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/new-publication593594595393394396/publication-identity-closure.json",
+      "sha256": "4fe8b5952e2fbe269da19820308cb1268732eea0782aece4e18122badb828345"
+    }
+  },
+  "owner_count": 19,
+  "same_original_births_settings": true,
+  "new_processes_alive": true,
+  "same_root_and_root_id": true,
+  "current_live_prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "current485_protected_no_future_code_loan": true,
+  "publisher_or_readback_repeated": false,
+  "physical_scope": "Parent owns running ordinary default helper capture; no qualification from this archival step",
+  "public_provider_or_inputs": 0
+}
