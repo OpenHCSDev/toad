@@ -39,12 +39,19 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     async def show_shell_command(self, output, target):
         from toad.widgets.shell_result import ShellResult
 
-        await target.post(ShellResult(output.command))
+        if not any(result.source is output for result in target.query(ShellResult)):
+            await target.post(ShellResult(output))
 
     @handles(ShellTerminalOutput)
     async def show_shell_terminal(self, output, target):
         if output.terminal is None:
-            output.attach(await target.new_terminal())
+            from toad.widgets.shell_terminal import ShellTerminal
+
+            terminal = next((terminal for terminal in target.query(ShellTerminal)
+                             if terminal.state is output.state), None)
+            if terminal is None:
+                terminal = await target.new_terminal()
+            output.attach(terminal)
 
     def shell_failed(self, error) -> None:
         if (target := self.target) is not None:

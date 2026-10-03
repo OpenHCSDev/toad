@@ -17,6 +17,7 @@ from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.side_bar import SideBar
 from toad.screens.main import MainScreen
 from toad.shell_output import ShellTerminalOutput
+from toad.widgets.shell_result import ShellResult
 from toad.core.input_events import UserInputSubmitted
 
 
@@ -91,6 +92,8 @@ async def main():
             assert shell.surface.target is second_surface
             assert len(shell.events.subscriptions) == 1
             shell_task, shell_process = shell._task, shell._process
+            command_view = second_surface.query_one(ShellResult)
+            terminal_view = shell.output.terminal
             async with asyncio.timeout(5):
                 while not await shell.is_busy():
                     await pilot.pause(.02)
@@ -115,6 +118,12 @@ async def main():
             assert shell.surface.target is restored_shell_view
             assert len(shell.events.subscriptions) == 1
             assert restored_shell_view.prompt.text == "second draft"
+            assert tuple(restored_shell_view.query(ShellResult)) == (command_view,)
+            assert shell.outputs[0] is command_view.source
+            assert command_view.get_clipboard_text() == command_view.source.command
+            assert terminal_view in restored_shell_view.query("ShellTerminal")
+            assert any(output.terminal is terminal_view for output in shell.outputs
+                       if isinstance(output, ShellTerminalOutput))
             assert any(terminal.state is output.state for terminal in restored_shell_view.query("ShellTerminal")
                        for output in shell.outputs if isinstance(output, ShellTerminalOutput))
             await pilot.pause()
@@ -143,6 +152,8 @@ async def main():
                     "terminal_paint": terminal_paint,
                     "directory_changed_through_original_stream": True,
                     "same_shell_task_process_model": True,
+                    "same_command_widget_source": True,
+                    "same_terminal_widget_model": True,
                     "active_shell_subscriptions": len(shell.events.subscriptions),
                     "provider_calls": 0,
                 }, indent=2) + "\n")
