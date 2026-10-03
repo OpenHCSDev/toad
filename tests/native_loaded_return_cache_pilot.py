@@ -26,7 +26,7 @@ from textual._styles_cache import StylesCache
 from textual.content import Content
 from toad.core.events import UpdateStatusLine
 from toad.acp.agent import Agent
-from toad.render_tasks import TranscriptRenderTask
+from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.session_observation import GoalObservation
 from toad.transcript_publication import SnapshotPublication, TranscriptPresentation
 

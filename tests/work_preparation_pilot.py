@@ -7,7 +7,8 @@ from typing import ClassVar
 
 from agent_comms.transcript_events import AssistantTranscript
 from toad.render_backend import Renderer
-from toad.render_tasks import MarkdownRenderTask, TranscriptRenderTask
+from toad.render_tasks import MarkdownRenderTask
+from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.work_preparation import (
     ContentAddressedWork, PreparationRuntime, PreparedRenderer, ReusableWork, ThreadWork,
 )

@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
-from toad.render_tasks import TranscriptBodyPreparation
+from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 
 
 async def until(predicate):
@@ -19,14 +20,14 @@ async def until(predicate):
             await asyncio.sleep(.02)
 
 
-async def main():
+async def main(*, publication_only=False):
     with tempfile.TemporaryDirectory(prefix="toad-history-") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         path = root / "session.jsonl"
-        path.write_text("".join(json.dumps({"type": "message", "message": {
-            "role": "assistant", "content": f"Record {i}\n\nContent."
+        path.write_text("".join(json.dumps({"type": "message", "id": f"{i:08x}", "message": {
+            "role": "assistant", "content": [{"type": "text", "text": f"Record {i}\n\nContent."}]
         }}) + "\n" for i in range(105)))
         comms = wire(root / "wire")
         comms.registry.declare(Thread("worker", frozenset(), str(root), session_file=str(path)))
@@ -43,6 +44,24 @@ async def main():
             await conversation.post(history)
             conversation.window.scroll_end(animate=False, immediate=True)
             await pilot.pause()
+            if publication_only:
+                # Check the changed task/import/body family through the actual
+                # App without repeating the separate navigation acceptance.
+                preparation = TranscriptBodyPreparation(
+                    app.render_processes, app.native_ansi_color, app.current_theme.dark,
+                )
+                for event in history.pages[-1].page.events:
+                    await preparation.dispatch(event)
+                def painted_tail():
+                    region = conversation.window.scrollable_content_region
+                    return "Record 104" in "\n".join(
+                        strip.crop(region.x, region.right).text for strip in
+                        app.screen._compositor.render_strips()[region.y:region.bottom]
+                    )
+                await until(painted_tail)
+                assert app._exception is None
+                print("installed App: decoded native history, fragment worker, body dispatch and painted Record 104 passed")
+                return
             while history.older.display:
                 position = (history.pages[0].page.before.offset, history.pages[0].start)
                 conversation.window.scroll_home(animate=False, immediate=True)
@@ -105,4 +124,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(publication_only="--publication-only" in sys.argv))
