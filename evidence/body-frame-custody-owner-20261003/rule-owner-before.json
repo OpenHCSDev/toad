@@ -1,0 +1,13 @@
+{
+  "modules": 289,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 373,
+      "reference": "stylesheet._check_rule"
+    }
+  ],
+  "owner": "existing native RuleSet.check -> SelectorSet.check; native47 Kepler, soleToad consumerworkspace._changed_source_targets",
+  "limits": "AST spelling; source/MRO read separately, not behavior proof"
+}

@@ -1,0 +1,48 @@
+{
+  "head": "58cf39d0315cd67926c93131d78908a542dca3c3",
+  "production_modules": 289,
+  "parse_omissions": [],
+  "owner": "native DOM.walk_ancestors; existing Toad body/frame/membership consumers",
+  "selected_sites": [
+    {
+      "line": 658,
+      "member": "walk_ancestors",
+      "expression": "self.walk_ancestors"
+    },
+    {
+      "line": 987,
+      "member": "walk_ancestors",
+      "expression": "endpoint.walk_ancestors"
+    },
+    {
+      "line": 731,
+      "member": "walk_ancestors",
+      "expression": "body.walk_ancestors"
+    },
+    {
+      "line": 576,
+      "member": "walk_ancestors",
+      "expression": "self.screen.focused.walk_ancestors"
+    },
+    {
+      "line": 577,
+      "member": "walk_ancestors",
+      "expression": "endpoint.walk_ancestors"
+    },
+    {
+      "line": 786,
+      "member": "walk_ancestors",
+      "expression": "window.walk_ancestors"
+    }
+  ],
+  "eager_list_reads": 0,
+  "lazy_owner_calls": 6,
+  "independent_parent_walk_deleted": "DocumentViewport.protected",
+  "native_dependency": "Kepler next46 agreedpublicAPI; frozen45 unchanged",
+  "validation": "Source migration checkpoint only; no checks/installed motion yet",
+  "limits": [
+    "Native public list snapshots remain valid for full/reversed/indexed callers",
+    "Receiver/MRO source contracts read semantically; AST does not prove runtime dispatch",
+    "No CPU-share or performance-gain inference"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "monotonic": 537415.619380909,
+  "utc_ns": 1791061776442335729,
+  "processes": {
+    "recorder": {
+      "pid": 2069297,
+      "birth": 53734702,
+      "state": "S",
+      "same_identity": true
+    },
+    "ui": {
+      "pid": 2069475,
+      "birth": 53735032,
+      "state": "S",
+      "same_identity": true
+    }
+  }
+}

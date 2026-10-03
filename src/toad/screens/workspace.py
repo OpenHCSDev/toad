@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import TYPE_CHECKING, cast
 
-from textual.css.model import RuleSet, SelectorType
+from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
 from textual.dom import DOMNode
 from textual.events import Resize, ScreenResume
@@ -344,13 +344,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         virtual_nodes = [virtual for node in nodes if isinstance(node, Widget)
                          for virtual in node._get_virtual_dom()]
         nodes.extend(virtual_nodes)
-        css_types: set[str] = set()
-        for node in [*nodes, *self.ancestors]:
-            css_types.update(node._css_type_names)
-            if type(node).css_path_nodes is not DOMNode.css_path_nodes:
-                for ancestor in node.css_path_nodes:
-                    css_types.update(ancestor._css_type_names)
-
         stylesheet = self.app.stylesheet
         possible_rules: list[RuleSet] = []
         for location, source in changed:
@@ -358,10 +351,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                 source.content, location, is_default_rules=source.is_defaults,
                 tie_breaker=source.tie_breaker, scope=source.scope,
             )
-            possible_rules.extend(rule for rule in rules if any(
-                all(selector.type is not SelectorType.TYPE or selector.name in css_types
-                    for selector in group.selectors) for group in rule.selector_set
-            ))
+            possible_rules.extend(rules)
         targets: set[DOMNode] = set()
         for node in nodes:
             component_names = {f".{name}" for name in node._get_component_classes()}
@@ -370,7 +360,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                 # owner whenever a changed rule could address a component class.
                 if (rule.selector_names & component_names or
                         (rule.selector_names & node._selector_names
-                         and any(stylesheet._check_rule(rule, node.css_path_nodes)))):
+                         and any(rule.check(node)))):
                     targets.update(node.walk_children(with_self=True))
                     break
         # Preserve ancestor-before-descendant application, as a full CSS update

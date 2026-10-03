@@ -1,0 +1,60 @@
+{
+  "head": "d996df57097b86605515a68b69a1e6d1ca051430",
+  "production_modules": 289,
+  "parse_omissions": [],
+  "all_walk_children_consumers": [
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 343,
+      "expression": "self.walk_children",
+      "read_only_body_cost_or_readiness": false
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 374,
+      "expression": "node.walk_children",
+      "read_only_body_cost_or_readiness": false
+    },
+    {
+      "path": "src/toad/sidebar_navigation.py",
+      "line": 86,
+      "expression": "self.sidebar.walk_children",
+      "read_only_body_cost_or_readiness": false
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 394,
+      "expression": "self.contents.walk_children",
+      "read_only_body_cost_or_readiness": false
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 992,
+      "expression": "child.walk_children",
+      "read_only_body_cost_or_readiness": false
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 544,
+      "expression": "self.walk_children",
+      "read_only_body_cost_or_readiness": true
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 579,
+      "expression": "self.walk_children",
+      "read_only_body_cost_or_readiness": true
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 26,
+      "expression": "contents.walk_children",
+      "read_only_body_cost_or_readiness": false
+    }
+  ],
+  "existing_native_owner": "textual.walk.walk_depth_first; native DOM.walk_children snapshot already derives it",
+  "selected_semantics": "capture_native_paint readiness and TranscriptHistory.retained_source_bytes are synchronous read-only consumers; all BodyMeasurement/native_body_ready/source cost implementations read fields/cache and do not change child topology",
+  "preserved_snapshot_consumers": "Other DOM mutation/snapshot uses remain lists",
+  "no_new_traversal_algorithm": true,
+  "limits": "No dynamic arbitrary-subclass proof or CPU-dominance claim; source reads cover current nominal body family"
+}

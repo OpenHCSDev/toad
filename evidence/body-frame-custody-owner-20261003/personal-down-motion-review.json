@@ -1,0 +1,12 @@
+{
+  "phase": "input-held-down",
+  "source_interval_seconds": [
+    46.340552421,
+    47.140552421
+  ],
+  "frames": "live-21-12-frames.png",
+  "review_timing": "DURING originalUI; bracketed identityprobes",
+  "before": "personal-down-before.json",
+  "after": "personal-down-after.json",
+  "assessment": "48 consecutiveframes have painted body/chrome and repeatedpositions/stepwise advances, no wholebodyblank evident; no smoothness/appFPS/gainclaim"
+}

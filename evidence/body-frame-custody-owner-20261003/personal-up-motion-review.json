@@ -1,0 +1,12 @@
+{
+  "phase": "input-held-up",
+  "source_interval_seconds": [
+    21.663983625,
+    22.463983625
+  ],
+  "frames": "live-14-7-frames.png",
+  "review_timing": "DURING same original UI lifetime; bracketed identity probes",
+  "before": "personal-up-before.json",
+  "after": "personal-up-after.json",
+  "assessment": "48 consecutive frames show painted body/chrome and repeated positions interleaved with large discrete advances; no wholebodyblank in this band; not smoothness or changed-frameFPS proof"
+}
