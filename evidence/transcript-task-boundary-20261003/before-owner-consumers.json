@@ -1,0 +1,225 @@
+{
+  "head": "25a17f47024052d50b2203440a4e0b77e8250e97",
+  "parser": "refactor-audit Package",
+  "modules": 286,
+  "parse_omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 9,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import MarkdownRenderTask, PatchRenderTask"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 65,
+      "kind": "ClassDef",
+      "source": "class TranscriptBodyPreparation(MroDispatch):"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 96,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 101,
+      "kind": "Name",
+      "source": "transcript_fragments"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TabRosterRenderTask, ThreadRowsRenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 118,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import ThreadRowsRenderTask"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 154,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TabRosterRenderTask"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 197,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import PatchRenderTask"
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 159,
+      "kind": "Name",
+      "source": "TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 174,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 191,
+      "kind": "Name",
+      "source": "TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 246,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 261,
+      "kind": "Name",
+      "source": "TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 34,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import MarkdownRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 24,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.transcript_fragments import prepare_transcript_fragments"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 56,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 153,
+      "kind": "Name",
+      "source": "prepare_transcript_fragments"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 58,
+      "kind": "Name",
+      "source": "TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import PatchRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 34,
+      "kind": "AsyncFunctionDef",
+      "source": "async def prepare_transcript_fragments(events: tuple[TranscriptEvent, ...], pool: 'Renderer | None'=None, *, continuation: bool=False) -> tuple['TranscriptFragment', ...]:"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 192,
+      "kind": "FunctionDef",
+      "source": "def transcript_fragments(events: tuple[TranscriptEvent, ...], *, continuation: bool=False) -> tuple[TranscriptFragment, ...]:"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 43,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 46,
+      "kind": "Name",
+      "source": "TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "TranscriptRenderTask"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 55,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments, transcript_fragments"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 203,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptBodyPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 406,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptBodyPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 710,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import TranscriptBodyPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 204,
+      "kind": "Name",
+      "source": "TranscriptBodyPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 408,
+      "kind": "Name",
+      "source": "TranscriptBodyPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 285,
+      "kind": "Name",
+      "source": "transcript_fragments"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 711,
+      "kind": "Name",
+      "source": "TranscriptBodyPreparation"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 635,
+      "kind": "Name",
+      "source": "prepare_transcript_fragments"
+    },
+    {
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 22,
+      "kind": "ImportFrom",
+      "source": "from toad.render_tasks import RichRenderTask"
+    }
+  ],
+  "resolution_limits": "Lexical AST; optional local task imports must be read for execution dependency. Native dispatch intentionally loads native rendering resources; source fragmentation does not."
+}
