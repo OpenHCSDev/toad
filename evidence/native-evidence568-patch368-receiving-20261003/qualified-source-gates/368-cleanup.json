@@ -1,0 +1,9 @@
+{
+  "owned_processes": [],
+  "other_user_inaccessible": 298,
+  "persistent_renderer_shutdown": "Existing installed App runner closes runtime/client, explicitly shuts service and original stop_test_children once on exit",
+  "fixture": "/home/ts/wt/r368e01",
+  "fixture_remaining_files": [],
+  "fixture_removed": true,
+  "protected": "All source/evidence/original UNKNOWN/native/defaults untouched; private485 retained and released back to Sch after this batch"
+}

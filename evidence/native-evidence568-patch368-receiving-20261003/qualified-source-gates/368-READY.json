@@ -1,0 +1,62 @@
+{
+  "state": "Scoped merge-ready",
+  "pr": 368,
+  "tested_source": "8fef929cc16f293ef396a2603dd69934a86bd5ea",
+  "normal_main_integrated": "2f14b69f44fcf29f0a3b6c82a9100de995ffcc16",
+  "production_added": 42,
+  "production_deleted": 55,
+  "production_files": [
+    "src/toad/render_protocol.py",
+    "src/toad/widgets/patch_diff.py"
+  ],
+  "new_classes": 0,
+  "new_semantic_fields": 0,
+  "new_environments": 0,
+  "new_worktrees": 0,
+  "provider_calls": 0,
+  "public_changes": 0,
+  "installed_source_files_equal": 293,
+  "source_proof_sha256": "bfae02571d18d01d6d0b417178307b2d973480bad4218464a9753cec416fb393",
+  "installed_checks": [
+    {
+      "name": "installed-boundary",
+      "args": [
+        "tests/render_families_pilot.py",
+        "RenderingFamilyTests.test_captured_task_loads_its_declaring_module"
+      ],
+      "elapsed_seconds": 3.7717049440252595,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-prepared-diff",
+      "args": [
+        "tests/prepared_diff_pilot.py"
+      ],
+      "elapsed_seconds": 8.733639539976139,
+      "exit_code": 0
+    },
+    {
+      "name": "installed-app-patch",
+      "args": [
+        "tests/persistent_renderer_ui_pilot.py",
+        "--patch-only"
+      ],
+      "elapsed_seconds": 9.333318243036047,
+      "exit_code": 0
+    }
+  ],
+  "cleanup": [],
+  "owners": [
+    "Patch.prepare: sole hunk syntax/inline preparation",
+    "PreparedPatch.bind: actual native inline style binding",
+    "TaskCapture.restore: sole exact declared task admission after declaring-module load"
+  ],
+  "deleted": [
+    "Native fallback syntax/inline pipeline",
+    "Generic protocol eager frontend operation imports"
+  ],
+  "scope": "Actual installed process-prepared/fallback native patch, native segments/copy/themes/sparse hunks, one actual Toad App persistent renderer mount, clean captured-task decode. No physical display, latency/frame speed, provider/native turn, or complete U2 headless claim.",
+  "remaining_u2": "Native preparation still borrows Textual Content/Strip/highlighting dependencies. Transcript grouping has no Textual import; its widgets module name is not an implementation gap. No cosmetic relocation or copied highlighter introduced.",
+  "dependency_scope": "Reused released private485: original69+5declared optional renderer distributions preserved, pip check74compatible. Core/native donors unchanged; no native044/provider reacceptance claim.",
+  "ci": "deferred"
+}

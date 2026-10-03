@@ -1,0 +1,16 @@
+{
+  "owner": "Schrodinger normal receiving568368; parent solepublicpublisher",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "core": "0608319c02c5109c7b852e80c34841dec12bda5b",
+  "toad": "3b99a627687ca43891ceeca83221682fc76f26aa",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+  "gate_files": [
+    "568-installed-native-control02.log",
+    "368-READY.json"
+  ],
+  "new_environment": false,
+  "new_native_build": false,
+  "provider_calls": 0,
+  "public_writes": 0
+}

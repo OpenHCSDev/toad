@@ -1,0 +1,20 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001
+   Updating https://github.com/OpenHCSDev/toad.git (3b99a627687ca43891ceeca83221682fc76f26aa)
+    Updated https://github.com/OpenHCSDev/toad.git (3b99a627687ca43891ceeca83221682fc76f26aa)
+Resolved 69 packages in 1.23s
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@0608319c02c5109c7b852e80c34841dec12bda5b
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@3b99a627687ca43891ceeca83221682fc76f26aa
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@0608319c02c5109c7b852e80c34841dec12bda5b
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@3b99a627687ca43891ceeca83221682fc76f26aa
+Prepared 2 packages in 525ms
+Uninstalled 7 packages in 41ms
+Installed 2 packages in 64ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@6a1dad1db068aeb65c6feb2a11d75d4923c942eb)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@0608319c02c5109c7b852e80c34841dec12bda5b)
+ - batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/patch-preparation-368/batrachian_toad-0.6.20-py3-none-any.whl)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@3b99a627687ca43891ceeca83221682fc76f26aa)
+ - numpy==2.5.3
+ - portalocker==4.4.0
+ - python-introspect==0.1.14
+ - pyzmq==27.2.0
+ - zmqruntime==0.2.24
