@@ -24,3 +24,17 @@ launch here until explicit restore/handback. Source reasoning remains independen
 Parent/Sch own receiving publication; Arendt/Sch runtime/compaction source stays
 disjoint. Preserve originals/UNKNOWN. Source reasoning first, coherent batch,
 proportionate sanity and configured installed application path last.
+
+## Current source batch
+
+Existing native DOM.walk_ancestors(*, with_self=False) is the agreed traversal
+owner. Body capture focus/selection, outer-body mount, visible-body nearest-window
+selection, native window display, and protected interaction ancestors consume it.
+Delete all five eager list reads and the separate parent-walk algorithm in this
+family. Nested-body readiness and first nested-window custody remain unchanged;
+full ancestor snapshot callers elsewhere retain their actual list contract.
+
+Source checkpoint depends on Kepler's native lazy-ancestry family, not installed
+oldText44. No final check/physical acceptance yet; do not launch old holder with
+this new API until the normal joined native dependency is pinned/installed.
+Native45 capture-placement source remains frozen and joins that ancestry batch.
