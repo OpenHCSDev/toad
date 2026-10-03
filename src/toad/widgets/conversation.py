@@ -372,12 +372,12 @@ This is a view of your conversation with the agent.
 
 
 class ConversationSessionBinding(containers.Vertical):
+    """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
+
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
 
-        AttachedSurfaceBinding(self, agent.events).bind_agent(agent)
-
-    """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
+        agent.attach_surface(AttachedSurfaceBinding(self, agent.events))
 
     @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:
