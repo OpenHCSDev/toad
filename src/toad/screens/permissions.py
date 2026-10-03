@@ -223,6 +223,6 @@ class PermissionReview(PermissionsScreen):
 
     def on_mount(self, event):
         view = self._view()
-        if view is None or not self.request.pending or self.request.controller.agent.controller.surface is not self.binding:
+        if not self.request.owns_projection(self.binding, view):
             event.prevent_default()
             self.retire()

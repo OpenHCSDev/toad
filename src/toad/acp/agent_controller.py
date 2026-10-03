@@ -55,6 +55,9 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     async def present_permission(self, request, view) -> None:
         """An absent frontend never acquires a permission projection."""
 
+    def permission_changed(self, view) -> None:
+        """An absent frontend has no permission bindings to invalidate."""
+
     async def present_failure(self, failure, view) -> None:
         """An absent frontend keeps the original failure without native work."""
 

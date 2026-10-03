@@ -1613,7 +1613,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @work
     async def request_permissions(self, request) -> None:
-        await request.controller.agent.controller.surface.present_permission(request, self)
+        await request.present(self)
 
     def ask(
         self,
