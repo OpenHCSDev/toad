@@ -1370,6 +1370,10 @@ class TerminalState:
         yield "dec_state", self.dec_state
         yield "mouse_tracking", self.mouse_tracking, None
 
+    def bind_stdin(self, write_stdin: Callable[[str], Awaitable]) -> None:
+        """Borrow the input operation currently consuming this ANSI resource."""
+        self._write_stdin = write_stdin
+
     async def write_stdin(self, text: str) -> bool:
         if self._write_stdin is not None:
             return await self._write_stdin(text)

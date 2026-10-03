@@ -53,7 +53,8 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         terminal_env = {variable.name: variable.value for variable in env} if env else {}
         try:
             terminal_id = await terminals.create(
-                Command(command, args or [], terminal_env, cwd or str(self.agent.project_root_path)),
+                Command.for_argv(command, args or [], env=terminal_env,
+                                 cwd=cwd or str(self.agent.project_root_path)),
                 outputByteLimit)
         except TerminalSessionRetired as error:
             raise jsonrpc.InvalidParams(str(error)) from error

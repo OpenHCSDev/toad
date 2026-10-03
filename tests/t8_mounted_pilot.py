@@ -14,12 +14,17 @@ from textual.widgets import Static
 from toad.db import DB, Session, SessionMeta
 from toad.screens.session_resume_modal import SessionResumeModal
 from toad.widgets.command_pane import CommandPane
+from toad.terminal_execution import Command, TerminalExecution
 
 
 class MountedApp(App):
+    def __init__(self, command):
+        super().__init__()
+        self.execution = TerminalExecution(command)
+
     def compose(self) -> ComposeResult:
         yield Static("T8 mounted local acceptance")
-        yield CommandPane()
+        yield CommandPane(self.execution)
 
 
 async def main():
@@ -35,18 +40,16 @@ async def main():
                 "saved-session",
                 meta=SessionMeta(root, {"identity": "saved-agent"}),
             )
-            app = MountedApp()
+            output = root / "environment.txt"
+            script = (
+                "import os,pathlib; pathlib.Path("
+                + repr(str(output))
+                + ").write_text('|'.join(os.environ[k] for k in ('FORCE_COLOR','TTY_COMPATIBLE','TERM','COLORTERM','TOAD','CLICOLOR')))"
+            )
+            app = MountedApp(Command.for_script(shlex.join((sys.executable, "-c", script))))
             async with app.run_test(size=(100, 30)) as pilot:
                 pane = app.query_one(CommandPane)
-                output = root / "environment.txt"
-                script = (
-                    "import os,pathlib; pathlib.Path("
-                    + repr(str(output))
-                    + ").write_text('|'.join(os.environ[k] for k in ('FORCE_COLOR','TTY_COMPATIBLE','TERM','COLORTERM','TOAD','CLICOLOR')))"
-                )
-                await asyncio.wait_for(
-                    pane.execute(shlex.join((sys.executable, "-c", script))), 10
-                )
+                await asyncio.wait_for(pane.execute(app.execution), 10)
                 assert pane.return_code == 0
                 assert output.read_text() == "1|1|xterm-256color|truecolor|1|1"
                 resumed = []

@@ -11,6 +11,7 @@ from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.widgets.command_pane import CommandPane
+from toad.terminal_execution import Command, TerminalExecution
 from toad.agent_schema import AgentDefinition
 from toad.catalog_actions import CatalogCommandAction
 from toad.core.source_events import CommandComplete
@@ -46,9 +47,7 @@ class ActionModal(CoreEventReceiver, ModalScreen):
     ) -> None:
         self.operation = action
         self.agent = agent
-        self._command = command
-        self._env = env
-        self._cwd = cwd
+        self.command = Command.for_script(command, env=env, cwd=cwd)
         super().__init__(name=name, id=id, classes=classes)
 
     def get_loading_widget(self) -> Widget:
@@ -56,7 +55,9 @@ class ActionModal(CoreEventReceiver, ModalScreen):
 
     def compose(self) -> ComposeResult:
         with containers.VerticalGroup(id="container"):
-            yield CommandPane()
+            yield CommandPane(TerminalExecution(
+                self.command
+            ))
             with containers.HorizontalGroup(id="action-buttons"):
                 yield widgets.Button("Cancel", id="cancel")
                 yield widgets.Button("OK", id="ok", disabled=True)
@@ -80,16 +81,18 @@ class ActionModal(CoreEventReceiver, ModalScreen):
     async def run_command(self) -> None:
         """Write and execute the command."""
         self.command_pane.anchor()
+        execution = self.command_pane.execution
         if self.operation.command.bootstrap_uv and shutil.which("uv") is None:
             # Bootstrap UV if required
             await self.command_pane.write(f"$ {UV_INSTALL}\n")
-            await self.command_pane.execute(UV_INSTALL, final=False)
+            bootstrap = TerminalExecution(
+                Command.for_script(UV_INSTALL),
+                state=execution.state,
+            )
+            await self.command_pane.execute(bootstrap, final=False)
 
-        await self.command_pane.write(f"$ {self._command}\n")
-        action_task = self.command_pane.execute(
-            self._command, env=self._env, cwd=self._cwd
-        )
-        await action_task
+        await self.command_pane.write(f"$ {execution.command.script}\n")
+        await self.command_pane.execute(execution)
         self.app.application.usage.publish(
             "agent-action",
             action=self.operation.name,

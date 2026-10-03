@@ -5,7 +5,7 @@ import asyncio
 from abc import abstractmethod
 from collections import deque
 from contextlib import AsyncExitStack, suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import codecs
 import fcntl
 import os
@@ -26,28 +26,49 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad import ansi
 from toad.shell_read import shell_read
+from toad.terminal_environment import TerminalEnvironment
 
 @dataclass
 class Command:
     """A command and corresponding environment."""
 
-    command: str
-    """Command to run."""
-    args: list[str]
-    """List of arguments."""
+    script: str
+    """One compiled shell invocation; never reclassified from its text."""
     env: Mapping[str, str]
     """Environment variables."""
-    cwd: str
+    cwd: str | None
     """Current working directory."""
+    shell: str = field(default_factory=lambda: TerminalEnvironment.login_shell(os.environ), kw_only=True)
+    """Original launch shell; catalog scripts explicitly select /bin/sh."""
+
+    @classmethod
+    def for_script(cls, script: str, *, env: Mapping[str, str] | None = None,
+                   cwd: str | None = None) -> Command:
+        """Catalog shell scripts use the standard shell and terminal environment."""
+        return cls(script, TerminalEnvironment.for_child(os.environ) | (env or {}),
+                   cwd, shell="/bin/sh")
+
+    @classmethod
+    def for_argv(cls, command: str, args: list[str], *,
+                 env: Mapping[str, str], cwd: str) -> Command:
+        """Compile ACP executable/arguments exactly once at its typed boundary."""
+        return cls(shlex.join([command, *args]), env, cwd)
+
+    @property
+    def shell_command(self) -> tuple[str, str, str]:
+        return self.shell, "-c", self.script
 
     def __str__(self) -> str:
-        command_str = shlex.join([self.command, *self.args]).strip("'")
-        return command_str
+        return self.script
 
 
 class TerminalOutcome(DeclaredFamily, affix="TerminalOutcome"):
     finished = False
     successful = False
+
+    @property
+    def return_code(self) -> int | None:
+        return None  # No POSIX completion yet; derived, never retained in a view.
 
     def exit_status(self) -> protocol.TerminalExitStatus | None:
         return None  # Official ACP absence, never an internal lifecycle field.
@@ -73,6 +94,10 @@ class TerminalCompletion(TerminalOutcome):
 
     @property
     @abstractmethod
+    def return_code(self) -> int: ...
+
+    @property
+    @abstractmethod
     def label(self) -> str: ...
 
     @classmethod
@@ -94,6 +119,10 @@ class ExitedTerminalOutcome(TerminalCompletion):
     def label(self) -> str:
         return str(self.original.code)
 
+    @property
+    def return_code(self) -> int:
+        return self.original.code
+
     def exit_status(self):
         return protocol.TerminalExitStatus(exit_code=self.original.code)
 
@@ -108,6 +137,10 @@ class SignaledTerminalOutcome(TerminalCompletion):
     @property
     def label(self) -> str:
         return signal.Signals(self.original.signal_number).name
+
+    @property
+    def return_code(self) -> int:
+        return -self.original.signal_number
 
     def exit_status(self):
         return protocol.TerminalExitStatus(signal=self.label)
@@ -312,14 +345,17 @@ class TerminalExecution:
     """One ANSI/output owner and one acquired operation, independent of views."""
     def __init__(self, command: Command, output_byte_limit: int | None = None, *,
                  width: int = ansi.TerminalState.DEFAULT_WIDTH,
-                 height: int = ansi.TerminalState.DEFAULT_HEIGHT):
+                 height: int = ansi.TerminalState.DEFAULT_HEIGHT,
+                 state: ansi.TerminalState | None = None):
         self._command = command
         self._output_byte_limit = output_byte_limit
         self._output: deque[bytes] = deque()
         self._bytes_read = 0
         self._output_bytes_count = 0
         self._operation: TerminalOperation = NewTerminalOperation()
-        self.state = ansi.TerminalState(self.write_stdin, width=width, height=height)
+        # An existing ANSI resource retains prefixes and sequential command output.
+        self.state = (ansi.TerminalState(self.write_stdin, width=width, height=height)
+                      if state is None else state)
         self._view = lambda: None
 
     @property
@@ -373,6 +409,8 @@ class TerminalExecution:
     async def start(self):
         operation = self._operation.start(self)
         self._operation = operation
+        self.state.bind_stdin(self.write_stdin)
+        self.state.show_cursor = True
         await asyncio.shield(operation.ready)
 
     async def run(self, ready):
@@ -384,11 +422,8 @@ class TerminalExecution:
                 flags = fcntl.fcntl(master, fcntl.F_GETFL)
                 fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
                 command = self.command
-                run_command = (command.command if " " in command.command
-                               else f"{command.command} {shlex.join(command.args)}")
-                shell_command = (os.environ.get("SHELL", "sh"), "-c", run_command)
                 spawn = asyncio.create_task(PtyProcess.acquire(
-                    command, shell_command, master_file, slave_file, custody, self.state))
+                    command, command.shell_command, master_file, slave_file, custody, self.state))
                 try:
                     acquired = await asyncio.shield(spawn)
                 except asyncio.CancelledError:
