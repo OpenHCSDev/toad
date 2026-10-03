@@ -316,3 +316,54 @@ now instantiate the installed production ToadApp directly and let the recorder's
 original bounded ProcessOwner own terminal/driver custody. Deleted the second
 child timeout and fixture sibling teardown dependency. Application assertions,
 recorder budgets and the original negative recordings are unchanged.
+
+### Original joined04 and reader progress during source work
+
+The normal347/main341 union preserves the shared pager worker and generic
+core event carrier. Joined04 completed the native motion, A/B/A and Undo before
+the wire tail. Its original failed snapshot contains both fresh wire receipts
+and the typed `hi` draft, with LiveTranscript, a free history lock and a ready
+presented frame. The fixture then failed with TimeoutError; its old outcome
+retained only the exception representation, so the precise failing line is
+unmeasured. The original movie, profile, private originals and failure remain
+at `fragment-resource347-held-reader338-20261002-04`. This is not full338 Ready.
+
+Source reasoning identified a separate shared scheduling defect: scroll
+notifications during WorkingTranscript cannot admit another read, and completion
+previously rearmed edges only when source rows/edges changed. Original user
+movement during an unchanged catalog/history read was therefore discarded.
+WorkingTranscript now captures the original HistoryWindow.scroll_revision with
+its bounded source-window observation and owns progressed(owner). The shared
+completion consumes that decision. Native WindowRestoration does not increment
+the reader revision, and unchanged reads still cannot rearm themselves. No
+second intent queue, source state, map, class or Window mutation was added.
+
+The existing failure outcome now retains the original traceback, so a new
+affected tail failure can identify its actual boundary. The native motion run
+will not be repeated. Remaining qualification is the changed installed wire
+receipt/restart/reader/End tail in one released matching holder. Profile04's
+quiet kernel intervals were64.5% Up,48% Down and15.8% middle idle; those scoped
+intervals are not proof of a gain against the earlier busy baseline.
+
+The existing NRA Package.load before/after map covers285 production modules,
+39 performance modules and390 test modules, with zero parse omissions. There
+is one production WorkingTranscript construction, in LiveTranscript.reserve;
+its reader revision is an operation observation of the original Window field,
+not another writable reader identity. HistoryWindow.anchor/release_anchor own
+revision writes and WindowRestoration suppresses them for native compensation.
+Both MountedMessageHistory and TranscriptHistory consume the shared finish
+behavior. Dynamic receiver resolution remains a semantic reading obligation.
+Map files are `reader-demand-owner-before.json` and `...-after.json` under
+`.artifacts/shared-history-source338`. The production delta against fc964606 is
+19 additions and6 deletions in the two existing owners. The fixture now also
+checks the actual reader task and worker remain unfinished after receipt paint
+and typing; an unreleased control alone does not prove pending I/O.
+
+The first changed-tail launch stopped before App construction, native processes
+or input: the347/main341 source union retained an unused incoming_sequences
+import after deletion of its worker helper. The entire production search finds
+only that import; it is deleted, without restoring an alias or an implementation.
+The installed source/assets were byte equal, so this was a source closure defect,
+not an installer failure. Original operator failure is retained under
+`history-lifetime338/physical-installed03` and
+`kepler338-reader-demand-tail-20261002-01`; it is not a physical acceptance.

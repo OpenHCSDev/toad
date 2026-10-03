@@ -144,9 +144,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             operation.pending_request.apply(self)
             if self.state.accepts_publication:
                 self.window.check_follow()
-                # Only actual source-window progress rearms paging. Empty,
-                # duplicate or refused reads cannot start a callback spin.
-                if operation.window_before != self.paging_window():
+                # The admitted operation owns source and reader progress.
+                # Native compensation and unchanged reads cannot rearm it.
+                if operation.progressed(self):
                     self._scroll_changed()
                 self.publish_core(TranscriptSourceWorkFinished())
 

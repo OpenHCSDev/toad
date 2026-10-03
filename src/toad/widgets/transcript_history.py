@@ -37,7 +37,7 @@ from toad.jsonrpc import value_schema
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageBuffer,
-    ProjectedTranscriptSource, incoming_sequences,
+    ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
