@@ -292,9 +292,12 @@ def analyze(
         visitor = CommandVisitor(
             Path(project_directory).resolve(), Path(current_working_directory).resolve()
         )
-        nodes = bashlex.parse(command_line)
+        try:
+            nodes = bashlex.parse(command_line)
+        except bashlex.errors.ParsingError, NotImplementedError:
+            return ()
         for node in nodes:
             visitor.visit(node)
-    except bashlex.errors.ParsingError, NotImplementedError, OSError:
+    except OSError:
         return ()
     return tuple(visitor.atoms)
