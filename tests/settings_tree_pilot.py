@@ -71,9 +71,9 @@ async def main() -> None:
     current = ToadSettings(raw)
     assert current.document() == raw
     assert not current.changed
-    failed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-failed", status="failed"))
-    completed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-completed", status="completed"))
-    pending = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-pending", status="pending"))
+    failed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-failed", title="Private failed tool", status="failed"))
+    completed = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-completed", title="Private completed tool", status="completed"))
+    pending = ToolCallStatus.from_acp(ToolCall(tool_call_id="private-pending", title="Private pending tool", status="pending"))
     assert current.tools.expand.should_expand(failed)
     assert BothExpansion.should_expand(completed) and BothExpansion.should_expand(failed)
     assert not BothExpansion.should_expand(pending)
