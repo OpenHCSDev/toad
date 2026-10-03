@@ -305,3 +305,60 @@ After: no seed_channel declaration/callers, one inherited archive attachment
 call in prepare_channel and its two preparation callers. Zero parser omissions.
 Resource warning:6.0GiB home/9.0GiB available RAM/13.6GiB swap; the small167KB
 source snapshot reused the installed dependencies without a new environment.
+
+## Installed05: scoped native destination and receipt acceptance
+
+The original combined recording exited1 after39.111 seconds. Native End/Home
+revocation/final End passed: the revoked original revision10 remained protected,
+final revision11 follows tail with no newer page, and the native boundary reported
+no application exception. No native input/provider request or original replay was
+sent. The first channel pending-read receipt and typing assertions also returned;
+the actual21-second frame shows the fresh current-fixture receipt once alongside
+retained History rows. The later channel older-page publication did not finish,
+so second receipt/restart/final IRC End and the whole journey remain unqualified.
+
+Original receipts, failure, native destination result, cleanup,16/21-second
+physical frames and scoped assessment are retained in `evidence/shared-history-
+destination355-20261003/installed05/`. The original movie/profile stay at
+`/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-05`.
+Both recorder/callback cleanup report no remaining owned processes/errors. The
+original wrapper's `children_retired:false` remains unchanged: its external
+edge-reader is the running operator itself at that observation. Actual operator,
+UI and native worker were verified gone after exit. There is no final App
+exception export and no global End, speed or smoothness claim.
+
+## Shared block admission: registration owns initial CSS
+
+The original ProfileTrace observation at28.290799 seconds is not an AwaitMount
+wait: `exercise:121 -> mount_page -> insert_page:218 -> CategorizedMount.mount:259
+-> set_class -> add_class -> update_node_styles -> App.update_styles ->
+Stylesheet.update_nodes/apply/replace_rules`. This locates synchronous CSS work
+before native registration; it does not quantify its duration or prove the entire
+timeout is caused by this work.
+
+The existing CategorizedMount owns admission for both Contents and
+MountedMessageHistory. The admitted blocks are nominal ConversationBlocks;
+category/filter behavior remains on the existing category owners. Native
+App._register applies initial styles to each newly registered widget with its
+existing batch rule cache. Updating detached class markers before registration
+therefore asks for premature extra CSS matching through the active App.
+
+Heisenberg granted only CategorizedMount.mount. It now gives both admission
+markers to native DOM.update_classes in one batch, deriving style publication
+from the block's actual attachment. New detached blocks receive their classes
+without CSS publication, and native registration does the first match. Already
+attached blocks retain immediate, atomic style invalidation. The separate
+apply_block_filter continues to own authored descendant-CSS/display-constraint
+semantics. No Window/frame/sidebar edit, new state/cache/type or source bypass.
+Two independent immediate class-update calls are replaced by the existing native
+batch owner across both history consumers. Pattern BOUND-2: use the original
+registration/style owner instead of redundant pre-registration publication.
+
+Existing NRA Package.load covered286 Toad and249 native Textual modules with
+zero parse omissions before editing. Evidence includes class declarations,
+imports, admission/filter consumers and native registration/class-update APIs.
+AST names are not dynamic method resolution; MRO and attachment/registration
+behavior were read directly. Exact installed changed-source IRC final destination
+qualification remains pending with the same integration owner after the current
+352 capture releases its holder; no unchanged capture, timeout increase or second
+App was started for this change.

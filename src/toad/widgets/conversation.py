@@ -256,9 +256,12 @@ class CategorizedMount:
 
         selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
         for widget in admitted_blocks(widgets):
-            widget.set_class(not keep_live_block(widget), "-unrouted")
+            classes = {"-unrouted": not keep_live_block(widget)}
             if category := block_category(widget):
-                widget.add_class(f"-message-{category.declared_name}")
+                classes[f"-message-{category.declared_name}"] = True
+            # Registration owns the first CSS match for detached blocks. For
+            # attached blocks, Textual applies this class change as one batch.
+            widget.update_classes(classes, update=widget.is_attached)
             apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
 

@@ -1,0 +1,609 @@
+{
+  "toad_revision": "51a90a11a79a620f4fefd0bdf89637c0898313dd",
+  "toad_modules": 286,
+  "toad_unparsed": [],
+  "native_revision": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native_modules": 249,
+  "native_unparsed": [],
+  "toad_sites": [
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 149,
+      "kind": "FunctionDef",
+      "name": "admitted_blocks",
+      "source": "def admitted_blocks(widgets):\n    \"\"\"Decode the Textual mount boundary once before category consumers.\"\"\"\n    for widget in widgets:\n        if not isinstance(widget, ConversationBlock):\n            raise TypeError(\"Conversation contents require nominal blocks\")\n    return widgets"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 12,
+      "import": "from toad.widgets.conversation import CategorizedMount"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 13,
+      "import": "from toad.widgets.message_filter import CategorizedBlock, apply_block_filter"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 53,
+      "reference": "CategorizedMount"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 90,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 92,
+      "import": "from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 251,
+      "kind": "ClassDef",
+      "name": "CategorizedMount",
+      "source": "class CategorizedMount:\n    \"\"\"Apply the owning conversation category selection at widget admission.\"\"\"\n\n    def mount(self, *widgets, **kwargs):\n        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block\n\n        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()\n        for widget in admitted_blocks(widgets):\n            widget.set_class(not keep_live_block(widget), \"-unrouted\")\n            if category := block_category(widget):\n                widget.add_class(f\"-message-{category.declared_name}\")\n            apply_block_filter(widget, selected)\n        return super().mount(*widgets, **kwargs)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 266,
+      "reference": "CategorizedMount"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 255,
+      "import": "from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 692,
+      "import": "from toad.widgets.message_filter import apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1885,
+      "import": "from toad.widgets.message_filter import block_category"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 258,
+      "reference": "admitted_blocks"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1887,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 262,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 702,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 260,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 259,
+      "reference": "keep_live_block"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 158,
+      "kind": "FunctionDef",
+      "name": "block_category",
+      "source": "def block_category(widget) -> type[MessageCategory] | None:\n    \"\"\"Ask the native block; uncategorized controls belong to Other.\"\"\"\n    return (\n        widget.message_category\n        if isinstance(widget, CategorizedBlock)\n        else OtherCategory\n    )"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 167,
+      "kind": "FunctionDef",
+      "name": "apply_block_filter",
+      "source": "def apply_block_filter(widget, selected: frozenset[type[MessageCategory]]) -> None:\n    \"\"\"Change only this semantic owner, preserving its authored display rules.\"\"\"\n    category = block_category(widget)\n    hidden = category is not None and category not in selected\n    marker = \"-category-hidden\"\n    if widget.has_class(marker) != hidden:\n        # Keep the marker available for custom styling. Ordinary filtering is a\n        # model-owned display constraint, not a request to rematch subtree CSS.\n        update_styles = widget.is_attached and widget.app.stylesheet.references_class(\n            marker\n        )\n        widget.set_class(hidden, marker, update=update_styles)\n    widget.set_display_constraint(\"message-category\", not hidden)"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 182,
+      "kind": "FunctionDef",
+      "name": "keep_live_block",
+      "source": "def keep_live_block(widget) -> bool:\n    category = block_category(widget)\n    return (\n        category is None\n        or category.keep_native_block()\n        or widget.has_class(\"-error\")\n        or widget.has_class(\"-error-log-link\")\n    )"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 169,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 183,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 52,
+      "import": "from toad.widgets.message_filter import all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 218,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 248,
+      "reference": "apply_block_filter"
+    }
+  ],
+  "native_sites": [
+    {
+      "path": "src/textual/_markup_playground.py",
+      "line": 132,
+      "reference": "variables_text_area.add_class"
+    },
+    {
+      "path": "src/textual/_markup_playground.py",
+      "line": 146,
+      "reference": "variables_text_area.add_class"
+    },
+    {
+      "path": "src/textual/_markup_playground.py",
+      "line": 117,
+      "reference": "self.query_one('#results-container').add_class"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1180,
+      "kind": "FunctionDef",
+      "name": "is_attached",
+      "source": "def is_attached(self) -> bool:\n        \"\"\"Is this node linked to the app through the DOM?\"\"\"\n        return True"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 3623,
+      "kind": "FunctionDef",
+      "name": "_register",
+      "source": "def _register(\n        self,\n        parent: DOMNode,\n        *widgets: Widget,\n        before: int | None = None,\n        after: int | None = None,\n        cache: dict[tuple, RulesMap] | None = None,\n    ) -> list[Widget]:\n        \"\"\"Register widget(s) so they may receive events.\n\n        Args:\n            parent: Parent node.\n            *widgets: The widget(s) to register.\n            before: A location to mount before.\n            after: A location to mount after.\n            cache: Optional rules map cache.\n\n        Returns:\n            List of modified widgets.\n        \"\"\"\n\n        if not widgets:\n            return []\n\n        if cache is None:\n            cache = {}\n        widget_list: Iterable[Widget]\n        if before is not None or after is not None:\n            # There's a before or after, which means there's going to be an\n            # insertion, so make it easier to get the new things in the\n            # correct order.\n            widget_list = reversed(widgets)\n        else:\n            widget_list = widgets\n\n        apply_stylesheet = self.stylesheet.apply\n        new_widgets: list[Widget] = []\n        add_new_widget = new_widgets.append\n        for widget in widget_list:\n            widget._closing = False\n            widget._closed = False\n            widget._pruning = False\n            if not isinstance(widget, Widget):\n                raise AppError(f\"Can't register {widget!r}; expected a Widget instance\")\n            if widget not in self._registry:\n                add_new_widget(widget)\n                self._register_child(parent, widget, before, after)\n                if widget._nodes:\n                    self._register(widget, *widget._nodes, cache=cache)\n        for widget in new_widgets:\n            apply_stylesheet(widget, cache=cache)\n            widget._start_messages()\n\n        if not self._running:\n            # If the app is not running, prevent awaiting of the widget tasks\n            return []\n\n        return list(widgets)"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 835,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 836,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1518,
+      "reference": "self.update_classes"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 4540,
+      "reference": "self.screen.query(selector).add_class"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 2623,
+      "reference": "self._register"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 2815,
+      "reference": "self._register"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 3671,
+      "reference": "self._register"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 721,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 909,
+      "reference": "self.query_one(CommandList).set_class"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 910,
+      "reference": "self.query_one('#--input', Horizontal).set_class"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 922,
+      "reference": "self.query_one(LoadingIndicator).set_class"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 923,
+      "reference": "self.query_one(CommandList).set_class"
+    },
+    {
+      "path": "src/textual/command.py",
+      "line": 1171,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/css/query.py",
+      "line": 358,
+      "kind": "FunctionDef",
+      "name": "set_class",
+      "source": "def set_class(self, add: bool, *class_names: str) -> DOMQuery[QueryType]:\n        \"\"\"Set the given class name(s) according to a condition.\n\n        Args:\n            add: Add the classes if True, otherwise remove them.\n\n        Returns:\n            Self.\n        \"\"\"\n        for node in self:\n            node.set_class(add, *class_names)\n        return self"
+    },
+    {
+      "path": "src/textual/css/query.py",
+      "line": 390,
+      "kind": "FunctionDef",
+      "name": "add_class",
+      "source": "def add_class(self, *class_names: str) -> DOMQuery[QueryType]:\n        \"\"\"Add the given class name(s) to nodes.\"\"\"\n        for node in self:\n            node.add_class(*class_names)\n        return self"
+    },
+    {
+      "path": "src/textual/css/query.py",
+      "line": 368,
+      "reference": "node.set_class"
+    },
+    {
+      "path": "src/textual/css/query.py",
+      "line": 393,
+      "reference": "node.add_class"
+    },
+    {
+      "path": "src/textual/demo/projects.py",
+      "line": 90,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/dom.py",
+      "line": 1811,
+      "kind": "FunctionDef",
+      "name": "set_class",
+      "source": "def set_class(self, add: bool, *class_names: str, update: bool = True) -> Self:\n        \"\"\"Add or remove class(es) based on a condition.\n\n        This can condense the four lines required to implement the equivalent branch into a single line.\n\n        Example:\n            ```python\n            #if foo:\n            #    self.add_class(\"-foo\")\n            #else:\n            #    self.remove_class(\"-foo\")\n            self.set_class(foo, \"-foo\")\n            ```\n\n        Args:\n            add: Add the classes if True, otherwise remove them.\n            update: Also update styles.\n\n        Returns:\n            Self.\n        \"\"\"\n        if add:\n            self.add_class(*class_names, update=update)\n        else:\n            self.remove_class(*class_names, update=update)\n        return self"
+    },
+    {
+      "path": "src/textual/dom.py",
+      "line": 1838,
+      "kind": "FunctionDef",
+      "name": "update_classes",
+      "source": "def update_classes(\n        self, classes: Mapping[str, bool], update: bool = True, animate: bool = True\n    ) -> Self:\n        \"\"\"Update classes in an atomic batch.\n\n        Args:\n            classes: A mapping of class name on to a boolean where `True` adds\n                to the current classes, and `False` removes.\n            update: Also update styles.\n            animate: Enable any CSS animation?\n\n        Returns:\n            Self\n        \"\"\"\n\n        add_classes: set[str] = set()\n        remove_classes: set[str] = set()\n        adds = (remove_classes.add, add_classes.add)\n        for class_name, add in classes.items():\n            adds[add](class_name)\n\n        new_classes = (self._classes | add_classes) - remove_classes\n        if self._classes != new_classes:\n            self._classes = new_classes\n            if update:\n                self.update_node_styles(animate=animate)\n        return self"
+    },
+    {
+      "path": "src/textual/dom.py",
+      "line": 1889,
+      "kind": "FunctionDef",
+      "name": "add_class",
+      "source": "def add_class(self, *class_names: str, update: bool = True) -> Self:\n        \"\"\"Add class names to this Node.\n\n        Args:\n            *class_names: CSS class names to add.\n            update: Also update styles.\n\n        Returns:\n            Self.\n        \"\"\"\n        check_identifiers(\"class name\", *class_names)\n        if self._classes.issuperset(class_names):\n            return self\n        self._classes.update(class_names)\n        if update:\n            self.update_node_styles()\n        return self"
+    },
+    {
+      "path": "src/textual/dom.py",
+      "line": 1833,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/message_pump.py",
+      "line": 312,
+      "kind": "FunctionDef",
+      "name": "is_attached",
+      "source": "def is_attached(self) -> bool:\n        \"\"\"Is this node linked to the app through the DOM?\"\"\"\n        try:\n            if self.app._exit:\n                return False\n        except NoActiveAppError:\n            return False\n        node: MessagePump | None = self\n        while (node := node._parent) is not None:\n            if node.is_dom_root:\n                return True\n        return False"
+    },
+    {
+      "path": "src/textual/message_pump.py",
+      "line": 885,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/reactive.py",
+      "line": 312,
+      "reference": "obj.set_class"
+    },
+    {
+      "path": "src/textual/reactive.py",
+      "line": 413,
+      "reference": "obj.set_class"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1545,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 420,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1530,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 424,
+      "reference": "maximized.add_class"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 996,
+      "reference": "widget.is_attached"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1573,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1655,
+      "reference": "self.update_classes"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 174,
+      "reference": "self.start.container.is_attached"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 176,
+      "reference": "self.end.container.is_attached"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 310,
+      "reference": "start.is_attached"
+    },
+    {
+      "path": "src/textual/selection.py",
+      "line": 310,
+      "reference": "end.is_attached"
+    },
+    {
+      "path": "src/textual/signal.py",
+      "line": 121,
+      "reference": "owner.is_attached"
+    },
+    {
+      "path": "src/textual/signal.py",
+      "line": 128,
+      "reference": "node.is_attached"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1529,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1561,
+      "reference": "self.app._register"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1852,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1124,
+      "reference": "loading_indicator.add_class"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1765,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1766,
+      "reference": "parent.is_attached"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 1847,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_button.py",
+      "line": 397,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_button.py",
+      "line": 400,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_button.py",
+      "line": 401,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_button.py",
+      "line": 445,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_collapsible.py",
+      "line": 228,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 163,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 265,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 310,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 422,
+      "reference": "key.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 354,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 361,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 437,
+      "reference": "parent.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 451,
+      "reference": "parent.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_footer.py",
+      "line": 393,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_header.py",
+      "line": 180,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_help_panel.py",
+      "line": 97,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_input.py",
+      "line": 588,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_input.py",
+      "line": 589,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_key_panel.py",
+      "line": 178,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_key_panel.py",
+      "line": 172,
+      "reference": "self.is_attached"
+    },
+    {
+      "path": "src/textual/widgets/_label.py",
+      "line": 73,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_list_item.py",
+      "line": 33,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_list_item.py",
+      "line": 39,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_markdown.py",
+      "line": 1747,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 541,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 542,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_placeholder.py",
+      "line": 167,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_radio_set.py",
+      "line": 220,
+      "reference": "self._nodes[self._selected].add_class"
+    },
+    {
+      "path": "src/textual/widgets/_rule.py",
+      "line": 184,
+      "reference": "self.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_select.py",
+      "line": 268,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_select.py",
+      "line": 638,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_switch.py",
+      "line": 184,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_tabs.py",
+      "line": 702,
+      "reference": "tab.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_tabs.py",
+      "line": 846,
+      "reference": "tab_to_hide.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_tabs.py",
+      "line": 491,
+      "reference": "tab_widget.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_tabs.py",
+      "line": 618,
+      "reference": "active_tab.add_class"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 927,
+      "reference": "self.set_class"
+    },
+    {
+      "path": "src/textual/widgets/_toggle_button.py",
+      "line": 284,
+      "reference": "self.set_class"
+    }
+  ],
+  "limits": "AST names are source sites, not resolved dynamic receivers. CategorizedMount consumers and native registration/MRO read semantically; no CPU-duration inference from stack transitions."
+}

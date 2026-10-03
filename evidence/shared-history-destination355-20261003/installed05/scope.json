@@ -1,0 +1,15 @@
+{
+  "status": "scoped native End/revocation and first IRC pending-read receipt/typing passed; combined journey incomplete",
+  "elapsed_seconds": 39.111,
+  "raw_recording": "/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-05",
+  "later_boundary": "exercise line121 -> mount_page -> insert_page line218 -> CategorizedMount.mount line259 -> synchronous class/CSS matching at original ProfileTrace observation28.290799s",
+  "qualification_limits": [
+    "IRC later restart/receipt/final End not reached",
+    "No whole End, performance or smoothness claim",
+    "No final App exception export",
+    "Profile stack observations are not CPU durations or call counts"
+  ],
+  "children_retired_false_scope": "Original wrapper observed current operator external CLI edge-reader alive during its own finally; original metric retained. Actual worker/UI/operator PIDs were verified gone after exit. Recorder and callback remaining_owned_pids/errors empty.",
+  "original_inputs_replayed": 0,
+  "new_native_inputs": 0
+}
