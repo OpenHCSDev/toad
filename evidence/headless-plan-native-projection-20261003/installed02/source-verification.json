@@ -1,0 +1,58 @@
+{
+  "installed_toad": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86",
+  "fixture_head": "24ea68dd47e1b202bc7dd933d88272234bf01a8a",
+  "production_unchanged": true,
+  "checked_assets": [
+    {
+      "module": "toad",
+      "assets": 320,
+      "inventory": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/headless-plan-native-projection-20261003/installed01/toad-inventory.json"
+    },
+    {
+      "module": "agent_comms",
+      "assets": 339,
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/qualified399-code-handback/agent_comms-inventory.json"
+    },
+    {
+      "module": "textual",
+      "assets": 266,
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/qualified399-code-handback/textual-inventory.json"
+    },
+    {
+      "module": "textual_diff_view",
+      "assets": 3,
+      "inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/qualified399-code-handback/textual_diff_view-inventory.json"
+    }
+  ],
+  "sources": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86",
+        "requested_revision": "5cc5b47d8ad66cc5c118cfa6d65233353711cb86"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+        "requested_revision": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "21011cf0be9a898160ec0ac80e7829eaf5330f97",
+        "requested_revision": "21011cf0be9a898160ec0ac80e7829eaf5330f97"
+      }
+    }
+  },
+  "distribution_count": 69,
+  "native_qualification_reference": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/qualified399-code-handback/source-proof.json",
+  "native_not_changed": true,
+  "native_trust": "Original archived native89 full trust; this loan only replaced one To ad wheel.",
+  "lease": "Parent/Heisenberg explicit sequential CODE grant; original399 qualification archived before code loan; public485/534 protected."
+}

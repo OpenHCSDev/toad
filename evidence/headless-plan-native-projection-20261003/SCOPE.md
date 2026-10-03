@@ -1,0 +1,43 @@
+# Headless plan facts, original native projection
+
+The original PlanStatus owns ACP status admission and completion facts. It also constructs Textual Content, Plan widgets and StrikeText resources. Core Plan events and AgentController import that data family; an operational plan must not require native widget construction.
+
+Keep the same PlanStatus/PlanItem declarations and original external ACP names. Markers become plain text. Original Plan owns native composition and previous-status animation intent; original StrikeText owns completion decoration and its refresh/animation lifetime. Delete PlanStatus native compose/decorate methods and migrate every marker/content caller, including existing extension and registered SDK/App fixtures. No new type, registry, copied plan source, compatibility path or generic frontend.
+
+Source semantics and existing NRA AST across production/tests precede implementation. Patterns IMPL-13 and BOUND-2. Existing controller retains admitted entries; widgets borrow their exact source values. This checkpoint does not change controller delivery, sidebar publication, viewport or lifecycle ownership. Heisenberg was contacted directly before native methods change. Native plans and streams are distinct: OutputStream still has its own unfinished frontend lifetime and is not folded into this checkpoint.
+
+Same existing checkout and dependencies; no new WT/env/native/provider. Publish coherent source before checks. At the end use one batched sanity plus the existing installed original App/ACP plan journey for actual marker paint, pending-to-completed animation, reset, detached update and reattach. This detects missing native completion invalidation and loss of original plan source on retirement. No repeated permission/shell/cold ContextTree gate. CI deferred; no full headless/performance claim.
+
+## Published source closure
+
+Working production checkpoint873b981f; completed journey receipt support1fe944dc. Three production files24 lines added/45 deleted. No native import or compose/decorate operation remains in PlanStatus. All PlanItem constructors use original string content; markers have one plain-string contract, including the existing declaration-extension fixture. Official ACP admission and FieldCodec PlanItem shape remain unchanged.
+
+The source chain is SDK AgentPlanUpdate → SessionUpdateEffect.plan → decode_plan → AgentController.publish_plan → CoreEventStream Plan → Conversation and MainScreen native recipients → existing Plan → StrikeText. Original controller owns latest admitted entries. Native widgets borrow the same list; previous_statuses remains bounded historical paint intent for completion animation, not ACP admission or plan authority. No new source copy, status registry or frontend family.
+
+Existing NRA AST parsed289 production/392 tests with zero omissions before/after. Dynamic receiver binding remains a semantic/runtime obligation. Textual MessagePump.call_after_refresh queues InvokeLater on the original widget; after mount its original pump forwards to Screen refresh completion. StrikeText therefore owns the animation scheduling resource itself, replacing the former parent callback. Final installed ACP/App fixture must verify this changed scheduling and marker paint; source parsing does not certify it.
+
+Actual installed validation remains pending a named released existing holder. Parent confirmed485 is futurecurrent and334 rollback; old metadata directories are not environments. Heisenberg's style22 sequential loan is requested through its owner. No holder is modified without release, no new environment is created, and397 publication is independent. This is a published source checkpoint, not Ready/live acceptance.
+
+## Actual installed result and holder return
+
+Parent explicitly granted the existing style22 sequential CODE loan after archived399/396 proofs and fresh all-readable-UID borrower0. Normal `uv pip install --no-deps` changed only Toad to5cc5b47d; actual Coref4/Text4321011/SDK12.1/native89 remained unchanged. Sourcepyproject retains accepted mainb068/Text42 metadata; the authorized test cohort uses qualified newer producers. Coref4 production equals b068 per original receiver source proof; changed Text43 damage handling is declared test provenance, not concealed as Text42. No receiver pin or public activation is performed here.
+
+All320 installed Toad assets match Git; original339 Core/266 Textual/3 diff assets remain byte-identical to archived inventories.69 distribution versions unchanged; pipcheck passes. One final sanity batch verifies headless plan import, original ACP admission/FieldCodec roundtrip and original raw-plan deletion rule.
+
+One original registeredSDKACP/App journey ran to terminalexit1. It positively proved all markers/sidebar paint, transition animation versus static existing completion, resize, empty reset, retired sidebar reveal and malformed update rejection. It failed at detached pending-plan tab-return paint under existing12s Pilot screen wait. Later same-agent/process/editor assertions were not reached. No failed frame was captured by the original runner; raw terminal is retained. Pending plan does not enter changed completion scheduling; native return preparation remains unchanged. This is a source lead shared with Heisenberg, not a conclusive unrelated-bug diagnosis. No unchanged rerun or new provider experiment.
+
+Existing fixture processes are retired, attempt-tagged readableprocess census is empty and temporary fixture directory empty; inaccessible processes are explicitly listed. Holder is returned without additional writes; Heisenberg owns normal399/43 restaging. Original archived films/source/proofs preserved. This PR remains draft pending whole-scope acceptance disposition; changed native plan behavior has scoped positives, not a full returned-view PASS.
+
+## Return-paint source classification and corrected original oracle
+
+The original01 runner did not select the current plan source. It first proved three rejection Note blocks painted. Conversation.on_rejected_session_update posts those chronological blocks. Conversation.on_acp_plan updates a Plan only when it is the last content child; otherwise it posts a later Plan. NativeSessionSurface.activate keeps the original tree on a recent return. AgentController.restore publishes its current plan_entries through the same original event owner. Therefore `view.query_one(Plan)` selects the retained earlier completed plan after the notes, not the current pending plan publication. Waiting for DETACHED_PLAN_ITEM in that block is an invalid oracle; the raw failure remains.
+
+Corrected only the existing driver to wait for and select the Plan whose entries IS the original controller.plan_entries. It also asserts the earlier Plan and its content remain intact. No production layout change, timeout increase, reader-position bypass or weaker paint assertion. This is a changed source-qualified oracle, not an unchanged rerun. Actual current plan paint/same-agent/process/editor remains to be validated on one later granted existing-holder run; style22 has already been returned to Heisenberg399.
+
+## Final scoped Ready
+
+Corrected original source-identity oracle24ea68dd, same installed production5cc, passed one authorized final App/official-SDK ACP journey in4.214215877s. The native current pending plan and sidebar painted after return. Same original agent/process, editor document/history and draft remained; earlier historical Plan remained distinct/intact. Completion transitions/static completion, all markers, resized paint, empty reset/reveal and malformed update rejection passed again as parts of the one continuous affected journey. No unchanged rerun or broad matrix.
+
+Original01 negative remains raw and is classified by the actual existing producer/current-source relation, not hidden. Native viewport/reader geometry was not patched. All readable attempt-tagged processes and tinyprivatefixture leaves are absent;301 inaccessible process environments explicitly listed. Same reused style22 holder's code lease fully returned Heisenberg; native/Core/Text distributions and original399 archive unchanged. Final installed proof928 assets/normal69 and source/codec sanity are qualified at their actual strength. No physical motion/performance/provider/full-headless or public activation claim.
+
+Ready.json is the scoped receipt. Final branch evidence additions have zero production/pyproject/uv.lock delta from the actually installed5cc source. Parent can review/merge this useful independent checkpoint; full remaining headless scope is not a hold.

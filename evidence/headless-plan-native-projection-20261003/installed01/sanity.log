@@ -1,0 +1,3 @@
+PASS installed PlanStatus/PlanItem headless import and original ACP admission
+PASS unchanged PlanItem FieldCodec shape/nominal status roundtrip
+PASS original raw-plan/status-switch deletion sanity
