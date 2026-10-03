@@ -1,0 +1,56 @@
+{
+  "reviews": [
+    {
+      "label": "input-up",
+      "key_start": 20.313998317928053,
+      "key_end": 22.089022448984906,
+      "source_start": 20.39399831792805,
+      "source_end": 21.193998317928052,
+      "sheet": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture/exact-input-up-frames.png",
+      "timing": "AFTER originalUI exit; during exact-moving inspection missed",
+      "assessment": "Body/chrome remain readable; repeated positions followed by discrete advances. No smoothness claim."
+    },
+    {
+      "label": "input-down",
+      "key_start": 42.35051903896965,
+      "key_end": 44.15701435902156,
+      "source_start": 42.43051903896965,
+      "source_end": 43.230519038969646,
+      "sheet": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture/exact-input-down-frames.png",
+      "timing": "AFTER originalUI exit; during exact-moving inspection missed",
+      "assessment": "Body/chrome remain readable; repeated positions followed by discrete advances. No smoothness claim."
+    },
+    {
+      "label": "reverse",
+      "key_start": 61.54447298194282,
+      "key_end": 63.328666921006516,
+      "source_start": 61.624472981942816,
+      "source_end": 62.42447298194281,
+      "sheet": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture/exact-reverse-frames.png",
+      "timing": "AFTER originalUI exit; during exact-moving inspection missed",
+      "assessment": "Body/chrome remain readable; repeated positions followed by discrete advances. No smoothness claim."
+    }
+  ],
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 826360,
+        "start_ticks": 52703897,
+        "returncode": 0
+      },
+      {
+        "pid": 826377,
+        "start_ticks": 52704039,
+        "returncode": 0
+      },
+      {
+        "pid": 826383,
+        "start_ticks": 52704274,
+        "returncode": 0
+      }
+    ]
+  }
+}

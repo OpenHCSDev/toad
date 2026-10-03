@@ -1,0 +1,588 @@
+[
+  {
+    "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "revision": "HEAD",
+    "parsed": 289,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/toad/app.py",
+        "line": 573,
+        "kind": "Attribute",
+        "name": "displayed_cursor"
+      },
+      {
+        "path": "src/toad/app.py",
+        "line": 577,
+        "kind": "Attribute",
+        "name": "visible_bodies_ready"
+      },
+      {
+        "path": "src/toad/app.py",
+        "line": 579,
+        "kind": "Attribute",
+        "name": "blocks_visible_read"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 509,
+        "kind": "Attribute",
+        "name": "displayed_cursor"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 573,
+        "kind": "Attribute",
+        "name": "displayed_cursor"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 626,
+        "kind": "Attribute",
+        "name": "displayed_cursor"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 615,
+        "kind": "Attribute",
+        "name": "displayed_cursor"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 62,
+        "kind": "FunctionDef",
+        "name": "blocks_visible_read"
+      },
+      {
+        "path": "src/toad/widgets/patch_diff.py",
+        "line": 326,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 39,
+        "kind": "Name",
+        "name": "MeasuredViewportBody"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 40,
+        "kind": "FunctionDef",
+        "name": "native_body_ready"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 72,
+        "kind": "Attribute",
+        "name": "publish_body"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 75,
+        "kind": "Attribute",
+        "name": "publish_body"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 41,
+        "kind": "Attribute",
+        "name": "native_body_ready"
+      },
+      {
+        "path": "src/toad/widgets/streaming_markdown.py",
+        "line": 89,
+        "kind": "Attribute",
+        "name": "publish_body"
+      },
+      {
+        "path": "src/toad/widgets/streaming_markdown.py",
+        "line": 92,
+        "kind": "Attribute",
+        "name": "publish_body"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 177,
+        "kind": "Name",
+        "name": "MeasuredViewportBody"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 774,
+        "kind": "Attribute",
+        "name": "visible_bodies_ready"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 237,
+        "kind": "Attribute",
+        "name": "publish_body"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 79,
+        "kind": "ClassDef",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 180,
+        "kind": "ClassDef",
+        "name": "LiveBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 216,
+        "kind": "ClassDef",
+        "name": "MaterializingBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 303,
+        "kind": "ClassDef",
+        "name": "RenderedBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 356,
+        "kind": "ClassDef",
+        "name": "MeasuredViewportBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 41,
+        "kind": "FunctionDef",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 123,
+        "kind": "AsyncFunctionDef",
+        "name": "before_publication"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 132,
+        "kind": "FunctionDef",
+        "name": "publication_finished"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 141,
+        "kind": "FunctionDef",
+        "name": "style_updated"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 152,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 216,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 276,
+        "kind": "FunctionDef",
+        "name": "style_updated"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 288,
+        "kind": "FunctionDef",
+        "name": "before_publication"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 293,
+        "kind": "FunctionDef",
+        "name": "publication_finished"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 320,
+        "kind": "FunctionDef",
+        "name": "style_updated"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 373,
+        "kind": "FunctionDef",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 376,
+        "kind": "FunctionDef",
+        "name": "native_body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 449,
+        "kind": "FunctionDef",
+        "name": "publish_body"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 454,
+        "kind": "FunctionDef",
+        "name": "start_materialization"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 493,
+        "kind": "FunctionDef",
+        "name": "retire_native_body"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 912,
+        "kind": "FunctionDef",
+        "name": "visible_bodies_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 223,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 191,
+        "kind": "Attribute",
+        "name": "native_body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 212,
+        "kind": "Attribute",
+        "name": "retire_native_body"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 364,
+        "kind": "Name",
+        "name": "LiveBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 408,
+        "kind": "Name",
+        "name": "LiveBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 451,
+        "kind": "Attribute",
+        "name": "start_materialization"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 470,
+        "kind": "Name",
+        "name": "MaterializingBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 511,
+        "kind": "Attribute",
+        "name": "render_subtree_strips"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 524,
+        "kind": "Name",
+        "name": "RenderedBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 568,
+        "kind": "Name",
+        "name": "LiveBody"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 277,
+        "kind": "Attribute",
+        "name": "style_updated"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 283,
+        "kind": "Attribute",
+        "name": "before_publication"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 286,
+        "kind": "Attribute",
+        "name": "before_publication"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 317,
+        "kind": "Attribute",
+        "name": "native_body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 415,
+        "kind": "Attribute",
+        "name": "style_updated"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 455,
+        "kind": "Attribute",
+        "name": "before_publication"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 494,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 507,
+        "kind": "Attribute",
+        "name": "published_geometry"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 669,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 917,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 495,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 497,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 499,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 503,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 509,
+        "kind": "Name",
+        "name": "BodyMeasurement"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 121,
+        "kind": "Attribute",
+        "name": "start_materialization"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 464,
+        "kind": "Attribute",
+        "name": "publication_finished"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 501,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 1029,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 955,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 1002,
+        "kind": "Attribute",
+        "name": "body_ready"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 1024,
+        "kind": "Attribute",
+        "name": "body_ready"
+      }
+    ]
+  },
+  {
+    "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "revision": "161461f59df6acae265992ba39e3b818532bbc3b",
+    "parsed": 249,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1647,
+        "kind": "FunctionDef",
+        "name": "published_geometry"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1663,
+        "kind": "FunctionDef",
+        "name": "render_subtree_strips"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 937,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/_measurement.py",
+        "line": 47,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/_measurement.py",
+        "line": 55,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/_measurement.py",
+        "line": 62,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/_measurement.py",
+        "line": 79,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 830,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/scroll_view.py",
+        "line": 41,
+        "kind": "FunctionDef",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/selection.py",
+        "line": 577,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/selection.py",
+        "line": 547,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/selection.py",
+        "line": 346,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/visual.py",
+        "line": 240,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/walk.py",
+        "line": 220,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2776,
+        "kind": "FunctionDef",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2089,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2123,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4678,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2611,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2632,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4106,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4106,
+        "kind": "Attribute",
+        "name": "is_container"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4342,
+        "kind": "Attribute",
+        "name": "is_container"
+      }
+    ]
+  }
+]

@@ -1,0 +1,314 @@
+{
+  "state": "scoped Ready; fullperformance active",
+  "installed_toad": "1e84209684295c7f9b84807d53e064864c7009c8",
+  "production_source": "37dec22c6505eeb50a35a1bf8f709ae350e986ee",
+  "textual": "21011cf0be9a898160ec0ac80e7829eaf5330f97",
+  "core": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+  "recording": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/source-proof.json",
+  "duration_seconds": 111.56239508895669,
+  "capture_completed": true,
+  "completed": true,
+  "checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "retained_body_ids": [
+    140679630521360,
+    140679630521680,
+    140679630522000,
+    140679630522960,
+    140679630531600,
+    140679630533520,
+    140679840540752,
+    140679841407184,
+    140679841410704,
+    140680274407696,
+    140680274409936,
+    140680275136016,
+    140680275145616,
+    140680285425168,
+    140680290583888,
+    140680691543376,
+    140680696549200,
+    140680696551440,
+    140680696554960,
+    140680696556560,
+    140680697372560,
+    140680697377360
+  ],
+  "writer_phases": [
+    {
+      "action": "input-up",
+      "intervals": {
+        "count": 100,
+        "median_ms": 13.89,
+        "p95_ms": 35.25,
+        "p99_ms": 138.63,
+        "max_ms": 166.47
+      },
+      "writer_receipts": 101
+    },
+    {
+      "action": "input-down",
+      "intervals": {
+        "count": 154,
+        "median_ms": 11.54,
+        "p95_ms": 21.62,
+        "p99_ms": 43.02,
+        "max_ms": 102.2
+      },
+      "writer_receipts": 155
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 147,
+        "median_ms": 10.84,
+        "p95_ms": 24.28,
+        "p99_ms": 34.24,
+        "max_ms": 126.29
+      },
+      "writer_receipts": 148
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 121,
+        "median_ms": 11.0,
+        "p95_ms": 25.15,
+        "p99_ms": 30.12,
+        "max_ms": 370.87
+      },
+      "writer_receipts": 122
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 140,
+        "median_ms": 11.56,
+        "p95_ms": 24.78,
+        "p99_ms": 27.87,
+        "max_ms": 114.93
+      },
+      "writer_receipts": 141
+    }
+  ],
+  "unmatched_enqueues": 0,
+  "kernel_cpu_phases_including_exports": [
+    {
+      "label": "input-held-up",
+      "start": 19.237088431953453,
+      "end": 22.840071146027185,
+      "ui_cpu_percent": 80.2113201573594
+    },
+    {
+      "label": "input-held-up-done",
+      "start": 22.840071146027185,
+      "end": 39.76427589496598,
+      "ui_cpu_percent": 22.45304908780587
+    },
+    {
+      "label": "input-held-down",
+      "start": 41.34646226395853,
+      "end": 44.94051741797011,
+      "ui_cpu_percent": 74.28934408588087
+    },
+    {
+      "label": "reverse",
+      "start": 60.55394954793155,
+      "end": 63.981959354016,
+      "ui_cpu_percent": 79.34633078272454
+    }
+  ],
+  "idle_last10": {
+    "start": 29.764275894965976,
+    "end": 39.76427589496598,
+    "event_counts": {
+      "sidebar_publication_start": 10,
+      "sidebar_publication_done": 10
+    },
+    "scope": "raw native observer events, not CPU or absent-uninstrumented-work proof"
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 759492,
+      "start_time": 52616985
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 759492,
+      "start_time": 52616985
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit": {
+    "pid": 797206,
+    "start_ticks": 52670123,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "motion_assessment": {
+    "reviews": [
+      {
+        "label": "input-up",
+        "key_start": 20.313998317928053,
+        "key_end": 22.089022448984906,
+        "source_start": 20.39399831792805,
+        "source_end": 21.193998317928052,
+        "sheet": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture/exact-input-up-frames.png",
+        "timing": "AFTER originalUI exit; during exact-moving inspection missed",
+        "assessment": "Body/chrome remain readable; repeated positions followed by discrete advances. No smoothness claim."
+      },
+      {
+        "label": "input-down",
+        "key_start": 42.35051903896965,
+        "key_end": 44.15701435902156,
+        "source_start": 42.43051903896965,
+        "source_end": 43.230519038969646,
+        "sheet": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture/exact-input-down-frames.png",
+        "timing": "AFTER originalUI exit; during exact-moving inspection missed",
+        "assessment": "Body/chrome remain readable; repeated positions followed by discrete advances. No smoothness claim."
+      },
+      {
+        "label": "reverse",
+        "key_start": 61.54447298194282,
+        "key_end": 63.328666921006516,
+        "source_start": 61.624472981942816,
+        "source_end": 62.42447298194281,
+        "sheet": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture/exact-reverse-frames.png",
+        "timing": "AFTER originalUI exit; during exact-moving inspection missed",
+        "assessment": "Body/chrome remain readable; repeated positions followed by discrete advances. No smoothness claim."
+      }
+    ],
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 826360,
+          "start_ticks": 52703897,
+          "returncode": 0
+        },
+        {
+          "pid": 826377,
+          "start_ticks": 52704039,
+          "returncode": 0
+        },
+        {
+          "pid": 826383,
+          "start_ticks": 52704274,
+          "returncode": 0
+        }
+      ]
+    }
+  },
+  "original_sha256": {
+    "receipt.json": "321cc8fe633a74ce75c483e8d186d0deb62c3da04786d66766548cdb5c0dd1ed",
+    "terminal.mp4": "1d28b506d100f92f4ac4442fe317e38115b3975fbb8cc3b6b6802944a3baa786",
+    "driver.log": "78351957553384fded967d8e7ed4c2066e1e7e849da5a90254b794b38c321eb9",
+    "cpu-profile.json": "d869c1b746e7e339f13601587a500f3337e4e2ab7d2aa43a56f151ab6f1a45a1",
+    "after-state-frames.json": "59978e2b5c578fa470ec5215895eb44153467b103826f940587505295b8d11c5",
+    "scroll-travel.jsonl": "99a528b11acb5d309203d48297681c1d889551ac3b47a630fe6e2130c68a54ee"
+  },
+  "native_resource04": {
+    "fragment_arrangements": 0,
+    "profiled_100_reflows_seconds": 0.29598504106979817,
+    "fragments": 4,
+    "native_cache_capacity": 64,
+    "live_body_boxes_in_original_viewport_layout": 4,
+    "provider_calls": 0,
+    "boundary": "actual saved source/Toad widgets/native compositor, source only",
+    "source_update_painted": true,
+    "style_invalidated": true,
+    "resize_invalidated": true,
+    "cohort_captured_before_preparation_and_pruning": 3,
+    "cohort_capture_whole_scene_arrangements": 0,
+    "rendered_family_reentry": [
+      {
+        "body": "TranscriptFragmentView",
+        "rendered_lines": 10,
+        "nonblank_lines": 4,
+        "reentry_ms": 0.21819304674863815,
+        "rebuild_calls": {},
+        "live_publication_captures_preceding_rows_and_excludes_new_child_paint": true,
+        "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "PreparedConversationMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.24028599727898836,
+        "rebuild_calls": {},
+        "live_publication_captures_preceding_rows_and_excludes_new_child_paint": true,
+        "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+        "real_style_change_rebuilt_once": true
+      },
+      {
+        "body": "StreamingMarkdown",
+        "rendered_lines": 5,
+        "nonblank_lines": 2,
+        "reentry_ms": 0.16719696577638388,
+        "rebuild_calls": {},
+        "live_publication_captures_preceding_rows_and_excludes_new_child_paint": true,
+        "pending_writer_keeps_rows_cost_and_interaction_custody": true,
+        "real_style_change_rebuilt_once": true
+      }
+    ],
+    "inflight_stream_blocks_captured_retirement_commit": true,
+    "offscreen_warm_admission_keeps_rows_not_controls": true,
+    "stationary_admission_preserves_rendered_resource": true,
+    "native_input_materialized_original_body": true,
+    "retirement_and_restore_invalidated": true,
+    "final_disposal_releases_scene": true
+  },
+  "limits": [
+    "Writer completion is not pixelFPS/input-to-pixel latency.",
+    "Film remains chunky; no smoothness/CPUgain/144Hz claim.",
+    "Exact moving bands inspected AFTER; DURING lifetime verification missed. Raw assessment unchanged.",
+    "Transferred profiledUI has no explicitUI returncode0.",
+    "Core/native changed since396, so timingcomparison is descriptive, not causal.",
+    "Readonly path does not qualify fresh provider/compaction/source acknowledgment."
+  ],
+  "production_delta": "104 added/28 deleted in existing owner; no new class/cache/mirror/clock",
+  "measurement_writes": {
+    "before": 11,
+    "after": 2
+  }
+}
