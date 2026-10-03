@@ -210,4 +210,3 @@ class QuotesLoading(LoadingStyle):
         quotes = QUOTES.copy()
         random.shuffle(quotes)
         return FutureText([Content(quote) for quote in quotes])
-
