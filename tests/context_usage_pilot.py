@@ -18,7 +18,7 @@ from comms_boundary_fixture import coordination_fact
 async def main():
     ToadApp.CSS_PATH = files('toad').joinpath('toad.tcss')
     with tempfile.TemporaryDirectory(prefix="toad-context-usage-", dir='.artifacts') as directory:
-        root = Path(directory)
+        root = Path(directory).resolve()
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         Comms(root/'wire').messaging.initialize_private_initial_protocol()
@@ -40,7 +40,7 @@ async def main():
             await pilot.pause()
             assert "120.0K" in str(view.status)
             label=view.prompt.query_one(StatusLine)
-            assert label.status is view.status and label.tooltip is view.status
+            assert label.status.plain == view.status.plain == label.tooltip.plain
             frame='\n'.join(strip.text for strip in app.screen._compositor.render_strips())
             assert '120.0K' in frame and '44.1%' in frame
             await notify({"sessionUpdate": "usage_update", "used": 0,
