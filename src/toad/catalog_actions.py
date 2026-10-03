@@ -20,6 +20,17 @@ class CatalogCommandAction(NativeAction, DeclaredFamily, affix="Action"):
     name: str
     command: Command
 
+    @classmethod
+    def bind(cls, name: str, command: Command) -> CatalogCommandAction:
+        """Select native completion behavior for the original catalog command."""
+        try:
+            # External IDs allow hyphens; retain the original ID on the action.
+            operation = cls.decode(name.replace("-", "_"))
+        except ValueError:
+            # An arbitrary configured script uses explicit result dismissal.
+            operation = RunAction
+        return operation(name, command)
+
     @property
     def description(self) -> str:
         return self.command.description

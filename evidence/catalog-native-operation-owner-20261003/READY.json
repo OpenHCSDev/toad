@@ -1,0 +1,64 @@
+{
+  "state": "ready-scoped-catalog-native-operation-owner",
+  "tested_product_head": "ee9cc70409ece8d1cb53e872f2b5cdf3eb2ebfa4",
+  "installed_fixture_head": "3553c3c68724f65dea4de779c3814acf312cf543",
+  "production": {
+    "files": 5,
+    "added": 26,
+    "deleted": 30,
+    "new_types": 0
+  },
+  "owner": "AgentKind owns original catalog section membership; existing StoreScreen owns native composition; existing CatalogCommandAction owns action selection and binds original Command.",
+  "deleted_paths": [
+    "AgentKind.compose native widget creation in schema",
+    "Command.bind native action resolution in schema",
+    "Both old binding callers in AgentModal/provider-login",
+    "Store callback through schema composition"
+  ],
+  "source_evidence": {
+    "before": "before-owner-consumers.json",
+    "after": "after-owner-consumers.json",
+    "production_modules": 288,
+    "test_modules": 391,
+    "parse_omissions": [],
+    "limits": "Lexical site selection plus semantic receiver read; no dependency-root/dynamic resolution completeness claim"
+  },
+  "installed_source": "installed-source-proof.json",
+  "installed_journey": {
+    "result": "pass",
+    "terminal_exit": 0,
+    "log": "installed01.log",
+    "receipt": "installed01/catalog-only-receipt.json",
+    "scope": "Actual installed App/Pilot/catalog/editor/real shell PTY; no UI/protocol/model replacements. Not physical st, native Pi, ACP admission or authentication.",
+    "reviewed_frames": [
+      "installed01/catalog-return.png",
+      "installed01/command-audit-exit0.png"
+    ],
+    "providers": 0,
+    "native_pi_inputs": 0,
+    "controls": [
+      "original kinds share one native section",
+      "actual Store item/select/editor cancel",
+      "real PTY exit7 explicit completion",
+      "edited install succeeds without command source mutation",
+      "hyphenated member lookup",
+      "arbitrary external ID explicit completion",
+      "original declaration-only AuditAction",
+      "local login success auto-close and failure explicit result",
+      "held real PTY canceled and reader/process terminal",
+      "same Store catalog after Escape return"
+    ],
+    "raw_log_qualification": "Six OSError(5) messages are printed from unchanged shell_read incremental reads at PTY EOF; actual completion/retirement assertions passed. No blanket zero-error-log claim."
+  },
+  "cleanup": {
+    "receipt": "cleanup.json",
+    "holder": "520 CODE released Bohr after terminal; original archived metadata/native044/960/source/evidence/UNKNOWN protected; current334/529/302/Sch485 untouched",
+    "read_gaps": "Seven unrelated all-UID process environ reads unavailable; no zero-all-UID census claim. Own matching attempt processes and private fixture children absent; original App cleanup/command process/reader assertions passed.",
+    "private_installed_catalog_removed": true
+  },
+  "limits": [
+    "No live/default/public installation",
+    "No physical launcher/authentication/provider/native admission claim",
+    "No performance/full U2/U4/U5 completion claim"
+  ]
+}

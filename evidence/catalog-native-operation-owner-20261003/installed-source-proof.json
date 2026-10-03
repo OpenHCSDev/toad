@@ -1,0 +1,46 @@
+{
+  "toad": {
+    "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/catalog-native-386/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "94cc9a0753171d574f286edfcc31d95a3f30ef16982784dd487be8959bc564d6",
+    "assets": 319,
+    "mismatches": []
+  },
+  "agent_comms": {
+    "wheel": "/home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "07d86a026a1ab2b8ad1095bd71bc71bfa11c0ba9f33b3ccb0ff4ea64aff9c16f",
+    "assets": 342,
+    "mismatches": []
+  },
+  "textual": {
+    "wheel": "/home/ts/.cache/uv/sdists-v9/git/ea21a5120fe35156/2fff11abda0605f1/textual-8.2.8-py3-none-any.whl",
+    "sha256": "72b9f838984d63f67b110c25ccce21f570768b1231127f9b0140e671a43378c2",
+    "assets": 266,
+    "mismatches": []
+  },
+  "metadata": {
+    "batrachian-toad": {
+      "version": "0.6.20",
+      "direct_url": "{\"url\":\"file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/catalog-native-386/batrachian_toad-0.6.20-py3-none-any.whl\",\"archive_info\":{}}"
+    },
+    "agent-comms": {
+      "version": "0.1.0",
+      "direct_url": "{\"url\":\"file:///home/ts/.cache/uv/sdists-v9/git/20cd241ef3f9b3a1/d3ed99d5773528a2/agent_comms-0.1.0-py3-none-any.whl\",\"archive_info\":{}}"
+    },
+    "textual": {
+      "version": "8.2.8",
+      "direct_url": "{\"url\":\"file:///home/ts/.cache/uv/sdists-v9/git/ea21a5120fe35156/2fff11abda0605f1/textual-8.2.8-py3-none-any.whl\",\"archive_info\":{}}"
+    },
+    "agent-client-protocol": {
+      "version": "0.12.1",
+      "direct_url": null
+    }
+  },
+  "distributions": 69,
+  "headless_catalog_import": true,
+  "typed_action_selection_original_command": true,
+  "source_assets": {
+    "revision": "3553c3c68724f65dea4de779c3814acf312cf543",
+    "assets": 319,
+    "mismatches": []
+  }
+}
