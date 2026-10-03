@@ -1,0 +1,25 @@
+{
+  "revision": "590dfd4fbeab67962becb3b5ee670f6d3cf49930",
+  "roots": [
+    {
+      "root": "src/toad",
+      "modules": 287,
+      "parse_omissions": [],
+      "removed_references": []
+    },
+    {
+      "root": "tests",
+      "modules": 391,
+      "parse_omissions": [],
+      "removed_references": []
+    },
+    {
+      "root": "tools",
+      "modules": 41,
+      "parse_omissions": [],
+      "removed_references": []
+    }
+  ],
+  "omitted_prior_root": "tools was omitted by the earlier source/tests query; its replay consumer is now migrated.",
+  "scope": "Tracked source/test/tool AST; runtime monkeypatching and external callers are not proven."
+}
