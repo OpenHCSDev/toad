@@ -77,7 +77,7 @@
     "archive_info": {}
   },
   "native_app_exit": 0,
-  "cadence_exit": 1,
+  "cadence_exit": 0,
   "public_install_changed": false,
   "new_environment": false,
   "new_native_build": false,
@@ -99,7 +99,44 @@
     "cadence.exit": {
       "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence.exit",
       "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "cadence-changed.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed.log",
+      "sha256": "abd303ae8ee57e8a6bab6ab8b7830938660f46f94ef15eb132c714c8ba0d0497"
+    },
+    "cadence-changed.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "cadence-changed-final.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed-final.log",
+      "sha256": "b112372a49cc5545c97af9d7e7714f4a659a301df198a002bc6e2309a3b0e4fa"
+    },
+    "cadence-changed-final.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-changed-final.exit",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "cadence-corrected.log": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-corrected.log",
+      "sha256": "9c295b23abfee47e0bc5961e0c8633ca5834b7f6d6417d0b1a909853f39aca11"
+    },
+    "cadence-corrected.exit": {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/cadence-corrected.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
     }
   },
-  "cadence_classification": "The old cadence case waits on HistoryWindow.history_lock after retiring an unchanged-width body. Existing BodyMeasurement restores retained rows without acquiring that source-mutation lock; RenderedBody does not require native reconstruction. That lock is not evidence of contended foreground materialization. Original failed assertion and log retained; no replacement PASS, timeout increase or production patch."
+  "cadence_classification": "Changed-width cohort: all three original body workers entered MaterializingBody and remained pending on their own native Markdown locks. Release measured0.597s delivery against0.2s idle horizon; original source-page background warmup preserved that horizon. Paging/reverse/End then actual expiry passed. Prior history-lock assertion and two unrelated background-state expectation failures remain unchanged.",
+  "cadence_corrected": {
+    "foreground_delivery_seconds": 0.597307239077054,
+    "delivery_after_background_seconds": 0.597307239077054,
+    "foreground_measured": true,
+    "changed_width_cohort": 3,
+    "original_pending_workers": [
+      "materialize",
+      "materialize",
+      "materialize"
+    ],
+    "background_preserved_horizon": true,
+    "boundary": "actual source UI/widget/worker journey; not installed physical capture"
+  }
 }

@@ -40,8 +40,11 @@ Production four files14+/37-; one existing App cadence consumer migrated to
 the original source-page preparation visitor. This working batch is not Ready. The normal file wheel matches all 320 Toad
 assets; 608 unchanged Core/Textual/diff assets and all69 package versions match
 the original donor. The existing installed native three-body resource App check
-passed (exit0), covering source/style/resize/reentry and disposal. The cadence
-case failed its old history-lock latency expectation: unchanged retained rows
-do not wait on that source-mutation lock. Its original exit1/log remains, and
-the affected delivery-horizon case still needs valid resource contention.
-Changed installed motion remains required; no speed or smoothness claim.
+passed (exit0), covering source/style/resize/reentry and disposal. The corrected cadence case passed using three genuinely pending changed-width
+native body workers: foreground delivery0.597s exceeds original idle0.2s;
+source-page background warmup preserves that measurement, and held navigation,
+reversal/End and original demand expiry pass. The old history-lock expectation
+and two background-state check errors remain original exit1 evidence. No
+production patch or timeout increase was made for those old assumptions.
+One changed installed physical motion/profile journey remains; no speed or
+smoothness claim.
