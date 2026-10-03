@@ -1,0 +1,14 @@
+[
+  {
+    "name": "fragment",
+    "returncode": 0,
+    "elapsed": 1.6172880390076898,
+    "log": "installed-fragment.log"
+  },
+  {
+    "name": "app",
+    "returncode": 1,
+    "elapsed": 4.17274881398771,
+    "log": "installed-app.log"
+  }
+]

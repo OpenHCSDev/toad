@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
-from typing import TypeVar
 
 from toad.render_backend import ReusableRenderTask
-from agent_comms.transcript_events import TranscriptEvent, MarkdownTranscript
-from agent_comms.mro_dispatch import MroDispatch, handles
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
 from toad.session_tracker import OpenTab
@@ -17,15 +13,12 @@ from toad.sidebar_preparation import (
     prepare_tab, prepare_thread_presentation,
 )
 from toad.widgets.patch_diff import PreparedPatch, prepare_patch
-from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.rich_preparation import (
     PreparedRichContent,
     RichPresentation,
     RichSource,
     prepare_rich,
 )
-
-ResultT = TypeVar("ResultT", covariant=True)
 
 
 @dataclass(frozen=True)
@@ -59,50 +52,6 @@ class MarkdownRenderTask(ReusableRenderTask[PreparedMarkdown]):
     def accept_result(self, result: object) -> PreparedMarkdown:
         if not isinstance(result, PreparedMarkdown):
             raise TypeError("Markdown renderer returned an invalid result")
-        return result
-
-
-class TranscriptBodyPreparation(MroDispatch):
-    """Pure body work for declared transcript cases, without native widgets."""
-
-    def __init__(self, renderer, ansi: bool, dark: bool):
-        self.renderer, self.ansi, self.dark = renderer, ansi, dark
-
-    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:
-        """Warm a bounded source range in shared workers, without native mounts.
-
-        Reversal/retirement stops the next batch. Already admitted render work
-        keeps its existing runtime custody and resource limits.
-        """
-        for first in range(0, len(fragments), batch_size):
-            if not keep_going():
-                return
-            await asyncio.gather(*(self.dispatch(event)
-                                   for fragment in fragments[first:first + batch_size]
-                                   for event in fragment.events))
-
-    @handles(TranscriptEvent)
-    async def undisclosed(self, event: TranscriptEvent) -> None:
-        # Metadata and tool disclosure contents retain their existing lazy
-        # owners. A viewport prediction does not open those disclosures.
-        pass
-
-    @handles(MarkdownTranscript)
-    async def markdown(self, event: MarkdownTranscript) -> None:
-        await self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))
-
-
-@dataclass(frozen=True)
-class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
-    events: tuple[TranscriptEvent, ...]
-    continuation: bool = False
-
-    def execute(self) -> tuple[TranscriptFragment, ...]:
-        return transcript_fragments(self.events, continuation=self.continuation)
-
-    def accept_result(self, result: object) -> tuple[TranscriptFragment, ...]:
-        if not isinstance(result, tuple) or not all(isinstance(item, TranscriptFragment) for item in result):
-            raise TypeError("Transcript renderer returned an invalid result")
         return result
 
 

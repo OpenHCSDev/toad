@@ -18,7 +18,7 @@ from agent_comms.comms import Comms
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from toad.app import ToadApp
-from toad.render_tasks import TranscriptBodyPreparation
+from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 from toad.widgets.transcript_history import TranscriptHistory
 
 
