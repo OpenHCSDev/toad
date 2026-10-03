@@ -19,3 +19,13 @@ Persistent evidence: `evidence/certified-reader-custody563-receiving-20261003/`.
 ## Original operation refused before effects
 
 Parent terminal1 stopped at the old cohort minimum-two-gates decision. Original refusal is archived byte-for-byte in `new-operation/parent-pre-effect-refusal.json`; receipt/preimages remain absent and default358 unchanged. The frozen operation is not retried or edited. Corrected canonical owner and new full-admission preparation will supply a separately reviewed operation, using the same qualified package.
+
+## NEW corrected564 operation
+
+Core564 Ready `70b92f4d23e3ceed45f13d24109a96df44c5a186` changes only the existing canonical cohort tool. The already accepted Core6a1/Toad90d90/Text940/native de166 library package remains immutable. Full read-only cohort admission now passes with the ONE original563 acceptance; final batch rejects absent, duplicate, packaging-only and changed-hash proofs. No new policy/family/wrapper, second journey, wheel/environment/native rebuild or public effect. The original failed operation is untouched.
+
+NEW Ready path: `/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-reader-custody563-receiving-20261003/new-publication563-reviewed-acceptance564/ready-receipt.json`.
+
+NEW Ready SHA256: `917a78812652209d518738f5c06c4535cf10ecde9996f5ee2f9e78d5963f68f3`.
+
+Exact parent command/readback are NEW Ready fields. Receipt/preimages are absent. Of51 canonical operator members, only `publish_retained_summary.py` changes; generated preparation calls full `cohort.require_original()` before freeze. Parent reviews this NEW operation and decides execution; do not reuse old360 command.
