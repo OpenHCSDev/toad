@@ -1,0 +1,10 @@
+{
+  "source": "ba8b9f29f1e2595b62b38aa9e111d74699ce8b47",
+  "toad_assets": 320,
+  "mismatches": [],
+  "headless_routing_category_import": true,
+  "distribution_count": 69,
+  "unchanged_dependency_versions_and_core_text_provenance": true,
+  "builder": "system hatchling 1.30.1; no build environment created",
+  "direct_url": "{\"url\":\"file:///home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/response403-wheel/batrachian_toad-0.6.20-py3-none-any.whl\",\"archive_info\":{}}"
+}

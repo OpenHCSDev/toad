@@ -171,6 +171,71 @@ async def danger_projection():
     print("PASS installed original App unsent shell warning / retained tab / original setting", flush=True)
 
 
+async def response_projection():
+    """Original response routes/categories become native headers in the App."""
+    from agent_comms.routing import MessageRoute
+    from toad.live_output import ResponseStream
+    from toad.response_delivery import RoutedResponse
+    from toad.widgets.agent_response import AgentResponse
+    from toad.widgets.message_divider import MessageDivider, RecordedMessageClock
+    from toad.widgets.message_filter import AgentCategory, OutboundCategory, OtherCategory
+    from toad.widgets.route_header import RouteHeader
+
+    with TemporaryDirectory(prefix="toad-response-", dir=os.environ["TMPDIR"]) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        app = InstalledApp(project_dir=str(root))
+        async with app.run_test(size=(120, 40)) as pilot:
+            await pilot.pause()
+            view = app.selected_session.conversation
+            ordinary = await view.output.append(ResponseStream(), "ordinary response body")
+            await view.output.finish(ResponseStream)
+            route = MessageRoute("owner", ("#response-scope",))
+            delivery = RoutedResponse(route)
+            clock = RecordedMessageClock(1790998422.196897)
+            routed = await view.post(AgentResponse("routed response body", delivery=delivery,
+                                                 clock=clock))
+            hidden = await view.post(AgentResponse("hidden-divider response body", delivery=delivery,
+                                                 category=OtherCategory, show_divider=False))
+            await pilot.pause()
+            assert ordinary.message_category is AgentCategory
+            assert ordinary.has_class("block") and not ordinary.has_class("-routed")
+            assert len(ordinary.query(MessageDivider)) == 1
+            assert ordinary.query_one(MessageDivider).label == "Agent"
+            assert routed.delivery is delivery and routed.message_category is OutboundCategory
+            assert routed.has_class("block") and routed.has_class("-routed")
+            assert len(routed.query(MessageDivider)) == 1
+            divider = routed.query_one(MessageDivider)
+            assert divider.label == "Outbound" and divider.clock == clock.display()[0]
+            assert routed.query_one(RouteHeader).route is route
+            assert hidden.delivery is delivery and hidden.message_category is OtherCategory
+            assert hidden.has_class("block") and hidden.has_class("-routed")
+            assert not hidden.query(MessageDivider) and not hidden.query(RouteHeader)
+            async with asyncio.timeout(8):
+                while not all(text in conversation_paint(app.screen) for text in (
+                    "ordinary response body", "routed response body", "hidden-divider response body",
+                    "#response-scope", "Outbound",
+                )):
+                    await pilot.pause(.05)
+            assert app._exception is None
+            evidence = Path(os.environ["TOAD_RESPONSE_EVIDENCE"])
+            evidence.mkdir(parents=True, exist_ok=True)
+            app.save_screenshot(str(evidence / "responses.svg"))
+            (evidence / "receipt.json").write_text(json.dumps({
+                "result": "pass", "installed_toad": __import__("toad").__file__,
+                "original_live_stream_agent_header": True,
+                "original_route_identity_native_header": True,
+                "recorded_clock_and_default_block_class": True,
+                "hidden_divider_keeps_routed_style_and_explicit_category": True,
+                "actual_composited_response_bodies_and_header": True,
+                "inputs": 0, "providers": 0,
+                "scope": "Actual installed App/Pilot/native response paint; no ACP/provider/physical st/performance claim",
+            }, indent=2) + "\n")
+    print("PASS installed response route/header/category/style/native body projection", flush=True)
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-session-surface-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
@@ -327,5 +392,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(danger_projection() if "--danger-only" in sys.argv else
+    asyncio.run(response_projection() if "--response-only" in sys.argv else
+                danger_projection() if "--danger-only" in sys.argv else
                 layout_preferences() if "--layout-only" in sys.argv else main())
