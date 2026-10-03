@@ -23,15 +23,16 @@ from agent_comms.acp_extension import (
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
+    decode_updates,
 )
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.conversation_turn import OrderedManagedTurn, ManagedTurn
+from agent_comms.thread_presentation import ThreadPresentation
+from toad.acp.client_session import ClientSessionRequest
 
 from toad.core import events as core_events
 
 
 class CommsUpdateConsumer(MroDispatch):
-    turn_class = OrderedManagedTurn
     def __init__(
         self,
         agent,
@@ -39,7 +40,6 @@ class CommsUpdateConsumer(MroDispatch):
         *,
         cursor_token: int | None = None,
         queue_token: int | None = None,
-        turn_token: int | None = None,
     ):
         self.agent = agent
         self.session_id = session_id
@@ -47,17 +47,13 @@ class CommsUpdateConsumer(MroDispatch):
         self.compaction_receipt = None
         self.cursor_token = cursor_token
         self.queue_token = queue_token
-        self.turn_token = turn_token
+
+    def consume_metadata(self, metadata):
+        for fact in decode_updates(metadata):
+            self.dispatch_sync(fact)
 
     def accepts_turn(self):
-        return (self.agent.process.accepts_session(self.session_id)
-                and (self.turn_token is None or (
-                    self.turn_token == self.agent.presentation.turns.sequence
-                    # A snapshot response can observe native completion before
-                    # the ordered ACP stream delivers its remaining chunks.
-                    # Only ordered lifecycle notifications settle that turn.
-                    and self.agent.current_turn.accepts_snapshot
-                )))
+        return self.agent.process.accepts_session(self.session_id)
 
     def require_compaction_receipt(self):
         if self.compaction_receipt is None:
@@ -82,7 +78,7 @@ class CommsUpdateConsumer(MroDispatch):
             return
         agent = self.agent
         binding = agent.presentation.managed_turns()
-        if not binding.receive(update.state, self.turn_class):
+        if not binding.receive(update.state):
             return
         agent.events.publish(core_events.CommsUpdated(update, session_id=self.session_id, sequence=binding.sequence))
 
@@ -198,5 +194,25 @@ class CommsUpdateConsumer(MroDispatch):
 
 
 class OwnerSnapshotConsumer(CommsUpdateConsumer):
-    """Snapshot turns reconcile controls without overtaking ordered output."""
-    turn_class = ManagedTurn
+    """Canonical reads reconcile a turn without overtaking this client's request."""
+
+    def __init__(self, agent, session_id, *, turn_token):
+        super().__init__(agent, session_id)
+        self.turn_token = turn_token
+
+    def accepts_turn(self):
+        return (super().accepts_turn()
+                and self.agent.controller.admits_turn_snapshot(self.turn_token))
+
+    @handles(ThreadPresentation)
+    def thread_presentation(self, presentation):
+        identity = presentation.read_identity
+        if identity is None:
+            return  # An unavailable source supplies no turn settlement.
+        coordination = self.agent.coordination
+        self.agent.controller.require_owner(
+            coordination, ClientSessionRequest(self.agent, self.session_id))
+        if (identity.root != coordination.wire_root
+                or identity.thread.incarnation != coordination.thread):
+            raise ValueError('Turn snapshot belongs to another original thread source')
+        self.turn_changed(TurnChangedUpdate(identity.thread.turn_state))

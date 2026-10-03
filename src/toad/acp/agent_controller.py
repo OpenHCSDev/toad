@@ -6,6 +6,7 @@ from acp.schema import SessionModeState
 import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass, replace
+from functools import partial
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
@@ -20,9 +21,10 @@ from toad import jsonrpc
 from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
-    CompactRequest, InputFailedUpdate, decode_updates, encode_request,
+    CompactRequest, InputFailedUpdate, encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
+from agent_comms.coordination_errors import CoordinationReadUnavailable
 
 
 @dataclass(frozen=True)
@@ -237,12 +239,38 @@ class AgentController(OperationalTerminalOwner):
     async def submit(self, prompt: str, *, request: PromptRequest | None = None):
         agent = self.agent
         command = request if request is not None else QueuePromptRequest(prompt)
-        return await self.operate(self._submit(
-            prompt, command, ClientSessionRequest(agent, agent.session_id),
-            agent.queue_attachment.scope, agent.project_root_path))
+        authority = ClientSessionRequest(agent, agent.session_id)
+        return await self.operate(self._prompt_operation(partial(self._submit,
+            prompt, command, authority, agent.queue_attachment.scope,
+            agent.project_root_path), authority))
+
+    async def _prompt_operation(self, operation, authority):
+        """Keep ordered request custody until the owned operation itself ends."""
+        coordination = self.coordination
+        self.prompt_in_flight += 1
+        try:
+            return await operation()
+        finally:
+            self.prompt_in_flight -= 1
+            if self.prompt_in_flight == 0 and authority.current and coordination is not None:
+                self.start_operation(self.reconcile_turn(coordination, authority))
+
+    async def reconcile_turn(self, coordination, authority):
+        """Release snapshot ordering through a fresh read of the same owner."""
+        try:
+            self.require_owner(coordination, authority)
+            await self.agent.get_thread_presentation()
+        except (CoordinationReadUnavailable, OSError, ValueError) as error:
+            # A failed read cannot settle a turn or change input disposition.
+            # The original coordination observer resumes reads on publication.
+            self.agent.log(f"[status] Turn reconciliation unavailable: {error}")
+
+    def admits_turn_snapshot(self, sequence):
+        """A remote busy turn does not imply an ordered response on this client."""
+        return (self.prompt_in_flight == 0
+                and sequence == self.agent.presentation.turns.sequence)
 
     async def _submit(self, prompt, command, authority, queue_scope, project):
-        self.prompt_in_flight += 1
         submission = asyncio.current_task() if command.defer_display else None
         if submission is not None:
             self._deferred_submissions.add(submission)
@@ -263,14 +291,14 @@ class AgentController(OperationalTerminalOwner):
                     raise ValueError('This agent owner does not support images yet; refresh it while idle.')
             return await self._prompt(content, command, authority, queue_scope)
         finally:
-            self.prompt_in_flight -= 1
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
     async def submit_blocks(self, content, command=None):
         agent = self.agent
-        return await self.operate(self._prompt(content, command,
-            ClientSessionRequest(agent, agent.session_id), agent.queue_attachment.scope))
+        authority = ClientSessionRequest(agent, agent.session_id)
+        return await self.operate(self._prompt_operation(partial(self._prompt,
+            content, command, authority, agent.queue_attachment.scope), authority))
 
     async def _prompt(self, content, command, authority, queue_scope):
         agent = self.agent
@@ -317,12 +345,13 @@ class AgentController(OperationalTerminalOwner):
         queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        return await self.operate(self._prompt(
-            [{'type': 'text', 'text': ' '}], SendNowRequest(), authority, queue_scope)) is not None
+        return await self.operate(self._prompt_operation(partial(self._prompt,
+            [{'type': 'text', 'text': ' '}], SendNowRequest(), authority, queue_scope), authority)) is not None
 
     async def compact_context(self, instructions=None):
-        return await self.operate(self._compact_context(
-            instructions, ClientSessionRequest(self.agent, self.agent.session_id)))
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        return await self.operate(self._prompt_operation(partial(self._compact_context,
+            instructions, authority), authority))
 
     async def _compact_context(self, instructions, authority):
         agent = self.agent
@@ -339,8 +368,7 @@ class AgentController(OperationalTerminalOwner):
         if response is None:
             raise ValueError('Compaction returned no result')
         consumer = agent.comms_consumer_class(agent, authority.session_id)
-        for fact in decode_updates(response.field_meta):
-            consumer.dispatch_sync(fact)
+        consumer.consume_metadata(response.field_meta)
         return consumer.require_compaction_receipt()
 
     async def cancel_prompt(self):
