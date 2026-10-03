@@ -53,6 +53,9 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     async def present_permission(self, request, view) -> None:
         """An absent frontend never acquires a permission projection."""
 
+    async def present_failure(self, failure, view) -> None:
+        """An absent frontend keeps the original failure without native work."""
+
     def schedule_terminal_presentation(self, controller):
         controller.start_terminal_presentation(self.target)
 

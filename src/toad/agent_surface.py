@@ -6,6 +6,7 @@ from functools import partial
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.acp.agent_controller import SurfaceBinding, ApplicationValidationOwner
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
+from toad.core.events import HelpAgentFail, LogAgentFail
 
 class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     def __init__(self, target, events):
@@ -22,6 +23,27 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         target = self.target
         if target is not None:
             state.update_size(*target.get_terminal_dimensions())
+
+    async def present_failure(self, failure, view) -> None:
+        if self.owns(view):
+            await self.dispatch(failure, view)
+
+    @handles(HelpAgentFail)
+    async def show_failure_help(self, failure, view):
+        from toad.widgets.markdown_note import MarkdownNote
+
+        await view.post(MarkdownNote(failure.help_text))
+
+    @handles(LogAgentFail)
+    async def show_failure_log(self, failure, view):
+        from urllib.parse import quote
+        from toad.widgets.agent_response import AgentResponse
+        from toad.widgets.message_filter import OtherCategory
+
+        link = AgentResponse(f"[Open ACP log]({quote(str(failure.log_path))})",
+                             show_divider=False, category=OtherCategory)
+        link.add_class("-error-log-link")
+        await view.post(link)
 
     async def present_permission(self, request, view) -> None:
         if (not request.pending or request.projected_on(view) or not self.owns(view)

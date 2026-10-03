@@ -199,19 +199,12 @@ class AgentFail(CoreEvent):
 
     message: str
     details: str = ""
-    @abstractmethod
-    async def explain(self, view): ...
 
 
 class HelpAgentFail(AgentFail):
     @property
     @abstractmethod
     def help_text(self) -> str: ...
-
-    async def explain(self, view):
-        from toad.widgets.markdown_note import MarkdownNote
-        await view.post(MarkdownNote(self.help_text))
-
 
 class UnsupportedResumeAgentFail(HelpAgentFail):
     help_text = """## Agent does not support resume
@@ -232,16 +225,6 @@ If that fails, ask for help in [Discussions](https://github.com/batrachianai/toa
 @dataclass(frozen=True)
 class LogAgentFail(AgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
-
-    async def explain(self, view):
-        from urllib.parse import quote
-        from toad.widgets.agent_response import AgentResponse
-        from toad.widgets.message_filter import OtherCategory
-        link = AgentResponse(f"[Open ACP log]({quote(str(self.log_path))})",
-                             show_divider=False, category=OtherCategory)
-        link.add_class("-error-log-link")
-        await view.post(link)
-
 
 @dataclass(eq=False)
 class Subscription:

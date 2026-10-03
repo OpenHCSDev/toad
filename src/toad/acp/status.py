@@ -1,4 +1,4 @@
-"""Specification-spelled reasons and statuses own their presentation behavior."""
+"""Specification-spelled reasons and statuses own toolkit independent facts."""
 from agent_comms.declared_family import DeclaredFamily
 from dataclasses import dataclass
 from acp.schema import ToolCall
@@ -7,12 +7,6 @@ from acp.schema import ToolCall
 class StopReason(DeclaredFamily, affix='StopReason'):
     completed = False
     note = ''
-
-    @classmethod
-    async def present(cls, view):
-        if cls.note:
-            from toad.widgets.markdown_note import MarkdownNote
-            await view.post(MarkdownNote(cls.note.replace('$AGENT', (view.agent_title or 'agent').title()), classes='-stop-reason'))
 
 
 class EndTurnStopReason(StopReason):
@@ -50,51 +44,24 @@ class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
     failed = False
 
     @classmethod
-    def header(cls, view):
-        from textual.content import Content
-        return Content()
-
-    @classmethod
-    def activity(cls, view, title):
+    def activity(cls, turns, output, title):
         if cls.busy:
-            view.turns.describe(' '.join(title.splitlines()))
+            turns.describe(' '.join(title.splitlines()))
         if cls.boundary:
-            view.output.boundary()
+            output.boundary()
 
 
 class PendingToolCallStatus(ToolCallStatus):
     busy = True
 
-    @classmethod
-    def header(cls, view):
-        from textual.content import Content
-        return Content(' ⌛')
-
 
 class InProgressToolCallStatus(ToolCallStatus):
     busy = True
-
-    @classmethod
-    def header(cls, view):
-        from textual.content import Content
-        from toad.pill import pill
-        return Content.assemble(' ', pill('running', '$warning-muted', '$warning', filled=not view.app.theme.startswith('ansi-')))
 
 
 class CompletedToolCallStatus(ToolCallStatus):
     boundary = completed = True
 
-    @classmethod
-    def header(cls, view):
-        from textual.content import Content
-        return Content.from_markup(' [$success]✔')
-
 
 class FailedToolCallStatus(ToolCallStatus):
     boundary = failed = True
-
-    @classmethod
-    def header(cls, view):
-        from textual.content import Content
-        from toad.pill import pill
-        return Content.assemble(' ', pill('failed', '$error-muted', '$error', filled=not view.app.theme.startswith('ansi-')))
