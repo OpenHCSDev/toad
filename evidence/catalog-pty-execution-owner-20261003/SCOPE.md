@@ -30,7 +30,7 @@ No latency, physical pixel or full headless completion claim.
 ## Working source closure
 
 Four production files: 112 added / 197 deleted at this checkpoint (remeasure at
-Ready). No classes added. Pane no longer opens PTYs, starts subprocesses, stores
+Ready). No classes added. The unused cooked-mode query is removed. Pane no longer opens PTYs, starts subprocesses, stores
 process/master/task/code, decodes output, writes via a delayed thread, or sends
 signals. It holds one original execution resource. The original async worker
 awaits it; finally joins original custody even during early native teardown.
@@ -38,8 +38,9 @@ awaits it; finally joins original custody even during early native teardown.
 `Command.for_script` owns catalog shell/environment; `Command.shell_command`
 owns launch arguments consumed by the SAME `PtyProcess.acquire` for ACP/catalog.
 `TerminalCompletion` derives exit/signal return codes from original ChildOutcome.
-`PtyProcess` queries its owned FD for cooked mode. `TerminalOperation` answers
-unacquired/running/completed cooked queries without another mode flag.
+The unused `CommandPane.is_cooked` API is deleted, rather than expanded into
+new forwarding hooks solely for compatibility. Native keys still use original
+PTY input.
 
 `TerminalState.bind_stdin` binds the operation that consumes an existing model;
 no buffer/provenance is copied. Constructor optional `state` is an ephemeral

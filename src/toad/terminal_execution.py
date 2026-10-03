@@ -209,12 +209,6 @@ class PtyProcess:
     def resize_fd(fd, width, height):
         termios.tcsetwinsize(fd, (height, width))
 
-    @property
-    def is_cooked(self) -> bool:
-        with suppress(OSError, ValueError):
-            return bool(termios.tcgetattr(self.master.fileno())[3] & termios.ICANON)
-        return True
-
     async def write(self, data: bytes) -> int:
         # Nonblocking owned FD is consumed on this loop, not by a delayed
         # thread that could write to an unrelated reused descriptor.
@@ -236,10 +230,6 @@ class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
 
     @abstractmethod
     def outcome(self) -> TerminalOutcome: ...
-
-    @property
-    def is_cooked(self) -> bool:
-        return True
 
     def kill(self) -> None:
         pass
@@ -310,12 +300,6 @@ class ActiveTerminalOperation(TerminalOperation):
         except BaseException as error:
             return FailedTerminalOutcome(error)
 
-    @property
-    def is_cooked(self) -> bool:
-        if self.ready.done() and not self.task.done():
-            return self.ready.result().is_cooked
-        return True
-
     def resize(self, width, height):
         if self.ready.done() and not self.task.done():
             self.ready.result().resize(width, height)
@@ -380,10 +364,6 @@ class TerminalExecution:
     @property
     def outcome(self):
         return self._operation.outcome()
-
-    @property
-    def is_cooked(self) -> bool:
-        return self._operation.is_cooked
 
     @property
     def tool_state(self):
