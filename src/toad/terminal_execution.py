@@ -19,7 +19,6 @@ from typing import Mapping
 from weakref import ref
 
 from acp import schema as protocol
-from textual.content import Content
 from agent_comms.child_process import (
     AttachedChild, TerminalChildStdio, ChildOutcome, ExitedOutcome, SignaledOutcome,
     join_retirement,
@@ -78,6 +77,8 @@ class TerminalCompletion(TerminalOutcome):
     def wait_response(self) -> protocol.WaitForTerminalExitResponse: ...
 
     def present(self, terminal, command) -> None:
+        from textual.content import Content
+
         terminal.finalize()
         terminal.set_class(self.successful, "-success")
         terminal.set_class(not self.successful, "-error")
@@ -151,6 +152,8 @@ class FailedTerminalOutcome(TerminalOutcome):
     finished = True
 
     def present(self, terminal, command):
+        from textual.content import Content
+
         terminal.finalize()
         terminal.set_class(True, "-error")
         terminal.border_title = Content(f"{command} [{self.error}]")
@@ -323,14 +326,16 @@ class ActiveTerminalOperation(TerminalOperation):
 
 class TerminalExecution:
     """One ANSI/output owner and one acquired operation, independent of views."""
-    def __init__(self, command: Command, output_byte_limit: int | None = None):
+    def __init__(self, command: Command, output_byte_limit: int | None = None, *,
+                 width: int = ansi.TerminalState.DEFAULT_WIDTH,
+                 height: int = ansi.TerminalState.DEFAULT_HEIGHT):
         self._command = command
         self._output_byte_limit = output_byte_limit
         self._output: deque[bytes] = deque()
         self._bytes_read = 0
         self._output_bytes_count = 0
         self._operation: TerminalOperation = NewTerminalOperation()
-        self.state = ansi.TerminalState(self.write_stdin)
+        self.state = ansi.TerminalState(self.write_stdin, width=width, height=height)
         self._view = lambda: None
 
     @property
@@ -381,8 +386,7 @@ class TerminalExecution:
         """Observe the SAME original acquired resource, never a copied PID/status."""
         return await self._operation.custody()
 
-    async def start(self, width=0, height=0):
-        self.state.update_size(width or 80, height or 24)
+    async def start(self):
         operation = self._operation.start(self)
         self._operation = operation
         await asyncio.shield(operation.ready)

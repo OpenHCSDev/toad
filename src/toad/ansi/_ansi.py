@@ -11,11 +11,10 @@ from typing import ClassVar, Literal, NamedTuple
 
 import rich.repr
 from agent_comms.declared_family import DeclaredFamily
-from textual import events
-from textual.color import Color
-from textual.content import EMPTY_CONTENT, Content
-from textual.geometry import clamp
-from textual.style import NULL_STYLE, Style
+from rich.cells import chop_cells
+from rich.color import Color
+from rich.style import Style
+from rich.text import Span, Text
 
 from toad.ansi._ansi_colors import ANSI_COLORS
 from toad.ansi._control_codes import CONTROL_CODES
@@ -250,7 +249,7 @@ class ANSIParser(StreamParser[tuple[str, str]]):
             self.emit(("content", token.text))
 
 
-EMPTY_LINE = Content()
+EMPTY_LINE = Text()
 
 
 type ClearType = Literal["cursor_to_end", "cursor_to_beginning", "screen", "scrollback"]
@@ -295,24 +294,21 @@ class ANSIContent(ANSICommand):
             line_content = state._expand_content(
                 line_content, cursor_line_offset, line.style
             )
-        content = Content.styled(
+        content = Text.styled(
             state.dec_state.translate(text),
             state.style,
-            strip_control_codes=False,
         )
         if state.replace_mode:
-            updated_line = Content.assemble(
+            updated_line = Text.assemble(
                 line_content[:cursor_line_offset],
                 content,
                 line_content[cursor_line_offset + len(content) :],
-                strip_control_codes=False,
             )
         else:
-            updated_line = Content.assemble(
+            updated_line = Text.assemble(
                 line_content[:cursor_line_offset],
                 content,
                 line_content[cursor_line_offset:],
-                strip_control_codes=False,
             )
         state.update_line(buffer, line_no, updated_line)
         buffer.update_cursor(line_no, cursor_line_offset + len(content))
@@ -446,34 +442,30 @@ class ANSICursor(ANSICommand):
 
             if erase:
                 # Range is remove
-                updated_line = Content.assemble(
+                updated_line = Text.assemble(
                     before_clear,
                     after_clear,
-                    strip_control_codes=False,
                 )
                 state.update_line(buffer, folded_line.line_no, updated_line)
             else:
                 # Range is replaced with spaces
                 blank_width = clear_end - clear_start + 1
 
-                updated_line = Content.assemble(
+                updated_line = Text.assemble(
                     before_clear,
-                    Content.blank(blank_width, state.style),
+                    Text.styled(" " * blank_width, state.style),
                     after_clear,
-                    strip_control_codes=False,
                 )
                 state.update_line(buffer, folded_line.line_no, updated_line)
 
-        if not previous_content.is_same(folded_line.content):
+        if previous_content != folded_line.content:
             buffer.updates = state.advance_updates()
 
         if delta_x is not None:
-            buffer.cursor_offset = clamp(
-                buffer.cursor_offset + delta_x, 0, state.width - 1
-            )
+            buffer.cursor_offset = max(0, min(buffer.cursor_offset + delta_x, state.width - 1))
             buffer.update_line(buffer.cursor_line)
         if absolute_x is not None:
-            buffer.cursor_offset = clamp(absolute_x, 0, state.width - 1)
+            buffer.cursor_offset = max(0, min(absolute_x, state.width - 1))
             buffer.update_line(buffer.cursor_line)
 
         current_cursor_line = buffer.cursor_line
@@ -493,7 +485,7 @@ class ANSICursor(ANSICommand):
 
         if current_cursor_line != buffer.cursor_line:
             # Simplify when the cursor moves away from the current line
-            line.content.simplify()  # Reduce segments
+            line.simplify()
             state._line_updated(buffer, current_cursor_line)
             state._line_updated(buffer, buffer.cursor_line)
 
@@ -789,7 +781,7 @@ class AlternateScrollMode(MouseMode, declared_name="1007"):
 class ANSIStream:
     def __init__(self) -> None:
         self.parser = ANSIParser()
-        self.style = NULL_STYLE
+        self.style = Style.null()
 
     @classmethod
     @lru_cache(maxsize=1024)
@@ -807,21 +799,21 @@ class ANSIStream:
             code if code < 255 else 255
             for code in map(int, [sgr_code or "0" for sgr_code in sgr.split(";")])
         ]
-        style = NULL_STYLE
+        style = Style.null()
         while codes:
             match codes:
                 case [38, 2, red, green, blue, *codes]:
                     # Foreground RGB
-                    style += Style(foreground=Color(red, green, blue))
+                    style += Style(color=Color.from_rgb(red, green, blue))
                 case [48, 2, red, green, blue, *codes]:
                     # Background RGB
-                    style += Style(background=Color(red, green, blue))
+                    style += Style(bgcolor=Color.from_rgb(red, green, blue))
                 case [38, 5, ansi_color, *codes]:
                     # Foreground ANSI
-                    style += Style(foreground=ANSI_COLORS[ansi_color])
+                    style += Style(color=ANSI_COLORS[ansi_color])
                 case [48, 5, ansi_color, *codes]:
                     # Background ANSI
-                    style += Style(background=ANSI_COLORS[ansi_color])
+                    style += Style(bgcolor=ANSI_COLORS[ansi_color])
                 case [0, *codes]:
                     # reset
                     return None
@@ -969,17 +961,17 @@ class ANSIStream:
             case ["csi", csi]:
                 if csi.endswith("m"):
                     if (sgr_style := self._parse_sgr(csi[1:-1])) is None:
-                        self.style = NULL_STYLE
+                        self.style = Style.null()
                     else:
                         self.style += sgr_style
                         # Special case to use widget background rather
                         # than theme background
                         if (
-                            sgr_style.background is not None
-                            and sgr_style.background.ansi == -1
+                            sgr_style.bgcolor is not None
+                            and sgr_style.bgcolor.is_default
                         ):
                             self.style = (
-                                Style(foreground=self.style.foreground)
+                                Style(color=self.style.color)
                                 + sgr_style.without_color
                             )
                     yield ANSIStyle(self.style)
@@ -1027,7 +1019,7 @@ class LineFold(NamedTuple):
     offset: int
     """The offset within the original line."""
 
-    content: Content
+    content: Text
     """The content."""
 
     updates: int = 0
@@ -1038,10 +1030,10 @@ class LineFold(NamedTuple):
 class LineRecord:
     """A single line in the terminal."""
 
-    content: Content
+    content: Text
     """The content."""
 
-    style: Style = NULL_STYLE
+    style: Style = Style.null()
     """The style for the remaining line."""
 
     folds: list[LineFold] = field(default_factory=list)
@@ -1049,6 +1041,17 @@ class LineRecord:
 
     updates: int = 0
     """An integer used for caching."""
+
+    def simplify(self) -> None:
+        """Coalesce adjacent equal spans on this original line resource."""
+        spans: list[Span] = []
+        for span in self.content.spans:
+            if spans and spans[-1].end == span.start and spans[-1].style == span.style:
+                previous = spans[-1]
+                spans[-1] = Span(previous.start, span.end, span.style)
+            else:
+                spans.append(span)
+        self.content.spans = spans
 
 
 @rich.repr.auto
@@ -1269,14 +1272,17 @@ class MouseTracking:
 
 @rich.repr.auto
 class TerminalState:
-    """Abstract terminal state."""
+    """ANSI buffers, modes and geometry, independent of their frontend."""
+
+    DEFAULT_WIDTH: ClassVar[int] = 80
+    DEFAULT_HEIGHT: ClassVar[int] = 24
 
     def __init__(
         self,
         write_stdin: Callable[[str], Awaitable],
         *,
-        width: int = 80,
-        height: int = 24,
+        width: int = DEFAULT_WIDTH,
+        height: int = DEFAULT_HEIGHT,
     ) -> None:
         """
         Args:
@@ -1292,7 +1298,7 @@ class TerminalState:
         """Width of the terminal."""
         self.height = height
         """Height of the terminal."""
-        self.style = NULL_STYLE
+        self.style = Style.null()
         """The current style."""
         self.show_cursor = True
         """Is the cursor visible?"""
@@ -1325,7 +1331,7 @@ class TerminalState:
     def __rich_repr__(self) -> rich.repr.Result:
         yield "width", self.width
         yield "height", self.height
-        yield "style", self.style, NULL_STYLE
+        yield "style", self.style, Style.null()
         yield "show_cursor", self.show_cursor, True
         yield "alternate_screen", self.alternate_screen, False
         yield "bracketed_paste", self.bracketed_paste, False
@@ -1338,7 +1344,6 @@ class TerminalState:
     async def write_stdin(self, text: str) -> bool:
         if self._write_stdin is not None:
             return await self._write_stdin(text)
-            return False
         return True
 
     @property
@@ -1382,35 +1387,36 @@ class TerminalState:
             height: New height, or `None` for no change.
         """
         previous_width = self.width
-        if width is not None:
+        if width is not None and width > 0:
             self.width = width
-        if height is not None:
+        if height is not None and height > 0:
             self.height = height
 
-        if previous_width != width:
+        if previous_width != self.width:
             self._reflow()
 
-    def key_event_to_stdin(self, event: events.Key) -> str | None:
-        """Get the stdin string for a key event.
+    def key_to_stdin(self, key: str, character: str | None) -> str | None:
+        """Encode a decoded key using this terminal's current modes.
 
         This will depend on the terminal state.
 
         Args:
-            event: Key event.
+            key: The decoded key name.
+            character: Its printable character, when supplied by the frontend.
 
         Returns:
             A string to be sent to stdin, or `None` if no key was produced.
         """
         if (
             self.cursor_keys
-            and (sequence := CURSOR_KEYS_APPLICATION.get(event.key)) is not None
+            and (sequence := CURSOR_KEYS_APPLICATION.get(key)) is not None
         ):
             return sequence
 
-        if (mapped_key := TERMINAL_KEY_MAP.get(event.key)) is not None:
+        if (mapped_key := TERMINAL_KEY_MAP.get(key)) is not None:
             return mapped_key
-        if event.character:
-            return event.character
+        if character:
+            return character
         return None
 
     def key_escape(self) -> str:
@@ -1448,7 +1454,8 @@ class TerminalState:
         width = self.width
 
         for line_no, line_record in enumerate(buffer.lines):
-            line_expanded_tabs = line_record.content.expand_tabs(8)
+            line_expanded_tabs = line_record.content.copy()
+            line_expanded_tabs.expand_tabs(8)
             line_record.folds[:] = self._fold_line(line_no, line_expanded_tabs, width)
             line_record.updates = self.advance_updates()
             buffer.line_to_fold.append(len(buffer.folded_lines))
@@ -1565,8 +1572,8 @@ class TerminalState:
             # up (first in test)
             for line_no in range(margin_top, margin_bottom + 1):
                 copy_line_no = line_no + lines
-                copy_content = EMPTY_CONTENT
-                copy_style = NULL_STYLE
+                copy_content = EMPTY_LINE
+                copy_style = Style.null()
                 if copy_line_no <= margin_bottom:
                     try:
                         copy_line = buffer.lines[copy_line_no + gutter_lines]
@@ -1583,8 +1590,8 @@ class TerminalState:
             # down
             for line_no in reversed(range(margin_top, margin_bottom + 1)):
                 copy_line_no = line_no - lines
-                copy_content = EMPTY_CONTENT
-                copy_style = NULL_STYLE
+                copy_content = EMPTY_LINE
+                copy_style = Style.null()
                 if copy_line_no >= margin_top:
                     try:
                         copy_line = buffer.lines[copy_line_no + gutter_lines]
@@ -1598,19 +1605,19 @@ class TerminalState:
                 )
 
     @classmethod
-    def _expand_content(cls, content: Content, offset: int, style: Style) -> Content:
+    def _expand_content(cls, content: Text, offset: int, style: Style) -> Text:
         """Expand content to be at least as long as a given offset.
 
         Args:
-            content: Content to expand.
+            content: Text to expand.
             offset: Offset within the content.
             style: Style of padding.
 
         Returns:
-            New Content.
+            Styled terminal text.
         """
         if offset > len(content):
-            content += Content.blank(offset - len(content), style)
+            content += Text.styled(" " * (offset - len(content)), style)
         return content
 
     def _line_updated(self, buffer: Buffer, line_no: int) -> None:
@@ -1627,17 +1634,18 @@ class TerminalState:
         except IndexError:
             pass
 
-    def _fold_line(self, line_no: int, line: Content, width: int) -> list[LineFold]:
+    def _fold_line(self, line_no: int, line: Text, width: int) -> list[LineFold]:
         updates = self._updates
         if not self.auto_wrap:
             return [LineFold(line_no, 0, 0, line, updates)]
         if not width:
             return [LineFold(0, 0, 0, line, updates)]
-        line_length = line.cell_length
+        line_length = line.cell_len
         if line_length <= width:
             return [LineFold(line_no, 0, 0, line, updates)]
 
-        folded_lines = line.fold(width)
+        offsets = list(accumulate(len(part) for part in chop_cells(line.plain, max(2, width))))
+        folded_lines = line.divide(offsets[:-1])
         offsets = [0, *accumulate(len(line) for line in folded_lines)][:-1]
         folds = [
             LineFold(line_no, line_offset, offset, folded_line, updates)
@@ -1649,7 +1657,7 @@ class TerminalState:
         return folds
 
     def add_line(
-        self, buffer: Buffer, content: Content, style: Style = NULL_STYLE
+        self, buffer: Buffer, content: Text, style: Style = Style.null()
     ) -> None:
         updates = self.advance_updates()
         line_no = buffer.line_count
@@ -1670,7 +1678,7 @@ class TerminalState:
         buffer.updates = updates
 
     def update_line(
-        self, buffer: Buffer, line_index: int, line: Content, style: Style | None = None
+        self, buffer: Buffer, line_index: int, line: Text, style: Style | None = None
     ) -> None:
         """Update a line (potentially refolding and moving subsequencte lines down).
 
@@ -1683,9 +1691,10 @@ class TerminalState:
         while line_index >= len(buffer.lines):
             self.add_line(buffer, EMPTY_LINE)
 
-        line_expanded_tabs = line.expand_tabs(8)
+        line_expanded_tabs = line.copy()
+        line_expanded_tabs.expand_tabs(8)
         buffer.max_line_width = max(
-            line_expanded_tabs.cell_length, buffer.max_line_width
+            line_expanded_tabs.cell_len, buffer.max_line_width
         )
         line_record = buffer.lines[line_index]
         line_record.content = line
