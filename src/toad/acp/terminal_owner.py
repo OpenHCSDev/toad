@@ -9,7 +9,7 @@ from acp import schema as protocol
 from toad.terminal_execution import Command
 
 if TYPE_CHECKING:
-    from .agent_controller import SurfaceBinding
+    from toad.surface_binding import SurfaceBinding
 
 
 class OperationalTerminalOwner(ClientRequestOwner, ABC):

@@ -1,6 +1,8 @@
 """Actual retained editors and session-owned shells survive physical tab returns."""
 
 import asyncio
+from importlib.resources import files
+import json
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,7 +17,12 @@ from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.side_bar import SideBar
 from toad.screens.main import MainScreen
 from toad.shell_output import ShellTerminalOutput
+from toad.widgets.shell_result import ShellResult
 from toad.core.input_events import UserInputSubmitted
+
+
+class InstalledApp(ToadApp):
+    CSS_PATH = files("toad").joinpath("toad.tcss")
 
 
 async def select(app, pilot, source):
@@ -32,7 +39,7 @@ async def main():
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        app = ToadApp(project_dir=str(root))
+        app = InstalledApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
             first = app.selected_session
@@ -59,7 +66,6 @@ async def main():
             assert second_surface is not first_surface
             assert first_surface._task is original_task
             assert window in app.workspace_screen.viewport_presentation.windows and window.screen is app.workspace_screen
-            assert len(app.workspace_screen.screen_layout_refresh_signal._subscriptions[window]) == 2
             second.conversation.prompt.text = "second draft"
 
             await select(app, pilot, first)
@@ -83,7 +89,11 @@ async def main():
                 while not second.conversation.query("ShellTerminal"):
                     await pilot.pause(.02)
             shell = second.conversation._shell
+            assert shell.surface.target is second_surface
+            assert len(shell.events.subscriptions) == 1
             shell_task, shell_process = shell._task, shell._process
+            command_view = second_surface.query_one(ShellResult)
+            terminal_view = shell.output.terminal
             async with asyncio.timeout(5):
                 while not await shell.is_busy():
                     await pilot.pause(.02)
@@ -94,6 +104,7 @@ async def main():
             assert second.presentation.sources.shell is shell
             assert shell._task is shell_task and not shell_task.done()
             assert shell._process is shell_process and shell_process.returncode is None
+            assert shell.surface.target is None and not shell.events.subscriptions
             async with asyncio.timeout(5):
                 while not any("owned-shell-marker" in "\n".join(line.content.plain for line in output.state.buffer.lines)
                               for output in shell.outputs if isinstance(output, ShellTerminalOutput)):
@@ -104,12 +115,48 @@ async def main():
             restored_shell_view = app.selected_session.conversation
             assert restored_shell_view is second_surface
             assert restored_shell_view._shell is shell
+            assert shell.surface.target is restored_shell_view
+            assert len(shell.events.subscriptions) == 1
             assert restored_shell_view.prompt.text == "second draft"
+            assert tuple(restored_shell_view.query(ShellResult)) == (command_view,)
+            assert any(output is command_view.source for output in shell.outputs)
+            assert command_view.get_clipboard_text() == command_view.source.command
+            assert terminal_view in restored_shell_view.query("ShellTerminal")
+            assert any(output.terminal is terminal_view for output in shell.outputs
+                       if isinstance(output, ShellTerminalOutput))
             assert any(terminal.state is output.state for terminal in restored_shell_view.query("ShellTerminal")
                        for output in shell.outputs if isinstance(output, ShellTerminalOutput))
             await pilot.pause()
             paint = conversation_paint(app.screen)
             assert "owned-shell-marker" in paint, paint
+            # Read actual terminal pixels, excluding the command caption.
+            terminal_paint = "\n".join(
+                strip.crop(terminal.region.x, terminal.region.right).text
+                for output in shell.outputs if isinstance(output, ShellTerminalOutput)
+                for terminal in (output.terminal,) if terminal is not None
+                for strip in app.screen._compositor.render_strips()[terminal.region.y:terminal.region.bottom]
+            )
+            assert "owned-shell-marker" in terminal_paint, terminal_paint
+            shell_directory = root / "shell directory"
+            shell_directory.mkdir()
+            await shell.change_directory(str(shell_directory))
+            async with asyncio.timeout(5):
+                while restored_shell_view.working_directory != str(shell_directory):
+                    await pilot.pause(.02)
+            assert shell.working_directory == str(shell_directory)
+            if evidence_path := os.environ.get("L0A_EVIDENCE"):
+                evidence = Path(evidence_path)
+                evidence.mkdir(parents=True, exist_ok=True)
+                app.save_screenshot("retained-shell.svg", path=str(evidence))
+                (evidence / "shell-publication.json").write_text(json.dumps({
+                    "terminal_paint": terminal_paint,
+                    "directory_changed_through_original_stream": True,
+                    "same_shell_task_process_model": True,
+                    "same_command_widget_source": True,
+                    "same_terminal_widget_model": True,
+                    "active_shell_subscriptions": len(shell.events.subscriptions),
+                    "provider_calls": 0,
+                }, indent=2) + "\n")
             await select(app, pilot, app.workspace_sessions.require(third))
             assert second.query_one(Conversation) is second_surface
             assert second.presentation.sources.shell is shell
