@@ -29,7 +29,7 @@ manual selector-type prefilter: declared rule matching now decides applicable
 types/compound/relational selectors. Custom CSS paths are read only by native
 relational matching; component owner retention and subtree/ancestor order remain.
 Kepler owns native47 RuleSet/SelectorSet/match/stylesheet whole-family migration.
-One Toad production file3+/14-; no new cache/flags/type/traversal/matching algorithm.
+One Toad production file3+/13-; no new cache/flags/type/traversal/matching algorithm.
 Published working source, not installed/Ready and no gain claim; current style22
 is still qualified405/46. Final checks and real configured UI path after joined
 native source/pins. No new package writes or recording for this source checkpoint.
@@ -39,3 +39,8 @@ invoked by native idle/timer scheduling, and FramePresentation Presented state
 does not begin a new receipt on ordinary scroll paints. Therefore pager exposed
 body readiness cannot safely be replaced by frame.ready today. The nested-body
 check remains; no speculative guard deletion or new readiness copy.
+
+Native47 source34c18a declares RuleSet.check and SelectorSet owns the full
+relational matcher; module and stylesheet private checkers deleted. Before/after
+Toad AST289/no omissions confirms soleprivatecaller1→0 and public rulecall1.
+No style/cache assumptions from raw profile transition counts.
