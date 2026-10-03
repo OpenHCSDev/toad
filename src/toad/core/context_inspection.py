@@ -7,7 +7,8 @@ from abc import ABC
 from dataclasses import dataclass
 
 from agent_comms.field_codec import FieldCodec
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.runtime import RuntimeConnection, socket_path
@@ -111,13 +112,7 @@ class NativeSegmentNode(ContextNode):
         return NativeDetail().dispatch_sync(self.segment)
 
 
-class ContextProjection(MroDispatch):
-    """A leaf projection returns display data rather than mutating an event."""
-    def consume_handlers_sync(self, value, handlers, *args, **kwargs):
-        return next(iter(handlers))(value, *args, **kwargs)
-
-
-class NativeDetail(ContextProjection):
+class NativeDetail(MroProjection):
     """Use existing SDK segment and content owners; omit private reasoning."""
     @handles(SystemLayerSegment)
     def system(self, segment):
@@ -154,7 +149,7 @@ class NativeMessageNode(ContextNode):
             "are not rendered.")
 
 
-class SegmentNodes(ContextProjection):
+class SegmentNodes(MroProjection):
     def __init__(self, key):
         self.key = key
 
