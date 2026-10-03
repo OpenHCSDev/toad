@@ -1,0 +1,63 @@
+{
+  "state": "ready-scoped-frame-body-window-and-box-context-resource",
+  "installed_toad": "340221ea0ed1605220afbd9d96286e3d7e096764",
+  "core": "5025c4ba84c5623f475706475fb7743ce0e8f156",
+  "textual": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+  "physical_receipt": "/home/ts/.cache/agent-scratch/frame-cohort393-box41-public-20261003-01/capture/receipt.json",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-frame393-box41-20261003/source-proof.json",
+  "source_equality": "Ready docs do not change installed340221ea production",
+  "production": {
+    "files": 1,
+    "added": 25,
+    "deleted": 8,
+    "new_types": 0
+  },
+  "owner": "Existing ViewportPresentation selects actual visible bodies by nearest original HistoryWindow; frame/page/App acknowledgement consumers derive the same readiness membership; original Native Widget box cache selects its matching Extrema.",
+  "capture_seconds": 113.9529399969615,
+  "warm_checks_passed": true,
+  "input_checks_passed": true,
+  "ready_body_ids_retained": 38,
+  "original_owner": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4185734,
+      "start_time": 51109694
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 4185734,
+      "start_time": 51109694
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "assessment": "Actual original chat/chrome readable in exact-key Up/Down/reverse sequences and A-return; repeated positions/discrete advances remain. Not smoothness.",
+  "inspection_timing": "Own exact-key motion sheets viewed AFTER UI closed, missed during requirement. Parent viewed original live15 sheet DURING; that sheet precedes exact held-Up and cannot qualify held motion. No unchanged repeat for optics.",
+  "limits": [
+    "Writer is not changed pixels/terminalFPS/input latency",
+    "KernelCPU windows include original exports; no matched workload or unprofiled comparison",
+    "GIL coverage partial/2errors, no thread-weight sums as walltime",
+    "Own during-motion inspection missed; parent during live15 sheet; all exact-key sheets inspected AFTER",
+    "No smoothness/144Hz/overallCPU gain claim"
+  ],
+  "unchanged_original_sha256": {
+    "receipt.json": "0fd3202ee1d40fb5d5959a7ee687396226f6bb8c6fc115fca62e412337b23c03",
+    "terminal.mp4": "f4a3e9ff51a930f7646fd2bf2206336e81af9f22d8a0a53e52ddf4d120cd3277",
+    "events.jsonl": "1149fa67a6f784651bef9a21c6dd6f24902a3def48acf9d94498f57c9aa742a7",
+    "driver.log": "64f0a0906a452e91c26dd143bf3b5fb49635041cd5c45f03565a20abaa8f492e",
+    "cpu-profile.json": "9b0734b388f1cbbbf7bf05dc91f48af495cc35f7e0f92d2a07d0be99de42b2bb",
+    "after-state-frames.json": "3f17d5def646e7113948fa8d333035fa424089fa39af12b3c3089ff542f2de26"
+  },
+  "remaining_scope": "Whole original CPU/144Hz/raster/warm/cold/sidebar/busy/compaction/animation/focus/runway/growingEnd/void/TC1/T9/T4 remains active in main-based continuation."
+}

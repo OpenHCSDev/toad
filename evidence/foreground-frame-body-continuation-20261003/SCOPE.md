@@ -61,7 +61,7 @@ moving timed frames during the same UI, join existing writer/profile/kernel CPU,
 report specific gaps and negative outcomes. Ship qualified scoped improvements
 without holding them for the final target. Reuse original tools and holder.
 
-## Current working source (not validated/Ready)
+## Qualified scoped source (full performance unfinished)
 
 ViewportPresentation now selects visible bodies once for the whole frame from
 native visible geometry and each body's nearest original HistoryWindow. The
@@ -75,8 +75,7 @@ TranscriptHistory page admission, and ViewportPresentation frame admission; all
 derive the same selection through the original DocumentViewport property or frame
 owner. Bodies outside a HistoryWindow do not acquire a viewport, and a nested
 HistoryWindow owns its own bodies even if an enclosing window is selected. Dynamic resolution remains a
-semantic read, not a zero-by-omission proof. Final affected validation waits for
-the complete changed batch and release of the parent588 borrowed holder.
+semantic read, not a zero-by-omission proof. Final affected installed saved-history validation is now recorded below.
 
 ## Joined native source
 
@@ -85,6 +84,35 @@ the declared dependency. Its production bytes equal the reviewed d6ddd054c
 resource fix: the original box-model LRU selects its matching Extrema together
 with BoxModel, including hits after another measurement context. No second
 cache or constraints owner. Kepler retains native ownership. Native40 and391
-qualification stays frozen; this new dependency and393 frame selection are not
-yet an installed qualification. Normal uv lock changed only the Textual source.
+qualification stays frozen; this dependency and393 frame selection are now qualified at the scoped strength
+below, without a performance gain claim. Normal uv lock changed only the Textual source.
 No package or borrowed holder bytes were changed.
+
+## Actual joined installed qualification
+
+Ready receipt: `evidence/frame393-native41-20261003/READY.json`. Installed
+Toad340221ea / Core5025 / Textualc4 / native2b matches the actual current public
+route, normal69 packages/source/assets/directURL/native trust and pip compatibility.
+One original saved nra-architecture physical run completed113.953s: 16warm and
+7input-focused paging predicates pass, 38ready body identities retained through
+A/B/A, original owner4185734/start51109694 remains alive unchanged, cleanup empty.
+No provider prompt/replay/public owner mutation. FFmpeg255 is normal SIGINT;
+UI/ST custody transferred to ObservedProcess, so explicit UIexit0 is not claimed.
+
+Exact keydown-to-keyup writer intervals median/p95/max: Up13.00/47.49/150.76ms,
+Down11.88/24.69/105.53ms, reversal11.06/21.39/63.96ms. Native writer is not pixels,
+terminalFPS or input latency. Marker-window UI CPU Up82.39%, Down71.46%,
+reverse70.41%, mididle21.01%, Endidle23.67%; these include exports. Last10s
+mididle and Endidle have zero viewport request/admission/restoration/retirement/
+scroll; earlier mididle has one residual request/admission. End contains native
+relocation pairs and sidebar publication. No matched workload/unprofiled comparison.
+Profile1234GIL samples/2errors, partial; nominal clock uncertainty66.6ms.
+
+Own moving inspection DURING was missed. Exact held Up22.060–22.860s,
+Down44.219–45.019s, reverse63.424–64.224s consecutive48-frame sheets were viewed
+AFTER the same recording, plus A-return. Bodies/chrome readable, repeated positions
+and discrete advances persist. Parent DURING live15 sheet is earlier than held-Up,
+not held-motion approval. Original raw receipt remains unreviewed; separate scoped
+assessment records this honestly. No smoothness/144Hz/overall CPU gain/busy IRC
+first-paint claim, and no unchanged rerun to satisfy optics. Native42 registration
+ordering and Toad full continuation remain independent following source work.
