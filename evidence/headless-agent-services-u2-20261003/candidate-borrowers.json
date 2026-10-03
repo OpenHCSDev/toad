@@ -1,0 +1,13 @@
+{
+  "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "active_borrowers": [],
+  "default_links": {
+    "toad": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/toad",
+    "toad-comms": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "agent-comms": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-acp",
+    "agent-comms-worker": "/home/ts/.local/bin/agent-comms-worker"
+  },
+  "protected": true,
+  "scope": "Candidate census, no mutation; command-text orchestrators excluded explicitly."
+}

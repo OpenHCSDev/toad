@@ -1,0 +1,89 @@
+{
+  "selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "bin_directory": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin",
+  "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+  "launcher_sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e",
+  "launcher_links": {
+    "command": {
+      "selected_path": "/home/ts/bin/toad-comms",
+      "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+      "sha256": "139697cd787f598b06c989e41ab6d09632fda135aa5db9354e4e60ea04e3069e"
+    },
+    "acp": {
+      "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+      "resolved_path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-acp",
+      "sha256": "363e5c9e0707629f09fbd787d28e2d23a469e459b07a272c768ea65602e7c07c"
+    }
+  },
+  "entrypoints": {
+    "toad": {
+      "path": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/toad",
+      "sha256": "14f05002bed88830313f10ef97b208a8cab9f9ffef16e5b28b6ea31e989cd5e0"
+    },
+    "agent-comms-acp": {
+      "path": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/agent-comms-acp",
+      "sha256": "98765b803d8a4218c148d5a102933d824fa8b4aee9c7b5b7d6064420e9cc72a2"
+    }
+  },
+  "activation_path": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/activation.json",
+  "activation_sha256": "4987494c53a069780290e571682b3159187c1afd78c8507104d1a0dba9de0a8f",
+  "activation": {
+    "stage": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+    "pins": {
+      "toad": "c1d653991a94686a167ed04b1e6f4a99641cd1e9",
+      "agent_comms": "58686f983377087e85ef20fd2928bcf113ab7acb",
+      "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+    },
+    "sdk": "0.12.1",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+    "state": "verified-immutable-cohort",
+    "staging_receipt_sha256": "ed025a1b94cc34ae6751bc97a4fc66b050a54446041ab84b8e2f5e5cd0bbec12"
+  },
+  "observed": {
+    "python": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
+    "prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+    "packages": {
+      "toad": {
+        "origin": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/toad/__init__.py",
+        "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+        "source_tree_sha256": "ab876a4cab5eb612524f622fd00a35fa420fa9cdddb42afdf78bb58ebf02b9b5",
+        "distribution": "batrachian-toad",
+        "version": "0.6.20",
+        "direct_url": {
+          "url": "file:///home/ts/wt/toad-regression-widget-cost-20261001/evidence/headless-agent-services-u2-20261003/wheels/batrachian_toad-0.6.20-py3-none-any.whl",
+          "archive_info": {}
+        }
+      },
+      "textual": {
+        "origin": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/textual/__init__.py",
+        "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+        "source_tree_sha256": "88911b4e2b3555c3f09979cf3492b24373a05637d3f2a04e66cb56d7d037f818",
+        "distribution": "textual",
+        "version": "8.2.8",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/textual.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+            "requested_revision": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+          }
+        }
+      },
+      "agent_comms": {
+        "origin": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/lib/python3.14/site-packages/agent_comms/__init__.py",
+        "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+        "source_tree_sha256": "bb7b2a6f000b5f4c6a051cbbc9735ef8b6daafb8616d6499207ff23e3b9630d7",
+        "distribution": "agent-comms",
+        "version": "0.1.0",
+        "direct_url": {
+          "url": "https://github.com/OpenHCSDev/agent-comms.git",
+          "vcs_info": {
+            "vcs": "git",
+            "commit_id": "58686f983377087e85ef20fd2928bcf113ab7acb",
+            "requested_revision": "58686f983377087e85ef20fd2928bcf113ab7acb"
+          }
+        }
+      }
+    }
+  }
+}

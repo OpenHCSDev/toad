@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/render_families_pilot.py", line 31, in <module>
+    from toad.render_zmq import RenderSubmission
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/src/toad/render_zmq.py", line 22, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
