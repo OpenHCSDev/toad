@@ -54,10 +54,12 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         app = ToadApp(project_dir=str(root))
         pool = ControlledPool()
-        with patch.object(app, "render_processes", pool):
-            async with app.run_test(size=(110, 35)) as pilot:
-                await pilot.pause()
-                response = await app.selected_session.conversation.post(AgentResponse(paginate=False))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await pilot.pause()
+            response = await app.selected_session.conversation.post(AgentResponse(paginate=False))
+            # Native Mount awaits the initial empty document. Acquire that
+            # original resource before holding the updates exercised below.
+            with patch.object(app, "render_processes", pool):
                 source = "```python\nvalue = 123\n```\n"
                 pending = asyncio.create_task(update(response, source))
                 await wait_requests(pool, 1, pilot)
