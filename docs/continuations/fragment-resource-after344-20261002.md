@@ -115,3 +115,48 @@ The existing callback owner is correcting the environment handoff; its guard
 remains intact. The planned joined journey is one App on original saved-history
 copies with physical input paging/A-B-A/draft/Undo followed by original held-read
 receipt/typing/restart/End. It cannot establish busy-public multiowner CPU gains.
+
+## Completed physical04 phases and current main union
+
+Original04 reached input-focused PageUp/PageDown, held history paging, reverse,
+End/idle, actual B/A tab clicks, retained24 ready bodies, draft/caret and Undo.
+Input paging7/7; warm checks15/16. The raw reverse-new-page check remains false: the
+reader moved315 to122 within already admitted source, without needing another
+older page. This is retained reverse motion, not a new-admission result.
+The later specialized338 held-reader tail failed with TimeoutError; raw recorder
+capture_completed/completed remain false. All owned processes closed with empty
+remaining/error cleanup. UI/st exit0 is not inferred from identity transfer.
+Kepler owns that targeted source-work/reader-demand closure. No new motion run.
+
+Original48 consecutive frames24.5–25.3s were inspected while this recorder/UI
+were alive: readable body with repeated positions followed by chunky advances.
+A-return body was also inspected after completion. Smoothness is NOT accepted.
+Exact key-held writer median/p95: inputUp18.36/54.01ms, inputDown17.72/33.07ms,
+reverse16.96/29.26ms. These are original driver writer receipts, not pixel latency
+or terminal presentation FPS. Kernel UI CPU in marker spans:64.52% inputUp,
+48.00% inputDown,15.80% mid-history idle. Exports are included in marker spans;
+this quiet private copy is not a matched busy-public before/after CPU comparison.
+
+Complete retained moving stacks repeatedly enter WorkspaceScreen._refresh_layout
+then native arrangement and partial render/StylesCache. Other observed work
+includes foreground sidebar ThreadView.presentation/process identity projection
+and background source/FieldCodec reads. Changed-stack presence is not call count
+or CPU share. The actual sources/phase/profile/writer limits and raw hashes are
+in docs/checkpoints/fragment-resource347-installed04-scoped.json.
+
+Normally merged main341 c311a3fd in fc964606. Preserve original338 Worker source
+scheduling, source progress rearm and leaf-owned paging/coverage hooks. Coverage
+and work-finished publications now use main's core event owner/publisher. Old
+Textual source-event declarations/imports were deleted by that union. Fragment,
+render-task and streaming production files remain byte equal to installed4b8;
+history retained the cost/schema change with current core event migration. The
+whole main union is not an installed4b8 byte-equality claim. No broad/provider
+rerun; resolved owner files parse and their production diff is whitespace clean.
+
+The source cost batch is37 added/20 deleted in four existing production files.
+Scoped resource/presentation and completed physical phases are publishable;
+whole338 tail and full performance remain open. The next concrete UI source lead
+is repeated row input projection on the native pump and renderer-task factory.
+Use original ThreadRowInput/ThreadRowPresentation/ThreadRowsWork and PreparationRuntime;
+no parallel row cache, status mirror or pool. Shared native geometry work stays
+coordinated with Kepler. All original remaining scope above is retained.
