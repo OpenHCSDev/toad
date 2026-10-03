@@ -54,13 +54,15 @@ class CommandCatalog:
         return tuple(choice for command in self.entries
                      for choice in command.target_choices(self.context))
 
-    async def execute(self, text: str, conversation: Conversation) -> bool:
-        name, _, arguments = text.partition(" ")
-        command = next((command for command in self.commands
-                        if command.command == name), None)
-        if command is None:
-            return False
+    @classmethod
+    async def execute(cls, text: str, conversation: Conversation) -> bool:
         try:
+            catalog = await conversation.read_command_catalog()
+            name, _, arguments = text.partition(" ")
+            command = next((command for command in catalog.commands
+                            if command.command == name), None)
+            if command is None:
+                return False
             return await command.parse_arguments(arguments).apply(conversation)
         except (OSError, ValueError) as error:
             conversation.flash(str(error), style="error")

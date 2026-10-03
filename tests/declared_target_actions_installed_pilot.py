@@ -23,6 +23,7 @@ from textual.widgets import Input, TextArea
 from toad.app import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_command_dialog import CommandDialog
 from runtime_fixture import private_native_wire, wait_channel_roster
@@ -185,8 +186,14 @@ async def journey(args):
         await open_channel(app, pilot, '#all')
         await command(comms.root, 'thread-tags', '--name', 'tagged', '--tags', 'first,cli-tag,hidden-tag')
         sidebar = await wait_channel_roster(app, pilot, '#hidden-tag')
-        returned = await open_channel(app, pilot, '#first')
-        assert returned is chat and app.selected_session is original_view
+        label = next(label for label in app.screen.query(SessionLabel)
+                     if label.id == original_view.id)
+        label.scroll_visible(animate=False, immediate=True)
+        await pilot.pause()
+        assert await pilot.click(label)
+        await until(pilot, lambda: app.selected_session is original_view)
+        returned = original_view.query_one(CommsChatView)
+        assert returned is chat
         await until(pilot, lambda: any(item.command == '/pin-channel'
                                       for item in returned.prompt.slash_commands))
         await slash(returned, pilot, '/pin-channel')

@@ -39,6 +39,7 @@ from toad.widgets.prompt import Prompt
 from toad.widgets.message_notifications import MessageNotifications
 from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
+from toad.command_catalog import CommandCatalog
 
 
 def _comms_root() -> Path:
@@ -376,10 +377,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
                              self.query_ancestor(SessionView).id)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/"):
-            catalog = await self.read_command_catalog()
-            if await catalog.execute(event.body.strip(), self):
-                return
+        if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
+            return
         if not event.body.strip():
             return
         if self._unknown_send is not None or self._human_admission_blocked:
