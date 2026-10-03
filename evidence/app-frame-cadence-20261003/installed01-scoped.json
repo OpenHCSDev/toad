@@ -1,0 +1,265 @@
+{
+  "scope": "Qualified original App-owned configurable frame cadence and installed saved-history input/warm resource workflow. Not full smoothness, CPU gain, pixel latency,144Hz delivery or whole IRC/compaction acceptance.",
+  "installed": {
+    "core": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+    "toad": "026bbea315c2e5b020f9a39de9909f35039243d2",
+    "textual": "2fff11abda0605f1973d8bbcc53a833e5aaf5a35",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+    "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+    "holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "public_install_changed": false,
+    "new_environment": false,
+    "new_native_copy": false,
+    "purpose": "Heisenberg382/Text38 original App frame cadence; changed installed input paging/motion/CPU",
+    "allocation_bound_mib": 256
+  },
+  "original_capture": "/home/ts/.cache/agent-scratch/app38-public-input-warm-20261003-01/capture",
+  "raw_receipt_sha256": "37f4ee93bd473241614d82f1250340cbe341ac3f9a60950a8a11deddc11007e2",
+  "raw_completed": true,
+  "capture_completed": true,
+  "operator_exit": 0,
+  "duration_seconds": 105.34333689900814,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_body_count": 41,
+  "native_writer": {
+    "flushed_frames": 1235,
+    "unmatched_enqueues": 0,
+    "phases": [
+      {
+        "action": "input-held-up",
+        "intervals": {
+          "count": 99,
+          "median_ms": 12.77,
+          "p95_ms": 26.86,
+          "p99_ms": 117.19,
+          "max_ms": 178.17
+        },
+        "writer_receipts": 100
+      },
+      {
+        "action": "input-held-down",
+        "intervals": {
+          "count": 134,
+          "median_ms": 11.54,
+          "p95_ms": 27.9,
+          "p99_ms": 41.67,
+          "max_ms": 83.31
+        },
+        "writer_receipts": 135
+      },
+      {
+        "action": "history-up",
+        "intervals": {
+          "count": 149,
+          "median_ms": 10.79,
+          "p95_ms": 20.59,
+          "p99_ms": 25.0,
+          "max_ms": 125.27
+        },
+        "writer_receipts": 150
+      },
+      {
+        "action": "history-down",
+        "intervals": {
+          "count": 143,
+          "median_ms": 10.88,
+          "p95_ms": 20.18,
+          "p99_ms": 25.81,
+          "max_ms": 100.93
+        },
+        "writer_receipts": 144
+      },
+      {
+        "action": "reverse",
+        "intervals": {
+          "count": 137,
+          "median_ms": 12.17,
+          "p95_ms": 23.95,
+          "p99_ms": 28.13,
+          "max_ms": 125.77
+        },
+        "writer_receipts": 138
+      }
+    ],
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification."
+  },
+  "exact_key_windows": [
+    {
+      "action": "input-held-up",
+      "start_ns": 493132449248903,
+      "end_ns": 493134197136182,
+      "start_seconds": 21.275321379012894,
+      "end_seconds": 23.023208657978103
+    },
+    {
+      "action": "input-held-down",
+      "start_ns": 493154610015913,
+      "end_ns": 493156401558858,
+      "start_seconds": 43.43608838896034,
+      "end_seconds": 45.22763133398257
+    },
+    {
+      "action": "history-up",
+      "start_ns": 493163598275386,
+      "end_ns": 493165359666229,
+      "start_seconds": 52.424347861960996,
+      "end_seconds": 54.185738704982214
+    },
+    {
+      "action": "history-down",
+      "start_ns": 493168709096669,
+      "end_ns": 493170435805986,
+      "start_seconds": 57.53516914497595,
+      "end_seconds": 59.26187846198445
+    },
+    {
+      "action": "reverse",
+      "start_ns": 493173913197743,
+      "end_ns": 493175698459906,
+      "start_seconds": 62.73927021899726,
+      "end_seconds": 64.52453238196904
+    }
+  ],
+  "marker_phase_ui_cpu": [
+    {
+      "label": "input-held-up",
+      "start_seconds": 20.151690910977777,
+      "end_seconds": 23.815490069973748,
+      "cpu_seconds": 2.8900000000000006,
+      "average_cpu_percent": 78.87986962669584
+    },
+    {
+      "label": "input-held-down",
+      "start_seconds": 42.39056245901156,
+      "end_seconds": 46.0684612239711,
+      "cpu_seconds": 2.6900000000000013,
+      "average_cpu_percent": 73.1395878980806
+    },
+    {
+      "label": "reverse",
+      "start_seconds": 61.58239141700324,
+      "end_seconds": 65.28288316301769,
+      "cpu_seconds": 2.7699999999999996,
+      "average_cpu_percent": 74.85491632249632
+    },
+    {
+      "label": "idle",
+      "start_seconds": 70.3090023159748,
+      "end_seconds": 86.99073630897328,
+      "cpu_seconds": 3.719999999999999,
+      "average_cpu_percent": 22.29984006195834
+    }
+  ],
+  "cpu_scope": "Phase markers include exports/backgroundthreads; exact-key-window CPU not available. Public workload changed (41readybodies now vs37), no causal CPU comparison.",
+  "comparison37": {
+    "input_up_p95_ms": 47.51,
+    "input_up_median_ms": 17.73,
+    "input_up_cpu_percent": 75.69,
+    "input_down_cpu_percent": 59.31,
+    "reverse_cpu_percent": 64.65,
+    "scope": "Same Core/native/sourcefamily preceding checkpoint; public source/workload not frozen. Writer change observed, not isolated causal benchmark; current CPU higher."
+  },
+  "profile": {
+    "sample_count": 1082,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
+    "alignment_nominal_uncertainty_seconds": 0.0865939975110814,
+    "threads": "gil",
+    "limits": [
+      "Scheduler delays and sampling errors can increase clock uncertainty",
+      "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+      "GIL-owner samples cover Python execution; released-GIL/native work is omitted, so corroborate with kernel CPU counters",
+      "Chrome transitions omit unchanged stack samples; counts below are observed transition groups, not samples, calls, durations or CPU time",
+      "Threads remain separate; recursive frame identities count once per observed stack",
+      "Kernel counter deltas give per-process CPU time at action boundaries",
+      "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+      "No automatic inference that a UI frame passed or a function is redundant"
+    ]
+  },
+  "motion_review": {
+    "up_during": {
+      "ui_pid": 3271769,
+      "origin": 493111.173927524,
+      "start": 21.425321379012892,
+      "seconds": 0.8,
+      "frames": 48,
+      "capture_fps": 60,
+      "inspection": "Personally viewed48 consecutive original frames in exact firstheldUp band while sameUIalive before/after. Body advances upward with repeated positions/discrete chunks; chrome readable. No smoothness/144Hz claim.",
+      "encoded_at": 493186.649398017,
+      "ui_alive_before_view": true,
+      "before_view_at": 493186.649414418,
+      "after_view_at": 493207.400856461,
+      "ui_alive_after_view": true
+    },
+    "after_terminal": [
+      "input-held-down-frames.png",
+      "reverse-frames.png",
+      "phase-a-return.png",
+      "phase-idle-done.png"
+    ],
+    "assessment": "Personally reviewed consecutive heldUp DURING sameUI; heldDown/reverse and Areturn/Endidle AFTER terminal. Readable history advances in discrete chunks/repeated frames; no smoothness/144Hz claim. Areturn nativeA/body/draft/NRAfooter readable; sidebar roving peerhighlight is not whole-rowselection acceptance.",
+    "capture_fps": 60,
+    "app_target_hz": 144,
+    "scope": "CaptureFPS and nativewriter receipts are not changed-pixel presentationFPS. Raw receipt assessment remains unchanged."
+  },
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3030714,
+      "start_time": 48917359
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3030714,
+      "start_time": 48917359
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_same": true,
+  "runtime_unchanged": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit": {
+    "pid": 3271768,
+    "start_ticks": 49311002,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "terminal_exit_scope": "Transferred original launch identity is not explicit application-exit0 proof; FFmpeg255 normal SIGINT, operator0.",
+  "sanity": "40native animation/selection/timerdeadline/lifetime passed8.23s; installed2000rowThrobber busy0\u21921\u21922\u21921\u21920 geometry/scroll unchanged, existingtimer reused;69installed source/assets/nativeFulltrust/pipcheck passed.",
+  "remaining": "FullCPU/layout/style/paint/raster/cold/warm/workerpureprep/IRC+DMbusy/sidebar/animation/3viewportadaptivevelocity/reverse/idle/growingEnd/void/focus/draft/undo/TC1/T9/T4/144Hz stay active. Kepler reads existingStyles mutation impact\u2192height proof invalidation; no shadow counter/guard or unchangedrecording."
+}

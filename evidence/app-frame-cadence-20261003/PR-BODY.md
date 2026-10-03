@@ -9,3 +9,11 @@ Carry ALL CPU/raster/firstpaint/cold/warm/workerpureprep/IRC+DMbusy/sidebar/anim
 Delete CLI import-time TEXTUAL_FPS120 policy and native Screen.UPDATE_PERIOD dependency. Throbber derives actualApp.frame_interval when no explicit caller override is supplied; its original mounted/busy/visibility/timerresource remains. Explicitoverride and intentional sidebar spinner preference stay separate. Existing busy-pilot reference migrates to originalApp.frame_interval; no oldperiodalias/fallback/copy. Native38 owns shared144Hz overridable scheduling target; no claim actual144Hz or gain before changedinstalled verification. Coref109/native915 unchanged pairedsource, no public/global mutation.
 
 Full remaining CPU/layout/style/paint/raster/cold/warm/runway/velocity/reverse/idle/growingEnd/void/focus/IRCbusy/sidebar/animation/TC1/T9/T4 retained. Native35/36/37 rawfilms and qualifiedreceipts preserved. No unchanged recording.
+
+## Changed installed qualification
+
+Normal69 installed Coref109/Toad026bbea3/Text2fff/native915 source+allassets/directURLs/nativefulltrust match. Original public read-only nra saved-history run completed105.343s:16warm+7input checks,41readybody resources retained, originalowner/runtime unchanged,cleanupempty. First exactheldUp48consecutive frames personally viewed DURING sameUIalive before+after; Down/reverse/Areturn/Endidle reviewedAFTER. History readable but discrete/repeated positions, notsmooth.
+
+ExactheldUp nativewriter median12.77/p9526.86/max178.17ms (previous37median17.73/p9547.51); Down11.54/27.90,reverse12.17/23.95.1235flushes/0unmatched. Writer≠pixelFPS/inputpixel latency. MarkerUIcpu78.88/73.14/74.85%,Endidle22.30, includesexports/backgroundthreads; no CPUgain, publicworkloadnotfrozen.1082reportedGILsamples0errors,approxalignment±.08659s. Target144Hz is declared scheduling intent, not measured terminaldelivery.
+
+Rawreceipt unchanged; separate installed01-scoped.json/source-proof capture exactlimits including transferredterminalidentity notexplicitUIexit0. Native40checks8.23s plus installedbusy2000rowstablegeometry. ScopedReady sharedcadence+actualinput/warmworkflow, fullperformance remains active; no unchangedrecording.
