@@ -34,8 +34,7 @@ class SessionAdmissions:
         app = self.app
         session_id = self.initial_session_id
         self.initial_session_id = None
-        return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id).data_bind(column=type(app).column,
-                column_width=type(app).column_width, scrollbar=type(app).scrollbar)
+        return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id)
 
 
     async def reveal(self) -> None:
@@ -119,8 +118,7 @@ class SessionAdmissions:
                 await app.select_session(existing.mode)
                 return
         await self.new(lambda: MainScreen(project, agent, agent_session_id,
-            session_pk=session_pk, initial_prompt=initial_prompt).data_bind(
-            column=type(app).column, column_width=type(app).column_width, scrollbar=type(app).scrollbar),
+            session_pk=session_pk, initial_prompt=initial_prompt),
             title=title or "New Session")
 
     async def history(self, *, owner_mode: str, project_path: Path, me: str, target: str,

@@ -126,20 +126,20 @@ class UiSettings(RendererSettings):
         title="Enable column?",
         default=False,
         help="Enable for a fixed column size. Disable to use the full screen width.",
-        effect=effects.column,
+        effect=effects.conversation_layout,
     )
     column_width = IntegerSetting(
         title="Width of the column",
         default=100,
         help="Width of the column if enabled. Minimum 40 characters.",
         minimum=40,
-        effect=effects.column_width,
+        effect=effects.conversation_layout,
     )
     scrollbar = ChoiceSetting(
         Scrollbar,
         title="Scrollbar size",
         default=NormalScrollbar,
-        effect=effects.scrollbar,
+        effect=effects.conversation_layout,
     )
     throbber = ChoiceSetting(
         LoadingStyle,

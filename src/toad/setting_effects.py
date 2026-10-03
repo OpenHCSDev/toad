@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.setting_choices import Scrollbar, SessionBar
+    from toad.setting_choices import SessionBar
     from toad.native_themes import ThemeChoice
 
 
@@ -23,24 +23,21 @@ def history_buffer_viewports(app: ToadApp, value: int) -> None:
                 history.prepare_scroll()
 
 
-def column(app: ToadApp, value: bool) -> None:
-    app.column = value
+def conversation_layout(app: ToadApp, value: object) -> None:
+    """Invalidate native layout; the renderer reads the original preference tree."""
+    from toad.widgets.conversation import Conversation
+
+    for view in app.workspace_sessions.views.values():
+        for conversation in view.query(Conversation):
+            conversation.apply_layout_preferences()
 
 
 def sidebar_spinner_frames_per_second(app: ToadApp, value: int) -> None:
     app.workspace_chrome.channels.roster.projection.update_animation_cadence()
 
 
-def column_width(app: ToadApp, value: int) -> None:
-    app.column_width = value
-
-
 def theme(app: ToadApp, value: type[ThemeChoice]) -> None:
     app.theme = value.theme.name
-
-
-def scrollbar(app: ToadApp, value: type[Scrollbar]) -> None:
-    app.scrollbar = value.declared_name
 
 
 def compact_input(app: ToadApp, value: bool) -> None:
