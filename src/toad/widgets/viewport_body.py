@@ -141,9 +141,11 @@ class BodyMeasurement(ABC):
 
     def publication_finished(self, body, worker):
         """A settled resource does not own this worker's publication."""
+        return self
 
     def publication_failed(self, body, worker):
         """A replaced publication cannot invalidate another resource."""
+        return self
 
     def released(self):
         return self
@@ -316,11 +318,20 @@ class MaterializingBody(BodyMeasurement):
 
     def publication_finished(self, body, worker):
         if self.worker is worker:
-            body.native_body_committed()
+            if body._body_measurement is self:
+                # Only the current writer exposes its newly committed native
+                # tree. A newer writer still borrows the preceding pixels.
+                body.refresh(layout=True)
+                return LiveBody(self.width, self.rows, self.widgets)
+            return self.previous
+        return self._updated(self.previous.publication_finished(body, worker))
 
     def publication_failed(self, body, worker):
         if self.worker is worker:
-            body._update_body_measurement(MeasuredBody(self.width, self.rows, self.widgets))
+            if body._body_measurement is self:
+                return MeasuredBody(self.width, self.rows, self.widgets)
+            return self.previous
+        return self._updated(self.previous.publication_failed(body, worker))
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -447,11 +458,6 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_viewport is not None:
             self._body_viewport.request()
 
-    def native_body_committed(self):
-        previous = self._body_measurement
-        self._update_body_measurement(LiveBody(previous.width, previous.rows, previous.widgets))
-        self.refresh(layout=True)
-
     def notify_style_update(self):
         super().notify_style_update()
         # Notification is not a rule mutation. Retained rows depend on the
@@ -518,9 +524,11 @@ class MeasuredViewportBody(ViewportBody):
                     self._update_body_measurement(self._body_measurement.publication_prepared(worker, prepared))
                 await (self.materialize_native_body() if work is None else work())
                 if self.is_attached:
-                    self._body_measurement.publication_finished(self, worker)
+                    self._update_body_measurement(
+                        self._body_measurement.publication_finished(self, worker))
             except BaseException:
-                self._body_measurement.publication_failed(self, worker)
+                self._update_body_measurement(
+                    self._body_measurement.publication_failed(self, worker))
                 raise
 
         worker = self.run_worker(materialize(), group="body-materialization", exit_on_error=False)
