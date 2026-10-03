@@ -1,0 +1,8 @@
+{
+  "installed_source": "bc156346400a2e277f9e5284ca2855d6810059a5",
+  "normal_branch_head": "0c7307400157e7caff2cff938123db9613434877",
+  "merged387": "24db8023edef95ea4ff0a2e59174a54649c39c56",
+  "source_and_configuration_byte_equal": true,
+  "source_changed_after_final_installed_gate": false,
+  "reinstall_for_docs_merge": false
+}

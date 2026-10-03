@@ -1,0 +1,57 @@
+{
+  "state": "ready-scoped-original-terminal-execution-owner",
+  "tested_product": "39781c5f6fe0d93b03faa7c554f70acf56e402bd",
+  "installed_receiver_toad": "bc156346400a2e277f9e5284ca2855d6810059a5",
+  "production": {
+    "files": 5,
+    "added": 100,
+    "deleted": 207,
+    "new_classes": 0
+  },
+  "owners": {
+    "invocation": "Existing Command.script, compiled once by script/argv boundary factories",
+    "execution": "Existing TerminalExecution, TerminalOperation and PtyProcess/AttachedChild",
+    "model": "Original TerminalState borrowed across sequential catalog bootstrap/main",
+    "presentation": "Existing CommandPane/ActionModal borrowing the original resource, no PID/FD/task/code/config copies"
+  },
+  "deleted_paths": [
+    "CommandPane separate PTY/process/reader/return-code/input/resize/signal/retirement implementation",
+    "Unconsumed cooked-query facade, rather than new compatibility hooks",
+    "ActionModal _command/_env/_cwd fields",
+    "Command command/args storage, whitespace heuristic and label parse-back"
+  ],
+  "source_evidence": {
+    "before": "before-owner-consumers.json",
+    "after": "after-owner-consumers.json",
+    "modules": {
+      "production": 288,
+      "tests": 391
+    },
+    "omissions": [],
+    "limits": "Lexical AST plus semantic source read; dependency declarations read, not complete dependency-root/dynamic resolution census"
+  },
+  "installed": {
+    "result": "pass",
+    "terminal_exit": 0,
+    "source_assets": 319,
+    "source_mismatches": [],
+    "before": "installed-source-proof-before.json",
+    "after_and_cleanup": "cleanup.json",
+    "original_journey": "installed01/catalog-only-receipt.json",
+    "log": "installed01.log",
+    "providers": 0,
+    "native_pi_inputs": 0,
+    "scope": "Installed real App/Pilot/catalog/editor/PTY plus registered original ACP create/wait/output/release; not subprocess ACP transport, native Pi, physical st or authentication",
+    "render_exports": [
+      "installed01/command-bootstrap-exit0.png",
+      "installed01/command-input-exit0.png"
+    ],
+    "raw_log_qualification": "10 unchanged shell_read OSError(5) messages at PTY EOF; completion/retirement assertions pass, no blanket zero-log-error claim."
+  },
+  "candidate": "334 released back to sole receiver after terminal/cleanup; current live485 never modified by this owner",
+  "limits": [
+    "No default/public installation",
+    "No performance or full headless completion claim",
+    "No paid provider/native/authentication gate"
+  ]
+}
