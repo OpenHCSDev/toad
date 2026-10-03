@@ -320,7 +320,7 @@ class MaterializingBody(BodyMeasurement):
 
     def publication_failed(self, body, worker):
         if self.worker is worker:
-            body._body_measurement = MeasuredBody(self.width, self.rows, self.widgets)
+            body._update_body_measurement(MeasuredBody(self.width, self.rows, self.widgets))
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -431,24 +431,25 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.paint_bytes
 
     def release_paint(self):
-        self._body_measurement = self._body_measurement.released()
+        self._update_body_measurement(self._body_measurement.released())
 
     def invalidate_body(self):
-        self._body_measurement = self._body_measurement.invalidated()
-        if self._body_viewport is not None:
-            self._body_viewport.request()
+        self._update_body_measurement(self._body_measurement.invalidated())
 
     def _update_body_measurement(self, measurement):
         if measurement is self._body_measurement:
             return
         self._body_measurement = measurement
+        # The resource owns descendant participation and cover selection as
+        # well as extent. Publish that change before any native prune awaits;
+        # NodeList removal happens later and cannot invalidate it for us.
+        self._invalidate_subtree_geometry()
         if self._body_viewport is not None:
             self._body_viewport.request()
 
     def native_body_committed(self):
         previous = self._body_measurement
-        self._body_measurement = LiveBody(previous.width, previous.rows, previous.widgets)
-        self._invalidate_subtree_geometry()
+        self._update_body_measurement(LiveBody(previous.width, previous.rows, previous.widgets))
         self.refresh(layout=True)
 
     def notify_style_update(self):
@@ -514,7 +515,7 @@ class MeasuredViewportBody(ViewportBody):
                     # this original resource while byte preparation awaited.
                     if prepared.width != self._body_measurement.width:
                         prepared = prepared.invalidated()
-                    self._body_measurement = self._body_measurement.publication_prepared(worker, prepared)
+                    self._update_body_measurement(self._body_measurement.publication_prepared(worker, prepared))
                 await (self.materialize_native_body() if work is None else work())
                 if self.is_attached:
                     self._body_measurement.publication_finished(self, worker)
@@ -524,8 +525,7 @@ class MeasuredViewportBody(ViewportBody):
 
         worker = self.run_worker(materialize(), group="body-materialization", exit_on_error=False)
         current = MaterializingBody(previous=previous, worker=worker)
-        self._body_measurement = current
-        self._invalidate_subtree_geometry()
+        self._update_body_measurement(current)
         self.refresh(layout=True)
         return current
 
@@ -610,7 +610,7 @@ class MeasuredViewportBody(ViewportBody):
                     or self._body_viewport is None
                     or self in self._body_viewport.protected()):
                 return False
-            self._body_measurement = rendered
+            self._update_body_measurement(rendered)
             self.retire_body_resources()
             await self.remove_children(children)
             self.refresh(layout=True)
@@ -629,7 +629,7 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_measurement is measurement:
             # Extent measurement updates its current resource; it cannot
             # replace a pending worker or overwrite width invalidation.
-            self._body_measurement = measurement.measured(width, height)
+            self._update_body_measurement(measurement.measured(width, height))
         return height
 
     def get_content_width(self, container, viewport):
@@ -641,7 +641,7 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_viewport is not None:
             self._body_viewport.discard(self)
             self._body_viewport = None
-        self._body_measurement = LiveBody()
+        self._update_body_measurement(LiveBody())
 
     def on_mount(self):
         from toad.screens.workspace import WorkspaceScreen

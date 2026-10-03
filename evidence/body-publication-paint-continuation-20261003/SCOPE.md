@@ -105,3 +105,25 @@ algorithm serves publication and retirement; no new class or semantic authority.
 Draft399 is not Ready: one normally installed joined399/43 saved-history
 motion/profile run remains. Kepler owns native43 sanity; Heisenberg alone records
 the joined pair. Parent's595/397 diagnostic exporter fields remain untouched.
+
+## Measurement transition and native geometry
+
+Native SubtreeGeometryKey derives NodeList/style/geometry revisions, not the
+is_container or render-widget hooks. Retiring native children only invalidates
+their map after task exit. The original body measurement transition now publishes
+its geometry revision synchronously before any prune await. Publication success,
+failure, capture completion, paint eviction, explicit invalidation, measured
+extent, retirement and unmount all use that same existing method. Only construction
+initializes the member directly. Replaced direct assignments and duplicate native
+geometry calls are deleted. No new epoch, flag, cache, type or native patch.
+
+The existing viewport request remains immediate: deferring reconstruction until
+a completed frame would wait on the very body readiness it must restore. Native
+geometry invalidation happens before that original request; unchanged resources
+return without publication. This closes a source dependency, not a demonstrated
+physical failure or speed claim. Native43 remains frozen21011cf0.
+
+Style22 package writes are sequentially leased to Einstein400 for one original
+ACP/App plan fixture, no provider/public inputs. Its current399/43 source proof,
+activation and inventories are archived at staging-body399-damage43/pre400-installed-proof.
+Source work continues independently; no code/run borrows occur until handback.
