@@ -25,6 +25,7 @@ from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
 from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
                                  marker_command, phase_events, main as record_main)
@@ -197,11 +198,17 @@ async def exercise_native_destination(app, pilot, root):
     assert isinstance(history, TranscriptHistory) and history.loader is not None
     await until(lambda: history.state.accepts_source_work)
     reader = history._reader()
+    destination = PageRequest(before=history.through)
     entered, release = asyncio.Event(), asyncio.Event()
     original = reader.get
 
     async def held_read(request):
         prepared = await original(request)
+        # The prepared source also serves ordinary edge and lookahead reads.
+        # Hold only the original destination request, not whichever read wins
+        # the scheduling race after the physical End key.
+        if request != destination:
+            return prepared
         entered.set()
         await release.wait()
         return prepared
@@ -224,7 +231,10 @@ async def exercise_native_destination(app, pilot, root):
         finally:
             release.set()
         await until(lambda: history.state is not operation)
-        assert window.scroll_revision == revoked_revision and not window.follows_tail
+        assert window.scroll_revision == revoked_revision and not window.follows_tail, (
+            "Native destination revocation changed during source completion",
+            revoked_revision, window.scroll_revision, window.follows_tail,
+        )
     window.focus()
     await pilot.press('end')
     await until(lambda: history.checkpoint_available and not history.has_newer

@@ -144,3 +144,43 @@ resource root. The operator now supplies the recording output explicitly while
 structured fixture evidence stays in the persistent WT. No recorder guard,
 budget or product code changed. Cleanup reported no remaining children/errors.
 This attempt establishes neither installed End failure nor End acceptance.
+
+## Complete driver/resource review and native revocation
+
+Reviewed the actual source-capture builder, Current/OriginalTypedCapture,
+RetainedOwnerLaunch, native SDK fork, private route declaration, RuntimeSelection,
+SourceCapture, PhysicalJourney/ObserveJourney actions, recorder output/config/
+clock/observer acquisition, installed ToadApp and native source reader, pending
+read release, ProcessOwner finalization and private daemon teardown together.
+The wrapper imports installed Toad/Core/Textual; its source entrypoint is a driver,
+not a replacement application. Recorder metadata still labels that source-entry
+boundary honestly. Normal all-four-package inventories separately identify the
+installed product. Decoder helpers remain current558; only launch observation
+uses the authenticated original interpreter. No public inputs/restarts.
+
+Attempt03 physically opened the installed App on the original 41 MB copy.
+It reached End, held an original prepared read, then Home revoked follow intent.
+The compound revision/follow assertion failed after source completion; no App
+exception. Exported Window remained off-tail (scroll0, maximum302), but revision
+values were not exported, so the failure does not prove follow was restored.
+The final movie frame is terminal teardown, not evidence of a blank chat.
+IRC was not reached. Fixture elapsed35.653s; raw movie25.533s; zero native inputs;
+original hash unchanged; recorder and outer cleanup both empty/zero errors.
+Original raw and failure evidence are retained; no End or smoothness Ready claim.
+
+The complete source path identified two concrete corrections in one batch:
+
+- The same PreparedPageSource serves destination, edge and prefetch requests.
+  The driver now holds only the existing PageRequest selected from the original
+  destination cursor, not the first unrelated read that completes. The original
+  decoded result is untouched; release remains in finally. Revocation assertions
+  remain strict and now include both revision values and actual follow state.
+- TranscriptHistory._load_page redundantly released an already off-tail anchor
+  before original preserve_history. That leaf decision increments the Window's
+  user revision and resets its scroll target during source publication. Heisenberg
+  granted deletion: protect_history/preserve_history and HistoryAnchor already
+  own reader intent and native compensation. Six production lines were deleted;
+  no Window/native edits, boolean bypass or new authority.
+
+The movie/owner budgets remain44/60 seconds. Existing holder is reused only after
+verified cleanup; no new environment, native package, full motion or provider run.
