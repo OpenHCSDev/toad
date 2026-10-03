@@ -1,0 +1,114 @@
+{
+  "state": "SCOPED READY: source/body publication custody and native registration lifetime; full performance OPEN",
+  "tested_toad": "366504d9dcd225fdb6b961060afa11cb5d9daddc",
+  "textual": "161461f59df6acae265992ba39e3b818532bbc3b",
+  "core": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-frame396-registration42-20261003/source-proof.json",
+  "source_proof_sha256": "26b499976d0060365ccb5b959f51c1ec877a893c67814596a09179d548bb2557",
+  "actual_receipt": "/home/ts/.cache/agent-scratch/frame-publication396-registration42-public-20261003-01/capture/receipt.json",
+  "raw_hashes": {
+    "receipt.json": "3dbaca5f95c72e939e67d9fac54f3994a550fd8f1fd6b2e9e9da01457d93f574",
+    "terminal.mp4": "7449daf0a51918156d27df520fa3ef577bba9d191c57797339361bd606479c8c",
+    "driver.log": "5a16a809849d2d471e567380b76b2fdd88ce1882479b33dade36f70f69f64485",
+    "cpu-profile.json": "e8732e095eb3a98a116478ab05bb7e09ecf36f8bf36c3ec3292e5c8efe96db92",
+    "after-state-frames.json": "7786588deacba0e92cac17857170bb10c82e8abcb414a4524bc5de514644adf8",
+    "scroll-travel.jsonl": "4d680424aa1acd855b21e9ef36843301551c368f1103f3a65375899901c2bfeb"
+  },
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 119.20934301899979,
+  "checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "retained_ready_body_ids": [
+    140093829555984,
+    140093829556944,
+    140093829558864,
+    140094521238992,
+    140094531355664,
+    140094531361744,
+    140094531362704,
+    140094531363024,
+    140094531364624,
+    140094531364944,
+    140094531370384,
+    140094531815696,
+    140094531816976,
+    140094537206032,
+    140094537206672,
+    140094543252048,
+    140094543254288,
+    140094543254608,
+    140094543254928,
+    140094545750096,
+    140094922520400,
+    140094950432016
+  ],
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 273750,
+      "start_time": 51407286
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 273750,
+      "start_time": 51407286
+    },
+    "original_owner_alive": true
+  },
+  "runtime_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "terminal_exit": {
+    "pid": 508994,
+    "start_ticks": 51830441,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "terminal_exit_limit": "Profiled launch transferred to ObservedProcess; no explicit UI returncode=0 claim",
+  "production_delta": "TranscriptHistory family one production file 61 added/29 deleted; Textual App one file 28 added/14 deleted",
+  "limits": [
+    "Writer completion is not pixel FPS or input-to-pixel latency",
+    "Kernel marker windows include exports; exact key bounds apply only to writer data",
+    "22 current retained bodies vs 38 in393; different source/admission/activity: comparison is descriptive, not causal gain",
+    "During-motion inspection missed; exact held-key consecutive frames reviewed AFTER",
+    "1265 GIL samples/1error, no unprofiled observer-overhead comparison",
+    "No smoothness/144Hz/overall CPU improvement claim"
+  ],
+  "remaining": "Live body worker still requires ready paint; initial mount/native frame gate, busy IRC, CPU, smoothness and whole original scope remain active"
+}
