@@ -203,7 +203,7 @@ class RenderCancellation:
 class RenderSubmission(RenderCancellation, Generic[ResultT]):
     request_id: UUID
     task: RenderTask[ResultT]
-    result: asyncio.Future[ResultT]
+    result: asyncio.Future[object]
 
 class RendererSessionFailed(RuntimeError):
     """An uncertain transport outcome ends this client lease; use a new client."""
@@ -279,7 +279,7 @@ class PersistentRendererPool(Renderer):
             raise
         return await task.complete(running)
 
-    async def _run(self, submission: RenderSubmission[ResultT]) -> ResultT:
+    async def _run(self, submission: RenderSubmission[ResultT]) -> object:
         command: RenderCommand | None = SubmitRender(self._client_id, submission.request_id, submission.task)
         while command is not None:
             reply = await command.exchange(self, submission)

@@ -12,6 +12,7 @@ from textual.worker import Worker, WorkerState
 from toad.render_runtime import PersistentRenderClient
 from toad.render_service import RenderServiceConfig
 from toad.render_zmq import PersistentRendererPool
+from toad.acp.sdk_boundary import ToolCallWire
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview
@@ -55,12 +56,12 @@ async def main() -> None:
                     await response.update(source)
                     await pilot.pause()
                     assert response.query_one(MarkdownFence).code.startswith("value = 123")
-                    tool = await app.selected_session.conversation.post(ToolCall({
+                    tool = await app.selected_session.conversation.post(ToolCall(ToolCallWire.decode({
                         "toolCallId": "persistent", "kind": "edit", "title": "Synthetic edit",
                         "status": "completed", "content": [{"type": "content", "content": {
                             "type": "resource", "resource": {"mimeType": "text/x-diff", "text": PATCH},
                         }}],
-                    }))
+                    })))
                     tool.set_expanded(True)
                     diff = await wait_for_tool_diff(tool, pilot)
                     assert diff.patch == PATCH
@@ -74,11 +75,11 @@ async def main() -> None:
                     assert f"PERSISTENT_PREVIEW_{index}" in "\n".join(line.text for line in content._prepared.lines)
                     await app.session_navigation.close(app.selected_mode)
                     read_source = f"def persistent_read_{index}():\n    return 42\n\n"
-                    read_tool = await app.selected_session.conversation.post(ToolCall({
+                    read_tool = await app.selected_session.conversation.post(ToolCall(ToolCallWire.decode({
                         "toolCallId": f"persistent-read-{index}", "kind": "read", "title": "Read module.py",
                         "status": "completed", "rawInput": {"path": "module.py"},
                         "content": [{"type": "content", "content": {"type": "text", "text": read_source}}],
-                    }))
+                    })))
                     read_tool.set_expanded(True)
                     async with asyncio.timeout(10):
                         while not read_tool.query(WorkerStatic):
