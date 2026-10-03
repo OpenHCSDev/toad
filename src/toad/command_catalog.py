@@ -13,37 +13,50 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CommandCatalog:
-    advertised: Sequence[AgentAdvertisedCommand]
+    entries: tuple[CommandPresentation, ...]
     context: TargetContext | None = None
 
-    @property
-    def entries(self) -> tuple[CommandPresentation, ...]:
+    @classmethod
+    async def read(cls, app, advertised: Sequence[AgentAdvertisedCommand],
+                   context: TargetContext | None = None):
+        """Acquire one operation's projection through the shared read worker.
+
+        This value is consumed by a refresh or execution and then released;
+        widgets retain completion display resources, never applicability.
+        """
+        from agent_comms.errors import UnregisteredThreadError
+
         # Local declaration spelling remains authoritative when unavailable.
-        commands = {command.command: command for command in self.advertised}
-        if self.context is not None:
-            for definition in self.context.current().available_actions():
-                command = ThreadCommand(definition)
-                commands[command.command] = command
+        commands = {command.command: command for command in advertised}
+        if context is not None:
+            try:
+                definitions = await app.preparation.run_thread(context.available_actions)
+            except UnregisteredThreadError:
+                # A shell-only view has no backend thread. The registry query,
+                # rather than a second UI-side presence read, owns that fact.
+                context = None
+            else:
+                for definition in definitions:
+                    command = ThreadCommand(definition)
+                    commands[command.command] = command
         for member in SlashCommand.members_with(LocalCommand):
             command = member()
             commands[command.command] = command
-        return tuple(sorted(commands.values(), key=lambda command: command.command))
+        return cls(tuple(sorted(commands.values(), key=lambda command: command.command)), context)
 
     @property
     def commands(self) -> list[SlashCommand]:
-        actions = ()
         return [choice for command in self.entries
-                for choice in command.completion(self.context, actions)]
+                for choice in command.completion(self.context)]
 
     @property
     def target_choices(self):
-        actions = ()
         return tuple(choice for command in self.entries
-                     for choice in command.target_choices(self.context, actions))
+                     for choice in command.target_choices(self.context))
 
     async def execute(self, text: str, conversation: Conversation) -> bool:
         name, _, arguments = text.partition(" ")
-        command = next((command for command in self.entries
+        command = next((command for command in self.commands
                         if command.command == name), None)
         if command is None:
             return False

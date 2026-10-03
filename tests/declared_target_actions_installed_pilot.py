@@ -99,23 +99,23 @@ async def journey(args):
         assert comms.registry.require('tagged').tags == frozenset({'first','second'})
         checks.append('native-right-click-thread-tags-original-membership')
         await until(pilot, lambda: '#second' in sidebar.projection.channels)
-        channel = sidebar.projection.channels['#second'].row
+        channel = sidebar.projection.channels['#second']
         await choose(app, pilot, channel, 'rename-tag', {'new_name': 'renamed'}, base)
         assert comms.registry.require('tagged').tags == frozenset({'first','renamed'})
         await until(pilot, lambda: '#renamed' in sidebar.projection.channels and '#second' not in sidebar.projection.channels)
         checks.append('native-right-click-rename-observed-current-sidebar')
         app.save_screenshot(str(base / 'renamed-sidebar.svg'))
-        builtin = sidebar.projection.channels['#all'].row
+        builtin = sidebar.projection.channels['#all']
         menu = await open_menu(app, pilot, builtin)
         assert not {'rename-tag','delete-tag','delete-view'} & menu.keys()
         await pilot.press('escape')
         checks.append('builtin-applicability-owned-by-backend')
-        channel = sidebar.projection.channels['#renamed'].row
+        channel = sidebar.projection.channels['#renamed']
         await choose(app, pilot, channel, 'delete-tag', {}, base)
         assert comms.registry.require('tagged').tags == frozenset({'first'})
         await until(pilot, lambda: '#renamed' not in sidebar.projection.channels)
         checks.append('native-reviewable-delete-original-tags-updated')
-        view = sidebar.projection.channels['#projection'].row
+        view = sidebar.projection.channels['#projection']
         await choose(app, pilot, view, 'delete-view', {}, base)
         assert 'projection' not in comms.channels.catalog.read().saved_views
         checks.append('native-saved-view-delete-original-catalog')

@@ -64,12 +64,15 @@ class ThreadActionExecution:
         self.subject, self.actor, self.session_modes = subject, actor, session_modes
         self.task = asyncio.create_task(self.run(), name="thread-action")
 
+    def apply(self):
+        access = self.owner.app.coordination_access
+        comms = access.require(self.selected)
+        return access.write(self.selected, self.action.request.apply, comms)
+
     async def run(self):
         app = self.owner.app
         try:
-            comms = app.coordination_access.require(self.selected)
-            result = await asyncio.to_thread(app.coordination_access.write,
-                self.selected, self.action.request.apply, comms)
+            result = await app.preparation.run_thread(self.apply)
             # Original start result owns whether a connection changed. This is
             # native connection resource refresh, never backend status mutation.
             await self.action.completed(app, self.session_modes, result)

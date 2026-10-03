@@ -37,29 +37,37 @@ class TargetContext:
         return self
 
     def available_actions(self):
+        from toad.comms_root import RouteSelection
+        selected = RouteSelection.capture(self.comms.root)
         self.current()
-        return TargetActionsCliCommand(target=self.subject, channel=self.channel, project=str(self.project)).apply(self.comms)['actions']
+        actions = TargetActionsCliCommand(target=self.subject, channel=self.channel, project=str(self.project)).apply(self.comms)['actions']
+        if RouteSelection.capture(self.comms.root) != selected:
+            raise ValueError('Comms route changed during command discovery')
+        return actions
 
     def show_menu(self, sidebar, offset):
         from toad.widgets.comms_menu import show_target_menu
+        from toad.screens.session_view import SessionView
         selected_screen = sidebar.app.screen
+        source = sidebar.query_ancestor(SessionView)
         async def read():
             try:
-                choices = await sidebar.app.preparation.run_thread(self.command_choices)
-                if not sidebar.is_attached or sidebar.app.screen is not selected_screen:
+                choices = await self.command_choices()
+                if (not sidebar.is_attached or not source.is_current
+                        or sidebar.app.screen is not selected_screen):
                     return
-                self.current()
                 show_target_menu(selected_screen, offset, self.subject,
                     [(command.command.removeprefix('/'), command.label(self)) for command in choices],
                     {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
                      for command in choices})
             except (OSError, ValueError) as error:
                 sidebar.notify(str(error), title='Target actions', severity='error')
-        sidebar.run_worker(read(), name='target-menu', exit_on_error=False)
+        sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True,
+                           exit_on_error=False)
 
-    def command_choices(self):
+    async def command_choices(self):
         from toad.command_catalog import CommandCatalog
-        return CommandCatalog((), self).target_choices
+        return (await CommandCatalog.read(self.app, (), self)).target_choices
 
     def execute_menu(self, sidebar, command):
         try:
@@ -72,12 +80,12 @@ class TargetContext:
 class ContextualCommand(CommandPresentation, ABC):
     command: str
 
-    def target_choices(self, context: TargetContext | None, available_actions):
+    def target_choices(self, context: TargetContext | None):
         return (self,) if context is not None and self.available(context) else ()
 
-    def completion(self, context: TargetContext | None, available_actions):
+    def completion(self, context: TargetContext | None):
         return tuple(TargetSuggestion(command, context)
-                     for command in self.target_choices(context, available_actions))
+                     for command in self.target_choices(context))
 
     @abstractmethod
     def available(self, ctx: TargetContext) -> bool: ...
@@ -95,14 +103,9 @@ class ContextualCommand(CommandPresentation, ABC):
             )
         return self
 
-    def target_context(self, ctx: TargetContext) -> TargetContext:
-        return ctx
-
-    async def apply(self, conversation: Conversation) -> bool:
-        ctx = conversation.command_target_context()
-        if ctx is None:
-            raise ValueError("No current target for this command")
-        ctx = self.target_context(ctx).current()
+    async def apply(self, conversation: Conversation, ctx: TargetContext) -> bool:
+        if await conversation.command_target_context() != ctx:
+            raise ValueError("Command target changed; refresh this view")
         if not self.available(ctx):
             raise ValueError("Action is no longer available for this target")
         self.execute(ctx)
@@ -183,4 +186,4 @@ class TargetSuggestion(SlashCommand):
         return type(self)(self.choice.parse_arguments(arguments), self.context)
 
     async def apply(self, conversation: Conversation) -> bool:
-        return await self.choice.apply(conversation)
+        return await self.choice.apply(conversation, self.context)

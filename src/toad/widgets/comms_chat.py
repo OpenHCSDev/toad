@@ -184,6 +184,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
             if self.is_attached:
                 self.call_after_refresh(self.prepare_prompt)
             return
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(self.app.events)
         self.update_slash_commands()
         prompt.agent_info = self.agent_info
         prompt.sync_session()
@@ -316,7 +318,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
             if not root_is_current(comms.root):
                 self.display = False
                 return
-            self.update_slash_commands()
             revision = read.revision
             if reader.source.matches_revision(revision):
                 self.call_after_refresh(self.message_history.mark_visible)
@@ -367,16 +368,18 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if self.message_history.has_newer or (self.message_history.has_older and self.window.max_scroll_y == 0):
             self.call_after_refresh(self.message_history._scroll_changed)
 
-    def command_target_context(self):
+    async def command_target_context(self):
         from toad.target_commands import TargetContext
         if self.message_history.reader is None:
             return None
-        return TargetContext.decode(self.kind)(self.app, self.message_history.reader.comms, self.target, self._me, self.project_path,
-                             self.app.selected_mode)
+        return TargetContext(self.app, self.message_history.reader.comms, self.target, self._me, self.project_path,
+                             self.query_ancestor(SessionView).id)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
-        if event.body.strip().startswith("/") and await self.command_catalog.execute(event.body.strip(), self):
-            return
+        if event.body.strip().startswith("/"):
+            catalog = await self.read_command_catalog()
+            if await catalog.execute(event.body.strip(), self):
+                return
         if not event.body.strip():
             return
         if self._unknown_send is not None or self._human_admission_blocked:
