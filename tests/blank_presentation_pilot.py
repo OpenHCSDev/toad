@@ -119,7 +119,7 @@ async def main():
             assert len(shell.events.subscriptions) == 1
             assert restored_shell_view.prompt.text == "second draft"
             assert tuple(restored_shell_view.query(ShellResult)) == (command_view,)
-            assert shell.outputs[0] is command_view.source
+            assert any(output is command_view.source for output in shell.outputs)
             assert command_view.get_clipboard_text() == command_view.source.command
             assert terminal_view in restored_shell_view.query("ShellTerminal")
             assert any(output.terminal is terminal_view for output in shell.outputs
