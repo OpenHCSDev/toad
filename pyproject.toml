@@ -38,7 +38,7 @@ persistent-renderer = ["zmqruntime==0.2.24"]
 
 [tool.uv.sources]
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "f4a5827955174d23ca6e6bcf96f2a3abc4af996d" }
-textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "14baa381a816f787e06ffbfb9215c243e22d32eb" }
+textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "21011cf0be9a898160ec0ac80e7829eaf5330f97" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 
 [project.scripts]
