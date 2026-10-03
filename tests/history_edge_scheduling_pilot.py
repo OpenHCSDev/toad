@@ -65,6 +65,9 @@ async def pending_read(chat, pilot, body):
                         and not chat._human_admission_blocked)
             receipt = next(m for m, _ in history.rows if m.body == body)
             assert not release.is_set()
+            assert reader._pending and not refresh.is_finished, (
+                "The original read must still be pending when its receipt paints"
+            )
             print('receipt visible with original I/O pending', body, flush=True)
             await pilot.pause()
             assert [m.view_key for m, _ in history.rows].count(receipt.view_key) == 1
@@ -73,6 +76,9 @@ async def pending_read(chat, pilot, body):
             chat.prompt.focus()
             await pilot.press('h', 'i')
             assert chat.prompt.text.endswith('hi')
+            assert reader._pending and not refresh.is_finished, (
+                "Typing must finish before the controlled original read completes"
+            )
         finally:
             release.set()
             await refresh.wait()

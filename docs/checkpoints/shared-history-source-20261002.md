@@ -344,3 +344,17 @@ will not be repeated. Remaining qualification is the changed installed wire
 receipt/restart/reader/End tail in one released matching holder. Profile04's
 quiet kernel intervals were64.5% Up,48% Down and15.8% middle idle; those scoped
 intervals are not proof of a gain against the earlier busy baseline.
+
+The existing NRA Package.load before/after map covers285 production modules,
+39 performance modules and390 test modules, with zero parse omissions. There
+is one production WorkingTranscript construction, in LiveTranscript.reserve;
+its reader revision is an operation observation of the original Window field,
+not another writable reader identity. HistoryWindow.anchor/release_anchor own
+revision writes and WindowRestoration suppresses them for native compensation.
+Both MountedMessageHistory and TranscriptHistory consume the shared finish
+behavior. Dynamic receiver resolution remains a semantic reading obligation.
+Map files are `reader-demand-owner-before.json` and `...-after.json` under
+`.artifacts/shared-history-source338`. The production delta against fc964606 is
+19 additions and6 deletions in the two existing owners. The fixture now also
+checks the actual reader task and worker remain unfinished after receipt paint
+and typing; an unreleased control alone does not prove pending I/O.
