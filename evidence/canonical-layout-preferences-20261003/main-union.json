@@ -5,7 +5,7 @@
   "accepted_textual_pin": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
   "native_preference_family_and_affected_drivers_byte_equal_to_installed_aa9": true,
   "core_declared_family_field_codec_mro_dispatch_unchanged": true,
-  "dependency_delta": "Textual Widget._get_box_model forwards original NativeBoxModel via BoxModelRequest. No preference/descriptor/DOM query/style/class API change; qualified Text41/393 evidence already accepted.",
+  "dependency_delta": "Textual Widget box-model cache stores original (BoxModel, Extrema) and restores original extrema on retained cache hits; original style/max_width/class/DOM query APIs unchanged. Accepted Text41/393 evidence covers retained box alignment.",
   "production_delta_vs_current_main": {
     "added": 26,
     "deleted": 48,

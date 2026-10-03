@@ -66,6 +66,6 @@ Core80df/Textc4; qualified485 fixture Core5cf/Text0ab receipts remain historical
 validation provenance, not new release pins. All six production preference
 files and affected drivers byte-identical to installed aa9. Current-main delta
 remains26+/48-. Original Core codec/family/dispatcher and Textual DOM/query/
-style APIs unchanged. Text41 Widget change only forwards original box request
-context; accepted393 evidence owns that behavior. No repeated App/provider run
+style APIs unchanged. Text41 Widget change retains BoxModel with its original Extrema and restores
+the constraints on cache hits; accepted393 evidence owns that behavior. No repeated App/provider run
 or new donor installation. See main-union.json.
