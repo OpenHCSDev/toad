@@ -286,7 +286,9 @@ for output in ('INITIAL_BODY\\r\\nUNCHANGED_BODY',
                '\\x1b[?1049h\\x1b[2J\\x1b[HALT_ACTIVE',
                '\\x1b[?1049l',
                '\\r\\nDETACHED_BODY',
-               '\\r\\nFINAL_BODY'):
+               '\\r\\nFINAL_BODY',
+               '\\x1b[2JAFTER_CLEAR\\r\\n\\r\\n',
+               '\\x1b[1;6H\\x1b[J'):
     sys.stdout.write(output)
     sys.stdout.flush()
     sys.stdin.readline()
@@ -368,6 +370,24 @@ sys.exit(7)
                     assert await execution.custody() is custody
                     await execution.write_stdin("\n")
                     await until(pilot, lambda: "FINAL_BODY" in conversation_paint(app.screen))
+                    app.save_screenshot("resumed-stream.svg", path=str(evidence))
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: "AFTER_CLEAR" in conversation_paint(app.screen))
+                    assert "FINAL_BODY" not in conversation_paint(app.screen)
+                    assert projections[-1]["scrollback"] is None
+                    # Original trailing-blank removal owns its structural damage.
+                    original_state.remove_trailing_blank_lines_from_scrollback()
+                    scrollback = original_state.scrollback_buffer.consume_updates()
+                    assert scrollback is None and original_state.scrollback_buffer.line_count == 1
+                    terminal.project_state(scrollback, original_state.alternate_buffer.consume_updates())
+                    await pilot.pause()
+                    assert "AFTER_CLEAR" in conversation_paint(app.screen)
+                    await execution.write_stdin("\n")
+                    await until(pilot, lambda: original_state.scrollback_buffer.lines[0].content.plain == "AFTER")
+                    await pilot.pause()
+                    frame = conversation_paint(app.screen)
+                    assert "AFTER" in frame and "AFTER_CLEAR" not in frame
+                    assert projections[-1]["scrollback"] is None
                     await execution.write_stdin("\n")
                     assert (await rpc("terminal/wait_for_exit", terminalId=terminal_id))["exitCode"] == 7
                     await until(pilot, lambda: terminal.is_finalized)

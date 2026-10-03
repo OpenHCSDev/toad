@@ -1,5 +1,5 @@
 {
-  "state": "scoped-ready",
+  "state": "buffer-source-closure-awaiting-matched-installed-validation",
   "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
   "tested_production_head": "41c5ea6b5f5148f0a18c8e115d32d4803d3ab748",
   "production": {
@@ -120,5 +120,17 @@
     "Full original U2/U4/U5 plan remains wider scope",
     "SVG/PNG foreground is black on black: readable visual acceptance is not established by this fixture. Scoped installed source/operation/callback/text proof only."
   ],
-  "next": "Parent review/merge; Sch receiving owns final cohort and default publication."
+  "next": "Parent review/merge; Sch receiving owns final cohort and default publication.",
+  "buffer_source_checkpoint": "1b62d7f7",
+  "buffer_scope": {
+    "owner": "Existing Buffer",
+    "deleted_in_correction": 35,
+    "added_in_correction": 34,
+    "before": "buffer-before-owner-consumers.json",
+    "after": "buffer-after-owner-consumers.json",
+    "field_search": "buffer-field-search.txt",
+    "foreign_damage_accesses": [],
+    "external_contract": "Original scrollback/alternate pair; None means full repaint, finite sets use folded line coordinates. No new damage type/semantic store.",
+    "remaining": "Final coherent buffer and clear/truncation model sanity plus one installed App/ACP/PTY --damage-only run in Sch matched334 candidate. Earlier02 applies to old source and is retained as earlier evidence, not current full acceptance."
+  }
 }
