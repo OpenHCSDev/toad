@@ -74,11 +74,10 @@ class BooleanEditor(Checkbox):
 
 
 class ChoiceEditor(Select):
-    def __init__(self, bound: BoundSetting) -> None:
+    def __init__(self, bound: BoundSetting, *, options) -> None:
         self.bound = bound
-        family = bound.kind.family
         super().__init__(
-            [(member.label(), member) for member in family.members_with(family)],
+            options,
             value=bound.value,
             allow_blank=False,
             name=bound.key,

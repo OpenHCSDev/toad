@@ -12,7 +12,6 @@ from toad import atomic, paths
 
 from toad import setting_effects as effects
 from toad.render_choices import RendererChoice, LocalRenderer
-from toad.native_themes import ThemeChoice
 from toad.setting_choices import (
     AlwaysSessionBar,
     AutoDiff,
@@ -38,6 +37,7 @@ from toad.settings import (
     SettingsGroup,
     StringSetting,
     TextSetting,
+    ThemeChoice,
     PreferenceChange,
 )
 from toad.widgets.presentation_window import PresentationBudget
@@ -67,11 +67,10 @@ class UiSettings(RendererSettings):
         help="Prepare and retain this distance on both sides of the reader. Memory and widget limits still apply.",
         effect=effects.history_buffer_viewports,
     )
-    theme = ChoiceSetting(
-        ThemeChoice,
+    theme = ThemeChoice(
         title="Theme",
-        default=ThemeChoice.decode("ansi-dark"),
-        help="One of the builtin Textual themes. ANSI themes inherit your terminal palette.",
+        default="ansi-dark",
+        help="A theme registered by the frontend. ANSI themes inherit your terminal palette.",
         effect=effects.theme,
     )
     prompt_message = StringSetting(

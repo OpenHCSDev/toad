@@ -17,7 +17,6 @@ from toad.screens.action_modal import ActionModal
 from toad.screens.agent_modal import AgentModal
 from toad.screens.command_edit_modal import CommandEditModal
 from toad.screens.store import StoreScreen, AgentItem, LauncherItem, LauncherGridSelect
-from toad.native_themes import ThemeChoice
 from runtime_fixture import ToadApp
 from l0a_native_installed_pilot import main, until, response_painted
 
@@ -81,7 +80,7 @@ class InstalledApp(ToadApp):
         super().__init__(*args, **kwargs)
 
     async def on_load(self):
-        self.settings.ui.theme = ThemeChoice.decode('textual-dark')
+        self.settings.ui.theme = 'textual-dark'
         await super().on_load()
 
 

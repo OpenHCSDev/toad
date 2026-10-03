@@ -7,18 +7,20 @@ from functools import partial
 import hashlib
 import json
 import os
+import subprocess
+import sys
 from pathlib import Path
 from importlib.resources import files
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from toad.app import ToadApp
+from textual.theme import Theme
 from toad.acp.status import ToolCallStatus
 from acp.schema import ToolCall
 from toad.preferences import ToadSettings, UiSettings
 from toad.screens.settings import SettingsScreen
 from toad.setting_choices import BothExpansion, Expansion, FailExpansion
-from toad.native_themes import ThemeChoice
 from toad.setting_widgets import BooleanEditor, ChoiceEditor, InputEditor
 from toad.settings import (
     BooleanSetting,
@@ -61,6 +63,7 @@ class SettingsApp(ToadApp):
 
     async def on_mount(self, event) -> None:
         event.prevent_default()
+        self.register_theme(Theme(name="settings-private-custom", primary="#44aa88"))
         await self.push_screen(SettingsScreen())
 
 
@@ -68,6 +71,19 @@ async def main() -> None:
     source = Path(os.environ.get("TOAD_SETTINGS_SAMPLE", str(Path(__file__).with_name("fixtures") / "saved-settings.json")))
     original = source.read_bytes()
     raw = json.loads(original)
+    # Loading durable preferences must not load the native theme catalog.
+    headless = subprocess.run(
+        [sys.executable, "-c",
+         "import json,sys; from toad.preferences import ToadSettings; "
+         "raw=json.load(open(sys.argv[1])); "
+         "settings=ToadSettings(raw); assert settings.document()==raw; "
+         "settings.ui.theme='frontend-not-installed-theme'; "
+         "assert settings.document()['ui']['theme']=='frontend-not-installed-theme'; "
+         "assert not any(name=='textual' or name.startswith('textual.') for name in sys.modules); "
+         "print('PASS headless saved preferences and original theme string')", str(source)],
+        check=True, capture_output=True, text=True, timeout=10,
+    )
+    print(headless.stdout.strip())
     current = ToadSettings(raw)
     assert current.document() == raw
     assert not current.changed
@@ -176,10 +192,14 @@ async def main() -> None:
                     for w in app.screen.query(ChoiceEditor)
                     if w.bound.kind is UiSettings.theme
                 )
-                theme.value = ThemeChoice.decode("ansi-light")
+                theme.value = "ansi-light"
                 await pilot.pause()
                 assert app.theme == "ansi-light"
                 assert app.settings.document()["ui"]["theme"] == "ansi-light"
+                theme.value = "settings-private-custom"
+                await pilot.pause()
+                assert app.theme == "settings-private-custom"
+                assert app.settings.document()["ui"]["theme"] == "settings-private-custom"
                 width = next(
                     w
                     for w in app.screen.query(InputEditor)
@@ -222,6 +242,7 @@ async def main() -> None:
                 assert (
                     reopened.experiment.badge == "FRESH"
                     and reopened.ui.column_width == 120
+                    and reopened.ui.theme == "settings-private-custom"
                 )
                 assert not reopened.changed
                 if evidence_path := os.environ.get("TOAD_SETTINGS_EVIDENCE"):
@@ -236,6 +257,8 @@ async def main() -> None:
                         "all_original_field_kinds_and_bounds": True,
                         "model_values_unchanged_on_form_initialization": True,
                         "boolean_theme_native_effects": True,
+                        "headless_original_document_and_theme_load_without_textual": True,
+                        "native_registered_custom_theme_edit_effect_save_reopen": True,
                         "numeric_focus_blur_success_and_refusal": True,
                         "inherited_uppercase_descriptor_native_editor": True,
                         "save_reopen_same_original_values": True,

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import partial
+
 from textual import on, containers, getters, lazy
 from textual.app import ComposeResult
 from textual.screen import ModalScreen, ScreenResultType
@@ -8,7 +10,7 @@ from textual.content import Content
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from toad.settings import (
-    BoundSetting, Group, SettingsGroup, BooleanSetting, StringSetting,
+    BoundSetting, Group, SettingsGroup, BooleanSetting, StringSetting, ThemeChoice,
     TextSetting, PathSetting, IntegerSetting, NumberSetting, ChoiceSetting,
 )
 from toad.setting_widgets import InputEditor, TextEditor, BooleanEditor, ChoiceEditor
@@ -101,7 +103,13 @@ class SettingsScreen(MroProjection, ModalScreen):
 
     @handles(ChoiceSetting)
     def choice_form(self, kind, group, title):
-        return self.leaf(kind, group, title, ChoiceEditor)
+        options = ((member.label(), member) for member in kind.family.members_with(kind.family))
+        return self.leaf(kind, group, title, partial(ChoiceEditor, options=options))
+
+    @handles(ThemeChoice)
+    def theme_form(self, kind, group, title):
+        options = ((theme.name, theme.name) for theme in self.app.available_themes.values())
+        return self.leaf(kind, group, title, partial(ChoiceEditor, options=options))
 
     def filter_settings(self, search_term: str) -> None:
         if search_term:
