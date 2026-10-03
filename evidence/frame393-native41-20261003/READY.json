@@ -59,5 +59,13 @@
     "cpu-profile.json": "9b0734b388f1cbbbf7bf05dc91f48af495cc35f7e0f92d2a07d0be99de42b2bb",
     "after-state-frames.json": "3f17d5def646e7113948fa8d333035fa424089fa39af12b3c3089ff542f2de26"
   },
-  "remaining_scope": "Whole original CPU/144Hz/raster/warm/cold/sidebar/busy/compaction/animation/focus/runway/growingEnd/void/TC1/T9/T4 remains active in main-based continuation."
+  "remaining_scope": "Whole original CPU/144Hz/raster/warm/cold/sidebar/busy/compaction/animation/focus/runway/growingEnd/void/TC1/T9/T4 remains active in main-based continuation.",
+  "normal_main_union": {
+    "head": "b215a02da3c5eaa94cb6dcc2d8bbfcf3ace5cbea",
+    "main": "f59b00024",
+    "core_pin": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+    "textual_pin": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+    "viewport_production_equal_to_installed340": true,
+    "qualification": "Disjoint accepted shell392/page-read592 ancestry from main retained. Original393/41 physical evidence remains Core5025 at its actual scope; no new whole-cohort capture claim."
+  }
 }

@@ -116,3 +116,12 @@ not held-motion approval. Original raw receipt remains unreviewed; separate scop
 assessment records this honestly. No smoothness/144Hz/overall CPU gain/busy IRC
 first-paint claim, and no unchanged rerun to satisfy optics. Native42 registration
 ordering and Toad full continuation remain independent following source work.
+
+## Normal main integration
+
+Normal merge b215a02d retains accepted392 and592/currentmain395. Pin Core80df
+(the actual current approved build), keep Textual41c4. The viewport production
+file is byte-equal to installed340 from the original113.953s gate. Shell/MCP
+and indexed channel read changes remain their separately qualified owners'
+source, not a repeat/expanded393 physical claim. No blanket gate rerun or older
+Core downgrade. Full CPU/smoothness/144Hz continuation remains active.
