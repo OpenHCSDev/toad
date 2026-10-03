@@ -99,3 +99,35 @@ used full reflow then read the deliberately-cleared visible map; preserved
 native-body01.log/partial01.json. Corrected that check to original visible
 reflow (no production change); native-body02 completed. Resource test values
 are not scrolling latency or installed physical motion acceptance.
+
+## Scoped Ready: original changed installed journey
+
+Original142.603s movie completed; warm16/input7 checks passed,22 original ready
+bodies retained across A/B/A, runtime/source-owner unchanged, cleanup empty.
+Original capture/proof/hashkeepers in READY.json. UIprefs/database privatecopy;
+real public saved nra-architecture/channel/peer sources, no nativeinput/provider.
+Preflight01 lacked caller XDG_STATE_HOME; preflight02 saw originalowner stopped
+while parent retainedrestart; both before UI/video, retained. Fresh route-derived
+2432511/start54023564 admitted after originalrestart, unchanged throughcleanup.
+
+Personal held-Up48 consecutive frames22.136–22.936 viewed DURING sameUI;
+before540451.685/after540472.073 both2445681/start54037607 alive. Down/reverse
+view began with alive probe but after probe absent; no verified DURING scope
+for those. Bodies/chrome remain painted, positions move in steps/repeat. Actual
+A-return body/draft visually reviewed afterexit. No all-body blank seen in these
+bands; readable screenshots do not qualify smoothness.
+
+Exact key-window native writer median/p95/max ms: Up12.18/34.91/185.96,
+Down10.84/22.22/103.81, reverse13.21/24.76/200.52. End marker159.52/473.10/
+498.20 includes diagnostic/settle. Nativewriter1322/unmatched0; not changed
+frames, actual presentation FPS or input-to-paint. UI markerCPU Up74.08%,
+Down61.69%,reverse66.24%,Endidle19.80%; these spans include exports, and
+workload differs from407, so NO causal improvement claim. GIL1293/error1,
+partial/clock +/-0.0778s. Stepped motion/fullCPU/144Hz remain unfinished.
+
+This checkpoint qualifies original warm acquisition/copy isolation, pending
+native layout custody and sharedStrip resource/factory semantics with source,
+three-body nativeApp and real saved-history affected path. Full remaining scope
+above continues in followup after useful checkpoint shipment. No unchanged
+recording or final-target hold. Current working source bytes equal installede02;
+latest test/docs corrections do not alter installed production.
