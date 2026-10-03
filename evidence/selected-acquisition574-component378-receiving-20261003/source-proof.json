@@ -1,10 +1,10 @@
 {
-  "state": "Merged574 selected acquisition with378/Text36 normal69 installed union source proof; native915",
+  "state": "Merged573574575576 with378/380/379/Text37 normal69 installed union source proof; native51b",
   "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
   "sources": [
     {
       "module": "agent_comms",
-      "head": "d3ed99d5773528a2ff061205260f15712de10d09",
+      "head": "bc15a45dabf0c2f0b59633e684bfe8ec799fdab1",
       "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/agent_comms",
       "files": 339,
       "python_files": 311,
@@ -13,15 +13,15 @@
         "url": "https://github.com/OpenHCSDev/agent-comms.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "d3ed99d5773528a2ff061205260f15712de10d09",
-          "requested_revision": "d3ed99d5773528a2ff061205260f15712de10d09"
+          "commit_id": "bc15a45dabf0c2f0b59633e684bfe8ec799fdab1",
+          "requested_revision": "bc15a45dabf0c2f0b59633e684bfe8ec799fdab1"
         }
       },
-      "inventory_sha256": "9ade6c4780650998b4287b54a2211f37438d2a5d20d79af2eb7bffea40e92dc2"
+      "inventory_sha256": "5e98db089adf729560cea27a371ba852ec00f022ed3ef9d37bb8ef5c84dfade6"
     },
     {
       "module": "toad",
-      "head": "067ee6a1d9ff8ee4a2e096a1d88019dc0acf46fe",
+      "head": "7af203ae0e393cd68274f7ed8a242d7e06df89ef",
       "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/toad",
       "files": 318,
       "python_files": 287,
@@ -30,15 +30,15 @@
         "url": "https://github.com/OpenHCSDev/toad.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "067ee6a1d9ff8ee4a2e096a1d88019dc0acf46fe",
-          "requested_revision": "067ee6a1d9ff8ee4a2e096a1d88019dc0acf46fe"
+          "commit_id": "7af203ae0e393cd68274f7ed8a242d7e06df89ef",
+          "requested_revision": "7af203ae0e393cd68274f7ed8a242d7e06df89ef"
         }
       },
-      "inventory_sha256": "7e533ec1bc630a6caeb378b0f29c6412153e8a0f3b1de62438d58611f8988745"
+      "inventory_sha256": "753e2cf2f3d2d4e38683c1b8c4bf2fa6822b6c0f458c7b9679b2c50033245fa3"
     },
     {
       "module": "textual",
-      "head": "5d5f463108132e402073578e9d0625b491a6d792",
+      "head": "4d2388f12d2d5aa4891920a527141c2b475dd28c",
       "location": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/lib/python3.14/site-packages/textual",
       "files": 266,
       "python_files": 249,
@@ -47,11 +47,11 @@
         "url": "https://github.com/OpenHCSDev/textual.git",
         "vcs_info": {
           "vcs": "git",
-          "commit_id": "5d5f463108132e402073578e9d0625b491a6d792",
-          "requested_revision": "5d5f463108132e402073578e9d0625b491a6d792"
+          "commit_id": "4d2388f12d2d5aa4891920a527141c2b475dd28c",
+          "requested_revision": "4d2388f12d2d5aa4891920a527141c2b475dd28c"
         }
       },
-      "inventory_sha256": "d9e36511220dadb552fb7508374a8f3d5aed173a420d093734b62f282ea1a473"
+      "inventory_sha256": "0dfaabbf93c565cdf0c5007e0e7e98827cebec29a6c8f3bec9acab949c96c9c8"
     },
     {
       "module": "textual_diff_view",
@@ -71,10 +71,10 @@
       "inventory_sha256": "c1ab2e4c7a7595de81eeb8fef14f9fa9e45b603f84e810dc7c08fa9145793679"
     }
   ],
-  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
-  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
-  "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
-  "native_tree": "b678e1f41c4cc2bde46a65fa71c803306b86618103031ca029db44cb9a690339",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent",
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-51bff517be67ae98/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "51bff517be67ae98213760beebd2c070591e5df61cb2c9ebbf87cacbf9f039ab",
+  "native_tree": "e74115621526343102e3f7074a1ddfda406c2db4d1fe94029030cdc09f47e68d",
   "native_full_trust": true,
   "sdk": "0.12.1",
   "package_count": 69,
@@ -356,7 +356,7 @@
       "1.25.1"
     ]
   ],
-  "requirements_sha256": "621a3553085d0b79c3d33ad514eeb227e1a2b5e6df18aed7c4e9323fffa1fd58",
+  "requirements_sha256": "59da14cf56de542816209ed2d088151a3c14f6a2fb22505d779b96151a60d631",
   "protected_old_prefix_files": 6,
   "protected_old_prefix_files_unchanged": true,
   "public_install_changed": false,
@@ -364,9 +364,10 @@
   "source_overlay": false,
   "dependency_bypass": false,
   "journey_owners": [
-    "Mendel574 selected acquisition configured-provider private owners",
-    "Heis378/Text36 component reuse scoped saved-history motion",
+    "Mendel574 original Native/ACP selected acquisition controls",
+    "Heis380/Text37 worker suspension and shared component scoped saved-history motion",
+    "Einstein379 installed App/ACP/PTY model projection and retirement",
     "receiving normal installed entrypoint and exact compiled path"
   ],
-  "journey_assessment": "Original378/Text36 scoped saved-history motion qualification retained;574 configured-provider private owners acceptance Mendel-owned and ongoing. Exact source/native/dependencies separate.379 Buffer damage closure and573 artifact not included. No full-turn speed/smoothness/S4 claim."
+  "journey_assessment": "Original378/Text36 and380/Text37 scoped saved-history motion qualification retained;575/576 original configured three-fork deep-root channel/peer closure retained. Exact source/native/dependencies separate.379 original installed05 projection/lifetime PASS13 retained, exported black-on-black color remains negative;573 original configured Sol/HIGH exact request/manifest/budget/scorer qualification retained; no HTTP/full-history/recall claim. No full-turn speed/smoothness/S4 claim."
 }
