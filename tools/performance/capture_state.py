@@ -293,6 +293,20 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         view["visible_categories"] = tuple(data.get("_reactive_visible_categories", ()))
                         view["goal"] = data.get("_reactive_goal")
                         view["goal_execution"] = data.get("_reactive_goal_execution")
+                    if kind == "ContextExplorer":
+                        from textual.widgets import Tree, TextArea, Static
+                        tree = node.query_one("#context-tree", Tree)
+                        view["context"] = {
+                            "owner": node.owner, "root": node.wire_root,
+                            "native_present": node._native is not None,
+                            "status": str(node.query_one(".context-status", Static).content),
+                            "detail": node.query_one("#context-detail", TextArea).text,
+                            "selected": node.intent.selected,
+                            "nodes": [{"key": model.data.key,
+                                       "label": model.label.plain,
+                                       "expanded": model.is_expanded}
+                                      for model in node._context_nodes.values()],
+                        }
                     if isinstance(node, PromptTextArea):
                         geometry = visible_regions.get(node)
                         focus_target = None

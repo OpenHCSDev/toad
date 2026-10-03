@@ -121,6 +121,56 @@ async def layout_preferences():
     print("PASS original settings -> mounted/parked/new chat layout; native CSS; tab draft; save/reopen", flush=True)
 
 
+async def danger_projection():
+    """Unsent shell draft paints original command analysis through the App."""
+    from toad.danger import analyze
+    with TemporaryDirectory(prefix="toad-danger-", dir=os.environ["TMPDIR"]) as directory:
+        root = Path(directory)
+        project = root / "project"
+        project.mkdir()
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        app = InstalledApp(project_dir=str(project))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await pilot.pause()
+            first = app.selected_session
+            prompt = first.conversation.prompt
+            prompt.shell_mode = True
+            command = "rm ../outside; echo safe; rm local"
+            prompt.text = command
+            await pilot.pause()
+            editor = prompt.prompt_text_area
+            styles = tuple(span.style for span in editor.highlight_shell(command).spans)
+            warning = "$text-error on $error-muted 70%"
+            assert warning in styles
+            atoms = analyze(str(project), str(project), command)
+            assert analyze(str(project), str(project), command) is atoms
+            assert any(span.style == warning for line in editor.highlight_lines for span in line.spans)
+            evidence = Path(os.environ["TOAD_DANGER_EVIDENCE"])
+            evidence.mkdir(parents=True, exist_ok=True)
+            app.save_screenshot(str(evidence / "danger-draft.svg"))
+            await app.session_navigation.new(app.session_navigation.default_source)
+            await pilot.pause()
+            await select(app, pilot, first)
+            assert first.conversation.prompt is prompt and prompt.text == command
+            app.settings.shell.warn_dangerous = False
+            assert warning not in tuple(span.style for span in editor.highlight_shell(command).spans)
+            app.settings.shell.warn_dangerous = True
+            assert warning in tuple(span.style for span in editor.highlight_shell(command).spans)
+            assert analyze(str(project), str(project), command) is atoms
+            assert app._exception is None
+            (evidence / "receipt.json").write_text(json.dumps({
+                "result": "pass", "installed_toad": __import__("toad").__file__,
+                "unsent_draft": command, "native_warning_spans": True,
+                "physical_pilot_tab_return_retains_draft": True,
+                "original_setting_controls_native_projection": True,
+                "one_bounded_analysis_cache": True, "inputs": 0, "providers": 0,
+                "scope": "Installed actual App/Pilot/editor/native highlight; no shell execution or physical st/performance claim",
+            }, indent=2) + "\n")
+    print("PASS installed original App unsent shell warning / retained tab / original setting", flush=True)
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-session-surface-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
@@ -277,4 +327,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(layout_preferences() if "--layout-only" in sys.argv else main())
+    asyncio.run(danger_projection() if "--danger-only" in sys.argv else
+                layout_preferences() if "--layout-only" in sys.argv else main())

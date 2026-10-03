@@ -1,12 +1,10 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
 import bashlex
 from bashlex import ast
-from textual.content import Span
 
 SAFE_COMMANDS = {
     # Display & Output
@@ -285,39 +283,21 @@ class CommandVisitor(ast.nodevisitor):
     visitprocesssubstitution = visitcommandsubstitution
 
 
+@lru_cache(maxsize=1024)
 def analyze(
     project_directory: str, current_working_directory: str, command_line: str
-) -> Iterable[CommandAtom]:
-    visitor = CommandVisitor(
-        Path(project_directory).resolve(), Path(current_working_directory).resolve()
-    )
+) -> tuple[CommandAtom, ...]:
+    """Retain bounded analysis data; frontends own its native presentation."""
     try:
-        nodes = bashlex.parse(command_line)
-    except bashlex.errors.ParsingError, NotImplementedError:
-        return ()
-    for node in nodes:
-        visitor.visit(node)
-    return visitor.atoms
-
-
-@lru_cache(maxsize=1024)
-def detect(
-    project_directory: str,
-    current_working_directory: str,
-    command_line: str,
-    *,
-    danger_style: str = "",
-    destructive_style: str = "$text-error on $error-muted 70%",
-) -> tuple[Span, ...]:
-    """Return command highlights; no unused aggregate severity is computed."""
-    styles = DangerStyles(danger_style, destructive_style)
-    try:
-        return tuple(
-            Span(*atom.span, style)
-            for atom in analyze(
-                project_directory, current_working_directory, command_line
-            )
-            if (style := atom.level.highlight(styles))
+        visitor = CommandVisitor(
+            Path(project_directory).resolve(), Path(current_working_directory).resolve()
         )
+        try:
+            nodes = bashlex.parse(command_line)
+        except bashlex.errors.ParsingError, NotImplementedError:
+            return ()
+        for node in nodes:
+            visitor.visit(node)
     except OSError:
         return ()
+    return tuple(visitor.atoms)
