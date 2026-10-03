@@ -59,3 +59,19 @@ the multiline control no longer bypasses its inherited field parser. Typed
 Boolean/Choice edits keep their original set(value) contract. Native Function's
 boolean result is only an external UI validation projection of the same parser,
 not stored state or an alternate range/codec.
+
+## Published source checkpoint
+
+Production fcef3086 is normally integrated with merged388 main at145a9e09.
+The merge changes receiving pins/evidence only; all five production files and
+the affected settings pilot are byte unchanged. Production is116 added/110
+deleted lines. Source-sanity and before/after owner-consumers records live beside
+this receipt:289 production modules and391 test modules, zero parse omissions.
+The model has no Textual imports or native factory declarations; MroProjection
+has exactly one declaration and all original consumers migrated. Lexical AST
+evidence does not claim complete dynamic resolution or installed readiness.
+
+Bohr released the retired485 codeholder after actual borrower/archive checks.
+Sch is its sole package writer; ONE existing settings_tree_pilot installedApp
+journey follows his matched handoff. Current334 remains live and unchanged.
+No new environment, provider, Pi input or public settings mutation is needed.
