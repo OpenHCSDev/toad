@@ -1,6 +1,6 @@
 {
   "qualification": "Scoped cooperative registration/mount ownership checkpoint; not 144Hz or overall smoothness/CPU qualification",
-  "toad_source": "a03022c3e",
+  "toad_source": "a03022c3ea21da6a5e5c2380b814aea1674be65f",
   "textual_source": "782db6dc1907f6bb1638bec23e77d6506ddde77c",
   "core_comparator": "48324afc4d7415afb347cbc1f5f52cfc6820ac73",
   "native": "044646789787e3d3bcc43391e62c214d94ddffeb528692235c9d35f0db7af968",
@@ -146,9 +146,15 @@
   },
   "visual_review": {
     "during": "Operator viewed actual warm-ready PNG while recorder/UI active; parent viewed stationary44s consecutive frames while active. Neither is during-moving inspection.",
-    "after": "Operator inspected original48frame sequences22.6\u201323.4s inputheldUp,63.8\u201364.6s reverse (both inside exactkeydown/keyup), End sheet and A-return PNG. Readable original history/chrome, repeated positions followed by chunked advances; not smooth.",
+    "after": "AFTER completion inspected original48frames Up22.6\u201323.4s,Down44.2\u201345.0s,reverse63.8\u201364.6s (allinside exactkeyheld windows),End68.4\u201369.2s (Endkey68.263824),correctA-returnPNG. Readable history/chrome, repeatedpositions\u2192chunkedmovement; no fluidity/destination-limit claim from repetitions alone.",
     "required_during_moving_inspection_met": false,
-    "extra_encoder_cleanup_empty": true
+    "extra_encoder_cleanup_empty": true,
+    "motion_artifacts": [
+      "after-input-held-up-frames.png",
+      "after-input-held-down-frames.png",
+      "after-reverse-frames.png",
+      "after-actual-end-frames.png"
+    ]
   },
   "warm_return_click_finish_to_next_writer_ms": 79.465214,
   "comparison_limit": "79.465ms native cached A-return is not comparable to original04 channel-cold-load1.753561s; NO causal speed gain or overall CPU gain claim.",

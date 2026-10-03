@@ -44,3 +44,9 @@ not smooth. During-process operator/parent observations were still/idle only.
 Required during-moving observation was missed; no unchanged rerun for optics.
 This is a scoped working mount/resource/input checkpoint, not full performance
 acceptance. Original raw unchanged; installed01-scoped.json has full limits.
+
+HeldDown44.2–45.0s and actualEnd68.4–69.2s also reviewed AFTER, through the
+same existing artifacts encoder/ProcessOwner. No new recorder. Down writer
+median17.59/p9530.39/max103.39ms. ExactEndkey68.263824s; body retained and
+readable, chunkedmovement persists. Ready only for the startup/resource family
+with native34; all unfinished smoothness/CPU/144Hz work remains active.
