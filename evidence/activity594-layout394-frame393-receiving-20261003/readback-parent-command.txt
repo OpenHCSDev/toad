@@ -1,0 +1,1 @@
+env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/new-publication593594595393394396/readback_publication.py

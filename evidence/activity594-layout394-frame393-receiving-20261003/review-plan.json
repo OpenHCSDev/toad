@@ -1,0 +1,66 @@
+{
+  "target": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "source_interpreter": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002/bin/python",
+  "current_prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-89b56aea0bb128c4/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json",
+    "sha256": "fd77187e31058efa74c9fa7b0eba77cc86bef4c1b074e7569424b24d254d195b"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/source-proof.json",
+    "sha256": "e0c87ee781a1fea154c7c501f48ba69ab8326e741d82485e9134a310f304b95c"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/393-text41-ready.json",
+      "sha256": "2a0dc4d833512f1414c86fb185ab467993bc1f618a29ba03260da3bced727cd4"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/394-layout-ready.json",
+      "sha256": "e44530e105d67c590d22b3da43307e567848afc54a98446cd59c5cf4b2fd7b0e"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/396-text42-ready.json",
+      "sha256": "336aa167c2539818b4ee8b3623d79600339873c442c59ce8da78dca0f07e998b"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/593-installed-sdk03.log",
+      "sha256": "6ec7ed502169d66617230342cb41352a4c82bd58b4fd28ef78416dd450fb9f96"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/593-retained-faults-journal.json",
+      "sha256": "b4818f60998b1c3d4e099e9793e78837eb0f41ff114f2302a574d310ed63941b"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/595-configured-cold-receipt.json",
+      "sha256": "9b54427c7d980c82bb2016d310bb6a369864c8ba3797e06870e840da86df666b"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/595-397-physical06-terminal.json",
+      "sha256": "a73dc351a833705429d90ab141f8b4c5a3a21fe9e72deca874f493b666c5c895"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/595-397-physical06-capture.json",
+      "sha256": "76e33d7f7e9fa5b2b28ba182c93093a02d5c52f4ec10184dbcffff9664ef6b9a"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/595-397-physical06-assessment.json",
+      "sha256": "5a9f9a2c2c0e6a81c6b28e58611132bedc257d76fe96ca95ec9ed97187a8fa37"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/398-headless-app-ready.json",
+      "sha256": "cfd85ca3e1005421923f53c49483ad968dce3ff265eaca2fe324f8084683bb5c"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/activity594-layout394-frame393-receiving-20261003/qualified-source-gates/398-installed-app-receipt.json",
+      "sha256": "4046916ad116be944cb1c098b2f0df8dd2edccd6e930334899db7d91594de053"
+    }
+  ]
+}

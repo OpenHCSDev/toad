@@ -1,0 +1,16 @@
+{
+  "core_tested": "b0682f2cdb3ba673bc7263133504e39f5488043c",
+  "core_pin": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+  "core_entire_src_stack_metadata_equal": true,
+  "toad_tested398": "55b7c323cae5f310f4d0fb07f82055e53d5066ca",
+  "toad_installed": "83b5b4bd46d2fc8288fe2892f9bcb3c7b820d8c7",
+  "toad_entire_src_equal": true,
+  "toad398_merged_ancestor": "21c0112e860a2f82b30646911364b9243f71a50a",
+  "canonical_operator_files_byte_equal": 51,
+  "extra_production_excluded": [
+    "Text43",
+    "Toad399",
+    "Core597"
+  ],
+  "unchanged_journeys_repeated": false
+}

@@ -1,0 +1,7 @@
+{
+  "state": "Preparation corrections retained; no public effects",
+  "wrong_repo_read": "Core diff command was first issued in Toad repo; bad object error, corrected read in original Core WT before pin selection.",
+  "sparse_evidence_read": "Original398 archive copy first used unmaterialized sparse evidence path; FileNotFound before ownership update/install. Corrected using original owner evidence; actual activation preimage matched before normal install.",
+  "public_effects": 0,
+  "unchanged_tests_or_journeys_repeated": 0
+}
