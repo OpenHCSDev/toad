@@ -1,0 +1,13 @@
+{
+  "versions_before_after_equal": true,
+  "packages": 69,
+  "changed_packages": [
+    "agent-comms",
+    "batrachian-toad",
+    "textual"
+  ],
+  "normal_offline_resolver": true,
+  "source_clones": 0,
+  "new_environment": false,
+  "native_copy": false
+}

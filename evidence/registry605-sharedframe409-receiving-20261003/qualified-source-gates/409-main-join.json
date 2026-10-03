@@ -1,0 +1,19 @@
+{
+  "state": "SCOPED_READY; normal main408 join, unchanged qualified UI production",
+  "main_join": "8840d35ce8364f2b1c2cbbeac3c90ef6aa76be76",
+  "qualified_ready_head": "28580ee353ccecfe4b12f899ead3f252f4a89378",
+  "toad_production_tree": "47487039799dcc3e7cf93b22caf61624dbec9547",
+  "qualified_production_tree": "47487039799dcc3e7cf93b22caf61624dbec9547",
+  "accepted_core_pin": "3e5c97f9a38d10e65c3a5d06919d85d8e38b98ab",
+  "merged_text48_pin": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+  "recorded_text48_head": "3efcc03803400c10ee60199331869d899a0fcc71",
+  "textual_production_tree": "98cc8b7b1fb14fbfec3fbda7e244779e4b007173",
+  "recorded_textual_production_tree": "98cc8b7b1fb14fbfec3fbda7e244779e4b007173",
+  "lock_changed_packages_from_main408": [
+    "batrachian-toad",
+    "textual"
+  ],
+  "qualification": "Original 142.6026878618868s film and READY.json unchanged. Recorded Core dbcf3ae4 remains historical installed qualification, not acceptance of the newly selected Core599.",
+  "new_execution": "No package install, UI capture, provider input, or runtime activation. Normal uv lock resolves merged Text48 metadata only.",
+  "remaining": "Stepped motion, foreground CPU, 144Hz, cold/warm/runway/velocity/growingEnd/void/sidebar/focus/animation/IRC-DM/global performance remain active."
+}
