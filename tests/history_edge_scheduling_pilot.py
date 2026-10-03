@@ -232,19 +232,21 @@ class RetainedHistorySourceJourney(InputWarmJourney):
 async def retained_app(project):
     """The source-entry wrapper imports the selected installed product only."""
     from toad.agent_schema import AgentDefinition
+    from toad.app import ToadApp
 
     seed_channel(wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
     definition = AgentDefinition(identity='real-resource436', name='Real resource acceptance',
         short_name='resource', run_command={'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])})
-    app = InstalledApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
+    app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
     root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
     output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
     async with app.run_test(headless=False, size=(160, 44)) as pilot:
         # The original marker is appended only after its native screenshot and
         # DTO have completed. Do not race Pilot input with the recorder's keys.
-        async with asyncio.timeout(float(os.environ['TOAD_VIDEO_DEADLINE']) - time.monotonic()):
-            while not any(event['label'] == 'source-start' for event in phase_events(output)):
-                await asyncio.sleep(.05)
+        # Recorder process custody bounds this wait. Its interaction deadline
+        # is acquired after the UI launches and is not a second child lifetime.
+        while not any(event['label'] == 'source-start' for event in phase_events(output)):
+            await asyncio.sleep(.05)
         history = await exercise_with_evidence(app, pilot, root)
         while not app._exit:
             await asyncio.sleep(.05)
