@@ -1,0 +1,16 @@
+{
+  "owned_processes": [],
+  "attempts": [
+    "einstein392-mcp01",
+    "einstein392-shell01",
+    "einstein392-shell02",
+    "einstein392-terminal01"
+  ],
+  "shell_terminal_retired": true,
+  "terminal_pty_masters_before": [],
+  "terminal_pty_masters_after": [],
+  "scratch": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/392tmp",
+  "unknown_input_replay": false,
+  "native_rebuild": false,
+  "public_root_write": false
+}

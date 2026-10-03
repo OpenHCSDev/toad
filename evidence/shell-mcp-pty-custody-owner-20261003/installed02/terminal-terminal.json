@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "script": "tests/native_terminal_retention_pilot.py --damage-only",
+  "installed_source_head": "742083719237dd61ecf3b404678e4a7b6d832e3e",
+  "provider_calls": 0,
+  "concrete_risk": "TerminalExecution.run now borrows shared PtyProcess.acquire; registeredACP/real streamingPTY/output/currentness/reattach/release must keep that original resource",
+  "scope": "registered actualACP handlers/App/compositor/PTY, no realACPsocket/nativeowner or paidprovider"
+}

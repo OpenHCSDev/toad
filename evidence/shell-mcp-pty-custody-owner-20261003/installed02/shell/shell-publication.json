@@ -1,0 +1,9 @@
+{
+  "terminal_paint": "PS1=\"\"                                               \n<frozen runpy>:128: RuntimeWarning: 'agent_comms.chi \nld_process' found in sys.modules after import of pac \nkage 'agent_comms', but prior to execution of 'agent \n_comms.child_process'; this may result in unpredicta \nble behaviour                                        \n  owned-shell-marker                                 \n/bin/sh: 3: busy-shell-input: Permission denied      ",
+  "directory_changed_through_original_stream": true,
+  "same_shell_task_process_model": true,
+  "same_command_widget_source": true,
+  "same_terminal_widget_model": true,
+  "active_shell_subscriptions": 1,
+  "provider_calls": 0
+}
