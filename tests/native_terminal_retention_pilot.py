@@ -272,6 +272,7 @@ async def damage_journey():
             "finished": terminal.execution.outcome.finished,
         })
         present(terminal, scrollback, alternate)
+        (evidence / "projections.json").write_text(json.dumps(projections, indent=2) + "\n")
 
     # The child blocks on actual PTY input between independently painted chunks.
     program = """
@@ -294,6 +295,8 @@ sys.exit(7)
     initial_descriptors = pty_masters()
     with tempfile.TemporaryDirectory(prefix="terminal-damage-", dir=".artifacts") as directory:
         root = Path(directory).resolve()
+        command_file = root / "terminal_output.py"
+        command_file.write_text(program)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"),
@@ -323,7 +326,7 @@ sys.exit(7)
             try:
                 with patch.object(TerminalTool, "present_execution", observe):
                     terminal_id = (await rpc("terminal/create", command=sys.executable,
-                                             args=["-u", "-c", program]))["terminalId"]
+                                             args=["-u", str(command_file)]))["terminalId"]
                     execution = agent.controller.terminals.require(terminal_id)
                     original_state = execution.state
                     custody = await execution.custody()
@@ -360,6 +363,7 @@ sys.exit(7)
                     await until(pilot, lambda: "DETACHED_BODY" in conversation_paint(app.screen))
                     terminal = app.screen.query_one(f"#{terminal_id}", TerminalTool)
                     assert terminal.state is original_state
+                    assert len(projections) > projected_before
                     assert projections[-1]["scrollback"] is projections[-1]["alternate"] is None
                     assert await execution.custody() is custody
                     await execution.write_stdin("\n")
@@ -369,13 +373,24 @@ sys.exit(7)
                     await until(pilot, lambda: terminal.is_finalized)
                     assert projections[-1]["finished"]
                     assert projections[-1]["scrollback"] is projections[-1]["alternate"] is None
-                    assert terminal.has_class("-error") and "exit 7" in str(terminal.border_title)
+                    assert terminal.has_class("-error") and "[7]" in str(terminal.border_title)
                     assert custody.master.closed and custody.child.retired and not child.alive()
                     app.save_screenshot("reattached-completed.svg", path=str(evidence))
                     await rpc("terminal/release", terminalId=terminal_id)
                     assert not agent.controller.terminals.executions
                     assert pty_masters() == initial_descriptors
                     assert app._exception is None
+            except BaseException:
+                app.save_screenshot("failed.svg", path=str(evidence))
+                if agent.controller.terminals.executions:
+                    execution = next(iter(agent.controller.terminals.executions.values()))
+                    (evidence / "failed-state.json").write_text(json.dumps({
+                        "buffer": [line.content.plain for line in execution.state.buffer.lines],
+                        "terminal_presentations": projections,
+                        "outcome": type(execution.outcome).__name__,
+                        "paint": conversation_paint(app.screen),
+                    }, indent=2) + "\n")
+                raise
             finally:
                 await agent.stop()
         await asyncio.get_running_loop().shutdown_default_executor()
