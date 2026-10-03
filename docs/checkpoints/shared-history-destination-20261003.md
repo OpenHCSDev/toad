@@ -199,10 +199,11 @@ terminated its completion command at the deadline without a journey-result or
 native-end receipt. Neither final native End nor IRC receipt/End is qualified.
 ACP session/load returned normally; the source-start DTO at4.45s still showed
 the initial project view with no history pager. Later live exports contain only
-frame observations, so the exact unfinished source step is unmeasured. The
-existing ProfileTrace parser recovers source stack transitions, not counts or CPU
-durations; asynchronous parent frames are not complete. Do not assign the
-timeout causally to the deleted release or claim End regression from this gap.
+frame observations. The retained original journal and profile identify the
+unfinished prerequisite: only106 of140 seed publications completed. Native End
+was never reached. This recording cannot establish a Window, End or Pilot defect.
+The existing ProfileTrace parser retains its original clock limitations; do not
+turn stack transitions into CPU/call-count claims.
 
 Original04 video/profile/recorder evidence:
 `/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-04`.
@@ -212,10 +213,11 @@ were sent; original source hash unchanged; both cleanups report no remaining
 owned processes and zero errors. No public owner restart, provider call,
 application/protocol replacement, deadline padding or further capture.
 
-Heisenberg owns the Window/frame boundary. The remaining driver source question
-is whether its global Pilot child-message/animation barrier is appropriate while
-original destination I/O is deliberately held; that is a source lead, not a
-confirmed cause. This PR remains Draft. Archive559 and the accepted worker/receipt
+Heisenberg owns the Window/frame boundary. His source adjudication finds that
+Window custody closes before reader layout waits, native reflow signals layout
+completion even when frame paint is declined, and synchronous preparation invokes
+the original viewport directly. No Window edit is justified by04. The independent
+held-key driver custody correction is described below; this PR remains Draft. Archive559 and the accepted worker/receipt
 installation are independent and must not wait for the unfinished End proof.
 
 ## Original04 prerequisite custody resolved from source
@@ -228,9 +230,9 @@ shows seed_channel -> publish_initial_cohort -> registry.private_guard; it does
 not establish a Window/frame failure. This supersedes the earlier unmeasured-step
 classification above; the negative recording and incomplete journal stay intact.
 
-The existing callback now creates those canonical retained fixture envelopes
-before recorder/App admission. The standalone source entry does the same before
-its App is constructed. The external seed sender retains its actual fixture
+The first correction moved fixture creation before recorder/App admission.
+The completed source-prerequisite correction below replaces repeated creation
+with the existing immutable history attachment owner. The external seed sender retains its actual fixture
 process identity; the operator remains alive throughout recording. No source
 clone, registration mirror, new root, provider input or replay of04 was added.
 The read, receipt and cancellation checks still operate on the original bus.
@@ -257,6 +259,37 @@ was killed or transfer its custody. These owners are retained, not replaced by
 a second cancellation registry or an optimistic source-completed flag.
 
 No new recording, package update, environment or timeout increase was made for
-this driver batch. Heisenberg is actively reviewing the original Window/frame
-owner. Remaining final paint admission will use that owner's contract before
-the next joined affected journey; current End qualification remains open.
+this driver batch. Heisenberg completed the original Window/frame source review without finding a
+justified product change from04. The final paint check remains after source work
+settles; current installed End qualification remains open.
+
+## Retained channel prerequisite: existing source owner, no reseeding
+
+`HistoryViews.attach_history` delegates snapshot/provenance/cursors and archived
+access to `HistoryArchive.attach`. It writes only the destination snapshot and
+restores the canonical channel catalog; it never starts a source Comms owner,
+allocates source sequences, reconstructs delivery audiences or wakes original
+recipients. The publisher has no bulk-send declaration. Adding another fixture
+bus algorithm would repeat the existing publication owner.
+
+The source driver now requires an explicit retained channel source and attaches
+it before constructing the App or recorder. The selected source is the protected
+completed338 `physical-installed07/wire`:140 original History envelopes and two
+original receipts,166639 bytes. These remain retained display originals, not new
+input or delivery authority. Its prior failed End evidence remains protected.
+The current fixture declares its own external reader and sends fresh receipts
+through the ordinary live bus. Fresh receipt bodies include the current fixture
+path, so a retained prior receipt cannot satisfy the new-send paint assertion.
+
+Deleted: the driver140-message publication loop and both reseeding callers.
+Standalone setup uses the existing private-native route initializer; the joint
+retained callback consumes its already-initialized root. Both require the source
+before UI admission. No new publisher method, bulk guard, archive decoder, bus
+store, environment, provider call or capture was introduced. Final native End
+and IRC current-receipt/retained-history End acceptance remain open.
+
+Before ownership evidence uses NRA `Package.load`:390 test modules,39 recorder
+modules,311 installed-Core production modules; zero parse omissions. Static
+references identify the declaration/callers but do not prove dynamic receiver
+resolution. The archive/current page traversal, source provenance, display read
+acknowledgement and publisher contracts were read semantically.

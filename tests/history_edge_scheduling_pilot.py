@@ -21,7 +21,6 @@ from unittest.mock import patch
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.thread_execution import ExternalThreadExecution
-from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
@@ -30,6 +29,7 @@ from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
 from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
                                  marker_command, phase_events, main as record_main)
+from runtime_fixture import private_native_wire
 
 
 async def until(condition):
@@ -100,10 +100,12 @@ async def exercise(app, pilot, root):
     await until(lambda: history.checkpoint_available and bool(history.rows))
     await pilot.pause()
     assert history in chat.window.histories
+    first_receipt = f'RECEIPT-DURING-TAIL-READ {root}'
+    final_receipt = f'RECEIPT-REVOKES-ORIGINAL-READ {root}'
     # Tail replacement started from the original initial source. An
     # already-painted later receipt survives its older read watermark.
     history.reader.restart()
-    await pending_read(chat, pilot, 'RECEIPT-DURING-TAIL-READ')
+    await pending_read(chat, pilot, first_receipt)
 
     # Actual earlier pages evict the original tail. A send from that
     # reader position restarts the source and rejects the older read.
@@ -121,9 +123,9 @@ async def exercise(app, pilot, root):
         history.finish_source_work(operation)
     assert history.has_newer
     history.reader.restart()
-    await pending_read(chat, pilot, 'RECEIPT-REVOKES-ORIGINAL-READ')
+    await pending_read(chat, pilot, final_receipt)
     await until(lambda: history.checkpoint_available)
-    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+    assert history.rows[-1][0].body == final_receipt
 
     chat.window.release_anchor()
     # Each older-page publication preserves the actual reader anchor. A
@@ -140,20 +142,19 @@ async def exercise(app, pilot, root):
     await until(lambda: history.checkpoint_available and not history.has_newer
                 and chat.window.follows_tail)
     await pilot.pause()
-    assert history.rows[-1][0].body == 'RECEIPT-REVOKES-ORIGINAL-READ'
+    assert history.rows[-1][0].body == final_receipt
     assert chat.window.follows_tail, "End must retain the original Window's tail anchor"
     assert app._exception is None, repr(app._exception)
     print('PASS: receipt/typing/restart/End on original native window', flush=True)
     return history
 
 
-def seed_channel(comms, project):
-    """Seed fresh wire originals in the existing fixture's private bus."""
+def prepare_channel(comms, project, retained_source):
+    """Attach certified retained history; new receipts use the live private bus."""
     comms.registry.declare(Thread('edge-reader', frozenset({'edge'}), str(project),
                                  process_identity=ProcessIdentity.capture(os.getpid()),
                                  execution=ExternalThreadExecution))
-    for index in range(140):
-        comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
+    return comms.views.attach_history(retained_source)
 
 
 async def exercise_with_evidence(app, pilot, root, *, journey=exercise):
@@ -264,6 +265,7 @@ async def exercise_native_destination(app, pilot, root, *, press):
 
 
 async def main():
+    retained_source = Path(os.environ['TOAD_HISTORY_LIFETIME_SOURCE'])
     scratch = Path(__file__).resolve().parents[1] / '.artifacts' / 'history-lifetime338'
     scratch.mkdir(parents=True, exist_ok=True)
     directory = os.environ.get('TOAD_HISTORY_LIFETIME_DIRECTORY') or tempfile.mkdtemp(prefix='private-', dir=scratch)
@@ -273,8 +275,8 @@ async def main():
     root.mkdir(parents=True, exist_ok=True)
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
-    comms = wire(root / 'wire')
-    await asyncio.to_thread(seed_channel, comms, root)
+    comms = private_native_wire(root / 'wire')
+    await asyncio.to_thread(prepare_channel, comms, root, retained_source)
     app = ToadApp(project_dir=str(root))
     headless = os.environ.get('L0A_HEADLESS', '1') != '0'
     async with app.run_test(headless=headless, size=(100, 32)) as pilot:
@@ -361,12 +363,18 @@ async def retained_app(project):
 
 
 async def record_retained(service, project, evidence, environment, *, recording_args,
-                          recording_timeout, recording_output,
+                          recording_timeout, recording_output, retained_channel_source,
                           journey=RetainedHistorySourceJourney):
     """Existing original-turn fixture callback; owns no second App or root."""
-    # These are retained fixture inputs, not actions in the measured journey.
-    # Populate the original bus before its App starts observing publication.
-    await asyncio.to_thread(seed_channel, service, project)
+    # The existing archive owner retains original identities/provenance without
+    # republishing them, reserving sequences or waking their former recipients.
+    source = await asyncio.to_thread(prepare_channel, service, project,
+                                     retained_channel_source)
+    (evidence / 'retained-channel-source.json').write_text(json.dumps({
+        'original_root': source.original_root, 'snapshot_root': source.root,
+        'wire_root_id': source.wire_root_id, 'bytes': source.size,
+        'boundary': 'HistoryViews.attach_history; immutable display, no delivery authority',
+    }, indent=2) + '\n')
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
     env.pop('NO_COLOR', None)
