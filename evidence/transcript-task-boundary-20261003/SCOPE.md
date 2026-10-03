@@ -9,3 +9,5 @@ This is an import/lifecycle dependency deletion, not a widgets-directory rename.
 Heisenberg owns viewport/frame/registration methods; only consumer import references cross that claim. Same checkout/env constraints; Sch owns released485 and next receiver. Final validation checks clean headless imports, original process-fragment transport and affected actual installed App publication; no repeated366/368 check, native/provider call, public restart or frontend benchmark.
 
 Source semantics and existing NRA AST first; coherent family migration/checkpoint, then batched end checks. Patterns IMPL-13 and MEMB-2. CI deferred.
+
+The same unnecessary eager catalog dependency occurs in PersistentRenderClient. Its existing warm_up operation actually requests native Markdown/patch resources; import those original tasks at that operation instead of generic client module startup. Execution, build fingerprint, admission and lifecycle remain unchanged. Native resource work still intentionally depends on its original renderer toolkit.
