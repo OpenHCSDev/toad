@@ -1,0 +1,15 @@
+{
+  "owner": "Schrodinger merged563 receiver",
+  "core": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+  "toad": "90d90ab6d9f6c47e3bdf163348c9fb70991761f3",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "new_environment": false,
+  "new_native_build": false,
+  "provider_calls": 0,
+  "public_writes": 0,
+  "gate_files": [
+    "563-acceptance.json"
+  ]
+}

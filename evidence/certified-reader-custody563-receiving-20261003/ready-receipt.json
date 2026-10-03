@@ -1,0 +1,8 @@
+{
+  "state": "FROZEN",
+  "ready_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-reader-custody563-receiving-20261003/new-publication563/ready-receipt.json",
+  "ready_sha256": "c04ca0ab9bf2ccc4299b5ebbcadfa1d8ff3fc677e0e0e9a5cb297be4eeba3fee",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/certified-reader-custody563-receiving-20261003/source-proof.json",
+  "source_proof_sha256": "fd6960bf8acae3667c8495899808177d609ab5ecc13b26fd184b9e4351041b3c",
+  "public_effects": 0
+}

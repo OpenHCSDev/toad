@@ -1,0 +1,8 @@
+{
+  "state": "FROZEN",
+  "ready_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/new-publication559561356/ready-receipt.json",
+  "ready_sha256": "cbd05918513b4264385df96b277edee68a30c5b6cd9a9bc2e45bac0f26efab9e",
+  "source_proof": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/source-proof.json",
+  "source_proof_sha256": "a20ebdbbb5af7166e11e84ed40bdeec00d35a96a78849b63d72f51a427c994bd",
+  "public_effects": 0
+}

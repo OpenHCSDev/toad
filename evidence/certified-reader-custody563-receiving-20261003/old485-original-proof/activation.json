@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "pins": {
+    "agent_comms": "1304d0657975020c148a83f40d3b1550d6e70355",
+    "toad": "a9fc52e5f23dae4933bf7268f6cc174ac1d63b45",
+    "textual": "4e9016c1a8f3592eb652efc39ada493a41ee9206"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-native-tool-latency-allocation-20261001/.observations/native-project-candidate01/node_modules/@earendil-works/pi-coding-agent",
+  "state": "normal69 installed source/directURLs/assets/fulltrust verified; parent activation and default gate sole owner",
+  "staging_receipt": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/staging-bundled-485-488-278-20261001/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "toad": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-native-tool-latency-allocation-20261001/.observations/native-project-candidate01/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "17d6e8f97d17832e4f399ccb700033f90c6c024ecb0914ab859409391defe3b5",
+  "native_tree": "69b974d371785aa2f90c6e8bba46708965f5c935a5a3b5b35477a957c0a35099",
+  "native_configuration_note": "Reviewed485 compiled project IPC extension and matching native manifest retained; production route admission via existing runtime operator. No default or root changes performed."
+}

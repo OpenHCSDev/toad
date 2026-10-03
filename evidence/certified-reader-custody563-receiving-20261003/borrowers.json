@@ -1,0 +1,6 @@
+{
+  "scope": "privileged proc cwd/exe/argv/environment/FD/maps",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "references": [],
+  "permission_gaps": []
+}
