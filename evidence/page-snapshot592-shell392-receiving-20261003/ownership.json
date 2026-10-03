@@ -1,0 +1,13 @@
+{
+  "core": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+  "toad": "574ba213b4486d5b269b48b79148234d694f797c",
+  "textual": "0ab687e007fca311ce9f786634d8f5fc991ff808",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-2bfb6ba8fd3b3b3b/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-native-read532-534-retirement325-20261002",
+  "gate_files": [
+    "592-installed-app01.json",
+    "392-installed-shell03.json",
+    "392-installed-mcp02.json"
+  ],
+  "release_receipt": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/released-holder-originals/runtime-native-read532-534-retirement325-20261002-for-Sch592-after390/release-receipt.json"
+}
