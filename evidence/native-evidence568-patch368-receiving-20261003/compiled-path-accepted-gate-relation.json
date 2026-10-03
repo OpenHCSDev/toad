@@ -1,0 +1,7 @@
+{
+  "actual_compiled_path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+  "accepted_native_manifest": "044646789787e3d3bcc43391e62c214d94ddffeb528692235c9d35f0db7af968",
+  "accepted_gate_source": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-evidence568-patch368-receiving-20261003/qualified-source-gates/568-installed-source-proof.json",
+  "same_compiled_path_and_manifest": true,
+  "no_new_native_build_or_provider_gate": true
+}

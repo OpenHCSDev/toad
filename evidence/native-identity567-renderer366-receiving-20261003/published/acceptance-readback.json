@@ -1,0 +1,45 @@
+{
+  "observed_at": 1791005081.2642102,
+  "input": {
+    "seq": 499,
+    "from": "user",
+    "to": "openhcs-helper",
+    "ts": 1791004970.9405181,
+    "type": "info",
+    "text": "Live build 367 while-open status check: testing, please reply only Here. Keep your existing goal state.",
+    "sender_role": "user",
+    "id": "10d916fb5983"
+  },
+  "messages_after": [
+    {
+      "seq": 500,
+      "from": "openhcs-helper",
+      "to": "user",
+      "ts": 1791004988.1220005,
+      "type": "info",
+      "text": "Here.",
+      "sender_role": "agent",
+      "id": "5c4f171f8c24"
+    }
+  ],
+  "notifications": [
+    {
+      "recipient_identity": {
+        "recipient_lookup": "c3abd48325c7127c27d27cb2cc93606f",
+        "canonical_thread": "openhcs-helper"
+      },
+      "state": "Responded",
+      "detail": "The response workflow completed.",
+      "priority": 2,
+      "busy": false,
+      "message": null,
+      "displayed_to": []
+    }
+  ],
+  "reply_seconds": [
+    17.181482315063477
+  ],
+  "same_original_process": true,
+  "owner_alive": true,
+  "route_unchanged": true
+}

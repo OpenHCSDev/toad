@@ -1,0 +1,145 @@
+{
+  "observed_at": 1791005369.5532901,
+  "input": {
+    "seq": 501,
+    "from": "user",
+    "to": "openhcs-helper",
+    "ts": 1791005234.8592405,
+    "type": "info",
+    "text": "Live build 367 second distinct while-open status check: testing, please reply only Here. Keep your existing goal state.",
+    "sender_role": "user",
+    "id": "58da9efdb822"
+  },
+  "messages_after": [
+    {
+      "seq": 502,
+      "from": "openhcs-helper",
+      "to": "user",
+      "ts": 1791005250.5400872,
+      "type": "info",
+      "text": "Here.",
+      "sender_role": "agent",
+      "id": "11ace5486c4e"
+    }
+  ],
+  "notifications": [
+    {
+      "recipient_identity": {
+        "recipient_lookup": "c3abd48325c7127c27d27cb2cc93606f",
+        "canonical_thread": "openhcs-helper"
+      },
+      "state": "Responded",
+      "detail": "The response workflow completed.",
+      "priority": 2,
+      "busy": false,
+      "message": null,
+      "displayed_to": []
+    }
+  ],
+  "reply_seconds": [
+    15.680846691131592
+  ],
+  "after_capture_epoch": 1791005300.3832474,
+  "post_reply_seconds": [
+    49.8431601524353
+  ],
+  "same_original_process": true,
+  "owner_alive": true,
+  "route_unchanged": true,
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "terminal_exit": {
+    "pid": 2454085,
+    "start_ticks": 48085986,
+    "returncode": 0
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2454072,
+        "start_ticks": 48085776,
+        "returncode": 0
+      },
+      {
+        "pid": 2454083,
+        "start_ticks": 48085978,
+        "returncode": 0
+      },
+      {
+        "pid": 2454085,
+        "start_ticks": 48085986,
+        "returncode": 0
+      },
+      {
+        "pid": 2454086,
+        "start_ticks": 48085992,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2454100,
+        "start_ticks": 48086064,
+        "returncode": 0
+      },
+      {
+        "pid": 2454101,
+        "start_ticks": 48086077,
+        "returncode": 0
+      },
+      {
+        "pid": 2454102,
+        "start_ticks": 48086089,
+        "returncode": 0
+      },
+      {
+        "pid": 2454103,
+        "start_ticks": 48086103,
+        "returncode": 255
+      },
+      {
+        "pid": 2454783,
+        "start_ticks": 48087305,
+        "returncode": 0
+      },
+      {
+        "pid": 2454924,
+        "start_ticks": 48087333,
+        "returncode": 0
+      },
+      {
+        "pid": 2454929,
+        "start_ticks": 48087370,
+        "returncode": 0
+      },
+      {
+        "pid": 2456577,
+        "start_ticks": 48093907,
+        "returncode": 0
+      },
+      {
+        "pid": 2456591,
+        "start_ticks": 48093940,
+        "returncode": 0
+      },
+      {
+        "pid": 2456596,
+        "start_ticks": 48094024,
+        "returncode": 0
+      },
+      {
+        "pid": 2456597,
+        "start_ticks": 48094206,
+        "returncode": 0
+      },
+      {
+        "pid": 2456762,
+        "start_ticks": 48094434,
+        "returncode": 0
+      }
+    ]
+  },
+  "duration_seconds": 78.7887343519833
+}
