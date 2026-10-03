@@ -40,7 +40,9 @@ class ControlledPool(Renderer):
 async def wait_requests(pool, count, pilot):
     async with asyncio.timeout(5):
         while len(pool.requests) < count:
-            await pilot.pause()
+            # Requests deliberately hold native Mount/publication work. Pilot's
+            # whole-screen queue barrier cannot settle until we release them.
+            await asyncio.sleep(0)
 
 
 async def update(widget, text):
@@ -70,7 +72,7 @@ async def main():
                 pending = asyncio.create_task(update(response, source))
                 await wait_requests(pool, 1, pilot)
                 app.theme = "ansi-light"
-                await pilot.pause()
+                await asyncio.sleep(0)
                 pool.complete(0)
                 await wait_requests(pool, 2, pilot)
                 assert not response.query(MarkdownFence)
@@ -83,7 +85,7 @@ async def main():
                 await wait_requests(pool, 3, pilot)
                 latest_source = "```python\nlatest = 2\n```"
                 latest = asyncio.create_task(update(response, latest_source))
-                await pilot.pause()
+                await asyncio.sleep(0)
                 pool.complete(2)
                 await wait_requests(pool, 4, pilot)
                 assert response.query_one(MarkdownFence).code == "value = 123"
@@ -98,7 +100,7 @@ async def main():
                 first = asyncio.create_task(update(response, partial))
                 await wait_requests(pool, 5, pilot)
                 second = asyncio.create_task(append(response, "3\n```"))
-                await pilot.pause()
+                await asyncio.sleep(0)
                 pool.complete(4)
                 await wait_requests(pool, 6, pilot)
                 pool.complete(5)
