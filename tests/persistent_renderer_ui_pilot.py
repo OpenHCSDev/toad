@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 import tempfile
 
-from runtime_fixture import ToadApp
+from runtime_fixture import stop_test_children
+from toad.app import ToadApp
+from agent_comms.tool_results import ToolDiff, tool_result_content
 from tool_diff_fixture import wait_for_tool_diff
 from textual.widgets._markdown import MarkdownFence
 from textual.worker import Worker, WorkerState
@@ -23,7 +25,7 @@ PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
 
 
 async def main() -> None:
-    with tempfile.TemporaryDirectory(prefix="render-ui-", dir="/var/tmp") as directory:
+    with tempfile.TemporaryDirectory(prefix="render-ui-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
         config = RenderServiceConfig(max_workers=2, max_pending=4)
         identities = []
@@ -58,11 +60,10 @@ async def main() -> None:
                     assert response.query_one(MarkdownFence).code.startswith("value = 123")
                     tool = await app.selected_session.conversation.post(ToolCall(ToolCallWire.decode({
                         "toolCallId": "persistent", "kind": "edit", "title": "Synthetic edit",
-                        "status": "completed", "content": [{"type": "content", "content": {
-                            "type": "resource", "resource": {"mimeType": "text/x-diff", "text": PATCH},
-                        }}],
+                        "status": "completed", "content": tool_result_content("persistent", "", ToolDiff(PATCH)),
                     })))
                     tool.set_expanded(True)
+                    tool.scroll_visible(animate=False, immediate=True)
                     diff = await wait_for_tool_diff(tool, pilot)
                     assert diff.patch == PATCH
                     path = current / "persistent-preview.py"
@@ -102,6 +103,7 @@ async def main() -> None:
                 await renderer.aclose()
             if pool is not None:
                 assert await pool.shutdown_service()
+            await stop_test_children(os.environ.get("TOAD_TEST_ATTEMPT"))
         await asyncio.get_running_loop().shutdown_default_executor()
 
 
