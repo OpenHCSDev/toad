@@ -1,0 +1,9 @@
+# Headless plan facts, original native projection
+
+The original PlanStatus owns ACP status admission and completion facts. It also constructs Textual Content, Plan widgets and StrikeText resources. Core Plan events and AgentController import that data family; an operational plan must not require native widget construction.
+
+Keep the same PlanStatus/PlanItem declarations and original external ACP names. Markers become plain text. Original Plan owns native composition and previous-status animation intent; original StrikeText owns completion decoration and its refresh/animation lifetime. Delete PlanStatus native compose/decorate methods and migrate every marker/content caller, including existing extension and registered SDK/App fixtures. No new type, registry, copied plan source, compatibility path or generic frontend.
+
+Source semantics and existing NRA AST across production/tests precede implementation. Patterns IMPL-13 and BOUND-2. Existing controller retains admitted entries; widgets borrow their exact source values. This checkpoint does not change controller delivery, sidebar publication, viewport or lifecycle ownership. Heisenberg was contacted directly before native methods change. Native plans and streams are distinct: OutputStream still has its own unfinished frontend lifetime and is not folded into this checkpoint.
+
+Same existing checkout and dependencies; no new WT/env/native/provider. Publish coherent source before checks. At the end use one batched sanity plus the existing installed original App/ACP plan journey for actual marker paint, pending-to-completed animation, reset, detached update and reattach. This detects missing native completion invalidation and loss of original plan source on retirement. No repeated permission/shell/cold ContextTree gate. CI deferred; no full headless/performance claim.

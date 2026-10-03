@@ -1,0 +1,2310 @@
+{
+  "head": "21c0112e860a2f82b30646911364b9243f71a50a",
+  "roots": {
+    "src/toad": {
+      "parsed": 289,
+      "unparsed": []
+    },
+    "tests": {
+      "parsed": 392,
+      "unparsed": []
+    }
+  },
+  "references": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 186,
+      "kind": "FunctionDef",
+      "source": "def publish_plan(self, entries: list[PlanItem]) -> None:"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 75,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 186,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import decode_plan"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 54,
+      "kind": "Attribute",
+      "source": "self.agent.controller.publish_plan"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "decode_plan"
+    },
+    {
+      "path": "src/toad/coordination_context_format.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/coordination_context_format.py",
+      "line": 74,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 14,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/directory_suggester.py",
+      "line": 90,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 122,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 19,
+      "kind": "ClassDef",
+      "source": "class PlanStatus(DeclaredFamily, affix='PlanStatus'):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 48,
+      "kind": "ClassDef",
+      "source": "class PendingPlanStatus(PlanStatus):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 55,
+      "kind": "ClassDef",
+      "source": "class InProgressPlanStatus(PlanStatus):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 62,
+      "kind": "ClassDef",
+      "source": "class CompletedPlanStatus(PlanStatus):"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 79,
+      "kind": "ClassDef",
+      "source": "@dataclass(frozen=True)"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 90,
+      "kind": "FunctionDef",
+      "source": "def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 16,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.strike_text import StrikeText"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 26,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 35,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 48,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 50,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 57,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 62,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 71,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 39,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import NonSelectableStatic"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 40,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.strike_text import StrikeText"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 85,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 90,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 82,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 45,
+      "kind": "Attribute",
+      "source": "cls.decorate"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 92,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 43,
+      "kind": "Attribute",
+      "source": "cls.marker"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "src/toad/plan.py",
+      "line": 87,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/question_presentation.py",
+      "line": 97,
+      "kind": "Name",
+      "source": "compose"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def decorate(self, widget: Widget) -> None:"
+    },
+    {
+      "path": "src/toad/response_delivery.py",
+      "line": 60,
+      "kind": "FunctionDef",
+      "source": "def decorate(self, widget):"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 56,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 119,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/file_preview.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 47,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 46,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 56,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 231,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 478,
+      "kind": "Attribute",
+      "source": "self.query_one(SessionThreadSidebar).update_plan"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 41,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 53,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 105,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/session_resume_modal.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 120,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 141,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 244,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 283,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 378,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "line": 92,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 42,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 113,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 156,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 173,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 222,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 249,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 264,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 275,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: Widget) -> tuple[Widget, ...]:"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 420,
+      "kind": "Attribute",
+      "source": "part.compose"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 374,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.committed_presentation import checkpoint_plan"
+    },
+    {
+      "path": "src/toad/visuals/columns.py",
+      "line": 270,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/acp_content.py",
+      "line": 18,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/acp_content.py",
+      "line": 20,
+      "kind": "Attribute",
+      "source": "part.compose"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 9,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 10,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/activity_spinner.py",
+      "line": 11,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/agent_response.py",
+      "line": 45,
+      "kind": "Attribute",
+      "source": "delivery.decorate"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 34,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 59,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 61,
+      "kind": "Attribute",
+      "source": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 98,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 123,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_fork_dialog.py",
+      "line": 37,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 117,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 156,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 220,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 52,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 827,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1525,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/footer.py",
+      "line": 45,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/footer.py",
+      "line": 50,
+      "kind": "Attribute",
+      "source": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/future_text.py",
+      "line": 123,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 143,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 225,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/incoming_message.py",
+      "line": 42,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 74,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 154,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 87,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 290,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 31,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 171,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 172,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 178,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 176,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 122,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/outgoing_message.py",
+      "line": 32,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 461,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "src/toad/widgets/patch_diff.py",
+      "line": 471,
+      "kind": "Attribute",
+      "source": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 199,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 10,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PlanStatus"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 77,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 59,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 68,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 64,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 82,
+      "kind": "Attribute",
+      "source": "entry.status.compose"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 243,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 68,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 157,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 779,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 97,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 205,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 269,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 248,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 7,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 73,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 78,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 5,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 6,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 35,
+      "kind": "FunctionDef",
+      "source": "def update_plan(self, entries: list[PlanItem]) -> None:"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "src/toad/widgets/shell_result.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 109,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 317,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 738,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 1015,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 111,
+      "kind": "Attribute",
+      "source": "super().compose"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 65,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 111,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 47,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 9,
+      "kind": "ClassDef",
+      "source": "class StrikeText(Widget):"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 59,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 62,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "src/toad/widgets/strike_text.py",
+      "line": 67,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 493,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 242,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 185,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 61,
+      "kind": "FunctionDef",
+      "source": "@abstractmethod"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 65,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: 'ToolCallDiff') -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 80,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: 'ToolCallDiff') -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 109,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view: 'ToolCallDiff') -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 150,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 81,
+      "kind": "Attribute",
+      "source": "WaitingPatchPublication().compose"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 151,
+      "kind": "Attribute",
+      "source": "self.publication.compose"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 111,
+      "kind": "Attribute",
+      "source": "WaitingPatchPublication().compose"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 220,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 298,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 547,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/widgets/user_input.py",
+      "line": 58,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "src/toad/workspace_chrome.py",
+      "line": 15,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/acp_specification_server.py",
+      "line": 11,
+      "kind": "ImportFrom",
+      "source": "from acp_plan_server import PlanPeer"
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/browser_download_app.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/default_route_admission_pilot.py",
+      "line": 92,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/default_route_admission_pilot.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/default_route_admission_pilot.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/default_route_admission_pilot.py",
+      "line": 162,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/default_route_admission_pilot.py",
+      "line": 162,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/diff_row_damage_pilot.py",
+      "line": 46,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "tests/diff_row_damage_pilot.py",
+      "line": 55,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/diff_row_damage_pilot.py",
+      "line": 47,
+      "kind": "Attribute",
+      "source": "DiffView.compose"
+    },
+    {
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "line": 75,
+      "kind": "Attribute",
+      "source": "SessionsTabs.compose"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 142,
+      "kind": "Attribute",
+      "source": "presentation.marker"
+    },
+    {
+      "path": "tests/filter_style_scope_pilot.py",
+      "line": 21,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/filter_style_scope_pilot.py",
+      "line": 28,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 8,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PlanStatus"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 41,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 43,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 45,
+      "kind": "FunctionDef",
+      "source": "@classmethod"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 59,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/guards/test_tool_output.py",
+      "line": 66,
+      "kind": "FunctionDef",
+      "source": "def compose(self, view):"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 16,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 37,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 45,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 75,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 59,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_reflow_travel_pilot.py",
+      "line": 79,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 97,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 56,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "line": 98,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 60,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 99,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 113,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 61,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 123,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/independent_native_writer_pilot.py",
+      "line": 124,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 304,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 309,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 317,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 330,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 336,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 305,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 307,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 318,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 319,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 331,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 333,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/input_visibility_native_installed_pilot.py",
+      "line": 332,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 41,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/markdown_extent_policy_pilot.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "tests/markdown_row_render_pilot.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 143,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 144,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 145,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/native_session_retention_pilot.py",
+      "line": 54,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 93,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 97,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 94,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 163,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 168,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 159,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/original_turn_resource_real_installed_pilot.py",
+      "line": 169,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 17,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanStatus"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 20,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.strike_text import StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 81,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 109,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 110,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 70,
+      "kind": "Name",
+      "source": "PlanStatus"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 65,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 72,
+      "kind": "Attribute",
+      "source": "entry.status.marker"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 79,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 108,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 80,
+      "kind": "Name",
+      "source": "StrikeText"
+    },
+    {
+      "path": "tests/prepared_diff_pilot.py",
+      "line": 30,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/prepared_diff_rows_pilot.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "tests/prompt_popup_new_case_pilot.py",
+      "line": 24,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 115,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 141,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 97,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 100,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 110,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 21,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 22,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 105,
+      "kind": "Attribute",
+      "source": "first_bar.update_plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 94,
+      "kind": "Attribute",
+      "source": "bar.update_plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 104,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 104,
+      "kind": "Name",
+      "source": "InProgressPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 94,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 94,
+      "kind": "Name",
+      "source": "PendingPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 18,
+      "kind": "ImportFrom",
+      "source": "from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 19,
+      "kind": "ImportFrom",
+      "source": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 107,
+      "kind": "Attribute",
+      "source": "sidebar.update_plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 106,
+      "kind": "Name",
+      "source": "PlanItem"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 106,
+      "kind": "Name",
+      "source": "InProgressPlanStatus"
+    },
+    {
+      "path": "tests/t8_mounted_pilot.py",
+      "line": 25,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 30,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 31,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 47,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 49,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 63,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/test_saved_message_clock.py",
+      "line": 15,
+      "kind": "Attribute",
+      "source": "user.compose"
+    },
+    {
+      "path": "tests/test_saved_message_clock.py",
+      "line": 21,
+      "kind": "Attribute",
+      "source": "user.compose"
+    },
+    {
+      "path": "tests/test_sidebar_destinations.py",
+      "line": 29,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/throbber_busy_pilot.py",
+      "line": 20,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/throbber_render_cache_pilot.py",
+      "line": 16,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 18,
+      "kind": "FunctionDef",
+      "source": "def compose(self) -> ComposeResult:"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 44,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 50,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 51,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 53,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 55,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 58,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 61,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/editor_focus_journey.py",
+      "line": 64,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2006,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 525,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 541,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 552,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 616,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 728,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 737,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 769,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 824,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 867,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 882,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 924,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2021,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 738,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 884,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 528,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 530,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 532,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 534,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 536,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 729,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 731,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 770,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 772,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 825,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 827,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 869,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 871,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 872,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2009,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2009,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2010,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2010,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2011,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2011,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2012,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2012,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2012,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2022,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2023,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2025,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2026,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2027,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2028,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2029,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 620,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 621,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 624,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 624,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 626,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 628,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 745,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 747,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 748,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 748,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 749,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 888,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 890,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 891,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 893,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 893,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 894,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 927,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 928,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 930,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 931,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 932,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 933,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 2032,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 543,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 544,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/record_installed_tui.py",
+      "line": 556,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 17,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 20,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 22,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 23,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/selector_warm_recording.py",
+      "line": 24,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 29,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 35,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 36,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/tools/sqlite_busy_recording.py",
+      "line": 39,
+      "kind": "Name",
+      "source": "marker"
+    },
+    {
+      "path": "tests/viewport_body_order_pilot.py",
+      "line": 312,
+      "kind": "FunctionDef",
+      "source": "def compose(self):"
+    }
+  ],
+  "limitations": [
+    "Lexical AST references include unrelated compose/marker calls; semantic reading identifies plan consumers. Dynamic handler resolution is not proven by AST. Official ACP SDK owns external PlanEntry shape."
+  ]
+}
