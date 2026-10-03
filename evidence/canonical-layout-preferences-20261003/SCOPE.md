@@ -28,3 +28,22 @@ editor plus actual App chat construction/change/tab return, private settings
 save/reopen. Detect stale width/scrollbar projection and missing new-view
 initialization. No provider calls or public inputs. Source tests alone do not
 claim physical UI/native/performance readiness.
+
+## Published checkpoint
+
+Source implementation: ed67412a; installed journey driver: aa9ca8ca.
+26 production lines added, 48 deleted across six files. No new owner types.
+All three constructor bindings, six reactive copies, three copying effects and
+one unused Conversation variable are gone. Shared descriptor invalidation
+reaches original WorkspaceSessions views; Conversation owns native paint.
+
+After AST: 289 production and 391 test modules parsed, zero omissions;
+remaining column terms are original UiSettings descriptors or unrelated ANSI/grid
+operations. Native CSS/max_width resources are projections, not semantic stores.
+Wheel contains 320 assets byte-identical to source.
+
+Final installed App check is pending fresh style22 loan from Heis after393
+archive and borrower closure. Bohr confirmed485 was serving19 live processes;
+no mutation occurred. Parent subsequently published395 to334, which remains
+protected. Neither old receipt names nor a default switch grants a donor loan.
+No new environment, native copy, provider call or public input was started.
