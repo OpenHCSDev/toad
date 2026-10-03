@@ -21,6 +21,7 @@ from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
 from toad.app import ToadApp
 from toad.acp.client_session import ClientSessionRequest
+from toad.agent_schema import AgentDefinition
 from toad.widgets.conversation import TurnActivity
 from toad.widgets.throbber import Throbber
 from toad.widgets.session_details import SessionDetails
@@ -65,7 +66,7 @@ async def main():
                        ('XDG_STATE_HOME', 'state'), ('XDG_CACHE_HOME', 'cache')]:
         os.environ[name] = str(envroot / leaf)
     os.environ['AGENT_COMMS_ROOT'] = str(comms.root)
-    app = ToadApp(agent_data=acp_agent(), project_dir=original.worktree,
+    app = ToadApp(agent_data=AgentDefinition.decode(acp_agent()), project_dir=original.worktree,
                   agent_session_id=original.name)
     records = []
     async with app.run_test(size=(140, 38)) as pilot:

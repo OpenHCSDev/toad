@@ -1,6 +1,6 @@
 from toad.acp.agent_session import AgentSession
 from toad.acp.session_updates import SessionNotificationOwner
-from toad.acp.client_session import ClientRequestOwner
+from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
