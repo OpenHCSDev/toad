@@ -1,23 +1,11 @@
-import asyncio
-import codecs
-import fcntl
+"""Catalog command projection borrows the original terminal operation."""
 import os
-import pty
-import signal
-import struct
-import termios
 
-from textual import events
 from toad.core.source_events import CommandComplete
 from toad.core_event_carrier import CoreEventReceiver
-
-from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
+from toad.terminal_execution import Command, TerminalExecution
 from toad.widgets.terminal import Terminal
-
-
-class CommandError(Exception):
-    """An error occurred running the command."""
 
 
 class CommandPane(CoreEventReceiver, Terminal):
@@ -27,183 +15,49 @@ class CommandPane(CoreEventReceiver, Terminal):
     }
     """
 
-    def __init__(
-        self,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
-    ):
-        self._execute_task: asyncio.Task | None = None
-        self._return_code: int | None = None
-        self._master: int | None = None
-        self._process: asyncio.subprocess.Process | None = None
+    def __init__(self, execution: TerminalExecution, *, name=None, id=None, classes=None):
+        self.execution = execution
         super().__init__(name=name, id=id, classes=classes)
+        self.set_state(execution.state)
 
     @property
     def return_code(self) -> int | None:
-        return self._return_code
-
-    def execute(
-        self,
-        command: str,
-        *,
-        final: bool = True,
-        env: dict[str, str] | None = None,
-        cwd: str | None = None,
-    ) -> asyncio.Task:
-        self._execute_task = asyncio.create_task(
-            self._execute(command, final=final, extra_env=env, cwd=cwd)
-        )
-        self.anchor()
-        return self._execute_task
-
-    def on_resize(self, event: events.Resize):
-        event.prevent_default()
-        if self._master is None:
-            return
-        self._size_changed()
-
-    def _size_changed(self):
-        if self._master is None:
-            return
-        width, height = self.scrollable_content_region.size
-        try:
-            size = struct.pack("HHHH", height, width, 0, 0)
-            fcntl.ioctl(self._master, termios.TIOCSWINSZ, size)
-        except OSError:
-            pass
-        self.update_size(width, height)
+        return self.execution.outcome.return_code
 
     @property
     def is_cooked(self) -> bool:
-        """Is the terminal in 'cooked' mode?"""
-        if self._master is None:
-            return True
-        attrs = termios.tcgetattr(self._master)
-        lflag = attrs[3]
-        return bool(lflag & termios.ICANON)
+        return self.execution.is_cooked
 
-    async def write_stdin(self, text: str | bytes, hide_echo: bool = False) -> int:
-        if self._master is None:
-            return 0
-        text_bytes = text.encode("utf-8", "ignore") if isinstance(text, str) else text
+    def resize_process(self, width: int, height: int) -> None:
+        self.execution.update_size(width, height)
+
+    def present_execution(self, scrollback, alternate) -> None:
+        self.project_state(scrollback, alternate)
+
+    async def execute(self, execution: TerminalExecution, *, final: bool = True) -> None:
+        self.execution.detach(self)
+        self.execution = execution
+        execution.attach(self)
+        self.anchor()
         try:
-            return await asyncio.to_thread(os.write, self._master, text_bytes)
-        except OSError:
-            return 0
-
-    async def _execute(
-        self,
-        command: str,
-        *,
-        final: bool = True,
-        extra_env: dict[str, str] | None = None,
-        cwd: str | None = None,
-    ) -> None:
-        # width, height = self.scrollable_content_region.size
-
-        await self.wait_for_refresh()
-
-        master, slave = pty.openpty()
-        self._master = master
-
-        flags = fcntl.fcntl(master, fcntl.F_GETFL)
-        fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-        # # Get terminal attributes
-        # attrs = termios.tcgetattr(slave)
-
-        # # Apply the changes
-        # termios.tcsetattr(slave, termios.TCSANOW, attrs)
-
-        env = TerminalEnvironment.for_child(os.environ)
-        env.update(extra_env or {})
-
-        try:
-            process = self._process = await asyncio.create_subprocess_shell(
-                command,
-                stdin=slave,
-                stdout=slave,
-                stderr=slave,
-                env=env,
-                cwd=cwd,
-                start_new_session=True,  # Linux / macOS only
-            )
-        except Exception as error:
-            raise CommandError(f"Failed to execute {command!r}; {error}")
-
-        os.close(slave)
-
-        self._size_changed()
-
-        self.set_write_to_stdin(self.write_stdin)
-
-        BUFFER_SIZE = 64 * 1024
-        reader = asyncio.StreamReader(BUFFER_SIZE)
-        protocol = asyncio.StreamReaderProtocol(reader)
-
-        loop = asyncio.get_event_loop()
-        transport, _ = await loop.connect_read_pipe(
-            lambda: protocol, os.fdopen(master, "rb", 0)
-        )
-
-        # Create write transport
-        writer_protocol = asyncio.BaseProtocol()
-        self.write_transport, _ = await loop.connect_write_pipe(
-            lambda: writer_protocol,
-            os.fdopen(os.dup(master), "wb", 0),
-        )
-        unicode_decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
-        try:
-            while True:
-                data = await shell_read(reader, BUFFER_SIZE)
-                if line := unicode_decoder.decode(data, final=not data):
-                    try:
-                        await self.write(line)
-                    except Exception as error:
-                        print(repr(line))
-                        print(error)
-                        from traceback import print_exc
-
-                        print_exc()
-
-                if not data:
-                    break
+            await self.wait_for_refresh()
+            self.update_size(*self.scrollable_content_region.size)
+            await execution.start()
+            completion = await execution.wait_for_exit()
+            self.project_state(None, None)
+            if final:
+                self.set_class(completion.successful, "-success")
+                self.set_class(not completion.successful, "-fail")
+                self.publish_core(CommandComplete(completion.return_code))
         finally:
-            transport.close()
-            self.write_transport.close()
-            self._master = None
-
-        await process.wait()
-        return_code = self._return_code = process.returncode
-        if final:
-            self.set_class(return_code == 0, "-success")
-            self.set_class(return_code != 0, "-fail")
-        self.publish_core(CommandComplete(return_code or 0))
-        self.hide_cursor = True
+            # The native worker may be cancelled before async Unmount runs.
+            # Joining the original operation also covers cancelled acquisition.
+            await execution.close()
 
     async def cancel_command(self) -> None:
-        process = self._process
-        if process is not None and process.returncode is None:
-            try:
-                os.killpg(process.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
-            try:
-                await asyncio.wait_for(process.wait(), timeout=2)
-            except TimeoutError:
-                try:
-                    os.killpg(process.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                await process.wait()
-        task = self._execute_task
-        if task is not None and task is not asyncio.current_task() and not task.done():
-            if process is None or process.returncode is None:
-                task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
+        await self.execution.close()
 
-    async def on_unmount(self):
+    async def on_unmount(self) -> None:
         await self.cancel_command()
 
 
@@ -246,12 +100,12 @@ if __name__ == "__main__":
         """
 
         def compose(self) -> ComposeResult:
-            yield CommandPane()
+            yield CommandPane(TerminalExecution(Command.for_script(COMMAND)))
 
         def on_mount(self) -> None:
             command_pane = self.query_one(CommandPane)
             command_pane.border_title = Content(COMMAND)
-            command_pane.execute(COMMAND)
+            self.run_worker(command_pane.execute(command_pane.execution))
 
     app = CommandApp()
     app.run()
