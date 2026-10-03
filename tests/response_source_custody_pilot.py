@@ -8,7 +8,8 @@ from tempfile import TemporaryDirectory
 from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from agent_comms.acp_extension import CoordinationChangedUpdate, TurnChangedUpdate
-from toad.acp.messages import CommsUpdated
+from toad.core.events import CommsUpdated
+from toad.core_event_carrier import CoreEventMessage
 from agent_comms.turn_lease import ActiveTurn,TurnState
 from agent_comms.turn_phase import PublishingPhase
 from toad.app import ToadApp
@@ -114,8 +115,7 @@ async def main():
             assert wire['wire_frontier']==incoming.seq and wire['native_transfer_pending'],wire
             print(json.dumps(wire))
             assert binding.receive(TurnState(finished_turn_id='source-turn'))
-            await view.on_turn_changed(CommsUpdated(TurnChangedUpdate(binding.owner.state),
-                                       agent=agent,session_id=agent.session_id,sequence=binding.sequence))
+            await view.on_turn_changed(CoreEventMessage(CommsUpdated(TurnChangedUpdate(binding.owner.state), session_id=agent.session_id, sequence=binding.sequence), agent.controller.surface.subscription))
             task=asyncio.create_task(CheckpointPublication(view.transcript,view,view.window,view.contents).publish())
             try:
                 async with asyncio.timeout(8):

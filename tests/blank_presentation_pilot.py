@@ -15,7 +15,7 @@ from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.side_bar import SideBar
 from toad.screens.main import MainScreen
 from toad.shell_output import ShellTerminalOutput
-from toad.messages import UserInputSubmitted
+from toad.core.input_events import UserInputSubmitted
 
 
 async def select(app, pilot, source):

@@ -1,0 +1,16 @@
+{
+  "result": "PASS",
+  "elapsed_seconds": 10.367908622021787,
+  "native_requests": 2,
+  "queued_input_id": "662bc2c9becb41669eae472a9021e889",
+  "original_mode": "session-1",
+  "channel_mode": "comms-1",
+  "physical_pilot_enter": true,
+  "saved_response_painted": true,
+  "queue_cleared": true,
+  "idle_ready": true,
+  "draft_document_undo_preserved": true,
+  "same_owner": true,
+  "thinking": "high",
+  "scope": "Installed Toad/Textual/ACP/Pi with two controlled localhost responses; no public input or paid provider"
+}

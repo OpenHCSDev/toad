@@ -1,0 +1,486 @@
+{
+  "scope": "all production Python; lexical names include unrelated Changed classes; reads adjudicate",
+  "omissions": [],
+  "sites": [
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 47,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 58,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 75,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 48,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 59,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 76,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 38,
+      "kind": "ClassDef",
+      "name": "TranscriptSourceWorkFinished"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 133,
+      "kind": "Name",
+      "name": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 110,
+      "kind": "Name",
+      "name": "TranscriptSourceWorkFinished"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 741,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 30,
+      "kind": "ClassDef",
+      "name": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 34,
+      "kind": "Name",
+      "name": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 299,
+      "kind": "Name",
+      "name": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 42,
+      "kind": "ClassDef",
+      "name": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 49,
+      "kind": "ClassDef",
+      "name": "ShellFinished"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 324,
+      "kind": "Name",
+      "name": "ShellFinished"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 311,
+      "kind": "Name",
+      "name": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 57,
+      "kind": "ClassDef",
+      "name": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 375,
+      "kind": "ClassDef",
+      "name": "OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 502,
+      "kind": "Name",
+      "name": "OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 527,
+      "kind": "Name",
+      "name": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 504,
+      "kind": "Name",
+      "name": "OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 528,
+      "kind": "Name",
+      "name": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 117,
+      "kind": "Name",
+      "name": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 199,
+      "kind": "Attribute",
+      "name": "OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 44,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 45,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 88,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 89,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 193,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 194,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 82,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 92,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 83,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 93,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 755,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 756,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 16,
+      "kind": "ClassDef",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 25,
+      "kind": "ClassDef",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 125,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 67,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 50,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 68,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 67,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 68,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 33,
+      "kind": "ClassDef",
+      "name": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 147,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 885,
+      "kind": "Name",
+      "name": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 983,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1304,
+      "kind": "Name",
+      "name": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 886,
+      "kind": "Name",
+      "name": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 985,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 983,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1306,
+      "kind": "Name",
+      "name": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 985,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1010,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1794,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2163,
+      "kind": "Name",
+      "name": "ObservedThreadActivity"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 124,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 125,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 154,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 68,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 69,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 210,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 211,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 137,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 347,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 348,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 344,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 340,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 470,
+      "kind": "Name",
+      "name": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 582,
+      "kind": "Name",
+      "name": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 464,
+      "kind": "Name",
+      "name": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 178,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 179,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 377,
+      "kind": "ClassDef",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 857,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 858,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 424,
+      "kind": "Attribute",
+      "name": "Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 434,
+      "kind": "Attribute",
+      "name": "Changed"
+    }
+  ]
+}

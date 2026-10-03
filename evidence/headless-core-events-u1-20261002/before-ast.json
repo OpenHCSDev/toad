@@ -1,0 +1,5660 @@
+{
+  "source_head": "26d9581846dcf4d6f548e70380b62c4e7963796c",
+  "production_modules": 276,
+  "test_modules": 389,
+  "parse_omissions": [],
+  "event_declarations": [
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 31,
+      "name": "AgentMessage",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 36,
+      "name": "TerminalProjection",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "binding: SurfaceBinding",
+        "controller: TerminalController",
+        "terminal_id: str",
+        "execution: TerminalExecution"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 45,
+      "name": "InputDispositionsChanged",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 49,
+      "name": "RejectedSessionUpdate",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 54,
+      "name": "McpClientStopped",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "agent: object"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 61,
+      "name": "Thinking",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "type: str",
+        "text: str"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 67,
+      "name": "UpdateStatusLine",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "status_line: str | Content"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 72,
+      "name": "Update",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "type: str",
+        "text: str",
+        "stream: OutputStream",
+        "agent: object"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 80,
+      "name": "UserMessage",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "type: str",
+        "text: str"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 87,
+      "name": "RequestPermission",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "request: PermissionRequest"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 92,
+      "name": "Plan",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "entries: list[PlanItem]"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 97,
+      "name": "ToolCall",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "tool_call: ToolCallStatus"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 107,
+      "name": "ToolCallUpdate",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "tool_call: ToolCallStatus",
+        "update: schema.ToolCallUpdate"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 118,
+      "name": "AvailableCommandsUpdate",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "commands: list[schema.AvailableCommand]"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 125,
+      "name": "ConfigurationChanged",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "agent: AgentBase"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 132,
+      "name": "SessionInfoUpdate",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "title: str | None"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 139,
+      "name": "CommsUpdated",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "update: AgentCommsUpdate | QueuePresentation | CursorPresentation",
+        "agent: object | None = None",
+        "session_id: str | None = None",
+        "sequence: int | None = None",
+        "recover_draft: bool = False",
+        "queue_scope: QueueScope | None = None"
+      ]
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 151,
+      "name": "UsageUpdage",
+      "bases": [
+        "AgentMessage"
+      ],
+      "fields": [
+        "used: int",
+        "size: int",
+        "cost: tuple[float, str] | None"
+      ]
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 13,
+      "name": "AgentReady",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 22,
+      "name": "AgentFail",
+      "bases": [
+        "Message",
+        "ABC"
+      ],
+      "fields": [
+        "message: str",
+        "details: str = ''"
+      ]
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 31,
+      "name": "HelpAgentFail",
+      "bases": [
+        "AgentFail"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 41,
+      "name": "UnsupportedResumeAgentFail",
+      "bases": [
+        "HelpAgentFail"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 58,
+      "name": "LogAgentFail",
+      "bases": [
+        "AgentFail"
+      ],
+      "fields": [
+        "log_path: Path = field(kw_only=True)"
+      ]
+    },
+    {
+      "path": "src/toad/answer.py",
+      "line": 12,
+      "name": "Answer",
+      "bases": [
+        "NamedTuple"
+      ],
+      "fields": [
+        "text: str",
+        "id: str",
+        "kind: Literal['allow_once', 'allow_always', 'reject_once', 'reject_always'] | None = None"
+      ]
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 30,
+      "name": "DirectoryChanged",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 12,
+      "name": "WorkStarted",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 16,
+      "name": "WorkFinished",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 21,
+      "name": "HistoryMove",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "direction: Literal[-1, +1]",
+        "history_kind: type[InputHistory]",
+        "body: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 35,
+      "name": "UserInputSubmitted",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "body: str",
+        "shell: bool = False",
+        "auto_complete: bool = False",
+        "immediate: bool = False"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 42,
+      "name": "SendPromptNow",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 47,
+      "name": "PromptSuggestion",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "suggestion: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 52,
+      "name": "Dismiss",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "widget: Widget"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 61,
+      "name": "InsertPath",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "path: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 66,
+      "name": "ChangeMode",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "mode_id: str | None"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 71,
+      "name": "ChangeModel",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "model_id: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 75,
+      "name": "ProviderLogin",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 80,
+      "name": "Flash",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "content: str | Content",
+        "style: Literal['default', 'warning', 'success', 'error']",
+        "duration: float | None = None"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 94,
+      "name": "ProjectDirectoryUpdated",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 98,
+      "name": "WorkspaceSessionRequest",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 103,
+      "name": "SessionNavigate",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "mode_name: str",
+        "direction: Literal[-1, +1]"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 111,
+      "name": "SessionSwitch",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "mode_name: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 118,
+      "name": "SessionNew",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "path: str",
+        "agent: str",
+        "prompt: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 130,
+      "name": "SessionCreate",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "source_mode: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 137,
+      "name": "SessionRename",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "mode_name: str",
+        "name: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 143,
+      "name": "SessionArchive",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "mode_name: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 148,
+      "name": "SessionUpdate",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "name: str | None = None",
+        "subtitle: str | None = None",
+        "path: str | None = None"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 158,
+      "name": "SessionClose",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "name: str"
+      ]
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 164,
+      "name": "LaunchAgent",
+      "bases": [
+        "WorkspaceSessionRequest"
+      ],
+      "fields": [
+        "identity: str",
+        "session_id: str | None = None",
+        "pk: int | None = None",
+        "prompt: str | None = None"
+      ]
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 27,
+      "name": "AgentModal",
+      "bases": [
+        "ModalScreen[LaunchAgent | None]"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 39,
+      "name": "PermissionsScreen",
+      "bases": [
+        "Screen[Answer]"
+      ],
+      "fields": [
+        "index: var[int] = var(0)",
+        "diff_type: var[type[DiffMode]] = var(Initialize(get_diff_type))"
+      ]
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 209,
+      "name": "PermissionReview",
+      "bases": [
+        "PermissionsScreen"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 54,
+      "name": "ChangeDirectory",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "path: str"
+      ]
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 372,
+      "name": "OpenAgentDetails",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "identity: str"
+      ]
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 42,
+      "name": "CurrentWorkingDirectoryChanged",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "path: str"
+      ]
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 49,
+      "name": "ShellFinished",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 37,
+      "name": "TranscriptSourceWorkFinished",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 47,
+      "name": "CommandComplete",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "return_code: int"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 33,
+      "name": "TranscriptCoverage",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 22,
+      "name": "Pressed",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 197,
+      "name": "SelectTarget",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/flash.py",
+      "line": 13,
+      "name": "Flash",
+      "bases": [
+        "Static"
+      ],
+      "fields": [
+        "flash_timer: var[Timer | None] = var(None)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 26,
+      "name": "Activated",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 27,
+      "name": "Selected",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "grid_select: 'GridSelect'",
+        "widget: Widget"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 36,
+      "name": "Highlighted",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "grid_select: 'GridSelect'",
+        "widget: Widget"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 45,
+      "name": "LeaveUp",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "grid_select: 'GridSelect'"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 49,
+      "name": "LeaveDown",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "grid_select: 'GridSelect'"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 51,
+      "name": "Activated",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 71,
+      "name": "Inspect",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 92,
+      "name": "OptionSelected",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "menu: Menu",
+        "owner: Widget",
+        "action: str | None"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 100,
+      "name": "Dismissed",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "menu: Menu"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 22,
+      "name": "Changed",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 17,
+      "name": "Plan",
+      "bases": [
+        "ConversationBlock",
+        "containers.Grid"
+      ],
+      "fields": [
+        "entries: reactive[list[PlanItem]] = reactive(list, recompose=True)",
+        "all_complete: reactive[bool] = reactive(False)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 28,
+      "name": "InsertSelected",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 36,
+      "name": "Requested",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 198,
+      "name": "Submitted",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 203,
+      "name": "RequestShellMode",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 206,
+      "name": "CancelShell",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 82,
+      "name": "Selected",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "index: int"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 158,
+      "name": "Answer",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "index: int",
+        "answer: Answer",
+        "ask: Ask | None"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/selection.py",
+      "line": 41,
+      "name": "PointerSelected",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 89,
+      "name": "Clicked",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "offset: Offset"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 69,
+      "name": "PlanSessionPanel",
+      "bases": [
+        "SessionPanel[Plan]"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 16,
+      "name": "Terminate",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "teminal: ShellTerminal"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 24,
+      "name": "Interrupt",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "teminal: ShellTerminal"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 160,
+      "name": "Pressed",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 287,
+      "name": "Pressed",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 370,
+      "name": "Changed",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "slider: SidebarSlider",
+        "value: int"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 477,
+      "name": "Pressed",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "action: 'SidebarPlacementAction'"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 624,
+      "name": "Dismiss",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 48,
+      "name": "Toggled",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 75,
+      "name": "Completed",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "command: str"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 47,
+      "name": "Finalized",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "terminal: Terminal"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 57,
+      "name": "AlternateScreenChanged",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "terminal: Terminal",
+        "enabled: bool"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 68,
+      "name": "LongRunning",
+      "bases": [
+        "Message"
+      ],
+      "fields": [
+        "terminal: Terminal"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 49,
+      "name": "ToolCall",
+      "bases": [
+        "ConversationBlock",
+        "SnapshotPresentation",
+        "CategorizedBlock",
+        "containers.VerticalGroup"
+      ],
+      "fields": [
+        "has_content: var[bool] = var(False, toggle_class='-has-content')",
+        "expanded: var[bool] = var(False, toggle_class='-expanded')",
+        "tool_call: var[ToolCallStatus | None] = var(None)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 145,
+      "name": "Requested",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 161,
+      "name": "Requested",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 10,
+      "name": "Requested",
+      "bases": [
+        "Message"
+      ],
+      "fields": []
+    }
+  ],
+  "event_consumers": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 33,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 44,
+      "syntax": "from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 193,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 206,
+      "syntax": "messages.UpdateStatusLine"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 270,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 280,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent.py",
+      "line": 437,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_configuration.py",
+      "line": 144,
+      "syntax": "messages.ConfigurationChanged"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 20,
+      "syntax": "from toad.agent import LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 163,
+      "syntax": "from .messages import CommsUpdated, AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 204,
+      "syntax": "from .messages import McpClientStopped"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 241,
+      "syntax": "from .messages import Plan"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 246,
+      "syntax": "from .messages import AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 173,
+      "syntax": "from .messages import Plan"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 48,
+      "syntax": "messages.TerminalProjection"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 171,
+      "syntax": "AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 201,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 210,
+      "syntax": "McpClientStopped"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 243,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 248,
+      "syntax": "AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 174,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 180,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 188,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 327,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 330,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 10,
+      "syntax": "from toad.agent import LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 169,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 174,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 184,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 237,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 66,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_process.py",
+      "line": 200,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 11,
+      "syntax": "from toad.agent import AgentReady, UnsupportedResumeAgentFail"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 63,
+      "syntax": "messages.SessionInfoUpdate"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 97,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 305,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/agent_session.py",
+      "line": 77,
+      "syntax": "UnsupportedResumeAgentFail"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 211,
+      "syntax": "from toad.agent import LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 74,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 85,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 96,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 152,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 159,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 168,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 183,
+      "syntax": "messages.InputDispositionsChanged"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 188,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 202,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 215,
+      "syntax": "LogAgentFail"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 220,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/comms_updates.py",
+      "line": 125,
+      "syntax": "messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 12,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 31,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 36,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 45,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 49,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 54,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 61,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 67,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 72,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 80,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 87,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 92,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 97,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 107,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 118,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 125,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 132,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 139,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 151,
+      "syntax": "AgentMessage"
+    },
+    {
+      "path": "src/toad/acp/messages.py",
+      "line": 109,
+      "syntax": "schema.ToolCallUpdate"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 10,
+      "syntax": "from toad.answer import Answer"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 88,
+      "syntax": "from .messages import RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 95,
+      "syntax": "from .messages import RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 29,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 114,
+      "syntax": "protocol.ToolCallUpdate"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 66,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 91,
+      "syntax": "RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/permission_controller.py",
+      "line": 97,
+      "syntax": "RequestPermission"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 16,
+      "syntax": "from acp.schema import UserMessageChunk, AgentMessageChunk, AgentThoughtChunk, ToolCallStart, ToolCallProgress, AgentPlanUpdate, AvailableCommandsUpdate, CurrentModeUpdate, ConfigOptionUpdate, SessionInfoUpdate, UsageUpdate, TextContentBlock"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 55,
+      "syntax": "AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 67,
+      "syntax": "SessionInfoUpdate"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 93,
+      "syntax": "messages.UserMessage"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 98,
+      "syntax": "messages.Thinking"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 108,
+      "syntax": "messages.Update"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 147,
+      "syntax": "messages.RejectedSessionUpdate"
+    },
+    {
+      "path": "src/toad/acp/session_updates.py",
+      "line": 70,
+      "syntax": "messages.SessionInfoUpdate"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 4,
+      "syntax": "from acp.schema import ToolCall"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 42,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/acp/status.py",
+      "line": 45,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 2,
+      "syntax": "from acp.schema import ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 18,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 12,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 20,
+      "syntax": "messages.ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 24,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 34,
+      "syntax": "messages.ToolCallUpdate"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 34,
+      "syntax": "messages.ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 18,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/acp/tool_calls.py",
+      "line": 26,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 10,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 13,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 22,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 31,
+      "syntax": "AgentFail"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 41,
+      "syntax": "HelpAgentFail"
+    },
+    {
+      "path": "src/toad/agent.py",
+      "line": 58,
+      "syntax": "AgentFail"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 608,
+      "syntax": "messages.WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 609,
+      "syntax": "messages.WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 12,
+      "syntax": "from toad.screens.agent_modal import AgentModal"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 94,
+      "syntax": "from toad.messages import LaunchAgent"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 30,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 48,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 57,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 93,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "src/toad/catalog_actions.py",
+      "line": 95,
+      "syntax": "LaunchAgent"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 11,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 30,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 33,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 34,
+      "syntax": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/directory_watcher.py",
+      "line": 299,
+      "syntax": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/message_viewport.py",
+      "line": 7,
+      "syntax": "from agent_comms.messages import Message"
+    },
+    {
+      "path": "src/toad/message_viewport.py",
+      "line": 16,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/message_viewport.py",
+      "line": 23,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 7,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 12,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 16,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 21,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 35,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 42,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 47,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 52,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 61,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 66,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 71,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 75,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 80,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 94,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 98,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 103,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 111,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 118,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 130,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 137,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 143,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 148,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 158,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/messages.py",
+      "line": 164,
+      "syntax": "WorkspaceSessionRequest"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 8,
+      "syntax": "from agent_comms.messages import Message as WireMessage"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 8,
+      "syntax": "from toad.screens.permissions import PermissionReview"
+    },
+    {
+      "path": "src/toad/permission_presentation.py",
+      "line": 59,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 90,
+      "syntax": "from toad.messages import HistoryMove"
+    },
+    {
+      "path": "src/toad/prompt_cursor.py",
+      "line": 94,
+      "syntax": "HistoryMove"
+    },
+    {
+      "path": "src/toad/question_actions.py",
+      "line": 60,
+      "syntax": "question.Answer"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 66,
+      "syntax": "CommandPane.CommandComplete"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 97,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 102,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 67,
+      "syntax": "CommandPane.CommandComplete"
+    },
+    {
+      "path": "src/toad/screens/action_modal.py",
+      "line": 98,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 17,
+      "syntax": "from toad.messages import LaunchAgent"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 27,
+      "syntax": "LaunchAgent"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 82,
+      "syntax": "widgets.Checkbox.Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 92,
+      "syntax": "widgets.Select.Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 97,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 83,
+      "syntax": "widgets.Checkbox.Changed"
+    },
+    {
+      "path": "src/toad/screens/agent_modal.py",
+      "line": 93,
+      "syntax": "widgets.Select.Changed"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 52,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 56,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 53,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/command_edit_modal.py",
+      "line": 57,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 16,
+      "syntax": "from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 157,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 251,
+      "syntax": "SideBar.Dismiss"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 260,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 252,
+      "syntax": "SideBar.Dismiss"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 261,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 288,
+      "syntax": "messages.SessionNavigate"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 291,
+      "syntax": "messages.SessionNavigate"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 13,
+      "syntax": "from toad.widgets.comms_sidebar import SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 91,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 95,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 96,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_details.py",
+      "line": 99,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 13,
+      "syntax": "from toad.messages import UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 65,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 86,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 90,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/goal_edit.py",
+      "line": 66,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 88,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 134,
+      "syntax": "WireMessageHandling.Requested"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 89,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 135,
+      "syntax": "WireMessageHandling.Requested"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 31,
+      "syntax": "from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 40,
+      "syntax": "from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 344,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 440,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 453,
+      "syntax": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 464,
+      "syntax": "ProjectDirectoryTree.InsertSelected"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 471,
+      "syntax": "ProjectSearchButton.Requested"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 479,
+      "syntax": "acp_messages.Plan"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 487,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 500,
+      "syntax": "messages.SessionClose"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 567,
+      "syntax": "SideBar.Dismiss"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 345,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 441,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 466,
+      "syntax": "ProjectDirectoryTree.InsertSelected"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 472,
+      "syntax": "ProjectSearchButton.Requested"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 480,
+      "syntax": "acp_messages.Plan"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 488,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 501,
+      "syntax": "messages.SessionClose"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 568,
+      "syntax": "SideBar.Dismiss"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 447,
+      "syntax": "messages.SessionNavigate"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 451,
+      "syntax": "messages.SessionNavigate"
+    },
+    {
+      "path": "src/toad/screens/mcp_decision.py",
+      "line": 116,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 77,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 143,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 147,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 144,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/mcp_inventory.py",
+      "line": 148,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 17,
+      "syntax": "from toad.answer import Answer"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 209,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 39,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 186,
+      "syntax": "Question.Answer"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 193,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 187,
+      "syntax": "Question.Answer"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 194,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/screens/permissions.py",
+      "line": 74,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/screens/session_resume_modal.py",
+      "line": 106,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/session_resume_modal.py",
+      "line": 114,
+      "syntax": "widgets.Button.Pressed"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 44,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/screens/settings.py",
+      "line": 45,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 19,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 54,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 372,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 517,
+      "syntax": "from toad.screens.agent_modal import AgentModal"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 102,
+      "syntax": "widgets.Input.Submitted"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 480,
+      "syntax": "GridSelect.LeaveUp"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 485,
+      "syntax": "GridSelect.LeaveDown"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 490,
+      "syntax": "GridSelect.Selected"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 499,
+      "syntax": "OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 508,
+      "syntax": "GridSelect.Selected"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 524,
+      "syntax": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 103,
+      "syntax": "widgets.Input.Submitted"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 481,
+      "syntax": "GridSelect.LeaveUp"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 486,
+      "syntax": "GridSelect.LeaveUp"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 492,
+      "syntax": "GridSelect.Selected"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 501,
+      "syntax": "OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 510,
+      "syntax": "GridSelect.Selected"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 525,
+      "syntax": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 114,
+      "syntax": "ChangeDirectory"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 196,
+      "syntax": "StoreScreen.OpenAgentDetails"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 214,
+      "syntax": "messages.LaunchAgent"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 320,
+      "syntax": "messages.LaunchAgent"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 519,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "src/toad/screens/store.py",
+      "line": 589,
+      "syntax": "messages.LaunchAgent"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 40,
+      "syntax": "messages.SessionNavigate"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 46,
+      "syntax": "messages.SessionSwitch"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 50,
+      "syntax": "messages.SessionNew"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 55,
+      "syntax": "messages.SessionCreate"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 59,
+      "syntax": "messages.SessionRename"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 66,
+      "syntax": "messages.SessionArchive"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 70,
+      "syntax": "messages.SessionClose"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 74,
+      "syntax": "messages.LaunchAgent"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 41,
+      "syntax": "messages.SessionNavigate"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 47,
+      "syntax": "messages.SessionSwitch"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 51,
+      "syntax": "messages.SessionNew"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 56,
+      "syntax": "messages.SessionCreate"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 60,
+      "syntax": "messages.SessionRename"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 67,
+      "syntax": "messages.SessionArchive"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 71,
+      "syntax": "messages.SessionClose"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 75,
+      "syntax": "messages.LaunchAgent"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 20,
+      "syntax": "Input.Submitted"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 47,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 58,
+      "syntax": "Checkbox.Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 75,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 48,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 59,
+      "syntax": "Checkbox.Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 76,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/setting_widgets.py",
+      "line": 21,
+      "syntax": "Input.Submitted"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 16,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 42,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 49,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 324,
+      "syntax": "ShellFinished"
+    },
+    {
+      "path": "src/toad/shell.py",
+      "line": 311,
+      "syntax": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 308,
+      "syntax": "messages.SessionClose"
+    },
+    {
+      "path": "src/toad/slash_command.py",
+      "line": 327,
+      "syntax": "messages.SessionNew"
+    },
+    {
+      "path": "src/toad/target_commands.py",
+      "line": 270,
+      "syntax": "messages.SessionArchive"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 161,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 169,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 33,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 363,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 58,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 196,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 229,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 350,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/tool_output.py",
+      "line": 368,
+      "syntax": "schema.ToolCall"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 8,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 11,
+      "syntax": "from toad.widgets.committed_presentation import TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 37,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 132,
+      "syntax": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/transcript_source_preparation.py",
+      "line": 109,
+      "syntax": "TranscriptSourceWorkFinished"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 105,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 112,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 120,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 126,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 106,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 113,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 121,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/acp_log.py",
+      "line": 127,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 12,
+      "syntax": "from toad.widgets.comms_sidebar import SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/channel_participants.py",
+      "line": 17,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 68,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 108,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 69,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/widgets/channel_prompt.py",
+      "line": 109,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 12,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 47,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/command_pane.py",
+      "line": 186,
+      "syntax": "self.CommandComplete"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 13,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 33,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 18,
+      "syntax": "from agent_comms.messages import Message as WireMessage"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 35,
+      "syntax": "from toad.widgets.flash import Flash"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 370,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/comms_chat.py",
+      "line": 128,
+      "syntax": "Flash"
+    },
+    {
+      "path": "src/toad/widgets/comms_fork_dialog.py",
+      "line": 56,
+      "syntax": "Input.Submitted"
+    },
+    {
+      "path": "src/toad/widgets/comms_fork_dialog.py",
+      "line": 59,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 13,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 22,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 164,
+      "syntax": "ContextMenuItem.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 165,
+      "syntax": "ContextMenuItem.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 45,
+      "syntax": "self.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 26,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 197,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 362,
+      "syntax": "messages.SessionCreate"
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 298,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 140,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 177,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 188,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 237,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 178,
+      "syntax": "Select.Changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 63,
+      "syntax": "from toad.agent import AgentBase, AgentFail, AgentReady"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 65,
+      "syntax": "from toad.answer import Answer"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 67,
+      "syntax": "from toad.directory_watcher import DirectoryChanged, DirectoryWatcher"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 70,
+      "syntax": "from toad.widgets.flash import Flash"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 89,
+      "syntax": "from toad.shell import CurrentWorkingDirectoryChanged, Shell"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1511,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1525,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 873,
+      "syntax": "ShellTerminal.Interrupt"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 880,
+      "syntax": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 888,
+      "syntax": "Terminal.Finalized"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 901,
+      "syntax": "Terminal.LongRunning"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 910,
+      "syntax": "Terminal.AlternateScreenChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 928,
+      "syntax": "messages.Flash"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 978,
+      "syntax": "ObservedThreadActivity.Changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 990,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1027,
+      "syntax": "acp_messages.SessionInfoUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1069,
+      "syntax": "AgentFail"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1099,
+      "syntax": "messages.WorkStarted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1103,
+      "syntax": "messages.WorkFinished"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1108,
+      "syntax": "messages.ChangeMode"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1112,
+      "syntax": "messages.ProviderLogin"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1192,
+      "syntax": "messages.ChangeModel"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1237,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1285,
+      "syntax": "Menu.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1295,
+      "syntax": "Menu.Dismissed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1302,
+      "syntax": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1316,
+      "syntax": "acp_messages.TerminalProjection"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1321,
+      "syntax": "acp_messages.UpdateStatusLine"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1328,
+      "syntax": "acp_messages.RejectedSessionUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1360,
+      "syntax": "acp_messages.McpClientStopped"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1403,
+      "syntax": "acp_messages.Update"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1483,
+      "syntax": "WireMessageHandling.Requested"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1496,
+      "syntax": "acp_messages.Thinking"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1503,
+      "syntax": "acp_messages.RequestPermission"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1509,
+      "syntax": "acp_messages.Plan"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1520,
+      "syntax": "acp_messages.ToolCallUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1521,
+      "syntax": "acp_messages.ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1541,
+      "syntax": "acp_messages.AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1574,
+      "syntax": "acp_messages.ConfigurationChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1596,
+      "syntax": "messages.HistoryMove"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1692,
+      "syntax": "InputDeliveryBar.Inspect"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1721,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1733,
+      "syntax": "GoalControl.Activated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 874,
+      "syntax": "ShellTerminal.Terminate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 881,
+      "syntax": "DirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 889,
+      "syntax": "Terminal.Finalized"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 902,
+      "syntax": "Terminal.LongRunning"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 912,
+      "syntax": "Terminal.AlternateScreenChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 929,
+      "syntax": "messages.Flash"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 980,
+      "syntax": "ObservedThreadActivity.Changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 991,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1029,
+      "syntax": "acp_messages.SessionInfoUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1070,
+      "syntax": "AgentFail"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1109,
+      "syntax": "messages.ChangeMode"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1113,
+      "syntax": "messages.ProviderLogin"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1193,
+      "syntax": "messages.ChangeModel"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1238,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1242,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1286,
+      "syntax": "Menu.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1296,
+      "syntax": "Menu.Dismissed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1304,
+      "syntax": "CurrentWorkingDirectoryChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1317,
+      "syntax": "acp_messages.TerminalProjection"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1322,
+      "syntax": "acp_messages.UpdateStatusLine"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1330,
+      "syntax": "acp_messages.RejectedSessionUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1347,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1362,
+      "syntax": "acp_messages.McpClientStopped"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1368,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1404,
+      "syntax": "acp_messages.Update"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1412,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1424,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1441,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1460,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1484,
+      "syntax": "WireMessageHandling.Requested"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1497,
+      "syntax": "acp_messages.Thinking"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1504,
+      "syntax": "acp_messages.RequestPermission"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1510,
+      "syntax": "acp_messages.Plan"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1543,
+      "syntax": "acp_messages.AvailableCommandsUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1575,
+      "syntax": "acp_messages.ConfigurationChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1597,
+      "syntax": "messages.HistoryMove"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1687,
+      "syntax": "acp_messages.InputDispositionsChanged"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1693,
+      "syntax": "InputDeliveryBar.Inspect"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1722,
+      "syntax": "acp_messages.CommsUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1734,
+      "syntax": "GoalControl.Activated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 762,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 820,
+      "syntax": "Flash"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1012,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1514,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1523,
+      "syntax": "acp_messages.ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1523,
+      "syntax": "acp_messages.ToolCallUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1532,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1533,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1609,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 884,
+      "syntax": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 899,
+      "syntax": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 947,
+      "syntax": "Flash"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1043,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1269,
+      "syntax": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 578,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 616,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 620,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1518,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1536,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1612,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 11,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 26,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 33,
+      "syntax": "self.Activated"
+    },
+    {
+      "path": "src/toad/widgets/goal_text.py",
+      "line": 8,
+      "syntax": "from toad.widgets.comms_sidebar import SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/goal_text.py",
+      "line": 39,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 6,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 27,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 36,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 45,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 49,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 136,
+      "syntax": "self.LeaveUp"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 149,
+      "syntax": "self.LeaveDown"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 116,
+      "syntax": "self.Highlighted"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 145,
+      "syntax": "self.LeaveUp"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 159,
+      "syntax": "self.LeaveDown"
+    },
+    {
+      "path": "src/toad/widgets/grid_select.py",
+      "line": 199,
+      "syntax": "self.Selected"
+    },
+    {
+      "path": "src/toad/widgets/highlighted_textarea.py",
+      "line": 147,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 18,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 164,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 10,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 51,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 71,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 250,
+      "syntax": "DeliveryHistoryAction.Activated"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 270,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 274,
+      "syntax": "Button.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 251,
+      "syntax": "DeliveryHistoryAction.Activated"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 41,
+      "syntax": "InputDeliveryBar.Inspect"
+    },
+    {
+      "path": "src/toad/widgets/input_delivery.py",
+      "line": 58,
+      "syntax": "self.Activated"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 12,
+      "syntax": "from textual.message import Message as UIMessage"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 14,
+      "syntax": "from agent_comms.messages import Message"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 16,
+      "syntax": "from toad.widgets.comms_sidebar import SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 59,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 90,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 149,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 46,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/irc_message.py",
+      "line": 133,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 8,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 92,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 100,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 145,
+      "syntax": "ListView.Selected"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 146,
+      "syntax": "ListView.Selected"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 128,
+      "syntax": "self.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 131,
+      "syntax": "self.Dismissed"
+    },
+    {
+      "path": "src/toad/widgets/menu.py",
+      "line": 134,
+      "syntax": "self.Dismissed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 208,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 218,
+      "syntax": "SelectionOptionList.PointerSelected"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 223,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 209,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 219,
+      "syntax": "SelectionOptionList.PointerSelected"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 224,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 32,
+      "syntax": "messages.ProviderLogin"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 135,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "line": 230,
+      "syntax": "messages.ChangeModel"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 9,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 22,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 119,
+      "syntax": "self.Changed"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 33,
+      "syntax": "from toad.messages import Dismiss, InsertPath, PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 181,
+      "syntax": "PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 187,
+      "syntax": "InsertPath"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 347,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 357,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 182,
+      "syntax": "PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 188,
+      "syntax": "InsertPath"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 348,
+      "syntax": "Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 358,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 270,
+      "syntax": "PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 449,
+      "syntax": "PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 329,
+      "syntax": "PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 344,
+      "syntax": "InsertPath"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 345,
+      "syntax": "Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 355,
+      "syntax": "PromptSuggestion"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 368,
+      "syntax": "InsertPath"
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "line": 369,
+      "syntax": "Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/plan.py",
+      "line": 66,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 8,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 28,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/project_directory_tree.py",
+      "line": 154,
+      "syntax": "self.InsertSelected"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 11,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 36,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/project_panel.py",
+      "line": 43,
+      "syntax": "self.Requested"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 18,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 35,
+      "syntax": "from toad.messages import UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 198,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 203,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 206,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 52,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 639,
+      "syntax": "messages.SendPromptNow"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 748,
+      "syntax": "PromptTextArea.RequestShellMode"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 753,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 764,
+      "syntax": "PromptTextArea.CancelShell"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 769,
+      "syntax": "Question.Answer"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 53,
+      "syntax": "OptionList.OptionSelected"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 749,
+      "syntax": "PromptTextArea.RequestShellMode"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 754,
+      "syntax": "TextArea.Changed"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 765,
+      "syntax": "PromptTextArea.CancelShell"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 770,
+      "syntax": "Question.Answer"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 54,
+      "syntax": "messages.ChangeMode"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 69,
+      "syntax": "messages.SendPromptNow"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 324,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 304,
+      "syntax": "messages.Flash"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 327,
+      "syntax": "self.CancelShell"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 338,
+      "syntax": "self.CancelShell"
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "line": 678,
+      "syntax": "messages.Flash"
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 12,
+      "syntax": "from toad.messages import Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 66,
+      "syntax": "Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "line": 67,
+      "syntax": "Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 12,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 17,
+      "syntax": "from toad.answer import Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 22,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 82,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 158,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 162,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 245,
+      "syntax": "Option.Selected"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 246,
+      "syntax": "Option.Selected"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 258,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 263,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 264,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 265,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 109,
+      "syntax": "self.Selected"
+    },
+    {
+      "path": "src/toad/widgets/question.py",
+      "line": 32,
+      "syntax": "Answer"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 12,
+      "syntax": "from toad.widgets.comms_sidebar import SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/route_header.py",
+      "line": 50,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/selection.py",
+      "line": 8,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/selection.py",
+      "line": 41,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/selection.py",
+      "line": 51,
+      "syntax": "self.PointerSelected"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 67,
+      "syntax": "ObservedThreadActivity.Changed"
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 68,
+      "syntax": "ObservedThreadActivity.Changed"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 12,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 89,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 64,
+      "syntax": "messages.SessionArchive"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 120,
+      "syntax": "self.Clicked"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 31,
+      "syntax": "messages.SessionArchive"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 8,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 69,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 75,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 76,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 83,
+      "syntax": "Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 6,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 8,
+      "syntax": "from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_sidebar.py",
+      "line": 21,
+      "syntax": "PlanSessionPanel"
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 6,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 16,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/shell_terminal.py",
+      "line": 24,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 12,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 160,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 287,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 370,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 477,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 624,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 319,
+      "syntax": "MainMenuButton.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 851,
+      "syntax": "SidebarSlider.Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 859,
+      "syntax": "SidebarAction.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 932,
+      "syntax": "SideBarToggle.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 320,
+      "syntax": "MainMenuButton.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 852,
+      "syntax": "SidebarSlider.Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 860,
+      "syntax": "SidebarAction.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 870,
+      "syntax": "widgets.Collapsible.Toggled"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 933,
+      "syntax": "SideBarToggle.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 181,
+      "syntax": "self.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 295,
+      "syntax": "self.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 486,
+      "syntax": "self.Pressed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 1001,
+      "syntax": "self.Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 417,
+      "syntax": "self.Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 427,
+      "syntax": "self.Changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 970,
+      "syntax": "self.Dismiss"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 8,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 48,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/sidebar_tree.py",
+      "line": 75,
+      "syntax": "self.Toggled"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 9,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 75,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 103,
+      "syntax": "Completed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 124,
+      "syntax": "widgets.Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 104,
+      "syntax": "Completed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 125,
+      "syntax": "widgets.Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 154,
+      "syntax": "widgets.Input.Changed"
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "line": 156,
+      "syntax": "self.Completed"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 13,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 47,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 57,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 68,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 181,
+      "syntax": "self.Finalized"
+    },
+    {
+      "path": "src/toad/widgets/terminal.py",
+      "line": 263,
+      "syntax": "self.LongRunning"
+    },
+    {
+      "path": "src/toad/widgets/terminal_projection.py",
+      "line": 14,
+      "syntax": "self.AlternateScreenChanged"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 20,
+      "syntax": "from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 342,
+      "syntax": "Checkbox.Changed"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 444,
+      "syntax": "SidebarGroup.Toggled"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 473,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 338,
+      "syntax": "Checkbox.Changed"
+    },
+    {
+      "path": "src/toad/widgets/tool_call.py",
+      "line": 118,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 90,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 92,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 27,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 44,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 50,
+      "syntax": "from toad.widgets.committed_presentation import CommittedHistory, TranscriptCoverage, TranscriptInputClaim"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 107,
+      "syntax": "protocol.ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 145,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 161,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 661,
+      "syntax": "JumpToLatest.Requested"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 666,
+      "syntax": "HistoryEdge.Requested"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 136,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 662,
+      "syntax": "JumpToLatest.Requested"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 667,
+      "syntax": "HistoryEdge.Requested"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 70,
+      "syntax": "protocol.ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 110,
+      "syntax": "protocol.ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 149,
+      "syntax": "self.Requested"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 165,
+      "syntax": "self.Requested"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 428,
+      "syntax": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 114,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 137,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 540,
+      "syntax": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 125,
+      "syntax": "protocol.ToolCall"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 422,
+      "syntax": "TranscriptCoverage"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 4,
+      "syntax": "from textual.message import Message"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 10,
+      "syntax": "Message"
+    },
+    {
+      "path": "src/toad/widgets/wire_message_handling.py",
+      "line": 23,
+      "syntax": "self.Requested"
+    },
+    {
+      "path": "tests/acp_completion_server.py",
+      "line": 7,
+      "syntax": "from acp.schema import AgentMessageChunk, AvailableCommand, AvailableCommandsUpdate, InitializeResponse, NewSessionResponse, PromptResponse, SessionConfigOptionSelect, SessionConfigSelectOption, SetSessionConfigOptionResponse, TextContentBlock"
+    },
+    {
+      "path": "tests/acp_completion_server.py",
+      "line": 39,
+      "syntax": "AvailableCommandsUpdate"
+    },
+    {
+      "path": "tests/acp_plan_server.py",
+      "line": 10,
+      "syntax": "from acp.schema import AgentPlanUpdate, InitializeResponse, NewSessionResponse, Plan, PromptResponse"
+    },
+    {
+      "path": "tests/acp_plan_server.py",
+      "line": 32,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/acp_specification_installed_pilot.py",
+      "line": 14,
+      "syntax": "from toad.screens.permissions import PermissionsScreen"
+    },
+    {
+      "path": "tests/acp_specification_installed_pilot.py",
+      "line": 15,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/acp_specification_installed_pilot.py",
+      "line": 50,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/acp_specification_installed_pilot.py",
+      "line": 43,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/acp_specification_installed_pilot.py",
+      "line": 44,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/acp_specification_server.py",
+      "line": 7,
+      "syntax": "from acp.schema import AgentMessageChunk, EnvVariable, FileEditToolCallContent, PermissionOption, TextContentBlock, ToolCallProgress, ToolCallStart, ToolCallUpdate, PromptResponse, NewSessionResponse, SessionMode, SessionModeState, SetSessionModeResponse, CurrentModeUpdate"
+    },
+    {
+      "path": "tests/acp_specification_server.py",
+      "line": 38,
+      "syntax": "ToolCallUpdate"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 82,
+      "syntax": "acp.Thinking"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 94,
+      "syntax": "acp.Thinking"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 100,
+      "syntax": "acp.ToolCall"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 102,
+      "syntax": "acp.ToolCallUpdate"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 104,
+      "syntax": "acp.Thinking"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 107,
+      "syntax": "acp.CommsUpdated"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 117,
+      "syntax": "acp.Thinking"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 121,
+      "syntax": "acp.Thinking"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 131,
+      "syntax": "acp.ToolCall"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 145,
+      "syntax": "acp.Update"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 146,
+      "syntax": "acp.Thinking"
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "line": 63,
+      "syntax": "acp.CommsUpdated"
+    },
+    {
+      "path": "tests/agent_configuration_native_installed_pilot.py",
+      "line": 20,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 14,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "line": 49,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/async_thread_open_pilot.py",
+      "line": 2,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/async_thread_open_pilot.py",
+      "line": 20,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/async_thread_open_pilot.py",
+      "line": 73,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 18,
+      "syntax": "from toad.messages import UserInputSubmitted"
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "line": 90,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "tests/block_interaction_pilot.py",
+      "line": 15,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/block_interaction_pilot.py",
+      "line": 67,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 15,
+      "syntax": "from toad.screens.agent_modal import AgentModal"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 114,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 109,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 231,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "tests/catalog_actions_native_installed_pilot.py",
+      "line": 124,
+      "syntax": "AgentModal"
+    },
+    {
+      "path": "tests/channel_retirement_pilot.py",
+      "line": 12,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/channel_retirement_pilot.py",
+      "line": 57,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 8,
+      "syntax": "from toad.screens.permissions import PermissionReview"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 47,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 100,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 109,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 121,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 85,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/client_session_native_installed_pilot.py",
+      "line": 97,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 2,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 25,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 79,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "line": 16,
+      "syntax": "from acp.schema import AvailableCommandsUpdate"
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "line": 100,
+      "syntax": "AvailableCommandsUpdate"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 16,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 101,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 109,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "line": 113,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 55,
+      "syntax": "from toad.widgets.flash import Flash"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 62,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 532,
+      "syntax": "Flash"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 637,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 405,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 439,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 447,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 539,
+      "syntax": "acp_messages.SessionInfoUpdate"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 545,
+      "syntax": "acp_messages.SessionInfoUpdate"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 557,
+      "syntax": "acp_messages.Update"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 566,
+      "syntax": "acp_messages.Update"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 611,
+      "syntax": "acp_messages.Thinking"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 626,
+      "syntax": "acp_messages.ToolCall"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 6,
+      "syntax": "from toad.acp.messages import Update, CommsUpdated"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 9,
+      "syntax": "from toad.messages import UserInputSubmitted"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 30,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 32,
+      "syntax": "Update"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 33,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 50,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "line": 61,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/context_compaction_native_installed_pilot.py",
+      "line": 41,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/context_compaction_native_installed_pilot.py",
+      "line": 28,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/context_native_installed_pilot.py",
+      "line": 21,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 13,
+      "syntax": "from toad.widgets.tool_call import ToolCall, ToolCallHeader"
+    },
+    {
+      "path": "tests/cursor_extent_pilot.py",
+      "line": 89,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/default_route_cancel_pilot.py",
+      "line": 69,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/default_route_cancel_pilot.py",
+      "line": 114,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/default_route_pilot.py",
+      "line": 217,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/default_route_pilot.py",
+      "line": 204,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "line": 17,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "line": 70,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 23,
+      "syntax": "from agent_comms.messages import Message"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 166,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 174,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/external_cli_native_installed_pilot.py",
+      "line": 205,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/filter_mount_supersession_pilot.py",
+      "line": 14,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/filter_mount_supersession_pilot.py",
+      "line": 32,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/filter_mount_supersession_pilot.py",
+      "line": 117,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/filter_mount_supersession_pilot.py",
+      "line": 166,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/fragment_divider_pilot.py",
+      "line": 12,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/fragment_divider_pilot.py",
+      "line": 62,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/fresh_fork_pilot.py",
+      "line": 2,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/fresh_fork_pilot.py",
+      "line": 17,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/fresh_fork_pilot.py",
+      "line": 70,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 5,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 168,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "line": 102,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 2,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 209,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "line": 216,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 61,
+      "syntax": "from toad.acp.messages import Update"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 67,
+      "syntax": "Update"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 68,
+      "syntax": "Update"
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "line": 81,
+      "syntax": "Update"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 41,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/guards/test_plan_presentation.py",
+      "line": 59,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/guards/test_tool_output.py",
+      "line": 59,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/guards/test_tool_output.py",
+      "line": 78,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 46,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "line": 52,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/initial_session_title_pilot.py",
+      "line": 152,
+      "syntax": "from toad.acp.messages import SessionInfoUpdate"
+    },
+    {
+      "path": "tests/initial_session_title_pilot.py",
+      "line": 157,
+      "syntax": "SessionInfoUpdate"
+    },
+    {
+      "path": "tests/input_history_native_installed_pilot.py",
+      "line": 13,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/input_latency_pilot.py",
+      "line": 12,
+      "syntax": "from toad.messages import UserInputSubmitted"
+    },
+    {
+      "path": "tests/input_latency_pilot.py",
+      "line": 34,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 5,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 9,
+      "syntax": "from toad.widgets.comms_sidebar import SelectTarget"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 50,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 51,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "tests/irc_wrap_pilot.py",
+      "line": 42,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 66,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/l0a_native_installed_pilot.py",
+      "line": 488,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 25,
+      "syntax": "from toad.acp.messages import Update, CommsUpdated"
+    },
+    {
+      "path": "tests/late_native_after_join_pilot.py",
+      "line": 69,
+      "syntax": "Update"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 25,
+      "syntax": "from toad.acp.messages import Update, CommsUpdated"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 69,
+      "syntax": "Update"
+    },
+    {
+      "path": "tests/late_native_application_pilot.py",
+      "line": 112,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 13,
+      "syntax": "from toad.widgets.tool_call import ToolCall, ToolCallHeader"
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "line": 36,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 15,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 42,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 88,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "line": 83,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 26,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "line": 53,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/message_filter_supersession_pilot.py",
+      "line": 12,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/message_filter_supersession_pilot.py",
+      "line": 35,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "line": 74,
+      "syntax": "messages.SessionUpdate"
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "line": 9,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 27,
+      "syntax": "from toad.acp.messages import UpdateStatusLine"
+    },
+    {
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 455,
+      "syntax": "UpdateStatusLine"
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "line": 103,
+      "syntax": "Question.Answer"
+    },
+    {
+      "path": "tests/native_tool_output_pilot.py",
+      "line": 13,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/native_tool_output_pilot.py",
+      "line": 63,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/native_tool_output_pilot.py",
+      "line": 61,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/native_tool_output_pilot.py",
+      "line": 62,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 10,
+      "syntax": "from toad.answer import Answer"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 13,
+      "syntax": "from toad.screens.permissions import PermissionsScreen"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 16,
+      "syntax": "from toad.widgets.flash import Flash"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 75,
+      "syntax": "Answer"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 76,
+      "syntax": "Answer"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 100,
+      "syntax": "schema.ToolCallUpdate"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 131,
+      "syntax": "Answer"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 103,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 115,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/native_widget_actions_installed_pilot.py",
+      "line": 153,
+      "syntax": "Flash"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 8,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 23,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 41,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 98,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/navigation_terminal_fixture.py",
+      "line": 157,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 17,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "line": 28,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/offscreen_tool_hydration_pilot.py",
+      "line": 15,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/offscreen_tool_hydration_pilot.py",
+      "line": 29,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/offscreen_tool_hydration_pilot.py",
+      "line": 34,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/path_filter_pilot.py",
+      "line": 65,
+      "syntax": "messages.ProjectDirectoryUpdated"
+    },
+    {
+      "path": "tests/pending_thread_open_pilot.py",
+      "line": 144,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 9,
+      "syntax": "from toad.screens.permissions import PermissionsScreen"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 52,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 74,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 72,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "line": 82,
+      "syntax": "PermissionsScreen"
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "line": 16,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "line": 58,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "line": 77,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 19,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 64,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 103,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 148,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 74,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 87,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 115,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 130,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 154,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 63,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 73,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 147,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 152,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/plan_status_installed_pilot.py",
+      "line": 113,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/prompt_routing_pilot.py",
+      "line": 9,
+      "syntax": "from toad.messages import UserInputSubmitted"
+    },
+    {
+      "path": "tests/prompt_routing_pilot.py",
+      "line": 24,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "tests/prompt_routing_pilot.py",
+      "line": 28,
+      "syntax": "UserInputSubmitted"
+    },
+    {
+      "path": "tests/prompt_routing_pilot.py",
+      "line": 72,
+      "syntax": "area.RequestShellMode"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 11,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/response_source_custody_pilot.py",
+      "line": 117,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 13,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/retained_tool_text_pilot.py",
+      "line": 32,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 20,
+      "syntax": "from toad.widgets.comms_sidebar import CommsRow, SelectTarget"
+    },
+    {
+      "path": "tests/right_comms_pilot.py",
+      "line": 156,
+      "syntax": "SelectTarget"
+    },
+    {
+      "path": "tests/selection_disclosure_pilot.py",
+      "line": 14,
+      "syntax": "from toad.widgets.tool_call import ToolCall, ToolCallHeader"
+    },
+    {
+      "path": "tests/selection_disclosure_pilot.py",
+      "line": 59,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/selection_disclosure_pilot.py",
+      "line": 72,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 9,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "line": 24,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 11,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 73,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "line": 183,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 21,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "line": 80,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 22,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 115,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_installed_pilot.py",
+      "line": 141,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 19,
+      "syntax": "from toad.widgets.plan import Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 100,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/sidebar_retirement_pilot.py",
+      "line": 112,
+      "syntax": "Plan"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 33,
+      "syntax": "from toad.answer import Answer"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 199,
+      "syntax": "from toad.screens.permissions import PermissionReview"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 175,
+      "syntax": "Answer"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 176,
+      "syntax": "Answer"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 157,
+      "syntax": "Answer"
+    },
+    {
+      "path": "tests/terminal_attention_installed_journey.py",
+      "line": 209,
+      "syntax": "PermissionReview"
+    },
+    {
+      "path": "tests/test_conversation_submission.py",
+      "line": 16,
+      "syntax": "messages.UserInputSubmitted"
+    },
+    {
+      "path": "tests/thread_activation_pilot.py",
+      "line": 2,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 20,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 22,
+      "syntax": "from toad.acp.messages import ToolCall as ToolUpdate, CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 84,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 92,
+      "syntax": "CommsUpdated"
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "line": 65,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 2,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 21,
+      "syntax": "from toad.agent import AgentReady"
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "line": 84,
+      "syntax": "AgentReady"
+    },
+    {
+      "path": "tests/thread_unread_start_pilot.py",
+      "line": 3,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/thread_unread_start_pilot.py",
+      "line": 18,
+      "syntax": "from toad.acp.messages import CommsUpdated"
+    },
+    {
+      "path": "tests/tool_diff_lifecycle_pilot.py",
+      "line": 16,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_lifecycle_pilot.py",
+      "line": 45,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_lifecycle_pilot.py",
+      "line": 86,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 15,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 79,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 88,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 103,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 34,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 68,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "line": 120,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/tool_read_latency_pilot.py",
+      "line": 13,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/tool_read_latency_pilot.py",
+      "line": 40,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "line": 17,
+      "syntax": "from agent_comms.messages import Message, MessageType"
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "line": 110,
+      "syntax": "Message"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 19,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 70,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "line": 106,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 16,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 33,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 22,
+      "syntax": "from acp.schema import ToolCall as ACPToolCall"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 26,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 64,
+      "syntax": "ToolCall"
+    },
+    {
+      "path": "tests/worker_preview_pilot.py",
+      "line": 25,
+      "syntax": "from toad.widgets.tool_call import ToolCall"
+    },
+    {
+      "path": "tests/worker_preview_pilot.py",
+      "line": 209,
+      "syntax": "ToolCall"
+    }
+  ],
+  "limits": "Lexical inheritance/qualified references, not dynamic dispatch proof. Textual/core dependency semantics read directly; incomplete dependency AST not asserted complete."
+}

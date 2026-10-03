@@ -1,0 +1,21 @@
+{
+  "source": "272e6f1c, source overlay against existing installed dependencies",
+  "wire_cases": 5,
+  "textual_native_observers": [
+    [
+      "parent",
+      "native-mode",
+      true
+    ],
+    [
+      "child",
+      "native-mode",
+      true
+    ]
+  ],
+  "one_delivery_per_subscriber": true,
+  "idempotent_subscription": true,
+  "cleanup_subscriptions": 0,
+  "installed_application_readiness": false,
+  "risk": "broadcast bubbling into subscribed ancestor duplicates delivery; native teardown leaks subscriptions"
+}

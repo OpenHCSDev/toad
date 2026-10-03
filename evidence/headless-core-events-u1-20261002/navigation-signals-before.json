@@ -1,0 +1,166 @@
+{
+  "sites": [
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 64,
+      "node": "app.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/thread_actions.py",
+      "line": 69,
+      "node": "self.app.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 73,
+      "node": "self.app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 308,
+      "node": "self.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 311,
+      "node": "self.sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 315,
+      "node": "self.session_selected_signal"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 316,
+      "node": "self.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 513,
+      "node": "self.session_selected_signal"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 56,
+      "node": "app.session_selected_signal"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 57,
+      "node": "app.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/sidebar_observation.py",
+      "line": 289,
+      "node": "app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/screens/comms.py",
+      "line": 186,
+      "node": "self.app.sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 514,
+      "node": "self.app.sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 49,
+      "node": "self.app.session_selected_signal"
+    },
+    {
+      "path": "src/toad/widgets/observed_thread_activity.py",
+      "line": 50,
+      "node": "self.app.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1416,
+      "node": "self.app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1666,
+      "node": "self.app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 185,
+      "node": "self.app.session_selected_signal"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 187,
+      "node": "self.app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 248,
+      "node": "self.app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 249,
+      "node": "self.app.session_selected_signal"
+    },
+    {
+      "path": "src/toad/widgets/thread_comms.py",
+      "line": 250,
+      "node": "self.app.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/widgets/recovery_view.py",
+      "line": 48,
+      "node": "self.app.session_selected_signal"
+    },
+    {
+      "path": "src/toad/widgets/comms_transfer.py",
+      "line": 96,
+      "node": "app.thread_actions_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 338,
+      "node": "app.tab_order.changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 339,
+      "node": "app.open_tabs_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 866,
+      "node": "app.sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 533,
+      "node": "app.sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 673,
+      "node": "app.sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 849,
+      "node": "cast('ToadApp', self.app).sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 923,
+      "node": "cast('ToadApp', self.app).sidebar_layout_changed"
+    },
+    {
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 857,
+      "node": "app.sidebar_layout_changed"
+    }
+  ],
+  "omissions": [],
+  "limits": "lexical AST sites, read source and qualified original App/TabOrder owners"
+}

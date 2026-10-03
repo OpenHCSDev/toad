@@ -91,5 +91,5 @@ class LaunchAction(NativeAction):
         return f"Launch {self.agent.name}"
 
     async def apply(self, modal: AgentModal) -> None:
-        from toad.messages import LaunchAgent
+        from toad.core.session_requests import LaunchAgent
         modal.dismiss(LaunchAgent(self.agent.identity))

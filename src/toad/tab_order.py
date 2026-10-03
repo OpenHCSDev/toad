@@ -2,19 +2,18 @@
 
 from collections.abc import Callable, Collection, Mapping
 
-from textual.message_pump import MessagePump
-from textual.signal import Signal
+from toad.core.events import CoreEventStream, TabHistoryChanged
 
 
 class TabOrder:
     def __init__(
-        self, owner: MessagePump, focus: Callable[[str, int | None], object]
+        self, focus: Callable[[str, int | None], object]
     ) -> None:
         self._open: list[str] = []
         self._visits: list[str] = []
         self._cursor = -1
         self._focus = focus
-        self.changed: Signal[None] = Signal(owner, "tab-history-changed")
+        self.events = CoreEventStream(self)
 
     def __contains__(self, mode: str | None) -> bool:
         return mode in self._open
@@ -86,7 +85,7 @@ class TabOrder:
             del self._visits[self._cursor + 1 :]
             self._visits.append(mode)
             self._cursor = len(self._visits) - 1
-        self.changed.publish(None)
+        self.events.publish(TabHistoryChanged())
 
     def close(self, modes: Collection[str]) -> None:
         self._open[:] = [mode for mode in self._open if mode not in modes]
@@ -99,4 +98,4 @@ class TabOrder:
                     cursor = len(retained) - 1
         if retained != self._visits:
             self._visits, self._cursor = retained, cursor
-            self.changed.publish(None)
+            self.events.publish(TabHistoryChanged())

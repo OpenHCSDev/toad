@@ -1,0 +1,11 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final
+   Updating https://github.com/OpenHCSDev/toad.git (536698e2)
+    Updated https://github.com/OpenHCSDev/toad.git (536698e2d7d13db8fd210444d9a152970e6a119d)
+Resolved 1 package in 1.44s
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@536698e2d7d13db8fd210444d9a152970e6a119d
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@536698e2d7d13db8fd210444d9a152970e6a119d
+Prepared 1 package in 505ms
+Uninstalled 1 package in 16ms
+Installed 1 package in 6ms
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@04cd0b1c23e06a4e46acf8ae38b62677df5fee3f)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@536698e2d7d13db8fd210444d9a152970e6a119d)

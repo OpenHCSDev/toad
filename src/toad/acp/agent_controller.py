@@ -15,9 +15,10 @@ from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
-from . import api, messages
+from toad.core import events as core_events
+from . import api
 from toad import jsonrpc
-from toad.agent import LogAgentFail
+from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, decode_updates, encode_request,
@@ -45,7 +46,44 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
         return self.target is target and target is not None
 
     def publish_terminal(self, controller, terminal_id, execution):
-        return self.post(messages.TerminalProjection(self, controller, terminal_id, execution))
+        """An absent frontend does not acquire native projection work."""
+        return False
+
+    @abstractmethod
+    def post(self, message) -> bool: ...
+
+    def close(self) -> None:
+        """An absent frontend has no subscription to release."""
+
+
+class DetachedSurfaceBinding(SurfaceBinding):
+    def post(self, message):
+        return False
+
+
+class AttachedSurfaceBinding(SurfaceBinding):
+    def __init__(self, target, events):
+        self._target = ref(target)
+        self.subscription = target.subscribe_core(events)
+
+    def close(self) -> None:
+        if (target := self.target) is not None:
+            target.retire_core(self.subscription)
+        else:
+            self.subscription.close()
+
+    @property
+    def target(self):
+        return self._target()
+
+    def post(self, message):
+        target = self.target
+        # The original MessagePump owns admission while closing/closed.
+        return target.post_message(message) if target is not None else False
+
+    def publish_terminal(self, controller, terminal_id, execution):
+        from toad.widgets.terminal_tool import TerminalTool
+        return self.post(TerminalTool.Projection(self, controller, terminal_id, execution))
 
     def owns_terminal(self, projection, target):
         """Same original surface, controller lifetime and acquired address."""
@@ -68,29 +106,6 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
         await target.post(terminal)
         if not self.owns_terminal(projection, target):
             await terminal.remove()
-
-    @abstractmethod
-    def post(self, message) -> bool: ...
-
-
-class DetachedSurfaceBinding(SurfaceBinding):
-    def post(self, message):
-        return False
-
-
-class AttachedSurfaceBinding(SurfaceBinding):
-    def __init__(self, target):
-        self._target = ref(target)
-
-    @property
-    def target(self):
-        return self._target()
-
-    def post(self, message):
-        target = self.target
-        # The original MessagePump owns admission while closing/closed.
-        return target.post_message(message) if target is not None else False
-
 
 class ValidationOwner(DeclaredFamily, affix="ValidationOwner"):
     @abstractmethod
@@ -143,7 +158,7 @@ class AgentController(OperationalTerminalOwner):
         self.app = target.app
         self.transcripts.prepare_with(self.app.preparation)
         self.validation = ApplicationValidationOwner(self.app.render_processes)
-        self.surface = AttachedSurfaceBinding(target)
+        self.surface = AttachedSurfaceBinding(target, self.agent.events)
         self.agent.permissions.present(target)
         if self.agent.ready:
             self.start_operation(self.restore(self.surface))
@@ -152,6 +167,7 @@ class AgentController(OperationalTerminalOwner):
 
     def detach(self, target):
         if self.surface.owns(target):
+            self.surface.close()
             self.surface = DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
             self.terminals.detach()
@@ -160,7 +176,8 @@ class AgentController(OperationalTerminalOwner):
         return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
 
     async def restore(self, binding):
-        from .messages import CommsUpdated, AvailableCommandsUpdate
+        from toad.core.events import CommsUpdated
+        from toad.core.events import AvailableCommandsUpdate
         if self.surface is not binding:
             return
         session = self.session
@@ -168,16 +185,16 @@ class AgentController(OperationalTerminalOwner):
         # Retained operational facts are available now. A source read must not
         # hold modes, commands, plan, queue and cursor behind filesystem I/O.
         agent.configuration.publish()
-        binding.post(AvailableCommandsUpdate(self.commands))
+        agent.events.publish(AvailableCommandsUpdate())
         if self.plan_entries is not None:
-            from .messages import Plan
-            binding.post(Plan(self.plan_entries))
+            from toad.core.events import Plan
+            agent.events.publish(Plan(self.plan_entries))
         agent._post_queue_view()
         agent._post_private_cursor()
         if agent.coordination is not None:
             coordination = agent.coordination
             authority = ClientSessionRequest(agent, agent.session_id)
-            binding.post(CommsUpdated(coordination, agent, agent.session_id))
+            self.agent.events.publish(CommsUpdated(coordination, agent.session_id))
             snapshot = await self.transcripts.snapshot(
                 coordination.wire_root, coordination.thread.name)
             if self.surface is not binding:
@@ -185,7 +202,7 @@ class AgentController(OperationalTerminalOwner):
             if self.session is not session:
                 return
             self.require_owner(coordination, authority)
-            binding.post(CommsUpdated(snapshot, agent, agent.session_id))
+            self.agent.events.publish(CommsUpdated(snapshot, agent.session_id))
         target = binding.target
         if target is not None:
             target.call_later(self.start_terminal_presentation, target)
@@ -198,16 +215,16 @@ class AgentController(OperationalTerminalOwner):
             return
         if self.surface is not binding:
             return
-        binding.post(messages.CommsUpdated(snapshot, self.agent, session.session_id))
+        self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
     def connection_closed(self):
-        from .messages import McpClientStopped
+        from toad.core.events import McpClientStopped
         agent = self.agent
         agent.session.closed()
         agent.permissions.cancel()
         agent._invalidate_attachment_views()
         agent.presentation.turns.reset()
-        agent.post_message(McpClientStopped(agent))
+        agent.events.publish(McpClientStopped())
 
     def reset_configuration(self):
         self.mode_state = None
@@ -238,14 +255,14 @@ class AgentController(OperationalTerminalOwner):
 
     def publish_plan(self, entries: list[PlanItem]) -> None:
         """Keep the latest typed source value while its optional view is absent."""
-        from .messages import Plan
+        from toad.core.events import Plan
         self.plan_entries = entries
-        self.agent.post_message(Plan(entries))
+        self.agent.events.publish(Plan(entries))
 
     def publish_commands(self, commands):
-        from .messages import AvailableCommandsUpdate
+        from toad.core.events import AvailableCommandsUpdate
         self.commands = commands
-        self.agent.post_message(AvailableCommandsUpdate(commands))
+        self.agent.events.publish(AvailableCommandsUpdate())
 
     def start_operation(self, operation):
         return self.agent.process.start_operation(operation)
@@ -324,10 +341,9 @@ class AgentController(OperationalTerminalOwner):
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
-            agent.post_message(messages.CommsUpdated(InputFailedUpdate(user_text, failure),
-                recover_draft=True, agent=agent, session_id=authority.session_id, queue_scope=queue_scope))
+            agent.events.publish(core_events.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
-            agent.post_message(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+            agent.events.publish(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())

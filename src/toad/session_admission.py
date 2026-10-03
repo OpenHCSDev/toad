@@ -75,7 +75,9 @@ class NativeSessionAdmission(SessionAdmission):
         self.factory = factory
 
     def __call__(self) -> MainScreen:
-        return self.factory()
+        source = self.factory()
+        self.details.bind_initial_identity(source._agent_session_id)
+        return source
 
     @property
     def address(self) -> str:

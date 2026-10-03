@@ -1,0 +1,348 @@
+{
+  "result": "PASS scoped U1 installed application events",
+  "tested_product": {
+    "toad": "e2170d93c2e9f839d67f9bf6c464ad29776fc1e6",
+    "agent_comms": "992a4311c5f2afa1b24b568d3454389c3e5f71ef",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-960296fdddafb01c/node_modules/@earendil-works/pi-coding-agent",
+  "sdk": "0.12.1",
+  "distributions": 69,
+  "native_journey": {
+    "result": "PASS",
+    "elapsed_seconds": 10.367908622021787,
+    "native_requests": 2,
+    "queued_input_id": "662bc2c9becb41669eae472a9021e889",
+    "original_mode": "session-1",
+    "channel_mode": "comms-1",
+    "physical_pilot_enter": true,
+    "saved_response_painted": true,
+    "queue_cleared": true,
+    "idle_ready": true,
+    "draft_document_undo_preserved": true,
+    "same_owner": true,
+    "thinking": "high",
+    "scope": "Installed Toad/Textual/ACP/Pi with two controlled localhost responses; no public input or paid provider"
+  },
+  "native_input_driver": "Actual Textual Pilot on installed App.run_test(headless=True), real ACP/owner/Pi; not physical X keystrokes",
+  "physical_saved_startup": {
+    "receipt": "/home/ts/.cache/agent-scratch/u341-saved-startup-20261002/capture/receipt.json",
+    "before_png": "/home/ts/.cache/agent-scratch/u341-saved-startup-20261002/capture/before.png",
+    "after_png": "/home/ts/.cache/agent-scratch/u341-saved-startup-20261002/capture/after.png",
+    "completed": true,
+    "duration_seconds": 12.770900985982735,
+    "runtime_unchanged": true,
+    "original_owner_before": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 1084062,
+        "start_time": 46016964
+      },
+      "original_owner_alive": true
+    },
+    "original_owner_after": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "mode": "existing_thread",
+      "name": "nra-architecture",
+      "identity": {
+        "pid": 1084062,
+        "start_time": 46016964
+      },
+      "original_owner_alive": true
+    },
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1108561,
+          "start_ticks": 46068466,
+          "returncode": 0
+        },
+        {
+          "pid": 1108779,
+          "start_ticks": 46068744,
+          "returncode": 0
+        },
+        {
+          "pid": 1108803,
+          "start_ticks": 46068755,
+          "returncode": 0
+        },
+        {
+          "pid": 1108804,
+          "start_ticks": 46068764,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 1108820,
+          "start_ticks": 46068869,
+          "returncode": 0
+        },
+        {
+          "pid": 1108867,
+          "start_ticks": 46068896,
+          "returncode": 0
+        },
+        {
+          "pid": 1108868,
+          "start_ticks": 46068917,
+          "returncode": 0
+        },
+        {
+          "pid": 1108869,
+          "start_ticks": 46068933,
+          "returncode": 255
+        },
+        {
+          "pid": 1109189,
+          "start_ticks": 46069936,
+          "returncode": 0
+        },
+        {
+          "pid": 1109194,
+          "start_ticks": 46069966,
+          "returncode": 0
+        },
+        {
+          "pid": 1109208,
+          "start_ticks": 46070004,
+          "returncode": 0
+        },
+        {
+          "pid": 1109214,
+          "start_ticks": 46070136,
+          "returncode": 0
+        },
+        {
+          "pid": 1109219,
+          "start_ticks": 46070177,
+          "returncode": 0
+        },
+        {
+          "pid": 1109361,
+          "start_ticks": 46070242,
+          "returncode": 0
+        },
+        {
+          "pid": 1109421,
+          "start_ticks": 46070437,
+          "returncode": 0
+        },
+        {
+          "pid": 1109472,
+          "start_ticks": 46070681,
+          "returncode": 0
+        }
+      ]
+    },
+    "current_mode": "session-1",
+    "agent_configuration": {
+      "agent_object_id": 139693616808688,
+      "session_id": "nra-architecture",
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking": "off",
+      "mode": null,
+      "rendered_label": "openai-codex/gpt-6.1-sol \u00b7 off"
+    },
+    "goal": null,
+    "goal_execution": null,
+    "new_protocol_errors": [],
+    "crashes": [],
+    "personally_viewed_readable_original_history": true,
+    "qualification": "Historical tool failure/read-position-reset/Needs-attention facts visible; not hidden or reclassified. No performance/full-UX claim.",
+    "retained_receipt": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/headless-core-events-u1-20261002/physical-startup/receipt.json",
+    "retained_before_png": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/headless-core-events-u1-20261002/physical-startup/before.png"
+  },
+  "fixture_cleanup": {
+    "remaining_owned_processes": [],
+    "canonical_owners": [
+      {
+        "root": "/home/ts/wt/u341e02/private-root/wire",
+        "name": "beta",
+        "identity": {
+          "pid": 1094472,
+          "start_time": 46041897
+        },
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e02/private-root/wire",
+        "name": "user",
+        "identity": null,
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e03/private-root/wire",
+        "name": "beta",
+        "identity": {
+          "pid": 1104476,
+          "start_time": 46058804
+        },
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e03/private-root/wire",
+        "name": "user",
+        "identity": null,
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e04/private-root/wire",
+        "name": "beta",
+        "identity": {
+          "pid": 1109090,
+          "start_time": 46069289
+        },
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e04/private-root/wire",
+        "name": "user",
+        "identity": null,
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e05/private-root/wire",
+        "name": "beta",
+        "identity": {
+          "pid": 1113436,
+          "start_time": 46081292
+        },
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e05/private-root/wire",
+        "name": "user",
+        "identity": null,
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e06/private-root/wire",
+        "name": "beta",
+        "identity": {
+          "pid": 1117067,
+          "start_time": 46096484
+        },
+        "alive": false
+      },
+      {
+        "root": "/home/ts/wt/u341e06/private-root/wire",
+        "name": "user",
+        "identity": null,
+        "alive": false
+      }
+    ]
+  },
+  "failures_preserved": {
+    "native01": "Deleted ObservedThreadActivity.Changed reference in SessionDetails; fixed; import failed before native fixture/input",
+    "native02": "MainScreen called deleted forwarding method; fixed by original workspace owner;0POST",
+    "native03": "Driver used obsolete Conversation.queue_projection API, corrected to original submissions owner; original started/queued records preserved",
+    "native04": "L0 default provider heuristic found IGNORE/FULL in canonical system instructions and returned IGNORE; original two completed records preserved; explicit controlled reply in final fixture",
+    "native05": "Driver compared nominal HighThinkingLevel registry field to string; original native+configuration succeeded; comparison corrected to original declared type"
+  },
+  "proof_limits": [
+    "Native SVG ANSI palette renders black text on black background; SVG compositor text assertions remain, physical st PNG is separate visible proof. Derived PNG retained as unusable visual evidence.",
+    "U2 service/controller extraction and new frontends are not covered.",
+    "Legacy synthetic fixture API failures were classified against baseline, not claimed passing.",
+    "No public prompt/provider/auth/restart/default publication; controlled requests local only.",
+    "No UNKNOWN input replay; each actual run uses a distinct private fixture."
+  ],
+  "tooling_failures": {
+    "install_invalid_revision": "Exact fabricated Git revision was rejected before package install; original log retained. Corrected normal VCS install succeeded.",
+    "stage_preflight": "Initial invocation passed an owner label instead of ProcessOwner; activation metadata was written but probe/UI never launched. Corrected existing helper invocation/source/trust probe passed.",
+    "source_absence_assertion": "Initial overbroad assertion counted TYPE_CHECKING native Screen Signal; final census classifies it accurately."
+  },
+  "changed_production_files": [
+    "src/toad/acp/agent.py",
+    "src/toad/acp/agent_configuration.py",
+    "src/toad/acp/agent_controller.py",
+    "src/toad/acp/agent_process.py",
+    "src/toad/acp/agent_session.py",
+    "src/toad/acp/comms_updates.py",
+    "src/toad/acp/messages.py",
+    "src/toad/acp/permission_controller.py",
+    "src/toad/acp/sdk_boundary.py",
+    "src/toad/acp/session_updates.py",
+    "src/toad/acp/status.py",
+    "src/toad/acp/tool_calls.py",
+    "src/toad/agent.py",
+    "src/toad/app.py",
+    "src/toad/catalog_actions.py",
+    "src/toad/comms_root.py",
+    "src/toad/conversation_submission.py",
+    "src/toad/conversation_turn.py",
+    "src/toad/core/__init__.py",
+    "src/toad/core/events.py",
+    "src/toad/core/input_events.py",
+    "src/toad/core/preference_events.py",
+    "src/toad/core/session_requests.py",
+    "src/toad/core/source_events.py",
+    "src/toad/core_event_carrier.py",
+    "src/toad/directory_watcher.py",
+    "src/toad/goal_interaction.py",
+    "src/toad/live_output.py",
+    "src/toad/messages.py",
+    "src/toad/permission_presentation.py",
+    "src/toad/plan.py",
+    "src/toad/preferences.py",
+    "src/toad/prompt_cursor.py",
+    "src/toad/response_delivery.py",
+    "src/toad/screens/action_modal.py",
+    "src/toad/screens/agent_modal.py",
+    "src/toad/screens/comms.py",
+    "src/toad/screens/goal_details.py",
+    "src/toad/screens/goal_edit.py",
+    "src/toad/screens/main.py",
+    "src/toad/screens/store.py",
+    "src/toad/session_admission.py",
+    "src/toad/session_navigation.py",
+    "src/toad/session_tracker.py",
+    "src/toad/settings.py",
+    "src/toad/shell.py",
+    "src/toad/sidebar_navigation.py",
+    "src/toad/sidebar_observation.py",
+    "src/toad/slash_command.py",
+    "src/toad/tab_order.py",
+    "src/toad/target_commands.py",
+    "src/toad/thread_actions.py",
+    "src/toad/thread_navigation.py",
+    "src/toad/transcript_preparation.py",
+    "src/toad/transcript_publication.py",
+    "src/toad/transcript_source_preparation.py",
+    "src/toad/widgets/agent_response.py",
+    "src/toad/widgets/channel_participants.py",
+    "src/toad/widgets/command_pane.py",
+    "src/toad/widgets/committed_presentation.py",
+    "src/toad/widgets/comms_chat.py",
+    "src/toad/widgets/comms_sidebar.py",
+    "src/toad/widgets/comms_transfer.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/goal_bar.py",
+    "src/toad/widgets/goal_text.py",
+    "src/toad/widgets/irc_message.py",
+    "src/toad/widgets/model_switcher.py",
+    "src/toad/widgets/observed_thread_activity.py",
+    "src/toad/widgets/outgoing_message.py",
+    "src/toad/widgets/plan.py",
+    "src/toad/widgets/prompt.py",
+    "src/toad/widgets/recovery_view.py",
+    "src/toad/widgets/route_header.py",
+    "src/toad/widgets/session_details.py",
+    "src/toad/widgets/session_tabs.py",
+    "src/toad/widgets/side_bar.py",
+    "src/toad/widgets/terminal_tool.py",
+    "src/toad/widgets/thread_comms.py",
+    "src/toad/widgets/transcript_history.py",
+    "src/toad/widgets/wire_message_handling.py"
+  ],
+  "production_delta_vs_reviewed_main": {
+    "main": "0a522a8a",
+    "deleted": 1222,
+    "added": 1573
+  },
+  "source_whitespace_qualification": "Full PR diff --check reports one existing new blank EOF line in response_delivery.py. Raw log/SVG trailing whitespace is preserved intentionally. No syntax parse omissions; no source-byte normalization/rebuild claimed."
+}

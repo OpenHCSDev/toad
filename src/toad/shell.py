@@ -9,11 +9,10 @@ import pty
 import struct
 import termios
 from contextlib import suppress
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from textual import log
-from textual.message import Message
+from toad.core.source_events import CurrentWorkingDirectoryChanged
 
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
@@ -36,18 +35,6 @@ def resize_pty(fd, cols, rows):
     except OSError:
         # Possibly file descriptor closed
         pass
-
-
-@dataclass
-class CurrentWorkingDirectoryChanged(Message):
-    """Current working directory has changed in shell."""
-
-    path: str
-
-
-@dataclass
-class ShellFinished(Message):
-    """The shell finished."""
 
 
 class Shell(ShellOperationalSource):
@@ -308,7 +295,7 @@ class Shell(ShellOperationalSource):
                 if new_directory and new_directory != current_directory:
                     current_directory = self.working_directory = new_directory
                     if (conversation := self._conversation()) is not None:
-                        conversation.post_message(CurrentWorkingDirectoryChanged(new_directory))
+                        conversation.publish_core(CurrentWorkingDirectoryChanged(new_directory))
                 if output.finalized and output.state.scrollback_buffer.is_blank:
                     output.finalize()
                     self.outputs.remove(output)
@@ -320,5 +307,3 @@ class Shell(ShellOperationalSource):
         self.master = None
         self._finished = True
         transport.close()
-        if (conversation := self._conversation()) is not None:
-            conversation.post_message(ShellFinished())

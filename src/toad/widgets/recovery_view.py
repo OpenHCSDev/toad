@@ -1,8 +1,11 @@
 """Optional, read-only recovery status from the local viewer gateway."""
 
 from __future__ import annotations
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 
-from toad.settings import PreferenceChange
+from toad.core.preference_events import PreferenceChanged
 from toad.preferences import UiSettings
 
 import asyncio
@@ -27,7 +30,7 @@ async def _read_gateway(path: Path, thread: str) -> dict[str, object]:
     return await read_gateway_projection(path, thread)
 
 
-class RecoveryView(Static):
+class RecoveryView(CoreEventReceiver, Static):
     """A disposable presentation of a validated gateway DTO, never an owner."""
 
     DEFAULT_CSS = "RecoveryView { height: 3; text-wrap: nowrap; text-overflow: ellipsis; pointer: pointer; }"
@@ -44,12 +47,13 @@ class RecoveryView(Static):
         self.tooltip = "Read-only recovery status · click or press R to refresh"
 
     def on_mount(self) -> None:
-        self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self.app.session_selected_signal.subscribe(self, self._mode_changed)
-        self._settings_changed(PreferenceChange(UiSettings.recovery_view, self.app.settings.ui.recovery_view))
+        self.observe_core(self.app.settings.events)
+        self.observe_core(self.app.events)
+        self._apply_settings()
 
-    def _mode_changed(self, mode: str) -> None:
-        if self._enabled and mode == self.app.selected_mode and self.is_on_screen:
+    @handles(core_events.SessionSelected)
+    async def _mode_changed(self, event: CoreEventMessage) -> None:
+        if self._enabled and event.event.mode_name == self.app.selected_mode and self.is_on_screen:
             self._after_paint_read()
 
     def on_unmount(self) -> None:
@@ -60,9 +64,12 @@ class RecoveryView(Static):
     def on_show(self) -> None:
         self._after_paint_read()
 
-    def _settings_changed(self, update: PreferenceChange) -> None:
-        if update.field is not UiSettings.recovery_view:
-            return
+    @handles(PreferenceChanged)
+    async def _settings_changed(self, message: CoreEventMessage) -> None:
+        if message.event.field is UiSettings.recovery_view:
+            self._apply_settings()
+
+    def _apply_settings(self) -> None:
         enabled = self.app.settings.ui.recovery_view
         self._enabled = enabled
         self.query_ancestor(SideBarCollapsible).display = enabled

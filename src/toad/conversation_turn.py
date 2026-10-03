@@ -189,7 +189,8 @@ class LocalTurnBinding(TurnBinding):
         return self._owner
 
     def accepts(self, message):
-        return message.agent is None
+        """A local turn cannot accept a backend-owned managed publication."""
+        return False
 
     def describe(self, activity):
         self._owner = self._owner.with_activity(activity)
@@ -221,8 +222,8 @@ class ManagedTurnBinding(TurnBinding):
         return self._owner
 
     def accepts(self, message):
-        return (message.agent is self.agent and message.session_id == self.agent.session_id
-                and message.sequence == self.sequence)
+        return (message.publisher is self.agent and message.event.session_id == self.agent.session_id
+                and message.event.sequence == self.sequence)
 
     def receive(self, state: TurnState, owner_type=OrderedManagedTurn):
         if not state.busy and not state.matches(self.owner.managed_id):

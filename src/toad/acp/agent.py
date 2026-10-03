@@ -35,13 +35,14 @@ from textual.message_pump import MessagePump
 
 import toad
 from toad import jsonrpc, paths
-from toad.acp import messages
+from toad.core import events as core_events
 from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
-from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
+from toad.core.events import UnsupportedResumeAgentFail, AgentReady
+from toad.agent import AgentBase
 from toad.agent_schema import AgentDefinition
 
 
@@ -203,7 +204,8 @@ class Agent(AgentBase):
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""
-        self.post_message(messages.UpdateStatusLine(self.context_measurement.status()))
+        from toad.core.events import UpdateStatusLine
+        self.events.publish(UpdateStatusLine())
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
@@ -266,24 +268,11 @@ class Agent(AgentBase):
             consumer.dispatch_sync(fact)
 
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
-        self.post_message(
-            messages.CommsUpdated(
-                QueuePresentation(starts),
-                self,
-                self.session_id,
-            )
-        )
+        self.events.publish(core_events.CommsUpdated(QueuePresentation(starts), self.session_id))
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
-        self.post_message(
-            messages.CommsUpdated(
-                CursorPresentation(self._private_cursor.status),
-                self,
-                self.session_id,
-                self._private_cursor_sequence,
-            )
-        )
+        self.events.publish(core_events.CommsUpdated(CursorPresentation(self._private_cursor.status), self.session_id, self._private_cursor_sequence))
 
     def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()
@@ -433,9 +422,7 @@ class Agent(AgentBase):
         )
         self.coordination = replace(self.coordination, worktree=result.current)
         self.project_root_path = Path(result.current)
-        self.post_message(
-            messages.CommsUpdated(self.coordination, self, self.session_id)
-        )
+        self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
         return result.current
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:

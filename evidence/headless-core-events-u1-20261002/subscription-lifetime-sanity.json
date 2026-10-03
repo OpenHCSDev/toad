@@ -1,0 +1,6 @@
+{
+  "weak_receiver_released": true,
+  "expired_subscription_closed": true,
+  "standalone_listener_owned_until_close": true,
+  "installed_readiness": false
+}

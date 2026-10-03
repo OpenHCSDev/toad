@@ -1,0 +1,114 @@
+{
+  "sites": [
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 120,
+      "name": "initial_title",
+      "kind": "FunctionDef"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 124,
+      "name": "bind_initial_identity",
+      "kind": "FunctionDef"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 158,
+      "name": "bind_identity",
+      "kind": "FunctionDef"
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 79,
+      "name": "bind_initial_identity",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 131,
+      "name": "SessionTitleChanged",
+      "kind": "ClassDef"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 136,
+      "name": "SessionSubtitleChanged",
+      "kind": "ClassDef"
+    },
+    {
+      "path": "src/toad/core/events.py",
+      "line": 141,
+      "name": "SessionPathChanged",
+      "kind": "ClassDef"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 482,
+      "name": "SessionTitleChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 487,
+      "name": "SessionSubtitleChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 492,
+      "name": "SessionPathChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 246,
+      "name": "initial_title",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 306,
+      "name": "bind_identity",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 767,
+      "name": "SessionPathChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1017,
+      "name": "SessionTitleChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1047,
+      "name": "SessionTitleChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 586,
+      "name": "SessionSubtitleChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "line": 409,
+      "name": "SessionTitleChanged",
+      "kind": "Attribute"
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "line": 74,
+      "name": "SessionUpdate",
+      "kind": "Attribute"
+    }
+  ],
+  "omissions": [],
+  "limits": "Lexical Python references; message_notifications_pilot still calls nonexistent old state/summary SessionUpdate and SessionDetails fields from prior baseline, excluded from behavior claims."
+}

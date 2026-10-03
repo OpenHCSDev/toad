@@ -1,6 +1,9 @@
 """Owner-scoped right-sidebar communication and explicitly declared work links."""
 
 from __future__ import annotations
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
 
 from toad.navigation_target import NavigationTarget, person_target, linked_target
 
@@ -17,7 +20,8 @@ from textual.widgets import Checkbox, Static
 from toad.session_tracker import ExactUnread, UnreadPresentation
 from toad.sidebar_preparation import ThreadRowInput
 from toad.widgets.activity_spinner import FRAMES
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -190,7 +194,7 @@ class RelationshipRows(SidebarGroup):
             container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
-class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
+class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -244,10 +248,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.
-        self.app.coordination_observed.subscribe(self, self._observed)
-        self.app.open_tabs_changed.subscribe(self, self._observed)
-        self.app.session_selected_signal.subscribe(self, self._observed)
-        self.app.thread_actions_changed.subscribe(self, self._observed)
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(self.app.events)
         if self._live:
             self._bind_screen_identity()
         self._sync_filter_control()
@@ -315,7 +317,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
             group.display = False
         self.refresh_relationships(force=True)
 
-    def _observed(self, _value):
+    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
+    async def _observed(self, event: CoreEventMessage) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
             return
         if self._live:
@@ -470,7 +473,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return
-        self.post_message(SelectTarget(target))
+        self.publish_core(SelectTarget(target))
 
     def request_navigation(self, row, *, entry=None, generation=None):
         if not row.is_attached:

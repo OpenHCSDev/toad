@@ -1,0 +1,372 @@
+{
+  "head": "99f555cdbab7a1e8e19d16d6fab68760b3f7262b",
+  "sites": [
+    {
+      "path": "src/toad/messages.py",
+      "line": 49,
+      "kind": "ClassDef",
+      "name": "SessionUpdate",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 100,
+      "kind": "ClassDef",
+      "name": "SessionDetails",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 133,
+      "kind": "FunctionDef",
+      "name": "new_session",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 151,
+      "kind": "FunctionDef",
+      "name": "update_session",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 133,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 157,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 148,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 176,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 179,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 136,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "line": 125,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 578,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 739,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 86,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 87,
+      "kind": "Attribute",
+      "name": "new_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 38,
+      "kind": "keyword",
+      "name": "agent_session_title",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 88,
+      "kind": "Name",
+      "name": "NativeSessionAdmission",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/session_navigation.py",
+      "line": 122,
+      "kind": "keyword",
+      "name": "agent_session_title",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 71,
+      "kind": "ClassDef",
+      "name": "NativeSessionAdmission",
+      "context": null
+    },
+    {
+      "path": "src/toad/session_admission.py",
+      "line": 72,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/conversation_kind.py",
+      "line": 265,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 160,
+      "kind": "arg",
+      "name": "agent_session_title",
+      "context": null
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 168,
+      "kind": "Attribute",
+      "name": "_agent_session_title",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 168,
+      "kind": "Name",
+      "name": "agent_session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 492,
+      "kind": "Attribute",
+      "name": "SessionUpdate",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 493,
+      "kind": "Attribute",
+      "name": "SessionUpdate",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 496,
+      "kind": "Attribute",
+      "name": "_agent_session_title",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 248,
+      "kind": "Attribute",
+      "name": "_agent_session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 314,
+      "kind": "Attribute",
+      "name": "_agent_session_title",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 498,
+      "kind": "Attribute",
+      "name": "update_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 312,
+      "kind": "Attribute",
+      "name": "_agent_session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 315,
+      "kind": "Attribute",
+      "name": "update_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 346,
+      "kind": "keyword",
+      "name": "agent_session_title",
+      "context": null
+    },
+    {
+      "path": "src/toad/widgets/session_details.py",
+      "line": 24,
+      "kind": "ClassDef",
+      "name": "SessionDetails",
+      "context": null
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 447,
+      "kind": "arg",
+      "name": "session_title",
+      "context": null
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 457,
+      "kind": "arg",
+      "name": "session_title",
+      "context": null
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 479,
+      "kind": "Attribute",
+      "name": "_session_title",
+      "context": "Store"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 479,
+      "kind": "Name",
+      "name": "session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 453,
+      "kind": "Name",
+      "name": "session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1703,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 481,
+      "kind": "Name",
+      "name": "session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 772,
+      "kind": "Attribute",
+      "name": "SessionUpdate",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1022,
+      "kind": "Attribute",
+      "name": "SessionUpdate",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 804,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 833,
+      "kind": "Name",
+      "name": "SessionDetails",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1052,
+      "kind": "Attribute",
+      "name": "SessionUpdate",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 588,
+      "kind": "Attribute",
+      "name": "SessionUpdate",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 589,
+      "kind": "Attribute",
+      "name": "_session_title",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 198,
+      "kind": "arg",
+      "name": "new_session",
+      "context": null
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 207,
+      "kind": "Name",
+      "name": "new_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 202,
+      "kind": "Name",
+      "name": "new_session",
+      "context": "Load"
+    },
+    {
+      "path": "src/toad/widgets/session_tabs.py",
+      "line": 200,
+      "kind": "Name",
+      "name": "new_session",
+      "context": "Load"
+    }
+  ],
+  "scope": "all production Python modules; lexical references, not dynamic resolution proof",
+  "modules": 284,
+  "omissions": []
+}

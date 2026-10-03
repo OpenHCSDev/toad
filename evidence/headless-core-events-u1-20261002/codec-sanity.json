@@ -1,0 +1,7 @@
+{
+  "checks": "headless core imports, SDK/tool/plan/command wire forms and rendering resource exclusion",
+  "cases": 13,
+  "textual_imports": [],
+  "installed_readiness": false,
+  "source": "source overlay only; actual installed path still pending"
+}

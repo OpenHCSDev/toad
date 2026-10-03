@@ -1,3 +1,7 @@
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
+from toad.core import session_requests
 from toad.screens.session_view import SessionView
 import asyncio
 from pathlib import Path
@@ -12,8 +16,9 @@ from textual.widgets import Button, Static
 from toad import messages
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.irc_message import SelectHistoricalIdentity
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.core.input_events import SelectHistoricalIdentity
+from toad.core.input_events import SelectTarget
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar
@@ -25,7 +30,7 @@ from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, 
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
-class CommsScreen(SessionView, NavigationOwner, can_focus=False):
+class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
@@ -76,7 +81,6 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loaded = False
         self._content_loading = False
         self._hydrate_queued = False
-        self._sidebar_layout_watch = False
 
     app = getters.app(ToadApp)
 
@@ -143,16 +147,16 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         )
 
 
-    @on(SelectHistoricalIdentity)
-    async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
+    @handles(SelectHistoricalIdentity)
+    async def select_historical_identity(self, event: CoreEventMessage) -> None:
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
         comms = self.app.coordination_access.service
-        threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
+        threads = await asyncio.to_thread(comms.views.historical_threads, event.event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
             return
-        self.app.push_screen(HistoricalSessions(comms, threads, name=event.name, source=event.source))
+        self.app.push_screen(HistoricalSessions(comms, threads, name=event.event.name, source=event.event.source))
 
     @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
@@ -180,11 +184,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def _prepare_content(self) -> None:
         for sidebar in self.query(SideBar):
             sidebar._apply_layout()
-        if not self._sidebar_layout_watch:
-            self._sidebar_layout_watch = True
-            self.app.sidebar_layout_changed.subscribe(
-                self, lambda _event: self.screen.align_tabs_to_sidebars()
-            )
+        self.observe_core(self.app.events)
         self.screen.align_tabs_to_sidebars()
         chat = self.query_one(CommsChatView)
         chat._me = self.me
@@ -193,6 +193,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         # finishes. Its actor/target are bound by the mode transition owner.
         self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
+
+    @handles(core_events.SidebarLayoutChanged)
+    async def layout_observed(self, event: CoreEventMessage) -> None:
+        self.screen.align_tabs_to_sidebars()
 
     async def _load_content(self) -> None:
         if self._content_loading or not self.is_attached:
@@ -257,9 +261,9 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def navigation_context(self) -> NavigationContext:
         return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
 
-    @on(SelectTarget)
-    async def on_select_target(self, event: SelectTarget) -> None:
-        await self.open_sidebar_target(event.target)
+    @handles(SelectTarget)
+    async def on_select_target(self, event: CoreEventMessage) -> None:
+        await self.open_sidebar_target(event.event.target)
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:
@@ -285,10 +289,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             await self.open_sidebar_target(DirectTarget(peers[0]))
 
     def action_session_previous(self) -> None:
-        self.post_message(messages.SessionNavigate(self.owner_mode, -1))
+        self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.owner_mode, -1))
 
     def action_session_next(self) -> None:
-        self.post_message(messages.SessionNavigate(self.owner_mode, +1))
+        self.app.session_navigation.events.publish(session_requests.SessionNavigate(self.owner_mode, +1))
 
     async def action_close_session(self) -> None:
         if self.id is not None:
