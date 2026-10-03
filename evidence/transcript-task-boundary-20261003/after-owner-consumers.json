@@ -1,12 +1,12 @@
 {
-  "head": "ff6ce0afd43501b39b3abb5fb55fbc97f9fbd221",
+  "head": "084babbe578fa5a3c2a1ae16c422c6af3a78060c",
   "parser": "refactor-audit Package",
   "modules": 286,
   "parse_omissions": [],
   "sites": [
     {
       "path": "src/toad/render_runtime.py",
-      "line": 9,
+      "line": 99,
       "kind": "ImportFrom",
       "source": "from toad.render_tasks import MarkdownRenderTask, PatchRenderTask"
     },
@@ -108,39 +108,21 @@
     },
     {
       "path": "src/toad/widgets/transcript_fragments.py",
-      "line": 36,
-      "kind": "AsyncFunctionDef",
-      "source": "async def prepare_transcript_fragments(events: tuple[TranscriptEvent, ...], pool: 'Renderer | None'=None, *, continuation: bool=False) -> tuple['TranscriptFragment', ...]:"
-    },
-    {
-      "path": "src/toad/widgets/transcript_fragments.py",
-      "line": 192,
-      "kind": "FunctionDef",
-      "source": "def transcript_fragments(events: tuple[TranscriptEvent, ...], *, continuation: bool=False) -> tuple[TranscriptFragment, ...]:"
-    },
-    {
-      "path": "src/toad/widgets/transcript_fragments.py",
       "line": 206,
       "kind": "ClassDef",
-      "source": "class TranscriptBodyPreparation(MroDispatch):"
+      "source": "class TranscriptBodyPreparation(MroDispatch):\n    \"\"\"Pure body work for declared transcript cases, without native widgets.\"\"\"\n\n    def __init__(self, renderer, ansi: bool, dark: bool):\n        self.renderer, self.ansi, self.dark = renderer, ansi, dark\n\n    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:\n        \"\"\"Warm a bounded source range in shared workers, without native mounts.\n\n        Reversal/retirement stops the next batch. Already admitted render work\n        keeps its existing runtime custody and resource limits.\n        \"\"\"\n        for first in range(0, len(fragments), batch_size):\n            if not keep_going():\n                return\n            await asyncio.gather(*(self.dispatch(event)\n                                   for fragment in fragments[first:first + batch_size]\n                                   for event in fragment.events))\n\n    @handles(TranscriptEvent)\n    async def undisclosed(self, event: TranscriptEvent) -> None:\n        # Metadata and tool disclosure contents retain their existing lazy\n        # owners. A viewport prediction does not open those disclosures.\n        pass\n\n    @handles(MarkdownTranscript)\n    async def markdown(self, event: MarkdownTranscript) -> None:\n        from toad.render_tasks import MarkdownRenderTask\n\n        await self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))"
     },
     {
       "path": "src/toad/widgets/transcript_fragments.py",
       "line": 239,
       "kind": "ClassDef",
-      "source": "@dataclass(frozen=True)"
+      "source": "class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):\n    events: tuple[TranscriptEvent, ...]\n    continuation: bool = False\n\n    def execute(self) -> tuple[TranscriptFragment, ...]:\n        return transcript_fragments(self.events, continuation=self.continuation)\n\n    def accept_result(self, result: object) -> tuple[TranscriptFragment, ...]:\n        if not isinstance(result, tuple) or not all(isinstance(item, TranscriptFragment) for item in result):\n            raise TypeError(\"Transcript renderer returned an invalid result\")\n        return result"
     },
     {
       "path": "src/toad/widgets/transcript_fragments.py",
       "line": 233,
       "kind": "ImportFrom",
       "source": "from toad.render_tasks import MarkdownRenderTask"
-    },
-    {
-      "path": "src/toad/widgets/transcript_fragments.py",
-      "line": 244,
-      "kind": "Name",
-      "source": "transcript_fragments"
     },
     {
       "path": "src/toad/widgets/transcript_fragments.py",
@@ -158,7 +140,7 @@
       "path": "src/toad/widgets/transcript_history.py",
       "line": 55,
       "kind": "ImportFrom",
-      "source": "from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments, transcript_fragments"
+      "source": "from toad.widgets.transcript_fragments import (\n    TranscriptFragment, prepare_transcript_fragments, transcript_fragments,\n)"
     },
     {
       "path": "src/toad/widgets/transcript_history.py",
@@ -189,12 +171,6 @@
       "line": 408,
       "kind": "Name",
       "source": "TranscriptBodyPreparation"
-    },
-    {
-      "path": "src/toad/widgets/transcript_history.py",
-      "line": 285,
-      "kind": "Name",
-      "source": "transcript_fragments"
     },
     {
       "path": "src/toad/widgets/transcript_history.py",

@@ -25,8 +25,8 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         path = root / "session.jsonl"
-        path.write_text("".join(json.dumps({"type": "message", "message": {
-            "role": "assistant", "content": f"Record {i}\n\nContent."
+        path.write_text("".join(json.dumps({"type": "message", "id": f"{i:08x}", "message": {
+            "role": "assistant", "content": [{"type": "text", "text": f"Record {i}\n\nContent."}]
         }}) + "\n" for i in range(105)))
         comms = wire(root / "wire")
         comms.registry.declare(Thread("worker", frozenset(), str(root), session_file=str(path)))
