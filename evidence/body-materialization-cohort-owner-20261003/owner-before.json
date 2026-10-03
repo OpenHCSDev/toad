@@ -1,0 +1,363 @@
+{
+  "roots": [
+    {
+      "path": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "source": "src/toad",
+      "modules": 289,
+      "parse_omissions": []
+    },
+    {
+      "path": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "source": "src/textual",
+      "modules": 249,
+      "parse_omissions": []
+    }
+  ],
+  "declarations": [
+    {
+      "owner": "PreparedConversationMarkdown",
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 68,
+      "name": "materialize_native_body"
+    },
+    {
+      "owner": "PreparedConversationMarkdown",
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 83,
+      "name": "prepare_body"
+    },
+    {
+      "owner": "StreamingMarkdown",
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 53,
+      "name": "prepare_body"
+    },
+    {
+      "owner": "StreamingMarkdown",
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 62,
+      "name": "materialize_native_body"
+    },
+    {
+      "owner": "TranscriptBodyPreparation",
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 212,
+      "name": "prepare_fragments"
+    },
+    {
+      "owner": "TranscriptFragmentView",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 200,
+      "name": "materialize_native_body"
+    },
+    {
+      "owner": "TranscriptFragmentView",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 203,
+      "name": "prepare_body"
+    },
+    {
+      "owner": "TranscriptPageView",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 331,
+      "name": "prepare_adjacent"
+    },
+    {
+      "owner": "TranscriptHistory",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 425,
+      "name": "prepare_fragments"
+    },
+    {
+      "owner": "TranscriptHistory",
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 434,
+      "name": "prepare_body"
+    },
+    {
+      "owner": "ViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 52,
+      "name": "restore_body"
+    },
+    {
+      "owner": "ViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 55,
+      "name": "prepare_body"
+    },
+    {
+      "owner": "MeasuredViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 512,
+      "name": "materialize_body"
+    },
+    {
+      "owner": "MeasuredViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 517,
+      "name": "publish_body"
+    },
+    {
+      "owner": "MeasuredViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 522,
+      "name": "start_materialization"
+    },
+    {
+      "owner": "MeasuredViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 558,
+      "name": "materialize_native_body"
+    },
+    {
+      "owner": "MeasuredViewportBody",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 645,
+      "name": "restore_body"
+    },
+    {
+      "owner": "DocumentViewport",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1116,
+      "name": "_restore_bodies"
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/toad/screens/historical_sessions.py",
+      "line": 129,
+      "call": "history.prepare_body",
+      "arguments": [
+        "lambda: generation == self._selection_generation and self.is_attached"
+      ]
+    },
+    {
+      "path": "src/toad/transcript_filter.py",
+      "line": 122,
+      "call": "projection.prepare_fragments",
+      "arguments": [
+        "page.fragments[page.extension_slice(False)]",
+        "lambda: snapshot.current(owner)"
+      ]
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 199,
+      "call": "history.prepare_body",
+      "arguments": [
+        "partial(self.source_current, self.page.after)"
+      ]
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 450,
+      "call": "replacement.prepare_body",
+      "arguments": [
+        "is_current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 72,
+      "call": "self.publish_body",
+      "arguments": [
+        "partial(self._update_body_source, markdown)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 75,
+      "call": "self.publish_body",
+      "arguments": [
+        "partial(self._append_body_source, markdown)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 89,
+      "call": "self.publish_body",
+      "arguments": [
+        "partial(self._update_content, markdown, append=False)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 92,
+      "call": "self.publish_body",
+      "arguments": [
+        "partial(self._update_content, markdown, append=True)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 60,
+      "call": "super().prepare_body",
+      "arguments": []
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 163,
+      "call": "history.prepare_body",
+      "arguments": [
+        "is_current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 238,
+      "call": "self.publish_body",
+      "arguments": [
+        "partial(self._update_fragment, fragment)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 334,
+      "call": "preparation.prepare_fragments",
+      "arguments": [
+        "fragments",
+        "keep_going"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 432,
+      "call": "preparation.prepare_fragments",
+      "arguments": [
+        "fragments",
+        "current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 814,
+      "call": "self.prepare_fragments",
+      "arguments": [
+        "fragments[selected]",
+        "lambda: snapshot.current(self) and request.current(window)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 437,
+      "call": "self.prepare_fragments",
+      "arguments": [
+        "page.fragments[page.start:page.stop]",
+        "current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 668,
+      "call": "self.prepare_fragments",
+      "arguments": [
+        "fragments[selected]",
+        "current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 866,
+      "call": "self.prepare_fragments",
+      "arguments": [
+        "(edge.fragments if local else fragments)[selected]",
+        "lambda: snapshot.current(self)"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 745,
+      "call": "page.prepare_adjacent",
+      "arguments": [
+        "preparation",
+        "demand",
+        "count",
+        "current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 750,
+      "call": "preparation.prepare_fragments",
+      "arguments": [
+        "fragments",
+        "current"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 519,
+      "call": "self.start_materialization",
+      "arguments": [
+        "self._body_measurement",
+        "work"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 197,
+      "call": "body.materialize_body",
+      "arguments": []
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 409,
+      "call": "body.materialize_body",
+      "arguments": []
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 505,
+      "call": "self.materialize_body",
+      "arguments": []
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 126,
+      "call": "body.start_materialization",
+      "arguments": [
+        "self"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 543,
+      "call": "self.materialize_native_body",
+      "arguments": []
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1062,
+      "call": "self._restore_bodies",
+      "arguments": [
+        "restoring",
+        "anchor",
+        "demand"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1108,
+      "call": "self._restore_bodies",
+      "arguments": [
+        "tuple(batch)",
+        "anchor",
+        "demand"
+      ]
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1125,
+      "call": "owner.prepare_body",
+      "arguments": []
+    },
+    {
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 1137,
+      "call": "owner.restore_body",
+      "arguments": []
+    }
+  ],
+  "semantics": "ViewportBody/three mounted implementations prewarm work immediately repeated by their materialization delivery. TranscriptHistory.prepare_body and TranscriptBodyPreparation remain distinct source-page lookahead for unmounted ranges. Existing worker/custody/generation/budget/reader owners remain. Syntax is not dynamic resolution or CPU dominance proof."
+}

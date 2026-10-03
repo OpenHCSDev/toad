@@ -1,0 +1,407 @@
+{
+  "state": "SCOPED_READY; no smoothness or CPU gain claim",
+  "production_build_head": "66da5e59d4a08e322ba7b2f4b3de7a1af4d41fd3",
+  "baseline_main": "40ff449d0a22e7f0f4c6c108e38862d906bb4c76",
+  "production_delta": {
+    "files": 4,
+    "added": 14,
+    "deleted": 41
+  },
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/source-proof.json",
+  "installed_filewheel": {
+    "wheel": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/body412-filewheel-20261003/batrachian_toad-0.6.20-py3-none-any.whl",
+    "sha256": "645c760fe208b9ee82758addcf95cdc42d1867866ba94eb84ac43f16c4a1345e",
+    "source_build_head": "66da5e59d4a08e322ba7b2f4b3de7a1af4d41fd3",
+    "source_inventory": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body412-filewheel-20261003/toad-inventory.json",
+    "files": 320,
+    "allocation_bound_mib": 16,
+    "normal_build": "system hatchling from published owned checkout; no UV VCS clone, new env or native build",
+    "unchanged": "Coredbcf/Text48/native89/SDK12.1/normal69 from explicit410handback"
+  },
+  "native_app_exit": 0,
+  "corrected_cadence_exit": 0,
+  "corrected_cadence": {
+    "foreground_delivery_seconds": 0.597307239077054,
+    "delivery_after_background_seconds": 0.597307239077054,
+    "foreground_measured": true,
+    "changed_width_cohort": 3,
+    "original_pending_workers": [
+      "materialize",
+      "materialize",
+      "materialize"
+    ],
+    "background_preserved_horizon": true,
+    "boundary": "actual source UI/widget/worker journey; not installed physical capture"
+  },
+  "original_cadence_failures_preserved": true,
+  "capture": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture",
+  "duration_seconds": 143.20336946297903,
+  "capture_completed": true,
+  "completed": true,
+  "runtime_unchanged": true,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "retained_ready_bodies": 37,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2815501,
+      "start_time": 54405334
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2815501,
+      "start_time": 54405334
+    },
+    "original_owner_alive": true
+  },
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit": {
+    "pid": 3011863,
+    "start_ticks": 54570025,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "encoder_shutdown": 255,
+  "writer_receipts": 1313,
+  "unmatched_enqueues": 0,
+  "writer_key_intervals": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 96,
+        "median_ms": 13.07,
+        "p95_ms": 33.53,
+        "p99_ms": 146.62,
+        "max_ms": 197.89
+      },
+      "writer_receipts": 97
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 138,
+        "median_ms": 11.27,
+        "p95_ms": 22.99,
+        "p99_ms": 39.02,
+        "max_ms": 96.84
+      },
+      "writer_receipts": 139
+    },
+    {
+      "action": "up",
+      "intervals": {
+        "count": 145,
+        "median_ms": 11.15,
+        "p95_ms": 21.77,
+        "p99_ms": 29.43,
+        "max_ms": 106.21
+      },
+      "writer_receipts": 146
+    },
+    {
+      "action": "down",
+      "intervals": {
+        "count": 147,
+        "median_ms": 9.82,
+        "p95_ms": 26.63,
+        "p99_ms": 36.27,
+        "max_ms": 99.12
+      },
+      "writer_receipts": 148
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 124,
+        "median_ms": 13.04,
+        "p95_ms": 23.5,
+        "p99_ms": 35.77,
+        "max_ms": 121.52
+      },
+      "writer_receipts": 125
+    },
+    {
+      "action": "end",
+      "intervals": {
+        "count": 6,
+        "median_ms": 486.64,
+        "p95_ms": 499.85,
+        "p99_ms": 499.85,
+        "max_ms": 500.71
+      },
+      "writer_receipts": 7
+    }
+  ],
+  "ui_cpu_marker_spans": {
+    "input-held-up": 71.51481571575796,
+    "input-held-down": 61.45822698483041,
+    "reverse": 66.89435692949502,
+    "input-held-up-done": 18.184084092675683,
+    "idle": 18.881852739542797
+  },
+  "profile": {
+    "samples": 1251,
+    "sampling_errors": 0,
+    "clock_uncertainty_seconds": 0.07913147450657562
+  },
+  "personal_review": {
+    "ui": {
+      "pid": 3011904,
+      "birth": 54570033
+    },
+    "observations": [
+      {
+        "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-14-7-frames.png",
+        "sha256": "a61e4551c23511348dd4d0c5b16ab459ba1af6d96e107b4e9c58f3b7c4ca0e08",
+        "view_before_monotonic": 545746.034593711,
+        "view_after_monotonic": 545773.158630725,
+        "ui_alive_before": true,
+        "ui_alive_after": true,
+        "assessment": "Personally viewed48consecutive exported Up frames while same UI alive: readable original body/chrome throughout, substantial repeated positions followed by discrete advances; no full-body blank in this band. Not smoothness or FPS acceptance."
+      },
+      {
+        "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-21-12-frames.png",
+        "sha256": "3cca84c47a8b3154ddeff888665be1e7e56131bca07f9a949b7668cde419ed9b",
+        "view_before_monotonic": 545796.029745885,
+        "view_after_monotonic": 545810.328433364,
+        "ui_alive_before": true,
+        "ui_alive_after": true,
+        "ui_birth_after": 54570033,
+        "assessment": "Personally viewed48consecutive Down frames with same UI alive: repeated positions and discrete downward steps, body/chrome painted throughout; no full-body blank in band, not smoothness/FPS acceptance."
+      },
+      {
+        "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-39-22-frames.png",
+        "sha256": "13011f0c22ff83870f6c6fa443abbbaab16e9914f88feefa42a4c392ee6c1164",
+        "view_before_monotonic": 545819.093409849,
+        "view_after_monotonic": 545835.365562351,
+        "ui_alive_before": true,
+        "ui_alive_after": true,
+        "ui_birth_after": 54570033,
+        "assessment": "Personally viewed48consecutive reversal frames with same UI alive: original body/chrome painted, repeated frames between discrete scroll advances; no full-body blank evident. Not smoothness/FPS acceptance."
+      },
+      {
+        "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-43-24-frames.png",
+        "sha256": "348e4202c21558ca19e4d4ac2607c53867587d49a41062ef3e98185ad4a1555b",
+        "view_before_monotonic": 545835.365562351,
+        "view_after_monotonic": 545849.761090332,
+        "ui_alive_before": true,
+        "ui_alive_after": false,
+        "ui_birth_after": null,
+        "assessment": "End-band consecutive frames personally viewed: readable body/chrome at destination, no full-body blank. Band largely stationary after destination; does not prove continuous End animation or smoothness."
+      }
+    ],
+    "parent_observation": {
+      "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-14-7-frames.png",
+      "view_before_monotonic": 545813.019362713,
+      "view_after_monotonic": 545826.316349242,
+      "recorder": {
+        "pid": 3010701,
+        "birth": 54569617,
+        "state_before": "S",
+        "state_after": "R"
+      },
+      "ui": {
+        "pid": 3011904,
+        "birth": 54570033,
+        "state_before": "S",
+        "state_after": "S"
+      },
+      "both_same_births_alive_before_and_after": true,
+      "assessment": "Parent personally viewed48Up frames DURING original UI lifetime: painted body/chrome visible; discrete advances/repeatedpositions and large internal whitespace regions during portions; no full-body blank evident. No whitespace cause inferred and no smooth/FPS/CPUgain claim."
+    }
+  },
+  "live_reviews": [
+    {
+      "event": "live_review_available",
+      "label": "live-14-7",
+      "available": true,
+      "phase": "input-held-up",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 22.455568896,
+      "source_end_seconds": 23.255568896,
+      "ui_identity": {
+        "pid": 3011904,
+        "start_ticks": 54570033
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 545727.804736482,
+      "encoding_finished_monotonic": 545729.823497534,
+      "frames": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-14-7-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-21-12",
+      "available": true,
+      "phase": "input-held-down",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 47.131221501,
+      "source_end_seconds": 47.931221500999996,
+      "ui_identity": {
+        "pid": 3011904,
+        "start_ticks": 54570033
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 545752.48355983,
+      "encoding_finished_monotonic": 545755.42041157,
+      "frames": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-21-12-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-29-16",
+      "available": true,
+      "phase": "up",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 60.023344167,
+      "source_end_seconds": 60.823344166999995,
+      "ui_identity": {
+        "pid": 3011904,
+        "start_ticks": 54570033
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 545765.538131235,
+      "encoding_finished_monotonic": 545769.043521388,
+      "frames": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-29-16-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-34-19",
+      "available": true,
+      "phase": "down",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 69.642905445,
+      "source_end_seconds": 70.442905445,
+      "ui_identity": {
+        "pid": 3011904,
+        "start_ticks": 54570033
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 545775.178486194,
+      "encoding_finished_monotonic": 545778.916413567,
+      "frames": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-34-19-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-39-22",
+      "available": true,
+      "phase": "reverse",
+      "interval_basis": "checked keydown start through keyup start; release completed",
+      "source_start_seconds": 79.564472823,
+      "source_end_seconds": 80.364472823,
+      "ui_identity": {
+        "pid": 3011904,
+        "start_ticks": 54570033
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 545785.064243183,
+      "encoding_finished_monotonic": 545789.315785017,
+      "frames": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-39-22-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    },
+    {
+      "event": "live_review_available",
+      "label": "live-43-24",
+      "available": true,
+      "phase": "end",
+      "interval_basis": "phase markers",
+      "source_start_seconds": 88.61643362999894,
+      "source_end_seconds": 89.41643362999893,
+      "ui_identity": {
+        "pid": 3011904,
+        "start_ticks": 54570033
+      },
+      "ui_alive_before_and_after_encoding": true,
+      "encoding_started_monotonic": 545794.551556735,
+      "encoding_finished_monotonic": 545799.146288302,
+      "frames": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-43-24-frames.png",
+      "assessment": "unreviewed; inspect consecutive frames during or after the run"
+    }
+  ],
+  "raw_keepers": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/receipt.json",
+      "sha256": "f281149e1bd024dad9f405d6bb596fac2b5d7b217a29ff24a3791a1e0a78e598"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/terminal.mp4",
+      "sha256": "9cd496a0a6125d685139a516d717980c56e4c59ed08c7794bb2f3828218a1f69"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/before-state.json",
+      "sha256": "70f0830af7ddc90c4e7aa0ff063a7dbacd41aeb1cc1dd9444ef269fc24fdae99"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/after-state.json",
+      "sha256": "606962002978a495bd297a91a1a90031355307d65ecad669af22763b44321a68"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/phase-a-return-state.json",
+      "sha256": "1445baa6ee6185430e3b5f05e70d3cb5410bb42a78c58db52cdf726418c86285"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/phase-a-return.png",
+      "sha256": "ecd66087ec4f64617bbd151240aaf68f9adf89bf8214149eea6f0e5cab31a923"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/cpu-profile.json",
+      "sha256": "29f707ad17eadacbccf5b4f793d6b8f686bc622e99e5188d30595acb9335bd94"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/driver.log",
+      "sha256": "49d1f69d0d9759288c06b409b77d0c81e52972b946c15b9576450e9a3e0728a6"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/events.jsonl",
+      "sha256": "280067928b14bb2fbac3052b355675affbe79269912bc728bebd1711bef50161"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/frame-delivery.json",
+      "sha256": "79318b0d97dabb8cdac1ef2f727149b345e779eb9e139d1cec0d4d61da4ceecf"
+    }
+  ],
+  "limits": [
+    "Writer intervals are not terminal FPS or input-to-paint latency.",
+    "CPU marker spans include state export tails; old/new workloads are not a causal comparison.",
+    "Body/chrome remained painted in reviewed moving bands; repeated positions/discrete advances/internal whitespace remain. No smoothness144Hz claim.",
+    "End view after probe no longer bracketed by alive UI; Up/Down/reversal personal views and parentUp view bracketed with same UI births.",
+    "ObservedProcess received terminal/UI custody; no invented UI exit0.",
+    "403/607/413 menu work is not qualified by this journey."
+  ],
+  "full_remaining_scope": "144Hz responsive busy/compaction input, foregroundCPU/raster/firstpaint/coldwarm A/B/A, boundedrunway/velocity/reversal/growingEnd/PageDownvoid, uninterruptedanimation/IRC/DM/tabopening/sidebar/focus/draftUndo/TC1T9T4 remains active."
+}

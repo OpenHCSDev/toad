@@ -1,0 +1,66 @@
+{
+  "ui": {
+    "pid": 3011904,
+    "birth": 54570033
+  },
+  "observations": [
+    {
+      "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-14-7-frames.png",
+      "sha256": "a61e4551c23511348dd4d0c5b16ab459ba1af6d96e107b4e9c58f3b7c4ca0e08",
+      "view_before_monotonic": 545746.034593711,
+      "view_after_monotonic": 545773.158630725,
+      "ui_alive_before": true,
+      "ui_alive_after": true,
+      "assessment": "Personally viewed48consecutive exported Up frames while same UI alive: readable original body/chrome throughout, substantial repeated positions followed by discrete advances; no full-body blank in this band. Not smoothness or FPS acceptance."
+    },
+    {
+      "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-21-12-frames.png",
+      "sha256": "3cca84c47a8b3154ddeff888665be1e7e56131bca07f9a949b7668cde419ed9b",
+      "view_before_monotonic": 545796.029745885,
+      "view_after_monotonic": 545810.328433364,
+      "ui_alive_before": true,
+      "ui_alive_after": true,
+      "ui_birth_after": 54570033,
+      "assessment": "Personally viewed48consecutive Down frames with same UI alive: repeated positions and discrete downward steps, body/chrome painted throughout; no full-body blank in band, not smoothness/FPS acceptance."
+    },
+    {
+      "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-39-22-frames.png",
+      "sha256": "13011f0c22ff83870f6c6fa443abbbaab16e9914f88feefa42a4c392ee6c1164",
+      "view_before_monotonic": 545819.093409849,
+      "view_after_monotonic": 545835.365562351,
+      "ui_alive_before": true,
+      "ui_alive_after": true,
+      "ui_birth_after": 54570033,
+      "assessment": "Personally viewed48consecutive reversal frames with same UI alive: original body/chrome painted, repeated frames between discrete scroll advances; no full-body blank evident. Not smoothness/FPS acceptance."
+    },
+    {
+      "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-43-24-frames.png",
+      "sha256": "348e4202c21558ca19e4d4ac2607c53867587d49a41062ef3e98185ad4a1555b",
+      "view_before_monotonic": 545835.365562351,
+      "view_after_monotonic": 545849.761090332,
+      "ui_alive_before": true,
+      "ui_alive_after": false,
+      "ui_birth_after": null,
+      "assessment": "End-band consecutive frames personally viewed: readable body/chrome at destination, no full-body blank. Band largely stationary after destination; does not prove continuous End animation or smoothness."
+    }
+  ],
+  "parent_observation": {
+    "image": "/home/ts/.cache/agent-scratch/body412-materialization-public-20261003-01/capture/live-14-7-frames.png",
+    "view_before_monotonic": 545813.019362713,
+    "view_after_monotonic": 545826.316349242,
+    "recorder": {
+      "pid": 3010701,
+      "birth": 54569617,
+      "state_before": "S",
+      "state_after": "R"
+    },
+    "ui": {
+      "pid": 3011904,
+      "birth": 54570033,
+      "state_before": "S",
+      "state_after": "S"
+    },
+    "both_same_births_alive_before_and_after": true,
+    "assessment": "Parent personally viewed48Up frames DURING original UI lifetime: painted body/chrome visible; discrete advances/repeatedpositions and large internal whitespace regions during portions; no full-body blank evident. No whitespace cause inferred and no smooth/FPS/CPUgain claim."
+  }
+}
