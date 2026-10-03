@@ -40,6 +40,7 @@ from toad.render_protocol import (
     RequestCommand,
     ShutdownRender,
     SubmitRender,
+    TaskCapture,
 )
 from toad.render_service import RenderService, RenderServiceConfig
 from toad.render_backend import RenderTask
@@ -258,8 +259,7 @@ class PersistentRendererPool(Renderer):
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         self._bind_loop()
-        if type(task) not in RenderTask.members_with(RenderTask):
-            raise TypeError("Unsupported persistent rendering task class")
+        TaskCapture.capture(task)
         while not self._closed and self._failure is None and len(self._pending) >= self.config.max_pending:
             self._changed.clear()
             await self._changed.wait()
@@ -277,7 +277,7 @@ class PersistentRendererPool(Renderer):
         except asyncio.CancelledError:
             submission.cancel_requested = True
             raise
-        return running.result()
+        return await task.complete(running)
 
     async def _run(self, submission: RenderSubmission[ResultT]) -> ResultT:
         command: RenderCommand | None = SubmitRender(self._client_id, submission.request_id, submission.task)

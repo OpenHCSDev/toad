@@ -1,0 +1,633 @@
+{
+  "revision": "HEAD",
+  "modules": 286,
+  "unparsed": [],
+  "sites": [
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 80,
+      "class": "ValidationOwner",
+      "bases": [
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "validate"
+      ]
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 85,
+      "class": "HeadlessValidationOwner",
+      "bases": [
+        "ValidationOwner"
+      ],
+      "methods": [
+        "validate"
+      ]
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 90,
+      "class": "ApplicationValidationOwner",
+      "bases": [
+        "ValidationOwner"
+      ],
+      "methods": [
+        "__init__",
+        "validate"
+      ]
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "line": 95,
+      "call": "self.processes.submit(task)"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 7,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/acp/sdk_boundary.py",
+      "line": 63,
+      "class": "ValidateSessionUpdateTask",
+      "bases": [
+        "RenderTask[SessionUpdateValidation]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/agent_surface.py",
+      "line": 7,
+      "import": "from toad.acp.agent_controller import SurfaceBinding, ApplicationValidationOwner"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 34,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 57,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 280,
+      "import": "from toad.work_preparation import PreparationRuntime, PreparedRenderer"
+    },
+    {
+      "path": "src/toad/app.py",
+      "line": 343,
+      "call": "self.render_processes.submit(task)"
+    },
+    {
+      "path": "src/toad/cli.py",
+      "line": 13,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/preferences.py",
+      "line": 62,
+      "class": "UiSettings",
+      "bases": [
+        "RendererSettings"
+      ],
+      "methods": []
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 14,
+      "class": "RenderExecution",
+      "bases": [
+        "ABC",
+        "Generic[ResultT]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 24,
+      "class": "RenderTask",
+      "bases": [
+        "RenderExecution[ResultT]",
+        "DeclaredFamily"
+      ],
+      "methods": [
+        "reusable_inputs"
+      ]
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 31,
+      "class": "ReusableRenderTask",
+      "bases": [
+        "RenderTask[ResultT]"
+      ],
+      "methods": [
+        "reusable_inputs"
+      ]
+    },
+    {
+      "path": "src/toad/render_backend.py",
+      "line": 53,
+      "class": "Renderer",
+      "bases": [
+        "RendererSpawn"
+      ],
+      "methods": [
+        "warm_up",
+        "submit",
+        "aclose"
+      ]
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 12,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 21,
+      "class": "LocalRenderer",
+      "bases": [
+        "RendererChoice"
+      ],
+      "methods": [
+        "start"
+      ]
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 29,
+      "class": "PersistentRenderer",
+      "bases": [
+        "RendererChoice"
+      ],
+      "methods": [
+        "start"
+      ]
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 24,
+      "import": "from toad.render_processes import RenderProcessPool"
+    },
+    {
+      "path": "src/toad/render_choices.py",
+      "line": 36,
+      "import": "from toad.render_runtime import PersistentRenderClient"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 16,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 31,
+      "class": "RenderProcessPool",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        "__init__",
+        "closed",
+        "_bind_loop",
+        "_finished",
+        "run",
+        "submit",
+        "aclose",
+        "_join"
+      ]
+    },
+    {
+      "path": "src/toad/render_processes.py",
+      "line": 19,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 14,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 65,
+      "class": "TaskCapture",
+      "bases": [
+        "RendererCapture"
+      ],
+      "methods": [
+        "capture",
+        "restore"
+      ]
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 77,
+      "class": "ResultCapture",
+      "bases": [
+        "RendererCapture"
+      ],
+      "methods": [
+        "capture",
+        "restore"
+      ]
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 209,
+      "class": "CompleteReply",
+      "bases": [
+        "RequestReply"
+      ],
+      "methods": [
+        "advance"
+      ]
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 21,
+      "import": "from toad.render_zmq import PersistentRendererPool, RenderSubmission"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 72,
+      "call": "RenderTask.members_with(RenderTask)"
+    },
+    {
+      "path": "src/toad/render_protocol.py",
+      "line": 214,
+      "call": "submission.task.accept_result(self.result.value)"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 7,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 10,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 11,
+      "import": "from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 21,
+      "class": "PersistentRenderClient",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        "__init__",
+        "resolved_pool",
+        "_bind_loop",
+        "_initialize",
+        "_get_pool",
+        "_retire",
+        "submit",
+        "warm_up",
+        "aclose",
+        "_close"
+      ]
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 89,
+      "call": "pool.submit(task)"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 101,
+      "call": "self.submit(MarkdownRenderTask('```python\\npass\\n```\\n\\n```json\\n{}\\n```\\n', ansi, dark))"
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "line": 104,
+      "call": "self.submit(PatchRenderTask('--- warmup.py\\n+++ warmup.py\\n@@ -1 +1 @@\\n-pass\\n+value = 1\\n', ansi, dark))"
+    },
+    {
+      "path": "src/toad/render_service.py",
+      "line": 13,
+      "import": "from toad.render_protocol import AcknowledgeRender, CancelRender, PollRender, ReleaseRender, RenderReply, ShutdownRender, SubmitRender, AcceptedReply, UnknownReply, BusyReply, PendingReply, CancelledReply, FailedReply, RejectedReply, CompleteReply, AcknowledgedReply, CapturedResult"
+    },
+    {
+      "path": "src/toad/render_service.py",
+      "line": 126,
+      "call": "self._executor.submit(command.task.execute)"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 9,
+      "import": "from toad.render_backend import ReusableRenderTask"
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 32,
+      "class": "PatchRenderTask",
+      "bases": [
+        "ReusableRenderTask[PreparedPatch]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 47,
+      "class": "MarkdownRenderTask",
+      "bases": [
+        "ReusableRenderTask[PreparedMarkdown]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 96,
+      "class": "TranscriptRenderTask",
+      "bases": [
+        "ReusableRenderTask[tuple[TranscriptFragment, ...]]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 110,
+      "class": "RichRenderTask",
+      "bases": [
+        "ReusableRenderTask[PreparedRichContent]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 124,
+      "class": "ThreadRowsRenderTask",
+      "bases": [
+        "ReusableRenderTask[tuple[PreparedThreadRow, ...]]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 139,
+      "class": "TabRosterRenderTask",
+      "bases": [
+        "ReusableRenderTask[tuple[PreparedTab, ...]]"
+      ],
+      "methods": [
+        "execute",
+        "accept_result"
+      ]
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "line": 92,
+      "call": "self.renderer.submit(MarkdownRenderTask(event.text, self.ansi, self.dark))"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 33,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 45,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 128,
+      "class": "RendererClient",
+      "bases": [
+        "RendererTransport"
+      ],
+      "methods": [
+        "__init__",
+        "_spawn_server_process",
+        "require_identity"
+      ]
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 211,
+      "class": "PersistentRendererPool",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        "__init__",
+        "_bind_loop",
+        "_exchange",
+        "_finished",
+        "submit",
+        "_run",
+        "acknowledge",
+        "aclose",
+        "_close",
+        "shutdown_service"
+      ]
+    },
+    {
+      "path": "src/toad/render_zmq.py",
+      "line": 261,
+      "call": "RenderTask.members_with(RenderTask)"
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 82,
+      "class": "ThreadRowsWork",
+      "bases": [
+        "SerializedWork[tuple[PreparedThreadRow, ...]]",
+        "ContentAddressedWork[tuple[PreparedThreadRow, ...]]",
+        "RendererWork[tuple[PreparedThreadRow, ...]]"
+      ],
+      "methods": [
+        "capture",
+        "inputs",
+        "for_rows",
+        "content_width",
+        "render_task"
+      ]
+    },
+    {
+      "path": "src/toad/sidebar_preparation.py",
+      "line": 143,
+      "class": "TabRosterWork",
+      "bases": [
+        "SerializedWork[tuple[PreparedTab, ...]]",
+        "ContentAddressedWork[tuple[PreparedTab, ...]]",
+        "RendererWork[tuple[PreparedTab, ...]]"
+      ],
+      "methods": [
+        "inputs",
+        "render_task"
+      ]
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 17,
+      "import": "from toad.work_preparation import PreparationRuntime, RenderPreparation, PreparationScope, SerializedWork, ScopedWork, ThreadWork, WorkKey, WorkLane, retained_bytes"
+    },
+    {
+      "path": "src/toad/transcript_preparation.py",
+      "line": 159,
+      "call": "runtime.submit(RenderPreparation(TranscriptRenderTask(page.events)))"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 175,
+      "import": "from toad.work_preparation import RenderPreparation"
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "line": 190,
+      "call": "self.owner.view.app.preparation.submit(RenderPreparation(TranscriptRenderTask(self.page.events)))"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 247,
+      "import": "from toad.work_preparation import RenderPreparation"
+    },
+    {
+      "path": "src/toad/widgets/committed_presentation.py",
+      "line": 260,
+      "call": "view.app.preparation.submit(RenderPreparation(TranscriptRenderTask(page.events)))"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 90,
+      "call": "self.app.render_processes.submit(MarkdownRenderTask(self.source, self.app.native_ansi_color, self.app.current_theme.dark))"
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "line": 119,
+      "call": "self.app.render_processes.submit(MarkdownRenderTask(markdown, *theme))"
+    },
+    {
+      "path": "src/toad/widgets/streaming_markdown.py",
+      "line": 57,
+      "call": "self.app.render_processes.submit(TranscriptRenderTask((self.TRANSCRIPT_EVENT(self.source),), continuation=True))"
+    },
+    {
+      "path": "src/toad/widgets/tool_content.py",
+      "line": 204,
+      "call": "self.app.render_processes.submit(ticket.task)"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 19,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 47,
+      "import": "from toad.render_processes import RenderProcessPool"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 46,
+      "call": "pool.submit(TranscriptRenderTask(events, continuation=continuation))"
+    },
+    {
+      "path": "src/toad/widgets/transcript_fragments.py",
+      "line": 51,
+      "call": "owned_pool.submit(TranscriptRenderTask(events, continuation=continuation))"
+    },
+    {
+      "path": "src/toad/widgets/worker_static.py",
+      "line": 137,
+      "call": "app.render_processes.submit(request.task)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 18,
+      "import": "from toad.render_backend import Renderer"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 167,
+      "class": "RenderPreparation",
+      "bases": [
+        "ContentAddressedWork[ResultT]",
+        "RendererWork[ResultT]"
+      ],
+      "methods": [
+        "identity",
+        "inputs",
+        "render_task",
+        "retain_result",
+        "store_result"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 354,
+      "class": "PreparedRenderer",
+      "bases": [
+        "Renderer"
+      ],
+      "methods": [
+        "__init__",
+        "submit",
+        "warm_up",
+        "aclose"
+      ]
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 21,
+      "import": "from toad.render_backend import RenderTask"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 180,
+      "call": "self.task.reusable_inputs()"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 163,
+      "call": "runtime.renderer.submit(self.render_task)"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 174,
+      "call": "self.task.reusable_inputs()"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 188,
+      "call": "self.task.reusable_inputs()"
+    },
+    {
+      "path": "src/toad/work_preparation.py",
+      "line": 361,
+      "call": "self.runtime.submit(RenderPreparation(task))"
+    }
+  ],
+  "limits": "NRA Package parsing plus lexical AST references; duck-typed submit/execute receivers are listed, not dynamically resolved. Relevant declared-family/codec behavior read in existing installed Core; no changes to those contracts."
+}
