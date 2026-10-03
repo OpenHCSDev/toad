@@ -56,7 +56,7 @@ def seed_installed_catalog():
         'hold': ('Cancel held local command', 'printf CMD_HELD; sleep 30'),
         'audit': ('Declaration-only audit', 'printf CMD_AUDIT_OK'),
         'bootstrap': ('Sequential local bootstrap', 'printf CMD_BOOTSTRAP_MAIN'),
-        'input': ('Actual terminal input', 'printf CMD_INPUT_READY; read line; printf CMD_INPUT:%s \"$line\"'),
+        'input': ('Actual terminal input', 'printf CMD_INPUT_READY; read line; printf CMD_INPUT:%s "$line"'),
     }
     import toad
     for name, (label, command) in commands.items():

@@ -29,7 +29,7 @@ No latency, physical pixel or full headless completion claim.
 
 ## Working source closure
 
-Four production files: 107 added / 192 deleted at this checkpoint (remeasure at
+Four production files: 112 added / 197 deleted at this checkpoint (remeasure at
 Ready). No classes added. Pane no longer opens PTYs, starts subprocesses, stores
 process/master/task/code, decodes output, writes via a delayed thread, or sends
 signals. It holds one original execution resource. The original async worker
@@ -55,3 +55,6 @@ original operation creation, detachment, outcome and retirement consumers.
 Existing catalog pilot extends the SAME journey with real local curl/sh bootstrap
 and typed command config, native cooked input, original custody closed/retired.
 No provider or installer network call; no alternate application/protocol/model.
+
+ActionModal also replaces `_command/_env/_cwd` with one original `Command`
+constructed at the action boundary and consumed by execution/prefix paint.
