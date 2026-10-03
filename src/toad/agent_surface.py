@@ -46,11 +46,10 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         await view.post(link)
 
     async def present_permission(self, request, view) -> None:
-        if (not request.pending or request.projected_on(view) or not self.owns(view)
-                or request.controller.agent.controller.surface is not self):
-            return
-        view.refresh_bindings()
         await self.dispatch(request.presentation, view, request)
+
+    def permission_changed(self, view) -> None:
+        view.refresh_bindings()
 
     @handles(DiffPermissionPresentation)
     async def show_file_permission(self, presentation, view, request):
@@ -58,17 +57,16 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
         screen = PermissionReview(request, view, presentation.diffs, self)
         app = view.app
+        if not request.watch(self, screen.retire):
+            return
         try:
             app.terminal_attention.require(screen)
             app.terminal_attention.notify(f"{view.agent_title} would like to write files",
                                           title="Permissions request", sound="question")
-            request.watch(view, screen.retire)
             result = await app.push_screen_wait(screen, mode=view.screen.id)
             request.answer(self, result)
         finally:
             app.terminal_attention.release(screen)
-            if request.controller.agent.controller.surface is self:
-                view.refresh_bindings()
 
     @handles(InlinePermissionPresentation)
     async def show_inline_permission(self, presentation, view, request):
@@ -79,11 +77,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
                       if (preview := decode_content(item).permission_preview()) is not None)
 
         def answer(answer):
-            if request.controller.agent.controller.surface is not self:
-                return
             request.answer(self, answer)
-            if not view.prompt.ask_queue:
-                view.refresh_bindings()
 
         ask = view.ask(request.options, presentation.title,
                        partial(ACPToolCallContent, parts) if parts else None,
@@ -95,7 +89,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
                 if view.prompt._ask is None:
                     view.refresh_bindings()
 
-        request.watch(view, retire)
+        request.watch(self, retire)
 
     def schedule_terminal_presentation(self, controller):
         if (target := self.target) is not None:
