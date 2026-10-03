@@ -1,0 +1,25 @@
+{
+  "stage": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002",
+  "pins": {
+    "agent_comms": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+    "toad": "0fd956b92e157a6461db5783a84fa34e4603fa21",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Normal69 merged559 archive reader/561 shared dispatch/356 native views; unchanged qualified native de166; original End limits retained",
+  "staging_receipt": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/archive559-dispatch561-nativeviews356-receiving-20261003/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/python",
+    "toad": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/runtime-summary529-geometry322-20261002/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-de16647979cbad28/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "de16647979cbad28be4f60349d39a420e83aaffb1d678941609449d306109968",
+  "native_tree": "7bf47002b579908fc556548c19451b925afd688606954ad485180a49da5c133d",
+  "native_configuration_note": "Released529 holder reused; actual matching source proof and activation archived. Current357 and previous354 unchanged. No provider/public changes, no environment/native build."
+}

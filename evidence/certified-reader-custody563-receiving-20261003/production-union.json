@@ -1,0 +1,14 @@
+{
+  "qualified_frontend": "0fd956b92e157a6461db5783a84fa34e4603fa21",
+  "receiver": "90d90ab6d9f6c47e3bdf163348c9fb70991761f3",
+  "all_frontend_src_equal": true,
+  "core_ready": "d9b0c81d87374b22f64d58a3ea2ccdab18f8fdc4",
+  "core_merged": "6a1dad1db068aeb65c6feb2a11d75d4923c942eb",
+  "full_installed_source_files": {
+    "agent_comms": 339,
+    "toad": 317,
+    "textual": 266,
+    "textual_diff_view": 3
+  },
+  "parent_only_publication": true
+}
