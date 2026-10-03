@@ -1,5 +1,13 @@
 # Native evidence lifetime and patch preparation receiving
 
+## Published and ordinary default display accepted
+
+Parent merged370 and executed its original NEW operation once: terminal0, 44.7577 seconds. Original publication SHA `dff266cd773dbc711ac3da3412d4a75ca516ed2c456238fde2b7db298abd6f40` and UI-pending phase remain unchanged. Parent's single readback confirmed19 retained births/stored settings, new live process identities, all five links and original root/native identity. No carry, reset or input replay occurred.
+
+The485 holder is now CURRENT and immutable;520 is protected rollback. Parent's ordinary default saved-helper recording completed in 23.8486 seconds, isolated plain st display2138, actual st0/recorder0. Parent personally inspected after.png: saved history, chat/sidebar Ready and no activity bar. Original owner2506826/birth48236124 and runtime remained unchanged; cleanup was empty. No new input/provider operation occurred. Original568 native and368 patch/App changed-path qualification retains its original scope; this default observation adds startup/display acceptance, not speed, provider or scrolling proof.
+
+The first parent postprocessing assertion incorrectly treated stopped FFmpeg255 as an application exit. The actual terminal exited0; parent corrected the assessment using the same run, without a rerun or raw receipt change. Original [review/publication/readback and physical evidence](../../evidence/native-evidence568-patch368-receiving-20261003/published/publication-archive-summary.json) is archived once. The remaining sections describe prepublication preparation/freeze; their current520/target485 references are historical. No full S2/S4, compaction speed or fullscroll completion is claimed.
+
 The receiving pair declares merged Core568 `0608319c02c5109c7b852e80c34841dec12bda5b` and normally integrates merged Toad368 `25a17f47024052d50b2203440a4e0b77e8250e97`. Textual940, diff8fa, SDK 0.12.1 and the original compiled native044 remain unchanged. The normal lock update changes three Core pin lines.
 
 Core568's original installed native commit/currentness/prefix-refusal controls and 42 MB read observation remain its qualification. Toad368's original captured-task, patch preparation/fallback and actual App receipts remain its qualification. The private optional renderer graph of 74 packages is historical qualification; this receiving restores the declared normal baseline of 69 in the same released485 holder.

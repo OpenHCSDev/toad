@@ -1,0 +1,283 @@
+{
+  "reviewed_at": 1791006634.9082057,
+  "operator_members_verified": 51,
+  "source_assets_verified": 925,
+  "original_audience": [
+    {
+      "identity": {
+        "incarnation": {
+          "name": "agent-comms-ux",
+          "created_at": 1790049004.0955005
+        },
+        "generation": 2473
+      },
+      "process": {
+        "pid": 2405398,
+        "start_time": 48040691
+      },
+      "admission_generation": 2437
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-architecture",
+          "created_at": 1790049182.3907015
+        },
+        "generation": 2474
+      },
+      "process": {
+        "pid": 2405856,
+        "start_time": 48040829
+      },
+      "admission_generation": 2438
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-class-first-name-review",
+          "created_at": 1790229371.6420214
+        },
+        "generation": 2475
+      },
+      "process": {
+        "pid": 2406033,
+        "start_time": 48040972
+      },
+      "admission_generation": 2439
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-domain-mapping",
+          "created_at": 1790116627.8997042
+        },
+        "generation": 2476
+      },
+      "process": {
+        "pid": 2406254,
+        "start_time": 48041119
+      },
+      "admission_generation": 2440
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-ordered-branch-call-review",
+          "created_at": 1790232054.218321
+        },
+        "generation": 2477
+      },
+      "process": {
+        "pid": 2406654,
+        "start_time": 48041261
+      },
+      "admission_generation": 2441
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nra-roster-heuristic-map",
+          "created_at": 1790218471.1256046
+        },
+        "generation": 2478
+      },
+      "process": {
+        "pid": 2407151,
+        "start_time": 48041404
+      },
+      "admission_generation": 2442
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "refactor-r1",
+          "created_at": 1790606381.4139948
+        },
+        "generation": 2479
+      },
+      "process": {
+        "pid": 2407488,
+        "start_time": 48041548
+      },
+      "admission_generation": 2443
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-architecture-memory",
+          "created_at": 1790654215.0835924
+        },
+        "generation": 2480
+      },
+      "process": {
+        "pid": 2407858,
+        "start_time": 48041701
+      },
+      "admission_generation": 2444
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-pr159-viewer-bind-owner",
+          "created_at": 1790657026.7285714
+        },
+        "generation": 2481
+      },
+      "process": {
+        "pid": 2408152,
+        "start_time": 48041845
+      },
+      "admission_generation": 2445
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "nominal-refactor-advisor-2",
+          "created_at": 1790700391.614946
+        },
+        "generation": 2482
+      },
+      "process": {
+        "pid": 2408316,
+        "start_time": 48041986
+      },
+      "admission_generation": 2446
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-helper",
+          "created_at": 1790708584.4423254
+        },
+        "generation": 2483
+      },
+      "process": {
+        "pid": 2408531,
+        "start_time": 48042131
+      },
+      "admission_generation": 2447
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-helper2",
+          "created_at": 1790713653.7134795
+        },
+        "generation": 2484
+      },
+      "process": {
+        "pid": 2408896,
+        "start_time": 48042277
+      },
+      "admission_generation": 2448
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "comms428",
+          "created_at": 1790725198.0008519
+        },
+        "generation": 2485
+      },
+      "process": {
+        "pid": 2409333,
+        "start_time": 48042424
+      },
+      "admission_generation": 2449
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-merged-runtime",
+          "created_at": 1790873422.6705143
+        },
+        "generation": 2486
+      },
+      "process": {
+        "pid": 2409713,
+        "start_time": 48042568
+      },
+      "admission_generation": 2450
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-merged-models",
+          "created_at": 1790873447.6164267
+        },
+        "generation": 2487
+      },
+      "process": {
+        "pid": 2410032,
+        "start_time": 48042711
+      },
+      "admission_generation": 2451
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-merged-boundaries",
+          "created_at": 1790873473.1996155
+        },
+        "generation": 2488
+      },
+      "process": {
+        "pid": 2410296,
+        "start_time": 48042853
+      },
+      "admission_generation": 2452
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "openhcs-audit-open-prs",
+          "created_at": 1790873496.352646
+        },
+        "generation": 2489
+      },
+      "process": {
+        "pid": 2410488,
+        "start_time": 48043002
+      },
+      "admission_generation": 2453
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "compaction499-live-architecture-memory",
+          "created_at": 1790895107.1284342
+        },
+        "generation": 2490
+      },
+      "process": {
+        "pid": 2410674,
+        "start_time": 48043147
+      },
+      "admission_generation": 2454
+    },
+    {
+      "identity": {
+        "incarnation": {
+          "name": "compaction501-live-architecture-memory",
+          "created_at": 1790900050.675298
+        },
+        "generation": 2491
+      },
+      "process": {
+        "pid": 2410977,
+        "start_time": 48043291
+      },
+      "admission_generation": 2455
+    }
+  ],
+  "all_originals_idle": true,
+  "actual_client_guard": "passed",
+  "schemas_equal": true,
+  "source_target_product_equal": false,
+  "runtime": "PreserveRuntimeInstallation",
+  "owner_runtime": "PreserveOwnerRuntime",
+  "native_unchanged": true,
+  "receipt_and_preimages_absent": true,
+  "source_gates_reviewed": "568 commit/currentness/prefix refusal actual native path and 42MB original read;368 native patch preparation/fallback/worker/App acceptance",
+  "scope": "parent review only; no publication or provider inputs"
+}
