@@ -1,0 +1,98 @@
+{
+  "roots": [
+    {
+      "path": "/home/ts/wt/u359e02/private-root/wire",
+      "before": [
+        {
+          "name": "beta",
+          "identity": "ProcessIdentity(pid=1688038, start_time=47190432)",
+          "alive": false,
+          "turn": "None"
+        },
+        {
+          "name": "user",
+          "identity": "None",
+          "alive": false,
+          "turn": "None"
+        }
+      ],
+      "after": [
+        {
+          "name": "beta",
+          "identity": "ProcessIdentity(pid=1688038, start_time=47190432)",
+          "alive": false,
+          "turn": "None"
+        },
+        {
+          "name": "user",
+          "identity": "None",
+          "alive": false,
+          "turn": "None"
+        }
+      ]
+    },
+    {
+      "path": "/home/ts/wt/u359e03/private-root/wire",
+      "before": [
+        {
+          "name": "beta",
+          "identity": "ProcessIdentity(pid=1712069, start_time=47218671)",
+          "alive": false,
+          "turn": "None"
+        },
+        {
+          "name": "user",
+          "identity": "None",
+          "alive": false,
+          "turn": "None"
+        }
+      ],
+      "after": [
+        {
+          "name": "beta",
+          "identity": "ProcessIdentity(pid=1712069, start_time=47218671)",
+          "alive": false,
+          "turn": "None"
+        },
+        {
+          "name": "user",
+          "identity": "None",
+          "alive": false,
+          "turn": "None"
+        }
+      ]
+    },
+    {
+      "path": "/home/ts/wt/u359e04/private-root/wire",
+      "before": [
+        {
+          "name": "beta",
+          "identity": "ProcessIdentity(pid=1745635, start_time=47247512)",
+          "alive": true,
+          "turn": "ActiveTurn(id='8cf08c554ebf465286b70c2457080401', owner_pid=1745635, started_at=1790996838.4622023, routing=TurnRouting(requests=(), reply=None, publications=()), admission_generation=3, turn_generation=1, phase=PreparingPhase(detail='Verify the private feedback presentation.'))"
+        },
+        {
+          "name": "user",
+          "identity": "None",
+          "alive": false,
+          "turn": "None"
+        }
+      ],
+      "after": [
+        {
+          "name": "beta",
+          "identity": "ProcessIdentity(pid=1745635, start_time=47247512)",
+          "alive": false,
+          "turn": "None"
+        },
+        {
+          "name": "user",
+          "identity": "None",
+          "alive": false,
+          "turn": "None"
+        }
+      ]
+    }
+  ],
+  "original_input_04_preserved_not_retried": true
+}

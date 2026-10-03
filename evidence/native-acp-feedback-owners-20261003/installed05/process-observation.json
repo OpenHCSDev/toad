@@ -1,0 +1,85 @@
+{
+  "time": 1790997747.149575,
+  "processes": [
+    {
+      "name": "timeout",
+      "pid": 1860275,
+      "ppid": 2221730,
+      "cmdline": [
+        "timeout",
+        "45",
+        "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
+        "evidence/native-acp-feedback-owners-20261003/installed_feedback.py"
+      ],
+      "threads": [
+        {
+          "tid": 1860275,
+          "wchan": "sigsuspend.isra.0"
+        }
+      ],
+      "fds": {
+        "0": "/dev/null",
+        "1": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-acp-feedback-owners-20261003/installed05-terminal.txt",
+        "2": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-acp-feedback-owners-20261003/installed05-terminal.txt"
+      }
+    },
+    {
+      "name": "python",
+      "pid": 1860844,
+      "ppid": 1860286,
+      "cmdline": [
+        "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
+        "-c",
+        "from multiprocessing.resource_tracker import main;main(9)"
+      ],
+      "threads": [
+        {
+          "tid": 1860844,
+          "wchan": "anon_pipe_read"
+        }
+      ],
+      "fds": {
+        "0": "/dev/null",
+        "1": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-acp-feedback-owners-20261003/installed05-terminal.txt",
+        "2": "/home/ts/wt/toad-regression-widget-cost-20261001/evidence/native-acp-feedback-owners-20261003/installed05-terminal.txt",
+        "3": "/dev/urandom",
+        "9": "/proc/1860844/fd/pipe:[72504156]"
+      }
+    },
+    {
+      "name": "python",
+      "pid": 1861826,
+      "ppid": 1,
+      "cmdline": [
+        "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python",
+        "-m",
+        "agent_comms.worker"
+      ],
+      "threads": [
+        {
+          "tid": 1861826,
+          "wchan": "locks_lock_inode_wait"
+        },
+        {
+          "tid": 1862110,
+          "wchan": "futex_do_wait"
+        }
+      ],
+      "fds": {
+        "0": "/dev/null",
+        "1": "/home/ts/wt/u359e05/private-root/wire/diagnostics/owner-897356bf688c8b546dc8b4d4d7c0a2f2-534aa28f187846f7b9df8de92e59ad8f.log",
+        "2": "/home/ts/wt/u359e05/private-root/wire/diagnostics/owner-897356bf688c8b546dc8b4d4d7c0a2f2-534aa28f187846f7b9df8de92e59ad8f.log",
+        "3": "/dev/urandom",
+        "4": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+        "5": "/proc/1861826/fd/anon_inode:[eventpoll]",
+        "6": "/proc/1861826/fd/socket:[72535161]",
+        "7": "/proc/1861826/fd/socket:[72535162]",
+        "8": "/proc/1861826/fd/socket:[72499036]",
+        "9": "/proc/1861826/fd/anon_inode:inotify",
+        "10": "/home/ts/wt/u359e05/private-root/wire/.bus.jsonl.lock",
+        "11": "/proc/1861826/fd/socket:[72499037]",
+        "14": "/home/ts/wt/u359e05/private-root/wire/.wire.lock"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "registered_client_result": {
+    "jsonrpc": "2.0",
+    "result": null,
+    "id": 400
+  },
+  "authority_current": true,
+  "original_tool_keys": [
+    "feedback-pending"
+  ],
+  "original_subscription_active": true,
+  "original_surface_target_is_view": true
+}

@@ -1109,7 +1109,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             error = Content(message.event.details.strip()).stylize("$text-error")
         await self.post(Note(error, classes="-error"))
 
-        await message.event.explain(self)
+        await message.publisher.controller.surface.present_failure(message.event, self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
@@ -1285,8 +1285,12 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self._turn_count += 1
 
 
-        if stop_reason is not None:
-            await stop_reason.present(self)
+        if stop_reason is not None and stop_reason.note:
+            from toad.widgets.markdown_note import MarkdownNote
+
+            await self.post(MarkdownNote(
+                stop_reason.note.replace('$AGENT', (self.agent_title or 'agent').title()),
+                classes='-stop-reason'))
 
         if self.app.settings.notifications.turn_over:
             self.app.terminal_attention.notify(
@@ -1535,7 +1539,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         from toad.widgets.tool_call import ToolCall
 
         tool_call = message.event.tool_call
-        tool_call.activity(self, tool_call.call.title or 'Using tool')
+        tool_call.activity(self.turns, self.output, tool_call.call.title or 'Using tool')
 
         tool_id = message.event.tool_id
         try:
