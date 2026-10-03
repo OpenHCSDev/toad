@@ -12,7 +12,6 @@ import os
 import pty
 import shlex
 import signal
-import struct
 import termios
 from io import FileIO
 from typing import Mapping
@@ -177,7 +176,10 @@ class PtyProcess:
     master: FileIO
 
     @classmethod
-    async def acquire(cls, command, shell_command, master, slave, custody):
+    async def acquire(cls, command, shell_command, master, slave, custody, state):
+        # The child can query its window immediately after exec. Establish
+        # geometry on the original PTY before giving that FD to the child.
+        cls.resize_fd(master.fileno(), state.width, state.height)
         child = await AttachedChild.start(
             shell_command, stdio=TerminalChildStdio(slave),
             env=os.environ | command.env, cwd=command.cwd,
@@ -190,8 +192,11 @@ class PtyProcess:
 
     def resize(self, width, height):
         with suppress(OSError, ValueError):
-            fcntl.ioctl(self.master.fileno(), termios.TIOCSWINSZ,
-                        struct.pack("HHHH", height, width, 0, 0))
+            self.resize_fd(self.master.fileno(), width, height)
+
+    @staticmethod
+    def resize_fd(fd, width, height):
+        termios.tcsetwinsize(fd, (height, width))
 
     async def write(self, data: bytes) -> int:
         # Nonblocking owned FD is consumed on this loop, not by a delayed
@@ -404,7 +409,7 @@ class TerminalExecution:
                                else f"{command.command} {shlex.join(command.args)}")
                 shell_command = (os.environ.get("SHELL", "sh"), "-c", run_command)
                 spawn = asyncio.create_task(PtyProcess.acquire(
-                    command, shell_command, master_file, slave_file, custody))
+                    command, shell_command, master_file, slave_file, custody, self.state))
                 try:
                     acquired = await asyncio.shield(spawn)
                 except asyncio.CancelledError:
@@ -412,7 +417,6 @@ class TerminalExecution:
                     # outer scope releases PTY descriptors. No lost spawn handle.
                     await join_retirement(spawn)
                     raise
-                acquired.resize(self.state.width, self.state.height)
                 slave_file.close()
                 reader = asyncio.StreamReader(128 * 1024)
                 protocol = asyncio.StreamReaderProtocol(reader)
