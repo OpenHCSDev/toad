@@ -21,3 +21,30 @@ Parent diagnostic ContextTree exporters and Einstein's Plan family are disjoint.
 
 No capture, provider, public root mutation, new worktree/environment/native copy
 is authorized by this scope document beyond existing standing authorization.
+
+## Published working batch
+
+Existing recorder owner now selects original held-key receipts instead of the
+latest video tail. Live and final film review and writer analysis consume that
+same PhysicalJourney decision. Short key releases and phase exports expose the
+finished motion interval through existing ReviewTiming; encoding requires the
+original acquired UI identity alive before and after. Availability is not human
+inspection. Additional frame export is requested only for a newly encoded band.
+
+One tool file87+/29-; no production change or performance-gain claim. Reused AST
+Package parsed289 production/8 recorder/39 performance modules without omissions;
+dynamic callback execution remains semantic reading, not an AST proof. Final
+source sanity reads the SAME immutable399 receipt/log/film: exact original
+Up/Down/reverse bounds, closed-UI rejection and four original hashes unchanged.
+Actual live extraction/scheduling remains to be exercised during the NEXT changed
+product journey, not an unchanged recording just for this tool.
+
+Next source lead: frame admission selects visible body ownership by walking
+native ancestors, and RenderedBody consumes native effective PaintState. Native
+DOM._resolved_paint_state currently invalidates its lookup epoch for ANY global
+Styles revision/tree revision. Unrelated row style changes therefore trigger
+ancestor cache checks in history; immutable PaintState reuse still preserves
+correctness. This is a source relationship, not a measured dominant-CPU or
+causal-gain claim. Read all style/ancestry publication consumers with Kepler
+before choosing an owner change. Do not bypass inherited style validity or
+install another revision/paint cache.
