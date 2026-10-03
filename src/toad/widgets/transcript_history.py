@@ -26,6 +26,7 @@ from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.message import Message
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 from textual.widgets import Static
 
 from toad.transcript_filter import TranscriptFilter
@@ -541,7 +542,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     @property
     def retained_source_bytes(self) -> int:
-        return sum(node.retained_source_bytes for node in self.walk_children()
+        return sum(node.retained_source_bytes for node in walk_depth_first(self, with_root=False)
                    if isinstance(node, ViewportBody))
 
     def compose(self) -> ComposeResult:
