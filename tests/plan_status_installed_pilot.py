@@ -146,8 +146,16 @@ async def main():
                             agent.controller.plan_entries[0].content == "DETACHED_PLAN_ITEM")
                 await app.select_session(source.id)
                 view = source.conversation
-                await until(pilot, lambda: bool(view.query(Plan)))
-                restored_plan = view.query_one(Plan)
+                # Earlier plans remain chronological conversation blocks when
+                # rejection notes follow them. Select the current controller
+                # publication, never the first retained historical Plan.
+                await until(pilot, lambda: any(
+                    candidate.entries is agent.controller.plan_entries
+                    for candidate in view.query(Plan)))
+                restored_plan = next(candidate for candidate in view.query(Plan)
+                                     if candidate.entries is agent.controller.plan_entries)
+                assert restored_plan is not plan
+                assert plan.entries[0].content == "ACP_pending_ITEM"
                 restored_plan.scroll_visible(animate=False, immediate=True)
                 await until(pilot, lambda: painted(restored_plan, "DETACHED_PLAN_ITEM"))
                 sidebar = await reveal(source, pilot)
