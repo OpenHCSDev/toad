@@ -13,6 +13,7 @@ import time
 import traceback
 import os
 from pathlib import Path
+from functools import partial
 from threading import Event
 import tempfile
 from unittest.mock import patch
@@ -180,11 +181,19 @@ async def exercise_with_evidence(app, pilot, root, *, journey=exercise):
 
 
 async def exercise_retained(app, pilot, root):
-    await exercise_native_destination(app, pilot, root)
-    return await exercise(app, pilot, root)
+    keys = ProcessOwner()
+    try:
+        await exercise_native_destination(
+            app, pilot, root, press=partial(HistorySourceLifetimeJourney.press, keys),
+        )
+        return await exercise(app, pilot, root)
+    finally:
+        cleanup = await asyncio.to_thread(keys.cleanup)
+        (root / 'destination-key-cleanup.json').write_text(json.dumps(cleanup, indent=2) + '\n')
+        assert not cleanup['remaining_owned_pids'] and not cleanup['errors'], cleanup
 
 
-async def exercise_native_destination(app, pilot, root):
+async def exercise_native_destination(app, pilot, root, *, press):
     """Use the copied original native source, not a synthetic transcript page."""
     view = app.selected_session.conversation
     window = view.window
@@ -192,8 +201,8 @@ async def exercise_native_destination(app, pilot, root):
     window.focus()
     async with asyncio.timeout(8):
         while not any(history.has_newer for history in window.histories):
-            await pilot.press('home')
-            await pilot.pause(.05)
+            await press('Home')
+            await asyncio.sleep(.05)
     history = next(history for history in window.histories if history.has_newer)
     assert isinstance(history, TranscriptHistory) and history.loader is not None
     await until(lambda: history.state.accepts_source_work)
@@ -215,17 +224,17 @@ async def exercise_native_destination(app, pilot, root):
 
     with patch.object(reader, 'get', held_read):
         window.focus()
-        await pilot.press('end')
         try:
+            await press('End')
             await until(entered.is_set)
             operation = history.state
             assert not operation.accepts_source_work
             # Native End deliberately focuses the editor. Restore the original
             # scroll target before the user's revoking Home key.
             window.focus()
-            await pilot.pause()
-            assert app.focused is window
-            await pilot.press('home')
+            await until(lambda: app.focused is window)
+            await press('Home')
+            await until(lambda: not window.follows_tail)
             revoked_revision = window.scroll_revision
             assert not window.follows_tail
         finally:
@@ -236,7 +245,8 @@ async def exercise_native_destination(app, pilot, root):
             revoked_revision, window.scroll_revision, window.follows_tail,
         )
     window.focus()
-    await pilot.press('end')
+    await until(lambda: app.focused is window)
+    await press('End')
     await until(lambda: history.checkpoint_available and not history.has_newer
                 and window.follows_tail)
     await pilot.pause()
@@ -264,10 +274,10 @@ async def main():
     os.environ.update(AGENT_COMMS_ROOT=str(root / 'wire'), XDG_CONFIG_HOME=str(root / 'config'),
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
     comms = wire(root / 'wire')
+    await asyncio.to_thread(seed_channel, comms, root)
     app = ToadApp(project_dir=str(root))
     headless = os.environ.get('L0A_HEADLESS', '1') != '0'
     async with app.run_test(headless=headless, size=(100, 32)) as pilot:
-        await asyncio.to_thread(seed_channel, comms, root)
         history = await exercise_with_evidence(app, pilot, root)
         if not headless:
             # The existing recorder owns the physical window and quits through
@@ -280,6 +290,14 @@ async def main():
 
 class HistorySourceLifetimeJourney(ObserveJourney):
     """The existing recorder waits for its source fixture's actual outcome."""
+
+    @classmethod
+    async def press(cls, owner, *keys):
+        # The recorder already owns the isolated display and focused st window.
+        # A physical key does not promise that unrelated widget queues or all
+        # animations are idle while the original source read is held.
+        await asyncio.to_thread(owner.run, ['xdotool', 'key', *keys],
+                                os.environ.copy(), timeout=8)
 
     @classmethod
     def script(cls, args):
@@ -328,7 +346,6 @@ async def retained_app(project):
     root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
     output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
     async with app.run_test(headless=False, size=(160, 44)) as pilot:
-        await asyncio.to_thread(seed_channel, wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
         # The original marker is appended only after its native screenshot and
         # DTO have completed. Do not race Pilot input with the recorder's keys.
         # The recorder's original ProcessOwner already bounds this child. Its
@@ -347,6 +364,9 @@ async def record_retained(service, project, evidence, environment, *, recording_
                           recording_timeout, recording_output,
                           journey=RetainedHistorySourceJourney):
     """Existing original-turn fixture callback; owns no second App or root."""
+    # These are retained fixture inputs, not actions in the measured journey.
+    # Populate the original bus before its App starts observing publication.
+    await asyncio.to_thread(seed_channel, service, project)
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
     env.pop('NO_COLOR', None)

@@ -217,3 +217,46 @@ is whether its global Pilot child-message/animation barrier is appropriate while
 original destination I/O is deliberately held; that is a source lead, not a
 confirmed cause. This PR remains Draft. Archive559 and the accepted worker/receipt
 installation are independent and must not wait for the unfinished End proof.
+
+## Original04 prerequisite custody resolved from source
+
+Heisenberg traced the original private journal and retained profile: only106 of
+the required140 seed envelopes were committed (History0 through105).
+`retained_app` awaited that original producer before entering the destination
+journey. Native End was therefore **not reached** in04. The original profile
+shows seed_channel -> publish_initial_cohort -> registry.private_guard; it does
+not establish a Window/frame failure. This supersedes the earlier unmeasured-step
+classification above; the negative recording and incomplete journal stay intact.
+
+The existing callback now creates those canonical retained fixture envelopes
+before recorder/App admission. The standalone source entry does the same before
+its App is constructed. The external seed sender retains its actual fixture
+process identity; the operator remains alive throughout recording. No source
+clone, registration mirror, new root, provider input or replay of04 was added.
+The read, receipt and cancellation checks still operate on the original bus.
+
+Independently, the held-read control had a source-visible lifetime defect: its
+first `await pilot.press(End)` was outside the release finally. Textual's Pilot
+waits for global idle and animator completion, then every mounted child's queued
+callback. A physical key makes no such completion promise while original I/O is
+held. The existing HistorySourceLifetimeJourney now injects native End/Home keys
+through xdotool on the recorder-owned isolated display, using ProcessOwner for
+child custody and cleanup. Release finally covers the first End injection; focus
+is acknowledged by the original App, rather than waiting for unrelated child
+queues. This is a separate confirmed driver contract risk, **not** the cause of04.
+No key codec/map or product event bypass is introduced.
+
+Source cancellation/publication was read through the complete existing family:
+WorkingTranscript settles only its exact admission; pending latest intent uses
+the original revision; native HistorySourceSnapshot fences publication; the
+wire reader owns immutable read-request identity and follow intent. Native
+PreparationRuntime shields admitted producer work and validates its original
+scope at delivery; ChannelHistoryReader keeps actual threaded reads in its
+pending set until completion. Revoking a waiter does not pretend physical I/O
+was killed or transfer its custody. These owners are retained, not replaced by
+a second cancellation registry or an optimistic source-completed flag.
+
+No new recording, package update, environment or timeout increase was made for
+this driver batch. Heisenberg is actively reviewing the original Window/frame
+owner. Remaining final paint admission will use that owner's contract before
+the next joined affected journey; current End qualification remains open.
