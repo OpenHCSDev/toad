@@ -1,9 +1,22 @@
-# Whole paint, measurement and foreground performance continuation
+# Retained body publication and full foreground performance continuation
 
-Continue merged Text38/Toad382 from actual main in the same checkout. The App now owns the configurable144Hz scheduling target. Actual105.343s saved-history run passed16warm+7input checks and retained41readybody resources; exactheldUp nativewriter p9526.86ms versus47.51ms previously. CPU higher and motion still discrete; no fullsmoothness, pixel latency,144Hz or causalCPUgain claim. Original captures, profiles, source proofs and UNKNOWN histories remain protected.
+This main-based draft receives every unfinished performance requirement from384 and its predecessors. The frozen384 checkpoint is published at f407610e; native39 product95d3 and its original111.349s movie/negative checks remain protected. Reuse this checkout and the existing released holder. Normally merge384/current main after it lands; no hidden feature base, new worktree/environment/native copy or unchanged recording.
 
-Keep the full CPU/layout/style/paint/raster/cold/warm/workerpurepreparation/DM+IRCbusy/sidebar/animation/3viewportadaptivevelocity/reverse/idle/growingEnd/void/focus/draft/undo/TC1/T9/T4 scope. Heisenberg owns integration and Toad body/viewport/frame/preparation. Kepler has the direct native grant for originalStyles/StyleProperty geometry effect across all raw mutators, DOM/Widget geometry publication, arrange/height/box/SubtreeGeometryKey and originalHeightDependency conservativecustom behavior. No App/Screen/Animator/Throbber overlap; no shadowcounter, localcolorlist or separate family. Parent globalpublication/runtime and Sch compaction remain separate owners.
+## Existing owners and next source change
 
-The existing Widget height-proof uses whole subtree style epoch, so paint-only mutation discards geometry proofs. Fix this with descriptor-owned impact and existinggeometry revision across all consumers; preserve immediate rawStyles reads and originalpaint epochs. Toad RenderedBody retains subtreepaint+PaintState because those protect actualstoredpixels; do not substitute a geometryepoch there. ExistingStrip.apply_offsets already owns a bounded cache; do not add another rowscache or claim repeatedoffset transforms without reading it.
+Heisenberg owns BodyMeasurement/MeasuredViewportBody/DocumentViewport/ViewportPresentation/history reader and Toad integration. Kepler owns disjoint native Widget arrangement/box/stylesheet CPU (Text40); Einstein owns settings/terminal, Arendt runtime, Sch source/compaction. Coordinate exact crossing methods directly.
 
-Read source/AST allrelatedowner/callers, implement coherent family and delete competingwork, then batch concrete sanity and one changed installedsaved/busy workflow. No unchanged38recapture, newWT/env/nativecopy, providerreplay or publicmutation. Inspect actualmoving timedframes during same UI; originalwriter receipts are not pixels. Useful scoped source/checkpoint ships without holding for final144Hz. Current publicruntime is parent-owned.
+MaterializingBody currently inherits MeasuredBody: readiness is false and rendering falls through to the live tree even when materialization began with an already valid RenderedBody. The preceding paint resource survives in the worker closure but is absent from the frame/resource contract. Trace the existing source, style, width, native writer, renderer resource and interaction consumers before changing this family. Preserve canonical source identity, old-writer joins, current native custody and bounded cost; do not expose stale/new-source controls or paint an invalid width/style. Body-owned valid rows should remain available during pure preparation where source semantics permit it. No extra row cache, readiness flag, queue, scheduler or model mirror.
+
+Existing384 profile also shows native arrange/measurement work; Kepler is deleting duplicate dependency acquisition through the existing Widget resource. The same raw trace contains backend publication/JSON work on other threads; do not call that main-thread layout or silently attribute diagnostic exports to product CPU.
+
+## Entire scope retained
+
+- Configurable144Hz/6.944ms target, measured meaningful interim gains; native writer completion is not pixel FPS/input latency.
+- Main-thread CPU/layout/style/paint/raster and process-owned detached pure preparation, warm prepared+rendered A/B/A, cold tab/IRC firstpaint.
+- DM and busy IRC/sidebar with actual original configured workload, lazy-load animation continuity, input-focused PageUp/PageDown, reverse/stop/stationary/End.
+- Shared bounded three-viewport spatial runway plus adaptive velocity/direction/idle, growing-end and past-end void.
+- Focus, Backspace/Delete/arrows, active/postcancel, draft/caret/undo, sidebar placement/resize/reader stability and unique tab identities.
+- Full TC1/T9/T4 workspace/session/history lifetime and all original cleanup plans; no reduced acceptance or status mirrors.
+
+Read semantics with existing AST tools, fix the existing owner across every consumer and delete competing work. Batch final proportionate checks, then one changed installed configured saved-session/motion/profile journey. Inspect exact moving frames promptly while actual UI PID is alive before/after viewing; preserve any missed requirement honestly. No baseline/mock loop or new harness. Ship useful coherent checkpoints without claiming final smoothness/CPU/144Hz acceptance.
