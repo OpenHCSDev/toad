@@ -20,7 +20,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.thread_execution import ExternalThreadExecution
 from agent_comms.comms import wire
-from native_session_retention_pilot import InstalledApp
+from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
@@ -175,7 +175,7 @@ async def main():
                       XDG_STATE_HOME=str(root / 'state'), XDG_DATA_HOME=str(root / 'data'))
     comms = wire(root / 'wire')
     seed_channel(comms, root)
-    app = InstalledApp(project_dir=str(root))
+    app = ToadApp(project_dir=str(root))
     headless = os.environ.get('L0A_HEADLESS', '1') != '0'
     async with app.run_test(headless=headless, size=(100, 32)) as pilot:
         history = await exercise_with_evidence(app, pilot, root)
@@ -236,15 +236,18 @@ async def retained_app(project):
     seed_channel(wire(Path(os.environ['AGENT_COMMS_ROOT'])), project)
     definition = AgentDefinition(identity='real-resource436', name='Real resource acceptance',
         short_name='resource', run_command={'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])})
-    app = InstalledApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
+    app = ToadApp(agent_data=definition, project_dir=str(project), agent_session_id='resource436')
     root = Path(os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY'])
     output = Path(os.environ['TOAD_VIDEO_OUTPUT'])
     async with app.run_test(headless=False, size=(160, 44)) as pilot:
         # The original marker is appended only after its native screenshot and
         # DTO have completed. Do not race Pilot input with the recorder's keys.
-        async with asyncio.timeout(float(os.environ['TOAD_VIDEO_DEADLINE']) - time.monotonic()):
-            while not any(event['label'] == 'source-start' for event in phase_events(output)):
-                await asyncio.sleep(.05)
+        # The recorder's original ProcessOwner already bounds this child. Its
+        # action deadline is established after launch and is not inherited by
+        # the UI. The product App retires its own resources; test sibling
+        # teardown must never kill the recorder, Xvfb or physical key driver.
+        while not any(event['label'] == 'source-start' for event in phase_events(output)):
+            await asyncio.sleep(.05)
         history = await exercise_with_evidence(app, pilot, root)
         while not app._exit:
             await asyncio.sleep(.05)
