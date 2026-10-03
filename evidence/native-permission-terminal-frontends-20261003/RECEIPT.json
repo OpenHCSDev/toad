@@ -1,5 +1,5 @@
 {
-  "state": "ready-scoped-installed-native-Pilot",
+  "state": "ready-scoped-final-family",
   "source_pins": {
     "toad": "13177f6efdcfbd4b373d4f7135df50cd6f3d6d5f",
     "agent_comms": "ebf7ff9f59268837bae2e007a4450df4b83d7f5b",
@@ -25,6 +25,11 @@
       "deleted": 2
     },
     {
+      "file": "src/toad/core_event_carrier.py",
+      "added": 3,
+      "deleted": 3
+    },
+    {
       "file": "src/toad/permission_presentation.py",
       "added": 1,
       "deleted": 57
@@ -33,6 +38,11 @@
       "file": "src/toad/terminal_execution.py",
       "added": 0,
       "deleted": 21
+    },
+    {
+      "file": "src/toad/widgets/context_explorer.py",
+      "added": 10,
+      "deleted": 3
     },
     {
       "file": "src/toad/widgets/conversation.py",
@@ -45,8 +55,8 @@
       "deleted": 3
     }
   ],
-  "production_added": 88,
-  "production_deleted": 85,
+  "production_added": 101,
+  "production_deleted": 91,
   "core_production_added": 13,
   "core_production_deleted": 12,
   "source_provenance": {
@@ -103,6 +113,10 @@
     {
       "attempt": "installed02",
       "result": "Permission approvals/reattachment passed; driver assumed border_title.plain, but actual descriptor returns str. Corrected only driver; failed receipt retained."
+    },
+    {
+      "attempt": "carrier-sanity-before-final-batch",
+      "result": "Driver gave keyword original to a zero-argument handler. Textual truncates positional inputs, not keyword arguments. Final affected batch checks declared keyword handlers and no-argument positional handling separately; source was not altered to swallow keywords."
     }
   ],
   "limitations": [
@@ -113,5 +127,38 @@
     "Cleanup: no readable matching fixture processes; original beta/user owner identities dead; three unrelated same-UID inaccessible /proc observations not assumed absent.",
     "Scoped U2/U4/U5 checkpoint; full alternate frontend/render-pool/terminal-event independence remains unfinished.",
     "No public/default publication; parent owns release. Original302-final donor preserved."
-  ]
+  ],
+  "final_source_pins": {
+    "toad": "e8c93e146f840dba7b9c647d0ecc2a79223967f8",
+    "agent_comms": "85abe4276e91d52a72eec7411ed2314aaccc8c02",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0"
+  },
+  "final_installed_event_consumers": {
+    "result": "PASS",
+    "elapsed_seconds": 0.7104430430335924,
+    "actual_installed_native_sidebar_disclosure_mounted_explorer": true,
+    "canonical_coordination_and_application_streams": true,
+    "native_pump_typed_publication_consumed": true,
+    "borrowed_positional_keyword_context_exact": true,
+    "sync_async_callbacks_and_original_worker_return": [
+      "sync",
+      "async",
+      "no-arguments",
+      "owned-worker"
+    ],
+    "zero_argument_positional_truncation": true,
+    "original_subscriptions_retired_on_unmount": true,
+    "provider_requests": 0,
+    "scope": "Real installed Toad/ACP/Pi; native Pilot sidebar click and event carrier. No repeated permission/PTY journey, prompt, public source or provider input; context content quality/physical pixel readability not claimed."
+  },
+  "final_staging_receipt": "final-staging-receipt.json",
+  "native_03_production_evidence_preserved_without_repeat": true,
+  "holder_released_to": "Sch receiving358",
+  "retired_signal_closure": {
+    "existing_streams": "app.events and coordination_access.events",
+    "genuine_remaining_original_app_references_before": 2,
+    "after": 0,
+    "source_roots": "286 Toad production,390 tests,311 Core production,249 Textual dependency modules",
+    "parse_omissions": []
+  }
 }
