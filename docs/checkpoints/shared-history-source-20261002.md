@@ -308,3 +308,11 @@ the worktree. The external edge-reader declaration belongs to the actual UI
 child, so its recorded process lifetime ends before the original fixture's
 retirement check. It no longer records the still-running outer controller as
 that receiver. Original guard failure and cleanup evidence remain retained.
+
+Joined02 exited before physical keys: the source child read an action deadline
+that the recorder establishes after launching that child. The existing fixture
+App's teardown then stopped attested recorder siblings. The physical entries
+now instantiate the installed production ToadApp directly and let the recorder's
+original bounded ProcessOwner own terminal/driver custody. Deleted the second
+child timeout and fixture sibling teardown dependency. Application assertions,
+recorder budgets and the original negative recordings are unchanged.
