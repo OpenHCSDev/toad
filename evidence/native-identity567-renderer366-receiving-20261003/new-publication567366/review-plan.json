@@ -1,0 +1,30 @@
+{
+  "target": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "source_interpreter": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/bin/python",
+  "current_prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "original_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+  "activation": {
+    "path": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/activation.json",
+    "sha256": "dc07ddc1cc7034bf7487cc25c6949f0b6310cdeea4be00004f1c152ec65c5b80"
+  },
+  "source_proof": {
+    "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/source-proof.json",
+    "sha256": "8b76762dede3223a04d5bceaea4271cdc466685208a9ced81c91213801191030"
+  },
+  "actual_gates": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/qualified-source-gates/567-installed-custody.json",
+      "sha256": "8a10f295dcacc57fe163a313b6c5788b363fa5cded4816e2f26c9ce7c0817eac"
+    },
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/qualified-source-gates/366-READY.json",
+      "sha256": "887ed33105cead5574fbcbd62ac023dd57a05124ee31678d31950dfb92cf3628"
+    }
+  ]
+}

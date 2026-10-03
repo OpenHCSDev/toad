@@ -1,0 +1,9 @@
+{
+  "cause": "Template retained former485 original563 expected bytes, but authorized362 install and import-only refresh preceded365 staging",
+  "actual362_proof": ".artifacts/published-turn-status362-install-20261003/import-fix03/install-handoff.json",
+  "expected_activation_sha256": "72e3d5789f1d585e32899d5ac25c16c3f1214a722afad462829cac7f4c96a4a9",
+  "expected_conversation_git3e1_sha256": "235af57bec11828a664c9037d02cd19138fd10307a6ca6e2a4d294d2f2085b23",
+  "current302_and_rollback529_unchanged": true,
+  "original_guard_failure_preserved": ".artifacts/native-summary562-status362-receiving-20261003/stale-private-protection-declaration.log",
+  "no_public_files_changed": true
+}

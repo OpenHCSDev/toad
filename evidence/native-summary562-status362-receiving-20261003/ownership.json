@@ -1,0 +1,16 @@
+{
+  "owner": "Schrodinger sole normal receiving365 union; parent publicpublisher",
+  "core": "cc56dbee09aa062b3a89c644c94360b21efcc668",
+  "toad": "3ed75bd3ccc9a374590837ff711ddb58d5b21c16",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+  "prefix": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001",
+  "new_environment": false,
+  "new_native_build": false,
+  "provider_calls": 0,
+  "public_writes": 0,
+  "gate_files": [
+    "362-READY.json",
+    "562-configured-receipt.json"
+  ]
+}

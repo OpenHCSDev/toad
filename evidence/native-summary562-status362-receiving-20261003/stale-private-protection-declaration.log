@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/verify.py", line 48, in <module>
+    before=json.loads((out/'protected-before.json').read_text()); changed=[name for name,digest in before.items() if not Path(name).is_file() or hashlib.sha256(Path(name).read_bytes()).hexdigest()!=digest]; assert not changed,changed
+                                                                                                                                                                                                                      ^^^^^^^^^^^
+AssertionError: ['/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/activation.json', '/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/lib/python3.14/site-packages/toad/widgets/conversation.py']

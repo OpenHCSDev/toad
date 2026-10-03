@@ -1,0 +1,68 @@
+{
+  "state": "Published365; original19 identity readback and parent already-open physical reply acceptance complete",
+  "source_merge": "e73e4511b7d14fe29578117742c5cdb0a95439e6",
+  "installed_toad": "3ed75bd3ccc9a374590837ff711ddb58d5b21c16",
+  "core": "cc56dbee09aa062b3a89c644c94360b21efcc668",
+  "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+  "native_manifest": "044646789787e3d3bcc43391e62c214d94ddffeb528692235c9d35f0db7af968",
+  "package_count": 69,
+  "source_inventory_counts": {
+    "core": 339,
+    "toad": 317,
+    "textual": 266,
+    "diff": 3
+  },
+  "original_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "original_publication_sha256": "f628a75b481624525496fe974fe67ff5ec70f48482cddc0980acfd6fd88b6bd8",
+  "publisher_duration_seconds": 43.36462593078613,
+  "retained_owners": 19,
+  "source_prefix": "/home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final",
+  "source_prefix_preparation": "Future preparer derives original prefix from published COMMANDS/LINKS; existing cohort owns five-link agreement. Executed cohort records authentic302. Final prepare_review refused after original publication receipt existed.",
+  "activation_note_race": {
+    "executed_original_sha256": "2de047fda1537f3214e6f888f65262a36fe7e95846c75b4fff0d79fb7ba519c4",
+    "observed_after_inflight_sha256": "b3c14e735fd70f752edc2118b38e6e9512919bac70b1a5e07d7284e9265fb08f",
+    "changed_fields": {
+      "native_configuration_note": {
+        "original": "Released290 codeholder reused after originalS4/353 and configured562 proof archival. Current302, rollback529 and485362/520donors unchanged. Corecc56/native044 plus qualified362; no provider/public changes from packaging and no environment/native build.",
+        "current": "Released receiving holder /home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001; original activation/source/native and saved-source qualification proof archived. Public source, named rollback and other borrowed holders are untouched. Core/native and frontend follow this complete installed proof; no provider/public changes from packaging and no environment/native build."
+      }
+    },
+    "cause": "Already-running58326 completed a note-only activation update, then original prepare_review refused receipt absence. Parent notified; no restore/rewrite of public metadata performed by archive.",
+    "package_source_native_pins_changed": false,
+    "parent_disposition": "Retain current published b3c14 descriptive-note update; original executed2de bytes/rawreceipt and currentb3c14 bytes/diff remain archived. Metadata description changed postpublication before physical02. Product, route and all19 settings unaffected; recorder runtime_before/after equal. No restoration/reset/newqualification.",
+    "preparation_process_terminal": "58326 terminal exit1; prepare_review receipt-absence refusal. No remaining owned preparation process and no activation writes after this disposition."
+  },
+  "physical_acceptance": {
+    "observed_at": 1791003071.6395822,
+    "scope": "Default installed toad-comms, plain st, isolated display761, chat remained open across ONE distinct configured-provider input497 and reply498",
+    "physical_assessment": "Parent personally inspected after.png: new inbound and Here outbound readable; Session details Ready, sidebar Ready, activity bar absent",
+    "canonical_assessment": "Original497 Responded/notbusy; actual reply498,19.0339s after commit",
+    "after_capture_seconds_after_reply": 30.535801887512207,
+    "queue_commit_seconds": 2.5806620121002197,
+    "reply_seconds": 19.03391981124878,
+    "recording01": "Retained; original495 succeeded but recording ended before496 reply, insufficient settlement observation; no replay",
+    "recording02": "Actual complete78.9105s, st0, original native owner unchanged, runtime unchanged, no owned process leftovers",
+    "remaining": "~19s reply latency, compaction/provider duration, full channel batching latency, scrolling and remaining headless scope still unfinished",
+    "source": "Corecc56/Toad3ed/Text940/native044; receiver365 merged e73e",
+    "raw_readback_sha256": "6af02d4d7804a86e780bece25392b4f5f17e1d000cbfb29c61f3e3dc146a7f77",
+    "after_image_sha256": "1d7b71d9b2e410938f57097b06de104239a6a94a52f4c9e97c4f6df9383b554e"
+  },
+  "negative_scope": [
+    "Original stale485 protection declaration failed after925 file/native checks; authoritative3623e1 proof supplies expected bytes.",
+    "Final prepare_review refused its original absence assertion after publication receipt existed; no second operation/readback.",
+    "Original495 completed but first capture ended before496 reply; insufficient settlement observation, not product failure."
+  ],
+  "485_code_borrow": "Released directly Einstein366+Bohr; original362 activation/source/installed03 retained in Git and this archive.",
+  "remaining": [
+    "Reply latency around19s",
+    "Compaction/provider duration",
+    "Full channel batching latency",
+    "Scrolling and headless scope",
+    "Full S2/S4 remains separately owned; no completion claim"
+  ],
+  "archive_only": true,
+  "new_provider_calls": 0,
+  "new_publications": 0,
+  "readback_repeated": false,
+  "originals_and_unknown_preserved": true
+}
