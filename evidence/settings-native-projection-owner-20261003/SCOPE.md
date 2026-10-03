@@ -52,3 +52,10 @@ keyboard grammar remains a Textual concern, declared by native nominal handlers.
 Effects, timers, choices/themes, save lifecycle and source values remain original.
 The old settings journey's model.widget call and source-tree CSS path migrate to
 existing SettingsScreen projection and installed resources; no alternate fixture.
+
+
+BoundSetting.set_text owns parse-then-set for both InputEditor and TextEditor;
+the multiline control no longer bypasses its inherited field parser. Typed
+Boolean/Choice edits keep their original set(value) contract. Native Function's
+boolean result is only an external UI validation projection of the same parser,
+not stored state or an alternate range/codec.

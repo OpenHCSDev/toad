@@ -34,12 +34,10 @@ class InputEditor(Input):
 
     def commit_value(self, text: str) -> None:
         try:
-            value = self.bound.kind.parse_text(text)
+            self.bound.set_text(text)
         except (ValueError, TypeError) as error:
             self.notify(str(error), title=self.bound.kind.title, severity="error")
             self.value = self.bound.kind.display(self.bound.value)
-        else:
-            self.bound.set(value)
 
     @classmethod
     def finish_focused(cls, screen: Screen) -> None:
@@ -57,7 +55,11 @@ class TextEditor(TextArea):
     @on(TextArea.Changed)
     def commit(self, event: TextArea.Changed) -> None:
         event.stop()
-        self.bound.set(self.text)
+        try:
+            self.bound.set_text(self.text)
+        except (ValueError, TypeError) as error:
+            self.notify(str(error), title=self.bound.kind.title, severity="error")
+            self.text = self.bound.value
 
 
 class BooleanEditor(Checkbox):

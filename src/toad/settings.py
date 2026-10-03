@@ -147,6 +147,10 @@ class BoundSetting[T]:
     def set(self, value: T) -> None:
         self.kind.__set__(self.group, value)
 
+    def set_text(self, text: str) -> None:
+        """All native text edits use the original field grammar before assignment."""
+        self.set(self.kind.parse_text(text))
+
     @property
     def key(self) -> str:
         return ".".join((*self.group.path, self.kind.wire_name))
