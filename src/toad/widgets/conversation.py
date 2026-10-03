@@ -41,6 +41,7 @@ from agent_comms.acp_extension import (
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
+from rich.text import Text as RichText
 from textual import containers, events, getters, log, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
@@ -438,7 +439,7 @@ class ConversationSessionBinding(containers.Vertical):
     goal_execution: var[GoalExecution | None] = var(None)
 
 
-    status: var[str | Content] = var("")
+    status: var[str | Content | RichText] = var("")
 
 
     column: var[bool] = var(False, toggle_class="-column")
