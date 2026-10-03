@@ -362,3 +362,44 @@ behavior were read directly. Exact installed changed-source IRC final destinatio
 qualification remains pending with the same integration owner after the current
 352 capture releases its holder; no unchanged capture, timeout increase or second
 App was started for this change.
+
+## Changed installed06: redundant admission removed; IRC End still open
+
+Normally integrated qualified352 at62786249 and current main359 at37ac2634,
+without conflicts. The combined published source is9d0d150fa. Reused the released
+same holder after zero borrower/default-link checks and archived its previous
+source/activation proofs. Normal69 updated only the Toad wheel; Core6a/Textual940/
+native-de166 remain unchanged. All four production/assets inventories, direct
+URLs, native full-tree trust and pip check passed. No new environment/native
+copy/build, source overlay, public mutation or provider/native input.
+
+One changed installed recording exited1 after39.038 seconds with the original
+44-second movie and60-second fixture budgets. Native End/Home revocation/final
+End passed again at original revision10/final11, tail true/no newer, no App
+exception at that boundary. First pending-read receipt and typing returned;
+the actual26-second physical frame shows the fresh current-fixture receipt once
+and typed `hi`. The14-second native frame shows retained native body readability,
+not independent final-End timing. Later IRC restart/second receipt/final End
+remain unqualified; there is no final App exception export or global End claim.
+
+The original ProfileTrace28.173091/28.198340 now shows `exercise:121 ->
+insert_page:218 -> CategorizedMount:266 -> Widget.mount:1561 ->
+App._register:3673 -> Stylesheet.apply`. The premature CSS path is removed in the
+actual installed execution. The remaining observation is native initial
+registration, with other worker page registrations visible at18.209524 and
+27.400622. These changed stack observations do not prove a deadlock, a duration,
+CPU attribution or that all remaining time belongs to CSS. Native registration
+already uses one batch rule cache; Stylesheet retains its declared path-rule
+cache and Styles.batch_update. Bypassing initial matching or inventing another
+cache is not justified. Remaining initial body materialization/frame work stays
+with the existing integration owner; no unchanged repeat or deadline padding.
+
+Evidence: `evidence/shared-history-destination355-20261003/installed06/`, raw
+movie/profile `/home/ts/.cache/agent-scratch/kepler355-shared-destination-
+20261003-06`. Original05 negative and originals/UNKNOWN remain unchanged.
+Recorder/callback cleanup both show zero remaining processes/errors. Actual
+UI/st/operator processes were verified gone; the original wrapper's external
+operator `children_retired:false` is preserved with its stated scope. The same
+holder is released. Current home5.4GiB/root7.6GiB/swap13.5 warning was addressed
+proportionally by reusing the holder/cached wheel and a single bounded journey,
+not allocating another environment or native package.

@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-command-source-closure-20261002/tests/original_turn_resource_real_installed_pilot.py", line 212, in main
+    await readonly_capture(service, project, evidence, environment)
+  File "/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py", line 394, in record_retained
+    await asyncio.to_thread(owner.run, command, env, timeout=recording_timeout,
+                            stdout=log, stderr=log)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-command-source-closure-20261002/tests/tools/record_installed_tui.py", line 289, in run
+    raise subprocess.CalledProcessError(owned.process.returncode, argv, out, err)
+subprocess.CalledProcessError: Command '['/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py', '--record', '--owner', 'Kepler355-352-shared-destination', '--fps', '60', '--fit-window', '--width', '1280', '--height', '900', '--startup-wait', '2', '--tail-seconds', '1', '--max-duration', '44', '--finalize-seconds', '14', '--capture-state', '--profile', '--profile-threads', 'gil', '--profile-rate', '25', '--review-timing', 'deferred', '--live-review-interval', '8', '--capture-target', 'source', '--private-root', '/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/wire', '--journey', 'history_source_lifetime', '--peer-thread', 'resource236b', '--capture-state', '--scroll-travel', '--output', '/home/ts/.cache/agent-scratch/kepler355-shared-destination-20261003-06', '--', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '/home/ts/wt/toad-command-source-closure-20261002/tests/history_edge_scheduling_pilot.py', '--retained-app', '/home/ts/wt/toad-command-source-closure-20261002/.artifacts/history-lifetime338/installed-destination355-06/private/project']' returned non-zero exit status 1.
