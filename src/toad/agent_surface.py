@@ -127,6 +127,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
         if existing := target.query_one_optional(f"#{projection.terminal_id}", TerminalTool):
             if existing.execution is projection.execution:
+                projection.execution.attach(existing)
                 return  # Reuse the original bounded rendering resource.
             await existing.remove()  # A replaced ACP controller may reuse its address.
             if not self.owns_terminal(projection, target):

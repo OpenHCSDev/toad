@@ -1,0 +1,99 @@
+{
+  "buffer": [
+    "AFTER_CLEAR",
+    "",
+    ""
+  ],
+  "terminal_presentations": [
+    {
+      "scrollback": null,
+      "alternate": null,
+      "screen": false,
+      "cursor": true,
+      "finished": false
+    },
+    {
+      "scrollback": null,
+      "alternate": null,
+      "screen": false,
+      "cursor": true,
+      "finished": false
+    },
+    {
+      "scrollback": [
+        0,
+        1
+      ],
+      "alternate": [],
+      "screen": false,
+      "cursor": true,
+      "finished": false
+    },
+    {
+      "scrollback": [
+        0,
+        1
+      ],
+      "alternate": [],
+      "screen": false,
+      "cursor": true,
+      "finished": false
+    },
+    {
+      "scrollback": [
+        0
+      ],
+      "alternate": [],
+      "screen": false,
+      "cursor": false,
+      "finished": false
+    },
+    {
+      "scrollback": null,
+      "alternate": null,
+      "screen": true,
+      "cursor": false,
+      "finished": false
+    },
+    {
+      "scrollback": null,
+      "alternate": null,
+      "screen": false,
+      "cursor": false,
+      "finished": false
+    },
+    {
+      "scrollback": null,
+      "alternate": null,
+      "screen": false,
+      "cursor": false,
+      "finished": false
+    },
+    {
+      "scrollback": [
+        1,
+        2
+      ],
+      "alternate": [],
+      "screen": false,
+      "cursor": false,
+      "finished": false
+    },
+    {
+      "scrollback": null,
+      "alternate": [],
+      "screen": false,
+      "cursor": false,
+      "finished": false
+    },
+    {
+      "scrollback": null,
+      "alternate": [],
+      "screen": false,
+      "cursor": false,
+      "finished": false
+    }
+  ],
+  "outcome": "RunningTerminalOutcome",
+  "paint": "                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n                                                      \n\u258c\u258a\u2588 /home/ts/wt/toad-prompt-action-owner-20261002/\u2026 \u2588\u258e\n\u258c\u258a                                                   \u258e\n\u258c\u258a AFTER_CLEAR                                       \u258e\n\u258c\u258a                                                   \u258e\n\u258c\u258a                                                   \u258e\n\u258c\u258a\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581 Click to focus \u2581\u258e"
+}
