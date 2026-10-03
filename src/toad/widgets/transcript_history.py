@@ -354,24 +354,44 @@ class TranscriptPageView(VerticalGroup):
         else:
             self.stop -= count
 
-    async def update_fragments(self, fragments: tuple[TranscriptFragment, ...], selected: slice) -> None:
-        previous = {self.start + index: child for index, child in enumerate(self.children)}
-        self.fragments = fragments
+    async def update_fragments(
+        self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...], selected: slice,
+        current: Callable[[], bool],
+    ) -> bool:
+        if not current():
+            return False
+        window = self.query_ancestor(TranscriptHistory).window
+        async with window.history_lock:
+            if not current():
+                return False
+            admission = self.capture_admission()
+            previous = {self.start + index: child for index, child in enumerate(self.children)}
         start, stop = selected.start, selected.stop
+        # BodyMeasurement owns pending writers and their preceding paint. A
+        # nested paged body may itself publish into this window, so joining it
+        # cannot borrow either the source lock or the native membership fence.
         for index, child in previous.items():
-            if not start <= index < stop:
-                await child.remove()
-        before = None
-        for index in range(stop - 1, start - 1, -1):
-            child = previous.get(index)
-            if child is None:
-                body = self._body(fragments[index])
-                await self.mount(body, before=before)
-                child = body
-            elif child.fragment != fragments[index]:
+            if not current():
+                return False
+            if start <= index < stop and child.fragment != fragments[index]:
                 await child.update_fragment(fragments[index])
-            before = child
-        self.start, self.stop = start, stop
+        async with window.history_lock:
+            if not current() or self.capture_admission() != admission:
+                return False
+            async with window.preserve_history(None):
+                for index, child in previous.items():
+                    if not start <= index < stop:
+                        await child.remove()
+                before = None
+                for index in range(stop - 1, start - 1, -1):
+                    child = previous.get(index)
+                    if child is None:
+                        child = self._body(fragments[index])
+                        await self.mount(child, before=before)
+                    before = child
+                self.page, self.fragments = page, fragments
+                self.start, self.stop = start, stop
+            return True
 
 
 class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
@@ -652,14 +672,20 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     continue
                 async with window.preserve_history(None):
                     await self.filter.remove()
-                    if selected != view.update_slice(fragments, window.follows_tail):
-                        continue
-                    view.page = page
-                    # The current reader selects both preparation and native
-                    # publication; an await cannot restore older follow intent.
-                    await view.update_fragments(fragments, selected)
-                    self._update_edges()
-                return
+                if selected != view.update_slice(fragments, window.follows_tail):
+                    continue
+            # Body workers have their own native custody. They may publish a
+            # nested page in the same window before this source is committed.
+            if not await view.update_fragments(
+                page, fragments, selected,
+                lambda: current() and selected == view.update_slice(fragments, window.follows_tail),
+            ):
+                continue
+            async with window.history_lock:
+                if not current():
+                    return
+                self._update_edges()
+            return
 
     def _reader(self) -> PreparedPageSource:
         assert self.loader is not None
@@ -790,15 +816,21 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         async with window.history_lock:
             if not snapshot.current(self) or not request.current(window):
                 return False
+            view = self.pages[-1]
+        if view.capture_admission().interval == CommittedInterval(page.before, page.after):
+            # End changes the original admission, without locking the window
+            # around pending body writers or replacing their paint resources.
+            view.batch_size = destination_admission
+            if not await view.update_fragments(
+                page, fragments, selected, lambda: snapshot.current(self) and request.current(window),
+            ):
+                return False
+        async with window.history_lock:
+            if not snapshot.current(self) or not request.current(window):
+                return False
             async with window.preserve_history(None):
-                view = self.pages[-1]
                 if view.capture_admission().interval == CommittedInterval(page.before, page.after):
-                    # The certified source interval already has native custody.
-                    # End changes its admitted range, not its presentation owner.
                     await self.remove_children([retired for retired in self.pages if retired is not view])
-                    view.batch_size = destination_admission
-                    await view.update_fragments(fragments, selected)
-                    view.page = page
                 else:
                     await self.remove_children(list(self.pages))
                     view = TranscriptPageView(

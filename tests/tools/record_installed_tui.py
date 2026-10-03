@@ -1808,13 +1808,16 @@ def record(args):
                 terminal.process.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 pass
-            receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
-            if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
-                raise RuntimeError(f"Installed terminal did not exit successfully: {receipt['terminal_exit']}")
             transferred_program.stop()
             if transferred_terminal is not None:
                 transferred_terminal.stop()
             terminal.stop()
+            # Owned teardown joins the original child before its exit result
+            # is judged. A pending Popen is not an application failure, and a
+            # forced/nonzero exit still fails the same verification below.
+            receipt["terminal_exit"] = (transferred_terminal or terminal).receipt()
+            if not args.profile and receipt["terminal_exit"]["returncode"] != 0:
+                raise RuntimeError(f"Installed terminal did not exit successfully: {receipt['terminal_exit']}")
             xvfb.stop()
             info = owner.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json",
                               str(output / "terminal.mp4")], env, stdout=subprocess.PIPE, text=True)

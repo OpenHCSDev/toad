@@ -1,0 +1,215 @@
+{
+  "recording": "/home/ts/.cache/agent-scratch/frame-publication396-registration42-public-20261003-01/capture",
+  "duration_seconds": 119.20934301899979,
+  "writer_key_windows": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 96,
+        "median_ms": 13.59,
+        "p95_ms": 28.96,
+        "p99_ms": 135.4,
+        "max_ms": 158.61
+      },
+      "writer_receipts": 97,
+      "start_seconds": 21.526464607,
+      "end_seconds": 23.306761976
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 139,
+        "median_ms": 12.29,
+        "p95_ms": 23.79,
+        "p99_ms": 40.01,
+        "max_ms": 104.19
+      },
+      "writer_receipts": 140,
+      "start_seconds": 43.677920524,
+      "end_seconds": 45.462464359
+    },
+    {
+      "action": "history-held-up",
+      "intervals": {
+        "count": 138,
+        "median_ms": 12.17,
+        "p95_ms": 24.48,
+        "p99_ms": 27.5,
+        "max_ms": 120.14
+      },
+      "writer_receipts": 139,
+      "start_seconds": 53.28278997,
+      "end_seconds": 55.078049007
+    },
+    {
+      "action": "history-held-down",
+      "intervals": {
+        "count": 139,
+        "median_ms": 11.93,
+        "p95_ms": 22.33,
+        "p99_ms": 33.07,
+        "max_ms": 109.12
+      },
+      "writer_receipts": 140,
+      "start_seconds": 58.661230782,
+      "end_seconds": 60.462241301
+    },
+    {
+      "action": "reverse-held-up",
+      "intervals": {
+        "count": 122,
+        "median_ms": 13.12,
+        "p95_ms": 23.45,
+        "p99_ms": 32.89,
+        "max_ms": 116.84
+      },
+      "writer_receipts": 123,
+      "start_seconds": 63.940439331,
+      "end_seconds": 65.74909369
+    }
+  ],
+  "writer_scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+  "profile_quality": {
+    "sample_count": 1265,
+    "sampling_errors": 1,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "alignment_nominal_uncertainty_seconds": 0.07916514298180119
+  },
+  "ui_kernel_marker_windows": [
+    {
+      "label": "input-held-up",
+      "start": 20.416674929030705,
+      "end": 24.02357448200928,
+      "cpu": [
+        {
+          "pid": "508996",
+          "cpu_seconds": 2.9499999999999993,
+          "average_cpu_percent": 81.78769485177072
+        }
+      ]
+    },
+    {
+      "label": "input-held-up-done",
+      "start": 24.02357448200928,
+      "end": 40.84247326699551,
+      "cpu": [
+        {
+          "pid": "508996",
+          "cpu_seconds": 3.4800000000000004,
+          "average_cpu_percent": 20.691009824653328
+        }
+      ]
+    },
+    {
+      "label": "input-held-down",
+      "start": 42.51557495602174,
+      "end": 46.19545197702246,
+      "cpu": [
+        {
+          "pid": "508996",
+          "cpu_seconds": 2.3900000000000006,
+          "average_cpu_percent": 64.94782261364959
+        }
+      ]
+    },
+    {
+      "label": "reverse",
+      "start": 62.85344850999536,
+      "end": 66.64560231199721,
+      "cpu": [
+        {
+          "pid": "508996",
+          "cpu_seconds": 2.8599999999999994,
+          "average_cpu_percent": 75.4188819686118
+        }
+      ]
+    },
+    {
+      "label": "idle",
+      "start": 71.83379014302045,
+      "end": 88.80395289004082,
+      "cpu": [
+        {
+          "pid": "508996",
+          "cpu_seconds": 3.680000000000007,
+          "average_cpu_percent": 21.685119081407418
+        }
+      ]
+    }
+  ],
+  "mid_history_last10seconds": {
+    "start": 30.842473266995512,
+    "end": 40.84247326699551,
+    "events": {
+      "sidebar_publication_start": 10,
+      "sidebar_publication_done": 10
+    }
+  },
+  "motion_review": {
+    "reviews": [
+      {
+        "label": "exact-input-up",
+        "key_start": 21.526464607042726,
+        "key_end": 23.306761976040434,
+        "source_start": 21.606464607042724,
+        "source_end": 22.406464607042725,
+        "sheet": "/home/ts/.cache/agent-scratch/frame-publication396-registration42-public-20261003-01/capture/exact-input-up-frames.png",
+        "timing": "AFTER UI exit; during-held inspection missed",
+        "assessment": "unreviewed"
+      },
+      {
+        "label": "exact-input-down",
+        "key_start": 43.677920524030924,
+        "key_end": 45.462464359006844,
+        "source_start": 43.75792052403092,
+        "source_end": 44.55792052403092,
+        "sheet": "/home/ts/.cache/agent-scratch/frame-publication396-registration42-public-20261003-01/capture/exact-input-down-frames.png",
+        "timing": "AFTER UI exit; during-held inspection missed",
+        "assessment": "unreviewed"
+      },
+      {
+        "label": "exact-reverse",
+        "key_start": 63.940439330996014,
+        "key_end": 65.74909369001398,
+        "source_start": 64.02043933099601,
+        "source_end": 64.82043933099601,
+        "sheet": "/home/ts/.cache/agent-scratch/frame-publication396-registration42-public-20261003-01/capture/exact-reverse-frames.png",
+        "timing": "AFTER UI exit; during-held inspection missed",
+        "assessment": "unreviewed"
+      }
+    ],
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 551744,
+          "start_ticks": 51885974,
+          "returncode": 0
+        },
+        {
+          "pid": 551766,
+          "start_ticks": 51886123,
+          "returncode": 0
+        },
+        {
+          "pid": 551775,
+          "start_ticks": 51886366,
+          "returncode": 0
+        }
+      ]
+    },
+    "assessment": "AFTER inspection of 48 consecutive frames each: body/chrome readable; repeated positions and discrete advances; no smoothness acceptance",
+    "during_motion_inspection": "missed, no during-motion claim",
+    "a_return": "Actual A history visible with retained draft; full backend settings correctness not inferred from pixels alone"
+  },
+  "limits": [
+    "Writer completion is not pixel FPS or input-to-pixel latency",
+    "Kernel marker windows include exports; exact key bounds apply only to writer data",
+    "22 current retained bodies vs 38 in393; different source/admission/activity: comparison is descriptive, not causal gain",
+    "During-motion inspection missed; exact held-key consecutive frames reviewed AFTER",
+    "1265 GIL samples/1error, no unprofiled observer-overhead comparison",
+    "No smoothness/144Hz/overall CPU improvement claim"
+  ]
+}
