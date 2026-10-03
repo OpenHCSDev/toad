@@ -1,6 +1,7 @@
 """Actual retained editors and session-owned shells survive physical tab returns."""
 
 import asyncio
+import sys
 from importlib.resources import files
 import json
 import os
@@ -32,6 +33,92 @@ async def select(app, pilot, source):
     assert await pilot.click(label)
     await pilot.pause()
     assert app.selected_session is source
+
+
+async def layout_preferences():
+    """The original App/settings/tab path must paint original preferences."""
+    from toad.preferences import ToadSettings, UiSettings
+    from toad.setting_choices import HiddenScrollbar, NormalScrollbar, ThinScrollbar
+    from toad.setting_widgets import InputEditor, ChoiceEditor
+    from toad.screens.settings import SettingsScreen
+
+    with TemporaryDirectory(prefix="toad-layout-", dir=os.environ["TMPDIR"]) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        settings = ToadSettings(json.loads(Path(__file__).with_name("fixtures").joinpath("saved-settings.json").read_text()))
+        settings.ui.column = True
+        settings.ui.column_width = 60
+        settings.ui.scrollbar = ThinScrollbar
+        path = root / "config" / "toad" / "toad.json"
+        path.parent.mkdir(parents=True)
+        path.write_text(settings.json)
+        app = InstalledApp(project_dir=str(root))
+        async with app.run_test(size=(140, 40)) as pilot:
+            await pilot.pause()
+            first = app.selected_session
+            first.conversation.prompt.text = "retained layout draft"
+            assert first.conversation.styles.max_width.value == 60
+            assert first.conversation.has_class("-scrollbar-thin")
+            assert first.conversation.window.scrollbar_size_vertical == 1
+            await app.session_navigation.new(app.session_navigation.default_source)
+            second = app.selected_session
+            await pilot.pause()
+            assert second.conversation.styles.max_width.value == 60
+            assert second.conversation.has_class("-scrollbar-thin")
+            await app.push_screen(SettingsScreen())
+            await pilot.pause()
+            async with asyncio.timeout(8):
+                while not any(w.bound.kind is UiSettings.column_width for w in app.screen.query(InputEditor)):
+                    await pilot.pause(.05)
+            width = next(w for w in app.screen.query(InputEditor) if w.bound.kind is UiSettings.column_width)
+            width.value = "74"
+            width.focus()
+            await pilot.pause()
+            await pilot.press("tab")
+            choice = next(w for w in app.screen.query(ChoiceEditor) if w.bound.kind is UiSettings.scrollbar)
+            choice.value = HiddenScrollbar
+            await pilot.pause()
+            for view in (first, second):
+                assert view.conversation.styles.max_width.value == 74
+                assert view.conversation.has_class("-scrollbar-hidden")
+                assert not view.conversation.has_class("-scrollbar-thin")
+            await app.pop_screen()
+            await select(app, pilot, first)
+            assert first.conversation.prompt.text == "retained layout draft"
+            assert first.conversation.window.scrollbar_size_vertical == 0
+            await app.session_navigation.new(first.spawn)
+            peer = app.selected_session
+            await pilot.pause()
+            assert peer.conversation.styles.max_width.value == 74
+            assert peer.conversation.has_class("-scrollbar-hidden")
+            app.settings.ui.column = False
+            app.settings.ui.scrollbar = NormalScrollbar
+            await pilot.pause()
+            for view in (first, second, peer):
+                assert view.conversation.styles.max_width is None
+                assert view.conversation.has_class("-scrollbar-normal")
+                assert not view.conversation.has_class("-scrollbar-hidden")
+            assert peer.conversation.window.scrollbar_size_vertical == 2
+            await app.settings.save()
+            reopened = ToadSettings(json.loads(path.read_text()))
+            assert reopened.ui.column is False and reopened.ui.column_width == 74
+            assert reopened.ui.scrollbar is NormalScrollbar
+            evidence = Path(os.environ["TOAD_LAYOUT_EVIDENCE"])
+            evidence.mkdir(parents=True, exist_ok=True)
+            app.save_screenshot(str(evidence / "layout.svg"))
+            (evidence / "receipt.json").write_text(json.dumps({
+                "result": "pass", "installed_toad": __import__("toad").__file__,
+                "saved_preferences_initial_paint": True,
+                "settings_modal_updates_visible_and_parked_views": True,
+                "physical_tab_return_retains_original_draft": True,
+                "peer_spawn_reads_current_preferences": True,
+                "native_width_and_scrollbar_paint": True,
+                "save_reopen_original_values": True,
+                "providers": 0, "native_inputs": 0,
+                "scope": "Installed original App/Pilot/settings/tab/native CSS; no physical st or ACP socket/provider/performance claim",
+            }, indent=2) + "\n")
+    print("PASS original settings -> mounted/parked/new chat layout; native CSS; tab draft; save/reopen", flush=True)
 
 
 async def main():
@@ -190,4 +277,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(layout_preferences() if "--layout-only" in sys.argv else main())

@@ -1,0 +1,43 @@
+{
+  "state": "ready-scoped-installed-native-App-preference-projection",
+  "tested_toad": "aa9ca8ca0c789b1095af57355d26e7559205ad15",
+  "core": "5cf5d0d880678bbcc7fc9591e6bd24397683ab91",
+  "textual": "0ab687e007fca311ce9f786634d8f5fc991ff808",
+  "sdk": "0.12.1",
+  "native": "2bfb6ba8fd3b3b3bc03dd122e0a67cb69fdc7cef86704a706396024b1561c292",
+  "source_proof": "installed01/source-proof.json",
+  "checks": [
+    {
+      "command": "tests/blank_presentation_pilot.py --layout-only",
+      "exit": 0,
+      "receipt": "installed01/layout/receipt.json",
+      "log": "installed01/layout.log",
+      "scope": "Original installed App/Pilot saved-settings paint, actual settings modal edits, parked/visible/native CSS changes, physical pilot tab return/draft, new default+spawn peer, save/reopen; no physical st/provider/ACP socket claim"
+    },
+    {
+      "command": "tests/settings_tree_pilot.py",
+      "exit": 0,
+      "receipt": "installed01/settings/receipt.json",
+      "log": "installed01/settings.log",
+      "scope": "Original installed settings form/editor effects and original value save/reopen after removed App width consumer"
+    }
+  ],
+  "source_evidence": [
+    "before-owner-consumers.json",
+    "after-owner-consumers.json"
+  ],
+  "production_added": 26,
+  "production_deleted": 48,
+  "new_types": 0,
+  "cleanup": "installed01/cleanup.json",
+  "metadata_negative": "installed01/metadata-negative.txt",
+  "public_installation": false,
+  "provider_calls": 0,
+  "full_headless": false,
+  "performance": false,
+  "remaining_family_mirrors": "No original column/width/scrollbar App/MainScreen mirrors or constructor-binding decisions remain. Native CSS/max_width resources derive from original UiSettings; unrelated native operational/reactive state is outside this family.",
+  "current_main_union": "main-union.json",
+  "release_core": "80dfd0d02d3767e02ea08e164c80787ce3b55239",
+  "release_textual": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "joined_scope": "Original native preference family and exact affected drivers unchanged; original installed69 receipts preserved, source union qualified by accepted393/592 evidence; no repeat App claim or new install."
+}

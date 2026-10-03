@@ -1,0 +1,11 @@
+{
+  "source_head": "aa9ca8ca0c789b1095af57355d26e7559205ad15",
+  "wheel": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/canonical-layout-preferences-394/batrachian_toad-0.6.20-py3-none-any.whl",
+  "sha256": "62b1497895ae9474866b11c9e23ef30db9bc40dc9c0581713bb9309f64fc531b",
+  "assets": 320,
+  "byte_mismatches": [],
+  "production_added": 26,
+  "production_deleted": 48,
+  "installed_app_gate": "pending named released-holder dependency; current485 live protected",
+  "new_frontend_types": 0
+}

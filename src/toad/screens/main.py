@@ -15,7 +15,7 @@ from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.content import Content
 from textual.events import ScreenResume
-from textual.reactive import reactive, var
+from textual.reactive import var
 from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
@@ -147,9 +147,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         return self.screen.query_one(ChannelsSidebar)
     project_directory_tree = getters.query_one("#project_directory_tree")
 
-    column = reactive(False)
-    column_width = reactive(100)
-    scrollbar = reactive("")
     project_path: var[Path] = var(Path("./").expanduser().absolute())
 
     app = getters.app(ToadApp)
@@ -271,8 +268,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             if not self.is_attached or self._closing:
                 return
             self._content_loaded = True
-            self.watch_column(self.column)
-            self.watch_scrollbar("", self.scrollbar)
             conversation.display = True
             await content.query("#session-opening").remove()
             if self.is_current and self.screen.focused is None:
@@ -337,8 +332,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         """Create a peer of this native source through its actual declaration."""
         app = self.app
         with app._context():
-            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id).data_bind(column=type(app).column,
-                              column_width=type(app).column_width, scrollbar=type(app).scrollbar)
+            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id)
         peer.initial_coordination_root = root
         return peer
 
@@ -565,21 +559,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         if conversation := self.query_one_optional(Conversation):
             conversation.focus_prompt(scroll_end=False)
 
-    def watch_column(self, column: bool) -> None:
-        if conversation := self.query_one_optional(Conversation):
-            conversation.styles.max_width = max(10, self.column_width) if column else None
-
-    def watch_column_width(self, column_width: int) -> None:
-        self.watch_column(self.column)
-
-    def watch_scrollbar(self, old_scrollbar: str, scrollbar: str) -> None:
-        conversation = self.query_one_optional(Conversation)
-        if conversation is None:
-            return
-        if old_scrollbar:
-            conversation.remove_class(f"-scrollbar-{old_scrollbar}")
-        if scrollbar:
-            conversation.add_class(f"-scrollbar-{scrollbar}")
 
 
 class ScreenCommsConsumer(MroDispatch):
