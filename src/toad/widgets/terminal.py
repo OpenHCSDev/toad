@@ -6,6 +6,7 @@ from time import monotonic
 from typing import Awaitable, Callable, Iterable
 
 from textual.cache import LRUCache
+from textual.content import Content
 
 from textual import on
 from textual import events
@@ -91,20 +92,16 @@ Tap escape *twice* to exit.
             disabled=disabled,
         )
         self.set_reactive(Terminal.auto_links, False)
-        self.minimum_terminal_width = minimum_terminal_width
         self._get_terminal_dimensions = get_terminal_dimensions
 
         self.state = ansi.TerminalState(self.write_process_stdin)
 
-        if size is None:
-            self._width = minimum_terminal_width or 80
-            self._height: int = 24
-        else:
-            width, height = size
-            self._width = width
-            self._height = height
+        if size is not None:
+            self.state.update_size(*size)
+        elif minimum_terminal_width:
+            self.state.update_size(width=minimum_terminal_width)
 
-        self.minimum_terminal_width = self._width
+        self.minimum_terminal_width = self.state.width
 
         self.max_window_width = 0
         self._escape_time = monotonic()
@@ -126,13 +123,12 @@ Tap escape *twice* to exit.
     @property
     def width(self) -> int:
         """Width of the terminal."""
-        return self._width
+        return self.state.width
 
     @property
     def height(self) -> int:
         """Height of the terminal."""
-        height = self._height
-        return height
+        return self.state.height
 
     @property
     def size(self) -> Size:
@@ -208,22 +204,14 @@ Tap escape *twice* to exit.
         self.update_size(width, height)
 
     def update_size(self, width: int, height: int) -> None:
-        old_width = self._width
-        old_height = self._height
+        old_width = self.state.width
+        old_height = self.state.height
 
         self._terminal_render_cache.grow(height * 2)
-        self._width = width or 80
-        self._height = height or 24
-        self._width = max(self._width, self.minimum_terminal_width)
+        self.state.update_size(max(width, self.minimum_terminal_width), height)
 
-        if (
-            old_width != self._width
-            or old_height != self._height
-            and not self.is_finalized
-        ):
-            self.resize_process(self._width, self._height)
-
-        self.state.update_size(self._width, height)
+        if not self.is_finalized and (old_width != self.width or old_height != self.height):
+            self.resize_process(self.width, self.height)
         self._terminal_render_cache.clear()
         self.refresh()
 
@@ -282,7 +270,7 @@ Tap escape *twice* to exit.
 
     def render_line(self, y: int) -> Strip:
         scroll_x, scroll_y = self.scroll_offset
-        strip = self._render_line(scroll_x, scroll_y + y, self._width)
+        strip = self._render_line(scroll_x, scroll_y + y, self.state.width)
         return strip
 
     def on_focus(self) -> None:
@@ -306,7 +294,7 @@ Tap escape *twice* to exit.
         # Get the folded line, which as a one to one relationship with y
         try:
             folded_line_ = buffer.folded_lines[y - buffer_offset]
-            line_no, line_offset, offset, line, updates = folded_line_
+            line_no, _, offset, line, updates = folded_line_
         except IndexError:
             return Strip.blank(width, rich_style)
 
@@ -318,18 +306,12 @@ Tap escape *twice* to exit.
             updates,
         )
 
-        # Add in cursor
-        if (
+        draw_cursor = (
             not self.hide_cursor
             and state.show_cursor
             and buffer.cursor_line == y - buffer_offset
-        ):
-            if buffer.cursor_offset >= len(line):
-                line = line.pad_right(buffer.cursor_offset - len(line) + 1)
-            line_cursor_offset = buffer.cursor_offset
-            line = line.stylize(
-                self.CURSOR_STYLE, line_cursor_offset, line_cursor_offset + 1
-            )
+        )
+        if draw_cursor:
             cache_key = None
 
         # get cached strip if there is no selection
@@ -340,40 +322,42 @@ Tap escape *twice* to exit.
         ):
             strip = strip.crop(x, x + width)
             strip = strip.adjust_cell_length(
-                width, (visual_style + line_record.style).rich_style
+                width, rich_style + line_record.style
             )
             strip = strip.apply_offsets(x + offset, line_no)
             return strip
 
+        # Only the native view turns the original model's styled text into
+        # Textual content. A Strip cache hit does not repeat that work.
+        line = Content.from_rich_text(line, self.app.console)
+        if draw_cursor:
+            if buffer.cursor_offset >= len(line):
+                line = line.pad_right(buffer.cursor_offset - len(line) + 1)
+            line = line.stylize(
+                self.CURSOR_STYLE, buffer.cursor_offset, buffer.cursor_offset + 1
+            )
+
         # Apply selection
         if selection is not None and (select_span := selection.get_span(line_no)):
-            unfolded_content = line_record.content.expand_tabs(8)
             start, end = select_span
             if end == -1:
-                end = len(unfolded_content)
+                end = offset + len(line)
             selection_style = self.screen.get_visual_style("screen--selection")
-            unfolded_content = unfolded_content.stylize(selection_style, start, end)
-            try:
-                folded_lines = self.state._fold_line(line_no, unfolded_content, width)
-                line = folded_lines[line_offset].content
+            start, end = max(0, start - offset), min(len(line), end - offset)
+            if start < end:
+                line = line.stylize(selection_style, start, end)
                 cache_key = None
-            except IndexError:
-                pass
 
-        try:
-            strip = Strip(
-                line.render_segments(visual_style), cell_length=line.cell_length
-            )
-        except Exception:
-            # TODO: Is this neccesary?
-            strip = Strip.blank(line.cell_length)
+        strip = Strip(
+            line.render_segments(visual_style), cell_length=line.cell_length
+        )
 
         if cache_key is not None:
             self._terminal_render_cache[cache_key] = strip
 
         strip = strip.crop(x, x + width)
         strip = strip.adjust_cell_length(
-            width, (visual_style + line_record.style).rich_style
+            width, rich_style + line_record.style
         )
         strip = strip.apply_offsets(x + offset, line_no)
 
@@ -408,7 +392,7 @@ Tap escape *twice* to exit.
             if self._escape_reset_timer is not None:
                 self._escape_reset_timer.stop()
 
-        if (stdin := self.state.key_event_to_stdin(event)) is not None:
+        if (stdin := self.state.key_to_stdin(event.key, event.character)) is not None:
             await self.write_process_stdin(stdin)
 
     @property

@@ -12,14 +12,12 @@ import os
 import pty
 import shlex
 import signal
-import struct
 import termios
 from io import FileIO
 from typing import Mapping
 from weakref import ref
 
 from acp import schema as protocol
-from textual.content import Content
 from agent_comms.child_process import (
     AttachedChild, TerminalChildStdio, ChildOutcome, ExitedOutcome, SignaledOutcome,
     join_retirement,
@@ -78,6 +76,8 @@ class TerminalCompletion(TerminalOutcome):
     def wait_response(self) -> protocol.WaitForTerminalExitResponse: ...
 
     def present(self, terminal, command) -> None:
+        from textual.content import Content
+
         terminal.finalize()
         terminal.set_class(self.successful, "-success")
         terminal.set_class(not self.successful, "-error")
@@ -151,6 +151,8 @@ class FailedTerminalOutcome(TerminalOutcome):
     finished = True
 
     def present(self, terminal, command):
+        from textual.content import Content
+
         terminal.finalize()
         terminal.set_class(True, "-error")
         terminal.border_title = Content(f"{command} [{self.error}]")
@@ -174,7 +176,10 @@ class PtyProcess:
     master: FileIO
 
     @classmethod
-    async def acquire(cls, command, shell_command, master, slave, custody):
+    async def acquire(cls, command, shell_command, master, slave, custody, state):
+        # The child can query its window immediately after exec. Establish
+        # geometry on the original PTY before giving that FD to the child.
+        cls.resize_fd(master.fileno(), state.width, state.height)
         child = await AttachedChild.start(
             shell_command, stdio=TerminalChildStdio(slave),
             env=os.environ | command.env, cwd=command.cwd,
@@ -187,8 +192,11 @@ class PtyProcess:
 
     def resize(self, width, height):
         with suppress(OSError, ValueError):
-            fcntl.ioctl(self.master.fileno(), termios.TIOCSWINSZ,
-                        struct.pack("HHHH", height, width, 0, 0))
+            self.resize_fd(self.master.fileno(), width, height)
+
+    @staticmethod
+    def resize_fd(fd, width, height):
+        termios.tcsetwinsize(fd, (height, width))
 
     async def write(self, data: bytes) -> int:
         # Nonblocking owned FD is consumed on this loop, not by a delayed
@@ -323,14 +331,16 @@ class ActiveTerminalOperation(TerminalOperation):
 
 class TerminalExecution:
     """One ANSI/output owner and one acquired operation, independent of views."""
-    def __init__(self, command: Command, output_byte_limit: int | None = None):
+    def __init__(self, command: Command, output_byte_limit: int | None = None, *,
+                 width: int = ansi.TerminalState.DEFAULT_WIDTH,
+                 height: int = ansi.TerminalState.DEFAULT_HEIGHT):
         self._command = command
         self._output_byte_limit = output_byte_limit
         self._output: deque[bytes] = deque()
         self._bytes_read = 0
         self._output_bytes_count = 0
         self._operation: TerminalOperation = NewTerminalOperation()
-        self.state = ansi.TerminalState(self.write_stdin)
+        self.state = ansi.TerminalState(self.write_stdin, width=width, height=height)
         self._view = lambda: None
 
     @property
@@ -381,8 +391,7 @@ class TerminalExecution:
         """Observe the SAME original acquired resource, never a copied PID/status."""
         return await self._operation.custody()
 
-    async def start(self, width=0, height=0):
-        self.state.update_size(width or 80, height or 24)
+    async def start(self):
         operation = self._operation.start(self)
         self._operation = operation
         await asyncio.shield(operation.ready)
@@ -400,7 +409,7 @@ class TerminalExecution:
                                else f"{command.command} {shlex.join(command.args)}")
                 shell_command = (os.environ.get("SHELL", "sh"), "-c", run_command)
                 spawn = asyncio.create_task(PtyProcess.acquire(
-                    command, shell_command, master_file, slave_file, custody))
+                    command, shell_command, master_file, slave_file, custody, self.state))
                 try:
                     acquired = await asyncio.shield(spawn)
                 except asyncio.CancelledError:
@@ -408,7 +417,6 @@ class TerminalExecution:
                     # outer scope releases PTY descriptors. No lost spawn handle.
                     await join_retirement(spawn)
                     raise
-                acquired.resize(self.state.width, self.state.height)
                 slave_file.close()
                 reader = asyncio.StreamReader(128 * 1024)
                 protocol = asyncio.StreamReaderProtocol(reader)

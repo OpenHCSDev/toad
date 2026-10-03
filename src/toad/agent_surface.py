@@ -15,9 +15,10 @@ class AttachedSurfaceBinding(SurfaceBinding):
             app.preparation, app.coordination_access)
         controller.validation = ApplicationValidationOwner(app.render_processes)
 
-    def terminal_dimensions(self):
+    def prepare_terminal(self, state) -> None:
         target = self.target
-        return target.get_terminal_dimensions() if target is not None else super().terminal_dimensions()
+        if target is not None:
+            state.update_size(*target.get_terminal_dimensions())
 
     def schedule_terminal_presentation(self, controller):
         if (target := self.target) is not None:
