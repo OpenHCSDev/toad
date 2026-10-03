@@ -1,7 +1,7 @@
 {
   "state": "scoped-ready",
   "head": "a6c81e46c52636ef453eed03fb5b18b7b182e3c3",
-  "tested_production_head": "41c5ea6b5",
+  "tested_production_head": "41c5ea6b5f5148f0a18c8e115d32d4803d3ab748",
   "production": {
     "files": 4,
     "added": 16,
@@ -86,7 +86,9 @@
     ],
     "provider_calls": 0,
     "pty_masters_before": [],
-    "pty_masters_after": []
+    "pty_masters_after": [],
+    "visual_limit": "Original compositor text and SVG body text contain REPLACED_BODY/DETACHED_BODY/FINAL_BODY. However SVG foreground exports black on black; the saved rsvg-convert PNG is unreadable and is preserved as a negative artifact, not accepted pixel proof. Old Core12c/Textb1 donor differs from main376 f109/c580; dependency/style mismatch is a possible cause, not verified. No physical readable/color/style claim or style/viewport patch.",
+    "negative_artifact": "installed02/reattached-completed.png"
   },
   "negative": {
     "log": "installed01.log",
@@ -115,7 +117,8 @@
   "limits": [
     "No physical st/FPS/latency claim",
     "No native-Pi/provider or full headless frontend qualification",
-    "Full original U2/U4/U5 plan remains wider scope"
+    "Full original U2/U4/U5 plan remains wider scope",
+    "SVG/PNG foreground is black on black: readable visual acceptance is not established by this fixture. Scoped installed source/operation/callback/text proof only."
   ],
   "next": "Parent review/merge; Sch receiving owns final cohort and default publication."
 }
