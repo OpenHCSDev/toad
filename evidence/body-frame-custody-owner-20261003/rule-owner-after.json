@@ -1,0 +1,14 @@
+{
+  "modules": 289,
+  "omissions": [],
+  "removed_private_matcher_sites": [],
+  "native_rule_owner_calls": [
+    {
+      "line": 363,
+      "call": "rule.check(node)"
+    }
+  ],
+  "removed_scene_css_type_inventory": true,
+  "scope": "changed-source workspace matching; components conservative/nativepublication retained, custom relational CSS path kept at SelectorSet owner",
+  "limits": "AST spelling and source semantics; pending final joined native47/installed validation, no speed claim"
+}
