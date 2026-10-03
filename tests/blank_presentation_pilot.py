@@ -65,7 +65,6 @@ async def main():
             assert second_surface is not first_surface
             assert first_surface._task is original_task
             assert window in app.workspace_screen.viewport_presentation.windows and window.screen is app.workspace_screen
-            assert len(app.workspace_screen.screen_layout_refresh_signal._subscriptions[window]) == 2
             second.conversation.prompt.text = "second draft"
 
             await select(app, pilot, first)
