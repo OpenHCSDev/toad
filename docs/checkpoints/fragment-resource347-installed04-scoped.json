@@ -1,0 +1,193 @@
+{
+  "qualification": "SCOPED installed fragment resource/presentation ownership and completed physical phases; not whole338 tail or smoothness/CPU gain",
+  "source_head": "fc96460650fda113de018636cc2324c309d5272d",
+  "installed": {
+    "core": "58686f983377087e85ef20fd2928bcf113ab7acb",
+    "toad": "4b8ea96ac60cb1ea66a5ab24841577db2511365a",
+    "textual": "940880e12c889e16a0c3e9b1ac6356fb7234ebb0",
+    "sdk": "0.12.1",
+    "native": "960296fdddafb01c",
+    "proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-fragment-resource347-20261002/source-proof.json"
+  },
+  "entrypoint": "Source wrapper constructs installed production ToadApp with LinuxDriver in private copied original saved-session root. Not ordinary default CLI or busy-public performance equivalence.",
+  "recording": "/home/ts/.cache/agent-scratch/fragment-resource347-held-reader338-20261002-04/capture",
+  "raw_status": {
+    "capture_completed": false,
+    "completed": false,
+    "error": "CalledProcessError: Command '['xdotool', 'exec', '--sync', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/bin/python', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/tests/history_edge_scheduling_pilot.py', '--await-completion', '/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/fragment-resource347-installed-20261002-04/private/project']' returned non-zero exit status 1.",
+    "cleanup_remaining_owned_pids": [],
+    "cleanup_errors": [],
+    "terminal_exit": {
+      "pid": 1151569,
+      "start_ticks": 46223395,
+      "custody": "verified launch identity transferred to installed ObservedProcess"
+    }
+  },
+  "preserved_raw_sha256": {
+    "receipt.json": "e876abf9a3328a18a67ab382b358fa6d2f863e6ce1b3b29e2003f3183e81cecb",
+    "terminal.mp4": "5927adcd2a70b4577283d3da3a666364541000ca2d23f10f42f78edfcf21543d",
+    "driver.log": "f81fff780a397c710d0b8fd30a264b0e8f207ff132583bd673b9807d2484449b",
+    "cpu-profile.json": "7295d2ae3c24ded18d5049f6e05becc22a2e37d9052979e8f5aaf80840b08b9a",
+    "phase-a-return.png": "3bb6635f25e4040d6b670a2343b19d1535b197c095aa692e418e475e8e31bd02",
+    "during-input-held-up-24.5-frames.png": "f49d03c08cf8ed2431aaa69f80da40fe7562435f9a7c36fed3d8518ed69b276d"
+  },
+  "completed_physical_checks": {
+    "input_paging": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_admitted_older_source": true,
+      "held_page_down_admitted_newer_source": true,
+      "reverse_page_up_admitted_older_source": false
+    },
+    "retained_ready_body_count": 24
+  },
+  "reverse_interpretation": "Raw new-older-admission predicate remains false. Reader moved315\u2192122 inside unchanged already-admitted source ranges. This is retained reverse motion, not proof of a new admission.",
+  "motion_review": {
+    "timing": "Heisenberg viewed48 consecutive24.5\u201325.3s frames while recorder and UI were alive; parent viewed same original sheet too. A-return PNG also inspected after completion.",
+    "observed": "Readable body/chrome; repeated positions followed by chunky advances. Smoothness not accepted.",
+    "source": "/home/ts/.cache/agent-scratch/fragment-resource347-held-reader338-20261002-04/capture/during-input-held-up-24.5-frames.png"
+  },
+  "held_key_writer": {
+    "source": "/home/ts/.cache/agent-scratch/fragment-resource347-held-reader338-20261002-04/capture",
+    "scope": "Native writer completion; not changed pixels or terminal presentation FPS. Zero stationary motion is legitimate, not a stall classification.",
+    "key_boundaries": "keydown subprocess finished to keyup subprocess started; X server repeat observed separately",
+    "phases": [
+      {
+        "action": "0:Prior",
+        "start_ns": 462259302333178,
+        "end_ns": 462261438538922,
+        "video_start_seconds": 24.894664744,
+        "video_end_seconds": 27.030870488,
+        "intervals": {
+          "count": 89,
+          "median_ms": 18.36,
+          "p95_ms": 54.01,
+          "p99_ms": 76.83,
+          "max_ms": 214.24
+        },
+        "writer_receipts": 90
+      },
+      {
+        "action": "1:Next",
+        "start_ns": 462281419114167,
+        "end_ns": 462283560103002,
+        "video_start_seconds": 47.011445733,
+        "video_end_seconds": 49.152434568,
+        "intervals": {
+          "count": 102,
+          "median_ms": 17.72,
+          "p95_ms": 33.07,
+          "p99_ms": 74.71,
+          "max_ms": 136.59
+        },
+        "writer_receipts": 103
+      },
+      {
+        "action": "2:Prior",
+        "start_ns": 462290521628218,
+        "end_ns": 462292658017533,
+        "video_start_seconds": 56.113959784,
+        "video_end_seconds": 58.250349099,
+        "intervals": {
+          "count": 98,
+          "median_ms": 17.16,
+          "p95_ms": 35.53,
+          "p99_ms": 148.17,
+          "max_ms": 204.31
+        },
+        "writer_receipts": 99
+      },
+      {
+        "action": "3:Next",
+        "start_ns": 462295890282846,
+        "end_ns": 462298039247375,
+        "video_start_seconds": 61.482614412,
+        "video_end_seconds": 63.631578941,
+        "intervals": {
+          "count": 106,
+          "median_ms": 16.84,
+          "p95_ms": 38.59,
+          "p99_ms": 62.42,
+          "max_ms": 114.36
+        },
+        "writer_receipts": 107
+      },
+      {
+        "action": "4:Prior",
+        "start_ns": 462301609746406,
+        "end_ns": 462303739313636,
+        "video_start_seconds": 67.202077972,
+        "video_end_seconds": 69.331645202,
+        "intervals": {
+          "count": 108,
+          "median_ms": 16.96,
+          "p95_ms": 29.26,
+          "p99_ms": 35.01,
+          "max_ms": 217.0
+        },
+        "writer_receipts": 109
+      }
+    ]
+  },
+  "ui_kernel_cpu_marker_phases_percent": {
+    "input-held-up": 64.51782223644102,
+    "input-held-down": 48.0018493946833,
+    "input-held-up-done": 15.797657265642338,
+    "up": 52.596893774185304,
+    "down": 53.90813582532811,
+    "reverse": 49.73287742942556,
+    "idle": 10.144634220691067
+  },
+  "profile": {
+    "samples": 1823,
+    "reported_errors": 0,
+    "alignment_uncertainty_seconds": 0.05569787450716831,
+    "source_query": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/fragment-resource-after344/physical04-ui-stacks.json",
+    "observed_moving_stack": "workspace._on_timer_update/_refresh_layout \u2192 Textual reflow/reflow_visible/_arrange_root/arrange_widget \u2192 compositor partial render/StylesCache. Stack transition groups are not calls, sample shares or durations.",
+    "other_work": "Sidebar projection ThreadView.presentation/process identity reads on UI; idle source observation/FieldCodec on worker threads; state export overhead.",
+    "comparison": "No matched before/after CPU or input-to-pixel gain claim."
+  },
+  "normal_main_integration": {
+    "main": "c311a3fdfe70d67afc6fb9d2d6e44a182a79a02c",
+    "merge": "fc96460650fda113de018636cc2324c309d5272d",
+    "resolved_files": [
+      "src/toad/transcript_source_preparation.py",
+      "src/toad/widgets/transcript_history.py"
+    ],
+    "resolution": "Keep338 Worker/scheduling/progress-only rearm/native paging+coverage hooks. Use main CoreEventReceiver/source events; delete old Textual event declarations/imports and preserve new publisher identity.",
+    "byte_equality": "Fragment/render-task/streaming production files identical to installed4b8; history own cost/schema preserved, with main core event/ResponseDelivery migration. Full main union is not claimed byte-identical to installed pair.",
+    "sanity": "Two conflict files parsed on Python3.14; resolved production diff whitespace clean. No motion/provider repeat."
+  },
+  "production_batch": {
+    "files": 4,
+    "added": 37,
+    "deleted": 20,
+    "base": "3d2817be",
+    "installed_head": "4b8ea96a"
+  },
+  "remaining": {
+    "338_tail": "Kepler owns WorkingTranscript reader-demand/source-work finish closure and targeted tail qualification; raw04 failed retained.",
+    "performance": "144Hz/6.944ms, main CPU, raster/first paint, cold/warm, bounded3viewport adaptive runway/velocity, reversal/idle, growingEnd/PageDownvoid, focus/Undo, busy/sidebar/channel, animation, TC1/T9/T4 remain active.",
+    "originals": "Original41,294,021B nra saved journal SHA1f7ade9e9d00eceb1eec18fb7879efa5d6681a7ffc433bf7884c5bfc2f924852 preserved; public witness released before paint; no native/provider inputs or replay."
+  }
+}
