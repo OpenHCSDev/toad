@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from agent_comms.presentation import ThreadView
@@ -14,6 +15,7 @@ from toad.work_preparation import ContentAddressedWork, RendererWork, Serialized
 
 if TYPE_CHECKING:
     from toad.render_tasks import TabRosterRenderTask, ThreadRowsRenderTask
+    from toad.work_preparation import PreparationRuntime
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,8 +54,10 @@ class PreparedThreadRow:
     source: ThreadRowPresentation
     frames: tuple[Content, ...]
     tooltip: Content
-    busy: bool
-    signature: tuple[str, str, bool]
+
+    @property
+    def busy(self) -> bool:
+        return self.source.action_status is not None or self.source.busy
 
     def content(self, phase: int) -> Content:
         return self.frames[phase % len(self.frames)]
@@ -61,7 +65,6 @@ class PreparedThreadRow:
 
 def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThreadRow:
     summary = source.action_status if source.action_status is not None else source.summary
-    busy = source.action_status is not None or source.busy
     badge = f"{source.unread.label} " if source.unread.label else ""
     frames = tuple(Content.assemble(
         (badge, "bold $accent"),
@@ -72,21 +75,43 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
     tooltip = "\n".join(str(value) for value in (
         source.name, summary, source.unread.detail, "Pinned in this channel" if source.pinned else None, source.model,
     ) if value)
-    return PreparedThreadRow(source, frames, Content(tooltip), busy,
-                             (frames[0].plain, tooltip, busy))
+    return PreparedThreadRow(source, frames, Content(tooltip))
 
 
 @dataclass(frozen=True)
 class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
                      ContentAddressedWork[tuple[PreparedThreadRow, ...]],
                      RendererWork[tuple[PreparedThreadRow, ...]]):
-    rows: tuple[ThreadRowInput, ...]
+    rows: tuple[ThreadRowPresentation, ...]
+
+    @classmethod
+    async def capture(cls, runtime: PreparationRuntime, rows: tuple[ThreadRowInput, ...]) -> ThreadRowsWork:
+        """Resolve the original display inputs once before reuse or rendering.
+
+        ThreadView.presentation may inspect its original process identity. Keep
+        that source read off the native pump, and hash/render the same captured
+        inputs rather than making another decision after an asynchronous wait.
+        """
+        if not rows:
+            return cls(())
+        return cls(await runtime.run_thread(lambda: tuple(row.presentation() for row in rows)))
 
     @property
     def inputs(self) -> tuple[ThreadRowPresentation, ...]:
-        # ContentAddressedWork evaluates this on its worker thread. Declare the
-        # semantic projection before hashing, not every field of a core record.
-        return tuple(row.presentation() for row in self.rows)
+        return self.rows
+
+    def for_rows[Key](self, rows: Mapping[Key, ThreadRowInput]) -> dict[Key, ThreadRowPresentation]:
+        """Project row-local decoration from this publication's captured people."""
+        people = {row.name: row for row in self.rows}
+        return {key: replace(people[row.person.thread.name], unread=row.unread,
+                             pinned=row.pinned, action_status=row.action_status)
+                for key, row in rows.items()}
+
+    @property
+    def content_width(self) -> int:
+        """Measure the same captured display text used by row preparation."""
+        return max((Content(text).cell_length for row in self.rows
+                    for text in (row.label, row.summary)), default=0)
 
     @property
     def render_task(self) -> ThreadRowsRenderTask:

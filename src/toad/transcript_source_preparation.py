@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from textual.worker import Worker, WorkerCancelled
 from toad.core_event_carrier import CoreEventReceiver
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.source_events import TranscriptSourceWorkFinished
 
@@ -116,7 +116,34 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self._prefetch_worker is not None:
             self._prefetch_worker.cancel()
         self._prefetch_intent = None
-        self.state.request_latest(self)
+        self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
+
+    async def _jump_latest(self, request: LatestViewportRequest) -> None:
+        """Publish one destination under its original source and reader intent.
+
+        A preceding page's restoration may have left the window off its tail.
+        Apply the still-current destination before its source read, then finish
+        native geometry after publication. Neither restoration is another user
+        scroll; movement during I/O revokes this request at its original revision.
+        """
+        if not self.source_publication_available or not request.current(self.window):
+            return
+        self._generation += 1
+        request.restore(self.window)
+        if await self._publish_latest(request):
+            # Wire acceptance advances the original reader source. Capture the
+            # published source, rather than the request that acceptance replaced.
+            self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
+
+    async def _publish_latest(self, request: LatestViewportRequest) -> bool:
+        """The source leaf reads/prepares and fences its original publication."""
+        raise NotImplementedError
+
+    def _complete_latest(
+        self, snapshot: HistorySourceSnapshot, request: LatestViewportRequest,
+    ) -> None:
+        if snapshot.current(self):
+            request.restore(snapshot.window)
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
         """Keep the original read until the shared observer supplies relief.

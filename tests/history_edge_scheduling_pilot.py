@@ -24,6 +24,8 @@ from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, channel_target
 from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.transcript_history import TranscriptHistory
+from toad.transcript_preparation import PageRequest
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'tools'))
 from record_installed_tui import (ObserveJourney, InputWarmJourney, ProcessOwner,
                                  marker_command, phase_events, main as record_main)
@@ -153,10 +155,10 @@ def seed_channel(comms, project):
         comms.messaging.send('edge-reader', '#edge', f'History {index}: ' + 'body ' * 40)
 
 
-async def exercise_with_evidence(app, pilot, root):
+async def exercise_with_evidence(app, pilot, root, *, journey=exercise):
     """One acceptance and failure-export lifetime for both physical entries."""
     try:
-        history = await exercise(app, pilot, root)
+        history = await journey(app, pilot, root)
     except BaseException as error:
         outcome = {'status': 'failed', 'error': repr(error),
                    'traceback': traceback.format_exc(),
@@ -175,6 +177,80 @@ async def exercise_with_evidence(app, pilot, root):
         pending = root / 'journey-result.pending'
         pending.write_text(json.dumps(outcome) + '\n')
         pending.replace(root / 'journey-result.json')
+
+
+async def exercise_retained(app, pilot, root):
+    await exercise_native_destination(app, pilot, root)
+    return await exercise(app, pilot, root)
+
+
+async def exercise_native_destination(app, pilot, root):
+    """Use the copied original native source, not a synthetic transcript page."""
+    view = app.selected_session.conversation
+    window = view.window
+    await until(lambda: view.agent_ready and bool(window.histories))
+    window.focus()
+    async with asyncio.timeout(8):
+        while not any(history.has_newer for history in window.histories):
+            await pilot.press('home')
+            await pilot.pause(.05)
+    history = next(history for history in window.histories if history.has_newer)
+    assert isinstance(history, TranscriptHistory) and history.loader is not None
+    await until(lambda: history.state.accepts_source_work)
+    reader = history._reader()
+    destination = PageRequest(before=history.through)
+    entered, release = asyncio.Event(), asyncio.Event()
+    original = reader.get
+
+    async def held_read(request):
+        prepared = await original(request)
+        # The prepared source also serves ordinary edge and lookahead reads.
+        # Hold only the original destination request, not whichever read wins
+        # the scheduling race after the physical End key.
+        if request != destination:
+            return prepared
+        entered.set()
+        await release.wait()
+        return prepared
+
+    with patch.object(reader, 'get', held_read):
+        window.focus()
+        await pilot.press('end')
+        try:
+            await until(entered.is_set)
+            operation = history.state
+            assert not operation.accepts_source_work
+            # Native End deliberately focuses the editor. Restore the original
+            # scroll target before the user's revoking Home key.
+            window.focus()
+            await pilot.pause()
+            assert app.focused is window
+            await pilot.press('home')
+            revoked_revision = window.scroll_revision
+            assert not window.follows_tail
+        finally:
+            release.set()
+        await until(lambda: history.state is not operation)
+        assert window.scroll_revision == revoked_revision and not window.follows_tail, (
+            "Native destination revocation changed during source completion",
+            revoked_revision, window.scroll_revision, window.follows_tail,
+        )
+    window.focus()
+    await pilot.press('end')
+    await until(lambda: history.checkpoint_available and not history.has_newer
+                and window.follows_tail)
+    await pilot.pause()
+    assert app._exception is None, repr(app._exception)
+    app.save_screenshot(str(root / 'native-end.svg'))
+    (root / 'native-end.json').write_text(json.dumps({
+        'source': view.agent.session_id, 'revoked_revision': revoked_revision,
+        'monotonic': time.monotonic(),
+        'final_revision': window.scroll_revision, 'follows_tail': window.follows_tail,
+        'has_newer': history.has_newer, 'application_exception': repr(app._exception),
+        'provider_inputs': 0,
+        'boundary': 'installed copied original native ACP source, actual End/Home/End keys',
+    }, indent=2) + '\n')
+    print('PASS: original native End/Home revocation and final End', flush=True)
 
 
 async def main():
@@ -207,7 +283,7 @@ class HistorySourceLifetimeJourney(ObserveJourney):
 
     @classmethod
     def script(cls, args):
-        return 'exec --sync ' + shlex.join([sys.executable, str(Path(__file__).resolve()),
+        return marker_command() + 'source-start\nexec --sync ' + shlex.join([sys.executable, str(Path(__file__).resolve()),
             '--await-completion', os.environ['TOAD_HISTORY_LIFETIME_DIRECTORY']]) + '\n'
 
 
@@ -223,8 +299,7 @@ class RetainedHistorySourceJourney(InputWarmJourney):
 
     @classmethod
     def closing_commands(cls, args):
-        return (marker_command() + 'source-start',
-                HistorySourceLifetimeJourney.script(args).strip(),
+        return (HistorySourceLifetimeJourney.script(args).strip(),
                 marker_command() + 'source-complete')
 
     @classmethod
@@ -262,14 +337,15 @@ async def retained_app(project):
         # teardown must never kill the recorder, Xvfb or physical key driver.
         while not any(event['label'] == 'source-start' for event in phase_events(output)):
             await asyncio.sleep(.05)
-        history = await exercise_with_evidence(app, pilot, root)
+        history = await exercise_with_evidence(app, pilot, root, journey=exercise_retained)
         while not app._exit:
             await asyncio.sleep(.05)
     assert not history.reader._pending
 
 
 async def record_retained(service, project, evidence, environment, *, recording_args,
-                          recording_timeout):
+                          recording_timeout, recording_output,
+                          journey=RetainedHistorySourceJourney):
     """Existing original-turn fixture callback; owns no second App or root."""
     env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
                XDG_STATE_HOME=str(evidence / 'ui-state'))
@@ -278,8 +354,8 @@ async def record_retained(service, project, evidence, environment, *, recording_
     env['AGENT_COMMS_RUNTIME_ROOT'] = str(runtime)
     command = [sys.executable, str(Path(__file__).resolve()), '--record', *recording_args,
         '--capture-target', 'source', '--private-root', str(service.root),
-        '--journey', 'retained_history_source', '--peer-thread', 'resource236b',
-        '--capture-state', '--scroll-travel', '--output', str(evidence / 'capture'),
+        '--journey', journey.declared_name, '--peer-thread', 'resource236b',
+        '--capture-state', '--scroll-travel', '--output', str(recording_output),
         '--', sys.executable, str(Path(__file__).resolve()), '--retained-app', str(project)]
     (evidence / 'joint-command.json').write_text(json.dumps(command, indent=2) + '\n')
     owner = ProcessOwner(service.registry)

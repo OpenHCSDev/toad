@@ -2,18 +2,19 @@
 import asyncio,json,os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from agent_comms.comms import Comms
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor,TranscriptPage
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory,TranscriptPageView
+from toad.transcript_state import LatestViewportRequest
+from runtime_fixture import private_native_wire
 
 async def main():
  out=Path(os.environ['RETAINED_END_EVIDENCE']); out.mkdir(exist_ok=False)
  with TemporaryDirectory(dir=out) as directory:
   root=Path(directory)
   os.environ.update(AGENT_COMMS_ROOT=str(root/'wire'),XDG_CONFIG_HOME=str(root/'config'),XDG_STATE_HOME=str(root/'state'),XDG_DATA_HOME=str(root/'data'))
-  Comms(root/'wire').messaging.initialize_private_initial_protocol()
+  private_native_wire(root/'wire')
   app=ToadApp(project_dir=str(root))
   async with app.run_test(size=(120,38)) as pilot:
    await app.selected_session.wait_content_ready()
@@ -32,7 +33,7 @@ async def main():
      await page.trim(4,older=False)
    held_end=tuple(page.children)
    before_range=page.capture_admission(); before_cost=history.window.document_viewport.materialized_widget_count
-   await history._jump_latest()
+   await history._jump_latest(LatestViewportRequest(history.window.scroll_revision))
    # Strong custody witnesses prevent recycled Python ids from proving reuse.
    current=history.pages[-1]
    overlap=[c for c in held_end if c.is_attached and c.parent is current]
