@@ -1,0 +1,1 @@
+env -u PYTHONPATH -u PYTHONHOME /home/ts/wt/toad-canonical-agent-selections-20261002/.artifacts/runtime-canonical-agent-selections-302-final/bin/python -I /home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/selected-preparation569-transcript369-theme371-receiving-20261003/new-publication569364/readback_publication.py

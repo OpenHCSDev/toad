@@ -1,0 +1,725 @@
+{
+  "qualification": "scoped working shared CSS candidate/focus lifecycle; not smoothness or CPU gain",
+  "installed": {
+    "core": "12c1758ee4336c1b15732f166e55f333e329a4d0",
+    "toad": "165ecd94514cd84038d43e263afcbd9b177b7fc3",
+    "textual": "b9b9af73c0d5eb67d372fa6f2f90ce765e146950",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+    "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+    "holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "public_install_changed": false,
+    "new_environment": false,
+    "new_native_copy": false,
+    "purpose": "Heisenberg375/Text35 shared stylesheet candidate and focus ownership; one changed public saved-history input paging/A-B-A/CPU-motion journey",
+    "allocation_bound_mib": 256
+  },
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-css35-focus375-20261003/source-proof.json",
+  "source_proof_sha256": "a16bdf7610c922672205832ed851a86457cc2308ababecd969f7909de37b9e09",
+  "original_receipt": "/home/ts/.cache/agent-scratch/css35-focus375-public-input-warm-20261003-01/capture/receipt.json",
+  "original_receipt_sha256": "b31ad36136e5736b50275a8eb3385d6860dc8ff5fcbdbccab2c6e580cde8381b",
+  "duration_seconds": 108.74909110204317,
+  "capture_completed": true,
+  "completed": true,
+  "checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "retained_ready_body_count": 42,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2796935,
+      "start_time": 48622200
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 2796935,
+      "start_time": 48622200
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_unchanged": true,
+  "runtime_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2855030,
+        "start_ticks": 48755140,
+        "returncode": 0
+      },
+      {
+        "pid": 2855037,
+        "start_ticks": 48755347,
+        "returncode": 0
+      },
+      {
+        "pid": 2855039,
+        "start_ticks": 48755358,
+        "returncode": 0
+      },
+      {
+        "pid": 2855200,
+        "start_ticks": 48755417,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2855201,
+        "start_ticks": 48755422,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2855227,
+        "start_ticks": 48755510,
+        "returncode": 0
+      },
+      {
+        "pid": 2855228,
+        "start_ticks": 48755521,
+        "returncode": 0
+      },
+      {
+        "pid": 2855229,
+        "start_ticks": 48755532,
+        "returncode": 0
+      },
+      {
+        "pid": 2855230,
+        "start_ticks": 48755544,
+        "returncode": 255
+      },
+      {
+        "pid": 2855243,
+        "start_ticks": 48755746,
+        "returncode": 0
+      },
+      {
+        "pid": 2855265,
+        "start_ticks": 48755775,
+        "returncode": 0
+      },
+      {
+        "pid": 2855301,
+        "start_ticks": 48755934,
+        "returncode": 0
+      },
+      {
+        "pid": 2855310,
+        "start_ticks": 48755975,
+        "returncode": 0
+      },
+      {
+        "pid": 2855715,
+        "start_ticks": 48756370,
+        "returncode": 0
+      },
+      {
+        "pid": 2855808,
+        "start_ticks": 48756386,
+        "returncode": 0
+      },
+      {
+        "pid": 2855959,
+        "start_ticks": 48756498,
+        "returncode": 0
+      },
+      {
+        "pid": 2856165,
+        "start_ticks": 48756682,
+        "returncode": 0
+      },
+      {
+        "pid": 2856305,
+        "start_ticks": 48756867,
+        "returncode": 0
+      },
+      {
+        "pid": 2856371,
+        "start_ticks": 48756975,
+        "returncode": 0
+      },
+      {
+        "pid": 2856417,
+        "start_ticks": 48757131,
+        "returncode": 0
+      },
+      {
+        "pid": 2856443,
+        "start_ticks": 48757245,
+        "returncode": 0
+      },
+      {
+        "pid": 2856611,
+        "start_ticks": 48757419,
+        "returncode": 0
+      },
+      {
+        "pid": 2856645,
+        "start_ticks": 48757614,
+        "returncode": 0
+      },
+      {
+        "pid": 2856659,
+        "start_ticks": 48757813,
+        "returncode": 0
+      },
+      {
+        "pid": 2856660,
+        "start_ticks": 48757827,
+        "returncode": 0
+      },
+      {
+        "pid": 2856673,
+        "start_ticks": 48757992,
+        "returncode": 0
+      },
+      {
+        "pid": 2856720,
+        "start_ticks": 48758007,
+        "returncode": 0
+      },
+      {
+        "pid": 2856741,
+        "start_ticks": 48758189,
+        "returncode": 0
+      },
+      {
+        "pid": 2857431,
+        "start_ticks": 48759191,
+        "returncode": 0
+      },
+      {
+        "pid": 2857440,
+        "start_ticks": 48759210,
+        "returncode": 0
+      },
+      {
+        "pid": 2857588,
+        "start_ticks": 48759404,
+        "returncode": 0
+      },
+      {
+        "pid": 2857640,
+        "start_ticks": 48759703,
+        "returncode": 0
+      },
+      {
+        "pid": 2857671,
+        "start_ticks": 48759898,
+        "returncode": 0
+      },
+      {
+        "pid": 2857684,
+        "start_ticks": 48760067,
+        "returncode": 0
+      },
+      {
+        "pid": 2857685,
+        "start_ticks": 48760081,
+        "returncode": 0
+      },
+      {
+        "pid": 2857707,
+        "start_ticks": 48760245,
+        "returncode": 0
+      },
+      {
+        "pid": 2857708,
+        "start_ticks": 48760261,
+        "returncode": 0
+      },
+      {
+        "pid": 2857894,
+        "start_ticks": 48760442,
+        "returncode": 0
+      },
+      {
+        "pid": 2857912,
+        "start_ticks": 48760555,
+        "returncode": 0
+      },
+      {
+        "pid": 2857925,
+        "start_ticks": 48760734,
+        "returncode": 0
+      },
+      {
+        "pid": 2857937,
+        "start_ticks": 48760849,
+        "returncode": 0
+      },
+      {
+        "pid": 2857951,
+        "start_ticks": 48761059,
+        "returncode": 0
+      },
+      {
+        "pid": 2857952,
+        "start_ticks": 48761077,
+        "returncode": 0
+      },
+      {
+        "pid": 2857967,
+        "start_ticks": 48761242,
+        "returncode": 0
+      },
+      {
+        "pid": 2857968,
+        "start_ticks": 48761255,
+        "returncode": 0
+      },
+      {
+        "pid": 2858151,
+        "start_ticks": 48761432,
+        "returncode": 0
+      },
+      {
+        "pid": 2858282,
+        "start_ticks": 48761599,
+        "returncode": 0
+      },
+      {
+        "pid": 2858312,
+        "start_ticks": 48761615,
+        "returncode": 0
+      },
+      {
+        "pid": 2858489,
+        "start_ticks": 48761781,
+        "returncode": 0
+      },
+      {
+        "pid": 2858500,
+        "start_ticks": 48761794,
+        "returncode": 0
+      },
+      {
+        "pid": 2858515,
+        "start_ticks": 48761959,
+        "returncode": 0
+      },
+      {
+        "pid": 2858539,
+        "start_ticks": 48762134,
+        "returncode": 0
+      },
+      {
+        "pid": 2858540,
+        "start_ticks": 48762145,
+        "returncode": 0
+      },
+      {
+        "pid": 2858576,
+        "start_ticks": 48762307,
+        "returncode": 0
+      },
+      {
+        "pid": 2858588,
+        "start_ticks": 48762325,
+        "returncode": 0
+      },
+      {
+        "pid": 2858738,
+        "start_ticks": 48762497,
+        "returncode": 0
+      },
+      {
+        "pid": 2858755,
+        "start_ticks": 48762661,
+        "returncode": 0
+      },
+      {
+        "pid": 2858756,
+        "start_ticks": 48762675,
+        "returncode": 0
+      },
+      {
+        "pid": 2858757,
+        "start_ticks": 48762788,
+        "returncode": 0
+      },
+      {
+        "pid": 2858791,
+        "start_ticks": 48762957,
+        "returncode": 0
+      },
+      {
+        "pid": 2859747,
+        "start_ticks": 48763960,
+        "returncode": 0
+      },
+      {
+        "pid": 2859748,
+        "start_ticks": 48763980,
+        "returncode": 0
+      },
+      {
+        "pid": 2859838,
+        "start_ticks": 48764350,
+        "returncode": 0
+      },
+      {
+        "pid": 2859993,
+        "start_ticks": 48764470,
+        "returncode": 0
+      },
+      {
+        "pid": 2860016,
+        "start_ticks": 48764645,
+        "returncode": 0
+      },
+      {
+        "pid": 2860077,
+        "start_ticks": 48764813,
+        "returncode": 0
+      },
+      {
+        "pid": 2860095,
+        "start_ticks": 48764918,
+        "returncode": 0
+      },
+      {
+        "pid": 2860157,
+        "start_ticks": 48765320,
+        "returncode": 0
+      },
+      {
+        "pid": 2860314,
+        "start_ticks": 48765485,
+        "returncode": 0
+      },
+      {
+        "pid": 2860319,
+        "start_ticks": 48765587,
+        "returncode": 0
+      },
+      {
+        "pid": 2860398,
+        "start_ticks": 48765698,
+        "returncode": 0
+      },
+      {
+        "pid": 2860437,
+        "start_ticks": 48765866,
+        "returncode": 0
+      },
+      {
+        "pid": 2860442,
+        "start_ticks": 48765964,
+        "returncode": 0
+      },
+      {
+        "pid": 2860443,
+        "start_ticks": 48765978,
+        "returncode": 0
+      },
+      {
+        "pid": 2860662,
+        "start_ticks": 48766093,
+        "returncode": 0
+      },
+      {
+        "pid": 2860798,
+        "start_ticks": 48766355,
+        "returncode": 0
+      },
+      {
+        "pid": 2860976,
+        "start_ticks": 48766384,
+        "returncode": 0
+      },
+      {
+        "pid": 2861012,
+        "start_ticks": 48766475,
+        "returncode": 0
+      },
+      {
+        "pid": 2861024,
+        "start_ticks": 48766664,
+        "returncode": 0
+      },
+      {
+        "pid": 2861028,
+        "start_ticks": 48766718,
+        "returncode": 0
+      },
+      {
+        "pid": 2861045,
+        "start_ticks": 48766841,
+        "returncode": 0
+      },
+      {
+        "pid": 2861067,
+        "start_ticks": 48767172,
+        "returncode": 0
+      },
+      {
+        "pid": 2861078,
+        "start_ticks": 48767311,
+        "returncode": 0
+      },
+      {
+        "pid": 2861426,
+        "start_ticks": 48767755,
+        "returncode": 0
+      },
+      {
+        "pid": 2861474,
+        "start_ticks": 48767972,
+        "returncode": 0
+      },
+      {
+        "pid": 2862254,
+        "start_ticks": 48768525,
+        "returncode": 0
+      },
+      {
+        "pid": 2862268,
+        "start_ticks": 48768787,
+        "returncode": 0
+      },
+      {
+        "pid": 2862585,
+        "start_ticks": 48769317,
+        "returncode": 0
+      },
+      {
+        "pid": 2862841,
+        "start_ticks": 48769607,
+        "returncode": 0
+      },
+      {
+        "pid": 2862901,
+        "start_ticks": 48770131,
+        "returncode": 0
+      },
+      {
+        "pid": 2863213,
+        "start_ticks": 48770434,
+        "returncode": 0
+      },
+      {
+        "pid": 2863457,
+        "start_ticks": 48770992,
+        "returncode": 0
+      }
+    ]
+  },
+  "terminal_exit": {
+    "pid": 2855200,
+    "start_ticks": 48755417,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "explicit_ui_exit0_proven": false,
+  "key_windows": [
+    {
+      "action": "input-held-up",
+      "start_ns": 487578139051854,
+      "end_ns": 487579922672573,
+      "key": "Prior",
+      "start_video_seconds": 22.671968686,
+      "end_video_seconds": 24.455589405
+    },
+    {
+      "action": "input-held-down",
+      "start_ns": 487600674779104,
+      "end_ns": 487602451672112,
+      "key": "Next",
+      "start_video_seconds": 45.207695936,
+      "end_video_seconds": 46.984588944
+    },
+    {
+      "action": "history-up",
+      "start_ns": 487610597694691,
+      "end_ns": 487612426566394,
+      "key": "Prior",
+      "start_video_seconds": 55.130611523,
+      "end_video_seconds": 56.959483226
+    },
+    {
+      "action": "history-down",
+      "start_ns": 487615998701512,
+      "end_ns": 487617818981381,
+      "key": "Next",
+      "start_video_seconds": 60.531618344,
+      "end_video_seconds": 62.351898213
+    },
+    {
+      "action": "reverse",
+      "start_ns": 487621340702100,
+      "end_ns": 487623073212172,
+      "key": "Prior",
+      "start_video_seconds": 65.873618932,
+      "end_video_seconds": 67.606129004
+    }
+  ],
+  "writer_phases": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 75,
+        "median_ms": 18.12,
+        "p95_ms": 39.86,
+        "p99_ms": 161.75,
+        "max_ms": 202.87
+      },
+      "writer_receipts": 76
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 87,
+        "median_ms": 17.24,
+        "p95_ms": 36.63,
+        "p99_ms": 83.41,
+        "max_ms": 98.75
+      },
+      "writer_receipts": 88
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 90,
+        "median_ms": 16.96,
+        "p95_ms": 33.32,
+        "p99_ms": 105.77,
+        "max_ms": 125.85
+      },
+      "writer_receipts": 91
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 98,
+        "median_ms": 16.88,
+        "p95_ms": 30.92,
+        "p99_ms": 49.23,
+        "max_ms": 99.03
+      },
+      "writer_receipts": 99
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 90,
+        "median_ms": 17.34,
+        "p95_ms": 32.99,
+        "p99_ms": 38.68,
+        "max_ms": 83.17
+      },
+      "writer_receipts": 91
+    }
+  ],
+  "writer_scope": "native writer callbacks, not pixel FPS, input-to-pixel delay or a smoothness proof",
+  "profile": {
+    "sample_count": 1137,
+    "sampling_errors": 2,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "alignment_nominal_uncertainty_seconds": 0.06808652751264163
+  },
+  "marker_ui_cpu": {
+    "warm-ready": 102.43761134762994,
+    "sidebar-revealed": 31.220695525040554,
+    "warm-start": 23.135561437967837,
+    "draft": 26.52477776679847,
+    "travel-start": 25.121635044193134,
+    "input-held-up": 78.20071450029504,
+    "input-held-up-done": 23.35240831323357,
+    "input-mid-history-idle-done": 24.6192774323179,
+    "input-held-down": 61.641261716985596,
+    "input-held-down-done": 25.190942398927568,
+    "focused": 23.23221380645049,
+    "up": 71.7954581732314,
+    "up-done": 49.39605511166196,
+    "down": 66.31723746675861,
+    "down-done": 22.684900183366953,
+    "reverse": 57.895862487657865,
+    "reverse-done": 31.606759986747825,
+    "end": 30.689975813686015,
+    "idle": 21.78604395908256,
+    "idle-done": 24.260209058233514,
+    "switch-b": 47.59850611524589,
+    "b-open": 112.90792131078386,
+    "return-a": 49.86235447449501,
+    "a-return": 25.3985624327411
+  },
+  "cpu_scope": "marker bounds include state export; UI process includes background threads; old comparator Core483/native044 vs current570/915 and evolving source, no causal gain comparison",
+  "motion_review": {
+    "warm_ready_viewed_while_ui_active": true,
+    "moving_viewed_while_ui_active": false,
+    "moving_sheets_encoded_while_recorder_active": true,
+    "moving_viewed_after_ui_closed": true,
+    "bands": [
+      {
+        "path": "/home/ts/.cache/agent-scratch/css35-focus375-public-input-warm-20261003-01/capture/after-viewed-exact-input-up-frames.png",
+        "start": 23.0,
+        "end": 23.8
+      },
+      {
+        "path": "/home/ts/.cache/agent-scratch/css35-focus375-public-input-warm-20261003-01/capture/after-viewed-exact-input-down-frames.png",
+        "start": 45.4,
+        "end": 46.2
+      },
+      {
+        "path": "/home/ts/.cache/agent-scratch/css35-focus375-public-input-warm-20261003-01/capture/after-viewed-exact-reverse-frames.png",
+        "start": 65.9,
+        "end": 66.7
+      }
+    ],
+    "observed": "Readable history/chrome, repeated positions then chunky advances. Correct selected native A chat/draft on return; End idle body readable. No smoothness, complete all-view binding or pixel-hold stall claim.",
+    "during_requirement_missed": true
+  },
+  "full_scope_active": [
+    "144Hz6.944ms",
+    "CPU",
+    "raster",
+    "firstpaint",
+    "cold/warm",
+    "runway",
+    "velocity",
+    "growingEnd",
+    "void",
+    "focus",
+    "busy",
+    "sidebar",
+    "animation",
+    "TC1",
+    "T9",
+    "T4"
+  ]
+}

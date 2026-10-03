@@ -1,0 +1,71 @@
+{
+  "state": "Published once; parent identity readback and ordinary default saved-helper startup/display passed",
+  "pull_request": 372,
+  "source_head": "f1264a46e693cdbd3aa85046c733414332e6b4aa",
+  "merged_commit": "f54c81c2f4b6d5281218f5f5b6c12163f1adcaf3",
+  "merge_observation": "gh pr view 372: MERGED, headRefOid f1264a46e693cdbd3aa85046c733414332e6b4aa",
+  "ready_sha256": "3d057950f8ebc67f94d9221a17e1612f9d3fd07c389799233967bba1703559da",
+  "raw_receipts": {
+    "parent-review.json": "3d31fb25828cf601fd2bb088aaeecc27c1bd63d5be06b5b6a844e8043512b052",
+    "publication-receipt.json": "0c33bead0e1e88d97a419d1c5f641da478fa34a60b165fa70fc2ddb8e8003d5c",
+    "publication-identity-closure.json": "6b7ecde27a1422863dbef7571d088ae0f75465fd8834933b4711400be72de460"
+  },
+  "raw_publication_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publisher_duration_seconds": 43.06269288063049,
+  "owners": 19,
+  "same_births_and_stored_settings": true,
+  "new_process_identities_alive": true,
+  "five_links_and_root_native_match": true,
+  "source_target_schemas_equal": true,
+  "source_target_products_equal": false,
+  "native_915_published": true,
+  "superseded_operation": "new-publication569369371: parent read-only review only; never published",
+  "archive_only": true,
+  "publisher_repeated": false,
+  "readback_repeated": false,
+  "provider_calls": 0,
+  "native_inputs": 0,
+  "scope": "Publication and identity/link/route closure only. No new physical/provider/compaction/smoothness/full S2/S4 claim. Raw receipt phase unchanged; frozen target and operands untouched.",
+  "physical_assessment_sha256": "d14942dcea8b12b9c83713f4bfa10b369ce532e05866dee2aa36bcc7720da884",
+  "raw_physical_receipt_sha256": "44c20d11f4e2a487d3038edf8740cd511f5aaba28d5be67fccd6764a3711e3dc",
+  "physical_duration_seconds": 23.90441749501042,
+  "actual_st_exit": {
+    "pid": 2805299,
+    "start_ticks": 48646188,
+    "returncode": 0
+  },
+  "physical_image_evidence": {
+    "before.png": {
+      "sha256": "4d71aa0d51ed1990ca72ad2ab1c0b54846d7136c64657be1e8a3e56254dc58d8",
+      "bytes": 94170,
+      "original": "/home/ts/.cache/agent-scratch/published569364-helper-default-20261003/capture/before.png"
+    },
+    "after.png": {
+      "sha256": "a1ca2159dbd36291ffe62ab22777132268344d071fb665207e7b32133df8eec5",
+      "bytes": 94188,
+      "original": "/home/ts/.cache/agent-scratch/published569364-helper-default-20261003/capture/after.png"
+    },
+    "before-state.json": {
+      "sha256": "e217536ca017cfc0966f8f0e7a16c7b63fe520651d5839514f5670e54c78a363",
+      "bytes": 1021775,
+      "original": "/home/ts/.cache/agent-scratch/published569364-helper-default-20261003/capture/before-state.json"
+    },
+    "after-state.json": {
+      "sha256": "c05729258d14d11a8bad4510c2c18c6981fd1f632041aa1bb02e92f355cd346f",
+      "bytes": 1021774,
+      "original": "/home/ts/.cache/agent-scratch/published569364-helper-default-20261003/capture/after-state.json"
+    }
+  },
+  "physical_scope": "Default installed assembly and owner attachment/display, together with original affected installed preparation/fork-reader/rendered-body/worker/preference/scorer gates",
+  "physical_limits": [
+    "No fresh provider compaction was performed in this startup journey",
+    "Not a whole-compaction or channel latency claim",
+    "Not held-scrolling motion or 144Hz acceptance",
+    "Original uncertain inputs and earlier failed attempts preserved"
+  ],
+  "protected_holders": [
+    "current302",
+    "previous485",
+    "520 and290 until named release"
+  ]
+}

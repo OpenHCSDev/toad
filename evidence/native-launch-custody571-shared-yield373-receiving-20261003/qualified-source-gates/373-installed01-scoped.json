@@ -1,0 +1,162 @@
+{
+  "qualification": "Scoped cooperative registration/mount ownership checkpoint; not 144Hz or overall smoothness/CPU qualification",
+  "toad_source": "a03022c3ea21da6a5e5c2380b814aea1674be65f",
+  "textual_source": "782db6dc1907f6bb1638bec23e77d6506ddde77c",
+  "core_comparator": "48324afc4d7415afb347cbc1f5f52cfc6820ac73",
+  "native": "044646789787e3d3bcc43391e62c214d94ddffeb528692235c9d35f0db7af968",
+  "production_change": "Existing MessagePump scheduling break before Compose inside original mount completion try/finally; App retains original separate loop-entry break. All App._register/_start_widget/Widget._cover consumers inherit; no extra break/timer/flags/task-factory change.",
+  "source_check": {
+    "native_passed": 48,
+    "seconds": 3.38,
+    "initial_failure": "NO_COLOR shell leaked into existing App test,14passed then nocolor expectation failed; only final check subprocess unsets variable",
+    "source_review": "Kepler read complete startup/mount/cover/prune/AwaitMount/cancellation family, no blocking issue found"
+  },
+  "actual_original_receipt": "/home/ts/.cache/agent-scratch/registration373-text34-public-input-warm-20261003-01/capture/receipt.json",
+  "receipt_unchanged": true,
+  "capture_completed": true,
+  "completed": true,
+  "duration_seconds": 106.12244202202419,
+  "checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "original_owner_unchanged": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "terminal_exit": {
+    "pid": 2760625,
+    "start_ticks": 48548572,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "actual_key_windows_seconds": [
+    [
+      21.722481756,
+      23.48624043
+    ],
+    [
+      43.854430621,
+      45.634430202
+    ],
+    [
+      52.720997418,
+      54.498418091
+    ],
+    [
+      57.899202508,
+      59.673670244
+    ],
+    [
+      63.029078307,
+      64.777534195
+    ]
+  ],
+  "key_window_writer_intervals": [
+    {
+      "action": "held-1-Prior",
+      "intervals": {
+        "count": 77,
+        "median_ms": 17.22,
+        "p95_ms": 35.17,
+        "p99_ms": 133.13,
+        "max_ms": 134.55
+      },
+      "writer_receipts": 78
+    },
+    {
+      "action": "held-2-Next",
+      "intervals": {
+        "count": 91,
+        "median_ms": 17.59,
+        "p95_ms": 30.39,
+        "p99_ms": 79.12,
+        "max_ms": 103.39
+      },
+      "writer_receipts": 92
+    },
+    {
+      "action": "held-3-Prior",
+      "intervals": {
+        "count": 98,
+        "median_ms": 16.7,
+        "p95_ms": 27.86,
+        "p99_ms": 39.33,
+        "max_ms": 129.8
+      },
+      "writer_receipts": 99
+    },
+    {
+      "action": "held-4-Next",
+      "intervals": {
+        "count": 95,
+        "median_ms": 16.57,
+        "p95_ms": 33.35,
+        "p99_ms": 48.28,
+        "max_ms": 105.5
+      },
+      "writer_receipts": 96
+    },
+    {
+      "action": "held-5-Prior",
+      "intervals": {
+        "count": 96,
+        "median_ms": 16.41,
+        "p95_ms": 28.34,
+        "p99_ms": 62.16,
+        "max_ms": 82.96
+      },
+      "writer_receipts": 97
+    }
+  ],
+  "writer_boundary": "Native writer callbacks, not emulator pixel rate/input-to-pixel latency; repeated video frames must be classified with actual travel",
+  "profile": {
+    "GIL_samples": 1060,
+    "sampling_errors": 0,
+    "nominal_alignment_uncertainty_seconds": 0.07154657449340449,
+    "input_up_marker_phase_ui_cpu_percent": 76.58,
+    "input_down_marker_phase_ui_cpu_percent": 59.48,
+    "reverse_marker_phase_ui_cpu_percent": 64.63,
+    "mid_history_idle_ui_cpu_percent": 20.87,
+    "end_idle_ui_cpu_percent": 24.0,
+    "phase_limits": "Marker phases include exports; not exact held-key CPU and not causal comparison to original04"
+  },
+  "visual_review": {
+    "during": "Operator viewed actual warm-ready PNG while recorder/UI active; parent viewed stationary44s consecutive frames while active. Neither is during-moving inspection.",
+    "after": "AFTER completion inspected original48frames Up22.6\u201323.4s,Down44.2\u201345.0s,reverse63.8\u201364.6s (allinside exactkeyheld windows),End68.4\u201369.2s (Endkey68.263824),correctA-returnPNG. Readable history/chrome, repeatedpositions\u2192chunkedmovement; no fluidity/destination-limit claim from repetitions alone.",
+    "required_during_moving_inspection_met": false,
+    "extra_encoder_cleanup_empty": true,
+    "motion_artifacts": [
+      "after-input-held-up-frames.png",
+      "after-input-held-down-frames.png",
+      "after-reverse-frames.png",
+      "after-actual-end-frames.png"
+    ]
+  },
+  "warm_return_click_finish_to_next_writer_ms": 79.465214,
+  "comparison_limit": "79.465ms native cached A-return is not comparable to original04 channel-cold-load1.753561s; NO causal speed gain or overall CPU gain claim.",
+  "remaining": "CSS normalization/component matching, native arrange/layout/paint and sidebar/source publication costs remain; CPU/144Hz/raster/firstpaint/cold/warm/runway/velocity/growingEnd/void/focus/busy/sidebar/animation/TC1/T9/T4 stay active. No repeated unchanged recording."
+}

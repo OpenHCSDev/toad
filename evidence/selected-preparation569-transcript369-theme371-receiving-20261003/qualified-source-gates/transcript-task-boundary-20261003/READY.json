@@ -1,0 +1,49 @@
+{
+  "source_head": "35b85f7c6722227a2e3d14fe1551946e9383e76d",
+  "main_integrated": "d387140610ebf5f10e326ee0a85f96babc62b7b7",
+  "scope": "Independent transcript task declaration and whole consumer import closure; lazy existing native warmup catalog acquisition",
+  "production_additions": 57,
+  "production_deletions": 61,
+  "production_files": 8,
+  "single_declarations": {
+    "TranscriptRenderTask": "src/toad/widgets/transcript_fragments.py",
+    "TranscriptBodyPreparation": "src/toad/widgets/transcript_fragments.py"
+  },
+  "parser_modules": 286,
+  "parse_omissions": [],
+  "installed_source_byte_equal": true,
+  "source_asset_count": 293,
+  "baseline_distributions": 69,
+  "optional_named_packages_present": [],
+  "optional_qualification": "No persistent-renderer extra installed or claimed; warmup import displacement reviewed source-only. Actual local worker and App body publication qualified on normal69. Prior366/368 optional74 evidence preserved, not repeated.",
+  "passed": [
+    {
+      "name": "fragment",
+      "returncode": 0,
+      "elapsed": 1.6172880390076898,
+      "log": "installed-fragment.log"
+    },
+    {
+      "name": "app03",
+      "returncode": 0,
+      "elapsed": 5.727086389961187,
+      "log": "installed-app03.log",
+      "scope": "actual installed App native history, moved fragment task, original native body dispatch, painted tail; no full scroll claim"
+    }
+  ],
+  "negatives": [
+    {
+      "log": "installed-app.log",
+      "failure": "old fixture assistant content string rejected by canonical NativeRecord decoder; fixture migrated to native content array"
+    },
+    {
+      "log": "installed-app02.log",
+      "receipt": "installed-app02.json",
+      "failure": "full navigation timed out60s; no full navigation readiness or product root cause claimed"
+    }
+  ],
+  "public_provider_inputs": 0,
+  "claim_limits": "No physical/default/provider/large-history/performance/fullU2 claim. Native themes/preferences still coupled.",
+  "cleanup": "cleanup.json",
+  "source_metadata_relation": "Normal main370 merged after checks; src/toad production byte-identical to tested084 wheel; only metadata/receiving evidence union. Tests/docs modified afterward."
+}
