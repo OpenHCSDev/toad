@@ -17,3 +17,7 @@ New one-use operation `/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/
 ### Authorized prepublication readback path correction
 
 Parent caught the copied readback path still naming original376operation. The helper now derives its existing operation directory from `__file__`; only that execution member/hash and Ready receipt changed. All package/activation/canonicaloperator/schema/gate bytes unchanged. Earlier driver/Ready saved in the operation pre-readback-path-correction; no publication/readback executed. New Ready SHA b5d578796d110681a6f694a42cc69b2fdf3d9d8e59b3dcaef9b6a030bc08bd9f.
+
+### Normal main382 merge for381 landing
+
+Normal merge preserves main382 cadence implementation and its exact qualified Text38 pin2fff11ab, retaining receiving Corebc15. These prospective repository source/pins differ from the approved immutable stage: installed To ad7af203ae/Text37 remain frozen with original80execution hashes and Ready b5d57879 unchanged. Parent explicitly authorized executing that previously reviewed operation, not rebuilding or claiming the new HEAD is its installed source. The later38 checkpoint stays separate.
