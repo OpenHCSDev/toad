@@ -37,6 +37,11 @@ before native source mutation remains a distinct necessary lifetime; all four
 remaining callers publish a not-yet-mounted TranscriptHistory.
 
 Production four files14+/37-; one existing App cadence consumer migrated to
-the original source-page preparation visitor. This working batch is untested
-and not Ready. Final native three-body/cancellation/reader acceptance and
-changed installed motion are still required; no speed claim.
+the original source-page preparation visitor. This working batch is not Ready. The normal file wheel matches all 320 Toad
+assets; 608 unchanged Core/Textual/diff assets and all69 package versions match
+the original donor. The existing installed native three-body resource App check
+passed (exit0), covering source/style/resize/reentry and disposal. The cadence
+case failed its old history-lock latency expectation: unchanged retained rows
+do not wait on that source-mutation lock. Its original exit1/log remains, and
+the affected delivery-horizon case still needs valid resource contention.
+Changed installed motion remains required; no speed or smoothness claim.
