@@ -254,7 +254,8 @@ async def record_retained(service, project, evidence, environment, *, recording_
                           recording_timeout):
     """Existing original-turn fixture callback; owns no second App or root."""
     seed_channel(service, project)
-    env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project))
+    env = dict(environment, L0A_HEADLESS='0', TOAD_HISTORY_LIFETIME_DIRECTORY=str(project),
+               XDG_STATE_HOME=str(evidence / 'ui-state'))
     env.pop('NO_COLOR', None)
     runtime = Path(sys.executable).parent
     env['AGENT_COMMS_RUNTIME_ROOT'] = str(runtime)
