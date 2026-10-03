@@ -1,0 +1,431 @@
+{
+  "frontend_head": "816036e5baba552f10708d0958cdefa743c3143e",
+  "scope": "Existing context node/read/search/resource consumer family",
+  "roots": [
+    {
+      "root": "src/toad",
+      "parsed": 289,
+      "unparsed": []
+    },
+    {
+      "root": "tests",
+      "parsed": 392,
+      "unparsed": []
+    }
+  ],
+  "references": [
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 25,
+      "kind": "ClassDef",
+      "source": "class ContextNode(ABC):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 58,
+      "kind": "ClassDef",
+      "source": "class ReferenceNode(ContextNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 115,
+      "kind": "ClassDef",
+      "source": "class NativeSegmentNode(ContextNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 141,
+      "kind": "ClassDef",
+      "source": "class NativeDetail(MroProjection):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 157,
+      "kind": "ClassDef",
+      "source": "class NativeMessageNode(NativeSegmentNode):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 229,
+      "kind": "ClassDef",
+      "source": "class ContextInspection:"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 36,
+      "kind": "FunctionDef",
+      "source": "    def detail(self) -> str:"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 39,
+      "kind": "FunctionDef",
+      "source": "    def public_text(self) -> str:"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 43,
+      "kind": "FunctionDef",
+      "source": "    def find(self, query: str):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 50,
+      "kind": "FunctionDef",
+      "source": "    def export(self, destination: Path):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 65,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 86,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 107,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 130,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 137,
+      "kind": "FunctionDef",
+      "source": "    def public_text(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 167,
+      "kind": "FunctionDef",
+      "source": "    def public_text(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 174,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 199,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 224,
+      "kind": "FunctionDef",
+      "source": "    def detail(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 248,
+      "kind": "FunctionDef",
+      "source": "    def recorded(self):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 255,
+      "kind": "FunctionDef",
+      "source": "    def find(self, native, query: str, *, limit=100):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 263,
+      "kind": "AsyncFunctionDef",
+      "source": "    async def native(self, comms):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 277,
+      "kind": "FunctionDef",
+      "source": "    def active(context: NativeContextData):"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 52,
+      "kind": "Call",
+      "source": "        detail = self.detail()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 188,
+      "kind": "Call",
+      "source": "        return NativeSegmentNode(self.key, segment)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 179,
+      "kind": "Call",
+      "source": "        return f\"{super().detail()}\\n\\n{usage}\" if usage else super().detail()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 260,
+      "kind": "Call",
+      "source": "        nodes = self.active(native) if native is not None else ()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 48,
+      "kind": "Call",
+      "source": "            yield from child.find(query)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 132,
+      "kind": "Call",
+      "source": "            ReferenceNode(f\"{self.key}/source/{i}\", source).detail()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 135,
+      "kind": "Call",
+      "source": "        return f\"{self.label}\\n\\n{self.public_text()}\\n\\nSources:\\n{sources}\""
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 138,
+      "kind": "Call",
+      "source": "        return NativeDetail().dispatch_sync(self.segment)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 220,
+      "kind": "Call",
+      "source": "        return tuple(NativeMessageNode(f\"{self.key}/message/{i}\", segment=self.segment,"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 45,
+      "kind": "Call",
+      "source": "        if query in self.public_text().casefold():"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 82,
+      "kind": "Call",
+      "source": "            *(ReferenceNode(f\"{self.key}/source/{i}\", source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 126,
+      "kind": "Call",
+      "source": "            *(ReferenceNode(f\"{self.key}/source/{i}\", source)"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 179,
+      "kind": "Call",
+      "source": "        return f\"{super().detail()}\\n\\n{usage}\" if usage else super().detail()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 132,
+      "kind": "Call",
+      "source": "            ReferenceNode(f\"{self.key}/source/{i}\", source).detail()"
+    },
+    {
+      "path": "src/toad/core/context_inspection.py",
+      "line": 261,
+      "kind": "Call",
+      "source": "        return tuple(islice((match for node in nodes for match in node.find(normalized)), limit))"
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "line": 318,
+      "kind": "ImportFrom",
+      "source": "        from toad.widgets.context_explorer import ContextExplorer"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 15,
+      "kind": "ImportFrom",
+      "source": "from toad.core.context_inspection import ContextInspection, ContextNode"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 23,
+      "kind": "ClassDef",
+      "source": "class ContextTreeIntent:"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 30,
+      "kind": "ClassDef",
+      "source": "class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 193,
+      "kind": "FunctionDef",
+      "source": "    def _present(self, inspection, native):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 214,
+      "kind": "FunctionDef",
+      "source": "    def _restore_reader(self, placeholder):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 248,
+      "kind": "AsyncFunctionDef",
+      "source": "    async def _search(self, inspection, native, query):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 271,
+      "kind": "FunctionDef",
+      "source": "    def _searching(self, inspection, native, query):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 278,
+      "kind": "AsyncFunctionDef",
+      "source": "    async def action_read_full(self):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 295,
+      "kind": "AsyncFunctionDef",
+      "source": "    async def action_copy(self):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 311,
+      "kind": "AsyncFunctionDef",
+      "source": "    async def action_export(self):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 379,
+      "kind": "AsyncFunctionDef",
+      "source": "    async def _show_detail(self, model):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 212,
+      "kind": "Call",
+      "source": "        self._restore_reader(\"Select a context segment to inspect.\")"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 269,
+      "kind": "Call",
+      "source": "        self._restore_reader(\"Select a matching original source to read its full public text.\")"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 186,
+      "kind": "Call",
+      "source": "            self._present(self._inspection, native)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 195,
+      "kind": "Call",
+      "source": "            self._search(inspection, native, self.intent.query)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 210,
+      "kind": "Call",
+      "source": "            for model in inspection.recorded():"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 242,
+      "kind": "Call",
+      "source": "            self._present(self._inspection, self._native)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 257,
+      "kind": "Call",
+      "source": "        if not self._searching(inspection, native, query):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 334,
+      "kind": "Call",
+      "source": "            self._show_detail(model)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 370,
+      "kind": "Call",
+      "source": "            self._show_detail(event.node.data)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 154,
+      "kind": "Call",
+      "source": "                self._present(inspection, self._native)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 174,
+      "kind": "Call",
+      "source": "            native = await inspection.native(service)"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 207,
+      "kind": "Call",
+      "source": "                for model in inspection.active(native):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 254,
+      "kind": "Call",
+      "source": "            if self._searching(inspection, native, query):"
+    },
+    {
+      "path": "src/toad/widgets/context_explorer.py",
+      "line": 284,
+      "kind": "Call",
+      "source": "            await self._show_detail(model).wait()"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 118,
+      "kind": "ImportFrom",
+      "source": "        from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 121,
+      "kind": "Call",
+      "source": "        return ContextExplorer(screen._comms_thread, screen.coordination_root, intent=intent)"
+    },
+    {
+      "path": "src/toad/widgets/session_thread_panels.py",
+      "line": 120,
+      "kind": "Call",
+      "source": "        intent = self.intents.setdefault(key, ContextTreeIntent())"
+    }
+  ],
+  "limits": [
+    "AST identifies lexical consumers; dynamic dispatch and runtime MRO require semantic source reading.",
+    "Backend contributor/source exposure is unresolved and owned by Arendt; no historical text reconstructed.",
+    "This is source evidence, not installed application acceptance."
+  ],
+  "removed": [
+    "DETAIL_CHARACTERS / detail_characters",
+    "Unconditional archived-context-not-supplied leaf",
+    "Raw NativeMessageNode mapping reads",
+    "Independent browsing/search reader-restoration orchestration"
+  ]
+}
