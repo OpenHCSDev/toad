@@ -1,11 +1,44 @@
 {
   "src/toad": {
-    "modules": 288,
+    "modules": 287,
     "unparsed": [],
     "families": [
       {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 43,
+        "name": "SurfaceBinding",
+        "bases": [
+          "DeclaredFamily"
+        ],
+        "members": [
+          "owns",
+          "prepare",
+          "prepare_terminal",
+          "present_permission",
+          "permission_changed",
+          "present_failure",
+          "schedule_terminal_presentation",
+          "publish_terminal",
+          "post",
+          "close"
+        ],
+        "fields": []
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 78,
+        "name": "DetachedSurfaceBinding",
+        "bases": [
+          "SurfaceBinding"
+        ],
+        "members": [
+          "post"
+        ],
+        "fields": []
+      },
+      {
         "path": "src/toad/agent_surface.py",
-        "line": 13,
+        "line": 11,
         "name": "AttachedSurfaceBinding",
         "bases": [
           "SurfaceBinding",
@@ -15,11 +48,6 @@
           "__init__",
           "prepare",
           "prepare_terminal",
-          "prepare_shell",
-          "present_shell",
-          "show_shell_command",
-          "show_shell_terminal",
-          "shell_failed",
           "present_failure",
           "show_failure_help",
           "show_failure_log",
@@ -39,7 +67,7 @@
       },
       {
         "path": "src/toad/session_presentation.py",
-        "line": 89,
+        "line": 88,
         "name": "OperationalSessionSources",
         "bases": [],
         "members": [
@@ -53,7 +81,7 @@
       },
       {
         "path": "src/toad/shell.py",
-        "line": 36,
+        "line": 40,
         "name": "Shell",
         "bases": [
           "ShellOperationalSource"
@@ -78,24 +106,26 @@
       },
       {
         "path": "src/toad/shell_output.py",
-        "line": 8,
+        "line": 15,
         "name": "ShellOutput",
         "bases": [
           "ABC"
         ],
         "members": [
+          "present",
           "detach"
         ],
         "fields": []
       },
       {
         "path": "src/toad/shell_output.py",
-        "line": 14,
+        "line": 24,
         "name": "ShellCommandOutput",
         "bases": [
           "ShellOutput"
         ],
         "members": [
+          "present",
           "detach"
         ],
         "fields": [
@@ -104,14 +134,14 @@
       },
       {
         "path": "src/toad/shell_output.py",
-        "line": 21,
+        "line": 34,
         "name": "ShellTerminalOutput",
         "bases": [
           "ShellOutput"
         ],
         "members": [
           "__init__",
-          "attach",
+          "present",
           "project",
           "focus",
           "finalize",
@@ -121,7 +151,7 @@
       },
       {
         "path": "src/toad/shell_source.py",
-        "line": 13,
+        "line": 17,
         "name": "ShellOperationalSource",
         "bases": [
           "ABC"
@@ -139,44 +169,8 @@
         "fields": []
       },
       {
-        "path": "src/toad/surface_binding.py",
-        "line": 7,
-        "name": "SurfaceBinding",
-        "bases": [
-          "DeclaredFamily"
-        ],
-        "members": [
-          "owns",
-          "prepare",
-          "prepare_terminal",
-          "prepare_shell",
-          "present_shell",
-          "shell_failed",
-          "present_permission",
-          "permission_changed",
-          "present_failure",
-          "schedule_terminal_presentation",
-          "publish_terminal",
-          "post",
-          "close"
-        ],
-        "fields": []
-      },
-      {
-        "path": "src/toad/surface_binding.py",
-        "line": 51,
-        "name": "DetachedSurfaceBinding",
-        "bases": [
-          "SurfaceBinding"
-        ],
-        "members": [
-          "post"
-        ],
-        "fields": []
-      },
-      {
         "path": "src/toad/widgets/shell_result.py",
-        "line": 15,
+        "line": 14,
         "name": "ShellResult",
         "bases": [
           "ConversationBlock",
@@ -193,262 +187,190 @@
     ],
     "sites": [
       {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 43,
+        "kind": "ClassDef",
+        "source": "class SurfaceBinding(DeclaredFamily, affix='SurfaceBinding'):"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 78,
+        "kind": "ClassDef",
+        "source": "class DetachedSurfaceBinding(SurfaceBinding):"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 78,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 105,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 105,
+        "kind": "Name",
+        "source": "DetachedSurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 125,
+        "kind": "Name",
+        "source": "SurfaceBinding"
+      },
+      {
+        "path": "src/toad/acp/agent_controller.py",
+        "line": 142,
+        "kind": "Name",
+        "source": "DetachedSurfaceBinding"
+      },
+      {
         "path": "src/toad/acp/maintenance_ingress.py",
         "line": 17,
         "kind": "ImportFrom",
         "source": "from .shell_command import ShellCommand"
       },
       {
-        "path": "src/toad/acp/terminal_owner.py",
-        "line": 12,
-        "kind": "ImportFrom",
-        "source": "from toad.surface_binding import SurfaceBinding"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 7,
-        "kind": "ImportFrom",
-        "source": "from toad.surface_binding import SurfaceBinding"
-      },
-      {
         "path": "src/toad/agent_surface.py",
         "line": 11,
-        "kind": "ImportFrom",
-        "source": "from toad.shell_output import ShellCommandOutput, ShellTerminalOutput"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 13,
         "kind": "ClassDef",
         "source": "class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):"
       },
       {
         "path": "src/toad/agent_surface.py",
-        "line": 13,
+        "line": 11,
         "kind": "Name",
         "source": "SurfaceBinding"
       },
       {
-        "path": "src/toad/agent_surface.py",
-        "line": 40,
-        "kind": "ImportFrom",
-        "source": "from toad.widgets.shell_result import ShellResult"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 38,
-        "kind": "Name",
-        "source": "ShellCommandOutput"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 48,
-        "kind": "ImportFrom",
-        "source": "from toad.widgets.shell_terminal import ShellTerminal"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 45,
-        "kind": "Name",
-        "source": "ShellTerminalOutput"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 43,
-        "kind": "Name",
-        "source": "ShellResult"
-      },
-      {
-        "path": "src/toad/agent_surface.py",
-        "line": 42,
-        "kind": "Name",
-        "source": "ShellResult"
-      },
-      {
         "path": "src/toad/session_presentation.py",
-        "line": 13,
-        "kind": "ImportFrom",
-        "source": "from toad.agent_surface import AttachedSurfaceBinding"
-      },
-      {
-        "path": "src/toad/session_presentation.py",
-        "line": 89,
+        "line": 88,
         "kind": "ClassDef",
         "source": "class OperationalSessionSources:"
       },
       {
         "path": "src/toad/session_presentation.py",
-        "line": 142,
+        "line": 141,
         "kind": "Name",
         "source": "OperationalSessionSources"
       },
       {
-        "path": "src/toad/session_presentation.py",
-        "line": 107,
-        "kind": "Name",
-        "source": "AttachedSurfaceBinding"
-      },
-      {
         "path": "src/toad/shell.py",
-        "line": 13,
-        "kind": "ImportFrom",
-        "source": "from toad.surface_binding import SurfaceBinding"
-      },
-      {
-        "path": "src/toad/shell.py",
-        "line": 16,
+        "line": 17,
         "kind": "ImportFrom",
         "source": "from toad.shell_read import shell_read"
       },
       {
         "path": "src/toad/shell.py",
-        "line": 19,
+        "line": 20,
         "kind": "ImportFrom",
         "source": "from toad.shell_output import ShellCommandOutput, ShellTerminalOutput"
       },
       {
         "path": "src/toad/shell.py",
-        "line": 20,
+        "line": 21,
         "kind": "ImportFrom",
         "source": "from toad.shell_source import ShellOperationalSource"
       },
       {
         "path": "src/toad/shell.py",
-        "line": 36,
+        "line": 40,
         "kind": "ClassDef",
         "source": "class Shell(ShellOperationalSource):"
       },
       {
         "path": "src/toad/shell.py",
-        "line": 36,
+        "line": 40,
         "kind": "Name",
         "source": "ShellOperationalSource"
       },
       {
         "path": "src/toad/shell.py",
-        "line": 118,
+        "line": 121,
         "kind": "Name",
         "source": "ShellCommandOutput"
       },
       {
         "path": "src/toad/shell.py",
-        "line": 158,
-        "kind": "Name",
-        "source": "SurfaceBinding"
-      },
-      {
-        "path": "src/toad/shell.py",
-        "line": 275,
+        "line": 280,
         "kind": "Name",
         "source": "ShellTerminalOutput"
       },
       {
         "path": "src/toad/shell_output.py",
         "line": 8,
+        "kind": "ImportFrom",
+        "source": "from toad.widgets.shell_result import ShellResult"
+      },
+      {
+        "path": "src/toad/shell_output.py",
+        "line": 15,
         "kind": "ClassDef",
         "source": "class ShellOutput(ABC):"
       },
       {
         "path": "src/toad/shell_output.py",
-        "line": 14,
+        "line": 24,
         "kind": "ClassDef",
         "source": "@dataclass"
       },
       {
         "path": "src/toad/shell_output.py",
-        "line": 21,
+        "line": 34,
         "kind": "ClassDef",
         "source": "class ShellTerminalOutput(ShellOutput):"
       },
       {
         "path": "src/toad/shell_output.py",
-        "line": 14,
+        "line": 24,
         "kind": "Name",
         "source": "ShellOutput"
       },
       {
         "path": "src/toad/shell_output.py",
+        "line": 34,
+        "kind": "Name",
+        "source": "ShellOutput"
+      },
+      {
+        "path": "src/toad/shell_output.py",
+        "line": 28,
+        "kind": "Name",
+        "source": "ShellResult"
+      },
+      {
+        "path": "src/toad/shell_source.py",
+        "line": 11,
+        "kind": "ImportFrom",
+        "source": "from toad.shell_output import ShellOutput, ShellTerminalOutput"
+      },
+      {
+        "path": "src/toad/shell_source.py",
+        "line": 17,
+        "kind": "ClassDef",
+        "source": "class ShellOperationalSource(ABC):"
+      },
+      {
+        "path": "src/toad/shell_source.py",
         "line": 21,
         "kind": "Name",
         "source": "ShellOutput"
       },
       {
         "path": "src/toad/shell_source.py",
-        "line": 8,
-        "kind": "ImportFrom",
-        "source": "from toad.surface_binding import SurfaceBinding, DetachedSurfaceBinding"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 10,
-        "kind": "ImportFrom",
-        "source": "from toad.shell_output import ShellOutput, ShellTerminalOutput"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 13,
-        "kind": "ClassDef",
-        "source": "class ShellOperationalSource(ABC):"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 16,
-        "kind": "Name",
-        "source": "SurfaceBinding"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 16,
-        "kind": "Name",
-        "source": "DetachedSurfaceBinding"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 17,
-        "kind": "Name",
-        "source": "ShellOutput"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 18,
+        "line": 22,
         "kind": "Name",
         "source": "ShellTerminalOutput"
       },
       {
         "path": "src/toad/shell_source.py",
-        "line": 34,
-        "kind": "Name",
-        "source": "SurfaceBinding"
-      },
-      {
-        "path": "src/toad/shell_source.py",
         "line": 51,
         "kind": "Name",
         "source": "ShellOutput"
-      },
-      {
-        "path": "src/toad/shell_source.py",
-        "line": 47,
-        "kind": "Name",
-        "source": "DetachedSurfaceBinding"
-      },
-      {
-        "path": "src/toad/surface_binding.py",
-        "line": 7,
-        "kind": "ClassDef",
-        "source": "class SurfaceBinding(DeclaredFamily, affix='SurfaceBinding'):"
-      },
-      {
-        "path": "src/toad/surface_binding.py",
-        "line": 51,
-        "kind": "ClassDef",
-        "source": "class DetachedSurfaceBinding(SurfaceBinding):"
-      },
-      {
-        "path": "src/toad/surface_binding.py",
-        "line": 51,
-        "kind": "Name",
-        "source": "SurfaceBinding"
       },
       {
         "path": "src/toad/terminal_execution.py",
@@ -488,12 +410,6 @@
       },
       {
         "path": "src/toad/widgets/conversation.py",
-        "line": 2019,
-        "kind": "ImportFrom",
-        "source": "from toad.agent_surface import AttachedSurfaceBinding"
-      },
-      {
-        "path": "src/toad/widgets/conversation.py",
         "line": 406,
         "kind": "Name",
         "source": "Shell"
@@ -506,33 +422,15 @@
       },
       {
         "path": "src/toad/widgets/conversation.py",
-        "line": 2024,
+        "line": 2022,
         "kind": "Name",
         "source": "Shell"
       },
       {
-        "path": "src/toad/widgets/conversation.py",
-        "line": 2028,
-        "kind": "Name",
-        "source": "AttachedSurfaceBinding"
-      },
-      {
         "path": "src/toad/widgets/shell_result.py",
-        "line": 12,
-        "kind": "ImportFrom",
-        "source": "from toad.shell_output import ShellCommandOutput"
-      },
-      {
-        "path": "src/toad/widgets/shell_result.py",
-        "line": 15,
+        "line": 14,
         "kind": "ClassDef",
         "source": "class ShellResult(ConversationBlock, CheckpointBarrier, containers.HorizontalGroup):"
-      },
-      {
-        "path": "src/toad/widgets/shell_result.py",
-        "line": 18,
-        "kind": "Name",
-        "source": "ShellCommandOutput"
       },
       {
         "path": "src/toad/widgets/terminal_tool.py",
@@ -555,75 +453,33 @@
     "sites": [
       {
         "path": "tests/blank_presentation_pilot.py",
-        "line": 19,
+        "line": 17,
         "kind": "ImportFrom",
         "source": "from toad.shell_output import ShellTerminalOutput"
       },
       {
         "path": "tests/blank_presentation_pilot.py",
-        "line": 20,
-        "kind": "ImportFrom",
-        "source": "from toad.widgets.shell_result import ShellResult"
-      },
-      {
-        "path": "tests/blank_presentation_pilot.py",
-        "line": 95,
-        "kind": "Name",
-        "source": "ShellResult"
-      },
-      {
-        "path": "tests/blank_presentation_pilot.py",
-        "line": 121,
-        "kind": "Name",
-        "source": "ShellResult"
-      },
-      {
-        "path": "tests/blank_presentation_pilot.py",
-        "line": 113,
+        "line": 102,
         "kind": "Name",
         "source": "ShellTerminalOutput"
       },
       {
         "path": "tests/blank_presentation_pilot.py",
-        "line": 126,
+        "line": 109,
         "kind": "Name",
         "source": "ShellTerminalOutput"
       },
       {
         "path": "tests/blank_presentation_pilot.py",
-        "line": 128,
+        "line": 99,
         "kind": "Name",
         "source": "ShellTerminalOutput"
-      },
-      {
-        "path": "tests/blank_presentation_pilot.py",
-        "line": 135,
-        "kind": "Name",
-        "source": "ShellTerminalOutput"
-      },
-      {
-        "path": "tests/blank_presentation_pilot.py",
-        "line": 110,
-        "kind": "Name",
-        "source": "ShellTerminalOutput"
-      },
-      {
-        "path": "tests/late_native_after_join_pilot.py",
-        "line": 20,
-        "kind": "ImportFrom",
-        "source": "from toad.agent_surface import AttachedSurfaceBinding"
       },
       {
         "path": "tests/late_native_after_join_pilot.py",
         "line": 76,
         "kind": "Name",
         "source": "AttachedSurfaceBinding"
-      },
-      {
-        "path": "tests/late_native_application_pilot.py",
-        "line": 20,
-        "kind": "ImportFrom",
-        "source": "from toad.agent_surface import AttachedSurfaceBinding"
       },
       {
         "path": "tests/late_native_application_pilot.py",
@@ -641,7 +497,7 @@
       "src/toad/agent_surface.py"
     ],
     "SurfaceBinding": [
-      "src/toad/surface_binding.py"
+      "src/toad/acp/agent_controller.py"
     ],
     "OperationalSessionSources": [
       "src/toad/session_presentation.py"
@@ -656,7 +512,7 @@
       "src/toad/shell_source.py"
     ],
     "DetachedSurfaceBinding": [
-      "src/toad/surface_binding.py"
+      "src/toad/acp/agent_controller.py"
     ],
     "ShellResult": [
       "src/toad/widgets/shell_result.py"

@@ -1,0 +1,7 @@
+{
+  "terminal_paint": "                                                     \nowned-shell-marker                                   \n/bin/sh: 3: busy-shell-input: Permission denied      \n                                                     \n                                                     \n                                                     ",
+  "directory_changed_through_original_stream": true,
+  "same_shell_task_process_model": true,
+  "active_shell_subscriptions": 1,
+  "provider_calls": 0
+}
