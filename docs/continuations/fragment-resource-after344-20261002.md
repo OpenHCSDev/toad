@@ -242,3 +242,36 @@ mention candidates and participant-bar preparation are distinct consumers and
 are not claimed migrated by this sidebar batch. Source batch is published WIP;
 batched resource sanity and the affected installed UI journey follow. It is not
 a measured improvement or smoothness claim.
+
+## PR352: reuse captured people across member groups
+
+Original04 contains native arrangement/style/layout stacks and sidebar source
+publication. Reading that publication showed it captured all people once for
+activity/width, then captured the same people again for every expanded channel
+and relationship group. Those repeated process-identity reads and preparation
+handoffs are now deleted. ThreadRowsWork.for_rows derives only each row's unread,
+pin and action decoration from the publication's captured people. Both leaf
+families consume that cohort. SidebarGroup still owns a fresh capture under its
+member lock for an independent disclosure change, using the original leaf's
+people hook. The relationship publication resolves each named person once even
+when it occurs in several groups. No cohort or lookup is retained in a widget.
+
+This batch deletes18 production lines and adds48 across five existing files.
+NRA parsed286/286 production modules before and after; both SidebarGroup leaves,
+publication calls, disclosure calls and direct test consumers were migrated.
+Call spelling is source evidence, not proof of dynamic resolution. Existing maps
+are `sidebar-cohort-before.json` and `sidebar-cohort-after.json` under the owned
+fragment-resource-after344 artifacts. This removes repeated IMPL-12 work, rather
+than introducing another presentation owner.
+
+Batched source output sanity passed:60 rows,16 requests,15 hits/one miss,
+14,745 retained bytes; worker-result delivery median0.97ms/max4.70ms. Unread,
+pin and action decoration matches the original prepared Content/tooltip. This
+is not a comparison of physical frame latency or CPU. The source App disclosure
+check reached channel member publication/collapse/expansion but exited1 when
+ContextExplorer.on_mount subscribed to the deleted app.coordination_observed
+signal. Einstein was given that separate event-consumer closure; the relationship
+disclosure portion and whole App exit are not claimed passed. The e55 installed
+package and Kepler's joint355 gate remain frozen and exclude this follow-on
+source. PR352 stays draft until the affected installed sidebar workflow is
+qualified; original04 and all broader performance scope remain unchanged.

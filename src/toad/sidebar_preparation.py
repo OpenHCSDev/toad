@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from agent_comms.presentation import ThreadView
@@ -98,6 +99,13 @@ class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
     @property
     def inputs(self) -> tuple[ThreadRowPresentation, ...]:
         return self.rows
+
+    def for_rows[Key](self, rows: Mapping[Key, ThreadRowInput]) -> dict[Key, ThreadRowPresentation]:
+        """Project row-local decoration from this publication's captured people."""
+        people = {row.name: row for row in self.rows}
+        return {key: replace(people[row.person.thread.name], unread=row.unread,
+                             pinned=row.pinned, action_status=row.action_status)
+                for key, row in rows.items()}
 
     @property
     def content_width(self) -> int:

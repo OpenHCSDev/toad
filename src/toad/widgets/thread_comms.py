@@ -118,12 +118,16 @@ class RelationshipRows(SidebarGroup):
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
-    async def update_group(self, model: RelationshipGroup) -> None:
+    async def update_group(self, model: RelationshipGroup, captured: ThreadRowsWork) -> None:
         async with self.member_lock:
             self.model = model
-            await self._reconcile_members()
+            await self._reconcile_members(captured)
 
-    async def _reconcile_members(self) -> None:
+    def thread_people(self):
+        return {entry.person.thread.name: entry.person for entry in self.model.entries
+                if entry.person is not None}.values()
+
+    async def _reconcile_members(self, captured: ThreadRowsWork) -> None:
         if not self.is_mounted:
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
@@ -137,7 +141,7 @@ class RelationshipRows(SidebarGroup):
             unread=tree.unread(person_target(entries[key].person)),
             action_status=tree.app.thread_actions.pending.get(entries[key].target),
         ) for key in row_keys} if self.expanded else {}
-        prepared_rows = await self.prepare_thread_rows(inputs, self.rows)
+        prepared_rows = await self.prepare_thread_rows(inputs, self.rows, captured)
         if not self.is_attached or self.model is not model or tree.owner != owner:
             return
         if not self.expanded:
@@ -391,8 +395,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             row_inputs = await ThreadRowsWork.capture(
                 self.app.preparation,
-                tuple(ThreadRowInput(entry.person) for model in snapshot.groups
-                      for entry in model.entries if entry.person is not None),
+                tuple(ThreadRowInput(person) for person in {
+                    entry.person.thread.name: entry.person for model in snapshot.groups
+                    for entry in model.entries if entry.person is not None
+                }.values()),
             )
             if generation != self._generation or not self._visible():
                 return
@@ -420,7 +426,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     glyph = "▾" if group.expanded else "▸"
                     if group.disclosure.content != glyph:
                         group.disclosure.update(glyph, layout=False)
-                    await group.update_group(model)
+                    await group.update_group(model, row_inputs)
                     if generation != self._generation:
                         group.display = False
                         return

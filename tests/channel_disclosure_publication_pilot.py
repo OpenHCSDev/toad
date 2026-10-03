@@ -14,7 +14,7 @@ from unittest.mock import patch
 from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from toad.app import ToadApp
-from toad.sidebar_preparation import ThreadRowsWork
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.thread_comms import ThreadCommsSidebar
@@ -214,7 +214,9 @@ async def main():
                 return await submit(work)
 
             with patch.object(app.preparation, 'submit', count_relationship_rows):
-                await children.update_group(model)
+                captured = await ThreadRowsWork.capture(
+                    app.preparation, tuple(ThreadRowInput(person) for person in children.thread_people()))
+                await children.update_group(model, captured)
             assert relationship_requests == [], relationship_requests
             assert tuple(children.member_container.children) == retained
             children.toggle_members()

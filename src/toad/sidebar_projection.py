@@ -156,7 +156,7 @@ class SidebarProjection:
             group.update_unread(unread)
             group.update_activity(view, row_inputs)
             channel_row.set_class(bool(unread), "-unread")
-            await group.present(view)
+            await group.present(view, row_inputs)
             if not self.sidebar.accepts_publication():
                 return
         ordered = [self.sidebar.query_one(NewSessionButton), *(
