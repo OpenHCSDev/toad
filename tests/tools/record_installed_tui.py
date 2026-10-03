@@ -828,6 +828,21 @@ class InputWarmJourney(WarmScrollJourney):
                 *InputPagingAcceptanceJourney.down_commands(args))
 
     @classmethod
+    def closing_commands(cls, args):
+        commands = super().closing_commands(args)
+        if not args.peer_channel:
+            return commands
+        # The original native channel target uses the same captured roster and
+        # tab custody as the saved-thread journey; no provider input is sent.
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        return (*commands,
+                native_click_command("phase-undo-state.pickle", target="channel", name=args.peer_channel),
+                settle, marker_command() + "channel-open",
+                native_click_command("phase-channel-open-state.pickle", target="original_tab",
+                                     original_state="phase-warm-start-state.pickle"),
+                settle, marker_command() + "native-return")
+
+    @classmethod
     def review(cls, output, receipt):
         return {"warm": super().review(output, receipt),
                 "input": InputPagingAcceptanceJourney.review(output, receipt)}
