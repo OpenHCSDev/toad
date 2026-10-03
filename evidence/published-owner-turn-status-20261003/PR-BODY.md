@@ -1,24 +1,23 @@
-# Published owner turn status
+## What changed
 
-Actual default helper493 replied494; retained after-state sidebar source has
-no active lease, matching finished turn05d3c93ed7920eab91b71b87fdb46826 and
-idle observed activity. The physical chat simultaneously retains Waiting for
-input start. Original ACP log admits that active turn but records no terminal
-notification before capture. No493 replay, public mutation or recovery.
+The actual helper493 operation finished4.989s before the saved UI capture. The original captured sidebar has the same turn finished/idle while chat shows Waiting for input start. The ACP log contains the active notification but no terminal notification before capture. This proves the captured discrepancy, not a permanent deadlock.
 
-Existing declaration/consumer family:AgentController prompt operation lifetime,
-ManagedTurnBinding/TurnOwner, CommsUpdateConsumer/OwnerSnapshotConsumer,
-ConversationTurn, TurnActivity, Prompt, SessionDetails; queue/input and cursor
-have separate original proof owners. Snapshot settlement must not overtake a
-client-owned ordered prompt response. A remotely initiated turn does not imply
-that this frontend owns such a response. Trace and fix that distinction through
-the existing controller/consumer capability; do not patch labels or copy status.
+Removed `OrderedManagedTurn`, `accepts_snapshot`, `turn_class`, the nullable turn-policy argument and `Agent._receive_comms_metadata`. They made backend busy mean that this frontend owned an ordered response, then refused canonical settlement.
 
-Source and AST first. Read full related declaration/consumer paths, reuse existing
-owners, delete displaced stream-vs-turn decisions together. Final validation
-uses a proportionate installed continuous client/saved-source path, not a new
-provider experiment. Original493/capture/readback, current default and other
-agents' sources remain untouched. Same persistent checkout/environment; CI deferred.
+The existing `ManagedTurnBinding` borrows original `TurnState`; all turn views derive from it. The existing `OwnerSnapshotConsumer` takes original goal metadata and `ThreadPresentation.read_identity.thread.turn_state`. Session/process, root/incarnation, publication sequence and matching finished-turn fences remain.
 
-Backend native input/cursor facts are coordinated directly with Mendel. Cursor
-unavailable is not an input disposition and will not be made proven from a reply.
+The original controller's local operation resource now has one lifetime across text, blocks, send-now and manual compaction. Its last release schedules a fresh same-owner read through the existing `AgentProcess` custody, so a read rejected during local input cannot remain stranded. No timer, pending flag, snapshot cache, extra status field, RPC poll or per-widget clear was added. A failed read establishes no settlement or disposition.
+
+## Whole family and deletions
+
+Five production files:92 additions/56 deletions against currentmain363. Stream/new/load/goal/thread reads use the existing typed consumer. All four prompt entrypoints use the same original local custody. `TurnActivity`, Prompt, SessionDetails, throbber, response retirement and transcript settlement already consume the original binding; no independent view status is introduced.
+
+Queue/start receipts remain with `QueueAttachment` and the producer. Human `InputDocument` delivery and managed `NativeRuntimeInput` are distinct originals. Cursor availability remains with the original scope/envelope/proof; a reply does not create a cursor proof. Mendel confirmed no current-admission cursor row, and absence of a human row for managed493 is legitimate. No UNKNOWN/input493 replay, new native enrollment or public owner recovery.
+
+Existing NRA/refactor-audit Package AST evidence covers286 production Toad modules,390 test modules and311 Core dependency modules without parse omissions. Before/after outputs are committed. Lexical evidence does not claim dynamic resolution; the selected family was read semantically. Patterns IDEN-1, IMPL-12, TIME-6.
+
+## Validation and current readiness
+
+Source-first ownership implementation is published. Final source batch:four checks passed; one older guard still opens retired `acp/messages.py`, preserved in `source-sanity.json`. This is not installed acceptance.
+
+The sole affected installed App/ACP check uses the actual configured retained helper source, its recorded original active notification and a genuine canonical read. It also checks a read refused during held local operation custody is automatically reconciled on release. No input/provider call or replay is required. Installed result is pending; original source/capture and cursor warning are protected. CI deferred. No full performance/default-live claim.
