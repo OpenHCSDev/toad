@@ -385,7 +385,12 @@ sys.exit(7)
                     assert "AFTER" in frame and "AFTER_CLEAR" not in frame
                     assert projections[-1]["scrollback"] is None
                     await execution.write_stdin("\n")
-                    await until(pilot, lambda: original_state.scrollback_buffer.line_count == 3)
+                    # The terminal may leave the cursor on a virtual final
+                    # row. Qualify an actual stored blank, not newline count.
+                    await until(pilot, lambda: (
+                        original_state.scrollback_buffer.line_count > 1
+                        and not original_state.scrollback_buffer.lines[-1].content.plain
+                    ))
                     await execution.write_stdin("\n")
                     assert (await rpc("terminal/wait_for_exit", terminalId=terminal_id))["exitCode"] == 7
                     await until(pilot, lambda: terminal.is_finalized)
