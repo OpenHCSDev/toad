@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shlex
 import sys
+from time import monotonic
 from tempfile import TemporaryDirectory
 from typing import get_args
 
@@ -35,6 +36,7 @@ def painted(widget, text):
 
 
 async def main():
+    started = monotonic()
     with TemporaryDirectory(prefix="plan-wire-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
@@ -69,7 +71,7 @@ async def main():
                 for entry, raw in zip(plan.entries, stages[0]["entries"]):
                     assert entry.status is PlanStatus.decode(raw["status"])
                     assert entry.content == raw["content"]
-                    assert entry.status.marker().plain.strip() in viewport_text(plan)
+                    assert entry.status.marker().strip() in viewport_text(plan)
                 await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
                 assert sidebar.query_one(Plan).entries is plan.entries
                 print("ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED", flush=True)
@@ -144,8 +146,16 @@ async def main():
                             agent.controller.plan_entries[0].content == "DETACHED_PLAN_ITEM")
                 await app.select_session(source.id)
                 view = source.conversation
-                await until(pilot, lambda: bool(view.query(Plan)))
-                restored_plan = view.query_one(Plan)
+                # Earlier plans remain chronological conversation blocks when
+                # rejection notes follow them. Select the current controller
+                # publication, never the first retained historical Plan.
+                await until(pilot, lambda: any(
+                    candidate.entries is agent.controller.plan_entries
+                    for candidate in view.query(Plan)))
+                restored_plan = next(candidate for candidate in view.query(Plan)
+                                     if candidate.entries is agent.controller.plan_entries)
+                assert restored_plan is not plan
+                assert plan.entries[0].content == "ACP_pending_ITEM"
                 restored_plan.scroll_visible(animate=False, immediate=True)
                 await until(pilot, lambda: painted(restored_plan, "DETACHED_PLAN_ITEM"))
                 sidebar = await reveal(source, pilot)
@@ -158,6 +168,23 @@ async def main():
                 assert view.prompt.text == "Detached plan draft"
                 assert app._exception is None
                 print("DETACHED_OPERATIONAL_TYPED_PLAN_RETURN_PAINTED_SAME_AGENT_PROCESS_EDITOR", flush=True)
+                if output := os.environ.get("TOAD_TEST_OUTPUT"):
+                    destination = Path(output)
+                    destination.mkdir(parents=True, exist_ok=True)
+                    (destination / "plan-return.svg").write_text(app.export_screenshot())
+                    (destination / "receipt.json").write_text(json.dumps({
+                        "result": "pass",
+                        "elapsed_seconds": monotonic() - started,
+                        "installed_toad": str(files("toad")),
+                        "official_sdk_status_markers_painted": True,
+                        "completion_transition_animated": True,
+                        "existing_completion_static": True,
+                        "empty_reset_and_retired_sidebar_return": True,
+                        "detached_plan_same_source_agent_process_editor": True,
+                        "inputs_to_configured_owners": 0,
+                        "providers": 0,
+                        "scope": "Actual installed App/Pilot and official SDK ACP subprocess; no physical st or provider claim",
+                    }, indent=2) + "\n")
             finally:
                 for index in range(len(stages)):
                     (root / f"plan-advance-{index}").touch()

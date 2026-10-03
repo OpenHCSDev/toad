@@ -1,0 +1,45 @@
+ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED
+ACP_CONTINUOUS_UPDATE_COMPLETION_ANIMATED_STABLE_COMPLETION_RESIZED_AND_PAINTED
+ACP_EMPTY_RESET_INACTIVE_PANEL_REVEAL_AND_ALREADY_COMPLETED_REAPPEARANCE_PAINTED
+PHYSICAL_MALFORMED_STATUS_MISSING_FIELD_WRONG_TYPE_REJECTED_WITH_VISIBLE_NOTES
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/sidebar_retirement_pilot.py", line 35, in until
+    await pilot.pause(.02)
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/plan_status_installed_pilot.py", line 191, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/plan_status_installed_pilot.py", line 152, in main
+    await until(pilot, lambda: painted(restored_plan, "DETACHED_PLAN_ITEM"))
+  File "/home/ts/wt/toad-regression-widget-cost-20261001/tests/sidebar_retirement_pilot.py", line 33, in until
+    async with asyncio.timeout(12):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError

@@ -1,0 +1,11 @@
+Using Python 3.14.2 environment at: /home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002
+   Updating https://github.com/OpenHCSDev/toad.git (5cc5b47d8ad66cc5c118cfa6d65233353711cb86)
+    Updated https://github.com/OpenHCSDev/toad.git (5cc5b47d8ad66cc5c118cfa6d65233353711cb86)
+Resolved 1 package in 1.19s
+   Building batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@5cc5b47d8ad66cc5c118cfa6d65233353711cb86
+      Built batrachian-toad @ git+https://github.com/OpenHCSDev/toad.git@5cc5b47d8ad66cc5c118cfa6d65233353711cb86
+Prepared 1 package in 468ms
+Uninstalled 1 package in 10ms
+Installed 1 package in 9ms
+ - batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@06d5d60a43cc06a185e6e0dafecceb51a8c9604c)
+ + batrachian-toad==0.6.20 (from git+https://github.com/OpenHCSDev/toad.git@5cc5b47d8ad66cc5c118cfa6d65233353711cb86)
