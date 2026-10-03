@@ -632,6 +632,24 @@ class ViewportPresentation:
               for target in window.document_viewport.geometry_targets()),
         )))
 
+    def visible_bodies(self, windows):
+        """Select paint bodies once from the original scene and native owner.
+
+        Nested windows own their own bodies. An enclosing window must not
+        acquire their readiness or schedule their reconstruction as its work.
+        This cohort is synchronous; it is not another membership registry.
+        """
+        from toad.widgets.history_anchor import HistoryWindow
+
+        windows = set(windows)
+        for body in self.screen._compositor.visible_widgets:
+            if isinstance(body, ViewportBody):
+                for ancestor in body.ancestors:
+                    if isinstance(ancestor, HistoryWindow):
+                        if ancestor in windows:
+                            yield ancestor, body
+                        break
+
     def has_pending_mutations(self, windows) -> bool:
         return any(window.history_mutating() for window in windows)
 
@@ -647,8 +665,8 @@ class ViewportPresentation:
             return False
         # Visible source bodies must be ready on every frame, including rapid
         # PageDown/End frames outside a session activation.
-        for window in windows:
-            if not window.document_viewport.visible_bodies_ready:
+        for window, body in self.visible_bodies(windows):
+            if not body.body_ready:
                 window.document_viewport.request()
                 return False
         changed = False
@@ -892,13 +910,12 @@ class DocumentViewport:
 
     @property
     def visible_bodies_ready(self) -> bool:
-        # Nested bodies own their readiness even when an outer fragment owns
-        # their retirement. Inspect native visible custody once, rather than
-        # expanding every fragment's entire materialization for every frame.
+        # Frame admission and source preparation ask the same native owner.
+        # A nested body still contributes even when its outer fragment owns
+        # retirement; a nested window contributes to its own viewport only.
         window = self.window
-        visible = self.window.screen._compositor.visible_widgets
-        return all(widget.body_ready for widget in visible
-                   if isinstance(widget, ViewportBody) and window in widget.ancestors)
+        return all(body.body_ready for _window, body in
+                   window.screen.viewport_presentation.visible_bodies((window,)))
 
     async def _reconcile(self) -> None:
         try:
