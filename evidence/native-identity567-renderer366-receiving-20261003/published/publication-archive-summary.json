@@ -1,0 +1,44 @@
+{
+  "state": "Published367; original readback complete; parent ordinary default UI and fresh while-open configured DM in progress",
+  "original_receipt_phase": "retained-batch-launched-configurations-verified-public-ui-pending",
+  "publication_receipt_sha256": "ce2a1d902b516170b90ff0b2f27122f81e364600b311360ae49f43a82d239dd8",
+  "publisher_duration_seconds": 43.317291498184204,
+  "owner_count": 19,
+  "all_same_thread_births": true,
+  "all_new_process_identities_alive": true,
+  "all_settings_equal_except_process": true,
+  "target_prefix": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002",
+  "five_links": {
+    "agent-comms": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-agent",
+    "agent-comms-nk-foreground": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/agent-comms-nk-foreground",
+    "toad": "/home/ts/wt/comms-task-aware-native-bundle-20261002/.artifacts/runtime-summary-generation-policy520-installed-20261002/bin/toad"
+  },
+  "route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-044646789787e3d3/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "no_carry_reset_or_original_input_replay": true,
+  "readback_repeated": false,
+  "receipt_rewritten": false,
+  "public_changes_by_archive": 0,
+  "current520_and_previous290_protected": true,
+  "physical_acceptance": "Pending parent current run; no claim from publication or identity readback alone",
+  "files": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/new-publication567366/publication-receipt.json",
+      "archive": "publication-receipt.json",
+      "sha256": "ce2a1d902b516170b90ff0b2f27122f81e364600b311360ae49f43a82d239dd8",
+      "bytes": 37935
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-identity567-renderer366-receiving-20261003/new-publication567366/publication-identity-closure.json",
+      "archive": "publication-identity-closure.json",
+      "sha256": "aadfd7c041f00fb0b4dc38daeb173b4db6a9e6f6afad4264aa6faba105a0fd86",
+      "bytes": 18579
+    }
+  ]
+}

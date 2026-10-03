@@ -1,5 +1,13 @@
 # Native identity567 and renderer366 receiving
 
+## Published; live UI acceptance in progress
+
+Parent executed the original NEW operation once, terminal0, in43.3173 seconds. The raw publication SHA is `ce2a1d902b516170b90ff0b2f27122f81e364600b311360ae49f43a82d239dd8`; its original UI-pending phase is unchanged. Parent's single readback confirmed19 retained owner births/stored settings, new live process identities, all five links, original root identity and native044. No carry, reset or original input replay occurred.
+
+The reused520 holder is now CURRENT and protected;290 is previous rollback. Parent owns the actual ordinary default isolated-st capture and one distinct configured DM with the chat left open. Those are pending in this checkpoint; publication/readback alone do not qualify visible completion or reply latency. No publisher, readback, installed qualification or provider operation was repeated by this archive.
+
+Original [publication/readback](../../evidence/native-identity567-renderer366-receiving-20261003/published/publication-archive-summary.json), preparation path refusal and declaration relations are preserved. The remaining sections record preparation/freeze as historical facts; their290 source refers to the original prepublication runtime, not the newly current holder.
+
 The declared Core pin is merged567 `48324afc4d7415afb347cbc1f5f52cfc6820ac73`, with normal generated uv.lock. Native044, Textual940, diff8fa and SDK0.12.1 remain unchanged. The pin update changes three metadata lines; it does not create an environment, build native code, reset storage or replay input.
 
 Current290 is the published365 runtime and remains immutable. The original prefix for the next operation will be derived from its published entrypoint link; the existing reviewed cohort owns agreement of all five entrypoints. Root/native identity remains with ActiveRoute. Previous302 and rollback529 stay protected.
