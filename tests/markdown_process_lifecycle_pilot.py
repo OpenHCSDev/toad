@@ -10,10 +10,12 @@ from runtime_fixture import ToadApp
 from textual.widgets._markdown import MarkdownFence
 from toad.widgets.agent_response import AgentResponse
 from toad.render_backend import Renderer
+from toad.render_tasks import MarkdownRenderTask
 
 
 class ControlledPool(Renderer):
-    def __init__(self):
+    def __init__(self, renderer):
+        self.renderer = renderer
         self.requests = []
 
     async def run(self, function, *args):
@@ -23,6 +25,8 @@ class ControlledPool(Renderer):
         return future.result()
 
     async def submit(self, task):
+        if not isinstance(task, MarkdownRenderTask):
+            return await self.renderer.submit(task)
         return await self.run(task.execute)
 
     def complete(self, index):
@@ -53,7 +57,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         app = ToadApp(project_dir=str(root))
-        pool = ControlledPool()
+        pool = ControlledPool(app.render_processes)
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
             response = await app.selected_session.conversation.post(AgentResponse(paginate=False))
