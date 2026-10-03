@@ -1,0 +1,684 @@
+{
+  "files": [
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/ownership.json",
+      "archive": "ownership.json",
+      "sha256": "e29ef31da6c787bd84850cd6e9610ba6fd0dc287d4895cb4b3241eb5b667ab3e",
+      "bytes": 703
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/requirements.txt",
+      "archive": "requirements.txt",
+      "sha256": "ad662d66912f7efba2fc29c322aedaaca25eea0bc48bd8eef34b8ddd654079bb",
+      "bytes": 4235
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/install-requirements.txt",
+      "archive": "install-requirements.txt",
+      "sha256": "5c0107fef5dad64033ebc937b1d9cdae74818c1d46279363b93238b9caf9303b",
+      "bytes": 4338
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/install.log",
+      "archive": "install.log",
+      "sha256": "8b2040990046c3661b21504dcb8b2ecc56ffd54770f191f589eb0fd698b2a50a",
+      "bytes": 1437
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/dependency-check.log",
+      "archive": "dependency-check.log",
+      "sha256": "e2801daae5c10e80908860017061d818b046628799fa732b1744e4c946fc3e47",
+      "bytes": 213
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/verify.py",
+      "archive": "verify.py",
+      "sha256": "d7128472c769f81307008438a3114ae1a8028cc7d4553617712b3e9477e05b0c",
+      "bytes": 5570
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/verify.log",
+      "archive": "verify.log",
+      "sha256": "05bcf9cc596840dad99dfa2b8e5709fc4b9bc82a8815e721be5eb42fc0fea97f",
+      "bytes": 929
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/stale-private-protection-declaration.log",
+      "archive": "stale-private-protection-declaration.log",
+      "sha256": "05bcf9cc596840dad99dfa2b8e5709fc4b9bc82a8815e721be5eb42fc0fea97f",
+      "bytes": 929
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/protection-declaration-correction.json",
+      "archive": "protection-declaration-correction.json",
+      "sha256": "2912e155f59dce75e5b4859985b3b06867c22731cd401e7820d6cfaaf9347caf",
+      "bytes": 686
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/finish_source_proof.py",
+      "archive": "finish_source_proof.py",
+      "sha256": "54ec9af71edb6dd4b1d7d8274202c08a2201d196d222c991d5314e575a94ca77",
+      "bytes": 3190
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/source-proof-finish.log",
+      "archive": "source-proof-finish.log",
+      "sha256": "b40e2f39f4a2e268fd0db3b0185eca2822ff89cdfc072e9d14ec9b98af99e775",
+      "bytes": 801
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/source-proof.json",
+      "archive": "source-proof.json",
+      "sha256": "91bd3280fb06e40a52707cffa9e162946d9238c04684575afad784b9cdcfca0e",
+      "bytes": 7997
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/protected-before.json",
+      "archive": "protected-before.json",
+      "sha256": "65ba876f22f491cadd33529a76bcd2e302a9133157f719079481d1da428ac74e",
+      "bytes": 2790
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/prepare_activation.py",
+      "archive": "prepare_activation.py",
+      "sha256": "15c07dd021459b388926550992dbca0ddf4e680e29e4aba84d01c89f7346b4b8",
+      "bytes": 2025
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/activation.log",
+      "archive": "activation.log",
+      "sha256": "e8ff81c1f8f4249fea6d336b70d5ad699a3822a2bdb251b7444cdbc2c47a3fe3",
+      "bytes": 128
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/activation-correction.log",
+      "archive": "activation-correction.log",
+      "sha256": "e8ff81c1f8f4249fea6d336b70d5ad699a3822a2bdb251b7444cdbc2c47a3fe3",
+      "bytes": 128
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/agent_comms-inventory.json",
+      "archive": "agent_comms-inventory.json",
+      "sha256": "51e43656d6c8bfd46f75a45752f9ed385e9da25d1af8d54ee9926d7247efc7aa",
+      "bytes": 53224
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/textual-inventory.json",
+      "archive": "textual-inventory.json",
+      "sha256": "e51fd63e6f12056df99c5b96b78ddce34e1f9ded4901884fe7e73a0bb9fc4636",
+      "bytes": 39855
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/toad-inventory.json",
+      "archive": "toad-inventory.json",
+      "sha256": "d135cf2c170b9715c0e1021d677751bb942dcc77dca71ec59c505ac9f088804e",
+      "bytes": 47832
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/textual_diff_view-inventory.json",
+      "archive": "textual_diff_view-inventory.json",
+      "sha256": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396",
+      "bytes": 460
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/562-configured-receipt.json",
+      "archive": "qualified-source-gates/562-configured-receipt.json",
+      "sha256": "5acac4898c5d3f2151aae0c156514ceae7ce9d42d30295808910a1d4ee692a38",
+      "bytes": 2981
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/562-terminal-custody.json",
+      "archive": "qualified-source-gates/562-terminal-custody.json",
+      "sha256": "3de788cff6e0b6eb0cb674f059095f56d0d891352cb0adf39899836e9c63a228",
+      "bytes": 5585
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/362-installed03-receipt.json",
+      "archive": "qualified-source-gates/362-installed03-receipt.json",
+      "sha256": "1e3c6d77a37acdeebf14427fae25eb1bebb947cf39eef94196242678319d8e0d",
+      "bytes": 3832
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/562-configured-source-proof.json",
+      "archive": "qualified-source-gates/562-configured-source-proof.json",
+      "sha256": "12e55c413b2321fdd886be60e7d4256373983b74befc6f05e9189aa204f34476",
+      "bytes": 31807
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/044-artifact-receipt.json",
+      "archive": "qualified-source-gates/044-artifact-receipt.json",
+      "sha256": "2c02ac8ded1d35652bfaf7bc3e8e419f315231813126fee119d1014f61cd8b99",
+      "bytes": 1973
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/362-READY.json",
+      "archive": "qualified-source-gates/362-READY.json",
+      "sha256": "09c5033d848cb9a3d6afb08311c6daf50e28e030b05b0f1e5de81621516bcde9",
+      "bytes": 2418
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/qualified-source-gates/562-CONFIGURED-ACCEPTANCE.md",
+      "archive": "qualified-source-gates/562-CONFIGURED-ACCEPTANCE.md",
+      "sha256": "22d770e3f54a01b6fe92a0039b8bb2a57d5031d08ee7e2cc9f7ace2c9425f2d3",
+      "bytes": 2737
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/old290-proof/activation.json",
+      "archive": "old290-proof/activation.json",
+      "sha256": "1f0c75c9d208cb1d1aeae29834c531d27fd73c558e14a4c940889f6fb742350f",
+      "bytes": 2333
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/old290-proof/release-receipt.json",
+      "archive": "old290-proof/release-receipt.json",
+      "sha256": "fc5ca141866be92d77f1dd9f1753943263fc9b5aab5d1302e61f93d01f0f5f61",
+      "bytes": 12889
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/pre-final-preparation/review-plan.json",
+      "archive": "pre-final-preparation/review-plan.json",
+      "sha256": "8338cbb36ea13f99bf1f3d2176e1ef35ce9c6a9c97674159c072531ae4c81d17",
+      "bytes": 1907
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/pre-final-preparation/preparation-receipt.json",
+      "archive": "pre-final-preparation/preparation-receipt.json",
+      "sha256": "19d3c22e7ab4042461bf9aaea731a93b58ef48cc1d206f04abffb3493d6efd71",
+      "bytes": 1451
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/pre-final-preparation/activation.json",
+      "archive": "pre-final-preparation/activation.json",
+      "sha256": "2de047fda1537f3214e6f888f65262a36fe7e95846c75b4fff0d79fb7ba519c4",
+      "bytes": 2382
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/pre-final-preparation/prepare_activation.py",
+      "archive": "pre-final-preparation/prepare_activation.py",
+      "sha256": "fd206ce7933cf1dd9499a01a7726a8edc071440a16063436a0ce326668c3220c",
+      "bytes": 1928
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/pre-final-preparation/prepare_review.py",
+      "archive": "pre-final-preparation/prepare_review.py",
+      "sha256": "d664a9ea16cebc4938434491bd1b02ebaa7caaf1490ae5248677c1055a3cbf2e",
+      "bytes": 4227
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-manifest.json",
+      "archive": "operation/operator-manifest.json",
+      "sha256": "652298269225763d2024bfeb106b35fcd1ba832949bdbd69c6d3c5d799b5e4a0",
+      "bytes": 5650
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/prepare_review.py",
+      "archive": "operation/prepare_review.py",
+      "sha256": "55b7f94d0b72a5f9d02c2112356247efea3264164923f5f83f0ca361534aeca5",
+      "bytes": 4355
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/prepare.log",
+      "archive": "operation/prepare.log",
+      "sha256": "5a353d63a2159d704574732f8f1b9230c2b97496830985a94e681a5767b372bd",
+      "bytes": 1452
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/prepare-final.log",
+      "archive": "operation/prepare-final.log",
+      "sha256": "8facb61bba6c6e26f19febe03af704a23d095793749a6224a3e451ba69717507",
+      "bytes": 341
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/review-plan.json",
+      "archive": "operation/review-plan.json",
+      "sha256": "8338cbb36ea13f99bf1f3d2176e1ef35ce9c6a9c97674159c072531ae4c81d17",
+      "bytes": 1907
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/runtime-installation.json",
+      "archive": "operation/runtime-installation.json",
+      "sha256": "717ca469bd2330bcf868ceaf572e8b128795ef3dd54885497f8e16c4680aabae",
+      "bytes": 2918
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/original-declaration.json",
+      "archive": "operation/original-declaration.json",
+      "sha256": "a55fdea16c7340284545edf8c158b0f3f75c1e308175f7b6abd7578ffc54f684",
+      "bytes": 76452
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/target-declaration.json",
+      "archive": "operation/target-declaration.json",
+      "sha256": "a55fdea16c7340284545edf8c158b0f3f75c1e308175f7b6abd7578ffc54f684",
+      "bytes": 76452
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/declaration-relation.json",
+      "archive": "operation/declaration-relation.json",
+      "sha256": "a5006ee60f2f3676511615a9909fdc3d4e82efc6ef30522b7ba55d90d8d09aa5",
+      "bytes": 728
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/preparation-receipt.json",
+      "archive": "operation/preparation-receipt.json",
+      "sha256": "19d3c22e7ab4042461bf9aaea731a93b58ef48cc1d206f04abffb3493d6efd71",
+      "bytes": 1451
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/readback_publication.py",
+      "archive": "operation/readback_publication.py",
+      "sha256": "5d233dc01c19a1894a1cf86d610a65ebe7dac2e867ea3bff1cadd65983b2dec9",
+      "bytes": 4102
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/publication-receipt.json",
+      "archive": "operation/publication-receipt.json",
+      "sha256": "f628a75b481624525496fe974fe67ff5ec70f48482cddc0980acfd6fd88b6bd8",
+      "bytes": 37906
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/publication-identity-closure.json",
+      "archive": "operation/publication-identity-closure.json",
+      "sha256": "c8fc7fb15c2e50418718d955a0ecbe3f522f729d1f1e1eb80b859c7451da8985",
+      "bytes": 18535
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_index_installed_pilot.py",
+      "archive": "operation/operator-freeze/retained_index_installed_pilot.py",
+      "sha256": "b4d5a234d0f4fd3ac4511b7100698352d6252c6bcb09016ee458ed304b3daf39",
+      "bytes": 2953
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/old_thread_client_probe.py",
+      "archive": "operation/operator-freeze/old_thread_client_probe.py",
+      "sha256": "04b8aa84f8a4018c36b44632569502430f2c3a245e560140fb3ac226ec8af5e2",
+      "bytes": 2738
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_summary_reset_controls.py",
+      "archive": "operation/operator-freeze/retained_summary_reset_controls.py",
+      "sha256": "dec38e2b52b19697804159b8aac8e66b7a8a1e7035fddad742c7e08f14cf8aeb",
+      "bytes": 5226
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/install_retained_task_source.py",
+      "archive": "operation/operator-freeze/install_retained_task_source.py",
+      "sha256": "75ddca28e4684173a7b9c8f6bb62dcf2cba5e9896fb9376cb0b29a314bf839c2",
+      "bytes": 5676
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/user_task_installed_pilot.py",
+      "archive": "operation/operator-freeze/user_task_installed_pilot.py",
+      "sha256": "75c8cfd6a4819d16dbc87fffe0013ad526c6ede6492e083c26a0629a51c08057",
+      "bytes": 2405
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/thread_format_retirement.py",
+      "archive": "operation/operator-freeze/thread_format_retirement.py",
+      "sha256": "ff4ddbc314afd01e9c069a4cec5df83b204bb6fab35bcf2f5e5055b5e148de35",
+      "bytes": 1105
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/carry_history_provenance.py",
+      "archive": "operation/operator-freeze/carry_history_provenance.py",
+      "sha256": "44735bcdd6424af4203ac75e509f8a80cf41641882b249610ccadd0215c527b2",
+      "bytes": 4308
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/execute_retained_summary_foundation.py",
+      "archive": "operation/operator-freeze/execute_retained_summary_foundation.py",
+      "sha256": "49c9a05298b68ccfd91dc75c9de8980e2a0a72e6b670e45d581ccac3ae6e3a19",
+      "bytes": 1794
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/cutover_child.py",
+      "archive": "operation/operator-freeze/cutover_child.py",
+      "sha256": "26b307ce045a4642a8dc2a9c6fef9b94900726250bb663413f256abda11fa1e3",
+      "bytes": 1298
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/install_retained_routing.py",
+      "archive": "operation/operator-freeze/install_retained_routing.py",
+      "sha256": "2701b1b5a02b6cd74fe5876a9c91432ebd5344b55ee02434f61b2422c5d16531",
+      "bytes": 5358
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_summary_reset.py",
+      "archive": "operation/operator-freeze/retained_summary_reset.py",
+      "sha256": "86d28cc9f9c74c9156ee258d061168a17003ab94f6c9ba1fdaac2dd01eb8dd12",
+      "bytes": 8554
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/task_envelope_promotion.py",
+      "archive": "operation/operator-freeze/task_envelope_promotion.py",
+      "sha256": "d1d1b16a99c44fb7afab68c2021b83faa57df805b3e9fc7e4c82004037a9eef4",
+      "bytes": 3492
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/validate_retained_routing.py",
+      "archive": "operation/operator-freeze/validate_retained_routing.py",
+      "sha256": "d144e501120982e21ace4ea513cd2f2e3f9c720889ea5762f275feadb7638d96",
+      "bytes": 1379
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/native_schema_carry_controls.py",
+      "archive": "operation/operator-freeze/native_schema_carry_controls.py",
+      "sha256": "887cf058454efd12329488fc4e3269ef1e1f17c67d8a6b32a50fd5df184fc9a1",
+      "bytes": 15645
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/checkpoint_schema.py",
+      "archive": "operation/operator-freeze/checkpoint_schema.py",
+      "sha256": "0d32c74d741572f9f5a242eb34750f7c3353ee88a480957d59380afb1147adee",
+      "bytes": 548
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/thread_retirement_installed_pilot.py",
+      "archive": "operation/operator-freeze/thread_retirement_installed_pilot.py",
+      "sha256": "89b2eb21cad8222e7ed1a4fd5d5e2dc2fc81ab65ac3136196b0790921e447f6d",
+      "bytes": 11211
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/owner_read_projection.py",
+      "archive": "operation/operator-freeze/owner_read_projection.py",
+      "sha256": "4ca5fb3d2714863ba6ddd7b01f23cd3ddccd790f612f4edd7086b4b7935876a0",
+      "bytes": 1110
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/original_input_consumer_installed_pilot.py",
+      "archive": "operation/operator-freeze/original_input_consumer_installed_pilot.py",
+      "sha256": "595256adc39d1614876654a191cd91c968722df4532a76869fbbbfab6fca645c",
+      "bytes": 2322
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_index_writer.py",
+      "archive": "operation/operator-freeze/retained_index_writer.py",
+      "sha256": "54dc573bc79a0d16055a137c7e8364c80c50035c911ca44f5cd1ae8f4143876a",
+      "bytes": 2278
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_task_writer.py",
+      "archive": "operation/operator-freeze/retained_task_writer.py",
+      "sha256": "661cbc8aa52921375f995bacf519fd41d35af459dbaf5a76031eace671f8213f",
+      "bytes": 2277
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/routing_carry.py",
+      "archive": "operation/operator-freeze/routing_carry.py",
+      "sha256": "b5b502926276f78ca378828123bd26bcfe63dafe7a09be0f513d688901643188",
+      "bytes": 11450
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_summary_stage_controls.py",
+      "archive": "operation/operator-freeze/retained_summary_stage_controls.py",
+      "sha256": "989fedf43179464da2f09e00e83ca319373d4228c732714ae6e15c5c06dc6cb3",
+      "bytes": 1943
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/seed_retained_routing_fixture.py",
+      "archive": "operation/operator-freeze/seed_retained_routing_fixture.py",
+      "sha256": "1f0aaeaee108ebdd8989897c8eb865c51e2b1fb217af81611cb05b1e66befea7",
+      "bytes": 3352
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/read_original_owner.py",
+      "archive": "operation/operator-freeze/read_original_owner.py",
+      "sha256": "3e61cfce03adfa059020d81c40ac5f3ef90bab1c09f602ebd614bc56c54ff053",
+      "bytes": 1519
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/publish_retained_summary.py",
+      "archive": "operation/operator-freeze/publish_retained_summary.py",
+      "sha256": "e9957084012e19422a74c175167afa6d8fc80ee4f482995f72c786dd2bd710e9",
+      "bytes": 20402
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_index_cutover.py",
+      "archive": "operation/operator-freeze/retained_index_cutover.py",
+      "sha256": "cfb681ea376ad06b86606e8940666932a15f29bc97b8d748d55089fd2dbe3ab9",
+      "bytes": 3194
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/seed_retained_index_fixture.py",
+      "archive": "operation/operator-freeze/seed_retained_index_fixture.py",
+      "sha256": "29c2811f32d269c62f9d2752829cd9cac6a362ff22f08595180e43ea5d219513",
+      "bytes": 1394
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/seed_original_task_carry.py",
+      "archive": "operation/operator-freeze/seed_original_task_carry.py",
+      "sha256": "d844fb0a5a02927ea7026467317110b75f42d91c00fc5b0bebeddfe921611fe1",
+      "bytes": 1776
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/restart_original_thread_format.py",
+      "archive": "operation/operator-freeze/restart_original_thread_format.py",
+      "sha256": "19b738c2e7b398aa2fb22bcfa66d175a895312b011c234ee10a540cf68310e65",
+      "bytes": 1563
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/launch_thread_retirement.py",
+      "archive": "operation/operator-freeze/launch_thread_retirement.py",
+      "sha256": "ec08c053a8d72449606169794f07e832b35a73197fb572cd8ecc70a4e0f7e1e7",
+      "bytes": 1936
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_routing_installed_pilot.py",
+      "archive": "operation/operator-freeze/retained_routing_installed_pilot.py",
+      "sha256": "8a7aab641de626a1d1a729aba8aa056b04d311fa116893f7c746d2c4a861665f",
+      "bytes": 6095
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/read_original_task_preimage.py",
+      "archive": "operation/operator-freeze/read_original_task_preimage.py",
+      "sha256": "39e1b27473ce2548d3d91a0eecc01f40e8fe01c96b29727d8d7568a55c76e197",
+      "bytes": 1416
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/restart_retained_routing.py",
+      "archive": "operation/operator-freeze/restart_retained_routing.py",
+      "sha256": "29ed16765498a0092df8ed4d9efa44f5bda49962f8704a9381f5aa226517abae",
+      "bytes": 1289
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/original_owner_capture_installed_pilot.py",
+      "archive": "operation/operator-freeze/original_owner_capture_installed_pilot.py",
+      "sha256": "3b8256606bd1d3754edda46b0232cd6bcf9e66912157cb52f8e1f6984e4d8587",
+      "bytes": 4206
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/phased_owner_kernel.py",
+      "archive": "operation/operator-freeze/phased_owner_kernel.py",
+      "sha256": "2f20e6e0e7a81921bd1d400cc464aa6e2080b62ba5b802026961449b839f90db",
+      "bytes": 945
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_routing_cutover.py",
+      "archive": "operation/operator-freeze/retained_routing_cutover.py",
+      "sha256": "8e4b35be880c4a363a28c4f488a31ed6dc1308c8719e3266350df663bd47004a",
+      "bytes": 1549
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/validate_thread_retirement.py",
+      "archive": "operation/operator-freeze/validate_thread_retirement.py",
+      "sha256": "8461b3cc18060e334adb8a02c938c68cf0417bcac28a01d396f15365b063a3bb",
+      "bytes": 756
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/runtime_installation.py",
+      "archive": "operation/operator-freeze/runtime_installation.py",
+      "sha256": "9a2a9c7ee38cc64993d6cf1c3b706e77c62668dd51d6a553a86aa01022234524",
+      "bytes": 3391
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/restart_thread_format.py",
+      "archive": "operation/operator-freeze/restart_thread_format.py",
+      "sha256": "f07914f665ed6a15410fead47e3fb45759fb6f319013a170e869f5931ea782c7",
+      "bytes": 4312
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/restore_stopped_owners.py",
+      "archive": "operation/operator-freeze/restore_stopped_owners.py",
+      "sha256": "7336914c1141c60f7769c60f45dae2279c003f4a55a1c43bb4ed4a95199f2f97",
+      "bytes": 1029
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/native_schema_carry.py",
+      "archive": "operation/operator-freeze/native_schema_carry.py",
+      "sha256": "e7faf702b534056696229c145402b935f7872e89ae8432c848cbae5cbe811534",
+      "bytes": 40441
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/original_owner_capture.py",
+      "archive": "operation/operator-freeze/original_owner_capture.py",
+      "sha256": "57f5548847a3d6c242906f8a6c54baf536e1d697b8e3c57fa52d959b0fc515b5",
+      "bytes": 2947
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/seed_original_owner_capture.py",
+      "archive": "operation/operator-freeze/seed_original_owner_capture.py",
+      "sha256": "08adc6657fa631c56f2e68aa49e68ab005cee63e2caff5795d221bf1d7fbb2cf",
+      "bytes": 1659
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/thread_retirement_cutover.py",
+      "archive": "operation/operator-freeze/thread_retirement_cutover.py",
+      "sha256": "65c3c3305e1dc78530256f944d1aa67a2357b537c1273cc66a44e5bbd0e52338",
+      "bytes": 5931
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/publish_openhcs_recovery.py",
+      "archive": "operation/operator-freeze/publish_openhcs_recovery.py",
+      "sha256": "27516db16a4bec25bb37fb394e1c7bc04c567eb0a780fb1e0ed62235ca0ed9ff",
+      "bytes": 21793
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_routing_writer.py",
+      "archive": "operation/operator-freeze/retained_routing_writer.py",
+      "sha256": "0b9cd2180ac03e4b1ff9f1c8c2f9977b0e777fe3f70028cb0fd5c6b02fe2aa37",
+      "bytes": 2271
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_task_installed_pilot.py",
+      "archive": "operation/operator-freeze/retained_task_installed_pilot.py",
+      "sha256": "638e3fc69f5f14d22617569013a22d673b88c9e7065b39d1932277097b585e5c",
+      "bytes": 5459
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/install_retained_index.py",
+      "archive": "operation/operator-freeze/install_retained_index.py",
+      "sha256": "3060f64db3d180452452b5ec12c5cd2730f8f8052ab5676c8807f49c42b3982d",
+      "bytes": 1403
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/routing_recovery.py",
+      "archive": "operation/operator-freeze/routing_recovery.py",
+      "sha256": "af599ee91746123ed33606691973ef3a2a0e77e2d994cd158a1c5ddef2c2aafc",
+      "bytes": 2347
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/seed_thread_retirement_fixture.py",
+      "archive": "operation/operator-freeze/seed_thread_retirement_fixture.py",
+      "sha256": "01c532fbd479e93fa11a4e7f3a825fe368d91a6a9893abb730bc641f74d18252",
+      "bytes": 9641
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/new-publication562362/operator-freeze/retained_task_source_carry.py",
+      "archive": "operation/operator-freeze/retained_task_source_carry.py",
+      "sha256": "fb8601288e574c14837df65840262f805c556ba0b9f9fc8511d18f95ab1a2b3e",
+      "bytes": 3143
+    },
+    {
+      "original": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-summary562-status362-receiving-20261003/pre-final-preparation/activation.json",
+      "archive": "activation-executed-original.json",
+      "sha256": "2de047fda1537f3214e6f888f65262a36fe7e95846c75b4fff0d79fb7ba519c4",
+      "bytes": 2382
+    },
+    {
+      "original": "/home/ts/wt/toad-s5-receiving-boundary-pair-20261001/.artifacts/runtime-historical-handling290-current-20261001/activation.json",
+      "archive": "activation-after-inflight-note-update.json",
+      "sha256": "b3c14e735fd70f752edc2118b38e6e9512919bac70b1a5e07d7284e9265fb08f",
+      "bytes": 2559
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/intent.json",
+      "archive": "published/intent.json",
+      "sha256": "c00d256f72a4e05a610992c6a40d8cb52c6cab5a21c46b007641bc06b57aa0cc",
+      "bytes": 405
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/receipt.json",
+      "archive": "published/receipt.json",
+      "sha256": "63547d794e0fdfd8548e6f1d1cf79494a082ec846846db62dcb8e9a0d7ad40c2",
+      "bytes": 430
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/send-attempt.json",
+      "archive": "published/send-attempt.json",
+      "sha256": "ba6fc83521674468ae6b8445aa84ed6442db5e15250c3d05017fbb5e85641f0a",
+      "bytes": 170
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/intent02.json",
+      "archive": "published/intent02.json",
+      "sha256": "53b53ecfbcaa615661d32bd396b33b6a1da6672efe8f687ea82a39c3997e2245",
+      "bytes": 356
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/receipt02.json",
+      "archive": "published/receipt02.json",
+      "sha256": "f28d11f970f44a710bff7c97a6253bd298c4d2fcfe6ae0dbe160b9de809f88aa",
+      "bytes": 446
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/send-attempt02.json",
+      "archive": "published/send-attempt02.json",
+      "sha256": "4e104ddf2baede60fa2cb3a6e8504bdee4d6d77a726714f6492405d37b59af5d",
+      "bytes": 172
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/physical-assessment02.json",
+      "archive": "published/physical-assessment02.json",
+      "sha256": "e7aba04e193698ebb7600736b301b0e9cb4e955ab692261d7d2541aca1ff2e21",
+      "bytes": 1281
+    },
+    {
+      "original": "/home/ts/wt/comms-cleanup-live-integration-20260929/.release-private/published562362-20261003/acceptance-readback02.json",
+      "archive": "published/acceptance-readback02.json",
+      "sha256": "6af02d4d7804a86e780bece25392b4f5f17e1d000cbfb29c61f3e3dc146a7f77",
+      "bytes": 3534
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published562362-helper-while-open-20261003/capture/receipt.json",
+      "archive": "published/default-capture01-receipt.json",
+      "sha256": "1cb7ec2f9da152b0699102ac9d88bf2107bbb45efba07b192480f8aad8dcd2fa",
+      "bytes": 30388
+    },
+    {
+      "original": "/home/ts/.cache/agent-scratch/published562362-helper-while-open-20261003-02/capture/receipt.json",
+      "archive": "published/default-capture02-receipt.json",
+      "sha256": "29e520bb862919a72248f69901ccdfc974194dbc5c6757ba956718f1f1328714",
+      "bytes": 30780
+    },
+    {
+      "original_git": "3ed75bd3ccc9a374590837ff711ddb58d5b21c16:evidence/published-turn-status362-install-20261003/import-fix03/activation.json",
+      "archive": "original362/activation.json",
+      "sha256": "72e3d5789f1d585e32899d5ac25c16c3f1214a722afad462829cac7f4c96a4a9",
+      "bytes": 2195
+    },
+    {
+      "original_git": "3ed75bd3ccc9a374590837ff711ddb58d5b21c16:evidence/published-turn-status362-install-20261003/import-fix03/source-proof.json",
+      "archive": "original362/source-proof.json",
+      "sha256": "556c3a05e8339914e3697b863ea1a4b28b27d25504cce8044e7b4cff6194080a",
+      "bytes": 7666
+    },
+    {
+      "original_git": "3ed75bd3ccc9a374590837ff711ddb58d5b21c16:evidence/published-turn-status362-install-20261003/import-fix03/install-handoff.json",
+      "archive": "original362/install-handoff.json",
+      "sha256": "96a7ae1bfd880fd0d7d5b97a37fd8f50e46dfd0e03a23969544fe1ef20a2fd29",
+      "bytes": 2174
+    }
+  ],
+  "raw_receipts_unchanged": true,
+  "large_runtime_sessions_preimages_not_copied": true
+}

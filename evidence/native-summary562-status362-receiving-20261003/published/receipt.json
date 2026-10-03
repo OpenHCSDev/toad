@@ -1,0 +1,16 @@
+{
+  "message": {
+    "seq": 495,
+    "from": "user",
+    "to": "openhcs-helper",
+    "ts": 1791002778.7629306,
+    "type": "info",
+    "text": "Live build 365 while-open status check: testing, please reply only Here. Keep your existing goal state.",
+    "sender_role": "user",
+    "id": "5f7c109a8c3a"
+  },
+  "returned": 1791002780.9147363,
+  "elapsed_seconds": 2.1562252044677734,
+  "ui_already_open": true,
+  "ui_pid": 2252568
+}
