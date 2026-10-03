@@ -1,6 +1,6 @@
 {
   "state": "Ready-scoped-actual-saved-settings-installed-App",
-  "source_head": "f205071bb7e58777517b4655b69dcd71fe352221",
+  "source_head": "3e204cca5f0bf48134f1ce5d026b338e4d5a60fc",
   "production_files": 5,
   "production_added_lines": 116,
   "production_deleted_lines": 110,
@@ -85,5 +85,7 @@
     "qualification": "Original Text39 SVG contains actual controls/text; native export omits existing App.ansi_theme and Rich uses SVG_EXPORT_THEME. Cairo PNG black export is retained, not evidence of a blank App. No readable physical/PNG claim; Kepler owns Text40 correction separately."
   },
   "remaining_acceptance": null,
-  "preserved_fixture_positive": "installed02-terminal.json/installed02/receipt.json; repository saved fixture only"
+  "preserved_fixture_positive": "installed02-terminal.json/installed02/receipt.json; repository saved fixture only",
+  "production_head": "fcef3086ea1fd8668ac19003f3ac640211da32fc",
+  "source_head_qualification": "Actual03 driver checkout3e204cca; product unchanged from reviewedfcef, fixture titles fromf205. Installed complete package pins are separate candidate_pins; Coree7 is PRE586."
 }
