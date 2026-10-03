@@ -1,0 +1,140 @@
+{
+  "revision": "f6fa20d2b6e659057dd9221eb2d4f50dbf06017b",
+  "modules": 286,
+  "unparsed": [],
+  "sites": [
+    {
+      "path": "src/toad/block_navigation.py",
+      "line": 149,
+      "declaration": "admitted_blocks",
+      "source": "def admitted_blocks(widgets):\n    \"\"\"Decode the Textual mount boundary once before category consumers.\"\"\"\n    for widget in widgets:\n        if not isinstance(widget, ConversationBlock):\n            raise TypeError(\"Conversation contents require nominal blocks\")\n    return widgets"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 12,
+      "import": "from toad.widgets.conversation import CategorizedMount"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 13,
+      "import": "from toad.widgets.message_filter import CategorizedBlock, apply_block_filter"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 53,
+      "reference": "CategorizedMount"
+    },
+    {
+      "path": "src/toad/mounted_message_history.py",
+      "line": 90,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 92,
+      "import": "from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 251,
+      "declaration": "CategorizedMount",
+      "source": "class CategorizedMount:\n    \"\"\"Apply the owning conversation category selection at widget admission.\"\"\"\n\n    def mount(self, *widgets, **kwargs):\n        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block\n\n        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()\n        for widget in admitted_blocks(widgets):\n            classes = {\"-unrouted\": not keep_live_block(widget)}\n            if category := block_category(widget):\n                classes[f\"-message-{category.declared_name}\"] = True\n            # Registration owns the first CSS match for detached blocks. For\n            # attached blocks, Textual applies this class change as one batch.\n            widget.update_classes(classes, update=widget.is_attached)\n            apply_block_filter(widget, selected)\n        return super().mount(*widgets, **kwargs)"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 269,
+      "reference": "CategorizedMount"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 255,
+      "import": "from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 695,
+      "import": "from toad.widgets.message_filter import apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1888,
+      "import": "from toad.widgets.message_filter import block_category"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 258,
+      "reference": "admitted_blocks"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1890,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 265,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 705,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 260,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "line": 259,
+      "reference": "keep_live_block"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 158,
+      "declaration": "block_category",
+      "source": "def block_category(widget) -> type[MessageCategory] | None:\n    \"\"\"Ask the native block; uncategorized controls belong to Other.\"\"\"\n    return (\n        widget.message_category\n        if isinstance(widget, CategorizedBlock)\n        else OtherCategory\n    )"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 167,
+      "declaration": "apply_block_filter",
+      "source": "def apply_block_filter(widget, selected: frozenset[type[MessageCategory]]) -> None:\n    \"\"\"Change only this semantic owner, preserving its authored display rules.\"\"\"\n    category = block_category(widget)\n    hidden = category is not None and category not in selected\n    marker = \"-category-hidden\"\n    if widget.has_class(marker) != hidden:\n        # Keep the marker available for custom styling. Ordinary filtering is a\n        # model-owned display constraint, not a request to rematch subtree CSS.\n        update_styles = widget.is_attached and widget.app.stylesheet.references_class(\n            marker\n        )\n        widget.set_class(hidden, marker, update=update_styles)\n    widget.set_display_constraint(\"message-category\", not hidden)"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 182,
+      "declaration": "keep_live_block",
+      "source": "def keep_live_block(widget) -> bool:\n    category = block_category(widget)\n    return (\n        category is None\n        or category.keep_native_block()\n        or widget.has_class(\"-error\")\n        or widget.has_class(\"-error-log-link\")\n    )"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 169,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/message_filter.py",
+      "line": 183,
+      "reference": "block_category"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 52,
+      "import": "from toad.widgets.message_filter import all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 218,
+      "reference": "apply_block_filter"
+    },
+    {
+      "path": "src/toad/widgets/transcript_history.py",
+      "line": 248,
+      "reference": "apply_block_filter"
+    }
+  ],
+  "source_sanity": "Changed shared source compiles and git diff --check passes. No second App or installed changed-source gate started.",
+  "change": "One inherited category admission, native update_classes atomic mutation; native attachment selects initial registration vs attached invalidation. Two separate immediate CSS update calls removed. Existing display constraint/filter owner unchanged.",
+  "dynamic_limit": "AST source references do not prove dynamic dispatch; admitted_blocks validates nominal ConversationBlock; Contents and MountedMessageHistory MRO and native DOM/App registration read directly."
+}
