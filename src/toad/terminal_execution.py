@@ -7,7 +7,6 @@ from collections import deque
 from contextlib import AsyncExitStack, suppress
 from dataclasses import dataclass, field
 import codecs
-import fcntl
 import os
 import pty
 import shlex
@@ -186,21 +185,42 @@ class PtyProcess:
     """Complete acquired handles, scoped by the execution's AsyncExitStack."""
     child: AttachedChild
     master: FileIO
+    reader: asyncio.StreamReader
 
     @classmethod
-    async def acquire(cls, command, shell_command, master, slave, custody, state):
-        # The child can query its window immediately after exec. Establish
-        # geometry on the original PTY before giving that FD to the child.
-        cls.resize_fd(master.fileno(), state.width, state.height)
-        child = await AttachedChild.start(
-            shell_command, stdio=TerminalChildStdio(slave),
-            env=os.environ | command.env, cwd=command.cwd,
+    async def acquire(cls, command: tuple[str, ...], *, env, cwd, width, height,
+                      custody: AsyncExitStack, buffer_size=128 * 1024):
+        master, slave = pty.openpty()
+        master_file = custody.enter_context(os.fdopen(master, "rb", 0))
+        slave_file = custody.enter_context(os.fdopen(slave, "wb", 0))
+        os.set_blocking(master, False)
+        # The child can query its geometry immediately after exec.
+        cls.resize_fd(master, width, height)
+
+        reader = asyncio.StreamReader(buffer_size)
+        protocol = asyncio.StreamReaderProtocol(reader)
+        transport, _ = await asyncio.get_running_loop().connect_read_pipe(
+            lambda: protocol, master_file,
         )
-        acquired = cls(child, master)
-        # Register before returning the resource, including when the waiting
-        # caller was cancelled while the original spawn was still in flight.
-        custody.push_async_callback(acquired.close)
-        return acquired
+        custody.callback(transport.close)
+
+        async def acquire_child():
+            child = await AttachedChild.start(
+                command, stdio=TerminalChildStdio(slave_file), env=env, cwd=cwd,
+            )
+            custody.push_async_callback(child.stop)
+            return child
+
+        spawn = asyncio.create_task(acquire_child())
+        try:
+            child = await asyncio.shield(spawn)
+        except asyncio.CancelledError:
+            # Register the SAME child before releasing its descriptors, even
+            # when cancellation races the operating system's actual spawn.
+            await join_retirement(spawn)
+            raise
+        slave_file.close()
+        return cls(child, master_file, reader)
 
     def resize(self, width, height):
         with suppress(OSError, ValueError):
@@ -263,7 +283,7 @@ class NewTerminalOperation(TerminalOperation):
 
     def start(self, execution):
         ready = asyncio.get_running_loop().create_future()
-        task = asyncio.create_task(execution.run(ready), name=f"Terminal {execution.command}")
+        task = asyncio.create_task(execution.run(ready), name=type(execution).__name__)
         operation = ActiveTerminalOperation(task, ready)
         task.add_done_callback(operation.settle_startup)
         return operation
@@ -416,30 +436,15 @@ class TerminalExecution:
     async def run(self, ready):
         try:
             async with AsyncExitStack() as custody:
-                master, slave = pty.openpty()
-                master_file = custody.enter_context(os.fdopen(master, "rb", 0))
-                slave_file = custody.enter_context(os.fdopen(slave, "wb", 0))
-                flags = fcntl.fcntl(master, fcntl.F_GETFL)
-                fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
                 command = self.command
-                spawn = asyncio.create_task(PtyProcess.acquire(
-                    command, command.shell_command, master_file, slave_file, custody, self.state))
-                try:
-                    acquired = await asyncio.shield(spawn)
-                except asyncio.CancelledError:
-                    # The same acquisition registers its retirement before the
-                    # outer scope releases PTY descriptors. No lost spawn handle.
-                    await join_retirement(spawn)
-                    raise
-                slave_file.close()
-                reader = asyncio.StreamReader(128 * 1024)
-                protocol = asyncio.StreamReaderProtocol(reader)
-                transport, _ = await asyncio.get_running_loop().connect_read_pipe(lambda: protocol, master_file)
-                custody.callback(transport.close)
+                acquired = await PtyProcess.acquire(
+                    command.shell_command, env=os.environ | command.env, cwd=command.cwd,
+                    width=self.state.width, height=self.state.height, custody=custody,
+                )
                 ready.set_result(acquired)
                 decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
                 while True:
-                    data = await shell_read(reader, 128 * 1024)
+                    data = await shell_read(acquired.reader, 128 * 1024)
                     self._record_output(data)  # Preserve partial UTF-8 bytes too.
                     if decoded := decoder.decode(data, final=not data):
                         scrollback, alternate = await self.state.write(decoded)

@@ -43,8 +43,9 @@ async def main():
             assert conversation.project_path == new
             assert Path(app.screen.query_one(ProjectDirectoryTree).path) == new
             assert new.name in str(app.screen.query_one(ProjectDirectoryTree).root.label)
+            shell_custody = await conversation.shell._operation.custody()
             async with asyncio.timeout(5):
-                while psutil.Process(conversation.shell._pid).cwd() != str(new):
+                while psutil.Process(shell_custody.child.pid).cwd() != str(new):
                     await asyncio.sleep(.05)
             assert conversation.working_directory == str(new)
             await conversation.shell.change_directory(str(old))

@@ -34,7 +34,7 @@ class MCPDecisionScreen(ModalScreen[None]):
     ) -> None:
         super().__init__()
         self._selection, self._command = selection, command
-        self._pty = LocalDecisionPTY()
+        self._pty = LocalDecisionPTY(self._controller_visible)
         self._runner: asyncio.Task[None] | None = None
         self._running = False
 
@@ -79,9 +79,9 @@ class MCPDecisionScreen(ModalScreen[None]):
 
     def _stop(self) -> None:
         self._running = False
-        # Do not cancel create_subprocess_exec mid-spawn: the process may exist
-        # before the coroutine returns its handle. The bounded runner checks
-        # visibility after spawn and always reaps a child in its finally block.
+        # Visibility revokes the same acquired child. Acquisition registers its
+        # exact handles even if visibility changes while spawn is pending;
+        # the original resource scope always retires and reaps them.
         self._pty.stop()
 
     async def _run_local_action(self) -> None:
@@ -96,7 +96,7 @@ class MCPDecisionScreen(ModalScreen[None]):
                 selection=self._selection,
                 command=self._command,
                 show=show,
-                controller_visible=self._controller_visible,
+                state=terminal.state,
             )
         except asyncio.CancelledError:
             self._pty.stop()
