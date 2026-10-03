@@ -2,20 +2,18 @@ from __future__ import annotations
 from toad.block_navigation import ConversationBlock, ChildBlockCursor
 from functools import cached_property
 
-from textual.widget import Widget
+from agent_comms.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from toad.widgets.streaming_markdown import StreamingMarkdown
-from toad.widgets.message_divider import MessageClock, LiveMessageClock
+from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
+from toad.widgets.route_header import RouteHeader
 from toad import response_delivery
 from toad.widgets.message_filter import (
     CategorizedBlock,
     MessageCategory,
-    OutboundCategory,
-    AgentCategory,
 )
 
-
-
-class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
+class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, StreamingMarkdown):
     DEFAULT_CSS = """
     AgentResponse {
         min-height: 1;
@@ -39,10 +37,23 @@ class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
         super().__init__(
             markdown,
             paginate=paginate,
-            prefix=delivery.prefix(clock) if show_divider else (),
+            **self.dispatch_sync(delivery, clock, show_divider),
         )
         self.delivery = delivery
-        delivery.decorate(self)
+
+    @handles(response_delivery.UnroutedResponse)
+    def ordinary_prefix(self, delivery, clock, show_divider):
+        return {"prefix": (MessageDivider("Agent", clock=clock),) if show_divider else ()}
+
+    @handles(response_delivery.RoutedResponse)
+    def routed_prefix(self, delivery, clock, show_divider):
+        return {
+            "prefix": (
+                (MessageDivider("Outbound", clock=clock), RouteHeader(delivery.route))
+                if show_divider else ()
+            ),
+            "classes": f"{self.DEFAULT_CLASSES} -routed",
+        }
 
     @cached_property
     def block_cursor(self):
