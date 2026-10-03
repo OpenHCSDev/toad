@@ -55,3 +55,33 @@ restoration owner), AGENT-6 (avoid merely relocating the two algorithms).
 Scoped338 accepted receipts remain qualified independently. This new source
 checkpoint has not yet passed changed installed IRC/DM End acceptance. The
 original failures, movie, app-exception gap and deadlines remain unchanged.
+
+## Batched source sanity
+
+Existing NRA parsing now covers all 285 source, 39 performance and 390 test
+modules, zero omissions. Before: both leaves declare `_jump_latest`, native
+also declares `_anchor_latest`, Working constructs `LatestViewportRequest` and
+its application calls back to `owner.request_latest`. After: one inherited
+`TranscriptSourcePreparation._jump_latest`, two source-specific `_publish_latest`
+hooks, no `_anchor_latest`, one production request construction in the public
+entrypoint; Working/application retain that request. Three fixture callers
+were migrated including callback references passed through `partial`.
+Raw before/after: `.artifacts/shared-history-source338/destination-owner-*.json`.
+
+Changed source compile/import passed with real existing dependencies. Runtime
+method resolution confirms both leaves inherit the identical `_jump_latest`
+function and native no longer declares `_anchor_latest`.
+
+One bounded actual native page sanity passed, using the existing private route
+initializer and existing dependencies (no environment/build/provider/recording).
+It retained the same page and 17 original mounted bodies, preserved source order,
+and remained at 42 materialized widgets below the 300-widget resource bound;
+no Agent was attached and application exception was None. The fixture now uses
+`runtime_fixture.private_native_wire` instead of independently initializing a
+wire without its route attestation. Evidence:
+`.artifacts/shared-history-destination355/native-page01/receipt.json` and log.
+This is source/component sanity, **not** installed saved-session IRC/DM End
+acceptance. Source files were loaded from this checkout; dependencies were reused
+from the existing matching holder without modifying it. Resources warned about
+6.5 GiB home / 7.6 GiB root / 12.7 GiB swap; this one bounded component case
+reused installed dependencies and did not spawn a native Agent/provider.
